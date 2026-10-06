@@ -1,0 +1,31 @@
+{
+  "name": "@cursos/db",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:migrate:deploy": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "1.0.0-rc.4",
+    "pg": "^8.23.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cursos/config": "workspace:*",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "1.0.0-rc.4",
+    "supabase": "^2.119.0",
+    "typescript": "catalog:",
+    "varlock": "catalog:"
+  }
+}

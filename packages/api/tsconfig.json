@@ -1,0 +1,7 @@
+{
+  "extends": "@cursos/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strictNullChecks": true
+  }
+}
