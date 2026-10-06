@@ -19,14 +19,15 @@ const TITLE_TEXT = `
     ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
  `;
 
+const STATUS_LABEL = {
+  error: "Disconnected",
+  pending: "Checking...",
+  success: "Connected",
+} as const;
+
 export default function Home() {
   const healthCheck = useQuery(trpc.healthCheck.queryOptions());
-  let status = "Disconnected";
-  if (healthCheck.isLoading) {
-    status = "Checking...";
-  } else if (healthCheck.data) {
-    status = "Connected";
-  }
+  const status = STATUS_LABEL[healthCheck.status];
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-2">
