@@ -35,9 +35,11 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 ### `packages/ui` (`@cursos/ui`)
 
-- Componentes shadcn em `src/components/`, `cn` em `src/lib/utils.ts`, tokens em `src/styles/globals.css`. Importe por caminho: `@cursos/ui/components/button`.
-- Componente novo: `bunx shadcn@latest add <nome>` dentro de `apps/web`; o `components.json` de lá manda o arquivo para `packages/ui`. Os componentes são Base UI: composição por `render`, sem `asChild`.
-- Arquivos gerados pelo shadcn têm regras do Biome desligadas no `biome.jsonc`. Ajuste de comportamento entra no componente do app que os usa.
+- Todos os componentes de UI do registro `@shadcn` (estilo `base-lyra`) já estão em `src/components/`, exceto `toast` (o app usa o `sonner`) e `direction` (só RTL). Hooks em `src/hooks/`, `cn` em `src/lib/utils.ts`, tokens em `src/styles/globals.css`. Importe por caminho: `@cursos/ui/components/button`.
+- Antes de escrever UI, liste `src/components/` e componha com o que existe. Os componentes são Base UI: composição por `render`, sem `asChild`. Ícones vêm do `lucide-react`. O `TooltipProvider` já envolve o app em `apps/web/src/components/providers.tsx`.
+- Componente novo ou bloco: `bunx --bun shadcn@latest add <nome>` **dentro de `packages/ui`**, onde os aliases levam hooks para `@cursos/ui/hooks`. Rodado em `apps/web`, o hook cai no app e o componente de `packages/ui` não compila. Para buscar no registro: `bunx --bun shadcn@latest search @shadcn -q <termo>` ou o MCP `shadcn`.
+- Quando o `add` pergunta se sobrescreve um arquivo existente, ele trava sem TTY. Num agente, rode `yes n | bunx --bun shadcn@latest add ...` para manter os existentes, e só use `--overwrite` com pedido do dono.
+- O Biome não roda lint em `src/components/`, `src/hooks/` e `src/lib/utils.ts` (override no `biome.jsonc`), porque o `shadcn add` regenera esses arquivos. Ajuste de comportamento entra no componente do app que os usa.
 
 ### Raiz
 
