@@ -9,7 +9,7 @@
     ],
     "catalog": {
       "zod": "^4.5.4",
-      "typescript": "^6.0.3",
+      "typescript": "^7.0.2",
       "@types/node": "^26.4.1",
       "varlock": "1.21.1",
       "lucide-react": "^1.41.0",
