@@ -27,6 +27,7 @@ import {
   CERTIFICADO_A,
   COMUNICADO,
   CURSOS,
+  codigoCertificado,
   LIBERADA_POR,
   POSICAO_A,
   PROGRESSO_A,
@@ -359,7 +360,7 @@ async function semear(url: string, alunoA: string) {
 
     const emitidoEm = diasAtras(hoje, 20, 16);
     await tx.insert(certificado).values({
-      codigo: CERTIFICADO_A.codigo,
+      codigo: codigoCertificado(CERTIFICADO_A.prefixo, alunoA),
       cursoId: idCurso(CERTIFICADO_A.curso),
       emitidoEm,
       userId: alunoA,

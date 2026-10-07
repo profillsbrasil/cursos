@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 // Dados de EXEMPLO para o banco local e para a demonstração do dono.
 // Nomes de curso, módulos e códigos vêm do protótipo "Profills School Academia".
 // Alunos, progresso, datas e pontos são exemplo e não descrevem pessoa real.
@@ -264,9 +266,20 @@ export const POSICAO_A = {
 };
 
 export const CERTIFICADO_A = {
-  codigo: "PS-M0-2026-0391",
   curso: "autoavaliacao",
+  prefixo: "PS-M0-2026",
 };
+
+// O código do certificado é único no banco: o sufixo sai do userId, então cada aluno de exemplo
+// tem o seu e o mesmo aluno recebe o mesmo código em toda execução.
+export function codigoCertificado(prefixo: string, userId: string): string {
+  const sufixo = createHash("sha1")
+    .update(userId)
+    .digest("hex")
+    .slice(0, 6)
+    .toUpperCase();
+  return `${prefixo}-${sufixo}`;
+}
 
 export const ALUNO_B = "user_seedB";
 
