@@ -110,12 +110,20 @@ export function retomada({
   historico: h,
 }: EntradaRetomada): Retomada | null {
   const emAndamento = cursos.filter(ehEstado("em_andamento"));
-  // 1 a 3: a última aula aberta, se ainda não foi assistida; senão a próxima do mesmo curso.
+  // 1 a 3: a última aula aberta, se ainda não foi assistida; senão a próxima não
+  // assistida do mesmo curso, na posição salva dela quando existir.
   const ultima = ultimaPosicao(emAndamento, h);
   if (ultima) {
-    return h.assistidas.has(ultima.aulaId)
-      ? continuar(ultima.item, ultima.item.estado.proximaAula, 0, h)
-      : continuar(ultima.item, ultima.aulaId, ultima.posicaoSeg, h);
+    if (!h.assistidas.has(ultima.aulaId)) {
+      return continuar(ultima.item, ultima.aulaId, ultima.posicaoSeg, h);
+    }
+    const proxima = ultima.item.estado.proximaAula;
+    return continuar(
+      ultima.item,
+      proxima,
+      h.posicoes.get(proxima)?.posicaoSeg ?? 0,
+      h
+    );
   }
   // 4: sem posição válida, o primeiro curso em andamento na ordem da tela.
   const [primeiro] = emAndamento;

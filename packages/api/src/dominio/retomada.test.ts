@@ -56,7 +56,7 @@ describe("retomada", () => {
     });
   });
 
-  test("última aula aberta já assistida leva à próxima não assistida no segundo 0", () => {
+  test("última aula aberta já assistida leva à próxima não assistida no segundo 0 quando ela não tem posição", () => {
     const h = historico({
       assistidas: [idAula("c", 0, 1), idAula("c", 0, 2)],
       posicoes: [[idAula("c", 0, 2), 500]],
@@ -66,6 +66,23 @@ describe("retomada", () => {
     );
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 3), posicaoSeg: 0 },
+      tipo: "continuar",
+    });
+  });
+
+  test("última aula aberta já assistida leva à próxima não assistida na posição salva dela", () => {
+    const h = historico({
+      assistidas: [idAula("c", 0, 1), idAula("c", 0, 2)],
+      posicoes: [
+        [idAula("c", 0, 3), 300, "2026-10-06T12:00:00.000Z"],
+        [idAula("c", 0, 1), 120, "2026-10-07T12:00:00.000Z"],
+      ],
+    });
+    const r = retomada(
+      entrada([naTela(c, andamento(c, idAula("c", 0, 3)))], h)
+    );
+    expect(r).toMatchObject({
+      aula: { faltaSeg: 280, id: idAula("c", 0, 3), posicaoSeg: 300 },
       tipo: "continuar",
     });
   });
