@@ -43,7 +43,8 @@ function LinhaDaVez({ trilha }: { trilha: TrilhaVM }) {
   );
 }
 
-// O cartão é link para o curso da vez; sem curso da vez, não é link.
+// O cartão é link para o curso da vez; sem curso da vez, não é link. Sem aria-label:
+// o leitor lê o conteúdo (título, progresso, "Agora:" e o selo com o estado real).
 export function CartaoTrilha({ trilha }: { trilha: TrilhaVM }) {
   const [primeiro] = trilha.cursos;
   const conteudo = (
@@ -88,7 +89,6 @@ export function CartaoTrilha({ trilha }: { trilha: TrilhaVM }) {
   }
   return (
     <Link
-      aria-label={`${trilha.titulo}: continuar em ${trilha.daVez.titulo}`}
       className={cn(
         CARTAO,
         "transition-shadow hover:ring-ceu focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
