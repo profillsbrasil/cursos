@@ -153,7 +153,7 @@ export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
   }
 }
 
-const precoDoCartao = (c: CartaoDeTroca): number =>
+const precoParaOrdenar = (c: CartaoDeTroca): number =>
   c.tipo === "trocado" ? c.pago : c.preco;
 
 export interface PainelDeTroca {
@@ -168,19 +168,19 @@ export interface PainelDeTroca {
 export interface LinhasDaTroca {
   cursos: readonly CursoDaTroca[];
   extrato: readonly LinhaDoExtrato[];
-  pontos: { saldo: number; semana: number };
+  pontos: { saldo: number; entradasDaSemana: number };
 }
 
 export function montarPainelDeTroca(
   linhas: LinhasDaTroca,
   hoje: DiaISO
 ): PainelDeTroca {
-  const { saldo, semana } = linhas.pontos;
+  const { saldo, entradasDaSemana } = linhas.pontos;
   const cartoes = linhas.cursos
     .flatMap((c) => cartao(c, saldo) ?? [])
     .sort(
       (a, b) =>
-        precoDoCartao(a) - precoDoCartao(b) ||
+        precoParaOrdenar(a) - precoParaOrdenar(b) ||
         a.curso.titulo.localeCompare(b.curso.titulo, "pt-BR")
     );
   return {
@@ -188,7 +188,7 @@ export function montarPainelDeTroca(
     comoGanhar: comoGanhar(),
     extrato: linhas.extrato.map(itemDoExtrato),
     hoje,
-    pontosSemana: semana,
+    pontosSemana: entradasDaSemana,
     saldo,
   };
 }
@@ -198,6 +198,17 @@ export type RecusaDaTroca =
   | { tipo: "ja_tem" }
   | { tipo: "preco_mudou"; preco: number }
   | { tipo: "saldo_curto"; faltam: number };
+
+export const CODIGO_DA_RECUSA = {
+  indisponivel: "NOT_FOUND",
+  ja_tem: "CONFLICT",
+  preco_mudou: "CONFLICT",
+  saldo_curto: "PRECONDITION_FAILED",
+} as const satisfies Record<RecusaDaTroca["tipo"], string>;
+
+export const CODIGOS_DE_RECUSA: ReadonlySet<string> = new Set(
+  Object.values(CODIGO_DA_RECUSA)
+);
 
 export type Decisao =
   | { tipo: "debitar"; preco: number }

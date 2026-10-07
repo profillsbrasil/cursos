@@ -50,8 +50,10 @@ export const fmtVelocidade = (v: number) => `${NUMERO.format(v)}×`;
 
 export const fmtNum = (n: number) => NUMERO.format(n);
 
+const SINAL_DE_MENOS = "\u2212";
+
 export const fmtPtsComSinal = (n: number) =>
-  n < 0 ? `−${fmtPts(-n)}` : `+${fmtPts(n)}`;
+  n < 0 ? `${SINAL_DE_MENOS}${fmtPts(-n)}` : `+${fmtPts(n)}`;
 
 const DIA_DA_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MES = [

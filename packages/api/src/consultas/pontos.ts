@@ -12,13 +12,13 @@ export async function linhasDoSaldo(
   exec: Executor,
   userId: string,
   segunda: DiaISO
-): Promise<{ saldo: number; semana: number }> {
+): Promise<{ saldo: number; entradasDaSemana: number }> {
   const [linha] = await exec
     .select({
-      saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
-      semana: sql<number>`coalesce(sum(${pontoLancamento.pontos}) filter (
+      entradasDaSemana: sql<number>`coalesce(sum(${pontoLancamento.pontos}) filter (
           where ${pontoLancamento.pontos} > 0
             and ${pontoLancamento.criadoEm} >= (${segunda}::date)::timestamp at time zone ${FUSO}), 0)::int`,
+      saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
     })
     .from(pontoLancamento)
     .where(eq(pontoLancamento.userId, userId));

@@ -1,6 +1,9 @@
 "use client";
 
-import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
+import {
+  type CartaoDeTroca as Cartao,
+  CODIGOS_DE_RECUSA,
+} from "@cursos/api/dominio/troca";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { TRPCClientError } from "@trpc/client";
@@ -25,10 +28,8 @@ import { BOTAO, BOTAO_CONTORNO } from "./botoes";
 type PodeTrocar = Extract<Cartao, { tipo: "pode_trocar" }>;
 type Momento = "parado" | "confirmando" | "enviando";
 
-const RECUSAS = new Set(["CONFLICT", "NOT_FOUND", "PRECONDITION_FAILED"]);
-
 function mensagemDoErro(e: unknown) {
-  if (e instanceof TRPCClientError && RECUSAS.has(e.data?.code)) {
+  if (e instanceof TRPCClientError && CODIGOS_DE_RECUSA.has(e.data?.code)) {
     return e.message;
   }
   return "Não deu para confirmar a troca. Confira seu saldo e o extrato antes de tentar de novo.";
@@ -44,12 +45,12 @@ function Acao({
   acoes,
   cartao,
   momento,
-  principal,
+  alvoDoFoco,
 }: {
   acoes: AcoesDoCartao;
   cartao: Cartao;
   momento: Momento;
-  principal: (el: HTMLElement | null) => void;
+  alvoDoFoco: (el: HTMLElement | null) => void;
 }) {
   const { curso } = cartao;
   switch (cartao.tipo) {
@@ -59,7 +60,7 @@ function Acao({
           <Link
             className={cn(BOTAO, "w-full")}
             href={`/cursos/${curso.slug}`}
-            ref={principal}
+            ref={alvoDoFoco}
           >
             <Play aria-hidden="true" className="fill-current" />
             Começar curso
@@ -113,7 +114,7 @@ function Acao({
           <Button
             className={cn(BOTAO, "w-full")}
             onClick={acoes.trocar}
-            ref={principal}
+            ref={alvoDoFoco}
           >
             <Gift aria-hidden="true" />
             Trocar por {fmtPts(cartao.preco)}
@@ -123,9 +124,9 @@ function Acao({
       return (
         <Confirmacao
           acoes={acoes}
+          alvoDoFoco={alvoDoFoco}
           cartao={cartao}
           enviando={momento === "enviando"}
-          principal={principal}
         />
       );
     default:
@@ -137,12 +138,12 @@ function Confirmacao({
   acoes,
   cartao,
   enviando,
-  principal,
+  alvoDoFoco,
 }: {
   acoes: AcoesDoCartao;
   cartao: PodeTrocar;
   enviando: boolean;
-  principal: (el: HTMLElement | null) => void;
+  alvoDoFoco: (el: HTMLElement | null) => void;
 }) {
   const id = `confirma-${cartao.curso.id}`;
   const { cancelar } = acoes;
@@ -173,7 +174,7 @@ function Confirmacao({
           focusableWhenDisabled
           onClick={acoes.confirmar}
           onKeyDown={aoTeclar}
-          ref={principal}
+          ref={alvoDoFoco}
         >
           {enviando ? (
             <Loader2
@@ -220,10 +221,10 @@ export function CartaoDeTroca({
   const [enviando, iniciar] = useTransition();
   const card = useRef<HTMLElement>(null);
   const titulo = useRef<HTMLHeadingElement>(null);
-  const principal = useRef<HTMLElement | null>(null);
+  const alvoDoFoco = useRef<HTMLElement | null>(null);
   const querFoco = useRef<boolean>(false);
-  const marcarPrincipal = useCallback((el: HTMLElement | null) => {
-    principal.current = el;
+  const marcarAlvoDoFoco = useCallback((el: HTMLElement | null) => {
+    alvoDoFoco.current = el;
   }, []);
 
   let momento: Momento = "parado";
@@ -242,7 +243,7 @@ export function CartaoDeTroca({
     if (ativo && ativo !== document.body && !card.current?.contains(ativo)) {
       return;
     }
-    (cartao.tipo === "faltam" ? titulo.current : principal.current)?.focus();
+    (cartao.tipo === "faltam" ? titulo.current : alvoDoFoco.current)?.focus();
   }, [momento, cartao.tipo]);
 
   const { curso } = cartao;
@@ -336,9 +337,9 @@ export function CartaoDeTroca({
       <div className="grid gap-2.5 px-1.5 pt-3">
         <Acao
           acoes={acoes}
+          alvoDoFoco={marcarAlvoDoFoco}
           cartao={cartao}
           momento={momento}
-          principal={marcarPrincipal}
         />
       </div>
     </article>

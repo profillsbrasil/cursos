@@ -141,10 +141,14 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       pago: 300,
       tipo: "trocado",
     });
+    const [trocado] = await db
+      .select({ titulo: curso.titulo })
+      .from(curso)
+      .where(eq(curso.id, c));
     expect(painel.extrato[0]).toMatchObject({
       id: r.lancamentoId,
       pontos: -300,
-      texto: expect.stringContaining("Troca: Troca feita "),
+      texto: `Troca: ${trocado?.titulo}`,
     });
     const [lib] = await db
       .select({ por: liberacao.liberadaPor })

@@ -30,7 +30,7 @@ import { COTA_VIDEO } from "../dominio/regras";
 import type { AulaId, DiaISO } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
 import { COM_CONTEUDO } from "./catalogo";
-import { ativasDo, type Executor } from "./comum";
+import { type Executor, relacaoLiberacoesAtivas } from "./comum";
 
 export type ChaveCurso = { aulaId: string } | { slug: string };
 
@@ -53,7 +53,7 @@ export async function linhasDoCurso(
           : { modulos: { aulas: { id: chave.aulaId } } },
       with: {
         ...COM_CONTEUDO.with,
-        liberacoes: ativasDo(userId),
+        liberacoes: relacaoLiberacoesAtivas(userId),
         naTrilha: {
           columns: {},
           with: {
@@ -64,7 +64,7 @@ export async function linhasDoCurso(
                   columns: { posicao: true },
                   with: { curso: COM_CONTEUDO },
                 },
-                liberacoes: ativasDo(userId),
+                liberacoes: relacaoLiberacoesAtivas(userId),
               },
             },
           },

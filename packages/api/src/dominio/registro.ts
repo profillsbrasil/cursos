@@ -96,7 +96,7 @@ const MOTIVOS_GRAVADOS: Record<LancamentoNovo["motivo"], true> = {
   sequencia_7_dias: true,
 };
 
-export const pontuaHoje = (motivo: string): boolean =>
+export const pontuaHoje = (motivo: keyof typeof PONTOS): boolean =>
   Object.hasOwn(MOTIVOS_GRAVADOS, motivo);
 
 export interface EfeitosDaAssistida {

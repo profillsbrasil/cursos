@@ -221,7 +221,7 @@ describe("montarPainelDeTroca", () => {
           curso({ acesso: { tipo: "liberado" }, id: "tem" as CursoId }),
         ],
         extrato: [],
-        pontos: { saldo: 410, semana: 40 },
+        pontos: { entradasDaSemana: 40, saldo: 410 },
       },
       HOJE
     );

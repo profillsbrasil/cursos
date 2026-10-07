@@ -27,7 +27,7 @@ export function CursosParaTrocar({
 }) {
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
-  const [destaque, setDestaque] = useState<string | null>(null);
+  const [lancamentoNovoId, setLancamentoNovoId] = useState<string | null>(null);
 
   function abrir(id: CursoId) {
     setAviso(null);
@@ -40,7 +40,7 @@ export function CursosParaTrocar({
 
   function trocou(lancamentoId: string) {
     setAviso(AVISO);
-    setDestaque(lancamentoId);
+    setLancamentoNovoId(lancamentoId);
   }
 
   const podeTrocar = cartoes.filter((c) => c.tipo === "pode_trocar").length;
@@ -97,7 +97,11 @@ export function CursosParaTrocar({
         subtitulo="Pontos que entraram e saíram"
         titulo="Extrato recente"
       >
-        <Extrato destaque={destaque} hoje={hoje} itens={extrato} />
+        <Extrato
+          hoje={hoje}
+          itens={extrato}
+          lancamentoNovoId={lancamentoNovoId}
+        />
       </Secao>
     </>
   );

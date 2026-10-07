@@ -19,7 +19,7 @@ type Item = { icone: LucideIcon; nome: string } & (
   | {
       tipo: "link";
       href: Route;
-      secao: readonly string[];
+      outrosPrefixos: readonly string[];
     }
   | { tipo: "em_breve" }
 );
@@ -30,14 +30,14 @@ const ITENS: readonly Item[] = [
     href: "/meus-cursos",
     icone: BookOpen,
     nome: "Meus cursos",
-    secao: ["/cursos"],
+    outrosPrefixos: ["/cursos"],
     tipo: "link",
   },
   {
     href: "/trocar-pontos",
     icone: Gift,
     nome: "Trocar pontos",
-    secao: [],
+    outrosPrefixos: [],
     tipo: "link",
   },
   { icone: Award, nome: "Conquistas", tipo: "em_breve" },
@@ -47,12 +47,14 @@ const ITENS: readonly Item[] = [
 function atual(
   caminho: string,
   href: string,
-  secao: readonly string[]
+  outrosPrefixos: readonly string[]
 ): "page" | "true" | undefined {
   if (caminho === href) {
     return "page";
   }
-  const filha = [href, ...secao].some((p) => caminho.startsWith(`${p}/`));
+  const filha = [href, ...outrosPrefixos].some((p) =>
+    caminho.startsWith(`${p}/`)
+  );
   return filha ? "true" : undefined;
 }
 
@@ -84,7 +86,7 @@ export function NavPrincipal() {
               </SidebarMenuItem>
             );
           }
-          const ariaCurrent = atual(caminho, item.href, item.secao);
+          const ariaCurrent = atual(caminho, item.href, item.outrosPrefixos);
           return (
             <SidebarMenuItem key={item.nome}>
               <SidebarMenuButton

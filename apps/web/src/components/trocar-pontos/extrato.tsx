@@ -4,11 +4,11 @@ import { cn } from "@cursos/ui/lib/utils";
 import { fmtPtsComSinal, quando } from "@/lib/formato";
 
 export function Extrato({
-  destaque,
+  lancamentoNovoId,
   hoje,
   itens,
 }: {
-  destaque: string | null;
+  lancamentoNovoId: string | null;
   hoje: string;
   itens: readonly ItemDoExtrato[];
 }) {
@@ -22,7 +22,7 @@ export function Extrato({
   return (
     <ul className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
       {itens.map((item) => {
-        const novo = item.id === destaque;
+        const novo = item.id === lancamentoNovoId;
         return (
           <li
             className={cn(

@@ -6,6 +6,7 @@ import { DrizzleQueryError } from "drizzle-orm";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { CursoId } from "../dominio/tipos";
 import {
+  CODIGO_DA_RECUSA,
   type CursoDaTroca,
   decidirTroca,
   montarPainelDeTroca,
@@ -13,7 +14,11 @@ import {
   paraCursoDaTroca,
   type RecusaDaTroca,
 } from "../dominio/troca";
-import { ativaDo, ativasDo, type Executor } from "./comum";
+import {
+  type Executor,
+  filtroLiberacaoAtiva,
+  relacaoLiberacoesAtivas,
+} from "./comum";
 import {
   comSaldoTravado,
   linhasDoExtrato,
@@ -28,7 +33,7 @@ export async function linhasDosCursos(
   userId: string,
   filtro: { cursoId: CursoId } | "vitrine"
 ): Promise<CursoDaTroca[]> {
-  const ativas = ativaDo(userId);
+  const ativas = filtroLiberacaoAtiva(userId);
   const linhas = await exec.query.curso.findMany({
     columns: {
       capaAlt: true,
@@ -62,7 +67,10 @@ export async function linhasDosCursos(
       naTrilha: {
         columns: {},
         with: {
-          trilha: { columns: {}, with: { liberacoes: ativasDo(userId) } },
+          trilha: {
+            columns: {},
+            with: { liberacoes: relacaoLiberacoesAtivas(userId) },
+          },
         },
       },
     },
@@ -92,22 +100,22 @@ function erroDaRecusa(r: RecusaDaTroca): TRPCError {
   switch (r.tipo) {
     case "indisponivel":
       return new TRPCError({
-        code: "NOT_FOUND",
+        code: CODIGO_DA_RECUSA[r.tipo],
         message: "Este curso não está disponível para troca.",
       });
     case "ja_tem":
       return new TRPCError({
-        code: "CONFLICT",
+        code: CODIGO_DA_RECUSA[r.tipo],
         message: "Você já tem este curso. Ele está em Meus cursos.",
       });
     case "preco_mudou":
       return new TRPCError({
-        code: "CONFLICT",
+        code: CODIGO_DA_RECUSA[r.tipo],
         message: `O preço deste curso mudou para ${r.preco} pts. Confira e troque de novo.`,
       });
     case "saldo_curto":
       return new TRPCError({
-        code: "PRECONDITION_FAILED",
+        code: CODIGO_DA_RECUSA[r.tipo],
         message: `Faltam ${r.faltam} pts para trocar este curso.`,
       });
     default:
