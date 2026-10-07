@@ -35,6 +35,15 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 - Clientes e público aberto recebem trilhas liberadas do mesmo jeito; a compra ou a assinatura só libera trilhas.
 - A liberação é permanente. Ela só some se o admin revogar.
 - O aluno tem um Início separado da tela "Meus cursos".
+- Não há prazo de conclusão em liberação nenhuma.
+- A trilha Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
+- Existe gamificação individual: pontos, sequência de dias, medalhas e níveis. Não existe ranking nem comparação entre colegas.
+- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no quiz de fixação na primeira tentativa, 50 por prova aprovada, 100 por curso concluído, 500 por trilha concluída e 30 por 7 dias de sequência. Rever aula ou refazer prova não pontua de novo.
+- A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
+- Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
+- Cada aula pode ter um quiz de fixação com pontos só na primeira tentativa.
+- O admin publica comunicados (por exemplo, "Módulo 13 atualizado").
+- O protótipo anterior da plataforma é o artifact "Profills School Academia" (https://claude.ai/artifact/U7ySDnhvgN72ky4MgTgbu2). Ele serve de referência de funções, não de regra: o obrigatório, o prazo, o ranking e a paleta dele foram descartados.
 - O acesso é misto: curso pago avulso, assinatura, curso gratuito para certos usuários e acesso 100% gratuito para outros.
 - A empresa é a Profills Brasil, fabricante de máquinas para produtos líquidos, pastosos e sólidos. O site institucional fica em outro repositório (`site-profills-brasil`).
 
@@ -60,6 +69,9 @@ Decisões abertas:
 - Se o certificado tem valor formal (carga horária, validação externa) ou é só comprovante interno.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
 - A nota mínima e o limite de tentativas da prova.
+- Se a plataforma se chama "Profills School", como no protótipo anterior e na página do site, ou outro nome.
+- Os níveis e as medalhas exatos (o protótipo anterior tinha os níveis Vendedor, Consultor e Especialista e 8 medalhas).
+- Se ponto vence e se existe teto diário de pontos vindos de vídeo.
 - Os perfis de acesso exatos além de aluno e admin. Os termos trilha, liberação e admin ainda precisam entrar num `GLOSSARY.md`, que não existe.
 
 ## Brand Commitments
