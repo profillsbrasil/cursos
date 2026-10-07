@@ -34,6 +34,7 @@ const ALUNO_AVISO = `user_teste${S}d`;
 const ALUNO_DIRETO = `user_teste${S}e`;
 const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
 const ALUNO_REVOGADO_TRILHA = `user_teste${S}g`;
+const ALUNO_MESMO_INSTANTE = `user_teste${S}h`;
 const ALUNOS = [
   ALUNO_A,
   ALUNO_B,
@@ -42,6 +43,7 @@ const ALUNOS = [
   ALUNO_DIRETO,
   ALUNO_REVOGADO_DIRETO,
   ALUNO_REVOGADO_TRILHA,
+  ALUNO_MESMO_INSTANTE,
 ];
 
 // quarta-feira, 2026-10-07, 15:00 em São Paulo
@@ -349,6 +351,31 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await publicar(revogada.cursos[0], "2093-01-02T00:00:00Z", `Revogado ${S}`);
     const painel = await carregarPainel(db, ALUNO_REVOGADO_TRILHA, AGORA);
     expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
+  });
+
+  test("duas liberações no mesmo instante saem na ordem do id (item 25)", async () => {
+    const um = await criarTrilha(1);
+    const dois = await criarTrilha(1);
+    // Um insert só: o default now() dá o mesmo liberada_em às duas linhas. A
+    // ordem de inserção é a inversa da ordem dos ids, então só o desempate por id
+    // põe a trilha "um" primeiro.
+    const [menor, maior] = [crypto.randomUUID(), crypto.randomUUID()].sort();
+    await db.insert(liberacao).values([
+      {
+        id: maior,
+        liberadaPor: "user_admin",
+        trilhaId: dois.id,
+        userId: ALUNO_MESMO_INSTANTE,
+      },
+      {
+        id: menor,
+        liberadaPor: "user_admin",
+        trilhaId: um.id,
+        userId: ALUNO_MESMO_INSTANTE,
+      },
+    ]);
+    const painel = await carregarPainel(db, ALUNO_MESMO_INSTANTE, AGORA);
+    expect(painel.trilhas.map((t) => String(t.id))).toEqual([um.id, dois.id]);
   });
 
   test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {

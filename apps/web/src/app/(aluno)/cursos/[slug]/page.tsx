@@ -1,34 +1,53 @@
-import { cursoQueAbre } from "@cursos/api/dominio/painel";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { carregarPainel } from "@/server/api";
+import { notFound, redirect } from "next/navigation";
+
+import { caminhoDaAula } from "@/lib/rotas";
+import { carregarEntrada } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Profills School" };
 
-// Stub: o player chega no próximo PR. Só abre curso liberado que não está em breve nem bloqueado.
+// Curso em andamento ou não iniciado vai direto para a aula de retomada. Prova e
+// concluído ficam aqui até a tela da prova existir.
 export default async function Curso({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const [{ slug }, painel] = await Promise.all([params, carregarPainel()]);
-  const curso = cursoQueAbre(painel, slug);
-  if (!curso) {
+  const { slug } = await params;
+  const entrada = await carregarEntrada(slug);
+  if (!entrada) {
     notFound();
+  }
+  if (entrada.tipo === "aula") {
+    redirect(caminhoDaAula(slug, entrada.aulaId));
   }
   return (
     <div className="grid gap-3">
       <h1 className="font-bold text-3xl text-titulo tracking-tight">
-        {curso.titulo}
+        {entrada.tipo === "prova"
+          ? "Você assistiu a todas as aulas"
+          : "Curso concluído"}
       </h1>
-      <p className="text-muted-foreground">O player chega no próximo PR.</p>
-      <Link
-        className="text-ceu underline underline-offset-4"
-        href="/meus-cursos"
-      >
-        Voltar para Meus cursos
-      </Link>
+      <p className="text-muted-foreground">
+        {entrada.tipo === "prova"
+          ? "A prova chega no próximo PR."
+          : "Seu certificado já foi emitido."}
+      </p>
+      <div className="flex flex-wrap gap-4">
+        <Link
+          className="text-ceu underline underline-offset-4"
+          href={caminhoDaAula(slug, entrada.primeira)}
+        >
+          Rever aulas
+        </Link>
+        <Link
+          className="text-ceu underline underline-offset-4"
+          href="/meus-cursos"
+        >
+          Voltar para Meus cursos
+        </Link>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { cursoCat, historico, idAula } from "./exemplo";
-import { type CursoNaTela, retomada } from "./retomada";
+import { aulaDeRetomada, type CursoNaTela, retomada } from "./retomada";
 import type {
   AulaId,
   CursoCatalogo,
@@ -210,5 +210,44 @@ describe("retomada", () => {
       entrada([naTela(c, { certificado, tipo: "concluido" })], historico({}))
     );
     expect(r).toBeNull();
+  });
+});
+
+describe("retomada pela atividade mais recente (item 24)", () => {
+  const a = cursoCat("a", { aulas: [3] });
+  const b = cursoCat("b", { aulas: [3] });
+  const h = historico({
+    assistidas: [idAula("b", 0, 1)],
+    posicoes: [[idAula("a", 0, 2), 120, "2026-09-10T12:00:00.000Z"]],
+  });
+  const atividade = new Map([
+    [idAula("a", 0, 2) as AulaId, "2026-09-10T12:00:00.000Z"],
+    [idAula("b", 0, 1) as AulaId, "2026-10-07T15:00:00.000Z"],
+  ]);
+  const cursos = [
+    naTela(a, andamento(a, idAula("a", 0, 1))),
+    naTela(b, andamento(b, idAula("b", 0, 2))),
+  ];
+
+  test("curso B com aula assistida hoje vence curso A com posição de semanas atrás", () => {
+    const r = retomada({ atividade, cursos, historico: h });
+    expect(r?.tipo === "continuar" && r.curso.slug).toBe("b");
+    expect(r?.tipo === "continuar" && String(r.aula.id)).toBe(
+      idAula("b", 0, 2)
+    );
+  });
+
+  test("banner e entrada do curso levam à mesma aula", () => {
+    const r = retomada({ atividade, cursos, historico: h });
+    const daEntrada = aulaDeRetomada(
+      b,
+      andamento(b, idAula("b", 0, 2)) as Extract<
+        EstadoCurso,
+        { tipo: "em_andamento" }
+      >,
+      h,
+      atividade
+    );
+    expect(r?.tipo === "continuar" && r.aula.id).toBe(daEntrada.aulaId);
   });
 });

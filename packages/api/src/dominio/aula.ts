@@ -1,0 +1,282 @@
+import {
+  abre,
+  type EstadoQueAbre,
+  estadoDoCurso,
+  estadosDaTrilha,
+  type Progresso,
+  progresso,
+} from "./curso";
+import { atividadeDe, historicoDe } from "./historico";
+import { type CursoLinha, paraCatalogo } from "./painel";
+import { FIM_DA_AULA_SEG } from "./regras";
+import { aulaDeRetomada } from "./retomada";
+import type {
+  AulaCatalogo,
+  AulaId,
+  CursoCatalogo,
+  CursoId,
+  DiaISO,
+  Historico,
+  ModuloCatalogo,
+  TrilhaId,
+  VideoDaAula,
+} from "./tipos";
+import { canonizar, type Trecho, type Trechos } from "./trechos";
+
+/** Forma da relational query de consultas/aula.ts. */
+export interface CursoComAcessoLinha extends CursoLinha {
+  /** Liberações ativas diretas deste curso, só do aluno. */
+  liberacoes: readonly { id: string }[];
+  naTrilha: {
+    trilha: {
+      cursos: readonly { curso: CursoLinha; posicao: number }[];
+      descricao: string;
+      id: string;
+      /** Liberações ativas da trilha, só do aluno. */
+      liberacoes: readonly { id: string }[];
+      slug: string;
+      titulo: string;
+    };
+  } | null;
+}
+
+/** Linhas cruas de consultas/aula.ts. Cabe em LinhasHistorico. */
+export interface LinhasCurso {
+  assistidas: readonly { assistidaEm: Date; aulaId: string; dia: string }[];
+  certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
+  /** null: slug ou aula que não existe. */
+  curso: CursoComAcessoLinha | null;
+  posicoes: readonly {
+    atualizadaEm: Date;
+    aulaId: string;
+    posicaoSeg: number;
+    trechosVistos: readonly Trecho[];
+  }[];
+}
+
+/** Um curso que o aluno pode abrir, com o que a página e o registro precisam dele. */
+export interface CursoAberto {
+  atividade: ReadonlyMap<AulaId, string>;
+  curso: CursoCatalogo;
+  /** Dias com aula assistida pela primeira vez: a base da sequência. */
+  dias: ReadonlySet<DiaISO>;
+  estado: EstadoQueAbre;
+  historico: Historico;
+  trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
+  trilha: { titulo: string } | null;
+}
+
+/**
+ * null sem liberação ativa (direta ou pela trilha) ou com o curso em_breve ou
+ * bloqueado. O estado sai das mesmas funções do painel.
+ */
+export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
+  const linha = linhas.curso;
+  if (!linha) {
+    return null;
+  }
+  const direto = linha.liberacoes.length > 0;
+  const trilhaLinha = linha.naTrilha?.trilha;
+  const pelaTrilha = (trilhaLinha?.liberacoes.length ?? 0) > 0;
+  if (!(direto || pelaTrilha)) {
+    return null;
+  }
+  // Como no painel (consulta 3), posição 0 não conta como começo de curso.
+  const comPosicao = {
+    ...linhas,
+    posicoes: linhas.posicoes.filter((p) => p.posicaoSeg > 0),
+  };
+  const historico = historicoDe(comPosicao);
+  const curso = paraCatalogo(linha);
+  let estado = estadoDoCurso(curso, historico, { tipo: "livre" });
+  if (trilhaLinha && pelaTrilha) {
+    const cursos = [...trilhaLinha.cursos]
+      .sort((a, b) => a.posicao - b.posicao)
+      .map((x) => paraCatalogo(x.curso));
+    const estados = estadosDaTrilha(
+      {
+        cursos,
+        descricao: trilhaLinha.descricao,
+        id: trilhaLinha.id as TrilhaId,
+        slug: trilhaLinha.slug,
+        titulo: trilhaLinha.titulo,
+      },
+      historico,
+      new Set<CursoId>(direto ? [curso.id] : [])
+    );
+    estado = estados[cursos.findIndex((c) => c.id === curso.id)] ?? estado;
+  }
+  if (!abre(estado)) {
+    return null;
+  }
+  return {
+    atividade: atividadeDe(comPosicao),
+    curso,
+    dias: new Set(linhas.assistidas.map((a) => a.dia as DiaISO)),
+    estado,
+    historico,
+    trechos: new Map(
+      linhas.posicoes.map((p) => [p.aulaId as AulaId, p.trechosVistos])
+    ),
+    trilha: trilhaLinha && pelaTrilha ? { titulo: trilhaLinha.titulo } : null,
+  };
+}
+
+export interface AulaNaColuna {
+  assistida: boolean;
+  atual: boolean;
+  duracaoSeg: number;
+  id: AulaId;
+  titulo: string;
+}
+
+export interface ModuloNaColuna {
+  atual: boolean;
+  aulas: readonly AulaNaColuna[];
+  feitas: number;
+  numero: number;
+  titulo: string;
+}
+
+export interface VizinhaDaAula {
+  duracaoSeg: number;
+  id: AulaId;
+  titulo: string;
+}
+
+/** O view model da página do player. Nenhum Date. */
+export interface AulaNoPlayer {
+  anterior: VizinhaDaAula | null;
+  aula: {
+    duracaoSeg: number;
+    id: AulaId;
+    modulo: { numero: number; titulo: string };
+    numeroNoModulo: number;
+    titulo: string;
+    totalNoModulo: number;
+    /** null: "O vídeo desta aula ainda não foi publicado." */
+    video: VideoDaAula | null;
+  };
+  curso: {
+    estado: EstadoQueAbre["tipo"];
+    progresso: Progresso;
+    slug: string;
+    titulo: string;
+    trilha: { titulo: string } | null;
+  };
+  estudo: { assistida: boolean; posicaoSeg: number; trechos: Trechos };
+  /** A coluna da direita, o módulo atual aberto. */
+  modulos: readonly ModuloNaColuna[];
+  proxima: VizinhaDaAula | null;
+}
+
+interface AulaNoCurso {
+  aula: AulaCatalogo;
+  modulo: ModuloCatalogo;
+}
+
+const aulasEmOrdem = (c: CursoCatalogo): AulaNoCurso[] =>
+  c.modulos.flatMap((modulo) => modulo.aulas.map((aula) => ({ aula, modulo })));
+
+export const aulaPorId = (c: CursoAberto, id: string): AulaCatalogo | null =>
+  aulasEmOrdem(c.curso).find((x) => x.aula.id === id)?.aula ?? null;
+
+const vizinha = (x: AulaNoCurso | undefined): VizinhaDaAula | null =>
+  x
+    ? { duracaoSeg: x.aula.duracaoSeg, id: x.aula.id, titulo: x.aula.titulo }
+    : null;
+
+export function estudoDaAula(
+  c: CursoAberto,
+  aula: AulaCatalogo
+): AulaNoPlayer["estudo"] {
+  return {
+    assistida: c.historico.assistidas.has(aula.id),
+    posicaoSeg: c.historico.posicoes.get(aula.id)?.posicaoSeg ?? 0,
+    trechos: canonizar(c.trechos.get(aula.id) ?? [], aula.duracaoSeg),
+  };
+}
+
+export function montarAulaNoPlayer(
+  c: CursoAberto,
+  aula: AulaCatalogo
+): AulaNoPlayer {
+  const ordem = aulasEmOrdem(c.curso);
+  const i = ordem.findIndex((x) => x.aula.id === aula.id);
+  const modulo = ordem[i]?.modulo;
+  if (!modulo) {
+    throw new Error(`Aula ${aula.id} fora do curso ${c.curso.slug}`);
+  }
+  const { assistidas } = c.historico;
+  return {
+    anterior: vizinha(ordem[i - 1]),
+    aula: {
+      duracaoSeg: aula.duracaoSeg,
+      id: aula.id,
+      modulo: { numero: modulo.numero, titulo: modulo.titulo },
+      numeroNoModulo: aula.posicao,
+      titulo: aula.titulo,
+      totalNoModulo: modulo.aulas.length,
+      video: aula.video,
+    },
+    curso: {
+      estado: c.estado.tipo,
+      progresso: progresso(c.curso, assistidas),
+      slug: c.curso.slug,
+      titulo: c.curso.titulo,
+      trilha: c.trilha,
+    },
+    estudo: estudoDaAula(c, aula),
+    modulos: c.curso.modulos.map((m) => ({
+      atual: m === modulo,
+      aulas: m.aulas.map((a) => ({
+        assistida: assistidas.has(a.id),
+        atual: a.id === aula.id,
+        duracaoSeg: a.duracaoSeg,
+        id: a.id,
+        titulo: a.titulo,
+      })),
+      feitas: m.aulas.filter((a) => assistidas.has(a.id)).length,
+      numero: m.numero,
+      titulo: m.titulo,
+    })),
+    proxima: vizinha(ordem[i + 1]),
+  };
+}
+
+/** Para onde /cursos/[slug] manda. Prova e concluído ficam no stub, com link para rever. */
+export type EntradaDoCurso =
+  | { aulaId: AulaId; tipo: "aula" }
+  | { primeira: AulaId; tipo: "prova" | "concluido" };
+
+export function entradaDoCurso(c: CursoAberto): EntradaDoCurso {
+  const { estado } = c;
+  if (estado.tipo === "em_andamento" || estado.tipo === "nao_iniciado") {
+    const { aulaId } = aulaDeRetomada(
+      c.curso,
+      estado,
+      c.historico,
+      c.atividade
+    );
+    return { aulaId, tipo: "aula" };
+  }
+  const primeira = aulasEmOrdem(c.curso)[0]?.aula.id;
+  if (!primeira) {
+    throw new Error(`Curso ${c.curso.slug} aberto sem aulas`);
+  }
+  return { primeira, tipo: estado.tipo };
+}
+
+/**
+ * O segundo em que o vídeo abre. Sem posição, com a aula já assistida ou com a
+ * posição a menos de FIM_DA_AULA_SEG do fim, abre no 0.
+ */
+export function inicioDaAula(
+  estudo: { assistida: boolean; posicaoSeg: number },
+  duracaoSeg: number
+): number {
+  if (estudo.assistida || estudo.posicaoSeg >= duracaoSeg - FIM_DA_AULA_SEG) {
+    return 0;
+  }
+  return estudo.posicaoSeg;
+}

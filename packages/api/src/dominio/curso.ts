@@ -39,6 +39,15 @@ export function progresso(
   };
 }
 
+export type EstadoQueAbre = Exclude<
+  EstadoCurso,
+  { tipo: "em_breve" } | { tipo: "bloqueado" }
+>;
+
+/** A regra única de "o aluno pode abrir este curso". */
+export const abre = (e: EstadoCurso): e is EstadoQueAbre =>
+  e.tipo !== "em_breve" && e.tipo !== "bloqueado";
+
 export function estadoDoCurso(
   curso: CursoCatalogo,
   h: Historico,

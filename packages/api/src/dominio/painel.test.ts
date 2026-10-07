@@ -7,12 +7,7 @@ import {
   idAula,
   SEM_LIBERACAO,
 } from "./exemplo";
-import {
-  type CursoLinha,
-  cursoQueAbre,
-  type LinhasPainel,
-  montarPainel,
-} from "./painel";
+import { type CursoLinha, type LinhasPainel, montarPainel } from "./painel";
 
 const em = (iso: string) => new Date(iso);
 
@@ -212,40 +207,5 @@ describe("montarPainel com regras de liberação", () => {
       soltos: [],
       trilhas: [],
     });
-  });
-});
-
-describe("cursoQueAbre", () => {
-  test("abre curso liberado em andamento, não iniciado ou concluído", () => {
-    const painel = montarPainel(exemploDoPrototipo());
-    for (const slug of ["comercial", "seguranca-posto", "autoavaliacao"]) {
-      expect(cursoQueAbre(painel, slug)?.slug).toBe(slug);
-    }
-  });
-
-  test("não abre curso em breve, bloqueado ou fora do painel", () => {
-    const a = cursoLinha("a", { aulas: [2] });
-    const b = cursoLinha("b", { aulas: [2] });
-    const breve = cursoLinha("breve", { aulas: [2], status: "em_producao" });
-    const painel = montarPainel(
-      linhas({
-        liberacoes: [
-          {
-            curso: null,
-            liberadaEm: em("2026-08-01T00:00:00Z"),
-            trilha: trilhaLinha("t", [a, b]),
-          },
-          {
-            curso: breve,
-            liberadaEm: em("2026-08-02T00:00:00Z"),
-            trilha: null,
-          },
-        ],
-      })
-    );
-    expect(cursoQueAbre(painel, "b")?.estado.tipo ?? null).toBeNull();
-    expect(cursoQueAbre(painel, "breve")?.estado.tipo ?? null).toBeNull();
-    expect(cursoQueAbre(painel, "nao-existe")).toBeNull();
-    expect(cursoQueAbre(painel, "a")?.slug).toBe("a");
   });
 });

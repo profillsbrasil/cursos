@@ -68,33 +68,6 @@ const ehEstado =
   (x: CursoNaTela): x is ComEstado<T> =>
     x.estado.tipo === tipo;
 
-/** Posição mais recente entre as aulas dos cursos dados. */
-function ultimaPosicao(
-  cursos: readonly ComEstado<"em_andamento">[],
-  h: Historico
-) {
-  let melhor: {
-    aulaId: AulaId;
-    item: ComEstado<"em_andamento">;
-    posicaoSeg: number;
-    quando: string;
-  } | null = null;
-  for (const item of cursos) {
-    for (const aula of aulasDe(item.curso)) {
-      const p = h.posicoes.get(aula.id);
-      if (p && (!melhor || p.atualizadaEm > melhor.quando)) {
-        melhor = {
-          aulaId: aula.id,
-          item,
-          posicaoSeg: p.posicaoSeg,
-          quando: p.atualizadaEm,
-        };
-      }
-    }
-  }
-  return melhor;
-}
-
 const ultimaAtividade = (
   c: CursoCatalogo,
   atividade: ReadonlyMap<AulaId, string>
@@ -104,31 +77,66 @@ const ultimaAtividade = (
     return quando > max ? quando : max;
   }, "");
 
+export interface AulaDeRetomada {
+  aulaId: AulaId;
+  posicaoSeg: number;
+}
+
+/**
+ * Para onde um curso aberto leva: a aula de atividade mais recente, se ainda não
+ * foi assistida, na posição dela; senão a próxima não assistida, na posição salva
+ * dela ou no 0. O banner e /cursos/[slug] chamam esta função, então levam à mesma aula.
+ */
+export function aulaDeRetomada(
+  curso: CursoCatalogo,
+  estado: Extract<EstadoCurso, { tipo: "em_andamento" | "nao_iniciado" }>,
+  h: Historico,
+  atividade: ReadonlyMap<AulaId, string>
+): AulaDeRetomada {
+  if (estado.tipo === "nao_iniciado") {
+    return { aulaId: estado.primeiraAula, posicaoSeg: 0 };
+  }
+  let ultima: { aulaId: AulaId; quando: string } | null = null;
+  for (const aula of aulasDe(curso)) {
+    const quando = atividade.get(aula.id);
+    if (quando && (!ultima || quando > ultima.quando)) {
+      ultima = { aulaId: aula.id, quando };
+    }
+  }
+  const aulaId =
+    ultima && !h.assistidas.has(ultima.aulaId)
+      ? ultima.aulaId
+      : estado.proximaAula;
+  return { aulaId, posicaoSeg: h.posicoes.get(aulaId)?.posicaoSeg ?? 0 };
+}
+
 export function retomada({
   atividade,
   cursos,
   historico: h,
 }: EntradaRetomada): Retomada | null {
-  const emAndamento = cursos.filter(ehEstado("em_andamento"));
-  // 1 a 3: a última aula aberta, se ainda não foi assistida; senão a próxima não
-  // assistida do mesmo curso, na posição salva dela quando existir.
-  const ultima = ultimaPosicao(emAndamento, h);
-  if (ultima) {
-    if (!h.assistidas.has(ultima.aulaId)) {
-      return continuar(ultima.item, ultima.aulaId, ultima.posicaoSeg, h);
-    }
-    const proxima = ultima.item.estado.proximaAula;
-    return continuar(
-      ultima.item,
-      proxima,
-      h.posicoes.get(proxima)?.posicaoSeg ?? 0,
-      h
+  // 1 a 4: o curso em andamento de atividade mais recente (assistir ou salvar
+  // posição; veredito, item 24), e nele a aula de aulaDeRetomada. Empate fica
+  // com o primeiro na ordem da tela.
+  const emAndamento = cursos
+    .filter(ehEstado("em_andamento"))
+    .reduce<ComEstado<"em_andamento"> | null>(
+      (max, x) =>
+        !max ||
+        ultimaAtividade(x.curso, atividade) >
+          ultimaAtividade(max.curso, atividade)
+          ? x
+          : max,
+      null
     );
-  }
-  // 4: sem posição válida, o primeiro curso em andamento na ordem da tela.
-  const [primeiro] = emAndamento;
-  if (primeiro) {
-    return continuar(primeiro, primeiro.estado.proximaAula, 0, h);
+  if (emAndamento) {
+    const { aulaId, posicaoSeg } = aulaDeRetomada(
+      emAndamento.curso,
+      emAndamento.estado,
+      h,
+      atividade
+    );
+    return continuar(emAndamento, aulaId, posicaoSeg, h);
   }
   // 5: o curso em prova com a atividade mais recente.
   const emProva = cursos
