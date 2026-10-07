@@ -130,12 +130,17 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             </p>
             <Progresso {...retomada.progresso} titulo={retomada.curso.titulo} />
             {retomada.proximoNivel !== null && (
-              <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                <Award aria-hidden="true" className="size-4 text-ceu" />
-                Próximo nível:{" "}
-                <b className="font-semibold text-titulo">
-                  {retomada.proximoNivel}
-                </b>
+              <p className="flex items-start gap-1.5 text-muted-foreground text-sm">
+                <Award
+                  aria-hidden="true"
+                  className="mt-0.5 size-4 shrink-0 text-ceu"
+                />
+                <span>
+                  Próximo nível:{" "}
+                  <b className="font-semibold text-titulo">
+                    {retomada.proximoNivel}
+                  </b>
+                </span>
               </p>
             )}
           </>
