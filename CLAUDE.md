@@ -12,7 +12,7 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 - `src/proxy.ts`: `clerkMiddleware()` em todas as rotas, sem regra por caminho. No Next 16 o `middleware.ts` virou `proxy.ts`. O `createRouteMatcher` está depreciado no `@clerk/nextjs` 7: a proteção mora em `src/server/api.ts`.
 - `src/app/`: rotas. `layout.tsx` monta `ClerkProvider` (com o `appearance` escuro) e `Providers`, com `lang="pt-BR"` e `class="dark"` fixos no `<html>`; `page.tsx` redireciona para `/meus-cursos` até o Início existir; `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
-- `src/app/(aluno)/`: páginas do aluno. `layout.tsx` monta a sidebar e o topo e lê o resumo; `meus-cursos/` tem `page.tsx`, `loading.tsx` e `error.tsx`; `trocar-pontos/` tem os mesmos três; `cursos/[slug]/page.tsx` é o stub do player.
+- `src/app/(aluno)/`: páginas do aluno. `layout.tsx` monta a sidebar e o topo e lê o resumo; `error.tsx` é o erro das páginas do grupo; `meus-cursos/` tem `page.tsx` e `loading.tsx`; `trocar-pontos/` tem os dois e um `error.tsx` próprio, com o título da tela; `cursos/[slug]/page.tsx` é o stub do player.
 - `src/server/api.ts`: `server-only`. `carregarPainel`, `carregarResumo` e `carregarPainelDeTroca` chamam o router no processo por `createCaller`, com `React.cache` por request. O `caller` faz `auth.protect()`: quem não tem sessão vai para o login. Server Component busca dados por aqui, não pelo cliente de `utils/trpc.ts`.
 - `src/context.ts`: cria o contexto do tRPC por request. Valida o token do Clerk com `authenticateRequest`, aceitando só `authorizedParties: [ENV.CORS_ORIGIN]`, e entrega `{ auth: { userId } | null, db }`.
 - `src/services.ts`: o `db` único do app (`createDb(ENV)`).
