@@ -434,3 +434,17 @@ export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
     sequenciaDias,
   };
 }
+
+const NAO_ABRE: ReadonlySet<TipoEstado> = new Set(["em_breve", "bloqueado"]);
+
+/** O curso do painel com esse slug que o aluno pode abrir: liberado, publicado e fora de bloqueio. */
+export function cursoQueAbre(
+  painel: PainelMeusCursos,
+  slug: string
+): CursoVM | null {
+  const curso = [
+    ...painel.trilhas.flatMap((t) => t.cursos),
+    ...painel.soltos,
+  ].find((c) => c.slug === slug);
+  return curso && !NAO_ABRE.has(curso.estado.tipo) ? curso : null;
+}
