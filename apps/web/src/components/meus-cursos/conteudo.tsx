@@ -9,7 +9,7 @@ import { fmtHoras, fmtMin, plural } from "@/lib/formato";
 
 import { AvisoComunicado } from "./aviso-comunicado";
 import { BannerContinuar } from "./banner-continuar";
-import { CapaCurso, type Etiqueta } from "./capa-curso";
+import { CapaCurso, type Etiqueta, sizesDaCapa } from "./capa-curso";
 import { CartaoTrilha } from "./cartao-trilha";
 import { PainelVazio } from "./painel-vazio";
 import { Secao } from "./secao";
@@ -33,8 +33,9 @@ function CapasDaTrilha({ trilha }: { trilha: TrilhaVM }) {
       titulo={trilha.titulo}
     >
       <div className={GRADE_CAPAS} data-bloco="capas">
-        {trilha.cursos.map((c) => {
+        {trilha.cursos.map((c, _, todos) => {
           const m = c.primeiroModulo;
+          const sizes = sizesDaCapa(todos.length);
           if (c.estado.tipo === "em_breve") {
             return (
               <CapaCurso
@@ -42,6 +43,7 @@ function CapasDaTrilha({ trilha }: { trilha: TrilhaVM }) {
                 etiqueta={{ tipo: "em_breve" }}
                 key={c.id}
                 meta={`${m?.titulo ?? c.tema} · em produção`}
+                sizes={sizes}
               />
             );
           }
@@ -55,6 +57,7 @@ function CapasDaTrilha({ trilha }: { trilha: TrilhaVM }) {
               etiqueta={comece ? { tipo: "comece" } : duracao(c)}
               key={c.id}
               meta={resumoModulo}
+              sizes={sizes}
             />
           );
         })}
@@ -144,6 +147,7 @@ export function ConteudoMeusCursos({
                   etiqueta={duracao(c)}
                   key={c.id}
                   meta={c.extra ? `${c.tema} · ${c.extra}` : c.tema}
+                  sizes={sizesDaCapa(painel.soltos.length)}
                 />
               ))}
             </div>

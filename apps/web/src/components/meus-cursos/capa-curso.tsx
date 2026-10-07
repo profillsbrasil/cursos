@@ -41,15 +41,35 @@ function TextoEtiqueta({ etiqueta }: { etiqueta: Etiqueta }) {
   }
 }
 
+/**
+ * sizes da capa numa grade auto-fit de colunas de 250px ou mais, com `n` capas.
+ * Acima de 768px o conteúdo mede cerca de 100vw menos a sidebar (248px) e o padding
+ * (até 96px). Com 1 ou 2 capas a coluna estica até a largura toda ou a metade.
+ */
+export function sizesDaCapa(n: number) {
+  const celular = "(max-width: 767px) 100vw";
+  if (n === 1) {
+    return `${celular}, calc(100vw - 300px)`;
+  }
+  const umaColuna = "(max-width: 861px) calc(100vw - 300px)";
+  if (n === 2) {
+    return `${celular}, ${umaColuna}, calc((100vw - 362px) / 2)`;
+  }
+  return `${celular}, ${umaColuna}, (max-width: 1147px) calc((100vw - 362px) / 2), calc((100vw - 380px) / 3)`;
+}
+
 // Link quando o estado abre o curso; div aria-disabled em em_breve e bloqueado.
 export function CapaCurso({
   curso,
   etiqueta,
   meta,
+  sizes,
 }: {
   curso: CursoVM;
   etiqueta: Etiqueta;
   meta: string;
+  /** Vem de sizesDaCapa, com o número de capas da grade. */
+  sizes: string;
 }) {
   const fechado =
     curso.estado.tipo === "em_breve" || curso.estado.tipo === "bloqueado";
@@ -68,7 +88,7 @@ export function CapaCurso({
             fechado ? "opacity-55 saturate-[.6]" : "group-hover:scale-[1.03]"
           )}
           fill
-          sizes="(max-width: 760px) 100vw, 33vw"
+          sizes={sizes}
           src={curso.capa.url}
         />
         <TextoEtiqueta etiqueta={etiqueta} />
