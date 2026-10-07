@@ -1,0 +1,1 @@
+ALTER TABLE "liberacao" ADD CONSTRAINT "liberacao_troca_nao_revoga" CHECK ("revogada_em" is null or "liberada_por" <> "user_id");

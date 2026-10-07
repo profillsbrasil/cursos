@@ -35,6 +35,11 @@ export const liberacao = tabela(
       sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
           and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
     ),
+    // A liberação que o aluno pagou com pontos é para sempre: revogá-la cobraria de novo.
+    check(
+      "liberacao_troca_nao_revoga",
+      sql`${t.revogadaEm} is null or ${t.liberadaPor} <> ${t.userId}`
+    ),
     unique("liberacao_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento de troca
     // Uma liberação ativa por alvo. Revogar e liberar de novo continua possível.
     uniqueIndex("liberacao_trilha_ativa_unica")

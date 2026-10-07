@@ -12,7 +12,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Nível | Grupo nomeado de módulos de um curso. Cada módulo pertence a no máximo um nível. Só o curso Comercial tem níveis hoje. |
 | Aluno | Pessoa logada que estuda. É identificada pelo `userId` do Clerk e não tem tabela própria. |
 | Admin | Pessoa que cria trilhas, libera, revoga e publica comunicados. |
-| Liberação | Registro de que um aluno pode ver uma trilha ou um curso. É permanente até o admin revogar. |
+| Liberação | Registro de que um aluno pode ver uma trilha ou um curso. É permanente até o admin revogar. A liberação de uma troca não se revoga. |
 | Aula assistida | Fato imutável: a cobertura do aluno numa aula chegou a 90% da duração. Acontece uma vez por aluno e aula. |
 | Posição | Último segundo em que o aluno parou numa aula. É estado mutável, usado pelo "Continuar". |
 | Trecho visto | Intervalo de segundos inteiros de uma aula que o vídeo tocou sem salto, `[início, fim)`. Buscar para a frente não cria trecho. Os trechos de um aluno numa aula só crescem. |

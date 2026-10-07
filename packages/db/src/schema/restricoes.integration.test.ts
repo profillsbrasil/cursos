@@ -145,6 +145,18 @@ const CASOS: Caso[] = [
       ),
   },
   {
+    apagar: "alter table liberacao drop constraint liberacao_troca_nao_revoga",
+    constraint: "liberacao_troca_nao_revoga",
+    nome: "revogar a liberação de uma troca",
+    violar: async (c, b) => {
+      const id = await liberarParaTroca(c, b.aluno, b.cursoId);
+      await c.query(
+        "update liberacao set revogada_em = now(), revogada_por = 'user_admin' where id = $1",
+        [id]
+      );
+    },
+  },
+  {
     apagar: "alter table trilha_curso drop constraint trilha_curso_pkey",
     constraint: "trilha_curso_pkey",
     nome: "curso em duas trilhas",
