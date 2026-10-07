@@ -89,16 +89,23 @@ export function PlayerDaAula({
             podeTelaCheia={p.podeTelaCheia}
             telaCheia={p.telaCheia}
           />
-          <StatusDoPlayer conquista={p.conquista} envio={p.estado.envio} />
           <Problema estado={p.estado} />
-          <p className="text-muted-foreground text-xs max-[860px]:hidden">
-            <Kbd className={TECLA}>espaço</Kbd> reproduz ·{" "}
-            <Kbd className={TECLA}>←</Kbd> <Kbd className={TECLA}>→</Kbd> 5 s ·{" "}
-            <Kbd className={TECLA}>j</Kbd> <Kbd className={TECLA}>l</Kbd> 10 s ·{" "}
-            <Kbd className={TECLA}>↑</Kbd> <Kbd className={TECLA}>↓</Kbd> volume
-            · <Kbd className={TECLA}>f</Kbd> tela cheia · a amarela mostra o que
-            você já viu, a marca azul é 90%
-          </p>
+          <StatusDoPlayer
+            atalhos={
+              <p className="text-muted-foreground text-xs max-[860px]:hidden">
+                <Kbd className={TECLA}>espaço</Kbd> reproduz ·{" "}
+                <Kbd className={TECLA}>←</Kbd> <Kbd className={TECLA}>→</Kbd> 5
+                s · <Kbd className={TECLA}>j</Kbd>{" "}
+                <Kbd className={TECLA}>l</Kbd> 10 s ·{" "}
+                <Kbd className={TECLA}>↑</Kbd> <Kbd className={TECLA}>↓</Kbd>{" "}
+                volume · <Kbd className={TECLA}>f</Kbd> tela cheia · a amarela
+                mostra o que você já viu, a marca azul é 90%
+              </p>
+            }
+            avisoAparente={p.avisoAparente}
+            conquista={p.conquista}
+            envio={p.estado.envio}
+          />
         </div>
       </section>
       <CabecalhoDaAula dados={dados} destacarProxima={p.estado.assistida} />

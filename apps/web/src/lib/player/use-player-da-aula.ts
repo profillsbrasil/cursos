@@ -26,6 +26,12 @@ import {
   type RespostaDoEnvio,
   type SessaoDeEstudo,
 } from "./sessao";
+import {
+  AVISO_MS,
+  agendarNoNavegador,
+  anelDosPontos,
+  criarSinal,
+} from "./sinal";
 import { type ComandoDoTeclado, comandoDaTecla } from "./teclado";
 import { criarPlayerDeVideo } from "./video";
 
@@ -58,6 +64,7 @@ async function enviarRegistro(
 }
 
 const nada = () => () => undefined;
+const apagado = () => false;
 
 function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
   const alvo = e.target as HTMLElement;
@@ -81,6 +88,12 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   );
   const [sessao, setSessao] = useState<SessaoDeEstudo | null>(null);
   const [conquista, setConquista] = useState<Conquista | null>(null);
+  const [aviso] = useState(() => criarSinal(agendarNoNavegador, AVISO_MS));
+  const avisoAparente = useSyncExternalStore(
+    aviso.assinar,
+    aviso.aceso,
+    apagado
+  );
   const [telaCheia, setTelaCheia] = useState(false);
   const [podeTelaCheia, setPodeTelaCheia] = useState(false);
 
@@ -96,6 +109,8 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       },
       aoConquistar: (c) => {
         setConquista(c);
+        aviso.acender();
+        anelDosPontos.acender();
         startTransition(() => router.refresh());
       },
       criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
@@ -116,8 +131,9 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       document.removeEventListener("visibilitychange", aoEsconder);
       window.removeEventListener("pagehide", aoSair);
       s.encerrar();
+      aviso.encerrar();
     };
-  }, [inicial, router]);
+  }, [aviso, inicial, router]);
 
   useEffect(() => {
     const container = refContainer.current;
@@ -175,6 +191,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   );
 
   return {
+    avisoAparente,
     buscar,
     comandar,
     conquista,
