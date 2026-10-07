@@ -23,8 +23,13 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Certificado | Comprovante emitido quando o aluno assistiu a todas as aulas e passou na prova. Tem código único e continua valendo se o curso ganhar aula nova. |
 | Curso concluído | Curso em que o aluno tem certificado. |
 | Ponto | Valor inteiro de um lançamento. O saldo é a soma dos lançamentos do aluno. |
-| Lançamento | Fato imutável de pontos, ligado ao fato que pontuou. O mesmo fato não pontua duas vezes. |
-| Troca | Uso de pontos para liberar para sempre um curso trocável. Fica para o PR da tela de troca. |
+| Lançamento | Fato imutável de pontos, ligado ao fato que o gerou. Entrada é positiva; saída é negativa, e hoje só a troca sai. O mesmo fato não gera dois lançamentos. |
+| Saldo | Soma dos lançamentos do aluno. Toda saída lê o saldo com o aluno travado, e por isso ele nunca fica negativo. |
+| Pontos da semana | Soma das entradas desde segunda. A troca não entra. |
+| Extrato | Os lançamentos mais recentes do aluno, com o fato de cada um em texto. |
+| Troca | Liberação de um curso trocável paga com pontos. Grava, na mesma transação, a liberação do curso e um lançamento negativo que aponta para ela. O valor do lançamento é o preço pago. |
+| Curso trocável | Curso publicado, com aula, em que o admin definiu um preço de troca. Some da vitrine de quem já o alcança por liberação direta ou por trilha. |
+| Preço de troca | Pontos que a próxima troca de um curso custa. Mudar o preço não muda as trocas feitas. |
 | Dia útil | Segunda a sexta no fuso `America/Sao_Paulo`. Feriado conta como dia útil. |
 | Sequência | Dias úteis seguidos com pelo menos uma aula assistida pela primeira vez. Sábado e domingo não contam nem quebram. |
 | Medalha | Conquista individual por critério. Ainda não existe no código. |
