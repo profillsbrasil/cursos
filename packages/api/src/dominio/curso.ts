@@ -110,5 +110,9 @@ export function niveis(
       total: aulas.length,
     };
   });
-  return { faixas, proximo: faixas.find((f) => !f.obtido) ?? null };
+  // Nível sem aulas nunca é obtido, então não pode ser o próximo.
+  return {
+    faixas,
+    proximo: faixas.find((f) => f.total > 0 && !f.obtido) ?? null,
+  };
 }

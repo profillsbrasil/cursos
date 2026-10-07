@@ -191,4 +191,20 @@ describe("niveis", () => {
     const tudo = new Set(todas("s", [1, 1]) as AulaId[]);
     expect(niveis(semVazio, tudo).proximo).toBeNull();
   });
+
+  test("próximo nível pula nível sem aulas", () => {
+    const meio = cursoCat("v", {
+      aulas: [1, 1],
+      niveis: [
+        { nome: "A", ordem: 1 },
+        { nome: "B", ordem: 2 },
+        { nome: "C", ordem: 3 },
+      ],
+      nivelPorModulo: [1, 3],
+    });
+    const soA = new Set([idAula("v", 0, 1)] as AulaId[]);
+    expect(niveis(meio, soA).proximo?.nome).toBe("C");
+    const tudo = new Set(todas("v", [1, 1]) as AulaId[]);
+    expect(niveis(meio, tudo).proximo).toBeNull();
+  });
 });
