@@ -3,6 +3,7 @@ import type { StatusDia } from "@cursos/api/dominio/sequencia";
 import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Flame, Gift, Star } from "lucide-react";
+import Link from "next/link";
 
 import { faltam, fmtPts, plural } from "@/lib/formato";
 
@@ -109,23 +110,19 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
           </dd>
         </div>
       </dl>
-      {/* Sem link até a tela de troca existir: desabilitado, com "Em breve" visível.
-          As variantes dark: repetem borda e fundo porque a outline traz dark:border-input
-          e dark:bg-input/30, que vencem as classes sem variante com .dark no <html>. */}
-      <button
+      {/* As variantes dark: repetem borda e fundo porque a outline traz dark:border-input,
+          dark:bg-input/30 e dark:hover:bg-input/50, que vencem as classes sem variante
+          com .dark no <html>. */}
+      <Link
         className={cn(
           buttonVariants({ variant: "outline" }),
-          "h-11 w-full gap-2 rounded-full border-muted-foreground bg-transparent font-semibold text-sm disabled:opacity-100 dark:border-muted-foreground dark:bg-transparent"
+          "h-11 w-full gap-2 rounded-full border-muted-foreground bg-transparent font-semibold text-foreground text-sm hover:border-titulo hover:bg-transparent focus-visible:border-muted-foreground focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0 dark:border-muted-foreground dark:bg-transparent dark:focus-visible:border-muted-foreground dark:hover:border-titulo dark:hover:bg-transparent"
         )}
-        disabled
-        type="button"
+        href="/trocar-pontos"
       >
         <Gift aria-hidden="true" />
         Trocar pontos
-        <span className="font-normal text-muted-foreground text-xs">
-          Em breve
-        </span>
-      </button>
+      </Link>
     </aside>
   );
 }

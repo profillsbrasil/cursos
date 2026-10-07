@@ -6,45 +6,56 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@cursos/ui/components/sidebar";
+import type { LucideIcon } from "lucide-react";
 import { Award, BookOpen, Gift, House, Megaphone } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback } from "react";
 
 const ITEM = "h-10 gap-3 rounded-lg px-3 font-medium text-sm";
 
-// Telas que ainda não existem aparecem desabilitadas, com "Em breve" visível.
-const EM_BREVE = [
-  { icone: House, nome: "Início" },
-  { icone: Gift, nome: "Trocar pontos" },
-  { icone: Award, nome: "Conquistas" },
-  { icone: Megaphone, nome: "Comunicados" },
-] as const;
+type Item = { icone: LucideIcon; nome: string } & (
+  | {
+      tipo: "link";
+      href: Route;
+      /** Prefixos de outras rotas que pertencem à seção do link. */
+      secao: readonly string[];
+    }
+  // Tela que ainda não existe: desabilitada, com "Em breve" visível.
+  | { tipo: "em_breve" }
+);
 
-function ItemEmBreve({ icone: Icone, nome }: (typeof EM_BREVE)[number]) {
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        aria-disabled="true"
-        className={`${ITEM} text-muted-foreground aria-disabled:opacity-100`}
-      >
-        <Icone aria-hidden="true" />
-        <span>{nome}</span>
-        <span className="ml-auto font-normal text-muted-foreground text-xs">
-          Em breve
-        </span>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-}
+const ITENS: readonly Item[] = [
+  { icone: House, nome: "Início", tipo: "em_breve" },
+  {
+    href: "/meus-cursos",
+    icone: BookOpen,
+    nome: "Meus cursos",
+    secao: ["/cursos"],
+    tipo: "link",
+  },
+  {
+    href: "/trocar-pontos",
+    icone: Gift,
+    nome: "Trocar pontos",
+    secao: [],
+    tipo: "link",
+  },
+  { icone: Award, nome: "Conquistas", tipo: "em_breve" },
+  { icone: Megaphone, nome: "Comunicados", tipo: "em_breve" },
+];
 
-// "page" só na própria /meus-cursos; nas rotas filhas o item é a seção atual ("true").
-function atual(caminho: string): "page" | "true" | undefined {
-  if (caminho === "/meus-cursos") {
+// "page" só na própria rota do link; nas rotas filhas o item é a seção atual ("true").
+function atual(
+  caminho: string,
+  href: string,
+  secao: readonly string[]
+): "page" | "true" | undefined {
+  if (caminho === href) {
     return "page";
   }
-  const filha =
-    caminho.startsWith("/meus-cursos/") || caminho.startsWith("/cursos/");
+  const filha = [href, ...secao].some((p) => caminho.startsWith(`${p}/`));
   return filha ? "true" : undefined;
 }
 
@@ -56,28 +67,43 @@ export function NavPrincipal() {
     () => setOpenMobile(false),
     [setOpenMobile]
   );
-  const ariaCurrent = atual(caminho);
-  const [inicio, ...resto] = EM_BREVE;
   return (
     <nav aria-label="Navegação principal">
       <SidebarMenu className="gap-1">
-        <ItemEmBreve {...inicio} />
-        <SidebarMenuItem>
-          {/* O anel de foco tem a cor do fundo ativo; o offset na cor da sidebar separa os dois. */}
-          <SidebarMenuButton
-            aria-current={ariaCurrent}
-            className={`${ITEM} data-active:bg-sidebar-primary data-active:font-semibold data-active:text-sidebar-primary-foreground data-active:focus-visible:ring-offset-2 data-active:focus-visible:ring-offset-sidebar`}
-            isActive={ariaCurrent !== undefined}
-            onClick={fecharNoCelular}
-            render={<Link href="/meus-cursos" />}
-          >
-            <BookOpen aria-hidden="true" />
-            <span>Meus cursos</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        {resto.map((item) => (
-          <ItemEmBreve key={item.nome} {...item} />
-        ))}
+        {ITENS.map(({ icone: Icone, ...item }) => {
+          if (item.tipo === "em_breve") {
+            return (
+              <SidebarMenuItem key={item.nome}>
+                <SidebarMenuButton
+                  aria-disabled="true"
+                  className={`${ITEM} text-muted-foreground aria-disabled:opacity-100`}
+                >
+                  <Icone aria-hidden="true" />
+                  <span>{item.nome}</span>
+                  <span className="ml-auto font-normal text-muted-foreground text-xs">
+                    Em breve
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          }
+          const ariaCurrent = atual(caminho, item.href, item.secao);
+          return (
+            <SidebarMenuItem key={item.nome}>
+              {/* O anel de foco tem a cor do fundo ativo; o offset na cor da sidebar separa os dois. */}
+              <SidebarMenuButton
+                aria-current={ariaCurrent}
+                className={`${ITEM} data-active:bg-sidebar-primary data-active:font-semibold data-active:text-sidebar-primary-foreground data-active:focus-visible:ring-offset-2 data-active:focus-visible:ring-offset-sidebar`}
+                isActive={ariaCurrent !== undefined}
+                onClick={fecharNoCelular}
+                render={<Link href={item.href} />}
+              >
+                <Icone aria-hidden="true" />
+                <span>{item.nome}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </nav>
   );
