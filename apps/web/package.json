@@ -8,7 +8,8 @@
     "dev": "next dev --port 3001",
     "dev:local": "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres next dev --port 3001",
     "env:generate": "varlock codegen",
-    "start": "next start"
+    "start": "next start",
+    "test": "bun test"
   },
   "dependencies": {
     "@clerk/backend": "catalog:",
@@ -38,6 +39,7 @@
     "@cursos/config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@tanstack/react-query-devtools": "^5.102.8",
+    "@types/bun": "^1.4.2",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
