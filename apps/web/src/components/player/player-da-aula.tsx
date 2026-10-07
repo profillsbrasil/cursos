@@ -16,6 +16,8 @@ const TECLA =
   "h-auto min-w-0 rounded-[4px] border border-chart-5 border-b-2 bg-transparent px-1 font-mono text-[11px] text-foreground";
 
 const NAO_SALVOU = {
+  envio_recusado:
+    "Não deu para salvar seu progresso: o servidor recusou o envio. Recarregue a página para continuar contando.",
   sem_acesso:
     "Não deu para salvar seu progresso: este curso não está mais liberado para você.",
   sem_video:

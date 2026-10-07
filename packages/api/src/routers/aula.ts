@@ -2,6 +2,7 @@ import { SLUG } from "@cursos/db/schema/comum";
 import { z } from "zod";
 
 import { carregarAula, carregarEntrada, registrar } from "../consultas/aula";
+import { TRECHOS_POR_ENVIO } from "../dominio/regras";
 import type { AulaId } from "../dominio/tipos";
 import { protectedProcedure, router } from "../index";
 
@@ -15,7 +16,7 @@ const trecho = z
 export const entradaRegistro = z.object({
   aulaId: z.uuid(),
   posicaoSeg: z.int().min(0).max(86_400),
-  trechos: z.array(trecho).max(64),
+  trechos: z.array(trecho).max(TRECHOS_POR_ENVIO),
 });
 
 export const aulaRouter = router({

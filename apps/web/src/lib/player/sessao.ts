@@ -1,5 +1,5 @@
 import type { Conquista, Pedido, Registro } from "@cursos/api/dominio/registro";
-import type { Velocidade } from "@cursos/api/dominio/regras";
+import { TRECHOS_POR_ENVIO, type Velocidade } from "@cursos/api/dominio/regras";
 import {
   atingiuMeta,
   type Cobertura,
@@ -40,7 +40,23 @@ export type EstadoReproducao =
   | { tipo: "terminou" }
   | { motivo: MotivoIndisponivel; tipo: "indisponivel" };
 
-export type MotivoParado = "sem_acesso" | "sem_video" | "sessao_expirada";
+export type MotivoParado =
+  | "envio_recusado"
+  | "sem_acesso"
+  | "sem_video"
+  | "sessao_expirada";
+
+const PARADO_POR: Readonly<Record<string, MotivoParado>> = {
+  BAD_REQUEST: "envio_recusado",
+  FORBIDDEN: "sem_acesso",
+  NOT_FOUND: "sem_acesso",
+  PRECONDITION_FAILED: "sem_video",
+  UNAUTHORIZED: "sessao_expirada",
+};
+
+/** O código de erro do tRPC que para o envio; os outros são falha de rede. */
+export const motivoParadoDe = (codigo: string): MotivoParado | undefined =>
+  PARADO_POR[codigo];
 
 export type EstadoEnvio =
   | { tipo: "em_dia" }
@@ -115,7 +131,6 @@ export interface SessaoDeEstudo {
 export const AMOSTRA_MS = 250;
 export const ENVIO_MS = 15_000;
 export const POSICAO_PARADA_MS = 1500;
-const LOTE_MAX = 64;
 const NOVA_TENTATIVA_MS = 2000;
 const NOVA_TENTATIVA_MAX_MS = 60_000;
 const DIFERENCA_DE_DURACAO_SEG = 2;
@@ -308,7 +323,7 @@ export function criarSessaoDeEstudo(
     pararEnvio = null;
     const pedido: Pedido = {
       posicaoSeg: posicaoDe(tempoSeg),
-      trechos: pendentes.slice(0, LOTE_MAX),
+      trechos: pendentes.slice(0, TRECHOS_POR_ENVIO),
     };
     envio = { tipo: "enviando" };
     avisar();

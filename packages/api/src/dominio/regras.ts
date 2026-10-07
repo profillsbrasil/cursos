@@ -23,5 +23,8 @@ export const COTA_VIDEO = {
   velocidadeMaxima: Math.max(...VELOCIDADES),
 } as const;
 
+/** Teto de trechos num envio: a borda do registro recusa mais, e o cliente manda o resto depois. */
+export const TRECHOS_POR_ENVIO = 64;
+
 /** Posição salva a menos disto do fim abre a aula no segundo 0. */
 export const FIM_DA_AULA_SEG = 10;

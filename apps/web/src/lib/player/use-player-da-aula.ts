@@ -24,7 +24,7 @@ import {
   criarSessaoDeEstudo,
   type EstadoDaSessao,
   estadoInicial,
-  type MotivoParado,
+  motivoParadoDe,
   type RespostaDoEnvio,
   type SessaoDeEstudo,
 } from "./sessao";
@@ -38,12 +38,6 @@ export interface EntradaDoPlayer {
   inicioSeg: number;
   video: VideoDaAula;
 }
-
-const PARADO_POR: Readonly<Record<string, MotivoParado>> = {
-  NOT_FOUND: "sem_acesso",
-  PRECONDITION_FAILED: "sem_video",
-  UNAUTHORIZED: "sessao_expirada",
-};
 
 /** A borda do envio: erro do tRPC vira motivo de parar ou falha de rede. */
 async function enviarRegistro(
@@ -60,7 +54,7 @@ async function enviarRegistro(
   } catch (e) {
     const motivo =
       e instanceof TRPCClientError
-        ? PARADO_POR[String(e.data?.code)]
+        ? motivoParadoDe(String(e.data?.code))
         : undefined;
     return motivo ? { motivo, tipo: "definitivo" } : { tipo: "rede" };
   }

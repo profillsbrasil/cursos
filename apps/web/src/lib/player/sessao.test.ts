@@ -18,6 +18,7 @@ import { PREFERENCIAS_PADRAO } from "./preferencias";
 import {
   criarSessaoDeEstudo,
   type EstadoReproducao,
+  motivoParadoDe,
   type RespostaDoEnvio,
   transicao,
 } from "./sessao";
@@ -472,6 +473,15 @@ describe("encerrar com a rede caída", () => {
     await relogio.flush();
     expect(servidor.coberturaSeg()).toBeGreaterThanOrEqual(540);
     expect(conquistas).toHaveLength(1);
+  });
+});
+
+describe("motivoParadoDe", () => {
+  test("recusa do servidor para o envio; só o desconhecido tenta de novo", () => {
+    expect(motivoParadoDe("NOT_FOUND")).toBe("sem_acesso");
+    expect(motivoParadoDe("FORBIDDEN")).toBe("sem_acesso");
+    expect(motivoParadoDe("BAD_REQUEST")).toBe("envio_recusado");
+    expect(motivoParadoDe("INTERNAL_SERVER_ERROR")).toBeUndefined();
   });
 });
 
