@@ -35,9 +35,21 @@ describe("linha de status do player", () => {
     expect(h).toContain("Progresso não salvo. Tentando de novo.");
   });
 
-  test("enviando, pendente e em dia não mostram nada", () => {
-    for (const tipo of ["enviando", "pendente", "em_dia"] as const) {
-      const h = html({ conquista: null, envio: { tipo } });
+  test("a nova tentativa em voo continua mostrando que o progresso não foi salvo", () => {
+    const h = html({
+      conquista: null,
+      envio: { tentativa: 1, tipo: "enviando" },
+    });
+    expect(h).toContain("Progresso não salvo. Tentando de novo.");
+  });
+
+  test("primeiro envio, pendente e em dia não mostram nada", () => {
+    for (const envio of [
+      { tentativa: 0, tipo: "enviando" },
+      { tipo: "pendente" },
+      { tipo: "em_dia" },
+    ] as const) {
+      const h = html({ conquista: null, envio });
       expect(h).not.toContain("Progresso");
       expect(h).not.toContain("Aula assistida");
     }

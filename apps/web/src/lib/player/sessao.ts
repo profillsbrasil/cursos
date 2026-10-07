@@ -61,7 +61,8 @@ export const motivoParadoDe = (codigo: string): MotivoParado | undefined =>
 export type EstadoEnvio =
   | { tipo: "em_dia" }
   | { tipo: "pendente" }
-  | { tipo: "enviando" }
+  /** `tentativa`: falhas de rede seguidas antes deste envio. */
+  | { tentativa: number; tipo: "enviando" }
   | { tentativa: number; tipo: "esperando_nova_tentativa" }
   | { motivo: MotivoParado; tipo: "parado" };
 
@@ -331,7 +332,7 @@ export function criarSessaoDeEstudo(
       posicaoSeg: posicaoDe(tempoSeg),
       trechos: pendentes.slice(0, TRECHOS_POR_ENVIO),
     };
-    envio = { tipo: "enviando" };
+    envio = { tentativa, tipo: "enviando" };
     avisar();
     deps.enviar(pedido).then(
       (r) => aposResposta(r, pedido),

@@ -36,7 +36,8 @@ export function StatusDoPlayer({
           </span>
         </div>
       ) : null}
-      {envio.tipo === "esperando_nova_tentativa" ? (
+      {envio.tipo === "esperando_nova_tentativa" ||
+      (envio.tipo === "enviando" && envio.tentativa > 0) ? (
         <p className="text-[13px] text-muted-foreground">
           Progresso não salvo. Tentando de novo.
         </p>

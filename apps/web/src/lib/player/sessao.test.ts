@@ -414,6 +414,29 @@ describe("nova tentativa", () => {
       tipo: "esperando_nova_tentativa",
     });
   });
+
+  test("a nova tentativa em voo carrega quantas falharam antes", async () => {
+    const { relogio, servidor, sessao } = montar();
+    const vistos: unknown[] = [];
+    sessao.assinar(() => {
+      const { envio } = sessao.estado();
+      if (JSON.stringify(vistos.at(-1)) !== JSON.stringify(envio)) {
+        vistos.push(envio);
+      }
+    });
+    servidor.falhar({ tipo: "rede" });
+    sessao.comandar({ seg: 120, tipo: "buscar" });
+    await relogio.avancar(1600);
+    servidor.falhar(null);
+    await relogio.avancar(60_000);
+    expect(vistos).toEqual([
+      { tipo: "em_dia" },
+      { tentativa: 0, tipo: "enviando" },
+      { tentativa: 1, tipo: "esperando_nova_tentativa" },
+      { tentativa: 1, tipo: "enviando" },
+      { tipo: "em_dia" },
+    ]);
+  });
 });
 
 describe("cadência do envio", () => {
