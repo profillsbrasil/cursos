@@ -10,8 +10,6 @@ import { useEffect } from "react";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
 import { queryClient } from "@/utils/trpc";
 
-import { ThemeProvider } from "./theme-provider";
-
 function ClerkApiAuthBridge() {
   const { getToken } = useAuth();
 
@@ -28,18 +26,12 @@ function ClerkApiAuthBridge() {
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      disableTransitionOnChange
-      enableSystem
-    >
-      <QueryClientProvider client={queryClient}>
-        <ClerkApiAuthBridge />
-        <TooltipProvider>{children}</TooltipProvider>
-        <ReactQueryDevtools />
-      </QueryClientProvider>
-      <Toaster richColors />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ClerkApiAuthBridge />
+      <TooltipProvider>{children}</TooltipProvider>
+      <ReactQueryDevtools />
+      {/* Sem ThemeProvider, o Toaster cairia em "system"; a prop vence o useTheme(). */}
+      <Toaster richColors theme="dark" />
+    </QueryClientProvider>
   );
 }
