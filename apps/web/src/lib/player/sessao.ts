@@ -336,6 +336,36 @@ export function criarSessaoDeEstudo(
     }, AMOSTRA_MS);
   }
 
+  function aoFicarPronto(duracaoDoVideoSeg: number) {
+    if (Math.abs(duracaoDoVideoSeg - duracaoSeg) > DIFERENCA_DE_DURACAO_SEG) {
+      console.warn(
+        `duração do vídeo (${duracaoDoVideoSeg} s) difere da aula (${duracaoSeg} s)`
+      );
+    }
+  }
+
+  function aoComecarATocar() {
+    ({ medidor } = amostrar(MEDIDOR_PARADO, amostra()));
+    pararAmostra?.();
+    tique();
+    if (!pararEnvio) {
+      agendarEnvio(ENVIO_MS);
+    }
+  }
+
+  function aoPararDeTocar(depois: EstadoReproducao) {
+    pararAmostra?.();
+    pararAmostra = null;
+    fecharTrecho();
+    if (depois.tipo === "terminou") {
+      tempoSeg = duracaoSeg;
+    }
+    // Buffer, inclusive o de uma busca tocando, fica para o envio periódico.
+    if (depois.tipo !== "esperando") {
+      enviar(false);
+    }
+  }
+
   function aoEvento(ev: EventoDoVideo) {
     if (encerrada) {
       return;
@@ -344,27 +374,11 @@ export function criarSessaoDeEstudo(
     const depois = transicao(reproducao, ev);
     reproducao = depois;
     if (ev.tipo === "pronto") {
-      const diferenca = Math.abs(ev.duracaoSeg - duracaoSeg);
-      if (diferenca > DIFERENCA_DE_DURACAO_SEG) {
-        console.warn(
-          `duração do vídeo (${ev.duracaoSeg} s) difere da aula (${duracaoSeg} s)`
-        );
-      }
+      aoFicarPronto(ev.duracaoSeg);
     } else if (depois.tipo === "tocando" && antes !== "tocando") {
-      ({ medidor } = amostrar(MEDIDOR_PARADO, amostra()));
-      pararAmostra?.();
-      tique();
-      if (!pararEnvio) {
-        agendarEnvio(ENVIO_MS);
-      }
+      aoComecarATocar();
     } else if (antes === "tocando" && depois.tipo !== "tocando") {
-      pararAmostra?.();
-      pararAmostra = null;
-      fecharTrecho();
-      if (depois.tipo === "terminou") {
-        tempoSeg = duracaoSeg;
-      }
-      enviar(false);
+      aoPararDeTocar(depois);
     }
     avisar();
   }

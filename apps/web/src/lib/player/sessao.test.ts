@@ -78,9 +78,14 @@ function playerFalso(relogio: Relogio) {
       ? Math.min(DURACAO, base + ((relogio.agora() - desde) / 1000) * taxa)
       : base;
   const player: PlayerDeVideo = {
+    // Como o YouTube: busca com o vídeo tocando passa por buffer (3) e volta a tocar (1).
     buscar(seg) {
       base = seg;
       desde = relogio.agora();
+      if (tocando) {
+        aoEvento({ tipo: "esperou" });
+        aoEvento({ tipo: "tocou" });
+      }
     },
     definirMudo: () => undefined,
     definirVelocidade(v) {
@@ -359,6 +364,35 @@ describe("envio sem mudança", () => {
     sessao.salvarAgora();
     sessao.encerrar();
     await relogio.flush();
+    expect(servidor.pedidos).toHaveLength(1);
+  });
+});
+
+describe("cadência do envio", () => {
+  test("saltar com o vídeo tocando não envia na hora", async () => {
+    const { relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(300);
+    sessao.comandar({ seg: 10, tipo: "saltar" });
+    await relogio.avancar(300);
+    sessao.comandar({ seg: 10, tipo: "saltar" });
+    await relogio.avancar(300);
+    sessao.comandar({ seg: 10, tipo: "saltar" });
+    await relogio.avancar(300);
+    expect(servidor.pedidos).toHaveLength(0);
+    await relogio.avancar(15_000);
+    expect(servidor.pedidos).toHaveLength(1);
+  });
+
+  test("buffer fecha o trecho sem enviar; o periódico leva", async () => {
+    const { relogio, servidor, sessao, video } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(5000);
+    video.emitir({ tipo: "esperou" });
+    await relogio.flush();
+    expect(servidor.pedidos).toHaveLength(0);
+    video.emitir({ tipo: "tocou" });
+    await relogio.avancar(10_000);
     expect(servidor.pedidos).toHaveLength(1);
   });
 });
