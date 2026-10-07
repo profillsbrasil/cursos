@@ -159,6 +159,24 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     expect(lib?.por).toBe(userId);
   });
 
+  test("curso trocado continua na vitrine de quem trocou depois de o admin tirar o preço", async () => {
+    const quemTrocou = await aluno(500);
+    const outro = await aluno(500);
+    const c = await cursoTrocavel(300);
+    await trocar(db, quemTrocou, c, 300, AGORA);
+    const cardDe = async (userId: string) =>
+      (await carregarPainelDeTroca(db, userId, AGORA)).cartoes.find(
+        (x) => x.curso.id === c
+      );
+    expect(await cardDe(outro)).toMatchObject({ tipo: "pode_trocar" });
+    await db.update(curso).set({ precoTroca: null }).where(eq(curso.id, c));
+    expect(await cardDe(quemTrocou)).toMatchObject({
+      pago: 300,
+      tipo: "trocado",
+    });
+    expect(await cardDe(outro)).toBeUndefined();
+  });
+
   test("dois cursos em paralelo com saldo para um: uma troca, uma recusa, saldo nunca negativo (20 vezes)", async () => {
     const rodadas: { codigos: string[]; saldo: number | undefined }[] = [];
     for (let i = 0; i < 20; i += 1) {
