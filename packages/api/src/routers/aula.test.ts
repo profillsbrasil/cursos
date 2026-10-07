@@ -21,3 +21,10 @@ describe("aula com slug fora do formato", () => {
     expect(r).toEqual([null, null, null, null]);
   });
 });
+
+describe("aula com aulaId fora do formato", () => {
+  test("abrir devolve null, como aula que não existe", async () => {
+    const r = await caller.aula.abrir({ aulaId: "nao-e-uuid", slug: "curso" });
+    expect(r).toBeNull();
+  });
+});

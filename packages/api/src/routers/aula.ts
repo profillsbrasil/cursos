@@ -7,6 +7,7 @@ import type { AulaId } from "../dominio/tipos";
 import { protectedProcedure, router } from "../index";
 
 const FORMATO_DO_SLUG = new RegExp(SLUG);
+const UUID = z.uuid();
 
 const trecho = z
   .object({ fim: z.int().min(1), inicio: z.int().min(0) })
@@ -20,9 +21,9 @@ export const entradaRegistro = z.object({
 
 export const aulaRouter = router({
   abrir: protectedProcedure
-    .input(z.object({ aulaId: z.uuid(), slug: z.string() }))
+    .input(z.object({ aulaId: z.string(), slug: z.string() }))
     .query(({ ctx, input }) =>
-      FORMATO_DO_SLUG.test(input.slug)
+      FORMATO_DO_SLUG.test(input.slug) && UUID.safeParse(input.aulaId).success
         ? carregarAula(ctx.db, ctx.auth.userId, input.slug, input.aulaId)
         : null
     ),

@@ -1,7 +1,6 @@
 import { inicioDaAula } from "@cursos/api/dominio/aula";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { z } from "zod";
 
 import { Chips, TopoDoAluno } from "@/components/aluno/topo";
 import { AulaSemVideo } from "@/components/player/aula-sem-video";
@@ -14,11 +13,9 @@ interface Props {
   params: Promise<{ aulaId: string; slug: string }>;
 }
 
-const UUID = z.uuid();
-
 async function aulaDaUrl(params: Props["params"]) {
   const { aulaId, slug } = await params;
-  return UUID.safeParse(aulaId).success ? carregarAula(slug, aulaId) : null;
+  return carregarAula(slug, aulaId);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
