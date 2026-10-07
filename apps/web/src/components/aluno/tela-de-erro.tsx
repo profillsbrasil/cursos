@@ -5,13 +5,15 @@ import { cn } from "@cursos/ui/lib/utils";
 import { RotateCcw } from "lucide-react";
 import { useEffect } from "react";
 
-// No Next 16.3 a função de recuperação do error.js se chama retry (antes, reset).
-export default function ErroMeusCursos({
+// Corpo dos error.tsx do app: diz o que falhou e oferece tentar de novo.
+export function TelaDeErro({
   error,
   retry,
+  titulo,
 }: {
   error: Error & { digest?: string };
   retry: () => void;
+  titulo: string;
 }) {
   useEffect(() => {
     console.error(error);
@@ -22,7 +24,7 @@ export default function ErroMeusCursos({
       role="alert"
     >
       <h1 className="font-bold text-2xl text-titulo tracking-tight">
-        Não deu para carregar seus cursos
+        {titulo}
       </h1>
       <p className="text-muted-foreground">
         A conexão com o servidor falhou. Seu progresso está salvo; tente de novo
