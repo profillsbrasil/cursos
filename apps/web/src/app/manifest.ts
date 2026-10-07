@@ -2,8 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    background_color: "#ffffff",
-    description: "my pwa app",
+    background_color: "#1A1D22",
+    description:
+      "Cursos da Profills Brasil sobre máquinas, envase, vendas e rotinas.",
     display: "standalone",
     icons: [
       {
@@ -17,9 +18,9 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
     ],
-    name: "cursos",
-    short_name: "cursos",
+    name: "Profills School",
+    short_name: "Profills School",
     start_url: "/",
-    theme_color: "#000000",
+    theme_color: "#1A1D22",
   };
 }

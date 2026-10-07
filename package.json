@@ -48,7 +48,8 @@
     "env:preview": "tsx scripts/sync-vercel-env.ts preview",
     "env:production": "tsx scripts/sync-vercel-env.ts production",
     "fix": "ultracite fix",
-    "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/"
+    "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/",
+    "test": "turbo run test"
   },
   "overrides": {
     "@next/env": "npm:@varlock/nextjs-integration@1.2.2"

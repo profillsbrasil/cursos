@@ -8,8 +8,10 @@ export const { router } = t;
 
 export const publicProcedure = t.procedure;
 
+// O middleware estreita o userId: depois dele, ctx.auth.userId é string, não string | null.
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.auth?.userId) {
+  const userId = ctx.auth?.userId;
+  if (!userId) {
     throw new TRPCError({
       cause: "No Clerk userId",
       code: "UNAUTHORIZED",
@@ -19,7 +21,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
-      auth: ctx.auth,
+      auth: { userId },
     },
   });
 });

@@ -10,10 +10,13 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:deploy": "drizzle-kit migrate",
+    "db:migrate:local": "drizzle-kit migrate --config drizzle.local.config.ts",
     "db:push": "drizzle-kit push",
+    "db:seed": "bun run src/seed/index.ts",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test": "bun test"
   },
   "dependencies": {
     "drizzle-orm": "1.0.0-rc.4",
@@ -22,6 +25,7 @@
   },
   "devDependencies": {
     "@cursos/config": "workspace:*",
+    "@types/bun": "^1.4.2",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "1.0.0-rc.4",
     "supabase": "^2.120.0",
