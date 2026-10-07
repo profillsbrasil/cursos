@@ -6,10 +6,12 @@ import {
 } from "@cursos/ui/components/input-group";
 import { SidebarTrigger } from "@cursos/ui/components/sidebar";
 import { Skeleton } from "@cursos/ui/components/skeleton";
-import { Flame, Search, Star } from "lucide-react";
+import { Flame, Search } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { fmtPts, plural } from "@/lib/formato";
+import { plural } from "@/lib/formato";
+
+import { ChipDePontos } from "./chip-de-pontos";
 
 const CHIP =
   "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm tabular-nums";
@@ -76,11 +78,7 @@ export function Chips({ resumo }: { resumo: ResumoAluno }) {
           {plural(resumo.sequenciaDias, "dia", "dias")}
         </b>
       </span>
-      <span className={`${CHIP} text-sol`}>
-        <Star aria-hidden="true" className="size-4" />
-        <span className="sr-only">Saldo de pontos para trocar por cursos:</span>
-        <b className="font-semibold">{fmtPts(resumo.saldo)}</b>
-      </span>
+      <ChipDePontos className={CHIP} saldo={resumo.saldo} />
     </div>
   );
 }
