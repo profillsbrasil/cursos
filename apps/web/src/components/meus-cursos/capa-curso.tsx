@@ -87,6 +87,12 @@ export function CapaCurso({
           <SeloEstado estado={curso.estado} />
         )}
       </p>
+      {/* O motivo do bloqueio fica visível: a capa bloqueada não recebe foco nem tem dica no toque. */}
+      {curso.estado.tipo === "bloqueado" && (
+        <p className="text-[13px] text-muted-foreground">
+          Abre quando você concluir {curso.estado.liberadoPor.titulo}
+        </p>
+      )}
     </>
   );
   const base = "grid content-start gap-2.5 rounded-lg";

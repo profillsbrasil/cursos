@@ -51,20 +51,21 @@ function ChipsCarregando() {
   );
 }
 
+// O significado de cada chip vai em texto sr-only, não em title: title não chega ao
+// teclado nem ao toque, e o leitor de tela nem sempre o lê.
 function Chips({ resumo }: { resumo: ResumoAluno }) {
   return (
     <div className="ml-auto flex gap-2">
-      <span className={CHIP} title="Sequência de dias úteis de estudo">
+      <span className={CHIP}>
         <Flame aria-hidden="true" className="size-4 text-canela" />
+        <span className="sr-only">Sequência de dias úteis de estudo:</span>
         <b className="font-semibold">
           {plural(resumo.sequenciaDias, "dia", "dias")}
         </b>
       </span>
-      <span
-        className={`${CHIP} text-sol`}
-        title="Saldo de pontos para trocar por cursos"
-      >
+      <span className={`${CHIP} text-sol`}>
         <Star aria-hidden="true" className="size-4" />
+        <span className="sr-only">Saldo de pontos para trocar por cursos:</span>
         <b className="font-semibold">{fmtPts(resumo.saldo)}</b>
       </span>
     </div>

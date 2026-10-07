@@ -63,10 +63,6 @@ function aparencia(estado: EstadoCurso): Aparencia {
 
 export function SeloEstado({ estado }: { estado: EstadoCurso }) {
   const { classe, icone: Icone, rotulo } = aparencia(estado);
-  const dica =
-    estado.tipo === "bloqueado"
-      ? `Abre quando você concluir ${estado.liberadoPor.titulo}`
-      : undefined;
   return (
     <span
       className={cn(
@@ -74,7 +70,6 @@ export function SeloEstado({ estado }: { estado: EstadoCurso }) {
         "h-6 gap-1.5 rounded-full px-2.5 font-semibold text-xs",
         classe
       )}
-      title={dica}
     >
       <Icone aria-hidden="true" strokeWidth={2.4} />
       {rotulo}
