@@ -5,7 +5,7 @@ import type {
   TrilhaVM,
 } from "@cursos/api/dominio/painel";
 
-import { fmtMin, plural } from "@/lib/formato";
+import { fmtHoras, fmtMin, plural } from "@/lib/formato";
 
 import { AvisoComunicado } from "./aviso-comunicado";
 import { BannerContinuar } from "./banner-continuar";
@@ -21,7 +21,7 @@ const GRADE_CAPAS =
   "grid grid-cols-[repeat(auto-fit,minmax(min(100%,250px),1fr))] gap-x-[18px] gap-y-[22px]";
 
 const duracao = (c: CursoVM): Etiqueta => ({
-  texto: `${plural(c.aulas, "aula", "aulas")} · ${fmtMin(c.duracaoSeg)}`,
+  texto: `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`,
   tipo: "duracao",
 });
 
@@ -63,17 +63,29 @@ function CapasDaTrilha({ trilha }: { trilha: TrilhaVM }) {
   );
 }
 
+// Omite a parte que dá zero e concorda o participio: "1 trilha liberada para você".
+function liberados({ soltos, trilhas }: PainelMeusCursos) {
+  const partes = [
+    trilhas.length > 0 && plural(trilhas.length, "trilha", "trilhas"),
+    soltos.length > 0 &&
+      plural(soltos.length, "curso rápido", "cursos rápidos"),
+  ].filter((p) => p !== false);
+  let participio = "liberados";
+  if (soltos.length === 0) {
+    participio = trilhas.length === 1 ? "liberada" : "liberadas";
+  } else if (trilhas.length === 0 && soltos.length === 1) {
+    participio = "liberado";
+  }
+  return `${partes.join(" e ")} ${participio} para você`;
+}
+
 function Cabecalho({ painel }: { painel: PainelMeusCursos }) {
   return (
     <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
       <h1 className="font-bold text-3xl text-titulo tracking-tight">
         Meus cursos
       </h1>
-      <p className="text-muted-foreground">
-        {plural(painel.trilhas.length, "trilha", "trilhas")} e{" "}
-        {plural(painel.soltos.length, "curso rápido", "cursos rápidos")}{" "}
-        liberados para você
-      </p>
+      <p className="text-muted-foreground">{liberados(painel)}</p>
     </header>
   );
 }

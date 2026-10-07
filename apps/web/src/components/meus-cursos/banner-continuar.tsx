@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { dimensoesDaCapa } from "@/lib/capas";
-import { fmtMin } from "@/lib/formato";
+import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
 
 import { BarraProgresso } from "./barra-progresso";
 
@@ -63,7 +63,7 @@ function Progresso({
       />
       <p className="text-muted-foreground text-sm tabular-nums">
         <b className="font-semibold text-titulo">{pct}%</b> do curso, {feitas}{" "}
-        de {total} aulas
+        de {plural(total, "aula", "aulas")}
       </p>
     </>
   );
@@ -122,7 +122,8 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
         {retomada.tipo === "continuar" && (
           <>
             <p>
-              {onde} · Módulo {retomada.modulo.numero}. Faltam{" "}
+              {onde} · Módulo {retomada.modulo.numero}.{" "}
+              {faltam(minutos(retomada.aula.faltaSeg))}{" "}
               <b className="font-semibold text-titulo">
                 {fmtMin(retomada.aula.faltaSeg)}
               </b>{" "}

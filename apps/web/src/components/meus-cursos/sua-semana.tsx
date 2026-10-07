@@ -4,7 +4,7 @@ import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Flame, Gift, Star } from "lucide-react";
 
-import { fmtPts, plural } from "@/lib/formato";
+import { faltam, fmtPts, plural } from "@/lib/formato";
 
 const DESCRICAO: Record<StatusDia, string> = {
   estudou: "estudou",
@@ -90,7 +90,8 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
       <p className="-mx-(--pad) flex items-center gap-2.5 border-border border-t px-(--pad) pt-3.5 text-sm">
         <Star aria-hidden="true" className="size-5 text-sol" />
         <span>
-          Faltam {plural(resumo.faltamParaBonus, "dia", "dias")} para{" "}
+          {faltam(resumo.faltamParaBonus)}{" "}
+          {plural(resumo.faltamParaBonus, "dia", "dias")} para{" "}
           <b className="font-semibold text-sol">+{fmtPts(resumo.bonus)}</b>
         </span>
       </p>
