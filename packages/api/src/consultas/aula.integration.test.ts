@@ -47,6 +47,15 @@ const emSerie = <T, R>(itens: readonly T[], f: (x: T) => Promise<R>) =>
     Promise.resolve([])
   );
 
+// O pg avisa uma vez por processo quando duas queries dividem um client; a
+// transação do registro não pode disparar isso (no pg 9 vira erro).
+const avisosDoPg: string[] = [];
+process.on("warning", (w) => {
+  if (w.message.includes("already executing a query")) {
+    avisosDoPg.push(w.message);
+  }
+});
+
 const codigo = (e: unknown) =>
   e instanceof TRPCError ? e.code : `não é TRPCError: ${String(e)}`;
 
@@ -468,6 +477,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       tipo: "aula",
     });
     expect(await carregarAula(db, aluno, c.slug, cursos[0] ?? "")).toBeNull();
+  });
+
+  test("o registro lê o curso em série dentro da transação", async () => {
+    const { aluno, c } = await cursoLiberado();
+    await terco(aluno, c.aulas[0] as AulaId, 0, 0);
+    expect(avisosDoPg).toEqual([]);
   });
 
   test("contagem de statements: abrir 4, envio comum 7 e com conquista 9, mais begin e commit", async () => {
