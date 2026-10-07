@@ -30,9 +30,7 @@ import { COTA_VIDEO } from "../dominio/regras";
 import type { AulaId, DiaISO } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
 import { COM_CONTEUDO } from "./catalogo";
-
-type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type Executor = Database | Transacao;
+import type { Executor } from "./pontos";
 
 export type ChaveCurso = { aulaId: string } | { slug: string };
 

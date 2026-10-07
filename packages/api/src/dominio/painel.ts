@@ -86,7 +86,7 @@ export interface LinhasPainel {
 
 export interface LinhasResumo {
   dias: readonly { dia: string }[];
-  pontos: { saldo: number; semana: number } | undefined;
+  pontos: { saldo: number; semana: number };
 }
 
 // ---------- saída: o view model da tela ----------
@@ -395,8 +395,8 @@ export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
     bonus: PONTOS.sequencia_7_dias,
     dias: semana(dias, hoje),
     faltamParaBonus: faltamParaBonus(sequenciaDias),
-    pontosSemana: linhas.pontos?.semana ?? 0,
-    saldo: linhas.pontos?.saldo ?? 0,
+    pontosSemana: linhas.pontos.semana,
+    saldo: linhas.pontos.saldo,
     sequenciaDias,
   };
 }
