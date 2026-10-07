@@ -23,7 +23,7 @@ export function SaldoDeTroca({
   return (
     <section
       aria-labelledby="saldo-titulo"
-      className="relative overflow-hidden rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:clamp(20px,3.5vw,32px)]"
+      className="relative overflow-clip rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:clamp(20px,3.5vw,32px)]"
     >
       <div
         aria-hidden="true"
