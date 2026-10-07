@@ -7,14 +7,18 @@ import {
 import { SidebarTrigger } from "@cursos/ui/components/sidebar";
 import { Skeleton } from "@cursos/ui/components/skeleton";
 import { Flame, Search, Star } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { fmtPts, plural } from "@/lib/formato";
 
 const CHIP =
   "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm tabular-nums";
 
-/** Com `resumo` nulo, os chips viram esqueleto enquanto o resumo carrega. */
-export function Topo({ resumo }: { resumo: ResumoAluno | null }) {
+/**
+ * O gatilho da sidebar e a busca não dependem do banco. Só `chips` suspende: assim o
+ * React não troca o gatilho por outro nó quando o resumo chega, e o foco não se perde.
+ */
+export function Topo({ chips }: { chips: ReactNode }) {
   return (
     <div className="mb-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
       <div className="flex min-w-0 flex-[1_1_280px] items-center gap-2">
@@ -37,12 +41,13 @@ export function Topo({ resumo }: { resumo: ResumoAluno | null }) {
           />
         </InputGroup>
       </div>
-      {resumo ? <Chips resumo={resumo} /> : <ChipsCarregando />}
+      {chips}
     </div>
   );
 }
 
-function ChipsCarregando() {
+/** Esqueleto com a mesma altura e o mesmo contêiner dos chips, enquanto o resumo carrega. */
+export function ChipsCarregando() {
   return (
     <div aria-hidden="true" className="ml-auto flex gap-2">
       <Skeleton className="h-9 w-20 rounded-full bg-card motion-reduce:animate-none" />
@@ -53,7 +58,7 @@ function ChipsCarregando() {
 
 // O significado de cada chip vai em texto sr-only, não em title: title não chega ao
 // teclado nem ao toque, e o leitor de tela nem sempre o lê.
-function Chips({ resumo }: { resumo: ResumoAluno }) {
+export function Chips({ resumo }: { resumo: ResumoAluno }) {
   return (
     <div className="ml-auto flex gap-2">
       <span className={CHIP}>

@@ -3,16 +3,16 @@ import { cookies } from "next/headers";
 import { type CSSProperties, Suspense } from "react";
 
 import { AppSidebar } from "@/components/aluno/app-sidebar";
-import { Topo } from "@/components/aluno/topo";
+import { Chips, ChipsCarregando, Topo } from "@/components/aluno/topo";
 import { carregarResumo } from "@/server/api";
 
-async function TopoComResumo() {
-  return <Topo resumo={await carregarResumo()} />;
+async function ChipsComResumo() {
+  return <Chips resumo={await carregarResumo()} />;
 }
 
 // Conteúdo em largura total: nenhum ancestral do conteúdo tem max-width, container ou mx-auto.
-// O layout não espera o banco: o topo carrega o resumo atrás de um Suspense, e a
-// casca com a sidebar e o loading.tsx da página aparecem logo.
+// O layout não espera o banco: só os chips do topo carregam o resumo atrás de um
+// Suspense, e a casca com a sidebar, o topo e o loading.tsx da página aparecem logo.
 export default async function LayoutDoAluno({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -26,9 +26,13 @@ export default async function LayoutDoAluno({
       <AppSidebar />
       <SidebarInset>
         <div className="min-w-0 px-[clamp(1rem,4vw,3rem)] pt-8 pb-16">
-          <Suspense fallback={<Topo resumo={null} />}>
-            <TopoComResumo />
-          </Suspense>
+          <Topo
+            chips={
+              <Suspense fallback={<ChipsCarregando />}>
+                <ChipsComResumo />
+              </Suspense>
+            }
+          />
           {children}
         </div>
       </SidebarInset>
