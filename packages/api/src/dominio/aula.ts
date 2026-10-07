@@ -6,7 +6,7 @@ import {
   type Progresso,
   progresso,
 } from "./curso";
-import { atividadeDe, historicoDe } from "./historico";
+import { atividadeDe, historicoDe, posicaoComecada } from "./historico";
 import { type CursoLinha, paraCatalogo } from "./painel";
 import { FIM_DA_AULA_SEG } from "./regras";
 import { aulaDeRetomada } from "./retomada";
@@ -75,7 +75,7 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   }
   const comPosicao = {
     ...linhas,
-    posicoes: linhas.posicoes.filter((p) => p.posicaoSeg > 0),
+    posicoes: linhas.posicoes.filter(posicaoComecada),
   };
   const historico = historicoDe(comPosicao);
   const curso = paraCatalogo(linha);

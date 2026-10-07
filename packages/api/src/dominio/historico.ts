@@ -10,6 +10,9 @@ export interface LinhasHistorico {
   }[];
 }
 
+export const posicaoComecada = (p: { posicaoSeg: number }): boolean =>
+  p.posicaoSeg > 0;
+
 export function historicoDe(l: LinhasHistorico): Historico {
   return {
     assistidas: new Set(l.assistidas.map((a) => a.aulaId as AulaId)),
