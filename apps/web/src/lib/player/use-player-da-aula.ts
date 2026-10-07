@@ -1,0 +1,204 @@
+"use client";
+
+import type { Conquista, Pedido } from "@cursos/api/dominio/registro";
+import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
+import type { Trechos } from "@cursos/api/dominio/trechos";
+import { TRPCClientError } from "@trpc/client";
+import { useRouter } from "next/navigation";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+
+import { trpcClient } from "@/utils/trpc";
+
+import {
+  criarSessaoDeEstudo,
+  type EstadoDaSessao,
+  estadoInicial,
+  type MotivoParado,
+  type RespostaDoEnvio,
+  type SessaoDeEstudo,
+} from "./sessao";
+import { type ComandoDoTeclado, comandoDaTecla } from "./teclado";
+import { criarPlayerDeVideo } from "./video";
+
+export interface EntradaDoPlayer {
+  aulaId: AulaId;
+  duracaoSeg: number;
+  estudo: { assistida: boolean; trechos: Trechos };
+  inicioSeg: number;
+  video: VideoDaAula;
+}
+
+const PARADO_POR: Readonly<Record<string, MotivoParado>> = {
+  NOT_FOUND: "sem_acesso",
+  PRECONDITION_FAILED: "sem_video",
+  UNAUTHORIZED: "sessao_expirada",
+};
+
+/** A borda do envio: erro do tRPC vira motivo de parar ou falha de rede. */
+async function enviarRegistro(
+  aulaId: AulaId,
+  pedido: Pedido
+): Promise<RespostaDoEnvio> {
+  try {
+    const registro = await trpcClient.aula.registrar.mutate({
+      aulaId,
+      posicaoSeg: pedido.posicaoSeg,
+      trechos: [...pedido.trechos],
+    });
+    return { registro, tipo: "ok" };
+  } catch (e) {
+    const motivo =
+      e instanceof TRPCClientError
+        ? PARADO_POR[String(e.data?.code)]
+        : undefined;
+    return motivo ? { motivo, tipo: "definitivo" } : { tipo: "rede" };
+  }
+}
+
+const AVISO_MS = 5200;
+const nada = () => () => undefined;
+
+/** Com o foco num botão ou no volume, a tecla é do controle, não do atalho. */
+function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
+  const alvo = e.target as HTMLElement;
+  if (alvo === container) {
+    return false;
+  }
+  if (e.key === " " || e.key === "Enter") {
+    return alvo.closest("button, a, input") !== null;
+  }
+  return alvo.closest("[data-slot=slider]") !== null;
+}
+
+/**
+ * Cria a sessão no mount e a encerra no unmount. A entrada é lida só no mount:
+ * a página dá key = aula.id, então o router.refresh() da conquista renderiza de
+ * novo os chips e a coluna sem remontar o iframe.
+ */
+export function usePlayerDaAula(entrada: EntradaDoPlayer) {
+  const router = useRouter();
+  const refVideo = useRef<HTMLDivElement>(null);
+  const refContainer = useRef<HTMLElement>(null);
+  const [inicial] = useState(entrada);
+  const [estadoAntes] = useState(() => estadoInicial(inicial));
+  const [sessao, setSessao] = useState<SessaoDeEstudo | null>(null);
+  const [conquista, setConquista] = useState<Conquista | null>(null);
+  const [telaCheia, setTelaCheia] = useState(false);
+  const [podeTelaCheia, setPodeTelaCheia] = useState(false);
+
+  useEffect(() => {
+    const elemento = refVideo.current;
+    if (!elemento) {
+      return;
+    }
+    const s = criarSessaoDeEstudo(inicial, {
+      agendar: (fn, ms) => {
+        const id = window.setTimeout(fn, ms);
+        return () => window.clearTimeout(id);
+      },
+      aoConquistar: (c) => {
+        setConquista(c);
+        startTransition(() => router.refresh());
+      },
+      criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
+      enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
+      relogio: () => performance.now(),
+    });
+    setSessao(s);
+    const aoEsconder = () => {
+      if (document.visibilityState === "hidden") {
+        s.salvarAgora();
+      }
+    };
+    const aoSair = () => s.salvarAgora();
+    document.addEventListener("visibilitychange", aoEsconder);
+    window.addEventListener("pagehide", aoSair);
+    return () => {
+      document.removeEventListener("visibilitychange", aoEsconder);
+      window.removeEventListener("pagehide", aoSair);
+      s.encerrar();
+    };
+  }, [inicial, router]);
+
+  useEffect(() => {
+    const container = refContainer.current;
+    setPodeTelaCheia(
+      document.fullscreenEnabled &&
+        typeof container?.requestFullscreen === "function"
+    );
+    const aoMudar = () =>
+      setTelaCheia(document.fullscreenElement === refContainer.current);
+    document.addEventListener("fullscreenchange", aoMudar);
+    return () => document.removeEventListener("fullscreenchange", aoMudar);
+  }, []);
+
+  useEffect(() => {
+    if (!conquista) {
+      return;
+    }
+    const id = window.setTimeout(() => setConquista(null), AVISO_MS);
+    return () => window.clearTimeout(id);
+  }, [conquista]);
+
+  const estado: EstadoDaSessao = useSyncExternalStore(
+    sessao ? sessao.assinar : nada,
+    sessao ? sessao.estado : () => estadoAntes,
+    () => estadoAntes
+  );
+
+  const comandar = useCallback(
+    (c: ComandoDoTeclado) => {
+      if (c.tipo === "tela_cheia") {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => undefined);
+        } else {
+          refContainer.current?.requestFullscreen().catch(() => undefined);
+        }
+        return;
+      }
+      sessao?.comandar(c);
+    },
+    [sessao]
+  );
+
+  // O atalho é do contêiner do player, não da window: fora dele a tecla é da página.
+  useEffect(() => {
+    const container = refContainer.current;
+    if (!container) {
+      return;
+    }
+    const aoTeclar = (e: KeyboardEvent) => {
+      const c = comandoDaTecla(e);
+      if (!c || teclaDoControle(e, container)) {
+        return;
+      }
+      e.preventDefault();
+      comandar(c);
+    };
+    container.addEventListener("keydown", aoTeclar);
+    return () => container.removeEventListener("keydown", aoTeclar);
+  }, [comandar]);
+
+  const buscar = useCallback(
+    (seg: number) => comandar({ seg, tipo: "buscar" }),
+    [comandar]
+  );
+
+  return {
+    buscar,
+    comandar,
+    conquista,
+    estado,
+    podeTelaCheia,
+    refContainer,
+    refVideo,
+    telaCheia,
+  };
+}

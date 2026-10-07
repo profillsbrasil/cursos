@@ -8,6 +8,7 @@ import {
   SEM_TRECHOS,
   segundos,
   subtrair,
+  type Trecho,
   type Trechos,
   unir,
 } from "@cursos/api/dominio/trechos";
@@ -74,9 +75,14 @@ export interface EstadoDaSessao {
   volume: Volume;
 }
 
+/** O Registro como chega pelo JSON: a marca de Trechos não sobrevive ao fio. */
+export type RegistroNoFio = Omit<Registro, "trechos"> & {
+  trechos: readonly Trecho[];
+};
+
 /** A borda do envio: o hook traduz a resposta do tRPC nisto. */
 export type RespostaDoEnvio =
-  | { registro: Registro; tipo: "ok" }
+  | { registro: RegistroNoFio; tipo: "ok" }
   | { motivo: MotivoParado; tipo: "definitivo" }
   | { tipo: "rede" };
 
@@ -140,6 +146,19 @@ export function transicao(
   }
 }
 
+/** O estado antes do player existir: também é o snapshot do servidor no React. */
+export const estadoInicial = (e: EntradaDaSessao): EstadoDaSessao => ({
+  assistida: e.estudo.assistida,
+  cobertura: cobertura(e.estudo.trechos, e.duracaoSeg),
+  duracaoSeg: e.duracaoSeg,
+  envio: { tipo: "em_dia" },
+  reproducao: { tipo: "carregando" },
+  tempoSeg: e.inicioSeg,
+  trechos: e.estudo.trechos,
+  velocidade: 1,
+  volume: { mudo: false, nivel: 100 },
+});
+
 const limitar = (n: number, min: number, max: number) =>
   Math.min(Math.max(n, min), max);
 
@@ -148,24 +167,18 @@ export function criarSessaoDeEstudo(
   deps: DependenciasDaSessao
 ): SessaoDeEstudo {
   const { duracaoSeg } = entrada;
-  let reproducao: EstadoReproducao = { tipo: "carregando" };
-  let envio: EstadoEnvio = { tipo: "em_dia" };
-  let { assistida } = entrada.estudo;
-  let servidor: Trechos = entrada.estudo.trechos;
+  let foto = estadoInicial(entrada);
+  let { assistida, envio, reproducao, tempoSeg, velocidade, volume } = foto;
+  let servidor = foto.trechos;
   let pendentes: Trechos = SEM_TRECHOS;
   let medidor: Medidor = MEDIDOR_PARADO;
   let posicaoSuja = false;
   let pediuNaMeta = false;
   let encerrada = false;
-  let tempoSeg = entrada.inicioSeg;
-  let velocidade: Velocidade = 1;
-  let volume: Volume = { mudo: false, nivel: 100 };
   let tentativa = 0;
   let pararAmostra: (() => void) | null = null;
   let pararEnvio: (() => void) | null = null;
-
   const ouvintes = new Set<() => void>();
-  let foto: EstadoDaSessao;
 
   const vistos = () =>
     unir(
@@ -187,8 +200,6 @@ export function criarSessaoDeEstudo(
       volume,
     };
   }
-  foto = fotografar();
-
   function avisar() {
     foto = fotografar();
     for (const o of ouvintes) {

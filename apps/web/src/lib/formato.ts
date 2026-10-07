@@ -38,3 +38,12 @@ export const fmtData = (iso: string) => DATA.format(new Date(iso));
 
 /** "2.340 pts". */
 export const fmtPts = (n: number) => `${NUMERO.format(n)} pts`;
+
+/** "03:42", "12:05": o relógio do player. */
+export function mmss(seg: number) {
+  const s = Math.max(0, Math.floor(seg));
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/** "1,25×". */
+export const fmtVelocidade = (v: number) => `${NUMERO.format(v)}×`;

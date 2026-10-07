@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { BuscaEmBreve, Chips, TopoDoAluno } from "@/components/aluno/topo";
 import { caminhoDaAula } from "@/lib/rotas";
-import { carregarEntrada } from "@/server/api";
+import { carregarEntrada, carregarResumo } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Profills School" };
 
@@ -15,7 +16,10 @@ export default async function Curso({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const entrada = await carregarEntrada(slug);
+  const [entrada, resumo] = await Promise.all([
+    carregarEntrada(slug),
+    carregarResumo(),
+  ]);
   if (!entrada) {
     notFound();
   }
@@ -23,31 +27,37 @@ export default async function Curso({
     redirect(caminhoDaAula(slug, entrada.aulaId));
   }
   return (
-    <div className="grid gap-3">
-      <h1 className="font-bold text-3xl text-titulo tracking-tight">
-        {entrada.tipo === "prova"
-          ? "Você assistiu a todas as aulas"
-          : "Curso concluído"}
-      </h1>
-      <p className="text-muted-foreground">
-        {entrada.tipo === "prova"
-          ? "A prova chega no próximo PR."
-          : "Seu certificado já foi emitido."}
-      </p>
-      <div className="flex flex-wrap gap-4">
-        <Link
-          className="text-ceu underline underline-offset-4"
-          href={caminhoDaAula(slug, entrada.primeira)}
-        >
-          Rever aulas
-        </Link>
-        <Link
-          className="text-ceu underline underline-offset-4"
-          href="/meus-cursos"
-        >
-          Voltar para Meus cursos
-        </Link>
+    <>
+      <TopoDoAluno
+        chips={<Chips resumo={resumo} />}
+        esquerda={<BuscaEmBreve />}
+      />
+      <div className="grid gap-3">
+        <h1 className="font-bold text-3xl text-titulo tracking-tight">
+          {entrada.tipo === "prova"
+            ? "Você assistiu a todas as aulas"
+            : "Curso concluído"}
+        </h1>
+        <p className="text-muted-foreground">
+          {entrada.tipo === "prova"
+            ? "A prova chega no próximo PR."
+            : "Seu certificado já foi emitido."}
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            className="text-ceu underline underline-offset-4"
+            href={caminhoDaAula(slug, entrada.primeira)}
+          >
+            Rever aulas
+          </Link>
+          <Link
+            className="text-ceu underline underline-offset-4"
+            href="/meus-cursos"
+          >
+            Voltar para Meus cursos
+          </Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

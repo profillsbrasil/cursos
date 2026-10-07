@@ -15,10 +15,17 @@ const CHIP =
   "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm tabular-nums";
 
 /**
- * O gatilho da sidebar e a busca não dependem do banco. Só `chips` suspende: assim o
- * React não troca o gatilho por outro nó quando o resumo chega, e o foco não se perde.
+ * O topo é da página, não do layout: cada navegação lê o resumo de novo e os
+ * chips não ficam velhos (veredito, item 27). `esquerda` é a busca em Meus
+ * cursos e a migalha no player; sem `chips`, o topo de erro não toca o banco.
  */
-export function Topo({ chips }: { chips: ReactNode }) {
+export function TopoDoAluno({
+  chips,
+  esquerda,
+}: {
+  chips?: ReactNode;
+  esquerda: ReactNode;
+}) {
   return (
     <div className="mb-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
       <div className="flex min-w-0 flex-[1_1_280px] items-center gap-2">
@@ -28,21 +35,27 @@ export function Topo({ chips }: { chips: ReactNode }) {
           aria-label="Mostrar ou esconder a navegação"
           className="size-9 rounded-full"
         />
-        <InputGroup className="h-10 max-w-[460px] flex-1 rounded-full border-input bg-card px-2 has-disabled:opacity-100 dark:bg-card">
-          <InputGroupAddon>
-            <Search aria-hidden="true" className="text-muted-foreground" />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label="Buscar aula, máquina ou tema (em breve)"
-            className="text-sm placeholder:text-muted-foreground disabled:opacity-100"
-            disabled
-            placeholder="Busca em breve"
-            type="search"
-          />
-        </InputGroup>
+        {esquerda}
       </div>
       {chips}
     </div>
+  );
+}
+
+export function BuscaEmBreve() {
+  return (
+    <InputGroup className="h-10 max-w-[460px] flex-1 rounded-full border-input bg-card px-2 has-disabled:opacity-100 dark:bg-card">
+      <InputGroupAddon>
+        <Search aria-hidden="true" className="text-muted-foreground" />
+      </InputGroupAddon>
+      <InputGroupInput
+        aria-label="Buscar aula, máquina ou tema (em breve)"
+        className="text-sm placeholder:text-muted-foreground disabled:opacity-100"
+        disabled
+        placeholder="Busca em breve"
+        type="search"
+      />
+    </InputGroup>
   );
 }
 
