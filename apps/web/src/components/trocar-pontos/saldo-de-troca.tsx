@@ -1,5 +1,6 @@
 "use client";
 
+import type { RegraDeGanho } from "@cursos/api/dominio/pontos";
 import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, Flame, Star } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -14,7 +15,7 @@ export function SaldoDeTroca({
   pontosSemana,
   saldo,
 }: {
-  comoGanhar: readonly { pontos: number; rotulo: string }[];
+  comoGanhar: readonly RegraDeGanho[];
   pontosSemana: number;
   saldo: number;
 }) {

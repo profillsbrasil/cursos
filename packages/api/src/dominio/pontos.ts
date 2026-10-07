@@ -1,5 +1,6 @@
 import type { motivoPonto } from "@cursos/db/schema/comum";
 
+import { pontuaHoje } from "./registro";
 import { PONTOS } from "./regras";
 import { diaLocal } from "./sequencia";
 import type { DiaISO } from "./tipos";
@@ -87,5 +88,16 @@ const ORDEM: readonly RegraDePonto[] = [
   "sequencia_7_dias",
 ];
 
-export const comoGanhar = (): readonly { pontos: number; rotulo: string }[] =>
-  ORDEM.map((regra) => ({ pontos: PONTOS[regra], rotulo: ROTULOS[regra] }));
+export interface RegraDeGanho {
+  /** A regra ainda não credita: nenhum código grava esse motivo. */
+  emBreve: boolean;
+  pontos: number;
+  rotulo: string;
+}
+
+export const comoGanhar = (): readonly RegraDeGanho[] =>
+  ORDEM.map((regra) => ({
+    emBreve: !pontuaHoje(regra),
+    pontos: PONTOS[regra],
+    rotulo: ROTULOS[regra],
+  }));

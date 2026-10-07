@@ -1,3 +1,6 @@
+import type { RegraDeGanho } from "@cursos/api/dominio/pontos";
+import { cn } from "@cursos/ui/lib/utils";
+
 import { fmtPts } from "@/lib/formato";
 
 /** Tabela de pontos, dentro do cartão do saldo. A divisória de cima vai de borda a borda. */
@@ -8,7 +11,7 @@ export function ComoGanhar({
 }: {
   aberta: boolean;
   id: string;
-  regras: readonly { pontos: number; rotulo: string }[];
+  regras: readonly RegraDeGanho[];
 }) {
   return (
     <div
@@ -22,8 +25,23 @@ export function ComoGanhar({
             className="flex items-baseline justify-between gap-4 border-border border-b border-dashed py-2.5"
             key={r.rotulo}
           >
-            <span>{r.rotulo}</span>
-            <b className="whitespace-nowrap font-bold text-sol tabular-nums">
+            <span>
+              {r.rotulo}
+              {r.emBreve ? (
+                <>
+                  {" "}
+                  <span className="ml-1 whitespace-nowrap font-normal text-muted-foreground text-xs">
+                    Em breve
+                  </span>
+                </>
+              ) : null}
+            </span>
+            <b
+              className={cn(
+                "whitespace-nowrap font-bold tabular-nums",
+                r.emBreve ? "text-muted-foreground" : "text-sol"
+              )}
+            >
               +{fmtPts(r.pontos)}
             </b>
           </li>

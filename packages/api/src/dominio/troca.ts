@@ -3,6 +3,7 @@ import {
   type ItemDoExtrato,
   itemDoExtrato,
   type LinhaDoExtrato,
+  type RegraDeGanho,
 } from "./pontos";
 import type { CursoId, DiaISO } from "./tipos";
 
@@ -166,7 +167,7 @@ const precoDoCartao = (c: CartaoDeTroca): number =>
 export interface PainelDeTroca {
   /** Ordem: preço e título. */
   cartoes: readonly CartaoDeTroca[];
-  comoGanhar: readonly { pontos: number; rotulo: string }[];
+  comoGanhar: readonly RegraDeGanho[];
   /** Mais recente primeiro. */
   extrato: readonly ItemDoExtrato[];
   hoje: DiaISO;

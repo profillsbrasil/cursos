@@ -69,14 +69,18 @@ describe("itemDoExtrato", () => {
 });
 
 describe("comoGanhar", () => {
-  test("lista toda regra de PONTOS, na ordem do protótipo, com o valor da regra", () => {
+  test("lista toda regra de PONTOS, na ordem do protótipo, e só o que o registro grava sai sem selo", () => {
     expect(comoGanhar()).toEqual([
-      { pontos: 10, rotulo: "Aula assistida (90% do vídeo)" },
-      { pontos: 5, rotulo: "Acerto no quiz de fixação, primeira tentativa" },
-      { pontos: 50, rotulo: "Prova aprovada" },
-      { pontos: 100, rotulo: "Curso concluído" },
-      { pontos: 500, rotulo: "Trilha concluída" },
-      { pontos: 30, rotulo: "7 dias úteis seguidos" },
+      { emBreve: false, pontos: 10, rotulo: "Aula assistida (90% do vídeo)" },
+      {
+        emBreve: true,
+        pontos: 5,
+        rotulo: "Acerto no quiz de fixação, primeira tentativa",
+      },
+      { emBreve: true, pontos: 50, rotulo: "Prova aprovada" },
+      { emBreve: true, pontos: 100, rotulo: "Curso concluído" },
+      { emBreve: true, pontos: 500, rotulo: "Trilha concluída" },
+      { emBreve: false, pontos: 30, rotulo: "7 dias úteis seguidos" },
     ]);
     expect(comoGanhar()).toHaveLength(Object.keys(PONTOS).length);
   });
