@@ -15,7 +15,11 @@ import {
 } from "react";
 
 import { trpcClient } from "@/utils/trpc";
-
+import {
+  gravarPreferencias,
+  lerPreferencias,
+  PREFERENCIAS_PADRAO,
+} from "./preferencias";
 import {
   criarSessaoDeEstudo,
   type EstadoDaSessao,
@@ -87,7 +91,10 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   const refVideo = useRef<HTMLDivElement>(null);
   const refContainer = useRef<HTMLElement>(null);
   const [inicial] = useState(entrada);
-  const [estadoAntes] = useState(() => estadoInicial(inicial));
+  // O servidor não lê localStorage: o snapshot antes da sessão usa o padrão.
+  const [estadoAntes] = useState(() =>
+    estadoInicial({ ...inicial, preferencias: PREFERENCIAS_PADRAO })
+  );
   const [sessao, setSessao] = useState<SessaoDeEstudo | null>(null);
   const [conquista, setConquista] = useState<Conquista | null>(null);
   const [telaCheia, setTelaCheia] = useState(false);
@@ -98,20 +105,31 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     if (!elemento) {
       return;
     }
-    const s = criarSessaoDeEstudo(inicial, {
-      agendar: (fn, ms) => {
-        const id = window.setTimeout(fn, ms);
-        return () => window.clearTimeout(id);
-      },
-      aoConquistar: (c) => {
-        setConquista(c);
-        startTransition(() => router.refresh());
-      },
-      criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
-      enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
-      relogio: () => performance.now(),
-    });
+    let gravadas = lerPreferencias();
+    const s = criarSessaoDeEstudo(
+      { ...inicial, preferencias: gravadas },
+      {
+        agendar: (fn, ms) => {
+          const id = window.setTimeout(fn, ms);
+          return () => window.clearTimeout(id);
+        },
+        aoConquistar: (c) => {
+          setConquista(c);
+          startTransition(() => router.refresh());
+        },
+        criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
+        enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
+        relogio: () => performance.now(),
+      }
+    );
     setSessao(s);
+    const pararDeGravar = s.assinar(() => {
+      const { velocidade, volume } = s.estado();
+      if (velocidade !== gravadas.velocidade || volume !== gravadas.volume) {
+        gravadas = { velocidade, volume };
+        gravarPreferencias(gravadas);
+      }
+    });
     const aoEsconder = () => {
       if (document.visibilityState === "hidden") {
         s.salvarAgora();
@@ -121,6 +139,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     document.addEventListener("visibilitychange", aoEsconder);
     window.addEventListener("pagehide", aoSair);
     return () => {
+      pararDeGravar();
       document.removeEventListener("visibilitychange", aoEsconder);
       window.removeEventListener("pagehide", aoSair);
       s.encerrar();

@@ -112,13 +112,6 @@ export function criarPlayerDoYoutube(
             opcoes.aoEvento({ motivo: motivoDoErro(e.data), tipo: "falhou" }),
           onReady: () => {
             player = criado;
-            criado.setVolume(opcoes.volume.nivel);
-            if (opcoes.volume.mudo) {
-              criado.mute();
-            } else {
-              criado.unMute();
-            }
-            criado.setPlaybackRate(opcoes.velocidade);
             opcoes.aoEvento({
               duracaoSeg: criado.getDuration(),
               tipo: "pronto",
@@ -161,7 +154,7 @@ export function criarPlayerDoYoutube(
       player = null;
     },
     pausar: () => player?.pauseVideo(),
-    taxa: () => player?.getPlaybackRate() ?? opcoes.velocidade,
+    taxa: () => player?.getPlaybackRate() ?? 1,
     tempo: () => player?.getCurrentTime() ?? opcoes.inicioSeg,
     tocar: () => player?.playVideo(),
   };

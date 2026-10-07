@@ -40,9 +40,6 @@ export interface PlayerDeVideo {
 export interface OpcoesDoPlayer {
   aoEvento: (e: EventoDoVideo) => void;
   inicioSeg: number;
-  /** Reaplicados no pronto: um player novo nasce em 1x e volume 100. */
-  velocidade: Velocidade;
-  volume: Volume;
 }
 
 /** Um provedor novo no enum quebra o build aqui até ter adaptador. */

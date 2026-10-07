@@ -14,6 +14,7 @@ import {
   type Trecho,
 } from "@cursos/api/dominio/trechos";
 
+import { PREFERENCIAS_PADRAO } from "./preferencias";
 import {
   criarSessaoDeEstudo,
   type EstadoReproducao,
@@ -72,6 +73,9 @@ function playerFalso(relogio: Relogio) {
   let desde = 0;
   let taxa = 1;
   let tocando = false;
+  let pronto = false;
+  // Como o YouTube: antes do onReady, volume e velocidade não chegam ao player.
+  const aplicado = { mudo: false, nivel: 100, velocidade: 1 };
   let aoEvento: (e: EventoDoVideo) => void = () => undefined;
   const tempo = () =>
     tocando
@@ -87,13 +91,25 @@ function playerFalso(relogio: Relogio) {
         aoEvento({ tipo: "tocou" });
       }
     },
-    definirMudo: () => undefined,
+    definirMudo(mudo) {
+      if (pronto) {
+        aplicado.mudo = mudo;
+      }
+    },
     definirVelocidade(v) {
+      if (!pronto) {
+        return;
+      }
       base = tempo();
       desde = relogio.agora();
       taxa = v;
+      aplicado.velocidade = v;
     },
-    definirVolume: () => undefined,
+    definirVolume(nivel) {
+      if (pronto) {
+        aplicado.nivel = nivel;
+      }
+    },
     destruir: () => undefined,
     pausar() {
       if (tocando) {
@@ -113,12 +129,16 @@ function playerFalso(relogio: Relogio) {
     },
   };
   return {
+    aplicado,
     criar(o: OpcoesDoPlayer) {
       ({ aoEvento } = o);
       base = o.inicioSeg;
       return player;
     },
-    emitir: (e: EventoDoVideo) => aoEvento(e),
+    emitir(e: EventoDoVideo) {
+      pronto ||= e.tipo === "pronto";
+      aoEvento(e);
+    },
     terminar() {
       base = DURACAO;
       tocando = false;
@@ -172,7 +192,10 @@ function servidorFalso(relogio: Relogio) {
   };
 }
 
-function montar(inicioSeg = 0) {
+function montar(
+  inicioSeg = 0,
+  { preferencias = PREFERENCIAS_PADRAO, pronto = true } = {}
+) {
   const relogio = relogioFalso();
   const video = playerFalso(relogio);
   const servidor = servidorFalso(relogio);
@@ -182,6 +205,7 @@ function montar(inicioSeg = 0) {
       duracaoSeg: DURACAO,
       estudo: { assistida: false, trechos: SEM_TRECHOS },
       inicioSeg,
+      preferencias,
     },
     {
       agendar: relogio.agendar,
@@ -191,8 +215,12 @@ function montar(inicioSeg = 0) {
       relogio: relogio.agora,
     }
   );
-  video.emitir({ duracaoSeg: DURACAO + 0.6, tipo: "pronto" });
-  return { conquistas, relogio, servidor, sessao, video };
+  const ficarPronto = () =>
+    video.emitir({ duracaoSeg: DURACAO + 0.6, tipo: "pronto" });
+  if (pronto) {
+    ficarPronto();
+  }
+  return { conquistas, ficarPronto, relogio, servidor, sessao, video };
 }
 
 const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
@@ -394,6 +422,30 @@ describe("cadência do envio", () => {
     video.emitir({ tipo: "tocou" });
     await relogio.avancar(10_000);
     expect(servidor.pedidos).toHaveLength(1);
+  });
+});
+
+describe("volume e velocidade", () => {
+  test("o que mudou antes do pronto chega ao player no pronto", () => {
+    const { ficarPronto, sessao, video } = montar(0, { pronto: false });
+    sessao.comandar({ nivel: 20, tipo: "definir_volume" });
+    sessao.comandar({ tipo: "mudo" });
+    sessao.comandar({ tipo: "velocidade", valor: 1.5 });
+    ficarPronto();
+    expect(video.aplicado).toEqual({ mudo: true, nivel: 20, velocidade: 1.5 });
+  });
+
+  test("a sessão nasce com a preferência do aparelho e a aplica no pronto", () => {
+    const { sessao, video } = montar(0, {
+      preferencias: { velocidade: 1.25, volume: { mudo: false, nivel: 40 } },
+    });
+    expect(sessao.estado().velocidade).toBe(1.25);
+    expect(sessao.estado().volume).toEqual({ mudo: false, nivel: 40 });
+    expect(video.aplicado).toEqual({
+      mudo: false,
+      nivel: 40,
+      velocidade: 1.25,
+    });
   });
 });
 

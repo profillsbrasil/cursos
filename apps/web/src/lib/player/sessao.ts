@@ -22,6 +22,7 @@ import {
   type Medidor,
   trechoAberto,
 } from "./medidor";
+import type { Preferencias } from "./preferencias";
 import type {
   EventoDoVideo,
   MotivoIndisponivel,
@@ -98,6 +99,7 @@ export interface EntradaDaSessao {
   duracaoSeg: number;
   estudo: { assistida: boolean; trechos: Trechos };
   inicioSeg: number;
+  preferencias: Preferencias;
 }
 
 export interface SessaoDeEstudo {
@@ -155,8 +157,8 @@ export const estadoInicial = (e: EntradaDaSessao): EstadoDaSessao => ({
   reproducao: { tipo: "carregando" },
   tempoSeg: e.inicioSeg,
   trechos: e.estudo.trechos,
-  velocidade: 1,
-  volume: { mudo: false, nivel: 100 },
+  velocidade: e.preferencias.velocidade,
+  volume: e.preferencias.volume,
 });
 
 const limitar = (n: number, min: number, max: number) =>
@@ -340,7 +342,11 @@ export function criarSessaoDeEstudo(
     }, AMOSTRA_MS);
   }
 
+  /** Um player novo nasce em 1x e volume 100, e ignora o que veio antes do pronto. */
   function aoFicarPronto(duracaoDoVideoSeg: number) {
+    player.definirVolume(volume.nivel);
+    player.definirMudo(volume.mudo);
+    player.definirVelocidade(velocidade);
     if (Math.abs(duracaoDoVideoSeg - duracaoSeg) > DIFERENCA_DE_DURACAO_SEG) {
       console.warn(
         `duração do vídeo (${duracaoDoVideoSeg} s) difere da aula (${duracaoSeg} s)`
@@ -387,12 +393,7 @@ export function criarSessaoDeEstudo(
     avisar();
   }
 
-  const player = deps.criarPlayer({
-    aoEvento,
-    inicioSeg: entrada.inicioSeg,
-    velocidade,
-    volume,
-  });
+  const player = deps.criarPlayer({ aoEvento, inicioSeg: entrada.inicioSeg });
 
   function mover(seg: number) {
     const destino = limitar(seg, 0, duracaoSeg);
