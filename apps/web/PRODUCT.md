@@ -30,6 +30,11 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 - Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), fazem prova no fim do curso e recebem certificado.
 - Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para o perfil ou a empresa dela.
+- O conteúdo se organiza em trilhas. Uma trilha é um conjunto ordenado de cursos, e a ordem é sequencial: o curso seguinte só abre quando o anterior é concluído. Um curso também pode existir solto, fora de trilha, mas curso de trilha liberado sozinho é raro.
+- Um admin cria as trilhas e as libera por pessoa (por exemplo, trilhas X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
+- Clientes e público aberto recebem trilhas liberadas do mesmo jeito; a compra ou a assinatura só libera trilhas.
+- A liberação é permanente. Ela só some se o admin revogar.
+- O aluno tem um Início separado da tela "Meus cursos".
 - O acesso é misto: curso pago avulso, assinatura, curso gratuito para certos usuários e acesso 100% gratuito para outros.
 - A empresa é a Profills Brasil, fabricante de máquinas para produtos líquidos, pastosos e sólidos. O site institucional fica em outro repositório (`site-profills-brasil`).
 
@@ -38,6 +43,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 Confirmado:
 
 - Formatos de aula: vídeo gravado, material para ler, prova e certificado.
+- O certificado de um curso sai quando a pessoa assiste a todas as aulas e passa na prova.
 - Temas: máquinas da Profills, processo de envase e embalagem, vendas e atendimento, rotinas internas.
 - Uma plataforma com controle de acesso por perfil e por empresa cliente. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz).
 - Cobrança em dois modelos: compra avulsa e assinatura, além de liberação gratuita por usuário.
@@ -49,11 +55,12 @@ Fora do escopo confirmado:
 Decisões abertas:
 
 - Preços, planos de assinatura e o meio de pagamento.
-- Como o acesso gratuito é concedido (por empresa cliente, por compra de máquina, por convite).
+- Como compra e assinatura viram liberação de trilha (quais trilhas cada plano libera).
 - Quando os clientes e o público aberto entram depois do lançamento interno.
 - Se o certificado tem valor formal (carga horária, validação externa) ou é só comprovante interno.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
-- Os perfis de acesso exatos e os nomes do domínio. Ainda não existe `GLOSSARY.md`.
+- A nota mínima e o limite de tentativas da prova.
+- Os perfis de acesso exatos além de aluno e admin. Os termos trilha, liberação e admin ainda precisam entrar num `GLOSSARY.md`, que não existe.
 
 ## Brand Commitments
 
