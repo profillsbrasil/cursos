@@ -40,6 +40,7 @@
         "react": "catalog:",
         "react-dom": "catalog:",
         "recharts": "catalog:",
+        "server-only": "^0.0.1",
         "sonner": "catalog:",
         "varlock": "catalog:",
         "zod": "catalog:",

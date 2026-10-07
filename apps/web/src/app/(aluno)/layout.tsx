@@ -1,0 +1,32 @@
+import { SidebarInset, SidebarProvider } from "@cursos/ui/components/sidebar";
+import { cookies } from "next/headers";
+import type { CSSProperties } from "react";
+
+import { AppSidebar } from "@/components/aluno/app-sidebar";
+import { Topo } from "@/components/aluno/topo";
+import { carregarResumo } from "@/server/api";
+
+// Conteúdo em largura total: nenhum ancestral do conteúdo tem max-width, container ou mx-auto.
+export default async function LayoutDoAluno({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const [cookieStore, resumo] = await Promise.all([
+    cookies(),
+    carregarResumo(),
+  ]);
+  const aberta = cookieStore.get("sidebar_state")?.value !== "false";
+  return (
+    <SidebarProvider
+      defaultOpen={aberta}
+      style={{ "--sidebar-width": "15.5rem" } as CSSProperties}
+    >
+      <AppSidebar />
+      <SidebarInset>
+        <div className="min-w-0 px-[clamp(1rem,4vw,3rem)] pt-8 pb-16">
+          <Topo resumo={resumo} />
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
