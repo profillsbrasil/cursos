@@ -3,10 +3,22 @@ import {
   aulaAssistida,
   certificado,
   comunicado,
+  liberacao,
   pontoLancamento,
   posicaoAula,
+  trilhaCurso,
 } from "@cursos/db/schema/index";
-import { and, desc, eq, gt, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import {
   montarPainel,
@@ -98,7 +110,9 @@ export async function linhasDoPainel(db: Database, userId: string) {
         })
         .from(certificado)
         .where(eq(certificado.userId, userId)),
-      // 5. últimos 20 comunicados; o filtro por curso acessível é feito em montarPainel
+      // 5. o comunicado mais recente que o aluno pode ver: geral, de curso liberado
+      // direto ou de curso de trilha liberada. O filtro fica no SQL para que
+      // comunicados de cursos fora do alcance não empurrem o dele para fora do limit.
       db
         .select({
           cursoId: comunicado.cursoId,
@@ -108,8 +122,42 @@ export async function linhasDoPainel(db: Database, userId: string) {
           titulo: comunicado.titulo,
         })
         .from(comunicado)
+        .where(
+          or(
+            isNull(comunicado.cursoId),
+            inArray(
+              comunicado.cursoId,
+              db
+                .select({ id: liberacao.cursoId })
+                .from(liberacao)
+                .where(
+                  and(
+                    eq(liberacao.userId, userId),
+                    isNull(liberacao.revogadaEm),
+                    isNotNull(liberacao.cursoId)
+                  )
+                )
+            ),
+            inArray(
+              comunicado.cursoId,
+              db
+                .select({ id: trilhaCurso.cursoId })
+                .from(trilhaCurso)
+                .innerJoin(
+                  liberacao,
+                  eq(liberacao.trilhaId, trilhaCurso.trilhaId)
+                )
+                .where(
+                  and(
+                    eq(liberacao.userId, userId),
+                    isNull(liberacao.revogadaEm)
+                  )
+                )
+            )
+          )
+        )
         .orderBy(desc(comunicado.publicadoEm))
-        .limit(20),
+        .limit(1),
     ]);
   return { assistidas, certificados, comunicados, liberacoes, posicoes };
 }

@@ -8,6 +8,7 @@ import { createDb } from "@cursos/db";
 import {
   aula,
   aulaAssistida,
+  comunicado,
   curso,
   liberacao,
   modulo,
@@ -29,7 +30,8 @@ const S = hex();
 const ALUNO_A = `user_teste${S}a`;
 const ALUNO_B = `user_teste${S}b`;
 const ALUNO_VAZIO = `user_teste${S}c`;
-const ALUNOS = [ALUNO_A, ALUNO_B, ALUNO_VAZIO];
+const ALUNO_AVISO = `user_teste${S}d`;
+const ALUNOS = [ALUNO_A, ALUNO_B, ALUNO_VAZIO, ALUNO_AVISO];
 
 // quarta-feira, 2026-10-07, 15:00 em São Paulo
 const AGORA = new Date("2026-10-07T18:00:00Z");
@@ -236,6 +238,33 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const resumo = await carregarResumo(db, ALUNO_A, AGORA);
     expect(resumo.saldo).toBe(50);
     expect(resumo.pontosSemana).toBe(40);
+  });
+
+  test("comunicado do curso liberado aparece mesmo com 20 mais novos de cursos fora do alcance", async () => {
+    const minha = await criarTrilha(1);
+    const alheia = await criarTrilha(1);
+    await liberar(ALUNO_AVISO, minha.id);
+    // Datas no futuro para ficar à frente de qualquer comunicado geral do banco local.
+    // O cascade do curso apaga os comunicados no afterAll.
+    const base = Date.parse("2090-01-01T00:00:00Z");
+    await db.insert(comunicado).values({
+      cursoId: minha.cursos[0],
+      publicadoEm: new Date(base),
+      publicadoPor: "user_admin",
+      texto: "teste",
+      titulo: `Aviso do meu curso ${S}`,
+    });
+    await db.insert(comunicado).values(
+      Array.from({ length: 20 }, (_, i) => ({
+        cursoId: alheia.cursos[0],
+        publicadoEm: new Date(base + (i + 1) * 60_000),
+        publicadoPor: "user_admin",
+        texto: "teste",
+        titulo: `Aviso alheio ${i}`,
+      }))
+    );
+    const painel = await carregarPainel(db, ALUNO_AVISO, AGORA);
+    expect(painel.comunicado?.titulo).toBe(`Aviso do meu curso ${S}`);
   });
 
   test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
