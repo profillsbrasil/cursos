@@ -13,6 +13,7 @@ import {
   aulaAssistida,
   certificado,
   comunicado,
+  cotaVideo,
   curso,
   liberacao,
   modulo,
@@ -29,10 +30,13 @@ import {
   CURSOS,
   codigoCertificado,
   LIBERADA_POR,
+  PONTOS_AULA,
+  PONTOS_CURSO,
   POSICAO_A,
   PROGRESSO_A,
   SOLTOS,
   TRILHAS,
+  VIDEO_EXEMPLO,
 } from "./dados";
 import {
   BancoNaoLocalError,
@@ -41,8 +45,6 @@ import {
 } from "./guarda-local";
 
 const USER_ID_CLERK = /^user_[A-Za-z0-9]+$/;
-const PONTOS_AULA = 10;
-const PONTOS_CURSO = 100;
 const FUSO = "America/Sao_Paulo";
 
 /** UUID fixo derivado da chave, para o upsert achar a mesma linha em toda execução. */
@@ -157,11 +159,13 @@ function linhasDeConteudo() {
   const aulas = CURSOS.flatMap((c) =>
     c.modulos.flatMap((m) =>
       m.aulas.map((a, i) => ({
-        duracaoSeg: a.duracaoSeg,
+        duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(c.chave, m.numero, i + 1),
         moduloId: idModulo(c.chave, m.numero),
         posicao: i + 1,
         titulo: a.titulo,
+        videoId: VIDEO_EXEMPLO.id,
+        videoProvedor: VIDEO_EXEMPLO.provedor,
       }))
     )
   );
@@ -226,10 +230,12 @@ async function upsertConteudo(tx: Transacao) {
     .values(l.aulas)
     .onConflictDoUpdate({
       set: {
-        duracaoSeg: novo("duracao_seg"),
+        duracaoSeg: sql`case when ${aula.videoId} is null then excluded.duracao_seg else ${aula.duracaoSeg} end`,
         moduloId: novo("modulo_id"),
         posicao: novo("posicao"),
         titulo: novo("titulo"),
+        videoId: sql`coalesce(${aula.videoId}, excluded.video_id)`,
+        videoProvedor: sql`coalesce(${aula.videoProvedor}, excluded.video_provedor)`,
       },
       target: aula.id,
     });
@@ -280,6 +286,7 @@ async function semear(url: string, alunoA: string) {
       .where(inArray(pontoLancamento.userId, alunos));
     await tx.delete(certificado).where(inArray(certificado.userId, alunos));
     await tx.delete(posicaoAula).where(inArray(posicaoAula.userId, alunos));
+    await tx.delete(cotaVideo).where(inArray(cotaVideo.userId, alunos));
     await tx.delete(aulaAssistida).where(inArray(aulaAssistida.userId, alunos));
     await tx.delete(liberacao).where(inArray(liberacao.userId, alunos));
 
@@ -355,6 +362,7 @@ async function semear(url: string, alunoA: string) {
       atualizadaEm: agora,
       aulaId: idAula(POSICAO_A.curso, POSICAO_A.modulo, POSICAO_A.aula),
       posicaoSeg: POSICAO_A.posicaoSeg,
+      trechosVistos: [{ fim: POSICAO_A.posicaoSeg, inicio: 0 }],
       userId: alunoA,
     });
 
@@ -394,6 +402,7 @@ async function semear(url: string, alunoA: string) {
     union all select 'liberacao', count(*)::int from liberacao
     union all select 'aula_assistida', count(*)::int from aula_assistida
     union all select 'posicao_aula', count(*)::int from posicao_aula
+    union all select 'cota_video', count(*)::int from cota_video
     union all select 'certificado', count(*)::int from certificado
     union all select 'ponto_lancamento', count(*)::int from ponto_lancamento
     union all select 'comunicado', count(*)::int from comunicado`);

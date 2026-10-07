@@ -1,3 +1,5 @@
+import type { videoProvedor } from "@cursos/db/schema/comum";
+
 declare const marca: unique symbol;
 type Marca<T, M extends string> = T & { readonly [marca]: M };
 
@@ -7,11 +9,20 @@ export type TrilhaId = Marca<string, "TrilhaId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
 
+export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
+export type VideoId = Marca<string, "VideoId">;
+
+export type VideoDaAula = {
+  [P in VideoProvedor]: { id: VideoId; provedor: P };
+}[VideoProvedor];
+
 export interface AulaCatalogo {
   duracaoSeg: number;
   id: AulaId;
   posicao: number;
   titulo: string;
+  /** null: aula ainda sem vídeo publicado. */
+  video: VideoDaAula | null;
 }
 
 export interface ModuloCatalogo {

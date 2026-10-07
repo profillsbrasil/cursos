@@ -6,7 +6,7 @@ import { cache } from "react";
 
 import { db } from "@/services";
 
-// React.cache vale por request: layout e página pedem o resumo e ele roda uma vez.
+// React.cache vale por request: generateMetadata e a página pedem a aula e ela roda uma vez.
 // auth.protect() manda quem não tem sessão para o login em toda página e layout que
 // lê dados por aqui (a checagem por recurso que o Clerk 7 recomenda no lugar do
 // createRouteMatcher no proxy). O protectedProcedure continua como segunda porta.
@@ -21,4 +21,12 @@ export const carregarPainel = cache(async () =>
 
 export const carregarResumo = cache(async () =>
   (await caller()).aluno.resumo()
+);
+
+export const carregarAula = cache(async (slug: string, aulaId: string) =>
+  (await caller()).aula.abrir({ aulaId, slug })
+);
+
+export const carregarEntrada = cache(async (slug: string) =>
+  (await caller()).aula.entrada({ slug })
 );

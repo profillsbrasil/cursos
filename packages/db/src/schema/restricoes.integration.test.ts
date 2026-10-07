@@ -278,6 +278,55 @@ const CASOS: Caso[] = [
         [`teste-${sufixo()}`]
       ),
   },
+  {
+    apagar: "alter table aula drop constraint aula_video_completo",
+    constraint: "aula_video_completo",
+    nome: "provedor de vídeo sem id",
+    violar: (c, b) =>
+      c.query("update aula set video_provedor = 'youtube' where id = $1", [
+        b.aulaId,
+      ]),
+  },
+  {
+    apagar: "alter table aula drop constraint aula_video_formato",
+    constraint: "aula_video_formato",
+    nome: "id do YouTube com 10 caracteres",
+    violar: (c, b) =>
+      c.query(
+        "update aula set video_provedor = 'youtube', video_id = 'aqz-KE-bpK' where id = $1",
+        [b.aulaId]
+      ),
+  },
+  {
+    apagar:
+      "alter table posicao_aula drop constraint posicao_aula_trechos_nao_negativos",
+    constraint: "posicao_aula_trechos_nao_negativos",
+    nome: "trecho visto antes do segundo 0",
+    violar: (c, b) =>
+      c.query(
+        "insert into posicao_aula (user_id, aula_id, posicao_seg, trechos_vistos) values ($1, $2, 10, '{[-5,10)}')",
+        [b.aluno, b.aulaId]
+      ),
+  },
+  {
+    apagar: "alter table cota_video drop constraint cota_video_nao_negativa",
+    constraint: "cota_video_nao_negativa",
+    nome: "cota de vídeo negativa",
+    violar: (c, b) =>
+      c.query(
+        "insert into cota_video (user_id, segundos, atualizada_em) values ($1, -1, now())",
+        [b.aluno]
+      ),
+  },
+  {
+    apagar: "alter table cota_video drop constraint cota_video_user_id_clerk",
+    constraint: "cota_video_user_id_clerk",
+    nome: "cota de vídeo com e-mail no lugar do userId",
+    violar: (c) =>
+      c.query(
+        "insert into cota_video (user_id, segundos, atualizada_em) values ('marina@x.com', 0, now())"
+      ),
+  },
 ];
 
 const constraintDoErro = (e: unknown) =>
@@ -354,6 +403,25 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [b.aluno]
       );
       expect(n.rows[0]?.n).toBe(1);
+    });
+  });
+
+  test("aceita aula sem vídeo, com vídeo do YouTube e trechos vazios", async () => {
+    await emTransacao(async () => {
+      const b = await montarBase(c);
+      await c.query(
+        "insert into posicao_aula (user_id, aula_id, posicao_seg) values ($1, $2, 0)",
+        [b.aluno, b.aulaId]
+      );
+      await c.query(
+        "update aula set video_provedor = 'youtube', video_id = 'aqz-KE-bpKQ' where id = $1",
+        [b.aulaId]
+      );
+      const r = await c.query<{ t: string }>(
+        "select trechos_vistos::text as t from posicao_aula where user_id = $1",
+        [b.aluno]
+      );
+      expect(r.rows[0]?.t).toBe("{}");
     });
   });
 

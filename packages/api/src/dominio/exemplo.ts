@@ -9,6 +9,7 @@ import {
   PROGRESSO_A,
   SOLTOS,
   TRILHAS,
+  VIDEO_EXEMPLO,
 } from "@cursos/db/seed/dados";
 
 import type { CursoLinha, LinhasPainel } from "./painel";
@@ -50,6 +51,8 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
         id: idAula(chave, primeiro + i, p + 1),
         posicao: p + 1,
         titulo: `Aula ${p + 1} de ${chave}`,
+        videoId: null,
+        videoProvedor: null,
       })),
       nivelOrdem: o.nivelPorModulo?.[i] ?? null,
       numero: primeiro + i,
@@ -72,7 +75,13 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
     id: l.id as CursoId,
     modulos: l.modulos.map((m) => ({
       ...m,
-      aulas: m.aulas.map((a) => ({ ...a, id: a.id as AulaId })),
+      aulas: m.aulas.map((a) => ({
+        duracaoSeg: a.duracaoSeg,
+        id: a.id as AulaId,
+        posicao: a.posicao,
+        titulo: a.titulo,
+        video: null,
+      })),
     })),
     niveis: l.niveis,
     slug: l.slug,
@@ -136,10 +145,12 @@ function linhaDoSeed(chave: string): CursoLinha {
     id: chave,
     modulos: c.modulos.map((m) => ({
       aulas: m.aulas.map((a, i) => ({
-        duracaoSeg: a.duracaoSeg,
+        duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(chave, m.numero, i + 1),
         posicao: i + 1,
         titulo: a.titulo,
+        videoId: VIDEO_EXEMPLO.id,
+        videoProvedor: VIDEO_EXEMPLO.provedor,
       })),
       nivelOrdem: m.nivelOrdem,
       numero: m.numero,

@@ -2,16 +2,19 @@ import { sql } from "drizzle-orm";
 import {
   check,
   date,
+  doublePrecision,
   index,
   integer,
   primaryKey,
   text,
+  timestamp,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
 import { aula, curso } from "./catalogo";
 import { momento, tabela } from "./comum";
+import { faixasDeSegundos } from "./tipos-pg";
 
 // Fato imutável. A chave (user_id, aula_id) faz "rever aula" não gravar de novo.
 export const aulaAssistida = tabela(
@@ -35,7 +38,6 @@ export const aulaAssistida = tabela(
   ]
 );
 
-// Estado mutável do player: um registro por aluno e aula, sobrescrito.
 export const posicaoAula = tabela(
   "posicao_aula",
   {
@@ -44,11 +46,32 @@ export const posicaoAula = tabela(
       .notNull()
       .references(() => aula.id, { onDelete: "cascade" }),
     posicaoSeg: integer().notNull(),
+    trechosVistos: faixasDeSegundos()
+      .notNull()
+      .default(sql`'{}'::int4multirange`),
     userId: text().notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.aulaId] }),
     check("posicao_aula_nao_negativa", sql`${t.posicaoSeg} >= 0`),
+    // lower() de multirange vazio é NULL, e check NULL passa: '{}' é válido.
+    check(
+      "posicao_aula_trechos_nao_negativos",
+      sql`lower(${t.trechosVistos}) >= 0`
+    ),
+  ]
+);
+
+export const cotaVideo = tabela(
+  "cota_video",
+  {
+    atualizadaEm: timestamp({ withTimezone: true }).notNull(),
+    segundos: doublePrecision().notNull(),
+    userId: text().primaryKey(),
+  },
+  (t) => [
+    check("cota_video_nao_negativa", sql`${t.segundos} >= 0`),
+    check("cota_video_user_id_clerk", sql`${t.userId} ~ '^user_[A-Za-z0-9]+$'`),
   ]
 );
 

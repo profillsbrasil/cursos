@@ -9,3 +9,17 @@ export const PONTOS = {
 } as const;
 
 export const META_SEQUENCIA = 7;
+
+export const PCT_AULA_ASSISTIDA = 90;
+
+export const VELOCIDADES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+export type Velocidade = (typeof VELOCIDADES)[number];
+
+export const COTA_VIDEO = {
+  tetoSeg: 180,
+  velocidadeMaxima: Math.max(...VELOCIDADES),
+} as const;
+
+export const TRECHOS_POR_ENVIO = 64;
+
+export const MARGEM_REINICIO_SEG = 10;

@@ -6,19 +6,23 @@ import {
 } from "@cursos/ui/components/input-group";
 import { SidebarTrigger } from "@cursos/ui/components/sidebar";
 import { Skeleton } from "@cursos/ui/components/skeleton";
-import { Flame, Search, Star } from "lucide-react";
+import { Flame, Search } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { fmtPts, plural } from "@/lib/formato";
+import { plural } from "@/lib/formato";
+
+import { ChipDePontos } from "./chip-de-pontos";
 
 const CHIP =
   "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm tabular-nums";
 
-/**
- * O gatilho da sidebar e a busca não dependem do banco. Só `chips` suspende: assim o
- * React não troca o gatilho por outro nó quando o resumo chega, e o foco não se perde.
- */
-export function Topo({ chips }: { chips: ReactNode }) {
+export function TopoDoAluno({
+  chips,
+  esquerda,
+}: {
+  chips?: ReactNode;
+  esquerda: ReactNode;
+}) {
   return (
     <div className="mb-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
       <div className="flex min-w-0 flex-[1_1_280px] items-center gap-2">
@@ -28,21 +32,27 @@ export function Topo({ chips }: { chips: ReactNode }) {
           aria-label="Mostrar ou esconder a navegação"
           className="size-9 rounded-full"
         />
-        <InputGroup className="h-10 max-w-[460px] flex-1 rounded-full border-input bg-card px-2 has-disabled:opacity-100 dark:bg-card">
-          <InputGroupAddon>
-            <Search aria-hidden="true" className="text-muted-foreground" />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label="Buscar aula, máquina ou tema (em breve)"
-            className="text-sm placeholder:text-muted-foreground disabled:opacity-100"
-            disabled
-            placeholder="Busca em breve"
-            type="search"
-          />
-        </InputGroup>
+        {esquerda}
       </div>
       {chips}
     </div>
+  );
+}
+
+export function BuscaEmBreve() {
+  return (
+    <InputGroup className="h-10 max-w-[460px] flex-1 rounded-full border-input bg-card px-2 has-disabled:opacity-100 dark:bg-card">
+      <InputGroupAddon>
+        <Search aria-hidden="true" className="text-muted-foreground" />
+      </InputGroupAddon>
+      <InputGroupInput
+        aria-label="Buscar aula, máquina ou tema (em breve)"
+        className="text-sm placeholder:text-muted-foreground disabled:opacity-100"
+        disabled
+        placeholder="Busca em breve"
+        type="search"
+      />
+    </InputGroup>
   );
 }
 
@@ -68,11 +78,7 @@ export function Chips({ resumo }: { resumo: ResumoAluno }) {
           {plural(resumo.sequenciaDias, "dia", "dias")}
         </b>
       </span>
-      <span className={`${CHIP} text-sol`}>
-        <Star aria-hidden="true" className="size-4" />
-        <span className="sr-only">Saldo de pontos para trocar por cursos:</span>
-        <b className="font-semibold">{fmtPts(resumo.saldo)}</b>
-      </span>
+      <ChipDePontos className={CHIP} saldo={resumo.saldo} />
     </div>
   );
 }

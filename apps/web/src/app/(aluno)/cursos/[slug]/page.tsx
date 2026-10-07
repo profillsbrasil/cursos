@@ -1,34 +1,61 @@
-import { cursoQueAbre } from "@cursos/api/dominio/painel";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { carregarPainel } from "@/server/api";
+import { notFound, redirect } from "next/navigation";
+
+import { BuscaEmBreve, Chips, TopoDoAluno } from "@/components/aluno/topo";
+import { caminhoDaAula } from "@/lib/rotas";
+import { carregarEntrada, carregarResumo } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Profills School" };
 
-// Stub: o player chega no próximo PR. Só abre curso liberado que não está em breve nem bloqueado.
 export default async function Curso({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const [{ slug }, painel] = await Promise.all([params, carregarPainel()]);
-  const curso = cursoQueAbre(painel, slug);
-  if (!curso) {
+  const { slug } = await params;
+  const [entrada, resumo] = await Promise.all([
+    carregarEntrada(slug),
+    carregarResumo(),
+  ]);
+  if (!entrada) {
     notFound();
   }
+  if (entrada.tipo === "aula") {
+    redirect(caminhoDaAula(slug, entrada.aulaId));
+  }
   return (
-    <div className="grid gap-3">
-      <h1 className="font-bold text-3xl text-titulo tracking-tight">
-        {curso.titulo}
-      </h1>
-      <p className="text-muted-foreground">O player chega no próximo PR.</p>
-      <Link
-        className="text-ceu underline underline-offset-4"
-        href="/meus-cursos"
-      >
-        Voltar para Meus cursos
-      </Link>
-    </div>
+    <>
+      <TopoDoAluno
+        chips={<Chips resumo={resumo} />}
+        esquerda={<BuscaEmBreve />}
+      />
+      <div className="grid gap-3">
+        <h1 className="font-bold text-3xl text-titulo tracking-tight">
+          {entrada.tipo === "prova"
+            ? "Você assistiu a todas as aulas"
+            : "Curso concluído"}
+        </h1>
+        <p className="text-muted-foreground">
+          {entrada.tipo === "prova"
+            ? "A prova chega no próximo PR."
+            : "Seu certificado já foi emitido."}
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            className="text-ceu underline underline-offset-4"
+            href={caminhoDaAula(slug, entrada.primeira)}
+          >
+            Rever aulas
+          </Link>
+          <Link
+            className="text-ceu underline underline-offset-4"
+            href="/meus-cursos"
+          >
+            Voltar para Meus cursos
+          </Link>
+        </div>
+      </div>
+    </>
   );
 }

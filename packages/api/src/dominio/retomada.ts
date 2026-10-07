@@ -1,4 +1,4 @@
-import { niveis, progresso } from "./curso";
+import { niveis, numeroDaAula, progresso } from "./curso";
 import type { Retomada } from "./painel";
 import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 
@@ -26,9 +26,10 @@ const cursoRef = (c: CursoCatalogo) => ({
 
 function localizar(curso: CursoCatalogo, aulaId: AulaId) {
   for (const modulo of curso.modulos) {
-    const aula = modulo.aulas.find((a) => a.id === aulaId);
+    const i = modulo.aulas.findIndex((a) => a.id === aulaId);
+    const aula = modulo.aulas[i];
     if (aula) {
-      return { aula, modulo };
+      return { aula, modulo, numeroNoModulo: numeroDaAula(i) };
     }
   }
   throw new Error(`Aula ${aulaId} fora do curso ${curso.slug}`);
@@ -40,13 +41,13 @@ function continuar(
   posicaoSeg: number,
   h: Historico
 ): Retomada {
-  const { aula, modulo } = localizar(item.curso, aulaId);
+  const { aula, modulo, numeroNoModulo } = localizar(item.curso, aulaId);
   return {
     aula: {
       duracaoSeg: aula.duracaoSeg,
       faltaSeg: Math.max(0, aula.duracaoSeg - posicaoSeg),
       id: aula.id,
-      numeroNoModulo: aula.posicao,
+      numeroNoModulo,
       posicaoSeg,
       titulo: aula.titulo,
     },
@@ -68,33 +69,6 @@ const ehEstado =
   (x: CursoNaTela): x is ComEstado<T> =>
     x.estado.tipo === tipo;
 
-/** Posição mais recente entre as aulas dos cursos dados. */
-function ultimaPosicao(
-  cursos: readonly ComEstado<"em_andamento">[],
-  h: Historico
-) {
-  let melhor: {
-    aulaId: AulaId;
-    item: ComEstado<"em_andamento">;
-    posicaoSeg: number;
-    quando: string;
-  } | null = null;
-  for (const item of cursos) {
-    for (const aula of aulasDe(item.curso)) {
-      const p = h.posicoes.get(aula.id);
-      if (p && (!melhor || p.atualizadaEm > melhor.quando)) {
-        melhor = {
-          aulaId: aula.id,
-          item,
-          posicaoSeg: p.posicaoSeg,
-          quando: p.atualizadaEm,
-        };
-      }
-    }
-  }
-  return melhor;
-}
-
 const ultimaAtividade = (
   c: CursoCatalogo,
   atividade: ReadonlyMap<AulaId, string>
@@ -104,31 +78,58 @@ const ultimaAtividade = (
     return quando > max ? quando : max;
   }, "");
 
+export interface AulaDeRetomada {
+  aulaId: AulaId;
+  posicaoSeg: number;
+}
+
+export function aulaDeRetomada(
+  curso: CursoCatalogo,
+  estado: Extract<EstadoCurso, { tipo: "em_andamento" | "nao_iniciado" }>,
+  h: Historico,
+  atividade: ReadonlyMap<AulaId, string>
+): AulaDeRetomada {
+  if (estado.tipo === "nao_iniciado") {
+    return { aulaId: estado.primeiraAula, posicaoSeg: 0 };
+  }
+  let ultima: { aulaId: AulaId; quando: string } | null = null;
+  for (const aula of aulasDe(curso)) {
+    const quando = atividade.get(aula.id);
+    if (quando && (!ultima || quando > ultima.quando)) {
+      ultima = { aulaId: aula.id, quando };
+    }
+  }
+  const aulaId =
+    ultima && !h.assistidas.has(ultima.aulaId)
+      ? ultima.aulaId
+      : estado.proximaAula;
+  return { aulaId, posicaoSeg: h.posicoes.get(aulaId)?.posicaoSeg ?? 0 };
+}
+
 export function retomada({
   atividade,
   cursos,
   historico: h,
 }: EntradaRetomada): Retomada | null {
-  const emAndamento = cursos.filter(ehEstado("em_andamento"));
-  // 1 a 3: a última aula aberta, se ainda não foi assistida; senão a próxima não
-  // assistida do mesmo curso, na posição salva dela quando existir.
-  const ultima = ultimaPosicao(emAndamento, h);
-  if (ultima) {
-    if (!h.assistidas.has(ultima.aulaId)) {
-      return continuar(ultima.item, ultima.aulaId, ultima.posicaoSeg, h);
-    }
-    const proxima = ultima.item.estado.proximaAula;
-    return continuar(
-      ultima.item,
-      proxima,
-      h.posicoes.get(proxima)?.posicaoSeg ?? 0,
-      h
+  const emAndamento = cursos
+    .filter(ehEstado("em_andamento"))
+    .reduce<ComEstado<"em_andamento"> | null>(
+      (max, x) =>
+        !max ||
+        ultimaAtividade(x.curso, atividade) >
+          ultimaAtividade(max.curso, atividade)
+          ? x
+          : max,
+      null
     );
-  }
-  // 4: sem posição válida, o primeiro curso em andamento na ordem da tela.
-  const [primeiro] = emAndamento;
-  if (primeiro) {
-    return continuar(primeiro, primeiro.estado.proximaAula, 0, h);
+  if (emAndamento) {
+    const { aulaId, posicaoSeg } = aulaDeRetomada(
+      emAndamento.curso,
+      emAndamento.estado,
+      h,
+      atividade
+    );
+    return continuar(emAndamento, aulaId, posicaoSeg, h);
   }
   // 5: o curso em prova com a atividade mais recente.
   const emProva = cursos
@@ -153,12 +154,15 @@ export function retomada({
   // 6: o primeiro curso não iniciado, trilhas antes dos soltos.
   const novo = cursos.find(ehEstado("nao_iniciado"));
   if (novo) {
-    const { aula, modulo } = localizar(novo.curso, novo.estado.primeiraAula);
+    const { aula, modulo, numeroNoModulo } = localizar(
+      novo.curso,
+      novo.estado.primeiraAula
+    );
     return {
       aula: {
         duracaoSeg: aula.duracaoSeg,
         id: aula.id,
-        numeroNoModulo: aula.posicao,
+        numeroNoModulo,
         titulo: aula.titulo,
       },
       curso: cursoRef(novo.curso),

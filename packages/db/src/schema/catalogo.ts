@@ -10,7 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { cursoStatus, momento, SLUG, tabela } from "./comum";
+import { cursoStatus, momento, SLUG, tabela, videoProvedor } from "./comum";
 
 export const trilha = tabela(
   "trilha",
@@ -111,10 +111,24 @@ export const aula = tabela(
       .references(() => modulo.id, { onDelete: "cascade" }),
     posicao: smallint().notNull(),
     titulo: text().notNull(),
+    videoId: text(),
+    videoProvedor: videoProvedor(),
   },
   (t) => [
     unique("aula_posicao_unica").on(t.moduloId, t.posicao),
     check("aula_posicao_positiva", sql`${t.posicao} >= 1`),
     check("aula_duracao_positiva", sql`${t.duracaoSeg} > 0`),
+    check(
+      "aula_video_completo",
+      sql`(${t.videoProvedor} is null) = (${t.videoId} is null)`
+    ),
+    // else false: provedor novo sem ramo aqui é recusado, em vez de passar por NULL.
+    check(
+      "aula_video_formato",
+      sql`${t.videoProvedor} is null or case ${t.videoProvedor}
+            when 'youtube' then ${t.videoId} ~ '^[A-Za-z0-9_-]{11}$'
+            else false
+          end`
+    ),
   ]
 );

@@ -13,8 +13,11 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Aluno | Pessoa logada que estuda. É identificada pelo `userId` do Clerk e não tem tabela própria. |
 | Admin | Pessoa que cria trilhas, libera, revoga e publica comunicados. |
 | Liberação | Registro de que um aluno pode ver uma trilha ou um curso. É permanente até o admin revogar. |
-| Aula assistida | Fato imutável: o aluno viu 90% do vídeo de uma aula. Acontece uma vez por aluno e aula. |
+| Aula assistida | Fato imutável: a cobertura do aluno numa aula chegou a 90% da duração. Acontece uma vez por aluno e aula. |
 | Posição | Último segundo em que o aluno parou numa aula. É estado mutável, usado pelo "Continuar". |
+| Trecho visto | Intervalo de segundos inteiros de uma aula que o vídeo tocou sem salto, `[início, fim)`. Buscar para a frente não cria trecho. Os trechos de um aluno numa aula só crescem. |
+| Cobertura | Soma dos segundos distintos dos trechos vistos de uma aula. Ver o mesmo trecho duas vezes conta uma vez. O servidor calcula com a duração da aula no banco. |
+| Cota de vídeo | Quantos segundos de vídeo novo o servidor ainda aceita de um aluno. Enche 2 s por segundo de relógio, até 180 s, e vale para todas as abas e aulas dele. O que passa da cota fica para o envio seguinte. |
 | Progresso | Aulas assistidas sobre aulas do curso, contadas no servidor. |
 | Prova | Avaliação final do curso. Abre quando todas as aulas estão assistidas. |
 | Certificado | Comprovante emitido quando o aluno assistiu a todas as aulas e passou na prova. Tem código único e continua valendo se o curso ganhar aula nova. |

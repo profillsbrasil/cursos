@@ -12,6 +12,8 @@ export const motivoPonto = pgEnum("motivo_ponto", [
   "sequencia_7_dias",
 ]);
 
+export const videoProvedor = pgEnum("video_provedor", ["youtube"]);
+
 export const momento = () =>
   timestamp({ withTimezone: true }).notNull().defaultNow();
 

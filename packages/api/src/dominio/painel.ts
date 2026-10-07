@@ -4,6 +4,7 @@ import {
   type Progresso,
   progresso,
 } from "./curso";
+import { atividadeDe, historicoDe } from "./historico";
 import { PONTOS } from "./regras";
 import { type CursoNaTela, retomada } from "./retomada";
 import {
@@ -22,7 +23,9 @@ import type {
   TipoEstado,
   TrilhaCatalogo,
   TrilhaId,
+  VideoProvedor,
 } from "./tipos";
+import { videoDaAula } from "./video";
 
 // ---------- entrada: as linhas cruas das consultas (seção 4.3 do desenho) ----------
 
@@ -38,6 +41,8 @@ export interface CursoLinha {
       id: string;
       posicao: number;
       titulo: string;
+      videoId: string | null;
+      videoProvedor: VideoProvedor | null;
     }[];
     nivelOrdem: number | null;
     numero: number;
@@ -199,6 +204,7 @@ export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
         id: a.id as AulaId,
         posicao: a.posicao,
         titulo: a.titulo,
+        video: videoDaAula(a.videoProvedor, a.videoId),
       })),
       nivelOrdem: m.nivelOrdem,
       numero: m.numero,
@@ -230,46 +236,6 @@ const ORDEM_SOLTOS: readonly TipoEstado[] = [
 
 const somaSeg = (aulas: readonly { duracaoSeg: number }[]) =>
   aulas.reduce((s, a) => s + a.duracaoSeg, 0);
-
-function historicoDe(l: LinhasPainel): Historico {
-  return {
-    assistidas: new Set(l.assistidas.map((a) => a.aulaId as AulaId)),
-    certificados: new Map(
-      l.certificados.map((c) => [
-        c.cursoId as CursoId,
-        { codigo: c.codigo, emitidoEm: c.emitidoEm.toISOString() },
-      ])
-    ),
-    posicoes: new Map(
-      l.posicoes.map((p) => [
-        p.aulaId as AulaId,
-        {
-          atualizadaEm: p.atualizadaEm.toISOString(),
-          posicaoSeg: p.posicaoSeg,
-        },
-      ])
-    ),
-  };
-}
-
-/** Última atividade por aula: a mais recente entre assistir e salvar posição. */
-function atividadeDe(l: LinhasPainel): Map<AulaId, string> {
-  const atividade = new Map<AulaId, string>();
-  const anotar = (aulaId: string, quando: Date) => {
-    const iso = quando.toISOString();
-    const atual = atividade.get(aulaId as AulaId);
-    if (!atual || iso > atual) {
-      atividade.set(aulaId as AulaId, iso);
-    }
-  };
-  for (const a of l.assistidas) {
-    anotar(a.aulaId, a.assistidaEm);
-  }
-  for (const p of l.posicoes) {
-    anotar(p.aulaId, p.atualizadaEm);
-  }
-  return atividade;
-}
 
 function cursoVM(c: CursoCatalogo, estado: EstadoCurso, h: Historico): CursoVM {
   const aulas = c.modulos.flatMap((m) => m.aulas);
@@ -433,18 +399,4 @@ export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
     saldo: linhas.pontos?.saldo ?? 0,
     sequenciaDias,
   };
-}
-
-const NAO_ABRE: ReadonlySet<TipoEstado> = new Set(["em_breve", "bloqueado"]);
-
-/** O curso do painel com esse slug que o aluno pode abrir: liberado, publicado e fora de bloqueio. */
-export function cursoQueAbre(
-  painel: PainelMeusCursos,
-  slug: string
-): CursoVM | null {
-  const curso = [
-    ...painel.trilhas.flatMap((t) => t.cursos),
-    ...painel.soltos,
-  ].find((c) => c.slug === slug);
-  return curso && !NAO_ABRE.has(curso.estado.tipo) ? curso : null;
 }

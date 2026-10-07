@@ -1,6 +1,11 @@
 import type { AppRouter } from "@cursos/api/routers/index";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import {
+  createTRPCClient,
+  httpBatchLink,
+  httpLink,
+  splitLink,
+} from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { toast } from "sonner";
 
@@ -21,22 +26,33 @@ export const queryClient = new QueryClient({
   }),
 });
 
-const trpcClient = createTRPCClient<AppRouter>({
+async function headers(): Promise<Record<string, string>> {
+  if (typeof window !== "undefined") {
+    const token = await getClerkAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  const { auth } = await import("@clerk/nextjs/server");
+  const clerkAuth = await auth();
+  const token = await clerkAuth.getToken();
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+const URL_API = "/api/trpc";
+
+// O registro do player vai sem lote e com keepalive: o httpBatchLink agenda o lote
+// num setTimeout, e timer não roda depois do pagehide.
+export const trpcClient = createTRPCClient<AppRouter>({
   links: [
-    httpBatchLink({
-      headers: async () => {
-        if (typeof window !== "undefined") {
-          const token = await getClerkAuthToken();
-          return token ? { Authorization: `Bearer ${token}` } : {};
-        }
-
-        const { auth } = await import("@clerk/nextjs/server");
-        const clerkAuth = await auth();
-        const token = await clerkAuth.getToken();
-
-        return token ? { Authorization: `Bearer ${token}` } : {};
-      },
-      url: "/api/trpc",
+    splitLink({
+      condition: (op) => op.path === "aula.registrar",
+      false: httpBatchLink({ headers, url: URL_API }),
+      true: httpLink({
+        fetch: (url, init) => fetch(url, { ...init, keepalive: true }),
+        headers,
+        url: URL_API,
+      }),
     }),
   ],
 });
