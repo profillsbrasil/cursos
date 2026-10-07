@@ -108,11 +108,13 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
           </dd>
         </div>
       </dl>
-      {/* Sem link até a tela de troca existir: desabilitado, com "Em breve" visível. */}
+      {/* Sem link até a tela de troca existir: desabilitado, com "Em breve" visível.
+          As variantes dark: repetem borda e fundo porque a outline traz dark:border-input
+          e dark:bg-input/30, que vencem as classes sem variante com .dark no <html>. */}
       <button
         className={cn(
           buttonVariants({ variant: "outline" }),
-          "h-11 w-full gap-2 rounded-full border-muted-foreground bg-transparent font-semibold text-sm disabled:opacity-100"
+          "h-11 w-full gap-2 rounded-full border-muted-foreground bg-transparent font-semibold text-sm disabled:opacity-100 dark:border-muted-foreground dark:bg-transparent"
         )}
         disabled
         type="button"
