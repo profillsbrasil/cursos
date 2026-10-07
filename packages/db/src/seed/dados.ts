@@ -45,7 +45,6 @@ export const VIDEO_EXEMPLO = {
   provedor: "youtube",
 } as const;
 
-// O seed não importa @cursos/api; regras.test.ts confere estes valores contra PONTOS.
 export const PONTOS_AULA = 10;
 export const PONTOS_CURSO = 100;
 

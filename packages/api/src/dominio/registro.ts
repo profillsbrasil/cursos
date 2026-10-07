@@ -18,10 +18,6 @@ export interface Cota {
   segundos: number;
 }
 
-/**
- * Segundos de vídeo novo que o aluno pode registrar agora. Sem cota, o balde está
- * cheio. Relógio que voltou (dois servidores) não enche nem esvazia.
- */
 export function recarregar(cota: Cota | null, agora: Date): number {
   if (!cota) {
     return COTA_VIDEO.tetoSeg;
@@ -49,14 +45,10 @@ export interface Pedido {
 }
 
 export interface Aplicacao {
-  /** A gravar. atualizadaEm nunca volta: relógio atrasado mantém o da cota. */
   cota: Cota;
-  /** Limitada a [0, duracaoSeg]. */
   posicaoSeg: number;
   recusadosSeg: number;
-  /** Os salvos unidos aos aceitos. */
   trechos: Trechos;
-  /** Só true na chamada em que a cobertura cruzou a meta e a aula ainda não era assistida. */
   viraAssistida: boolean;
 }
 
@@ -73,7 +65,6 @@ export function aplicarRegistro(
   let disponivel = recarregar(cota, agora);
   let acumulado = salvo.trechos;
   let recusadosSeg = 0;
-  // A ordem do cliente é a ordem em que o vídeo tocou: a cota corta o fim, não o começo.
   for (const t of pedido.trechos) {
     const novos = subtrair(canonizar([t], salvo.duracaoSeg), acumulado);
     const levar = primeiros(novos, disponivel);
@@ -96,7 +87,6 @@ export function aplicarRegistro(
   };
 }
 
-/** Espelha o check ponto_lancamento_referencia. */
 export type LancamentoNovo =
   | { aulaId: AulaId; motivo: "aula_assistida"; pontos: number }
   | { diaMarco: DiaISO; motivo: "sequencia_7_dias"; pontos: number };
@@ -106,10 +96,6 @@ export interface EfeitosDaAssistida {
   sequenciaDias: number;
 }
 
-/**
- * Efeitos de uma aula assistida pela primeira vez no `dia` gerado pelo banco.
- * `diasAntes` são os dias com aula assistida antes desta.
- */
 export function lancamentosDaAssistida(
   aulaId: AulaId,
   dia: DiaISO,
@@ -119,7 +105,6 @@ export function lancamentosDaAssistida(
   const lancamentos: LancamentoNovo[] = [
     { aulaId, motivo: "aula_assistida", pontos: PONTOS.aula_assistida },
   ];
-  // Só o primeiro fato de um dia útil mexe na sequência.
   const fechouBloco =
     !diasAntes.has(dia) &&
     ehDiaUtil(dia) &&
@@ -135,14 +120,12 @@ export function lancamentosDaAssistida(
   return { lancamentos, sequenciaDias };
 }
 
-/** O que o aviso "+10 pts" mostra. */
 export interface Conquista {
   bonusSequencia: number | null;
   pontos: number;
   sequenciaDias: number;
 }
 
-/** Monta o aviso com os lançamentos que de fato entraram no banco. */
 export function conquistaDe(
   gravados: readonly { motivo: string; pontos: number }[],
   sequenciaDias: number
@@ -156,10 +139,6 @@ export function conquistaDe(
   };
 }
 
-/**
- * Saída de aula.registrar: o estado do servidor depois da chamada, mais o evento
- * dela. No JSON a marca de `Trechos` some; o cliente passa por canonizar ao receber.
- */
 export interface Registro {
   assistida: boolean;
   cobertura: Cobertura;

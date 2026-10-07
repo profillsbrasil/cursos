@@ -16,7 +16,6 @@ interface Props {
 
 const UUID = z.uuid();
 
-// Id fora do formato é 404, não erro de validação do tRPC.
 async function aulaDaUrl(params: Props["params"]) {
   const { aulaId, slug } = await params;
   return UUID.safeParse(aulaId).success ? carregarAula(slug, aulaId) : null;

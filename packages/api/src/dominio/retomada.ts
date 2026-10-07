@@ -29,7 +29,6 @@ function localizar(curso: CursoCatalogo, aulaId: AulaId) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
     const aula = modulo.aulas[i];
     if (aula) {
-      // O índice, como a coluna e o player: posição é única, mas pode ter buraco.
       return { aula, modulo, numeroNoModulo: i + 1 };
     }
   }
@@ -84,11 +83,6 @@ export interface AulaDeRetomada {
   posicaoSeg: number;
 }
 
-/**
- * Para onde um curso aberto leva: a aula de atividade mais recente, se ainda não
- * foi assistida, na posição dela; senão a próxima não assistida, na posição salva
- * dela ou no 0. O banner e /cursos/[slug] chamam esta função, então levam à mesma aula.
- */
 export function aulaDeRetomada(
   curso: CursoCatalogo,
   estado: Extract<EstadoCurso, { tipo: "em_andamento" | "nao_iniciado" }>,
@@ -117,9 +111,6 @@ export function retomada({
   cursos,
   historico: h,
 }: EntradaRetomada): Retomada | null {
-  // 1 a 4: o curso em andamento de atividade mais recente (assistir ou salvar
-  // posição; veredito, item 24), e nele a aula de aulaDeRetomada. Empate fica
-  // com o primeiro na ordem da tela.
   const emAndamento = cursos
     .filter(ehEstado("em_andamento"))
     .reduce<ComEstado<"em_andamento"> | null>(

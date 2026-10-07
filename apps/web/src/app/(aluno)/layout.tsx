@@ -5,8 +5,6 @@ import type { CSSProperties } from "react";
 import { AppSidebar } from "@/components/aluno/app-sidebar";
 
 // Conteúdo em largura total: nenhum ancestral do conteúdo tem max-width, container ou mx-auto.
-// O layout não espera o banco. O topo com os chips é de cada página (TopoDoAluno),
-// e o loading.tsx de cada página mostra o topo com os chips carregando.
 export default async function LayoutDoAluno({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

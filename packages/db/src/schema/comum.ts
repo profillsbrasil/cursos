@@ -12,7 +12,6 @@ export const motivoPonto = pgEnum("motivo_ponto", [
   "sequencia_7_dias",
 ]);
 
-// Bunny ou Panda entram como valor novo, com um ramo novo no check aula_video_formato.
 export const videoProvedor = pgEnum("video_provedor", ["youtube"]);
 
 export const momento = () =>

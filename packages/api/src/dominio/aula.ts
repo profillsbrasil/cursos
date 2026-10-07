@@ -23,16 +23,13 @@ import type {
 } from "./tipos";
 import { canonizar, type Trecho, type Trechos } from "./trechos";
 
-/** Forma da relational query de consultas/aula.ts. */
 export interface CursoComAcessoLinha extends CursoLinha {
-  /** Liberações ativas diretas deste curso, só do aluno. */
   liberacoes: readonly { id: string }[];
   naTrilha: {
     trilha: {
       cursos: readonly { curso: CursoLinha; posicao: number }[];
       descricao: string;
       id: string;
-      /** Liberações ativas da trilha, só do aluno. */
       liberacoes: readonly { id: string }[];
       slug: string;
       titulo: string;
@@ -40,11 +37,9 @@ export interface CursoComAcessoLinha extends CursoLinha {
   } | null;
 }
 
-/** Linhas cruas de consultas/aula.ts. Cabe em LinhasHistorico. */
 export interface LinhasCurso {
   assistidas: readonly { assistidaEm: Date; aulaId: string; dia: string }[];
   certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
-  /** null: slug ou aula que não existe. */
   curso: CursoComAcessoLinha | null;
   posicoes: readonly {
     atualizadaEm: Date;
@@ -54,11 +49,9 @@ export interface LinhasCurso {
   }[];
 }
 
-/** Um curso que o aluno pode abrir, com o que a página e o registro precisam dele. */
 export interface CursoAberto {
   atividade: ReadonlyMap<AulaId, string>;
   curso: CursoCatalogo;
-  /** Dias com aula assistida pela primeira vez: a base da sequência. */
   dias: ReadonlySet<DiaISO>;
   estado: EstadoQueAbre;
   historico: Historico;
@@ -67,7 +60,7 @@ export interface CursoAberto {
 
 /**
  * null sem liberação ativa (direta ou pela trilha) ou com o curso em_breve ou
- * bloqueado. O estado sai das mesmas funções do painel.
+ * bloqueado.
  */
 export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   const linha = linhas.curso;
@@ -80,7 +73,6 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   if (!(direto || pelaTrilha)) {
     return null;
   }
-  // Como no painel (consulta 3), posição 0 não conta como começo de curso.
   const comPosicao = {
     ...linhas,
     posicoes: linhas.posicoes.filter((p) => p.posicaoSeg > 0),
@@ -141,7 +133,6 @@ export interface VizinhaDaAula {
   titulo: string;
 }
 
-/** O view model da página do player. Nenhum Date. */
 export interface AulaNoPlayer {
   anterior: VizinhaDaAula | null;
   aula: {
@@ -151,7 +142,6 @@ export interface AulaNoPlayer {
     numeroNoModulo: number;
     titulo: string;
     totalNoModulo: number;
-    /** null: "O vídeo desta aula ainda não foi publicado." */
     video: VideoDaAula | null;
   };
   curso: {
@@ -160,7 +150,6 @@ export interface AulaNoPlayer {
     titulo: string;
   };
   estudo: { assistida: boolean; posicaoSeg: number; trechos: Trechos };
-  /** A coluna da direita, o módulo atual aberto. */
   modulos: readonly ModuloNaColuna[];
   proxima: VizinhaDaAula | null;
 }
@@ -207,7 +196,6 @@ export function montarAulaNoPlayer(
       duracaoSeg: aula.duracaoSeg,
       id: aula.id,
       modulo: { numero: modulo.numero, titulo: modulo.titulo },
-      // O índice, como a coluna: posição é única, mas pode ter buraco.
       numeroNoModulo: modulo.aulas.findIndex((a) => a.id === aula.id) + 1,
       titulo: aula.titulo,
       totalNoModulo: modulo.aulas.length,
@@ -236,7 +224,6 @@ export function montarAulaNoPlayer(
   };
 }
 
-/** Para onde /cursos/[slug] manda. Prova e concluído ficam no stub, com link para rever. */
 export type EntradaDoCurso =
   | { aulaId: AulaId; tipo: "aula" }
   | { primeira: AulaId; tipo: "prova" | "concluido" };
@@ -259,10 +246,6 @@ export function entradaDoCurso(c: CursoAberto): EntradaDoCurso {
   return { primeira, tipo: estado.tipo };
 }
 
-/**
- * O segundo em que o vídeo abre. Sem posição, com a aula já assistida ou com a
- * posição a menos de FIM_DA_AULA_SEG do fim, abre no 0.
- */
 export function inicioDaAula(
   estudo: { assistida: boolean; posicaoSeg: number },
   duracaoSeg: number

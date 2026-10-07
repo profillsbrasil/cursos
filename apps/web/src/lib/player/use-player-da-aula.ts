@@ -37,7 +37,6 @@ export interface EntradaDoPlayer {
   video: VideoDaAula;
 }
 
-/** A borda do envio: erro do tRPC vira motivo de parar ou falha de rede. */
 async function enviarRegistro(
   aulaId: AulaId,
   pedido: Pedido
@@ -60,7 +59,6 @@ async function enviarRegistro(
 
 const nada = () => () => undefined;
 
-/** Com o foco num botão ou no volume, a tecla é do controle, não do atalho. */
 function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
   const alvo = e.target as HTMLElement;
   if (alvo === container) {
@@ -72,11 +70,6 @@ function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
   return alvo.closest("[data-slot=slider]") !== null;
 }
 
-/**
- * Cria a sessão no mount e a encerra no unmount. A entrada é lida só no mount:
- * a página dá key = aula.id, então o router.refresh() da conquista renderiza de
- * novo os chips e a coluna sem remontar o iframe.
- */
 export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   const router = useRouter();
   const refVideo = useRef<HTMLDivElement>(null);
@@ -159,7 +152,6 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     [sessao]
   );
 
-  // O atalho é do contêiner do player, não da window: fora dele a tecla é da página.
   useEffect(() => {
     const container = refContainer.current;
     if (!container) {

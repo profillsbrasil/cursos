@@ -54,51 +54,41 @@ const PARADO_POR: Readonly<Record<string, MotivoParado>> = {
   UNAUTHORIZED: "sessao_expirada",
 };
 
-/** O código de erro do tRPC que para o envio; os outros são falha de rede. */
 export const motivoParadoDe = (codigo: string): MotivoParado | undefined =>
   PARADO_POR[codigo];
 
 export type EstadoEnvio =
   | { tipo: "em_dia" }
   | { tipo: "pendente" }
-  /** `tentativa`: falhas de rede seguidas antes deste envio. */
   | { tentativa: number; tipo: "enviando" }
   | { tentativa: number; tipo: "esperando_nova_tentativa" }
   | { motivo: MotivoParado; tipo: "parado" };
 
 export type Comando =
   | { tipo: "alternar" }
-  /** Absoluto: clique na barra. */
   | { seg: number; tipo: "buscar" }
-  /** Relativo: -10, -5, +5, +10. */
   | { seg: number; tipo: "saltar" }
   | { tipo: "velocidade"; valor: Velocidade }
-  /** Setas: +-10. */
   | { delta: number; tipo: "volume" }
-  /** Slider: 0 a 100, passo 5. */
   | { nivel: number; tipo: "definir_volume" }
   | { tipo: "mudo" };
 
 export interface EstadoDaSessao {
   assistida: boolean;
-  /** Local: servidor, pendentes e trecho aberto. */
   cobertura: Cobertura;
   duracaoSeg: number;
   envio: EstadoEnvio;
   reproducao: EstadoReproducao;
   tempoSeg: number;
-  /** O que a barra desenha: servidor, pendentes e o trecho aberto, unidos. */
   trechos: Trechos;
   velocidade: Velocidade;
   volume: Volume;
 }
 
-/** O Registro como chega pelo JSON: a marca de Trechos não sobrevive ao fio. */
 export type RegistroNoFio = Omit<Registro, "trechos"> & {
   trechos: readonly Trecho[];
 };
 
-/** A borda do envio: o hook traduz a resposta do tRPC nisto. */
 export type RespostaDoEnvio =
   | { registro: RegistroNoFio; tipo: "ok" }
   | { motivo: MotivoParado; tipo: "definitivo" }
@@ -122,10 +112,8 @@ export interface EntradaDaSessao {
 export interface SessaoDeEstudo {
   assinar: (ouvinte: () => void) => () => void;
   comandar: (c: Comando) => void;
-  /** Fecha o trecho, manda o envio de saída e destrói o player. */
   encerrar: () => void;
   estado: () => EstadoDaSessao;
-  /** Envio imediato, mesmo com outro em voo: aba escondida ou pagehide. */
   salvarAgora: () => void;
 }
 
@@ -136,7 +124,6 @@ const NOVA_TENTATIVA_MS = 2000;
 const NOVA_TENTATIVA_MAX_MS = 60_000;
 const DIFERENCA_DE_DURACAO_SEG = 2;
 
-/** Eventos do provedor em estados nomeados. */
 export function transicao(
   e: EstadoReproducao,
   ev: EventoDoVideo
@@ -164,7 +151,6 @@ export function transicao(
   }
 }
 
-/** O estado antes do player existir: também é o snapshot do servidor no React. */
 export const estadoInicial = (e: EntradaDaSessao): EstadoDaSessao => ({
   assistida: e.estudo.assistida,
   cobertura: cobertura(e.estudo.trechos, e.duracaoSeg),
@@ -191,7 +177,6 @@ export function criarSessaoDeEstudo(
   let pendentes: Trechos = SEM_TRECHOS;
   let medidor: Medidor = MEDIDOR_PARADO;
   const posicaoDe = (seg: number) => Math.floor(limitar(seg, 0, duracaoSeg));
-  /** A última posição que o servidor confirmou, ou a de abertura. */
   let posicaoEnviada = posicaoDe(entrada.inicioSeg);
   let pediuNaMeta = false;
   let encerrada = false;
@@ -269,7 +254,6 @@ export function criarSessaoDeEstudo(
 
   function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
     if (encerrada) {
-      // A página seguinte já leu o resumo: a conquista ainda precisa renová-lo.
       if (r.tipo === "ok" && r.registro.conquista) {
         deps.aoConquistar(r.registro.conquista);
       }
@@ -295,10 +279,7 @@ export function criarSessaoDeEstudo(
     }
     tentativa = 0;
     posicaoEnviada = pedido.posicaoSeg;
-    // A marca de Trechos some no JSON: a resposta passa por canonizar. O
-    // conjunto do servidor só cresce, então resposta atrasada não apaga a barra.
     servidor = unir(servidor, canonizar(r.registro.trechos, duracaoSeg));
-    // O que a cota cortou continua pendente e volta no próximo envio.
     pendentes = subtrair(pendentes, servidor);
     assistida = assistida || r.registro.assistida;
     if (r.registro.conquista) {
@@ -312,13 +293,11 @@ export function criarSessaoDeEstudo(
     avisar();
   }
 
-  /** Um lote por vez; `mesmoEmVoo` é para a saída, em que esperar a resposta perde o envio. */
   function enviar(mesmoEmVoo: boolean) {
     if (envio.tipo === "parado" || (envio.tipo === "enviando" && !mesmoEmVoo)) {
       return;
     }
     if (!temNovidade()) {
-      // Voltou ao que o servidor já tem: a falha anterior não deve mais nada.
       if (envio.tipo !== "enviando" && envio.tipo !== "em_dia") {
         tentativa = 0;
         envio = { tipo: "em_dia" };
@@ -364,7 +343,6 @@ export function criarSessaoDeEstudo(
     }, AMOSTRA_MS);
   }
 
-  /** Um player novo nasce em 1x e volume 100, e ignora o que veio antes do pronto. */
   function aoFicarPronto(duracaoDoVideoSeg: number) {
     player.definirVolume(volume.nivel);
     player.definirMudo(volume.mudo);
@@ -392,7 +370,6 @@ export function criarSessaoDeEstudo(
     if (depois.tipo === "terminou") {
       tempoSeg = duracaoSeg;
     }
-    // Buffer, inclusive o de uma busca tocando, fica para o envio periódico.
     if (depois.tipo !== "esperando") {
       enviar(false);
     }

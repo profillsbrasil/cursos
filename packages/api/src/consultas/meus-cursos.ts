@@ -40,8 +40,6 @@ export async function linhasDoPainel(db: Database, userId: string) {
       // 1. liberações ativas com o catálogo inteiro (um SQL com left join lateral)
       db.query.liberacao.findMany({
         columns: { liberadaEm: true },
-        // O id desempata liberações na mesma transação (veredito, item 25).
-        // Callback, não objeto: a ordem das chaves de um objeto não é contrato.
         orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
         where: { revogadaEm: { isNull: true }, userId },
         with: {

@@ -1,6 +1,3 @@
-// O registro do player contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
-// Alunos user_teste<hex>, limpeza só por user_id e pelos cursos criados aqui.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
@@ -36,7 +33,6 @@ const novoAluno = () => {
   return a;
 };
 
-// quarta-feira, 2026-10-07, 15:00 em São Paulo
 const QUARTA_15H = new Date("2026-10-07T18:00:00Z");
 const em = (s: number) => new Date(QUARTA_15H.getTime() + s * 1000);
 const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
@@ -134,7 +130,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     return { n: statements, r };
   };
 
-  /** 540 de 600 em três envios de 180 s, 90 s de relógio entre eles: a cota enche a 2 s/s. */
   const terco = (aluno: string, aulaId: AulaId, base: number, i: 0 | 1 | 2) =>
     registrar(
       db,

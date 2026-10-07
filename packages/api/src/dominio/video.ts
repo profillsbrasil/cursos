@@ -1,6 +1,5 @@
 import type { VideoDaAula, VideoId, VideoProvedor } from "./tipos";
 
-/** Borda: as duas colunas da aula viram VideoDaAula. O check aula_video_completo garante o par. */
 export function videoDaAula(
   provedor: VideoProvedor | null,
   id: string | null

@@ -9,7 +9,6 @@ import {
 } from "./sessao";
 import type { Volume } from "./video";
 
-/** Volume e velocidade valem por aparelho, não por aula. */
 export interface Preferencias {
   velocidade: Velocidade;
   volume: Volume;
@@ -39,7 +38,6 @@ export function paraPreferencias(texto: string | null): Preferencias {
   }
 }
 
-// localStorage lança em aba privada ou com o armazenamento bloqueado.
 export function lerPreferencias(): Preferencias {
   try {
     return paraPreferencias(window.localStorage.getItem(CHAVE));
@@ -56,7 +54,6 @@ export function gravarPreferencias(p: Preferencias): void {
   }
 }
 
-/** A sessão nasce com a preferência gravada e grava cada mudança de volume ou velocidade. */
 export function criarSessaoComPreferencias(
   entrada: Omit<EntradaDaSessao, "preferencias">,
   deps: DependenciasDaSessao

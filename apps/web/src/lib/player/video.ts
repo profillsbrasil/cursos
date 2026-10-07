@@ -22,7 +22,6 @@ export interface Volume {
   nivel: number;
 }
 
-/** Interface neutra de provedor. A sessão de estudo só conhece isto. */
 export interface PlayerDeVideo {
   buscar: (seg: number) => void;
   definirMudo: (mudo: boolean) => void;
@@ -30,7 +29,6 @@ export interface PlayerDeVideo {
   definirVolume: (nivel: number) => void;
   destruir: () => void;
   pausar: () => void;
-  /** Velocidade atual. */
   taxa: () => number;
   /** Segundo atual do vídeo, fracionário. */
   tempo: () => number;
@@ -42,7 +40,6 @@ export interface OpcoesDoPlayer {
   inicioSeg: number;
 }
 
-/** Um provedor novo no enum quebra o build aqui até ter adaptador. */
 export function criarPlayerDeVideo(
   video: VideoDaAula,
   elemento: HTMLElement,

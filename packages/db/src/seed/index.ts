@@ -229,8 +229,6 @@ async function upsertConteudo(tx: Transacao) {
     .insert(aula)
     .values(l.aulas)
     .onConflictDoUpdate({
-      // Vídeo real já gravado na aula (um --cloud depois do admin) não volta ao de
-      // exemplo, e a duração acompanha o vídeo que ficou.
       set: {
         duracaoSeg: sql`case when ${aula.videoId} is null then excluded.duracao_seg else ${aula.duracaoSeg} end`,
         moduloId: novo("modulo_id"),
@@ -364,7 +362,6 @@ async function semear(url: string, alunoA: string) {
       atualizadaEm: agora,
       aulaId: idAula(POSICAO_A.curso, POSICAO_A.modulo, POSICAO_A.aula),
       posicaoSeg: POSICAO_A.posicaoSeg,
-      // A barra não abre vazia: o aluno de exemplo viu tudo até onde parou.
       trechosVistos: [{ fim: POSICAO_A.posicaoSeg, inicio: 0 }],
       userId: alunoA,
     });

@@ -10,21 +10,16 @@ export const PONTOS = {
 
 export const META_SEQUENCIA = 7;
 
-/** A aula vira assistida quando a cobertura chega a este percentual da duração. */
 export const PCT_AULA_ASSISTIDA = 90;
 
-/** As velocidades que o player oferece. A cota deriva o teto delas. */
 export const VELOCIDADES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
 export type Velocidade = (typeof VELOCIDADES)[number];
 
 export const COTA_VIDEO = {
-  /** Cobre um envio atrasado de aba em segundo plano (até 60 s a 2x). */
   tetoSeg: 180,
   velocidadeMaxima: Math.max(...VELOCIDADES),
 } as const;
 
-/** Teto de trechos num envio: a borda do registro recusa mais, e o cliente manda o resto depois. */
 export const TRECHOS_POR_ENVIO = 64;
 
-/** Posição salva a menos disto do fim abre a aula no segundo 0. */
 export const FIM_DA_AULA_SEG = 10;

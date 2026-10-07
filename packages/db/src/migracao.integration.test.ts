@@ -1,7 +1,3 @@
-// Aplica as migrações num banco temporário do Supabase local, com dados no formato
-// que o cloud já tem antes da migração do player (aulas sem vídeo, posição sem
-// trechos), e confere que a migração do player passa sem backfill.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";

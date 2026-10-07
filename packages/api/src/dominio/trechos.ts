@@ -18,7 +18,6 @@ export type Trechos = readonly Trecho[] & { readonly [canonico]: true };
 export const SEM_TRECHOS = [] as unknown as Trechos;
 
 export interface Cobertura {
-  /** floor: 539 de 600 mostra 89%, nunca 90% sem a aula ter virado assistida. */
   pct: number;
   vistosSeg: number;
 }
@@ -97,7 +96,6 @@ export function primeiros(t: Trechos, seg: number): Trechos {
   return saida as readonly Trecho[] as Trechos;
 }
 
-/** Conta inteira, sem ponto flutuante: vistos * 100 >= duracao * 90. */
 export const atingiuMeta = (vistosSeg: number, duracaoSeg: number): boolean =>
   vistosSeg * 100 >= duracaoSeg * PCT_AULA_ASSISTIDA;
 

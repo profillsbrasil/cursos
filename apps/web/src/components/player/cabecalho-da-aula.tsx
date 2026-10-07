@@ -15,7 +15,6 @@ const SECUNDARIO =
 const DESTAQUE =
   "border-sol bg-sol text-sobre-cor hover:bg-sol/90 dark:border-sol dark:bg-sol dark:hover:bg-sol/90";
 
-/** Título, onde a aula fica no curso, e Anterior e Próxima. Nada pula sozinho. */
 export function CabecalhoDaAula({
   dados,
   destacarProxima,

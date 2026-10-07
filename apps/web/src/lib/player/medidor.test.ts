@@ -10,7 +10,6 @@ import {
   type Medidor,
 } from "./medidor";
 
-/** Amostras a cada `passoMs`, com o vídeo andando `taxa` vezes o relógio. */
 function tocar(
   m0: Medidor,
   deSeg: number,

@@ -30,7 +30,6 @@ function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
   );
 }
 
-/** A coluna da direita: progresso do curso e os módulos em sanfona, o atual aberto. */
 export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
   const { progresso, slug, titulo } = dados.curso;
   return (

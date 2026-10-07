@@ -9,11 +9,9 @@ export type TrilhaId = Marca<string, "TrilhaId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
 
-/** Derivado do enum do banco: um provedor novo lá muda este tipo sem lista paralela. */
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type VideoId = Marca<string, "VideoId">;
 
-/** Discriminada por provedor: cada adaptador do cliente recebe só o seu. */
 export type VideoDaAula = {
   [P in VideoProvedor]: { id: VideoId; provedor: P };
 }[VideoProvedor];

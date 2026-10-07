@@ -14,11 +14,6 @@ import { fmtPts, plural } from "@/lib/formato";
 const CHIP =
   "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm tabular-nums";
 
-/**
- * O topo é da página, não do layout: cada navegação lê o resumo de novo e os
- * chips não ficam velhos (veredito, item 27). `esquerda` é a busca em Meus
- * cursos e a migalha no player; sem `chips`, o topo de erro não toca o banco.
- */
 export function TopoDoAluno({
   chips,
   esquerda,

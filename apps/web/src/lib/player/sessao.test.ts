@@ -148,7 +148,6 @@ function playerFalso(relogio: Relogio) {
   };
 }
 
-/** Roda aplicarRegistro de verdade, com o relógio falso. */
 function servidorFalso(relogio: Relogio) {
   let salvo: EstudoSalvo = {
     assistida: false,
@@ -245,8 +244,6 @@ describe("sessão de estudo", () => {
 
   test("a conquista sai na hora em que a cobertura local cruza 90%", async () => {
     const { conquistas, relogio, sessao } = montar();
-    // Pausar 1 s desloca os envios periódicos para 6 + 15k s; a cobertura cruza
-    // 540 em 541 s, longe de qualquer envio periódico.
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(5000);
     sessao.comandar({ tipo: "alternar" });
@@ -325,8 +322,6 @@ describe("sessão de estudo", () => {
 
   test("o que a cota cortou fica pendente e volta no envio seguinte", async () => {
     const { relogio, servidor, sessao } = montar();
-    // 150 s a 2x sem rede juntam 300 s pendentes; o primeiro envio que passa
-    // leva 180 (balde cheio) e a cota corta 120.
     servidor.falhar({ tipo: "rede" });
     sessao.comandar({ tipo: "velocidade", valor: 2 });
     sessao.comandar({ tipo: "alternar" });

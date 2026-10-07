@@ -356,9 +356,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   test("duas liberações no mesmo instante saem na ordem do id (item 25)", async () => {
     const um = await criarTrilha(1);
     const dois = await criarTrilha(1);
-    // Um insert só: o default now() dá o mesmo liberada_em às duas linhas. A
-    // ordem de inserção é a inversa da ordem dos ids, então só o desempate por id
-    // põe a trilha "um" primeiro.
     const [menor, maior] = [crypto.randomUUID(), crypto.randomUUID()].sort();
     await db.insert(liberacao).values([
       {

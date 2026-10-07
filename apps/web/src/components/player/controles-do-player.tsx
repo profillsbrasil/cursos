@@ -24,7 +24,6 @@ import type { ComandoDoTeclado } from "@/lib/player/teclado";
 const ICONE =
   "relative size-[38px] rounded-[10px] text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 dark:hover:bg-accent [&_svg:not([class*='size-'])]:size-[18px]";
 
-/** O "10" dentro da seta circular, como no protótipo. */
 function Dez() {
   return (
     <span
@@ -80,7 +79,6 @@ export function ControlesDoPlayer({
     () => comandar({ seg: 10, tipo: "saltar" }),
     [comandar]
   );
-  // Sem som no nível 0, o botão devolve metade do volume, como no protótipo.
   const silenciar = useCallback(
     () =>
       volume.nivel === 0

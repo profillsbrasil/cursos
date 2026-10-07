@@ -111,7 +111,6 @@ export const aula = tabela(
       .references(() => modulo.id, { onDelete: "cascade" }),
     posicao: smallint().notNull(),
     titulo: text().notNull(),
-    // Anuláveis: o cloud já tem aulas sem vídeo, e a migração passa sem backfill.
     videoId: text(),
     videoProvedor: videoProvedor(),
   },

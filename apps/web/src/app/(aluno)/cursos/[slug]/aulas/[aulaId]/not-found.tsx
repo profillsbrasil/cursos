@@ -1,7 +1,6 @@
 import { TelaNaoEncontrada } from "@/components/aluno/tela-nao-encontrada";
 import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 
-// notFound() da página da aula: fica dentro da sidebar, em pt-BR.
 export default function AulaNaoEncontrada() {
   return (
     <>

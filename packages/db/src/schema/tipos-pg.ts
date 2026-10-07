@@ -31,7 +31,6 @@ export function lerMultirange(texto: string): FaixaSeg[] {
 export const escreverMultirange = (faixas: readonly FaixaSeg[]): string =>
   `{${faixas.map((f) => `[${f.inicio},${f.fim})`).join(",")}}`;
 
-/** Só select comum lê esta coluna pelo fromDriver; relational query devolve o texto cru. */
 export const faixasDeSegundos = customType<{
   data: readonly FaixaSeg[];
   driverData: string;

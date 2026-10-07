@@ -9,10 +9,6 @@ import { mmss } from "@/lib/formato";
 const pct = (seg: number, duracaoSeg: number) =>
   `${Math.min(100, Math.max(0, (100 * seg) / duracaoSeg))}%`;
 
-/**
- * A linha do tempo: amarelo é o que o servidor e a sessão já contam como visto.
- * Arrastar só mostra a cabeça; a busca acontece ao soltar.
- */
 export function BarraDeTrechos({
   aoBuscar,
   duracaoSeg,

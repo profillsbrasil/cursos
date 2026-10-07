@@ -12,7 +12,6 @@ const trecho = z
   .object({ fim: z.int().min(1), inicio: z.int().min(0) })
   .refine((t) => t.fim > t.inicio, "Trecho vazio.");
 
-/** A borda: depois dela, tudo é tipo de domínio. */
 export const entradaRegistro = z.object({
   aulaId: z.uuid(),
   posicaoSeg: z.int().min(0).max(86_400),
@@ -20,8 +19,6 @@ export const entradaRegistro = z.object({
 });
 
 export const aulaRouter = router({
-  // null em vez de erro: a página responde com notFound(). Slug fora do formato,
-  // curso sem liberação e curso bloqueado dão o mesmo 404.
   abrir: protectedProcedure
     .input(z.object({ aulaId: z.uuid(), slug: z.string() }))
     .query(({ ctx, input }) =>

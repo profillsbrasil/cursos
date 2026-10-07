@@ -47,7 +47,6 @@ declare global {
 
 let carregando: Promise<YtApi> | null = null;
 
-/** Carrega o iframe_api uma vez por página. */
 function carregarApi(): Promise<YtApi> {
   if (window.YT?.Player) {
     return Promise.resolve(window.YT);
@@ -85,16 +84,11 @@ const motivoDoErro = (codigo: number): MotivoIndisponivel => {
     : "outro";
 };
 
-/**
- * controls=0: os controles do app ficam abaixo do iframe, e nada fica por cima
- * dele (política do YouTube). A legenda segue o que o vídeo traz.
- */
 export function criarPlayerDoYoutube(
   videoId: VideoId,
   elemento: HTMLElement,
   opcoes: OpcoesDoPlayer
 ): PlayerDeVideo {
-  // instancia existe desde a criação; player, só depois do onReady.
   let instancia: YtPlayer | null = null;
   let player: YtPlayer | null = null;
   let destruido = false;

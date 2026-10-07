@@ -6,7 +6,6 @@ export interface Amostra {
   videoSeg: number;
 }
 
-/** Trecho em curso, em tempo fracionário do vídeo. Imutável. */
 export interface Medidor {
   aberto: { inicioSeg: number; ultima: Amostra } | null;
 }
@@ -15,7 +14,6 @@ export const MEDIDOR_PARADO: Medidor = { aberto: null };
 
 export interface Medida {
   medidor: Medidor;
-  /** Trechos fechados por esta chamada, já inteiros. */
   trechos: readonly Trecho[];
 }
 
@@ -32,11 +30,6 @@ const trechoAte = (inicioSeg: number, fimSeg: number): Trecho[] => {
   return t ? [t] : [];
 };
 
-/**
- * Estende o trecho aberto se o vídeo andou o que o relógio e a velocidade
- * explicam; senão fecha na amostra anterior e abre outro. Aba em segundo plano
- * com timer de 60 s ainda estende, porque o relógio explica o avanço.
- */
 export function amostrar(m: Medidor, a: Amostra): Medida {
   if (!m.aberto) {
     return { medidor: abrir(a), trechos: [] };
@@ -56,7 +49,6 @@ export function amostrar(m: Medidor, a: Amostra): Medida {
   return { medidor: { aberto: { inicioSeg, ultima: a } }, trechos: [] };
 }
 
-/** Pausa, espera, fim ou busca: fecha o trecho aberto. */
 export const fechar = (m: Medidor): Medida => ({
   medidor: MEDIDOR_PARADO,
   trechos: m.aberto
@@ -64,10 +56,6 @@ export const fechar = (m: Medidor): Medida => ({
     : [],
 });
 
-/**
- * Para o envio periódico: devolve o trecho aberto até o segundo inteiro da
- * última amostra e o reabre desse mesmo segundo, sem buraco entre envios.
- */
 export function cortar(m: Medidor): Medida {
   if (!m.aberto) {
     return { medidor: m, trechos: [] };
@@ -80,6 +68,5 @@ export function cortar(m: Medidor): Medida {
   };
 }
 
-/** O trecho aberto como trecho inteiro, para a barra desenhar sem fechar. */
 export const trechoAberto = (m: Medidor): readonly Trecho[] =>
   m.aberto ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg) : [];

@@ -8,8 +8,6 @@ import { carregarEntrada, carregarResumo } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Profills School" };
 
-// Curso em andamento ou não iniciado vai direto para a aula de retomada. Prova e
-// concluído ficam aqui até a tela da prova existir.
 export default async function Curso({
   params,
 }: {

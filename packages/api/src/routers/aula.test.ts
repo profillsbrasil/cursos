@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 
 import { createCaller } from "./index";
 
-// Slug fora do formato responde antes de qualquer consulta: o db nunca é tocado.
 const caller = createCaller({ auth: { userId: "user_x" }, db: {} as never });
 const FORA_DO_FORMATO = ["Comercial", "comercial.", "a_b", "%C3%A7urso"];
 const AULA = "00000000-0000-4000-8000-000000000000";

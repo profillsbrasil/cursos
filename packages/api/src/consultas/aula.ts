@@ -34,7 +34,6 @@ import { COM_CONTEUDO } from "./catalogo";
 type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
 type Executor = Database | Transacao;
 
-/** Como achar o curso: pela URL (slug) ou pelo registro (aula). */
 export type ChaveCurso = { aulaId: string } | { slug: string };
 
 const ativasDo = (userId: string) =>
@@ -44,10 +43,6 @@ const ativasDo = (userId: string) =>
   }) as const;
 
 /**
- * 4 statements, sem prepare nomeado (pooler 6543). Só o primeiro depende da chave;
- * os outros filtram por user_id. As posições saem num select comum porque a
- * relational query não passa int4multirange pelo fromDriver.
- *
  * `serial` é para dentro de uma transação: os quatro dividem um client, e o pg 8
  * avisa que query concorrente no mesmo client deixa de funcionar no pg 9.
  */
@@ -167,7 +162,7 @@ export function registrar(
   agora: Date
 ): Promise<Registro> {
   return db.transaction(async (tx) => {
-    // O DO UPDATE trava a linha do aluno até o fim da transação; aluno novo nasce com o balde cheio.
+    // O DO UPDATE trava a linha do aluno até o fim da transação.
     const [cota] = await tx
       .insert(cotaVideo)
       .values({ atualizadaEm: agora, segundos: COTA_VIDEO.tetoSeg, userId })

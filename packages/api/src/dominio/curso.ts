@@ -44,7 +44,6 @@ export type EstadoQueAbre = Exclude<
   { tipo: "em_breve" } | { tipo: "bloqueado" }
 >;
 
-/** A regra única de "o aluno pode abrir este curso". */
 export const abre = (e: EstadoCurso): e is EstadoQueAbre =>
   e.tipo !== "em_breve" && e.tipo !== "bloqueado";
 

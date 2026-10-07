@@ -4,7 +4,6 @@ import { ChipsCarregando, TopoDoAluno } from "@/components/aluno/topo";
 
 const PULSO = "bg-card motion-reduce:animate-none";
 
-// Esqueleto no formato do player, do título e da coluna do curso.
 export default function CarregandoAula() {
   return (
     <>

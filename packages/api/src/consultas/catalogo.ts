@@ -1,4 +1,3 @@
-/** O catálogo de um curso na relational query: módulos, aulas com vídeo e níveis. */
 export const COM_CONTEUDO = {
   columns: {
     capaAlt: true,

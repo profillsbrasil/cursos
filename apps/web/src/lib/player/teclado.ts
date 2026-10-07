@@ -15,7 +15,6 @@ const MAPA: Readonly<Record<string, ComandoDoTeclado>> = {
   m: { tipo: "mudo" },
 };
 
-/** Com Ctrl, Alt ou Meta, a tecla é do browser. */
 export function comandoDaTecla(e: {
   altKey: boolean;
   ctrlKey: boolean;

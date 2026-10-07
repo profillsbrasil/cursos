@@ -4,10 +4,6 @@ import { Check } from "lucide-react";
 import { plural } from "@/lib/formato";
 import type { EstadoEnvio } from "@/lib/player/sessao";
 
-/**
- * Abaixo dos controles, no fluxo da página e dentro da seção do player: aparece
- * em tela cheia e nunca fica por cima do iframe (política do YouTube).
- */
 export function StatusDoPlayer({
   conquista,
   envio,

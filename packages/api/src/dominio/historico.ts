@@ -31,7 +31,6 @@ export function historicoDe(l: LinhasHistorico): Historico {
   };
 }
 
-/** Última atividade por aula: a mais recente entre assistir e salvar posição. */
 export function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
   const atividade = new Map<AulaId, string>();
   const anotar = (aulaId: string, quando: Date) => {

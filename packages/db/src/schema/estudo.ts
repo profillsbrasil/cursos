@@ -38,8 +38,6 @@ export const aulaAssistida = tabela(
   ]
 );
 
-// Estado do player: um registro por aluno e aula, com onde ele parou e o que já viu.
-// O único escritor é aula.registrar.
 export const posicaoAula = tabela(
   "posicao_aula",
   {
@@ -48,7 +46,6 @@ export const posicaoAula = tabela(
       .notNull()
       .references(() => aula.id, { onDelete: "cascade" }),
     posicaoSeg: integer().notNull(),
-    // Só cresce: o servidor une, nunca tira.
     trechosVistos: faixasDeSegundos()
       .notNull()
       .default(sql`'{}'::int4multirange`),
@@ -65,9 +62,6 @@ export const posicaoAula = tabela(
   ]
 );
 
-// Cota de vídeo: quantos segundos de vídeo novo o servidor aceita do aluno agora,
-// somando abas e aulas. aula.registrar trava esta linha antes de ler o estudo do
-// aluno, então ela também ordena as escritas dele.
 export const cotaVideo = tabela(
   "cota_video",
   {

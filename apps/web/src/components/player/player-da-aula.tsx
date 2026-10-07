@@ -47,7 +47,6 @@ function Problema({ estado }: { estado: EstadoDaSessao }) {
   ) : null;
 }
 
-/** O player só sabe da sessão: YouTube, trechos e envio ficam atrás do hook. */
 export function PlayerDaAula({
   dados,
   inicioSeg,
