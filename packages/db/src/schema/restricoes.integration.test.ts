@@ -83,6 +83,26 @@ const certificar = (c: Client, b: Base) =>
     [b.aluno, b.cursoId, `TESTE-${sufixo()}`]
   );
 
+/** Liberação do curso feita pelo próprio aluno, como a troca grava. */
+async function liberarParaTroca(c: Client, aluno: string, cursoId: string) {
+  const r = await c.query<{ id: string }>(
+    "insert into liberacao (user_id, curso_id, liberada_por) values ($1, $2, $1) returning id",
+    [aluno, cursoId]
+  );
+  return r.rows[0]?.id ?? "";
+}
+
+const pagarTroca = (
+  c: Client,
+  aluno: string,
+  liberacaoId: string,
+  pontos: number
+) =>
+  c.query(
+    "insert into ponto_lancamento (user_id, motivo, pontos, liberacao_id) values ($1, 'troca', $2, $3)",
+    [aluno, pontos, liberacaoId]
+  );
+
 const CASOS: Caso[] = [
   {
     apagar: "alter table liberacao drop constraint liberacao_alvo_unico",
@@ -228,14 +248,77 @@ const CASOS: Caso[] = [
   },
   {
     apagar:
-      "alter table ponto_lancamento drop constraint ponto_lancamento_positivo",
-    constraint: "ponto_lancamento_positivo",
-    nome: "lançamento negativo",
+      "alter table ponto_lancamento drop constraint ponto_lancamento_sinal",
+    constraint: "ponto_lancamento_sinal",
+    nome: "lançamento de sequência negativo",
     violar: (c, b) =>
       c.query(
         "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ($1, 'sequencia_7_dias', -30, '2026-10-07')",
         [b.aluno]
       ),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_sinal",
+    constraint: "ponto_lancamento_sinal",
+    nome: "aula assistida negativa",
+    violar: async (c, b) => {
+      await assistir(c, b);
+      await c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, aula_id) values ($1, 'aula_assistida', -10, $2)",
+        [b.aluno, b.aulaId]
+      );
+    },
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_sinal",
+    constraint: "ponto_lancamento_sinal",
+    nome: "troca positiva",
+    violar: async (c, b) =>
+      pagarTroca(
+        c,
+        b.aluno,
+        await liberarParaTroca(c, b.aluno, b.cursoId),
+        200
+      ),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_referencia",
+    constraint: "ponto_lancamento_referencia",
+    nome: "troca sem liberação",
+    violar: (c, b) =>
+      c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos) values ($1, 'troca', -200)",
+        [b.aluno]
+      ),
+  },
+  {
+    apagar: "alter table ponto_lancamento drop constraint ponto_liberacao_fk",
+    constraint: "ponto_liberacao_fk",
+    nome: "troca que paga a liberação de outro aluno",
+    violar: async (c, b) => {
+      const alheia = await liberarParaTroca(c, `${b.aluno}x`, b.cursoId);
+      await pagarTroca(c, b.aluno, alheia, -200);
+    },
+  },
+  {
+    apagar: "alter table ponto_lancamento drop constraint ponto_troca_uma_vez",
+    constraint: "ponto_troca_uma_vez",
+    nome: "dois lançamentos de troca na mesma liberação",
+    violar: async (c, b) => {
+      const id = await liberarParaTroca(c, b.aluno, b.cursoId);
+      await pagarTroca(c, b.aluno, id, -200);
+      await pagarTroca(c, b.aluno, id, -200);
+    },
+  },
+  {
+    apagar: "alter table curso drop constraint curso_preco_troca_positivo",
+    constraint: "curso_preco_troca_positivo",
+    nome: "preço de troca zero",
+    violar: (c, b) =>
+      c.query("update curso set preco_troca = 0 where id = $1", [b.cursoId]),
   },
   {
     apagar:
@@ -403,6 +486,26 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [b.aluno]
       );
       expect(n.rows[0]?.n).toBe(1);
+    });
+  });
+
+  test("aceita troca: liberação do próprio aluno paga com lançamento negativo", async () => {
+    await emTransacao(async () => {
+      const b = await montarBase(c);
+      await c.query("update curso set preco_troca = 200 where id = $1", [
+        b.cursoId,
+      ]);
+      await pagarTroca(
+        c,
+        b.aluno,
+        await liberarParaTroca(c, b.aluno, b.cursoId),
+        -200
+      );
+      const r = await c.query<{ saldo: number }>(
+        "select sum(pontos)::int as saldo from ponto_lancamento where user_id = $1",
+        [b.aluno]
+      );
+      expect(r.rows[0]?.saldo).toBe(-200);
     });
   });
 

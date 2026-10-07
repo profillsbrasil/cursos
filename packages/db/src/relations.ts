@@ -16,9 +16,25 @@ export const relations = defineRelations(schema, (r) => ({
   liberacao: {
     curso: r.one.curso({ from: r.liberacao.cursoId, to: r.curso.id }),
     trilha: r.one.trilha({ from: r.liberacao.trilhaId, to: r.trilha.id }),
+    trocaLancamento: r.one.pontoLancamento({
+      from: r.liberacao.id,
+      to: r.pontoLancamento.liberacaoId,
+    }),
   },
   modulo: {
     aulas: r.many.aula({ from: r.modulo.id, to: r.aula.moduloId }),
+  },
+  pontoLancamento: {
+    aula: r.one.aula({ from: r.pontoLancamento.aulaId, to: r.aula.id }),
+    curso: r.one.curso({ from: r.pontoLancamento.cursoId, to: r.curso.id }),
+    liberacao: r.one.liberacao({
+      from: r.pontoLancamento.liberacaoId,
+      to: r.liberacao.id,
+    }),
+    trilha: r.one.trilha({
+      from: r.pontoLancamento.trilhaId,
+      to: r.trilha.id,
+    }),
   },
   trilha: {
     cursos: r.many.trilhaCurso({
