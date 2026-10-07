@@ -18,7 +18,7 @@ export interface Cota {
   segundos: number;
 }
 
-export function recarregar(cota: Cota | null, agora: Date): number {
+export function cotaDisponivel(cota: Cota | null, agora: Date): number {
   if (!cota) {
     return COTA_VIDEO.tetoSeg;
   }
@@ -62,7 +62,7 @@ export function aplicarRegistro(
   pedido: Pedido,
   agora: Date
 ): Aplicacao {
-  let disponivel = recarregar(cota, agora);
+  let disponivel = cotaDisponivel(cota, agora);
   let acumulado = salvo.trechos;
   let recusadosSeg = 0;
   for (const t of pedido.trechos) {

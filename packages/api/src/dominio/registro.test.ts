@@ -4,9 +4,9 @@ import {
   aplicarRegistro,
   type Cota,
   conquistaDe,
+  cotaDisponivel,
   type EstudoSalvo,
   lancamentosDaAssistida,
-  recarregar,
 } from "./registro";
 import { COTA_VIDEO } from "./regras";
 import { diaUtilAnterior } from "./sequencia";
@@ -23,19 +23,21 @@ const novo = (duracaoSeg = 600): EstudoSalvo => ({
   trechos: SEM_TRECHOS,
 });
 
-describe("recarregar", () => {
+describe("cotaDisponivel", () => {
   test("sem cota, o balde está cheio", () => {
-    expect(recarregar(null, T0)).toBe(COTA_VIDEO.tetoSeg);
+    expect(cotaDisponivel(null, T0)).toBe(COTA_VIDEO.tetoSeg);
   });
 
   test("enche 2 s por segundo de relógio até o teto", () => {
     const cota: Cota = { atualizadaEm: T0, segundos: 0 };
-    expect(recarregar(cota, em(10))).toBe(20);
-    expect(recarregar(cota, em(1000))).toBe(COTA_VIDEO.tetoSeg);
+    expect(cotaDisponivel(cota, em(10))).toBe(20);
+    expect(cotaDisponivel(cota, em(1000))).toBe(COTA_VIDEO.tetoSeg);
   });
 
   test("relógio que volta não enche nem esvazia", () => {
-    expect(recarregar({ atualizadaEm: T0, segundos: 30 }, em(-60))).toBe(30);
+    expect(cotaDisponivel({ atualizadaEm: T0, segundos: 30 }, em(-60))).toBe(
+      30
+    );
   });
 });
 
