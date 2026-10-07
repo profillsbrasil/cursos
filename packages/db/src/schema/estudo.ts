@@ -53,7 +53,9 @@ export const posicaoAula = tabela(
 );
 
 // O PR da prova acrescenta prova_tentativa_id (FK composta para a tentativa aprovada).
-// Até lá, nenhum certificado nasce no cloud, então a coluna nova entra sem dado a migrar.
+// O seed com --cloud já cria um certificado de exemplo para o aluno A, sem tentativa.
+// Por isso a coluna nova tem de nascer anulável (ou o PR apaga antes esse certificado
+// e o ponto_lancamento que o referencia, por causa do ON DELETE RESTRICT).
 export const certificado = tabela(
   "certificado",
   {
