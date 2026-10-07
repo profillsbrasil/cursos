@@ -1,3 +1,4 @@
+import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { ConteudoMeusCursos } from "@/components/meus-cursos/conteudo";
@@ -10,5 +11,10 @@ export default async function MeusCursos() {
     carregarPainel(),
     carregarResumo(),
   ]);
-  return <ConteudoMeusCursos painel={painel} resumo={resumo} />;
+  const vazio = painel.trilhas.length === 0 && painel.soltos.length === 0;
+  // A conta só aparece no estado vazio, para a pessoa conferir se entrou com a conta certa.
+  const usuario = vazio ? await currentUser() : null;
+  const conta =
+    usuario?.primaryEmailAddress?.emailAddress ?? usuario?.fullName ?? null;
+  return <ConteudoMeusCursos conta={conta} painel={painel} resumo={resumo} />;
 }

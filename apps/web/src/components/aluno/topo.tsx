@@ -33,7 +33,7 @@ export function Topo({ resumo }: { resumo: ResumoAluno }) {
           />
         </InputGroup>
       </div>
-      <div className="flex gap-2">
+      <div className="ml-auto flex gap-2">
         <span className={CHIP} title="Sequência de dias úteis de estudo">
           <Flame aria-hidden="true" className="size-4 text-canela" />
           <b className="font-semibold">

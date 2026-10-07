@@ -10,27 +10,33 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 ### `apps/web` (Next.js, porta 3001)
 
-- `src/proxy.ts`: `clerkMiddleware()` em todas as rotas. No Next 16 o `middleware.ts` virou `proxy.ts`.
-- `src/app/`: rotas. `layout.tsx` monta `ClerkProvider` e `Providers`; `page.tsx` é a home com o `healthCheck`; `dashboard/page.tsx` é a página logada que chama `privateData`; `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
+- `src/proxy.ts`: `clerkMiddleware()` em todas as rotas, sem regra por caminho. No Next 16 o `middleware.ts` virou `proxy.ts`. O `createRouteMatcher` está depreciado no `@clerk/nextjs` 7: a proteção mora em `src/server/api.ts`.
+- `src/app/`: rotas. `layout.tsx` monta `ClerkProvider` (com o `appearance` escuro) e `Providers`, com `lang="pt-BR"` e `class="dark"` fixos no `<html>`; `page.tsx` redireciona para `/meus-cursos` até o Início existir; `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
+- `src/app/(aluno)/`: páginas do aluno. `layout.tsx` monta a sidebar e o topo e lê o resumo; `meus-cursos/` tem `page.tsx`, `loading.tsx` e `error.tsx`; `cursos/[slug]/page.tsx` é o stub do player.
+- `src/server/api.ts`: `server-only`. `carregarPainel` e `carregarResumo` chamam o router no processo por `createCaller`, com `React.cache` por request. O `caller` faz `auth.protect()`: quem não tem sessão vai para o login. Server Component busca dados por aqui, não pelo cliente de `utils/trpc.ts`.
 - `src/context.ts`: cria o contexto do tRPC por request. Valida o token do Clerk com `authenticateRequest`, aceitando só `authorizedParties: [ENV.CORS_ORIGIN]`, e entrega `{ auth: { userId } | null, db }`.
 - `src/services.ts`: o `db` único do app (`createDb(ENV)`).
 - `src/env.server.ts`: ponto de entrada server-only do env. Código de servidor importa `ENV` daqui; `src/env.ts` é gerado.
 - `src/utils/trpc.ts`: cliente tRPC + `queryClient`. Manda `Authorization: Bearer <token do Clerk>` em todo request, no browser pelo getter de `utils/clerk-auth.ts` e no servidor por `auth()`.
-- `src/components/providers.tsx`: tema, React Query, Toaster e o `ClerkApiAuthBridge`, que registra o `getToken` do Clerk para o cliente tRPC.
-- `src/components/`: componentes próprios do app (header, mode-toggle, loader, PWA).
+- `src/components/providers.tsx`: React Query, `Toaster theme="dark"` e o `ClerkApiAuthBridge`, que registra o `getToken` do Clerk para o cliente tRPC. O app tem um tema só, escuro, sem `ThemeProvider`.
+- `src/components/aluno/`: casca do aluno (sidebar, navegação, topo). `src/components/meus-cursos/`: as peças da tela; `conteudo.tsx` monta a página a partir do painel e do resumo.
+- `src/lib/formato.ts`: números, minutos, datas e plural em pt-BR. `src/lib/capas.ts`: largura e altura das capas de `public/capas/`.
 - `next.config.ts`: plugin do varlock por fora, PWA (`pwa.config.ts`) por dentro.
 
 ### `packages/api` (`@cursos/api`)
 
-- `src/index.ts`: `router`, `publicProcedure` e `protectedProcedure`. O protegido lança `UNAUTHORIZED` sem `ctx.auth.userId` e garante `ctx.auth` não nulo depois dele.
-- `src/routers/index.ts`: `appRouter`. Router novo entra aqui como chave.
+- `src/index.ts`: `router`, `publicProcedure` e `protectedProcedure`. O protegido lança `UNAUTHORIZED` sem `ctx.auth.userId` e estreita `ctx.auth` para `{ userId: string }`.
+- `src/routers/index.ts`: `appRouter` (`meusCursos.painel`, `aluno.resumo`, `healthCheck`) e `createCaller`. Router novo entra aqui como chave.
+- `src/dominio/`: regras puras, sem banco e sem relógio próprio: estado do curso, sequência em dias úteis, retomada e a montagem do painel. Testes com `bun test`.
+- `src/consultas/`: as consultas do painel (5 statements) e do resumo (2), em paralelo, e o teste de integração no banco local.
 - `src/context.ts`: o tipo `Context` que o app implementa.
 
 ### `packages/db` (`@cursos/db`)
 
-- `src/schema/index.ts`: toda tabela é exportada daqui. `drizzle.config.ts` lê só esse arquivo e só o schema `public`.
+- `src/schema/`: catálogo, acesso, estudo, pontos e comunicado; `index.ts` exporta tudo e `drizzle.config.ts` lê só esse arquivo e só o schema `public`. Toda tabela usa `snakeCase.table` (chave camelCase, coluna snake_case). `restricoes.integration.test.ts` prova cada constraint.
 - `src/relations.ts`: relations v2 do Drizzle 1.0 (`defineRelations(schema)`), passadas ao `drizzle()` em `src/index.ts`. A API de relations v1 (`relations()` por tabela) não vale nesta versão.
-- `src/migrations/`: saída do `db:generate`.
+- `src/migrations/`: saída do `db:generate`. `drizzle.local.config.ts` aponta só para o Supabase local e não lê o `.env`.
+- `src/seed/`: seed de exemplo. `guarda-local.ts` recusa host que não seja o Supabase local; `--cloud` exige `--sim-cloud`.
 - `supabase/config.toml`: stack local do Supabase CLI (`project_id = "cursos"`, portas entre 54320 e 54329; o banco fica na 54322).
 
 ### `packages/ui` (`@cursos/ui`)
@@ -70,7 +76,8 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 ## Comandos
 
-- `bun run dev` sobe tudo; `bun run dev:web` só o app.
+- `bun run dev` sobe tudo; `bun run dev:web` só o app. `bun run --cwd apps/web dev:local` sobe o app contra o Supabase local (o `process.env` vence o `.env` no varlock). Não use `bun --bun next dev`: o Turbopack não resolve o `pg` no runtime do Bun.
+- Testes: `bun run test`. Os de integração só rodam com `TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres` e recusam host que não seja local. Banco local: `bun run db:migrate:local` e `bun run db:seed -- --aluno user_xxx`, dentro de `packages/db`.
 - Antes de commitar: `bun run check-types` e `bun x ultracite check` verdes. Um hook do Claude Code roda `bun run fix` depois de cada Edit/Write, então o arquivo pode mudar logo após a edição: releia antes do próximo Edit.
 - Deploy: `bun run deploy:setup` linka a Vercel. `bun run env:production` sem argumento envia o `apps/web/.env`, que tem as chaves `pk_test` e o banco do dev. Para produção, monte um `apps/web/.env.production.local` (já ignorado pelo git) e rode `bun run env:production apps/web/.env.production.local`.
 
