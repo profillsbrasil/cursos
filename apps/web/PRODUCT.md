@@ -30,6 +30,20 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 - Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), fazem prova no fim do curso e recebem certificado.
 - Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para o perfil ou a empresa dela.
+- O conteúdo se organiza em trilhas. Uma trilha é um conjunto ordenado de cursos, e a ordem é sequencial: o curso seguinte só abre quando o anterior é concluído. Um curso também pode existir solto, fora de trilha, mas curso de trilha liberado sozinho é raro.
+- Um admin cria as trilhas e as libera por pessoa (por exemplo, trilhas X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
+- Clientes e público aberto recebem trilhas liberadas do mesmo jeito; a compra ou a assinatura só libera trilhas.
+- A liberação é permanente. Ela só some se o admin revogar.
+- O aluno tem um Início separado da tela "Meus cursos".
+- Não há prazo de conclusão em liberação nenhuma.
+- A trilha Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
+- Existe gamificação individual: pontos, sequência de dias, medalhas e níveis. Não existe ranking nem comparação entre colegas.
+- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no quiz de fixação na primeira tentativa, 50 por prova aprovada, 100 por curso concluído, 500 por trilha concluída e 30 por 7 dias de sequência. Rever aula ou refazer prova não pontua de novo.
+- A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
+- Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
+- Cada aula pode ter um quiz de fixação com pontos só na primeira tentativa.
+- O admin publica comunicados (por exemplo, "Módulo 13 atualizado").
+- O protótipo anterior da plataforma é o artifact "Profills School Academia" (https://claude.ai/artifact/U7ySDnhvgN72ky4MgTgbu2). Ele serve de referência de funções, não de regra: o obrigatório, o prazo, o ranking e a paleta dele foram descartados.
 - O acesso é misto: curso pago avulso, assinatura, curso gratuito para certos usuários e acesso 100% gratuito para outros.
 - A empresa é a Profills Brasil, fabricante de máquinas para produtos líquidos, pastosos e sólidos. O site institucional fica em outro repositório (`site-profills-brasil`).
 
@@ -38,6 +52,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 Confirmado:
 
 - Formatos de aula: vídeo gravado, material para ler, prova e certificado.
+- O certificado de um curso sai quando a pessoa assiste a todas as aulas e passa na prova.
 - Temas: máquinas da Profills, processo de envase e embalagem, vendas e atendimento, rotinas internas.
 - Uma plataforma com controle de acesso por perfil e por empresa cliente. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz).
 - Cobrança em dois modelos: compra avulsa e assinatura, além de liberação gratuita por usuário.
@@ -49,11 +64,15 @@ Fora do escopo confirmado:
 Decisões abertas:
 
 - Preços, planos de assinatura e o meio de pagamento.
-- Como o acesso gratuito é concedido (por empresa cliente, por compra de máquina, por convite).
+- Como compra e assinatura viram liberação de trilha (quais trilhas cada plano libera).
 - Quando os clientes e o público aberto entram depois do lançamento interno.
 - Se o certificado tem valor formal (carga horária, validação externa) ou é só comprovante interno.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
-- Os perfis de acesso exatos e os nomes do domínio. Ainda não existe `GLOSSARY.md`.
+- A nota mínima e o limite de tentativas da prova.
+- Se a plataforma se chama "Profills School", como no protótipo anterior e na página do site, ou outro nome.
+- Os níveis e as medalhas exatos (o protótipo anterior tinha os níveis Vendedor, Consultor e Especialista e 8 medalhas).
+- Se ponto vence e se existe teto diário de pontos vindos de vídeo.
+- Os perfis de acesso exatos além de aluno e admin. Os termos trilha, liberação e admin ainda precisam entrar num `GLOSSARY.md`, que não existe.
 
 ## Brand Commitments
 
