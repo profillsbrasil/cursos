@@ -405,7 +405,7 @@ describe("nova tentativa", () => {
     sessao.comandar({ seg: 200, tipo: "buscar" });
     await relogio.avancar(1600);
     expect(sessao.estado().envio).toEqual({
-      tentativa: 1,
+      falhasSeguidas: 1,
       tipo: "esperando_nova_tentativa",
     });
   });
@@ -426,9 +426,9 @@ describe("nova tentativa", () => {
     await relogio.avancar(60_000);
     expect(vistos).toEqual([
       { tipo: "em_dia" },
-      { tentativa: 0, tipo: "enviando" },
-      { tentativa: 1, tipo: "esperando_nova_tentativa" },
-      { tentativa: 1, tipo: "enviando" },
+      { falhasSeguidas: 0, tipo: "enviando" },
+      { falhasSeguidas: 1, tipo: "esperando_nova_tentativa" },
+      { falhasSeguidas: 1, tipo: "enviando" },
       { tipo: "em_dia" },
     ]);
   });

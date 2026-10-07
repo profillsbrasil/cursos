@@ -60,8 +60,8 @@ export const motivoParadoDe = (codigo: string): MotivoParado | undefined =>
 export type EstadoEnvio =
   | { tipo: "em_dia" }
   | { tipo: "pendente" }
-  | { tentativa: number; tipo: "enviando" }
-  | { tentativa: number; tipo: "esperando_nova_tentativa" }
+  | { falhasSeguidas: number; tipo: "enviando" }
+  | { falhasSeguidas: number; tipo: "esperando_nova_tentativa" }
   | { motivo: MotivoParado; tipo: "parado" };
 
 export type Comando =
@@ -180,7 +180,7 @@ export function criarSessaoDeEstudo(
   let posicaoEnviada = posicaoDe(entrada.inicioSeg);
   let pediuNaMeta = false;
   let encerrada = false;
-  let tentativa = 0;
+  let falhasSeguidas = 0;
   let pararAmostra: (() => void) | null = null;
   let pararEnvio: (() => void) | null = null;
   const ouvintes = new Set<() => void>();
@@ -266,18 +266,18 @@ export function criarSessaoDeEstudo(
       return;
     }
     if (r.tipo === "rede") {
-      tentativa += 1;
-      envio = { tentativa, tipo: "esperando_nova_tentativa" };
+      falhasSeguidas += 1;
+      envio = { falhasSeguidas, tipo: "esperando_nova_tentativa" };
       agendarEnvio(
         Math.min(
-          NOVA_TENTATIVA_MS * 2 ** (tentativa - 1),
+          NOVA_TENTATIVA_MS * 2 ** (falhasSeguidas - 1),
           NOVA_TENTATIVA_MAX_MS
         )
       );
       avisar();
       return;
     }
-    tentativa = 0;
+    falhasSeguidas = 0;
     posicaoEnviada = pedido.posicaoSeg;
     servidor = unir(servidor, canonizar(r.registro.trechos, duracaoSeg));
     pendentes = subtrair(pendentes, servidor);
@@ -299,7 +299,7 @@ export function criarSessaoDeEstudo(
     }
     if (!temNovidade()) {
       if (envio.tipo !== "enviando" && envio.tipo !== "em_dia") {
-        tentativa = 0;
+        falhasSeguidas = 0;
         envio = { tipo: "em_dia" };
         avisar();
       }
@@ -311,7 +311,7 @@ export function criarSessaoDeEstudo(
       posicaoSeg: posicaoDe(tempoSeg),
       trechos: pendentes.slice(0, TRECHOS_POR_ENVIO),
     };
-    envio = { tentativa, tipo: "enviando" };
+    envio = { falhasSeguidas, tipo: "enviando" };
     avisar();
     deps.enviar(pedido).then(
       (r) => aposResposta(r, pedido),
