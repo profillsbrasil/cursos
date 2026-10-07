@@ -5,11 +5,21 @@ import { StatusDoPlayer } from "./status-do-player";
 
 const POSICIONADO = /\b(fixed|absolute|sticky)\b/;
 const CONQUISTA = { bonusSequencia: null, pontos: 10, sequenciaDias: 1 };
+const VAZIA = /^<div class="([^"]*)" role="status"><\/div>$/;
+const ESCONDE = /(^|[\s:])(hidden|invisible|sr-only)(\s|$)/;
 
 const html = (props: Parameters<typeof StatusDoPlayer>[0]) =>
   renderToStaticMarkup(<StatusDoPlayer {...props} />);
 
 describe("linha de status do player", () => {
+  test("vazia, a região de status existe e não sai da árvore de acessibilidade", () => {
+    const classes = html({ conquista: null, envio: { tipo: "em_dia" } }).match(
+      VAZIA
+    )?.[1];
+    expect(classes).toBeDefined();
+    expect(classes).not.toMatch(ESCONDE);
+  });
+
   test("a conquista é uma linha no fluxo, com role=status, nunca fixa", () => {
     const h = html({ conquista: CONQUISTA, envio: { tipo: "em_dia" } });
     expect(h).toContain('role="status"');

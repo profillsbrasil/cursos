@@ -16,7 +16,9 @@ export function StatusDoPlayer({
   envio: EstadoEnvio;
 }) {
   return (
-    <div className="grid gap-2 empty:hidden" role="status">
+    // `contents`: vazia, a região não ocupa linha nem gap no grid do pai, mas
+    // segue na árvore de acessibilidade, e o texto que entra depois é anunciado.
+    <div className="contents" role="status">
       {conquista ? (
         <div className="fade-in slide-in-from-bottom-1 flex animate-in items-center gap-3 rounded-[14px] border border-chart-5 bg-card px-3.5 py-2.5 duration-500 motion-reduce:animate-none">
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-ceu text-sobre-cor">
