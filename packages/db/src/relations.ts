@@ -16,9 +16,10 @@ export const relations = defineRelations(schema, (r) => ({
   liberacao: {
     curso: r.one.curso({ from: r.liberacao.cursoId, to: r.curso.id }),
     trilha: r.one.trilha({ from: r.liberacao.trilhaId, to: r.trilha.id }),
+    // Composta como a FK: o join usa o unique ponto_troca_uma_vez (user_id, liberacao_id).
     trocaLancamento: r.one.pontoLancamento({
-      from: r.liberacao.id,
-      to: r.pontoLancamento.liberacaoId,
+      from: [r.liberacao.userId, r.liberacao.id],
+      to: [r.pontoLancamento.userId, r.pontoLancamento.liberacaoId],
     }),
   },
   modulo: {
@@ -28,8 +29,8 @@ export const relations = defineRelations(schema, (r) => ({
     aula: r.one.aula({ from: r.pontoLancamento.aulaId, to: r.aula.id }),
     curso: r.one.curso({ from: r.pontoLancamento.cursoId, to: r.curso.id }),
     liberacao: r.one.liberacao({
-      from: r.pontoLancamento.liberacaoId,
-      to: r.liberacao.id,
+      from: [r.pontoLancamento.userId, r.pontoLancamento.liberacaoId],
+      to: [r.liberacao.userId, r.liberacao.id],
     }),
     trilha: r.one.trilha({
       from: r.pontoLancamento.trilhaId,
