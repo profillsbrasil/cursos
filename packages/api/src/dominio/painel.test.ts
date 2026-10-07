@@ -39,7 +39,7 @@ describe("montarPainel com o caso do protótipo", () => {
     });
     expect(painel.retomada).toMatchObject({
       aula: {
-        faltaSeg: 358,
+        faltaSeg: 412,
         numeroNoModulo: 4,
         posicaoSeg: 222,
         titulo: "Cronograma reverso",
@@ -62,7 +62,7 @@ describe("montarPainel com o caso do protótipo", () => {
     expect(fabrica?.aulas).toEqual({ feitas: 0, pct: 0, total: 3 });
     expect(fabrica?.cursos[0]?.primeiroModulo).toEqual({
       aulas: 3,
-      duracaoSeg: 1500,
+      duracaoSeg: 1902,
       titulo: "Segurança da máquina",
     });
     expect(fabrica?.situacao).toBe("em_curso");

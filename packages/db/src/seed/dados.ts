@@ -5,7 +5,6 @@ import { createHash } from "node:crypto";
 // Alunos, progresso, datas e pontos são exemplo e não descrevem pessoa real.
 
 export interface AulaSeed {
-  duracaoSeg: number;
   titulo: string;
 }
 
@@ -36,11 +35,22 @@ export interface TrilhaSeed {
   titulo: string;
 }
 
-const min = (m: number) => Math.round(m * 60);
+/**
+ * Toda aula de exemplo toca o mesmo vídeo: Big Buck Bunny (CC BY, Blender
+ * Foundation). O getDuration() da IFrame API mediu 634,6 s.
+ */
+export const VIDEO_EXEMPLO = {
+  duracaoSeg: 634,
+  id: "aqz-KE-bpKQ",
+  provedor: "youtube",
+} as const;
 
-const geradas = (titulo: string, numero: number, qtd: number): AulaSeed[] =>
+// O seed não importa @cursos/api; regras.test.ts confere estes valores contra PONTOS.
+export const PONTOS_AULA = 10;
+export const PONTOS_CURSO = 100;
+
+const geradas = (titulo: string, qtd: number): AulaSeed[] =>
   Array.from({ length: qtd }, (_, i) => ({
-    duracaoSeg: min(6 + ((numero + i) % 5)),
     titulo: `${titulo}, parte ${i + 1}`,
   }));
 
@@ -71,23 +81,23 @@ const MODULOS_COMERCIAL: [number, string, number][] = [
 ];
 
 const AULAS_M8: AulaSeed[] = [
-  { duracaoSeg: min(7), titulo: "Urgência não se cria, se descobre" },
-  { duracaoSeg: min(9), titulo: "Ficha de diagnóstico de urgência" },
-  { duracaoSeg: min(8), titulo: "O custo do atraso para o cliente" },
-  { duracaoSeg: min(9.67), titulo: "Cronograma reverso" },
-  { duracaoSeg: min(8), titulo: "Responsabilidades do cliente" },
-  { duracaoSeg: min(6), titulo: "Datas que não fecham" },
-  { duracaoSeg: min(7), titulo: "Urgência e condição de pagamento" },
-  { duracaoSeg: min(11), titulo: "Casos reais de urgência" },
+  { titulo: "Urgência não se cria, se descobre" },
+  { titulo: "Ficha de diagnóstico de urgência" },
+  { titulo: "O custo do atraso para o cliente" },
+  { titulo: "Cronograma reverso" },
+  { titulo: "Responsabilidades do cliente" },
+  { titulo: "Datas que não fecham" },
+  { titulo: "Urgência e condição de pagamento" },
+  { titulo: "Casos reais de urgência" },
 ];
 
 const umModulo = (
   numero: number,
   titulo: string,
-  aulas: [string, number][]
+  aulas: string[]
 ): ModuloSeed[] => [
   {
-    aulas: aulas.map(([t, m]) => ({ duracaoSeg: min(m), titulo: t })),
+    aulas: aulas.map((t) => ({ titulo: t })),
     nivelOrdem: null,
     numero,
     titulo,
@@ -103,7 +113,7 @@ export const CURSOS: CursoSeed[] = [
     codigo: null,
     destaque: null,
     modulos: MODULOS_COMERCIAL.map(([numero, titulo, qtd]) => ({
-      aulas: numero === 8 ? AULAS_M8 : geradas(titulo, numero, qtd),
+      aulas: numero === 8 ? AULAS_M8 : geradas(titulo, qtd),
       nivelOrdem: nivelDoComercial(numero),
       numero,
       titulo,
@@ -124,9 +134,9 @@ export const CURSOS: CursoSeed[] = [
     codigo: null,
     destaque: null,
     modulos: umModulo(1, "Segurança da máquina", [
-      ["Riscos do posto de montagem", 8],
-      ["Bloqueio antes de mexer", 10],
-      ["Ferramentas e EPI", 7],
+      "Riscos do posto de montagem",
+      "Bloqueio antes de mexer",
+      "Ferramentas e EPI",
     ]),
     niveis: [],
     status: "publicado",
@@ -140,8 +150,8 @@ export const CURSOS: CursoSeed[] = [
     codigo: null,
     destaque: null,
     modulos: umModulo(1, "Componentes e conjuntos", [
-      ["Estrutura e conjuntos", 9],
-      ["Bicos e dosagem", 11],
+      "Estrutura e conjuntos",
+      "Bicos e dosagem",
     ]),
     niveis: [],
     status: "em_producao",
@@ -155,8 +165,8 @@ export const CURSOS: CursoSeed[] = [
     codigo: null,
     destaque: null,
     modulos: umModulo(1, "Montagem passo a passo", [
-      ["Leitura do esquema", 10],
-      ["Montando o conjunto", 14],
+      "Leitura do esquema",
+      "Montando o conjunto",
     ]),
     niveis: [],
     status: "em_producao",
@@ -171,15 +181,15 @@ export const CURSOS: CursoSeed[] = [
     codigo: "POP-COM-001",
     destaque: null,
     modulos: umModulo(1, "Rotina de fechamento", [
-      ["Por que a rotina mudou", 4],
-      ["O funil da semana", 6],
-      ["Reunião de previsão", 5],
-      ["Registro no CRM", 6],
-      ["Proposta e prazo", 5],
-      ["Follow-up em 48 h", 5],
-      ["Perdas e motivos", 6],
-      ["Fechamento do mês", 6],
-      ["Checklist final", 5],
+      "Por que a rotina mudou",
+      "O funil da semana",
+      "Reunião de previsão",
+      "Registro no CRM",
+      "Proposta e prazo",
+      "Follow-up em 48 h",
+      "Perdas e motivos",
+      "Fechamento do mês",
+      "Checklist final",
     ]),
     niveis: [],
     status: "publicado",
@@ -194,9 +204,9 @@ export const CURSOS: CursoSeed[] = [
     codigo: null,
     destaque: "Regra 5x4",
     modulos: umModulo(1, "Curso de gravação técnica", [
-      ["A regra 5x4", 8],
-      ["Ângulos e luz", 9],
-      ["Máquina rodando", 8],
+      "A regra 5x4",
+      "Ângulos e luz",
+      "Máquina rodando",
     ]),
     niveis: [],
     status: "publicado",
@@ -211,8 +221,8 @@ export const CURSOS: CursoSeed[] = [
     codigo: null,
     destaque: "30 afirmações · 6 competências",
     modulos: umModulo(0, "Autoavaliação", [
-      ["Como responder", 5],
-      ["As 6 competências", 10],
+      "Como responder",
+      "As 6 competências",
     ]),
     niveis: [],
     status: "publicado",

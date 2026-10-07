@@ -9,6 +9,7 @@ import {
   PROGRESSO_A,
   SOLTOS,
   TRILHAS,
+  VIDEO_EXEMPLO,
 } from "@cursos/db/seed/dados";
 
 import type { CursoLinha, LinhasPainel } from "./painel";
@@ -144,12 +145,12 @@ function linhaDoSeed(chave: string): CursoLinha {
     id: chave,
     modulos: c.modulos.map((m) => ({
       aulas: m.aulas.map((a, i) => ({
-        duracaoSeg: a.duracaoSeg,
+        duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(chave, m.numero, i + 1),
         posicao: i + 1,
         titulo: a.titulo,
-        videoId: null,
-        videoProvedor: null,
+        videoId: VIDEO_EXEMPLO.id,
+        videoProvedor: VIDEO_EXEMPLO.provedor,
       })),
       nivelOrdem: m.nivelOrdem,
       numero: m.numero,
