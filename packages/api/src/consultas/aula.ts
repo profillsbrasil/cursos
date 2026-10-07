@@ -208,10 +208,7 @@ export function registrar(
         },
         target: [posicaoAula.userId, posicaoAula.aulaId],
       });
-    await tx
-      .update(cotaVideo)
-      .set({ atualizadaEm: agora, segundos: r.cota.segundos })
-      .where(eq(cotaVideo.userId, userId));
+    await tx.update(cotaVideo).set(r.cota).where(eq(cotaVideo.userId, userId));
 
     let conquista: Registro["conquista"] = null;
     if (r.viraAssistida) {

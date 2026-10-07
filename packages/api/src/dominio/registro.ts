@@ -50,7 +50,7 @@ export interface Pedido {
 
 export interface Aplicacao {
   aceitosSeg: number;
-  /** A gravar com atualizadaEm = agora. */
+  /** A gravar. atualizadaEm nunca volta: relógio atrasado mantém o da cota. */
   cota: Cota;
   /** Limitada a [0, duracaoSeg]. */
   posicaoSeg: number;
@@ -87,7 +87,11 @@ export function aplicarRegistro(
   }
   return {
     aceitosSeg,
-    cota: { atualizadaEm: agora, segundos: disponivel },
+    cota: {
+      atualizadaEm:
+        cota && cota.atualizadaEm > agora ? cota.atualizadaEm : agora,
+      segundos: disponivel,
+    },
     posicaoSeg: Math.min(Math.max(pedido.posicaoSeg, 0), salvo.duracaoSeg),
     recusadosSeg,
     trechos: acumulado,

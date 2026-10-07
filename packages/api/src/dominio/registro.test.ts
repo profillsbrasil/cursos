@@ -101,6 +101,29 @@ describe("aplicarRegistro", () => {
     expect(r.aceitosSeg).toBe(5);
   });
 
+  test("chamada com relógio atrasado não volta a cota no tempo", () => {
+    const a = aplicarRegistro(
+      novo(),
+      { atualizadaEm: T0, segundos: 0 },
+      { posicaoSeg: 100, trechos: [t(0, 100)] },
+      em(10)
+    );
+    const b = aplicarRegistro(
+      { ...novo(), trechos: a.trechos },
+      a.cota,
+      { posicaoSeg: 200, trechos: [t(100, 200)] },
+      em(4)
+    );
+    const c = aplicarRegistro(
+      { ...novo(), trechos: b.trechos },
+      b.cota,
+      { posicaoSeg: 300, trechos: [t(200, 300)] },
+      em(11)
+    );
+    expect(b.cota.atualizadaEm).toEqual(em(10));
+    expect(segundos(c.trechos) - segundos(b.trechos)).toBe(2);
+  });
+
   test("posição fica entre 0 e a duração", () => {
     const pedido = (posicaoSeg: number) => ({ posicaoSeg, trechos: [] });
     expect(aplicarRegistro(novo(), null, pedido(9999), T0).posicaoSeg).toBe(
