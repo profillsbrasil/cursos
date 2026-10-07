@@ -214,7 +214,8 @@ export function montarAulaNoPlayer(
       duracaoSeg: aula.duracaoSeg,
       id: aula.id,
       modulo: { numero: modulo.numero, titulo: modulo.titulo },
-      numeroNoModulo: aula.posicao,
+      // O índice, como a coluna: posição é única, mas pode ter buraco.
+      numeroNoModulo: modulo.aulas.findIndex((a) => a.id === aula.id) + 1,
       titulo: aula.titulo,
       totalNoModulo: modulo.aulas.length,
       video: aula.video,

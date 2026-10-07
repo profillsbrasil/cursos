@@ -190,6 +190,27 @@ describe("montarAulaNoPlayer", () => {
   test("aula de outro curso não está no curso aberto", () => {
     expect(aulaPorId(aberto, idAula("outro", 0, 1))).toBeNull();
   });
+
+  test("aula N de M segue a ordem da coluna, mesmo com buraco na posição", () => {
+    const base = cursoLinha("d", { aulas: [3] });
+    const posicoes = [1, 3, 7];
+    const comBuraco: CursoLinha = {
+      ...base,
+      modulos: base.modulos.map((m) => ({
+        ...m,
+        aulas: m.aulas.map((a, i) => ({ ...a, posicao: posicoes[i] ?? 0 })),
+      })),
+    };
+    const d = montarCursoAberto(linhas(comAcesso(comBuraco, { direto: true })));
+    const ultima = d && aulaPorId(d, idAula("d", 0, 3));
+    if (!(d && ultima)) {
+      throw new Error("curso d não abriu");
+    }
+    expect(montarAulaNoPlayer(d, ultima).aula).toMatchObject({
+      numeroNoModulo: 3,
+      totalNoModulo: 3,
+    });
+  });
 });
 
 describe("entradaDoCurso", () => {
