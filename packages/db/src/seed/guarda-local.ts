@@ -3,6 +3,8 @@
 
 const HOSTS_LOCAIS = new Set(["127.0.0.1", "localhost"]);
 
+const PARAMS_DE_DESTINO = ["host", "hostaddr", "port"];
+
 export const PORTA_LOCAL = "54322";
 
 export const URL_LOCAL_PADRAO = `postgresql://postgres:postgres@127.0.0.1:${PORTA_LOCAL}/postgres`;
@@ -26,6 +28,15 @@ export function garantirBancoLocal(
     throw new BancoNaoLocalError(
       "URL de banco inválida. Veja a seção Banco do CLAUDE.md da raiz.",
       { cause: erro }
+    );
+  }
+  // O pg (pg-connection-string) deixa ?host= e &port= da query valerem no lugar dos do URL.
+  const sobrescritos = PARAMS_DE_DESTINO.filter((p) =>
+    destino.searchParams.has(p)
+  );
+  if (sobrescritos.length > 0) {
+    throw new BancoNaoLocalError(
+      `Recusado: a URL troca o destino pela query (${sobrescritos.join(", ")}). Veja a seção Banco do CLAUDE.md da raiz.`
     );
   }
   const host = destino.hostname;

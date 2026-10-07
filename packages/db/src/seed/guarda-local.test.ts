@@ -29,6 +29,20 @@ describe("garantirBancoLocal", () => {
     ).toThrow(BancoNaoLocalError);
   });
 
+  test("recusa host e porta sobrescritos pela query, que o pg usa no lugar dos do URL", () => {
+    expect(() =>
+      garantirBancoLocal(
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?host=aws-0-sa-east-1.pooler.supabase.com&port=6543"
+      )
+    ).toThrow(BancoNaoLocalError);
+    expect(() =>
+      garantirBancoLocal(
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?sslmode=disable&port=6543",
+        null
+      )
+    ).toThrow(BancoNaoLocalError);
+  });
+
   test("recusa URL inválida", () => {
     expect(() => garantirBancoLocal("não é url")).toThrow(BancoNaoLocalError);
   });
