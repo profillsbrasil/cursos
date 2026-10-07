@@ -6,7 +6,7 @@ import { TRECHOS_POR_ENVIO } from "../dominio/regras";
 import type { AulaId } from "../dominio/tipos";
 import { protectedProcedure, router } from "../index";
 
-const slug = z.string().regex(new RegExp(SLUG));
+const FORMATO_DO_SLUG = new RegExp(SLUG);
 
 const trecho = z
   .object({ fim: z.int().min(1), inicio: z.int().min(0) })
@@ -20,17 +20,21 @@ export const entradaRegistro = z.object({
 });
 
 export const aulaRouter = router({
-  // null em vez de erro: a página responde com notFound(), e curso sem liberação
-  // e curso bloqueado dão o mesmo 404.
+  // null em vez de erro: a página responde com notFound(). Slug fora do formato,
+  // curso sem liberação e curso bloqueado dão o mesmo 404.
   abrir: protectedProcedure
-    .input(z.object({ aulaId: z.uuid(), slug }))
+    .input(z.object({ aulaId: z.uuid(), slug: z.string() }))
     .query(({ ctx, input }) =>
-      carregarAula(ctx.db, ctx.auth.userId, input.slug, input.aulaId)
+      FORMATO_DO_SLUG.test(input.slug)
+        ? carregarAula(ctx.db, ctx.auth.userId, input.slug, input.aulaId)
+        : null
     ),
   entrada: protectedProcedure
-    .input(z.object({ slug }))
+    .input(z.object({ slug: z.string() }))
     .query(({ ctx, input }) =>
-      carregarEntrada(ctx.db, ctx.auth.userId, input.slug)
+      FORMATO_DO_SLUG.test(input.slug)
+        ? carregarEntrada(ctx.db, ctx.auth.userId, input.slug)
+        : null
     ),
   registrar: protectedProcedure
     .input(entradaRegistro)
