@@ -148,8 +148,8 @@ export function criarPlayerDoYoutube(
       player = null;
     },
     pausar: () => player?.pauseVideo(),
-    taxa: () => player?.getPlaybackRate() ?? 1,
     tempo: () => player?.getCurrentTime() ?? opcoes.inicioSeg,
     tocar: () => player?.playVideo(),
+    velocidade: () => player?.getPlaybackRate() ?? 1,
   };
 }

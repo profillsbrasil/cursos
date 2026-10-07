@@ -119,7 +119,6 @@ function playerFalso(relogio: Relogio) {
         aoEvento({ tipo: "pausou" });
       }
     },
-    taxa: () => taxa,
     tempo,
     tocar() {
       if (!tocando) {
@@ -128,6 +127,7 @@ function playerFalso(relogio: Relogio) {
         aoEvento({ tipo: "tocou" });
       }
     },
+    velocidade: () => taxa,
   };
   return {
     aplicado,

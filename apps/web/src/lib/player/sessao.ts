@@ -221,7 +221,7 @@ export function criarSessaoDeEstudo(
 
   const amostra = () => ({
     relogioMs: deps.relogio(),
-    taxa: player.taxa(),
+    taxa: player.velocidade(),
     videoSeg: player.tempo(),
   });
 
@@ -402,7 +402,7 @@ export function criarSessaoDeEstudo(
     if (reproducao.tipo === "tocando") {
       ({ medidor } = amostrar(MEDIDOR_PARADO, {
         relogioMs: deps.relogio(),
-        taxa: player.taxa(),
+        taxa: player.velocidade(),
         videoSeg: destino,
       }));
     } else {

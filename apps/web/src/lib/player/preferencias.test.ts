@@ -77,9 +77,9 @@ describe("sessão e preferências do aparelho", () => {
       },
       destruir: () => undefined,
       pausar: () => undefined,
-      taxa: () => aplicado.velocidade,
       tempo: () => 0,
       tocar: () => undefined,
+      velocidade: () => aplicado.velocidade,
     };
     const { pararDeGravar, sessao } = criarSessaoComPreferencias(
       {

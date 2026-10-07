@@ -29,10 +29,10 @@ export interface PlayerDeVideo {
   definirVolume: (nivel: number) => void;
   destruir: () => void;
   pausar: () => void;
-  taxa: () => number;
   /** Segundo atual do vídeo, fracionário. */
   tempo: () => number;
   tocar: () => void;
+  velocidade: () => number;
 }
 
 export interface OpcoesDoPlayer {
