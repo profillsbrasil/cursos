@@ -78,7 +78,7 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 - `bun run dev` sobe tudo; `bun run dev:web` só o app. `bun run --cwd apps/web dev:local` sobe o app contra o Supabase local (o `process.env` vence o `.env` no varlock). Não use `bun --bun next dev`: o Turbopack não resolve o `pg` no runtime do Bun.
 - Testes: `bun run test`. Os de integração só rodam com `TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres` e recusam host que não seja local. Banco local: `bun run db:migrate:local` e `bun run db:seed -- --aluno user_xxx`, dentro de `packages/db`.
-- Antes de commitar: `bun run check-types` e `bun x ultracite check` verdes. Um hook do Claude Code roda `bun run fix` depois de cada Edit/Write, então o arquivo pode mudar logo após a edição: releia antes do próximo Edit.
+- Antes de commitar: `bun run check-types` e `bun x ultracite check` verdes. Um hook do Claude Code (`.claude/hooks/formatar-arquivo-editado.ts`) roda o Biome no arquivo editado depois de cada Edit/Write, então o arquivo pode mudar logo após a edição: releia antes do próximo Edit.
 - Deploy: `bun run deploy:setup` linka a Vercel. `bun run env:production` sem argumento envia o `apps/web/.env`, que tem as chaves `pk_test` e o banco do dev. Para produção, monte um `apps/web/.env.production.local` (já ignorado pelo git) e rode `bun run env:production apps/web/.env.production.local`.
 
 ## Código
