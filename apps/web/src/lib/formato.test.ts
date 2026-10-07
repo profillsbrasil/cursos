@@ -11,7 +11,7 @@ describe("fmtPtsComSinal", () => {
 });
 
 describe("quando", () => {
-  const hoje = "2026-10-07"; // quarta
+  const hoje = "2026-10-07";
 
   test("hoje e ontem por nome", () => {
     expect(quando("2026-10-07", hoje)).toBe("Hoje");

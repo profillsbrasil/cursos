@@ -8,7 +8,6 @@ export function Extrato({
   hoje,
   itens,
 }: {
-  /** Id do lançamento da troca que a pessoa acabou de fazer. */
   destaque: string | null;
   hoje: string;
   itens: readonly ItemDoExtrato[];

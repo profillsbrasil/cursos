@@ -16,7 +16,6 @@ type CursoId = Cartao["curso"]["id"];
 
 const AVISO = "Curso liberado. Ele já está em Meus cursos.";
 
-/** Dono do aviso, da grade e do extrato: o extrato destaca a linha da troca recém-feita. */
 export function CursosParaTrocar({
   cartoes,
   extrato,
@@ -26,7 +25,6 @@ export function CursosParaTrocar({
   extrato: readonly ItemDoExtrato[];
   hoje: string;
 }) {
-  // Um card confirma por vez; vários podem estar enviando, e cada um cuida do seu envio.
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [destaque, setDestaque] = useState<string | null>(null);

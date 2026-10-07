@@ -3,7 +3,6 @@ import { cn } from "@cursos/ui/lib/utils";
 
 import { fmtPts } from "@/lib/formato";
 
-/** Tabela de pontos, dentro do cartão do saldo. A divisória de cima vai de borda a borda. */
 export function ComoGanhar({
   aberta,
   id,

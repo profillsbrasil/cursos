@@ -1,6 +1,3 @@
-// Troca contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
-// Cada execução cria alunos user_teste<hex> e slugs teste-<hex> e apaga tudo no afterAll.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
@@ -33,7 +30,6 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   const cursos: string[] = [];
   const trilhas: string[] = [];
 
-  /** Aluno novo com `saldo` pontos, em lançamentos de sequência de 10 pts. */
   async function aluno(saldo: number) {
     const userId = `user_teste${S}${alunos.length}`;
     alunos.push(userId);
@@ -53,7 +49,6 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     return userId;
   }
 
-  /** Curso publicado com uma aula; `precoTroca` null deixa fora da troca. */
   async function cursoTrocavel(precoTroca: number | null, titulo = "Curso") {
     const s = hex();
     const [c] = await db
@@ -103,7 +98,6 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         sql`${pontoLancamento.userId} = ${userId} and ${pontoLancamento.motivo} = 'troca'`
       );
 
-  /** O insert da liberação da troca está parado no unique, esperando outra transação. */
   async function esperarInsertBloqueado(tentativas: number): Promise<void> {
     const { rows } = await db.execute<{ n: number }>(sql`
       select count(*)::int as n from pg_stat_activity

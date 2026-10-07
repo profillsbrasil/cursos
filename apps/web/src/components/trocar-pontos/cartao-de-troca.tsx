@@ -25,8 +25,6 @@ import { BOTAO, BOTAO_CONTORNO } from "./botoes";
 type PodeTrocar = Extract<Cartao, { tipo: "pode_trocar" }>;
 type Momento = "parado" | "confirmando" | "enviando";
 
-// As recusas da troca chegam com a mensagem pronta em pt-BR; o resto é falha de rede ou do
-// servidor, e aí o cliente não sabe se a troca gravou: o refresh mostra a verdade.
 const RECUSAS = new Set(["CONFLICT", "NOT_FOUND", "PRECONDITION_FAILED"]);
 
 function mensagemDoErro(e: unknown) {
@@ -42,7 +40,6 @@ interface AcoesDoCartao {
   trocar: () => void;
 }
 
-/** `principal` marca o elemento que recebe o foco quando o card muda de estado. */
 function Acao({
   acoes,
   cartao,
@@ -85,7 +82,6 @@ function Acao({
               </span>
               <span>{cartao.pct}%</span>
             </div>
-            {/* O trilho leva contorno muted-foreground: sobre o card ele dá 1,5:1 e a barra precisa de 3:1. */}
             <div
               aria-label={`Pontos para ${curso.titulo}`}
               aria-valuemax={cartao.preco}
@@ -150,7 +146,6 @@ function Confirmacao({
 }) {
   const id = `confirma-${cartao.curso.id}`;
   const { cancelar } = acoes;
-  // Esc cancela a partir de qualquer botão do grupo.
   const aoTeclar = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape" && !enviando) {
@@ -160,7 +155,6 @@ function Confirmacao({
     [cancelar, enviando]
   );
   return (
-    // A divisória volta o padding do card (12px) e da ação (6px) para ir de borda a borda.
     <fieldset
       aria-labelledby={id}
       className="-mx-[18px] grid min-w-0 gap-3 border-border border-t px-[18px] pt-3"
@@ -205,14 +199,12 @@ function Confirmacao({
   );
 }
 
-/** Estado que a grade guarda por todos os cards: quem confirma (um por vez), o aviso e o destaque do extrato. */
 export interface Grade {
   abrir: (id: Cartao["curso"]["id"]) => void;
   fechar: (id: Cartao["curso"]["id"]) => void;
   trocou: (lancamentoId: string) => void;
 }
 
-/** O card envia a própria troca e cuida do próprio foco. */
 export function CartaoDeTroca({
   cartao,
   confirmando,
@@ -225,7 +217,6 @@ export function CartaoDeTroca({
   sizes: string;
 }) {
   const router = useRouter();
-  // A action termina no router.refresh(): enviando cobre a mutação e o card novo.
   const [enviando, iniciar] = useTransition();
   const card = useRef<HTMLElement>(null);
   const titulo = useRef<HTMLHeadingElement>(null);
@@ -242,15 +233,12 @@ export function CartaoDeTroca({
     momento = "confirmando";
   }
 
-  // Depois de abrir, cancelar ou terminar a troca, o foco vai para a ação do estado novo;
-  // o card "faltam" não tem ação, e o foco vai para o título.
   useEffect(() => {
     if (!querFoco.current || momento === "enviando") {
       return;
     }
     querFoco.current = false;
     const ativo = document.activeElement;
-    // Não rouba o foco de quem foi para outro lugar enquanto o servidor respondia.
     if (ativo && ativo !== document.body && !card.current?.contains(ativo)) {
       return;
     }
@@ -279,7 +267,6 @@ export function CartaoDeTroca({
         } catch (e) {
           toast.error(mensagemDoErro(e));
         }
-        // Sucesso ou recusa: o servidor tem a verdade nova (saldo, preço, estado do card).
         router.refresh();
       });
     },

@@ -136,7 +136,6 @@ export async function linhasDoResumo(
       .selectDistinct({ dia: aulaAssistida.dia })
       .from(aulaAssistida)
       .where(eq(aulaAssistida.userId, userId)),
-    // 7. saldo e pontos da semana numa linha
     linhasDoSaldo(db, userId, segunda),
   ]);
   return { dias, pontos };

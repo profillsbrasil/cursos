@@ -23,7 +23,6 @@ export interface CursoSeed {
   destaque: string | null;
   modulos: ModuloSeed[];
   niveis: { nome: string; ordem: number }[];
-  /** Ausente: fora da troca. */
   precoTroca?: number;
   status: "em_producao" | "publicado";
   tema: string;
@@ -230,7 +229,6 @@ export const CURSOS: CursoSeed[] = [
     tema: "Vendas e negócios",
     titulo: "Autoavaliação Comercial",
   },
-  // Cursos da troca, com preços escalados ao saldo de exemplo do aluno A (610 pts).
   {
     capaAlt:
       "Ilustração de um celular com balões de conversa, um fone de atendimento e uma caixa de ferramentas",
@@ -379,7 +377,6 @@ export const PROGRESSO_A: { curso: string; modulo: number; aulas: number }[] = [
   { aulas: 2, curso: "autoavaliacao", modulo: 0 },
 ];
 
-/** Troca de exemplo do aluno A: ele fica com 410 pts e vê um card de cada estado. */
 export const TROCA_A = { curso: "bpf", diasAtras: 3 };
 
 export const POSICAO_A = {

@@ -24,15 +24,15 @@ export const pontoLancamento = tabela(
     cursoId: uuid(),
     diaMarco: date({ mode: "string" }), // dia útil que fechou o bloco de 7
     id: uuid().primaryKey().defaultRandom(),
-    liberacaoId: uuid(), // só motivo 'troca': a liberação que o lançamento pagou
+    liberacaoId: uuid(),
     motivo: motivoPonto().notNull(),
-    pontos: integer().notNull(), // valor da regra no momento; na troca, menos o preço pago
+    pontos: integer().notNull(),
     trilhaId: uuid().references(() => trilha.id, { onDelete: "restrict" }),
     userId: text().notNull(),
   },
   (t) => [
     // ::text: o migrador roda tudo numa transação, e o literal 'troca' do enum recém-criado
-    // daria "unsafe use of new value". else false: motivo novo sem ramo é recusado.
+    // daria "unsafe use of new value".
     check(
       "ponto_lancamento_referencia",
       sql`num_nonnulls(${t.aulaId}, ${t.cursoId}, ${t.trilhaId}, ${t.diaMarco}, ${t.liberacaoId}) = 1
@@ -45,7 +45,6 @@ export const pontoLancamento = tabela(
             else false
           end`
     ),
-    // Motivo novo nasce entrada; uma saída nova exige ramo aqui.
     check(
       "ponto_lancamento_sinal",
       sql`case ${t.motivo}::text when 'troca' then ${t.pontos} < 0 else ${t.pontos} > 0 end`

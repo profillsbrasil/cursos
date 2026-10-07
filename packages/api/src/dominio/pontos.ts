@@ -7,7 +7,6 @@ import type { DiaISO } from "./tipos";
 
 export type MotivoPonto = (typeof motivoPonto.enumValues)[number];
 
-/** Linha da relational query do extrato, antes do parse. */
 export interface LinhaDoExtrato {
   aula: { titulo: string } | null;
   criadoEm: Date;
@@ -22,16 +21,13 @@ export interface LinhaDoExtrato {
 export interface ItemDoExtrato {
   dia: DiaISO;
   id: string;
-  /** Com sinal: +10, -900. */
   pontos: number;
-  /** "Aula assistida: O funil da semana", "Troca: Boas práticas de fabricação". */
   texto: string;
 }
 
 const referenciaAusente = (l: LinhaDoExtrato): Error =>
   new Error(`Lançamento ${l.id} (${l.motivo}) sem o fato que ele referencia.`);
 
-/** O fato do lançamento em texto. Referência ausente é dado quebrado: lança Error. */
 function textoDoExtrato(l: LinhaDoExtrato): string {
   switch (l.motivo) {
     case "aula_assistida":
@@ -89,7 +85,6 @@ const ORDEM: readonly RegraDePonto[] = [
 ];
 
 export interface RegraDeGanho {
-  /** A regra ainda não credita: nenhum código grava esse motivo. */
   emBreve: boolean;
   pontos: number;
   rotulo: string;

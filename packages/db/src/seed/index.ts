@@ -394,7 +394,6 @@ async function semear(url: string, alunoA: string) {
       },
     ]);
 
-    // A troca é o par liberação + lançamento negativo, como troca.trocar grava.
     const trocado = CURSOS.find((c) => c.chave === TROCA_A.curso);
     if (!trocado?.precoTroca) {
       throw new Error(

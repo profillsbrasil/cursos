@@ -18,7 +18,7 @@ export const liberacao = tabela(
     cursoId: uuid().references(() => curso.id, { onDelete: "restrict" }),
     id: uuid().primaryKey().defaultRandom(),
     liberadaEm: momento(),
-    liberadaPor: text().notNull(), // userId de quem liberou: o admin, ou o próprio aluno na troca
+    liberadaPor: text().notNull(),
     revogadaEm: timestamp({ withTimezone: true }),
     revogadaPor: text(),
     trilhaId: uuid().references(() => trilha.id, { onDelete: "restrict" }),
@@ -35,7 +35,6 @@ export const liberacao = tabela(
       sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
           and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
     ),
-    // A liberação que o aluno pagou com pontos é para sempre: revogá-la cobraria de novo.
     check(
       "liberacao_troca_nao_revoga",
       sql`${t.revogadaEm} is null or ${t.liberadaPor} <> ${t.userId}`

@@ -7,14 +7,12 @@ import {
 } from "./pontos";
 import type { CursoId, DiaISO } from "./tipos";
 
-/** Como o aluno alcança o curso hoje. Vem das liberações ativas dele. */
 export type Acesso =
   | { tipo: "nenhum" }
   | { tipo: "trocado"; lancamentoId: string; pago: number }
-  | { tipo: "liberado" } // liberação direta do admin
-  | { tipo: "na_trilha" }; // uma trilha liberada contém o curso (aberto ou bloqueado)
+  | { tipo: "liberado" }
+  | { tipo: "na_trilha" };
 
-/** Curso visto pela troca, já parseado na borda. */
 export interface CursoDaTroca {
   acesso: Acesso;
   aulas: number;
@@ -28,7 +26,6 @@ export interface CursoDaTroca {
   titulo: string;
 }
 
-/** Linha da relational query, só com liberações ativas do aluno. */
 export interface LinhaDoCursoDaTroca {
   capaAlt: string;
   capaUrl: string;
@@ -79,17 +76,15 @@ export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
   };
 }
 
-/** A regra inteira em um lugar: a tela e a mutação chamam esta função. */
 export type Situacao =
-  | { tipo: "fora" } // sem preço, em produção ou sem aula
-  | { tipo: "ja_tem" } // liberado pelo admin ou na trilha
+  | { tipo: "fora" }
+  | { tipo: "ja_tem" }
   | { tipo: "trocado"; lancamentoId: string; pago: number }
-  | { tipo: "a_venda"; preco: number; faltam: number }; // faltam 0: o saldo cobre
+  | { tipo: "a_venda"; preco: number; faltam: number };
 
 export function situacao(c: CursoDaTroca, saldo: number): Situacao {
   switch (c.acesso.tipo) {
     case "trocado":
-      // vence o preço: o admin pode ter tirado o curso da troca depois
       return { ...c.acesso, tipo: "trocado" };
     case "liberado":
     case "na_trilha":
@@ -112,7 +107,6 @@ type CursoNoCartao = Pick<
   "aulas" | "capa" | "duracaoSeg" | "id" | "slug" | "tema" | "titulo"
 >;
 
-/** Estados do card. "Confirmando" é estado da tela, não do servidor, e fica no cliente. */
 export type CartaoDeTroca =
   | { tipo: "pode_trocar"; curso: CursoNoCartao; preco: number }
   | {
@@ -135,7 +129,6 @@ const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
   titulo: c.titulo,
 });
 
-/** null: o curso não entra na vitrine (fora ou ja_tem). */
 export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
   const s = situacao(c, saldo);
   switch (s.tipo) {
@@ -160,15 +153,12 @@ export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
   }
 }
 
-/** Preço atual, ou o pago se o curso já foi trocado: o card trocado não pula de lugar. */
 const precoDoCartao = (c: CartaoDeTroca): number =>
   c.tipo === "trocado" ? c.pago : c.preco;
 
 export interface PainelDeTroca {
-  /** Ordem: preço e título. */
   cartoes: readonly CartaoDeTroca[];
   comoGanhar: readonly RegraDeGanho[];
-  /** Mais recente primeiro. */
   extrato: readonly ItemDoExtrato[];
   hoje: DiaISO;
   pontosSemana: number;
@@ -211,12 +201,11 @@ export type RecusaDaTroca =
 
 export type Decisao =
   | { tipo: "debitar"; preco: number }
-  | { tipo: "ja_trocado"; lancamentoId: string } // duplo clique ou retry: sucesso de novo
+  | { tipo: "ja_trocado"; lancamentoId: string }
   | { tipo: "recusa"; recusa: RecusaDaTroca };
 
 const recusa = (r: RecusaDaTroca): Decisao => ({ recusa: r, tipo: "recusa" });
 
-/** curso null: o id não existe. */
 export function decidirTroca(
   c: CursoDaTroca | null,
   saldo: number,

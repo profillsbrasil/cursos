@@ -23,7 +23,6 @@ import {
 
 const LIMITE_DO_EXTRATO = 10;
 
-/** Cursos trocáveis mais os que o aluno já trocou, com o acesso dele. Um statement. */
 export async function linhasDosCursos(
   exec: Executor,
   userId: string,
@@ -71,7 +70,6 @@ export async function linhasDosCursos(
   return linhas.map(paraCursoDaTroca);
 }
 
-/** troca.painel: 3 statements em paralelo (cursos, saldo, extrato). */
 export async function carregarPainelDeTroca(
   db: Database,
   userId: string,
@@ -87,7 +85,6 @@ export async function carregarPainelDeTroca(
 }
 
 export interface ResultadoDaTroca {
-  /** O da troca nova, ou o da que já existia (duplo clique, retry). */
   lancamentoId: string;
 }
 
@@ -129,11 +126,6 @@ const violou = (e: unknown, constraint: string): boolean => {
   );
 };
 
-/**
- * Grava o par da troca: a liberação feita pelo próprio aluno e o lançamento negativo
- * que aponta para ela. Se o admin liberou o curso depois da leitura, o unique de
- * liberação ativa recusa o insert, e a troca vira a recusa ja_tem.
- */
 async function gravarTroca(
   tx: TransacaoTravada,
   userId: string,
@@ -169,10 +161,6 @@ async function gravarTroca(
   return { lancamentoId: lancamento.id };
 }
 
-/**
- * Uma transação: trava o aluno, lê saldo e curso, decide e grava a liberação e o
- * lançamento. Rodar duas vezes devolve a mesma troca.
- */
 export function trocar(
   db: Database,
   userId: string,

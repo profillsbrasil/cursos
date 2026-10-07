@@ -33,7 +33,7 @@ export const curso = tabela(
     criadoEm: momento(),
     destaque: text(), // ex.: "Regra 5x4"
     id: uuid().primaryKey().defaultRandom(),
-    precoTroca: integer(), // null: fora da troca. Mudar o preço não muda as trocas feitas.
+    precoTroca: integer(),
     slug: text().notNull().unique(),
     status: cursoStatus().notNull().default("em_producao"),
     tema: text().notNull(),

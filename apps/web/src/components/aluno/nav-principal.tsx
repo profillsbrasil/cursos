@@ -19,10 +19,8 @@ type Item = { icone: LucideIcon; nome: string } & (
   | {
       tipo: "link";
       href: Route;
-      /** Prefixos de outras rotas que pertencem à seção do link. */
       secao: readonly string[];
     }
-  // Tela que ainda não existe: desabilitada, com "Em breve" visível.
   | { tipo: "em_breve" }
 );
 
@@ -46,7 +44,6 @@ const ITENS: readonly Item[] = [
   { icone: Megaphone, nome: "Comunicados", tipo: "em_breve" },
 ];
 
-// "page" só na própria rota do link; nas rotas filhas o item é a seção atual ("true").
 function atual(
   caminho: string,
   href: string,
@@ -90,7 +87,6 @@ export function NavPrincipal() {
           const ariaCurrent = atual(caminho, item.href, item.secao);
           return (
             <SidebarMenuItem key={item.nome}>
-              {/* O anel de foco tem a cor do fundo ativo; o offset na cor da sidebar separa os dois. */}
               <SidebarMenuButton
                 aria-current={ariaCurrent}
                 className={`${ITEM} data-active:bg-sidebar-primary data-active:font-semibold data-active:text-sidebar-primary-foreground data-active:focus-visible:ring-offset-2 data-active:focus-visible:ring-offset-sidebar`}

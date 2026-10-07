@@ -8,10 +8,6 @@ import type { Executor, Transacao } from "./comum";
 
 const FUSO = "America/Sao_Paulo";
 
-/**
- * Saldo = soma de tudo. Semana = só entradas desde segunda 00:00 de São Paulo, para a
- * troca não virar "-800 nesta semana". O filtro usa o índice (user_id, criado_em).
- */
 export async function linhasDoSaldo(
   exec: Executor,
   userId: string,
@@ -32,7 +28,6 @@ export async function linhasDoSaldo(
   return linha;
 }
 
-/** Só o saldo, para quem decide um débito. */
 async function saldoDe(exec: Executor, userId: string): Promise<number> {
   const [linha] = await exec
     .select({
@@ -43,7 +38,6 @@ async function saldoDe(exec: Executor, userId: string): Promise<number> {
   return linha?.saldo ?? 0;
 }
 
-/** Os `limite` lançamentos mais recentes, com o fato de cada um. */
 export function linhasDoExtrato(
   exec: Executor,
   userId: string,
@@ -67,15 +61,12 @@ export function linhasDoExtrato(
 }
 
 declare const travada: unique symbol;
-/** Transação que já segura a trava de pontos do aluno. Só comSaldoTravado cria uma. */
 export type TransacaoTravada = Transacao & { readonly [travada]: true };
 
 /**
- * Única porta para tirar pontos de um aluno. Abre a transação, trava o aluno e só
- * então lê o saldo, num statement separado: em READ COMMITTED o snapshot de um
- * statement nasce antes de ele esperar a trava, e a soma no mesmo statement leria o
- * saldo de antes da troca que segurava a trava. Débitos do mesmo aluno rodam em fila.
- * Crédito não pega a trava: só aumenta o saldo, e quem não o viu vê saldo menor.
+ * Abre a transação, trava o aluno e só então lê o saldo, num statement separado:
+ * em READ COMMITTED o snapshot de um statement nasce antes de ele esperar a trava,
+ * e a soma no mesmo statement leria o saldo de antes da troca que segurava a trava.
  */
 export function comSaldoTravado<T>(
   db: Database,

@@ -83,7 +83,6 @@ const certificar = (c: Client, b: Base) =>
     [b.aluno, b.cursoId, `TESTE-${sufixo()}`]
   );
 
-/** Liberação do curso feita pelo próprio aluno, como a troca grava. */
 async function liberarParaTroca(c: Client, aluno: string, cursoId: string) {
   const r = await c.query<{ id: string }>(
     "insert into liberacao (user_id, curso_id, liberada_por) values ($1, $2, $1) returning id",

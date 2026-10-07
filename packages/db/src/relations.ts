@@ -16,7 +16,6 @@ export const relations = defineRelations(schema, (r) => ({
   liberacao: {
     curso: r.one.curso({ from: r.liberacao.cursoId, to: r.curso.id }),
     trilha: r.one.trilha({ from: r.liberacao.trilhaId, to: r.trilha.id }),
-    // Composta como a FK: o join usa o unique ponto_troca_uma_vez (user_id, liberacao_id).
     trocaLancamento: r.one.pontoLancamento({
       from: [r.liberacao.userId, r.liberacao.id],
       to: [r.pontoLancamento.userId, r.pontoLancamento.liberacaoId],

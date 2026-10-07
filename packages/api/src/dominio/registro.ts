@@ -91,13 +91,11 @@ export type LancamentoNovo =
   | { aulaId: AulaId; motivo: "aula_assistida"; pontos: number }
   | { diaMarco: DiaISO; motivo: "sequencia_7_dias"; pontos: number };
 
-// Record literal e exaustivo: motivo novo em LancamentoNovo sem entrada aqui, ou entrada sem motivo, quebra o tsc.
 const MOTIVOS_GRAVADOS: Record<LancamentoNovo["motivo"], true> = {
   aula_assistida: true,
   sequencia_7_dias: true,
 };
 
-/** O que o sistema credita hoje: os motivos que este módulo grava. */
 export const pontuaHoje = (motivo: string): boolean =>
   Object.hasOwn(MOTIVOS_GRAVADOS, motivo);
 

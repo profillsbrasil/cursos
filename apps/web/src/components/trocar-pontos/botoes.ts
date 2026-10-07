@@ -1,7 +1,6 @@
 import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 
-// A base do buttonVariants pinta borda e anel no foco; o protótipo pede só o contorno céu.
 const FOCO =
   "focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-3";
 

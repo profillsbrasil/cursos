@@ -8,7 +8,6 @@ import {
 
 const PULSO = "bg-card motion-reduce:animate-none";
 
-// Esqueleto no formato do saldo, da grade de cursos e do extrato.
 export default function Carregando() {
   return (
     <>

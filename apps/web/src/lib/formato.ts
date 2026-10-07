@@ -48,10 +48,8 @@ export function mmss(seg: number) {
 /** "1,25×". */
 export const fmtVelocidade = (v: number) => `${NUMERO.format(v)}×`;
 
-/** "410", "2.340". */
 export const fmtNum = (n: number) => NUMERO.format(n);
 
-/** "+10 pts", "−300 pts". O sinal de menos é o U+2212, da largura do "+". */
 export const fmtPtsComSinal = (n: number) =>
   n < 0 ? `−${fmtPts(-n)}` : `+${fmtPts(n)}`;
 
@@ -72,10 +70,8 @@ const MES = [
 ];
 const MS_POR_DIA = 86_400_000;
 
-/** Dias ISO ("2026-10-04") viram datas UTC só para a conta: o fuso já veio do servidor. */
 const utc = (dia: string) => new Date(`${dia}T00:00:00Z`);
 
-/** Quando de uma linha do extrato: "Hoje", "Ontem", "Dom" na última semana, "4 out" antes. */
 export function quando(dia: string, hoje: string) {
   const data = utc(dia);
   const atras = Math.round((utc(hoje).getTime() - data.getTime()) / MS_POR_DIA);
