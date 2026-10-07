@@ -7,7 +7,7 @@ export interface Amostra {
 }
 
 export interface Medidor {
-  aberto: { inicioSeg: number; ultima: Amostra } | null;
+  readonly aberto: { inicioSeg: number; ultima: Amostra } | null;
 }
 
 export const MEDIDOR_PARADO: Medidor = { aberto: null };
