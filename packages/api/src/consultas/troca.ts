@@ -1,0 +1,214 @@
+import type { Database } from "@cursos/db";
+import { liberacao, pontoLancamento } from "@cursos/db/schema/index";
+import { TRPCError } from "@trpc/server";
+import { DrizzleQueryError } from "drizzle-orm";
+
+import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
+import type { CursoId } from "../dominio/tipos";
+import {
+  type CursoDaTroca,
+  decidirTroca,
+  montarPainelDeTroca,
+  type PainelDeTroca,
+  paraCursoDaTroca,
+  type RecusaDaTroca,
+} from "../dominio/troca";
+import { ativasDo } from "./aula";
+import {
+  comSaldoTravado,
+  type Executor,
+  linhasDoExtrato,
+  linhasDoSaldo,
+  type TransacaoTravada,
+} from "./pontos";
+
+const LIMITE_DO_EXTRATO = 10;
+
+/** Cursos trocáveis mais os que o aluno já trocou, com o acesso dele. Um statement. */
+export async function linhasDosCursos(
+  exec: Executor,
+  userId: string,
+  filtro: { cursoId: CursoId } | "vitrine"
+): Promise<CursoDaTroca[]> {
+  const ativas = { revogadaEm: { isNull: true }, userId } as const;
+  const linhas = await exec.query.curso.findMany({
+    columns: {
+      capaAlt: true,
+      capaUrl: true,
+      id: true,
+      precoTroca: true,
+      slug: true,
+      status: true,
+      tema: true,
+      titulo: true,
+    },
+    where:
+      filtro === "vitrine"
+        ? {
+            OR: [
+              { precoTroca: { isNotNull: true } },
+              { liberacoes: { ...ativas, trocaLancamento: true } },
+            ],
+          }
+        : { id: filtro.cursoId },
+    with: {
+      liberacoes: {
+        columns: { liberadaEm: true },
+        where: ativas,
+        with: { trocaLancamento: { columns: { id: true, pontos: true } } },
+      },
+      modulos: {
+        columns: {},
+        with: { aulas: { columns: { duracaoSeg: true } } },
+      },
+      naTrilha: {
+        columns: {},
+        with: {
+          trilha: { columns: {}, with: { liberacoes: ativasDo(userId) } },
+        },
+      },
+    },
+  });
+  return linhas.map(paraCursoDaTroca);
+}
+
+/** troca.painel: 3 statements em paralelo (cursos, saldo, extrato). */
+export async function carregarPainelDeTroca(
+  db: Database,
+  userId: string,
+  agora: Date
+): Promise<PainelDeTroca> {
+  const hoje = diaLocal(agora);
+  const [cursos, pontos, extrato] = await Promise.all([
+    linhasDosCursos(db, userId, "vitrine"),
+    linhasDoSaldo(db, userId, segundaDaSemana(hoje)),
+    linhasDoExtrato(db, userId, LIMITE_DO_EXTRATO),
+  ]);
+  return montarPainelDeTroca({ cursos, extrato, pontos }, hoje);
+}
+
+export interface ResultadoDaTroca {
+  curso: { id: CursoId; slug: string; titulo: string };
+  lancamentoId: string;
+  /** false: a troca já existia (duplo clique, retry). A tela trata igual. */
+  novo: boolean;
+}
+
+function erroDaRecusa(r: RecusaDaTroca): TRPCError {
+  switch (r.tipo) {
+    case "indisponivel":
+      return new TRPCError({
+        code: "NOT_FOUND",
+        message: "Este curso não está disponível para troca.",
+      });
+    case "ja_tem":
+      return new TRPCError({
+        code: "CONFLICT",
+        message: "Você já tem este curso. Ele está em Meus cursos.",
+      });
+    case "preco_mudou":
+      return new TRPCError({
+        code: "CONFLICT",
+        message: `O preço deste curso mudou para ${r.preco} pts. Confira e troque de novo.`,
+      });
+    case "saldo_curto":
+      return new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `Faltam ${r.faltam} pts para trocar este curso.`,
+      });
+    default:
+      return r satisfies never;
+  }
+}
+
+const violou = (e: unknown, constraint: string): boolean => {
+  const causa = e instanceof DrizzleQueryError ? e.cause : undefined;
+  return (
+    causa !== undefined &&
+    "code" in causa &&
+    causa.code === "23505" &&
+    "constraint" in causa &&
+    causa.constraint === constraint
+  );
+};
+
+/**
+ * Grava o par da troca: a liberação feita pelo próprio aluno e o lançamento negativo
+ * que aponta para ela. Se o admin liberou o curso depois da leitura, o unique de
+ * liberação ativa recusa o insert, e a troca vira a recusa ja_tem.
+ */
+async function gravarTroca(
+  tx: TransacaoTravada,
+  userId: string,
+  cursoId: CursoId,
+  preco: number,
+  agora: Date
+): Promise<{ lancamentoId: string }> {
+  const [lib] = await tx
+    .insert(liberacao)
+    .values({ cursoId, liberadaEm: agora, liberadaPor: userId, userId })
+    .returning({ id: liberacao.id })
+    .catch((e: unknown) => {
+      throw violou(e, "liberacao_curso_ativa_unica")
+        ? erroDaRecusa({ tipo: "ja_tem" })
+        : e;
+    });
+  if (!lib) {
+    throw new Error("O insert da liberação não devolveu a linha.");
+  }
+  const [lancamento] = await tx
+    .insert(pontoLancamento)
+    .values({
+      criadoEm: agora,
+      liberacaoId: lib.id,
+      motivo: "troca",
+      pontos: -preco,
+      userId,
+    })
+    .returning({ id: pontoLancamento.id });
+  if (!lancamento) {
+    throw new Error("O insert do lançamento não devolveu a linha.");
+  }
+  return { lancamentoId: lancamento.id };
+}
+
+const resumoDoCurso = (c: CursoDaTroca): ResultadoDaTroca["curso"] => ({
+  id: c.id,
+  slug: c.slug,
+  titulo: c.titulo,
+});
+
+/**
+ * Uma transação: trava o aluno, lê saldo e curso, decide e grava a liberação e o
+ * lançamento. Rodar duas vezes devolve a mesma troca com novo: false.
+ */
+export function trocar(
+  db: Database,
+  userId: string,
+  cursoId: CursoId,
+  precoVisto: number,
+  agora: Date
+): Promise<ResultadoDaTroca> {
+  return comSaldoTravado(db, userId, agora, async (tx, saldo) => {
+    const [curso] = await linhasDosCursos(tx, userId, { cursoId });
+    const d = decidirTroca(curso ?? null, saldo, precoVisto);
+    switch (d.tipo) {
+      case "recusa":
+        throw erroDaRecusa(d.recusa);
+      case "ja_trocado":
+        return {
+          curso: resumoDoCurso(d.curso),
+          lancamentoId: d.lancamentoId,
+          novo: false,
+        };
+      case "debitar":
+        return {
+          curso: resumoDoCurso(d.curso),
+          ...(await gravarTroca(tx, userId, cursoId, d.preco, agora)),
+          novo: true,
+        };
+      default:
+        return d satisfies never;
+    }
+  });
+}

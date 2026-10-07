@@ -34,7 +34,7 @@ import type { Executor } from "./pontos";
 
 export type ChaveCurso = { aulaId: string } | { slug: string };
 
-const ativasDo = (userId: string) =>
+export const ativasDo = (userId: string) =>
   ({
     columns: { id: true },
     where: { revogadaEm: { isNull: true }, userId },
