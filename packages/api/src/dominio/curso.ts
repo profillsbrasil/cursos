@@ -44,7 +44,7 @@ export type EstadoQueAbre = Exclude<
   { tipo: "em_breve" } | { tipo: "bloqueado" }
 >;
 
-export const abre = (e: EstadoCurso): e is EstadoQueAbre =>
+export const podeAbrir = (e: EstadoCurso): e is EstadoQueAbre =>
   e.tipo !== "em_breve" && e.tipo !== "bloqueado";
 
 export const numeroDaAula = (indiceNoModulo: number): number =>

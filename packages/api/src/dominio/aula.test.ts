@@ -9,7 +9,7 @@ import {
   montarAulaNoPlayer,
   montarCursoAberto,
 } from "./aula";
-import { abre } from "./curso";
+import { podeAbrir } from "./curso";
 import { cursoLinha, exemploDoPrototipo, idAula } from "./exemplo";
 import { type CursoLinha, montarPainel } from "./painel";
 
@@ -126,7 +126,7 @@ describe("montarCursoAberto", () => {
         posicoes: exemplo.posicoes.map((p) => ({ ...p, trechosVistos: [] })),
       });
       expect(aberto?.estado ?? null).toEqual(
-        abre(vm.estado) ? vm.estado : null
+        podeAbrir(vm.estado) ? vm.estado : null
       );
     }
   });

@@ -1,10 +1,10 @@
 import {
-  abre,
   type EstadoQueAbre,
   estadoDoCurso,
   estadosDaTrilha,
   numeroDaAula,
   type Progresso,
+  podeAbrir,
   progresso,
 } from "./curso";
 import { atividadeDe, historicoDe, posicaoComecada } from "./historico";
@@ -98,7 +98,7 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
     );
     estado = estados[cursos.findIndex((c) => c.id === curso.id)] ?? estado;
   }
-  if (!abre(estado)) {
+  if (!podeAbrir(estado)) {
     return null;
   }
   return {
