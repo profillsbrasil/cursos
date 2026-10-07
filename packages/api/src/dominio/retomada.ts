@@ -1,4 +1,4 @@
-import { niveis, progresso } from "./curso";
+import { niveis, numeroDaAula, progresso } from "./curso";
 import type { Retomada } from "./painel";
 import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 
@@ -29,7 +29,7 @@ function localizar(curso: CursoCatalogo, aulaId: AulaId) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
     const aula = modulo.aulas[i];
     if (aula) {
-      return { aula, modulo, numeroNoModulo: i + 1 };
+      return { aula, modulo, numeroNoModulo: numeroDaAula(i) };
     }
   }
   throw new Error(`Aula ${aulaId} fora do curso ${curso.slug}`);

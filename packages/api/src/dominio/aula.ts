@@ -3,6 +3,7 @@ import {
   type EstadoQueAbre,
   estadoDoCurso,
   estadosDaTrilha,
+  numeroDaAula,
   type Progresso,
   progresso,
 } from "./curso";
@@ -198,7 +199,9 @@ export function montarAulaNoPlayer(
       duracaoSeg: aula.duracaoSeg,
       id: aula.id,
       modulo: { numero: modulo.numero, titulo: modulo.titulo },
-      numeroNoModulo: modulo.aulas.findIndex((a) => a.id === aula.id) + 1,
+      numeroNoModulo: numeroDaAula(
+        modulo.aulas.findIndex((a) => a.id === aula.id)
+      ),
       titulo: aula.titulo,
       totalNoModulo: modulo.aulas.length,
       video: aula.video,
