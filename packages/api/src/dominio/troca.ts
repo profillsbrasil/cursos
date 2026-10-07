@@ -4,13 +4,12 @@ import {
   itemDoExtrato,
   type LinhaDoExtrato,
 } from "./pontos";
-import { diaLocal } from "./sequencia";
 import type { CursoId, DiaISO } from "./tipos";
 
 /** Como o aluno alcança o curso hoje. Vem das liberações ativas dele. */
 export type Acesso =
   | { tipo: "nenhum" }
-  | { tipo: "trocado"; lancamentoId: string; pago: number; trocadoEm: DiaISO }
+  | { tipo: "trocado"; lancamentoId: string; pago: number }
   | { tipo: "liberado" } // liberação direta do admin
   | { tipo: "na_trilha" }; // uma trilha liberada contém o curso (aberto ou bloqueado)
 
@@ -34,7 +33,6 @@ export interface LinhaDoCursoDaTroca {
   capaUrl: string;
   id: string;
   liberacoes: readonly {
-    liberadaEm: Date;
     trocaLancamento: { id: string; pontos: number } | null;
   }[];
   modulos: readonly { aulas: readonly { duracaoSeg: number }[] }[];
@@ -53,7 +51,6 @@ function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
       lancamentoId: direta.trocaLancamento.id,
       pago: -direta.trocaLancamento.pontos,
       tipo: "trocado",
-      trocadoEm: diaLocal(direta.liberadaEm),
     };
   }
   if (direta) {
@@ -85,10 +82,10 @@ export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
 export type Situacao =
   | { tipo: "fora" } // sem preço, em produção ou sem aula
   | { tipo: "ja_tem" } // liberado pelo admin ou na trilha
-  | { tipo: "trocado"; lancamentoId: string; pago: number; trocadoEm: DiaISO }
-  | { tipo: "a_venda"; preco: number };
+  | { tipo: "trocado"; lancamentoId: string; pago: number }
+  | { tipo: "a_venda"; preco: number; faltam: number }; // faltam 0: o saldo cobre
 
-export function situacao(c: CursoDaTroca): Situacao {
+export function situacao(c: CursoDaTroca, saldo: number): Situacao {
   switch (c.acesso.tipo) {
     case "trocado":
       // vence o preço: o admin pode ter tirado o curso da troca depois
@@ -98,7 +95,11 @@ export function situacao(c: CursoDaTroca): Situacao {
       return { tipo: "ja_tem" };
     case "nenhum":
       return c.precoTroca !== null && c.status === "publicado" && c.aulas > 0
-        ? { preco: c.precoTroca, tipo: "a_venda" }
+        ? {
+            faltam: Math.max(0, c.precoTroca - saldo),
+            preco: c.precoTroca,
+            tipo: "a_venda",
+          }
         : { tipo: "fora" };
     default:
       return c.acesso satisfies never;
@@ -121,7 +122,7 @@ export type CartaoDeTroca =
       saldo: number;
       pct: number;
     }
-  | { tipo: "trocado"; curso: CursoNoCartao; pago: number; trocadoEm: DiaISO };
+  | { tipo: "trocado"; curso: CursoNoCartao; pago: number };
 
 const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
   aulas: c.aulas,
@@ -135,24 +136,19 @@ const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
 
 /** null: o curso não entra na vitrine (fora ou ja_tem). */
 export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
-  const s = situacao(c);
+  const s = situacao(c, saldo);
   switch (s.tipo) {
     case "fora":
     case "ja_tem":
       return null;
     case "trocado":
-      return {
-        curso: noCartao(c),
-        pago: s.pago,
-        tipo: "trocado",
-        trocadoEm: s.trocadoEm,
-      };
+      return { curso: noCartao(c), pago: s.pago, tipo: "trocado" };
     case "a_venda":
-      return saldo >= s.preco
+      return s.faltam === 0
         ? { curso: noCartao(c), preco: s.preco, tipo: "pode_trocar" }
         : {
             curso: noCartao(c),
-            faltam: s.preco - saldo,
+            faltam: s.faltam,
             pct: Math.floor((saldo * 100) / s.preco),
             preco: s.preco,
             saldo,
@@ -213,8 +209,8 @@ export type RecusaDaTroca =
   | { tipo: "saldo_curto"; faltam: number };
 
 export type Decisao =
-  | { tipo: "debitar"; curso: CursoDaTroca; preco: number }
-  | { tipo: "ja_trocado"; curso: CursoDaTroca; lancamentoId: string } // duplo clique ou retry: sucesso de novo
+  | { tipo: "debitar"; preco: number }
+  | { tipo: "ja_trocado"; lancamentoId: string } // duplo clique ou retry: sucesso de novo
   | { tipo: "recusa"; recusa: RecusaDaTroca };
 
 const recusa = (r: RecusaDaTroca): Decisao => ({ recusa: r, tipo: "recusa" });
@@ -228,22 +224,22 @@ export function decidirTroca(
   if (!c) {
     return recusa({ tipo: "indisponivel" });
   }
-  const s = situacao(c);
+  const s = situacao(c, saldo);
   switch (s.tipo) {
     case "fora":
       return recusa({ tipo: "indisponivel" });
     case "trocado":
-      return { curso: c, lancamentoId: s.lancamentoId, tipo: "ja_trocado" };
+      return { lancamentoId: s.lancamentoId, tipo: "ja_trocado" };
     case "ja_tem":
       return recusa({ tipo: "ja_tem" });
     case "a_venda":
       if (s.preco !== precoVisto) {
         return recusa({ preco: s.preco, tipo: "preco_mudou" });
       }
-      if (saldo < s.preco) {
-        return recusa({ faltam: s.preco - saldo, tipo: "saldo_curto" });
+      if (s.faltam > 0) {
+        return recusa({ faltam: s.faltam, tipo: "saldo_curto" });
       }
-      return { curso: c, preco: s.preco, tipo: "debitar" };
+      return { preco: s.preco, tipo: "debitar" };
     default:
       return s satisfies never;
   }

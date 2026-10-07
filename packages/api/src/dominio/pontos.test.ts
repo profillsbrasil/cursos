@@ -1,11 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  comoGanhar,
-  itemDoExtrato,
-  type LinhaDoExtrato,
-  paraLancamento,
-} from "./pontos";
+import { comoGanhar, itemDoExtrato, type LinhaDoExtrato } from "./pontos";
 import { PONTOS } from "./regras";
 import type { DiaISO } from "./tipos";
 
@@ -42,7 +37,7 @@ describe("itemDoExtrato", () => {
       linha({}),
       linha({
         liberacao: {
-          curso: { slug: "bpf", titulo: "Boas práticas de fabricação" },
+          curso: { titulo: "Boas práticas de fabricação" },
         },
         motivo: "troca",
         pontos: -200,
@@ -64,10 +59,10 @@ describe("itemDoExtrato", () => {
   });
 
   test("referência ausente é dado quebrado e lança", () => {
-    expect(() => paraLancamento(linha({ motivo: "troca" }))).toThrow(
+    expect(() => itemDoExtrato(linha({ motivo: "troca" }))).toThrow(
       "sem o fato"
     );
-    expect(() => paraLancamento(linha({ motivo: "aula_assistida" }))).toThrow(
+    expect(() => itemDoExtrato(linha({ motivo: "aula_assistida" }))).toThrow(
       "sem o fato"
     );
   });

@@ -140,7 +140,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       cursoId: c,
       precoVisto: 300,
     });
-    expect(r.novo).toBe(true);
+    expect(await trocasDe(userId)).toEqual([{ id: r.lancamentoId }]);
     const painel = await carregarPainelDeTroca(db, userId, AGORA);
     expect(painel.saldo).toBe(200);
     expect(painel.cartoes.find((x) => x.curso.id === c)).toMatchObject({
@@ -150,7 +150,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     expect(painel.extrato[0]).toMatchObject({
       id: r.lancamentoId,
       pontos: -300,
-      texto: `Troca: ${r.curso.titulo}`,
+      texto: expect.stringContaining("Troca: Troca feita "),
     });
     const [lib] = await db
       .select({ por: liberacao.liberadaPor })
@@ -185,25 +185,25 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     );
   });
 
-  test("duplo clique no mesmo curso: um lançamento, e o segundo devolve a mesma troca com novo false", async () => {
+  test("duplo clique no mesmo curso: um lançamento, e o segundo devolve a mesma troca", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
     const [um, dois] = await Promise.all([
       trocar(db, userId, c, 300, AGORA),
       trocar(db, userId, c, 300, AGORA),
     ]);
-    expect([um.novo, dois.novo].sort()).toEqual([false, true]);
     expect(um.lancamentoId).toBe(dois.lancamentoId);
     expect(await trocasDe(userId)).toHaveLength(1);
     expect(await saldoDe(userId)).toBe(0);
   });
 
-  test("retry depois do commit devolve novo false e não debita de novo", async () => {
+  test("retry depois do commit devolve a mesma troca e não debita de novo", async () => {
     const userId = await aluno(600);
     const c = await cursoTrocavel(300);
     const primeira = await trocar(db, userId, c, 300, AGORA);
     const retry = await trocar(db, userId, c, 300, AGORA);
-    expect(retry).toEqual({ ...primeira, novo: false });
+    expect(retry).toEqual(primeira);
+    expect(await trocasDe(userId)).toHaveLength(1);
     expect(await saldoDe(userId)).toBe(300);
   });
 

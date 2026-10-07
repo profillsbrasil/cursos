@@ -16,7 +16,6 @@ const TROCADO: Acesso = {
   lancamentoId: "lanc-1",
   pago: 300,
   tipo: "trocado",
-  trocadoEm: "2026-10-01" as DiaISO,
 };
 
 const curso = (mudar: Partial<CursoDaTroca> = {}): CursoDaTroca => ({
@@ -35,7 +34,16 @@ const curso = (mudar: Partial<CursoDaTroca> = {}): CursoDaTroca => ({
 
 describe("situacao", () => {
   test("curso com preço, publicado e com aula está à venda", () => {
-    expect(situacao(curso())).toEqual({ preco: 500, tipo: "a_venda" });
+    expect(situacao(curso(), 500)).toEqual({
+      faltam: 0,
+      preco: 500,
+      tipo: "a_venda",
+    });
+  });
+
+  test("saldo menor que o preço diz quanto falta; saldo maior não vira negativo", () => {
+    expect(situacao(curso(), 420)).toMatchObject({ faltam: 80 });
+    expect(situacao(curso(), 900)).toMatchObject({ faltam: 0 });
   });
 
   test("sem preço, em produção ou sem aula fica fora", () => {
@@ -44,20 +52,20 @@ describe("situacao", () => {
       curso({ status: "em_producao" }),
       curso({ aulas: 0 }),
     ]) {
-      expect(situacao(c)).toEqual({ tipo: "fora" });
+      expect(situacao(c, 1000)).toEqual({ tipo: "fora" });
     }
   });
 
   test("liberação do admin ou trilha liberada dá ja_tem, mesmo com preço", () => {
     for (const tipo of ["liberado", "na_trilha"] as const) {
-      expect(situacao(curso({ acesso: { tipo } }))).toEqual({
+      expect(situacao(curso({ acesso: { tipo } }), 1000)).toEqual({
         tipo: "ja_tem",
       });
     }
   });
 
   test("trocado vence tudo, mesmo depois de o admin tirar o preço", () => {
-    expect(situacao(curso({ acesso: TROCADO, precoTroca: null }))).toEqual(
+    expect(situacao(curso({ acesso: TROCADO, precoTroca: null }), 0)).toEqual(
       TROCADO
     );
   });
@@ -81,7 +89,7 @@ describe("cartao", () => {
   test("trocado mostra o preço pago, não o atual", () => {
     expect(
       cartao(curso({ acesso: TROCADO, precoTroca: 900 }), 0)
-    ).toMatchObject({ pago: 300, tipo: "trocado", trocadoEm: "2026-10-01" });
+    ).toMatchObject({ pago: 300, tipo: "trocado" });
   });
 
   test("fora e ja_tem não entram na vitrine", () => {
@@ -103,9 +111,7 @@ describe("decidirTroca", () => {
   });
 
   test("curso já trocado devolve a mesma troca, ignorando preço visto e saldo", () => {
-    const c = curso({ acesso: TROCADO });
-    expect(decidirTroca(c, 0, 1)).toEqual({
-      curso: c,
+    expect(decidirTroca(curso({ acesso: TROCADO }), 0, 1)).toEqual({
       lancamentoId: "lanc-1",
       tipo: "ja_trocado",
     });
@@ -132,9 +138,7 @@ describe("decidirTroca", () => {
   });
 
   test("preço igual ao visto e saldo suficiente debita o preço", () => {
-    const c = curso();
-    expect(decidirTroca(c, 500, 500)).toEqual({
-      curso: c,
+    expect(decidirTroca(curso(), 500, 500)).toEqual({
       preco: 500,
       tipo: "debitar",
     });
@@ -170,30 +174,21 @@ describe("paraCursoDaTroca", () => {
     });
   });
 
-  test("liberação com lançamento de troca vira trocado, com o dia de São Paulo", () => {
+  test("liberação com lançamento de troca vira trocado, com o valor pago", () => {
     const c = paraCursoDaTroca(
       linha({
-        liberacoes: [
-          {
-            liberadaEm: new Date("2026-10-07T02:00:00Z"),
-            trocaLancamento: { id: "lanc-9", pontos: -200 },
-          },
-        ],
+        liberacoes: [{ trocaLancamento: { id: "lanc-9", pontos: -200 } }],
       })
     );
     expect(c.acesso).toEqual({
       lancamentoId: "lanc-9",
       pago: 200,
       tipo: "trocado",
-      trocadoEm: "2026-10-06" as DiaISO,
     });
   });
 
   test("liberação sem lançamento é do admin; trilha liberada dá na_trilha", () => {
-    const direta = {
-      liberadaEm: new Date(),
-      trocaLancamento: null,
-    };
+    const direta = { trocaLancamento: null };
     expect(paraCursoDaTroca(linha({ liberacoes: [direta] })).acesso.tipo).toBe(
       "liberado"
     );

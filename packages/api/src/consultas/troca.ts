@@ -52,7 +52,7 @@ export async function linhasDosCursos(
         : { id: filtro.cursoId },
     with: {
       liberacoes: {
-        columns: { liberadaEm: true },
+        columns: {},
         where: ativas,
         with: { trocaLancamento: { columns: { id: true, pontos: true } } },
       },
@@ -87,10 +87,8 @@ export async function carregarPainelDeTroca(
 }
 
 export interface ResultadoDaTroca {
-  curso: { id: CursoId; slug: string; titulo: string };
+  /** O da troca nova, ou o da que já existia (duplo clique, retry). */
   lancamentoId: string;
-  /** false: a troca já existia (duplo clique, retry). A tela trata igual. */
-  novo: boolean;
 }
 
 function erroDaRecusa(r: RecusaDaTroca): TRPCError {
@@ -171,15 +169,9 @@ async function gravarTroca(
   return { lancamentoId: lancamento.id };
 }
 
-const resumoDoCurso = (c: CursoDaTroca): ResultadoDaTroca["curso"] => ({
-  id: c.id,
-  slug: c.slug,
-  titulo: c.titulo,
-});
-
 /**
  * Uma transação: trava o aluno, lê saldo e curso, decide e grava a liberação e o
- * lançamento. Rodar duas vezes devolve a mesma troca com novo: false.
+ * lançamento. Rodar duas vezes devolve a mesma troca.
  */
 export function trocar(
   db: Database,
@@ -195,17 +187,9 @@ export function trocar(
       case "recusa":
         throw erroDaRecusa(d.recusa);
       case "ja_trocado":
-        return {
-          curso: resumoDoCurso(d.curso),
-          lancamentoId: d.lancamentoId,
-          novo: false,
-        };
+        return { lancamentoId: d.lancamentoId };
       case "debitar":
-        return {
-          curso: resumoDoCurso(d.curso),
-          ...(await gravarTroca(tx, userId, cursoId, d.preco, agora)),
-          novo: true,
-        };
+        return gravarTroca(tx, userId, cursoId, d.preco, agora);
       default:
         return d satisfies never;
     }

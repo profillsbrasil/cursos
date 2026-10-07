@@ -59,7 +59,7 @@ export function linhasDoExtrato(
       curso: { columns: { titulo: true } },
       liberacao: {
         columns: {},
-        with: { curso: { columns: { slug: true, titulo: true } } },
+        with: { curso: { columns: { titulo: true } } },
       },
       trilha: { columns: { titulo: true } },
     },

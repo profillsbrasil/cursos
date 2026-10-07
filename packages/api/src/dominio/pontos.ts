@@ -6,22 +6,13 @@ import type { DiaISO } from "./tipos";
 
 export type MotivoPonto = (typeof motivoPonto.enumValues)[number];
 
-/** Lançamento já ligado ao fato. Um ramo por motivo: motivo novo sem ramo não compila. */
-export type Lancamento = { dia: DiaISO; id: string; pontos: number } & (
-  | { aula: { titulo: string }; motivo: "aula_assistida" }
-  | { curso: { titulo: string }; motivo: "curso_concluido" }
-  | { motivo: "trilha_concluida"; trilha: { titulo: string } }
-  | { motivo: "sequencia_7_dias" }
-  | { curso: { slug: string; titulo: string }; motivo: "troca" }
-);
-
 /** Linha da relational query do extrato, antes do parse. */
 export interface LinhaDoExtrato {
   aula: { titulo: string } | null;
   criadoEm: Date;
   curso: { titulo: string } | null;
   id: string;
-  liberacao: { curso: { slug: string; titulo: string } | null } | null;
+  liberacao: { curso: { titulo: string } | null } | null;
   motivo: MotivoPonto;
   pontos: number;
   trilha: { titulo: string } | null;
@@ -36,72 +27,45 @@ export interface ItemDoExtrato {
   texto: string;
 }
 
-export function textoDoLancamento(l: Lancamento): string {
+const referenciaAusente = (l: LinhaDoExtrato): Error =>
+  new Error(`Lançamento ${l.id} (${l.motivo}) sem o fato que ele referencia.`);
+
+/** O fato do lançamento em texto. Referência ausente é dado quebrado: lança Error. */
+function textoDoExtrato(l: LinhaDoExtrato): string {
   switch (l.motivo) {
     case "aula_assistida":
+      if (!l.aula) {
+        throw referenciaAusente(l);
+      }
       return `Aula assistida: ${l.aula.titulo}`;
     case "curso_concluido":
+      if (!l.curso) {
+        throw referenciaAusente(l);
+      }
       return `Curso concluído: ${l.curso.titulo}`;
     case "trilha_concluida":
+      if (!l.trilha) {
+        throw referenciaAusente(l);
+      }
       return `Trilha concluída: ${l.trilha.titulo}`;
     case "sequencia_7_dias":
       return "7 dias úteis seguidos";
     case "troca":
-      return `Troca: ${l.curso.titulo}`;
+      if (!l.liberacao?.curso) {
+        throw referenciaAusente(l);
+      }
+      return `Troca: ${l.liberacao.curso.titulo}`;
     default:
-      return l satisfies never;
+      return l.motivo satisfies never;
   }
 }
 
-const referenciaAusente = (l: LinhaDoExtrato): Error =>
-  new Error(`Lançamento ${l.id} (${l.motivo}) sem o fato que ele referencia.`);
-
-/** Linha -> Lancamento. Referência ausente é dado quebrado: lança Error. */
-export function paraLancamento(linha: LinhaDoExtrato): Lancamento {
-  const base = {
-    dia: diaLocal(linha.criadoEm),
-    id: linha.id,
-    pontos: linha.pontos,
-  };
-  switch (linha.motivo) {
-    case "aula_assistida":
-      if (!linha.aula) {
-        throw referenciaAusente(linha);
-      }
-      return { ...base, aula: linha.aula, motivo: linha.motivo };
-    case "curso_concluido":
-      if (!linha.curso) {
-        throw referenciaAusente(linha);
-      }
-      return { ...base, curso: linha.curso, motivo: linha.motivo };
-    case "trilha_concluida":
-      if (!linha.trilha) {
-        throw referenciaAusente(linha);
-      }
-      return { ...base, motivo: linha.motivo, trilha: linha.trilha };
-    case "sequencia_7_dias":
-      return { ...base, motivo: linha.motivo };
-    case "troca": {
-      const curso = linha.liberacao?.curso;
-      if (!curso) {
-        throw referenciaAusente(linha);
-      }
-      return { ...base, curso, motivo: linha.motivo };
-    }
-    default:
-      return linha.motivo satisfies never;
-  }
-}
-
-export const itemDoExtrato = (linha: LinhaDoExtrato): ItemDoExtrato => {
-  const l = paraLancamento(linha);
-  return {
-    dia: l.dia,
-    id: l.id,
-    pontos: l.pontos,
-    texto: textoDoLancamento(l),
-  };
-};
+export const itemDoExtrato = (linha: LinhaDoExtrato): ItemDoExtrato => ({
+  dia: diaLocal(linha.criadoEm),
+  id: linha.id,
+  pontos: linha.pontos,
+  texto: textoDoExtrato(linha),
+});
 
 type RegraDePonto = keyof typeof PONTOS;
 
