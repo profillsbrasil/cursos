@@ -10,7 +10,7 @@ import { NavPrincipal } from "./nav-principal";
 
 export function AppSidebar() {
   return (
-    <Sidebar aria-label="Navegação" variant="sidebar">
+    <Sidebar variant="sidebar">
       <SidebarHeader className="px-5 pt-6 pb-5">
         <p className="flex items-center gap-2.5 font-bold text-base text-titulo tracking-tight">
           <span
