@@ -329,6 +329,40 @@ describe("sessão de estudo", () => {
   });
 });
 
+describe("envio sem mudança", () => {
+  test("abrir e sair sem tocar não envia nada", async () => {
+    const { relogio, servidor, sessao } = montar(120);
+    await relogio.avancar(5000);
+    sessao.encerrar();
+    await relogio.flush();
+    expect(servidor.pedidos).toHaveLength(0);
+  });
+
+  test("trocar de aba com o vídeo parado não envia", async () => {
+    const { relogio, servidor, sessao } = montar(120);
+    sessao.salvarAgora();
+    await relogio.avancar(2000);
+    sessao.salvarAgora();
+    await relogio.avancar(2000);
+    sessao.salvarAgora();
+    await relogio.flush();
+    expect(servidor.pedidos).toHaveLength(0);
+  });
+
+  test("depois de um envio confirmado, sair parado no mesmo ponto não reenvia", async () => {
+    const { relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(8000);
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(1000);
+    expect(servidor.pedidos).toHaveLength(1);
+    sessao.salvarAgora();
+    sessao.encerrar();
+    await relogio.flush();
+    expect(servidor.pedidos).toHaveLength(1);
+  });
+});
+
 describe("encerrar com a rede caída", () => {
   test("não tenta de novo depois de encerrar", async () => {
     const { relogio, servidor, sessao } = montar();

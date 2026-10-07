@@ -172,7 +172,9 @@ export function criarSessaoDeEstudo(
   let servidor = foto.trechos;
   let pendentes: Trechos = SEM_TRECHOS;
   let medidor: Medidor = MEDIDOR_PARADO;
-  let posicaoSuja = false;
+  const posicaoDe = (seg: number) => Math.floor(limitar(seg, 0, duracaoSeg));
+  /** A última posição que o servidor confirmou, ou a de abertura. */
+  let posicaoEnviada = posicaoDe(entrada.inicioSeg);
   let pediuNaMeta = false;
   let encerrada = false;
   let tentativa = 0;
@@ -239,13 +241,15 @@ export function criarSessaoDeEstudo(
       pararEnvio = null;
       if (reproducao.tipo === "tocando") {
         guardar(cortar(medidor));
-        posicaoSuja = true;
       }
       enviar(false);
     }, ms);
   }
 
-  function aposResposta(r: RespostaDoEnvio) {
+  const temNovidade = () =>
+    pendentes.length > 0 || posicaoDe(tempoSeg) !== posicaoEnviada;
+
+  function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
     if (encerrada) {
       return;
     }
@@ -257,7 +261,6 @@ export function criarSessaoDeEstudo(
     }
     if (r.tipo === "rede") {
       tentativa += 1;
-      posicaoSuja = true;
       envio = { tentativa, tipo: "esperando_nova_tentativa" };
       agendarEnvio(
         Math.min(
@@ -269,6 +272,7 @@ export function criarSessaoDeEstudo(
       return;
     }
     tentativa = 0;
+    posicaoEnviada = pedido.posicaoSeg;
     // A marca de Trechos some no JSON: a resposta passa por canonizar. O
     // conjunto do servidor só cresce, então resposta atrasada não apaga a barra.
     servidor = unir(servidor, canonizar(r.registro.trechos, duracaoSeg));
@@ -278,7 +282,7 @@ export function criarSessaoDeEstudo(
     if (r.registro.conquista) {
       deps.aoConquistar(r.registro.conquista);
     }
-    const resta = pendentes.length > 0 || posicaoSuja;
+    const resta = temNovidade();
     envio = resta ? { tipo: "pendente" } : { tipo: "em_dia" };
     if ((resta || reproducao.tipo === "tocando") && !pararEnvio) {
       agendarEnvio(ENVIO_MS);
@@ -291,21 +295,21 @@ export function criarSessaoDeEstudo(
     if (envio.tipo === "parado" || (envio.tipo === "enviando" && !mesmoEmVoo)) {
       return;
     }
-    if (pendentes.length === 0 && !posicaoSuja) {
+    if (!temNovidade()) {
       return;
     }
     pararEnvio?.();
     pararEnvio = null;
     const pedido: Pedido = {
-      posicaoSeg: Math.floor(limitar(tempoSeg, 0, duracaoSeg)),
+      posicaoSeg: posicaoDe(tempoSeg),
       trechos: pendentes.slice(0, LOTE_MAX),
     };
-    posicaoSuja = false;
     envio = { tipo: "enviando" };
     avisar();
-    deps
-      .enviar(pedido)
-      .then(aposResposta, () => aposResposta({ tipo: "rede" }));
+    deps.enviar(pedido).then(
+      (r) => aposResposta(r, pedido),
+      () => aposResposta({ tipo: "rede" }, pedido)
+    );
   }
 
   function cruzouAMeta() {
@@ -315,7 +319,6 @@ export function criarSessaoDeEstudo(
     if (atingiuMeta(segundos(vistos()), duracaoSeg)) {
       pediuNaMeta = true;
       guardar(cortar(medidor));
-      posicaoSuja = true;
       enviar(false);
     }
   }
@@ -361,7 +364,6 @@ export function criarSessaoDeEstudo(
       if (depois.tipo === "terminou") {
         tempoSeg = duracaoSeg;
       }
-      posicaoSuja = true;
       enviar(false);
     }
     avisar();
@@ -379,7 +381,6 @@ export function criarSessaoDeEstudo(
     fecharTrecho();
     player.buscar(destino);
     tempoSeg = destino;
-    posicaoSuja = true;
     if (reproducao.tipo === "tocando") {
       ({ medidor } = amostrar(MEDIDOR_PARADO, {
         relogioMs: deps.relogio(),
@@ -450,7 +451,6 @@ export function criarSessaoDeEstudo(
       medirAgora();
       guardar(cortar(medidor));
     }
-    posicaoSuja = true;
     enviar(true);
   }
 
@@ -467,7 +467,6 @@ export function criarSessaoDeEstudo(
       if (reproducao.tipo === "tocando") {
         fecharTrecho();
       }
-      posicaoSuja = true;
       enviar(true);
       encerrada = true;
       pararAmostra?.();
