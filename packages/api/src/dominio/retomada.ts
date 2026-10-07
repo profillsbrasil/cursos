@@ -26,9 +26,11 @@ const cursoRef = (c: CursoCatalogo) => ({
 
 function localizar(curso: CursoCatalogo, aulaId: AulaId) {
   for (const modulo of curso.modulos) {
-    const aula = modulo.aulas.find((a) => a.id === aulaId);
+    const i = modulo.aulas.findIndex((a) => a.id === aulaId);
+    const aula = modulo.aulas[i];
     if (aula) {
-      return { aula, modulo };
+      // O índice, como a coluna e o player: posição é única, mas pode ter buraco.
+      return { aula, modulo, numeroNoModulo: i + 1 };
     }
   }
   throw new Error(`Aula ${aulaId} fora do curso ${curso.slug}`);
@@ -40,13 +42,13 @@ function continuar(
   posicaoSeg: number,
   h: Historico
 ): Retomada {
-  const { aula, modulo } = localizar(item.curso, aulaId);
+  const { aula, modulo, numeroNoModulo } = localizar(item.curso, aulaId);
   return {
     aula: {
       duracaoSeg: aula.duracaoSeg,
       faltaSeg: Math.max(0, aula.duracaoSeg - posicaoSeg),
       id: aula.id,
-      numeroNoModulo: aula.posicao,
+      numeroNoModulo,
       posicaoSeg,
       titulo: aula.titulo,
     },
@@ -161,12 +163,15 @@ export function retomada({
   // 6: o primeiro curso não iniciado, trilhas antes dos soltos.
   const novo = cursos.find(ehEstado("nao_iniciado"));
   if (novo) {
-    const { aula, modulo } = localizar(novo.curso, novo.estado.primeiraAula);
+    const { aula, modulo, numeroNoModulo } = localizar(
+      novo.curso,
+      novo.estado.primeiraAula
+    );
     return {
       aula: {
         duracaoSeg: aula.duracaoSeg,
         id: aula.id,
-        numeroNoModulo: aula.posicao,
+        numeroNoModulo,
         titulo: aula.titulo,
       },
       curso: cursoRef(novo.curso),

@@ -251,3 +251,40 @@ describe("retomada pela atividade mais recente (item 24)", () => {
     expect(r?.tipo === "continuar" && r.aula.id).toBe(daEntrada.aulaId);
   });
 });
+
+describe("aula N do módulo no banner", () => {
+  const base = cursoCat("d", { aulas: [2] });
+  const posicoes = [1, 3];
+  const comBuraco: CursoCatalogo = {
+    ...base,
+    modulos: base.modulos.map((m) => ({
+      ...m,
+      aulas: m.aulas.map((a, i) => ({ ...a, posicao: posicoes[i] ?? 0 })),
+    })),
+  };
+  const segunda = idAula("d", 0, 2) as AulaId;
+
+  test("continuar numera pelo índice no módulo, como a coluna e o player", () => {
+    const h = historico({ posicoes: [[segunda, 60]] });
+    const r = retomada(
+      entrada([naTela(comBuraco, andamento(comBuraco, segunda))], h)
+    );
+    expect(r).toMatchObject({
+      aula: { id: segunda, numeroNoModulo: 2 },
+      tipo: "continuar",
+    });
+  });
+
+  test("começar numera pelo índice no módulo, como a coluna e o player", () => {
+    const r = retomada(
+      entrada(
+        [naTela(comBuraco, { primeiraAula: segunda, tipo: "nao_iniciado" })],
+        historico({})
+      )
+    );
+    expect(r).toMatchObject({
+      aula: { id: segunda, numeroNoModulo: 2 },
+      tipo: "comecar",
+    });
+  });
+});
