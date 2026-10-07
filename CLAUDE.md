@@ -1,0 +1,113 @@
+# cursos
+
+Plataforma de cursos da Profills. Monorepo Bun + Turborepo gerado pelo Better T Stack (`bts.jsonc` guarda o comando de origem; `bunx create-better-t-stack@latest add` acrescenta addons).
+
+Stack: Next.js 16 (App Router, React Compiler, `typedRoutes`), tRPC 11 + TanStack Query, Drizzle 1.0 RC sobre Postgres do Supabase, Clerk para auth, shadcn (estilo `base-lyra`, Base UI), Biome via Ultracite, varlock para env, deploy na Vercel.
+
+## Mapa
+
+O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arquivo possui.
+
+### `apps/web` (Next.js, porta 3001)
+
+- `src/proxy.ts`: `clerkMiddleware()` em todas as rotas. No Next 16 o `middleware.ts` virou `proxy.ts`.
+- `src/app/`: rotas. `layout.tsx` monta `ClerkProvider` e `Providers`; `page.tsx` é a home com o `healthCheck`; `dashboard/page.tsx` é a página logada que chama `privateData`; `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
+- `src/context.ts`: cria o contexto do tRPC por request. Valida o token do Clerk com `authenticateRequest`, aceitando só `authorizedParties: [ENV.CORS_ORIGIN]`, e entrega `{ auth: { userId } | null, db }`.
+- `src/services.ts`: o `db` único do app (`createDb(ENV)`).
+- `src/env.server.ts`: ponto de entrada server-only do env. Código de servidor importa `ENV` daqui; `src/env.ts` é gerado.
+- `src/utils/trpc.ts`: cliente tRPC + `queryClient`. Manda `Authorization: Bearer <token do Clerk>` em todo request, no browser pelo getter de `utils/clerk-auth.ts` e no servidor por `auth()`.
+- `src/components/providers.tsx`: tema, React Query, Toaster e o `ClerkApiAuthBridge`, que registra o `getToken` do Clerk para o cliente tRPC.
+- `src/components/`: componentes próprios do app (header, mode-toggle, loader, PWA).
+- `next.config.ts`: plugin do varlock por fora, PWA (`pwa.config.ts`) por dentro.
+
+### `packages/api` (`@cursos/api`)
+
+- `src/index.ts`: `router`, `publicProcedure` e `protectedProcedure`. O protegido lança `UNAUTHORIZED` sem `ctx.auth.userId` e garante `ctx.auth` não nulo depois dele.
+- `src/routers/index.ts`: `appRouter`. Router novo entra aqui como chave.
+- `src/context.ts`: o tipo `Context` que o app implementa.
+
+### `packages/db` (`@cursos/db`)
+
+- `src/schema/index.ts`: toda tabela é exportada daqui. `drizzle.config.ts` lê só esse arquivo e só o schema `public`.
+- `src/relations.ts`: relations v2 do Drizzle 1.0 (`defineRelations(schema)`), passadas ao `drizzle()` em `src/index.ts`. A API de relations v1 (`relations()` por tabela) não vale nesta versão.
+- `src/migrations/`: saída do `db:generate`.
+- `supabase/config.toml`: stack local do Supabase CLI (`project_id = "cursos"`, portas entre 54320 e 54329; o banco fica na 54322).
+
+### `packages/ui` (`@cursos/ui`)
+
+- Todos os componentes de UI do registro `@shadcn` (estilo `base-lyra`) já estão em `src/components/`, exceto `toast` (o app usa o `sonner`) e `direction` (só RTL). Hooks em `src/hooks/`, `cn` em `src/lib/utils.ts`, tokens em `src/styles/globals.css`. Importe por caminho: `@cursos/ui/components/button`.
+- Antes de escrever UI, liste `src/components/` e componha com o que existe. Os componentes são Base UI: composição por `render`, sem `asChild`. Ícones vêm do `lucide-react`. O `TooltipProvider` já envolve o app em `apps/web/src/components/providers.tsx`.
+- Componente novo ou bloco: `bunx --bun shadcn@latest add <nome>` **dentro de `packages/ui`**, onde os aliases levam hooks para `@cursos/ui/hooks`. Rodado em `apps/web`, o hook cai no app e o componente de `packages/ui` não compila. Para buscar no registro: `bunx --bun shadcn@latest search @shadcn -q <termo>` ou o MCP `shadcn`.
+- Quando o `add` pergunta se sobrescreve um arquivo existente, ele trava sem TTY. Num agente, rode `yes n | bunx --bun shadcn@latest add ...` para manter os existentes, e só use `--overwrite` com pedido do dono.
+- O Biome não roda lint em `src/components/`, `src/hooks/` e `src/lib/utils.ts` (override no `biome.jsonc`), porque o `shadcn add` regenera esses arquivos. Ajuste de comportamento entra no componente do app que os usa.
+
+### Raiz
+
+- `scripts/sync-vercel-env.ts`: atrás de `bun run env:preview` e `env:production`.
+- `vercel.json`: serviço `web` com raiz em `apps/web` e install na raiz do monorepo.
+- `AGENTS.md` e `apps/web/AGENTS.md`: blocos que o turbo e o `next dev` reescrevem sozinhos. Commite as mudanças deles junto com o trabalho.
+
+## Env (varlock)
+
+- O contrato fica em `apps/web/.env.schema`; os valores locais, em `apps/web/.env` (fora do git). `packages/db/.env.schema` importa `NODE_ENV` e `DATABASE_*` do app.
+- `@defaultSensitive=true` marca toda variável como segredo. Valor que chega ao browser leva `@public`, senão o varlock acusa `DETECTED LEAKED SENSITIVE CONFIG` e derruba o request. Foi o que aconteceu com `CLERK_PUBLISHABLE_KEY`.
+- Depois de editar o schema: `bun run env:generate` para regenerar os `env.ts`, e reinicie o `next dev`.
+- `CORS_ORIGIN` precisa ser exatamente a origem do browser (`http://localhost:3001` no dev). Com outro valor, o Clerk recusa o token e todo `protectedProcedure` responde `UNAUTHORIZED`.
+
+## Banco
+
+- O `DATABASE_URL` do `.env` aponta para o projeto **cloud** do Supabase (`lsatugtpqwiylnfutolg`, org profillsbrasil, `sa-east-1`), pelo pooler de transação na porta 6543. É decisão do dono: o dev usa o banco real. Trate `db:push` e `db:migrate` como escrita em produção e confirme antes.
+- `drizzle-kit` contra o cloud usa o mesmo host na porta 5432 (session pooler).
+- O app conecta como `postgres`, que tem `BYPASSRLS`. O projeto cloud tem o event trigger `ensure_rls`, que liga RLS em toda tabela nova do `public`, e a Data API não expõe tabelas novas. RLS só protege acesso via `anon`/`authenticated`; a autorização do app mora nos procedures do tRPC.
+- O Supabase local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- `bun run db:push` (e `db:generate`, `db:migrate`) da raiz é task interativa do turbo e falha num shell sem TTY. Num agente, rode `bunx drizzle-kit <comando>` dentro de `packages/db`.
+- O MCP `supabase` deste ambiente pode estar logado em outra conta e não enxergar o projeto. Confira com `list_projects` antes de usá-lo; se o projeto não aparecer, use o dashboard.
+
+## Auth (Clerk)
+
+- App "cursos" na workspace PROFILLS DO BRASIL, só a instância Development (`pk_test`/`sk_test`). A instância de produção exige domínio próprio.
+- Usuário logado no servidor: `ctx.auth.userId` dentro de `protectedProcedure`. Não existe tabela de usuários; quando precisar, sincronize pelo webhook do Clerk (skill `clerk-webhooks`).
+
+## Comandos
+
+- `bun run dev` sobe tudo; `bun run dev:web` só o app.
+- Antes de commitar: `bun run check-types` e `bun x ultracite check` verdes. Um hook do Claude Code roda `bun run fix` depois de cada Edit/Write, então o arquivo pode mudar logo após a edição: releia antes do próximo Edit.
+- Deploy: `bun run deploy:setup` linka a Vercel. `bun run env:production` sem argumento envia o `apps/web/.env`, que tem as chaves `pk_test` e o banco do dev. Para produção, monte um `apps/web/.env.production.local` (já ignorado pelo git) e rode `bun run env:production apps/web/.env.production.local`.
+
+## Código
+
+Biome (via Ultracite) cobre formatação e a maior parte do estilo. O que ele não pega:
+
+- Busca assíncrona de dados vai em Server Component, não em Client Component `async`.
+- Erro para o usuário sai como `TRPCError` com `code` e `message`; o `queryClient` já mostra toast em qualquer erro de query.
+- Use o vocabulário do `GLOSSARY.md` em nomes de tabela, procedure e componente.
+
+## Agent skills
+
+### Issue tracker
+
+As issues ficam no GitHub Issues de `profillsbrasil/cursos` (repo público). Use o `gh` dentro do clone, que já infere o repo.
+
+- Criar: `gh issue create --title "..." --body "..."` (heredoc para corpo de várias linhas).
+- Ler: `gh issue view <n> --comments`.
+- Listar: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`, com `--label` e `--state` conforme o caso.
+- Comentar: `gh issue comment <n> --body "..."`.
+- Labels: `gh issue edit <n> --add-label "..."` / `--remove-label "..."`. Exige permissão de triage no repo; as contas do gh desta máquina hoje têm só leitura, então essa chamada falha até o dono dar acesso.
+- Fechar: `gh issue close <n> --comment "..."`.
+- "Publicar no issue tracker" quer dizer criar uma issue no GitHub. "Buscar o ticket" quer dizer `gh issue view <n> --comments`.
+- PRs como superfície de pedidos: **não**. PRs externos não entram na triagem.
+- `#42` pode ser issue ou PR (mesma numeração): tente `gh pr view 42` e caia para `gh issue view 42`.
+
+Wayfinding (`/wayfinder`): o **mapa** é uma issue com label `wayfinder:map` e corpo Notes / Decisions-so-far / Fog. Cada ticket filho é sub-issue do mapa (`gh api` no endpoint de sub-issues), ou, sem sub-issues, entra na task list do mapa com `Part of #<mapa>` no topo; label `wayfinder:<research|prototype|grilling|task>`. Bloqueio usa as dependências nativas: `gh api --method POST repos/profillsbrasil/cursos/issues/<filho>/dependencies/blocked_by -F issue_id=<id do bloqueador>`, onde o id é o database id (`gh api repos/profillsbrasil/cursos/issues/<n> --jq .id`); sem dependências, uma linha `Blocked by: #<n>` no topo. Fronteira: filhos abertos do mapa, sem bloqueador aberto e sem assignee, na ordem do mapa. Assumir: `gh issue edit <n> --add-assignee @me`. Resolver: comentar a resposta, fechar e anexar um ponteiro (resumo + link) em Decisions-so-far do mapa.
+
+### Triage labels
+
+Os cinco papéis usam o nome padrão como label: `needs-triage` (o mantenedor precisa avaliar), `needs-info` (esperando quem reportou), `ready-for-agent` (especificado, pronto para um agente sozinho), `ready-for-human` (precisa de implementação humana), `wontfix` (não será feito).
+
+### Domain docs
+
+Contexto único: `GLOSSARY.md` e `docs/adr/` na raiz.
+
+- Antes de explorar uma área, leia o `GLOSSARY.md` e as ADRs de `docs/adr/` que tocam nela. Se não existirem, siga em frente sem comentar; o `/domain-modeling` (via `/grill-with-docs` e `/improve-codebase-architecture`) cria os arquivos quando um termo ou decisão é resolvido.
+- Nome de conceito de domínio em issue, proposta, hipótese ou teste usa o termo do glossário. Conceito ausente do glossário é sinal: ou a linguagem é inventada, ou é uma lacuna para o `/domain-modeling`.
+- Saída que contradiz uma ADR diz isso explicitamente: _Contradiz a ADR-0007 (...), mas vale reabrir porque..._
