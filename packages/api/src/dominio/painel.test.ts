@@ -77,7 +77,7 @@ describe("montarPainel com o caso do protótipo", () => {
     ]);
     expect(painel.soltos[0]?.extra).toBe("POP-COM-001");
     expect(painel.comunicado?.titulo).toBe(
-      "Módulo 13 atualizado com o novo cadastro de atendimentos do CRM"
+      "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM"
     );
   });
 });

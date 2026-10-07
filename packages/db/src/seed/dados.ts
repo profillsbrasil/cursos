@@ -243,7 +243,8 @@ export const SOLTOS = ["nova-rotina", "gravacao", "autoavaliacao"];
 export const COMUNICADO = {
   chave: "modulo-13-atualizado",
   texto: "Quem já concluiu a versão anterior mantém o certificado.",
-  titulo: "Módulo 13 atualizado com o novo cadastro de atendimentos do CRM",
+  titulo:
+    "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM",
 };
 
 /** Progresso de exemplo do aluno A: quantas aulas assistidas por módulo, em ordem. */
