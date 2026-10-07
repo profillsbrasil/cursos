@@ -12,6 +12,7 @@
     "db:migrate:deploy": "drizzle-kit migrate",
     "db:migrate:local": "drizzle-kit migrate --config drizzle.local.config.ts",
     "db:push": "drizzle-kit push",
+    "db:seed": "bun run src/seed/index.ts",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:studio": "drizzle-kit studio",
