@@ -210,7 +210,7 @@ describe("lancamentosDaAssistida", () => {
       { aulaId: AULA, motivo: "aula_assistida", pontos: 10 },
       { diaMarco: QUARTA, motivo: "sequencia_7_dias", pontos: 30 },
     ]);
-    expect(conquistaDe(e)).toEqual({
+    expect(conquistaDe(e.lancamentos, e.sequenciaDias)).toEqual({
       bonusSequencia: 30,
       pontos: 10,
       sequenciaDias: 7,

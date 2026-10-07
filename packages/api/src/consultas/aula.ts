@@ -228,7 +228,7 @@ export function registrar(
           fato.dia as DiaISO,
           aberto.dias
         );
-        await tx
+        const gravados = await tx
           .insert(pontoLancamento)
           .values(
             efeitos.lancamentos.map((l) => ({
@@ -237,8 +237,12 @@ export function registrar(
               userId,
             }))
           )
-          .onConflictDoNothing();
-        conquista = conquistaDe(efeitos);
+          .onConflictDoNothing()
+          .returning({
+            motivo: pontoLancamento.motivo,
+            pontos: pontoLancamento.pontos,
+          });
+        conquista = conquistaDe(gravados, efeitos.sequenciaDias);
       }
     }
     return {

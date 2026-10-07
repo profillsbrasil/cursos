@@ -363,6 +363,38 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(bonus).toEqual([{ diaMarco: "2026-10-07" }]);
   });
 
+  test("a conquista mostra só os lançamentos que entraram", async () => {
+    const { aluno, c } = await cursoLiberado(7);
+    const dias = [
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-05",
+      "2026-10-06",
+    ];
+    await db.insert(aulaAssistida).values(
+      dias.map((dia, i) => ({
+        assistidaEm: new Date(`${dia}T15:00:00Z`),
+        aulaId: c.aulas[i] ?? "",
+        userId: aluno,
+      }))
+    );
+    await db.insert(pontoLancamento).values({
+      criadoEm: em(-3600),
+      diaMarco: "2026-10-07",
+      motivo: "sequencia_7_dias",
+      pontos: 30,
+      userId: aluno,
+    });
+    const r = await assistir540(aluno, c.aulas[6] as AulaId, 0);
+    expect(r.conquista).toEqual({
+      bonusSequencia: null,
+      pontos: 10,
+      sequenciaDias: 7,
+    });
+  });
+
   test("falha no meio desfaz tudo: sem fato, posição e cota de antes", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;

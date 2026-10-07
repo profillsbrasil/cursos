@@ -146,13 +146,17 @@ export interface Conquista {
   sequenciaDias: number;
 }
 
-export function conquistaDe(e: EfeitosDaAssistida): Conquista {
+/** Monta o aviso com os lançamentos que de fato entraram no banco. */
+export function conquistaDe(
+  gravados: readonly { motivo: string; pontos: number }[],
+  sequenciaDias: number
+): Conquista {
   const pontosDe = (motivo: LancamentoNovo["motivo"]) =>
-    e.lancamentos.find((l) => l.motivo === motivo)?.pontos ?? null;
+    gravados.find((l) => l.motivo === motivo)?.pontos ?? null;
   return {
     bonusSequencia: pontosDe("sequencia_7_dias"),
     pontos: pontosDe("aula_assistida") ?? 0,
-    sequenciaDias: e.sequenciaDias,
+    sequenciaDias,
   };
 }
 
