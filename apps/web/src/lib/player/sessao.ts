@@ -177,7 +177,7 @@ export function criarSessaoDeEstudo(
   let pendentes: Trechos = SEM_TRECHOS;
   let medidor: Medidor = MEDIDOR_PARADO;
   const posicaoDe = (seg: number) => Math.floor(limitar(seg, 0, duracaoSeg));
-  let posicaoEnviada = posicaoDe(entrada.inicioSeg);
+  let posicaoConfirmada = posicaoDe(entrada.inicioSeg);
   let pediuNaMeta = false;
   let encerrada = false;
   let falhasSeguidas = 0;
@@ -250,7 +250,7 @@ export function criarSessaoDeEstudo(
   }
 
   const temNovidade = () =>
-    pendentes.length > 0 || posicaoDe(tempoSeg) !== posicaoEnviada;
+    pendentes.length > 0 || posicaoDe(tempoSeg) !== posicaoConfirmada;
 
   function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
     if (encerrada) {
@@ -278,7 +278,7 @@ export function criarSessaoDeEstudo(
       return;
     }
     falhasSeguidas = 0;
-    posicaoEnviada = pedido.posicaoSeg;
+    posicaoConfirmada = pedido.posicaoSeg;
     servidor = unir(servidor, canonizar(r.registro.trechos, duracaoSeg));
     pendentes = subtrair(pendentes, servidor);
     assistida = assistida || r.registro.assistida;
