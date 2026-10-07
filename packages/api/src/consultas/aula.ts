@@ -47,11 +47,15 @@ const ativasDo = (userId: string) =>
  * 4 statements, sem prepare nomeado (pooler 6543). Só o primeiro depende da chave;
  * os outros filtram por user_id. As posições saem num select comum porque a
  * relational query não passa int4multirange pelo fromDriver.
+ *
+ * `serial` é para dentro de uma transação: os quatro dividem um client, e o pg 8
+ * avisa que query concorrente no mesmo client deixa de funcionar no pg 9.
  */
 export async function linhasDoCurso(
   exec: Executor,
   userId: string,
-  chave: ChaveCurso
+  chave: ChaveCurso,
+  { serial }: { serial: boolean }
 ): Promise<LinhasCurso> {
   const consultas = [
     exec.query.curso.findFirst({
@@ -106,17 +110,14 @@ export async function linhasDoCurso(
       .from(posicaoAula)
       .where(eq(posicaoAula.userId, userId)),
   ] as const;
-  // Numa transação os quatro dividem um client, e o pg 8 avisa que query
-  // concorrente no mesmo client deixa de funcionar no pg 9.
-  const [curso, certificados, assistidas, posicoes] =
-    "rollback" in exec
-      ? ([
-          await consultas[0],
-          await consultas[1],
-          await consultas[2],
-          await consultas[3],
-        ] as const)
-      : await Promise.all(consultas);
+  const [curso, certificados, assistidas, posicoes] = serial
+    ? ([
+        await consultas[0],
+        await consultas[1],
+        await consultas[2],
+        await consultas[3],
+      ] as const)
+    : await Promise.all(consultas);
   return { assistidas, certificados, curso: curso ?? null, posicoes };
 }
 
@@ -126,7 +127,9 @@ export async function carregarAula(
   slug: string,
   aulaId: string
 ): Promise<AulaNoPlayer | null> {
-  const aberto = montarCursoAberto(await linhasDoCurso(db, userId, { slug }));
+  const aberto = montarCursoAberto(
+    await linhasDoCurso(db, userId, { slug }, { serial: false })
+  );
   const aula = aberto && aulaPorId(aberto, aulaId);
   return aberto && aula ? montarAulaNoPlayer(aberto, aula) : null;
 }
@@ -136,7 +139,9 @@ export async function carregarEntrada(
   userId: string,
   slug: string
 ): Promise<EntradaDoCurso | null> {
-  const aberto = montarCursoAberto(await linhasDoCurso(db, userId, { slug }));
+  const aberto = montarCursoAberto(
+    await linhasDoCurso(db, userId, { slug }, { serial: false })
+  );
   return aberto && entradaDoCurso(aberto);
 }
 
@@ -175,7 +180,7 @@ export function registrar(
         segundos: cotaVideo.segundos,
       });
     const aberto = montarCursoAberto(
-      await linhasDoCurso(tx, userId, { aulaId })
+      await linhasDoCurso(tx, userId, { aulaId }, { serial: true })
     );
     const aula = aberto && aulaPorId(aberto, aulaId);
     if (!(aberto && aula)) {
