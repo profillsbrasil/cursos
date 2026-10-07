@@ -22,4 +22,4 @@ export const COTA_VIDEO = {
 
 export const TRECHOS_POR_ENVIO = 64;
 
-export const FIM_DA_AULA_SEG = 10;
+export const MARGEM_REINICIO_SEG = 10;

@@ -9,7 +9,7 @@ import {
 } from "./curso";
 import { atividadeDe, historicoDe, posicaoComecada } from "./historico";
 import { type CursoLinha, paraCatalogo } from "./painel";
-import { FIM_DA_AULA_SEG } from "./regras";
+import { MARGEM_REINICIO_SEG } from "./regras";
 import { aulaDeRetomada } from "./retomada";
 import type {
   AulaCatalogo,
@@ -255,7 +255,10 @@ export function inicioDaAula(
   estudo: { assistida: boolean; posicaoSeg: number },
   duracaoSeg: number
 ): number {
-  if (estudo.assistida || estudo.posicaoSeg >= duracaoSeg - FIM_DA_AULA_SEG) {
+  if (
+    estudo.assistida ||
+    estudo.posicaoSeg >= duracaoSeg - MARGEM_REINICIO_SEG
+  ) {
     return 0;
   }
   return estudo.posicaoSeg;
