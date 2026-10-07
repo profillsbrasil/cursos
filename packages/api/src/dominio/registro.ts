@@ -49,7 +49,6 @@ export interface Pedido {
 }
 
 export interface Aplicacao {
-  aceitosSeg: number;
   /** A gravar. atualizadaEm nunca volta: relógio atrasado mantém o da cota. */
   cota: Cota;
   /** Limitada a [0, duracaoSeg]. */
@@ -73,7 +72,6 @@ export function aplicarRegistro(
 ): Aplicacao {
   let disponivel = recarregar(cota, agora);
   let acumulado = salvo.trechos;
-  let aceitosSeg = 0;
   let recusadosSeg = 0;
   // A ordem do cliente é a ordem em que o vídeo tocou: a cota corta o fim, não o começo.
   for (const t of pedido.trechos) {
@@ -81,12 +79,10 @@ export function aplicarRegistro(
     const levar = primeiros(novos, disponivel);
     const levados = segundos(levar);
     acumulado = unir(acumulado, levar);
-    aceitosSeg += levados;
     recusadosSeg += segundos(novos) - levados;
     disponivel -= levados;
   }
   return {
-    aceitosSeg,
     cota: {
       atualizadaEm:
         cota && cota.atualizadaEm > agora ? cota.atualizadaEm : agora,

@@ -58,7 +58,7 @@ describe("aplicarRegistro", () => {
       { posicaoSeg: 600, trechos: [t(0, 600)] },
       T0
     );
-    expect(r.aceitosSeg).toBe(180);
+    expect(segundos(r.trechos)).toBe(180);
     expect(r.recusadosSeg).toBe(420);
     expect<readonly Trecho[]>(r.trechos).toEqual([t(0, 180)]);
     expect(r.cota.segundos).toBe(0);
@@ -75,7 +75,6 @@ describe("aplicarRegistro", () => {
     );
     expect(dois.trechos).toEqual(um.trechos);
     expect(dois.cota.segundos).toBe(um.cota.segundos);
-    expect(dois.aceitosSeg).toBe(0);
   });
 
   test("segundo já coberto não gasta", () => {
@@ -86,7 +85,7 @@ describe("aplicarRegistro", () => {
       { posicaoSeg: 110, trechos: [t(90, 110)] },
       T0
     );
-    expect(r.aceitosSeg).toBe(10);
+    expect(r.cota.segundos).toBe(0);
     expect(r.recusadosSeg).toBe(0);
     expect<readonly Trecho[]>(r.trechos).toEqual([t(0, 110)]);
   });
@@ -98,7 +97,7 @@ describe("aplicarRegistro", () => {
       { posicaoSeg: 20, trechos: [t(0, 20)] },
       em(-120)
     );
-    expect(r.aceitosSeg).toBe(5);
+    expect(segundos(r.trechos)).toBe(5);
   });
 
   test("chamada com relógio atrasado não volta a cota no tempo", () => {

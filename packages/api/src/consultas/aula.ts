@@ -179,6 +179,9 @@ export function registrar(
         atualizadaEm: cotaVideo.atualizadaEm,
         segundos: cotaVideo.segundos,
       });
+    if (!cota) {
+      throw new Error("O upsert da cota não devolveu a linha.");
+    }
     const aberto = montarCursoAberto(
       await linhasDoCurso(tx, userId, { aulaId }, { serial: true })
     );
@@ -192,7 +195,7 @@ export function registrar(
     const salvo = estudoDaAula(aberto, aula);
     const r = aplicarRegistro(
       { ...salvo, duracaoSeg: aula.duracaoSeg },
-      cota ?? null,
+      cota,
       pedido,
       agora
     );

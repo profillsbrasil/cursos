@@ -10,7 +10,8 @@ declare const canonico: unique symbol;
 
 /**
  * Trechos inteiros, ordenados, sem sobreposição, sem trechos encostados e dentro
- * de [0, duração). Só `canonizar` e `SEM_TRECHOS` produzem o tipo.
+ * de [0, duração). `canonizar` e `SEM_TRECHOS` produzem o tipo; `subtrair`,
+ * `primeiros` e `unir` o preservam a partir de entradas canônicas.
  */
 export type Trechos = readonly Trecho[] & { readonly [canonico]: true };
 

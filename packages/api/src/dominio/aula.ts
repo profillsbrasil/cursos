@@ -63,7 +63,6 @@ export interface CursoAberto {
   estado: EstadoQueAbre;
   historico: Historico;
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
-  trilha: { titulo: string } | null;
 }
 
 /**
@@ -118,7 +117,6 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
     trechos: new Map(
       linhas.posicoes.map((p) => [p.aulaId as AulaId, p.trechosVistos])
     ),
-    trilha: trilhaLinha && pelaTrilha ? { titulo: trilhaLinha.titulo } : null,
   };
 }
 
@@ -139,7 +137,6 @@ export interface ModuloNaColuna {
 }
 
 export interface VizinhaDaAula {
-  duracaoSeg: number;
   id: AulaId;
   titulo: string;
 }
@@ -158,11 +155,9 @@ export interface AulaNoPlayer {
     video: VideoDaAula | null;
   };
   curso: {
-    estado: EstadoQueAbre["tipo"];
     progresso: Progresso;
     slug: string;
     titulo: string;
-    trilha: { titulo: string } | null;
   };
   estudo: { assistida: boolean; posicaoSeg: number; trechos: Trechos };
   /** A coluna da direita, o módulo atual aberto. */
@@ -182,9 +177,7 @@ export const aulaPorId = (c: CursoAberto, id: string): AulaCatalogo | null =>
   aulasEmOrdem(c.curso).find((x) => x.aula.id === id)?.aula ?? null;
 
 const vizinha = (x: AulaNoCurso | undefined): VizinhaDaAula | null =>
-  x
-    ? { duracaoSeg: x.aula.duracaoSeg, id: x.aula.id, titulo: x.aula.titulo }
-    : null;
+  x ? { id: x.aula.id, titulo: x.aula.titulo } : null;
 
 export function estudoDaAula(
   c: CursoAberto,
@@ -221,11 +214,9 @@ export function montarAulaNoPlayer(
       video: aula.video,
     },
     curso: {
-      estado: c.estado.tipo,
       progresso: progresso(c.curso, assistidas),
       slug: c.curso.slug,
       titulo: c.curso.titulo,
-      trilha: c.trilha,
     },
     estudo: estudoDaAula(c, aula),
     modulos: c.curso.modulos.map((m) => ({

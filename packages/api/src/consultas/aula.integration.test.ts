@@ -458,7 +458,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         totalNoModulo: 3,
         video: { id: "aqz-KE-bpKQ", provedor: "youtube" },
       },
-      curso: { estado: "em_andamento", slug: c.slug },
+      curso: { slug: c.slug },
       estudo: { assistida: false, posicaoSeg: 42 },
       proxima: { id: c.aulas[2] },
     });
