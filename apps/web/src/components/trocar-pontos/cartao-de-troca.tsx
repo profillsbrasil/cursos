@@ -1,37 +1,58 @@
+"use client";
+
 import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
+import { TRPCClientError } from "@trpc/client";
 import { BookOpen, Check, Gift, Loader2, Play, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { type KeyboardEvent, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useTransition,
+} from "react";
+import { toast } from "sonner";
 
 import { faltam, fmtMin, fmtNum, fmtPts, plural } from "@/lib/formato";
+import { trpcClient } from "@/utils/trpc";
 
 import { BOTAO, BOTAO_CONTORNO } from "./botoes";
 
-/** O que a grade sabe deste card além do servidor: a confirmação é estado da tela. */
-export type Momento = "parado" | "confirmando" | "enviando";
+type PodeTrocar = Extract<Cartao, { tipo: "pode_trocar" }>;
+type Momento = "parado" | "confirmando" | "enviando";
 
-export interface AcoesDoCartao {
+// As recusas da troca chegam com a mensagem pronta em pt-BR; o resto é falha de rede ou do
+// servidor, e aí o cliente não sabe se a troca gravou: o refresh mostra a verdade.
+const RECUSAS = new Set(["CONFLICT", "NOT_FOUND", "PRECONDITION_FAILED"]);
+
+function mensagemDoErro(e: unknown) {
+  if (e instanceof TRPCClientError && RECUSAS.has(e.data?.code)) {
+    return e.message;
+  }
+  return "Não deu para confirmar a troca. Confira seu saldo e o extrato antes de tentar de novo.";
+}
+
+interface AcoesDoCartao {
   cancelar: () => void;
   confirmar: () => void;
   trocar: () => void;
 }
 
-export const alvoDeFoco = (
-  alvo: "trocar" | "confirmar" | "comecar",
-  cursoId: string
-) => `${alvo}-${cursoId}`;
-
+/** `principal` marca o elemento que recebe o foco quando o card muda de estado. */
 function Acao({
   acoes,
   cartao,
   momento,
+  principal,
 }: {
   acoes: AcoesDoCartao;
   cartao: Cartao;
   momento: Momento;
+  principal: (el: HTMLElement | null) => void;
 }) {
   const { curso } = cartao;
   switch (cartao.tipo) {
@@ -40,8 +61,8 @@ function Acao({
         <>
           <Link
             className={cn(BOTAO, "w-full")}
-            data-foco={alvoDeFoco("comecar", curso.id)}
             href={`/cursos/${curso.slug}`}
+            ref={principal}
           >
             <Play aria-hidden="true" className="fill-current" />
             Começar curso
@@ -95,8 +116,8 @@ function Acao({
         return (
           <Button
             className={cn(BOTAO, "w-full")}
-            data-foco={alvoDeFoco("trocar", curso.id)}
             onClick={acoes.trocar}
+            ref={principal}
           >
             <Gift aria-hidden="true" />
             Trocar por {fmtPts(cartao.preco)}
@@ -108,6 +129,7 @@ function Acao({
           acoes={acoes}
           cartao={cartao}
           enviando={momento === "enviando"}
+          principal={principal}
         />
       );
     default:
@@ -119,10 +141,12 @@ function Confirmacao({
   acoes,
   cartao,
   enviando,
+  principal,
 }: {
   acoes: AcoesDoCartao;
-  cartao: Extract<Cartao, { tipo: "pode_trocar" }>;
+  cartao: PodeTrocar;
   enviando: boolean;
+  principal: (el: HTMLElement | null) => void;
 }) {
   const id = `confirma-${cartao.curso.id}`;
   const { cancelar } = acoes;
@@ -151,11 +175,11 @@ function Confirmacao({
         <Button
           aria-busy={enviando}
           className={cn(BOTAO, "flex-[1_1_110px] disabled:opacity-100")}
-          data-foco={alvoDeFoco("confirmar", cartao.curso.id)}
           disabled={enviando}
           focusableWhenDisabled
           onClick={acoes.confirmar}
           onKeyDown={aoTeclar}
+          ref={principal}
         >
           {enviando ? (
             <Loader2
@@ -181,18 +205,90 @@ function Confirmacao({
   );
 }
 
+/** Estado que a grade guarda por todos os cards: quem confirma (um por vez), o aviso e o destaque do extrato. */
+export interface Grade {
+  abrir: (id: Cartao["curso"]["id"]) => void;
+  fechar: (id: Cartao["curso"]["id"]) => void;
+  trocou: (lancamentoId: string) => void;
+}
+
+/** O card envia a própria troca e cuida do próprio foco. */
 export function CartaoDeTroca({
-  acoes,
   cartao,
-  momento,
+  confirmando,
+  grade,
   sizes,
 }: {
-  acoes: AcoesDoCartao;
   cartao: Cartao;
-  momento: Momento;
+  confirmando: boolean;
+  grade: Grade;
   sizes: string;
 }) {
+  const router = useRouter();
+  // A action termina no router.refresh(): enviando cobre a mutação e o card novo.
+  const [enviando, iniciar] = useTransition();
+  const card = useRef<HTMLElement>(null);
+  const titulo = useRef<HTMLHeadingElement>(null);
+  const principal = useRef<HTMLElement | null>(null);
+  const querFoco = useRef<boolean>(false);
+  const marcarPrincipal = useCallback((el: HTMLElement | null) => {
+    principal.current = el;
+  }, []);
+
+  let momento: Momento = "parado";
+  if (enviando) {
+    momento = "enviando";
+  } else if (confirmando) {
+    momento = "confirmando";
+  }
+
+  // Depois de abrir, cancelar ou terminar a troca, o foco vai para a ação do estado novo;
+  // o card "faltam" não tem ação, e o foco vai para o título.
+  useEffect(() => {
+    if (!querFoco.current || momento === "enviando") {
+      return;
+    }
+    querFoco.current = false;
+    const ativo = document.activeElement;
+    // Não rouba o foco de quem foi para outro lugar enquanto o servidor respondia.
+    if (ativo && ativo !== document.body && !card.current?.contains(ativo)) {
+      return;
+    }
+    (cartao.tipo === "faltam" ? titulo.current : principal.current)?.focus();
+  }, [momento, cartao.tipo]);
+
   const { curso } = cartao;
+  const acoes: AcoesDoCartao = {
+    cancelar: () => {
+      querFoco.current = true;
+      grade.fechar(curso.id);
+    },
+    confirmar: () => {
+      if (cartao.tipo !== "pode_trocar") {
+        return;
+      }
+      querFoco.current = true;
+      grade.fechar(curso.id);
+      iniciar(async () => {
+        try {
+          const r = await trpcClient.troca.trocar.mutate({
+            cursoId: curso.id,
+            precoVisto: cartao.preco,
+          });
+          grade.trocou(r.lancamentoId);
+        } catch (e) {
+          toast.error(mensagemDoErro(e));
+        }
+        // Sucesso ou recusa: o servidor tem a verdade nova (saldo, preço, estado do card).
+        router.refresh();
+      });
+    },
+    trocar: () => {
+      querFoco.current = true;
+      grade.abrir(curso.id);
+    },
+  };
+
   const liberado = cartao.tipo === "trocado";
   const tituloId = `troca-titulo-${curso.id}`;
   return (
@@ -202,7 +298,7 @@ export function CartaoDeTroca({
         "flex flex-col rounded-[20px] bg-card px-3 pt-3 pb-4 text-card-foreground ring-1 transition-shadow",
         liberado ? "ring-ceu" : "ring-border hover:ring-input"
       )}
-      data-cartao={curso.id}
+      ref={card}
     >
       <div className="relative aspect-video overflow-hidden rounded-lg bg-sidebar">
         <Image
@@ -228,6 +324,7 @@ export function CartaoDeTroca({
         <h3
           className="font-semibold text-[17px] text-titulo leading-[1.3] focus:outline-none"
           id={tituloId}
+          ref={titulo}
           tabIndex={-1}
         >
           {curso.titulo}
@@ -250,7 +347,12 @@ export function CartaoDeTroca({
         )}
       </div>
       <div className="grid gap-2.5 px-1.5 pt-3">
-        <Acao acoes={acoes} cartao={cartao} momento={momento} />
+        <Acao
+          acoes={acoes}
+          cartao={cartao}
+          momento={momento}
+          principal={marcarPrincipal}
+        />
       </div>
     </article>
   );
