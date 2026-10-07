@@ -7,10 +7,10 @@ import { Kbd } from "@cursos/ui/components/kbd";
 import type { EstadoDaSessao } from "@/lib/player/sessao";
 import { usePlayerDaAula } from "@/lib/player/use-player-da-aula";
 
-import { AvisoAulaAssistida } from "./aviso-aula-assistida";
 import { BarraDeTrechos } from "./barra-de-trechos";
 import { CabecalhoDaAula } from "./cabecalho-da-aula";
 import { ControlesDoPlayer } from "./controles-do-player";
+import { StatusDoPlayer } from "./status-do-player";
 
 const TECLA =
   "h-auto min-w-0 rounded-[4px] border border-chart-5 border-b-2 bg-transparent px-1 font-mono text-[11px] text-foreground";
@@ -90,6 +90,7 @@ export function PlayerDaAula({
             podeTelaCheia={p.podeTelaCheia}
             telaCheia={p.telaCheia}
           />
+          <StatusDoPlayer conquista={p.conquista} envio={p.estado.envio} />
           <Problema estado={p.estado} />
           <p className="text-muted-foreground text-xs max-[860px]:hidden">
             <Kbd className={TECLA}>espaço</Kbd> reproduz ·{" "}
@@ -102,7 +103,6 @@ export function PlayerDaAula({
         </div>
       </section>
       <CabecalhoDaAula dados={dados} destacarProxima={p.estado.assistida} />
-      <AvisoAulaAssistida conquista={p.conquista} />
     </div>
   );
 }

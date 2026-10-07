@@ -60,7 +60,6 @@ async function enviarRegistro(
   }
 }
 
-const AVISO_MS = 5200;
 const nada = () => () => undefined;
 
 /** Com o foco num botão ou no volume, a tecla é do controle, não do atalho. */
@@ -151,14 +150,6 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     document.addEventListener("fullscreenchange", aoMudar);
     return () => document.removeEventListener("fullscreenchange", aoMudar);
   }, []);
-
-  useEffect(() => {
-    if (!conquista) {
-      return;
-    }
-    const id = window.setTimeout(() => setConquista(null), AVISO_MS);
-    return () => window.clearTimeout(id);
-  }, [conquista]);
 
   const estado: EstadoDaSessao = useSyncExternalStore(
     sessao ? sessao.assinar : nada,
