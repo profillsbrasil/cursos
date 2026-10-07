@@ -31,7 +31,18 @@ const ALUNO_A = `user_teste${S}a`;
 const ALUNO_B = `user_teste${S}b`;
 const ALUNO_VAZIO = `user_teste${S}c`;
 const ALUNO_AVISO = `user_teste${S}d`;
-const ALUNOS = [ALUNO_A, ALUNO_B, ALUNO_VAZIO, ALUNO_AVISO];
+const ALUNO_DIRETO = `user_teste${S}e`;
+const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
+const ALUNO_REVOGADO_TRILHA = `user_teste${S}g`;
+const ALUNOS = [
+  ALUNO_A,
+  ALUNO_B,
+  ALUNO_VAZIO,
+  ALUNO_AVISO,
+  ALUNO_DIRETO,
+  ALUNO_REVOGADO_DIRETO,
+  ALUNO_REVOGADO_TRILHA,
+];
 
 // quarta-feira, 2026-10-07, 15:00 em São Paulo
 const AGORA = new Date("2026-10-07T18:00:00Z");
@@ -115,6 +126,43 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     db
       .insert(liberacao)
       .values({ liberadaPor: "user_admin", trilhaId, userId });
+
+  /** Liberação de um curso só, ativa ou já revogada. */
+  const liberarCurso = (userId: string, cursoId: string, revogada = false) =>
+    db.insert(liberacao).values({
+      cursoId,
+      liberadaPor: "user_admin",
+      userId,
+      ...(revogada ? revogacao() : {}),
+    });
+
+  /** Liberação de trilha já revogada; a revogação vem depois da liberação. */
+  const liberarERevogarTrilha = (userId: string, trilhaId: string) =>
+    db.insert(liberacao).values({
+      liberadaPor: "user_admin",
+      trilhaId,
+      userId,
+      ...revogacao(),
+    });
+
+  const revogacao = () => ({
+    liberadaEm: new Date(Date.now() - 60_000),
+    revogadaEm: new Date(),
+    revogadaPor: "user_admin",
+  });
+
+  const publicar = (
+    cursoId: string | undefined,
+    quando: string,
+    titulo: string
+  ) =>
+    db.insert(comunicado).values({
+      cursoId,
+      publicadoEm: new Date(quando),
+      publicadoPor: "user_admin",
+      texto: "teste",
+      titulo,
+    });
 
   const comoAluno = (userId: string | null) =>
     createCaller({ auth: userId ? { userId } : null, db });
@@ -265,6 +313,42 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     );
     const painel = await carregarPainel(db, ALUNO_AVISO, AGORA);
     expect(painel.comunicado?.titulo).toBe(`Aviso do meu curso ${S}`);
+  });
+
+  // Nos três testes abaixo, as datas no futuro deixam os comunicados à frente de
+  // qualquer comunicado geral do banco local.
+  test("comunicado de curso com liberação direta aparece", async () => {
+    const {
+      cursos: [solto],
+    } = await criarTrilha(1);
+    await liberarCurso(ALUNO_DIRETO, solto ?? "");
+    await publicar(solto, "2091-01-01T00:00:00Z", `Aviso direto ${S}`);
+    const painel = await carregarPainel(db, ALUNO_DIRETO, AGORA);
+    expect(painel.comunicado?.titulo).toBe(`Aviso direto ${S}`);
+  });
+
+  test("comunicado de curso com liberação direta revogada não aparece nem toma o limit 1", async () => {
+    const liberada = await criarTrilha(1);
+    const {
+      cursos: [revogado],
+    } = await criarTrilha(1);
+    await liberar(ALUNO_REVOGADO_DIRETO, liberada.id);
+    await liberarCurso(ALUNO_REVOGADO_DIRETO, revogado ?? "", true);
+    await publicar(liberada.cursos[0], "2092-01-01T00:00:00Z", `Visível ${S}`);
+    await publicar(revogado, "2092-01-02T00:00:00Z", `Revogado ${S}`);
+    const painel = await carregarPainel(db, ALUNO_REVOGADO_DIRETO, AGORA);
+    expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
+  });
+
+  test("comunicado de curso de trilha revogada não aparece nem toma o limit 1", async () => {
+    const liberada = await criarTrilha(1);
+    const revogada = await criarTrilha(1);
+    await liberar(ALUNO_REVOGADO_TRILHA, liberada.id);
+    await liberarERevogarTrilha(ALUNO_REVOGADO_TRILHA, revogada.id);
+    await publicar(liberada.cursos[0], "2093-01-01T00:00:00Z", `Visível ${S}`);
+    await publicar(revogada.cursos[0], "2093-01-02T00:00:00Z", `Revogado ${S}`);
+    const painel = await carregarPainel(db, ALUNO_REVOGADO_TRILHA, AGORA);
+    expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
   });
 
   test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
