@@ -30,15 +30,9 @@ import { COTA_VIDEO } from "../dominio/regras";
 import type { AulaId, DiaISO } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
 import { COM_CONTEUDO } from "./catalogo";
-import type { Executor } from "./pontos";
+import { ativasDo, type Executor } from "./comum";
 
 export type ChaveCurso = { aulaId: string } | { slug: string };
-
-export const ativasDo = (userId: string) =>
-  ({
-    columns: { id: true },
-    where: { revogadaEm: { isNull: true }, userId },
-  }) as const;
 
 /**
  * `serial` é para dentro de uma transação: os quatro dividem um client, e o pg 8

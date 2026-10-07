@@ -3,11 +3,8 @@ import { pontoLancamento } from "@cursos/db/schema/index";
 import { eq, sql } from "drizzle-orm";
 
 import type { LinhaDoExtrato } from "../dominio/pontos";
-import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { DiaISO } from "../dominio/tipos";
-
-export type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
-export type Executor = Database | Transacao;
+import type { Executor, Transacao } from "./comum";
 
 const FUSO = "America/Sao_Paulo";
 
@@ -33,6 +30,17 @@ export async function linhasDoSaldo(
     throw new Error("A soma sem group by não devolveu a linha.");
   }
   return linha;
+}
+
+/** Só o saldo, para quem decide um débito. */
+async function saldoDe(exec: Executor, userId: string): Promise<number> {
+  const [linha] = await exec
+    .select({
+      saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
+    })
+    .from(pontoLancamento)
+    .where(eq(pontoLancamento.userId, userId));
+  return linha?.saldo ?? 0;
 }
 
 /** Os `limite` lançamentos mais recentes, com o fato de cada um. */
@@ -72,18 +80,12 @@ export type TransacaoTravada = Transacao & { readonly [travada]: true };
 export function comSaldoTravado<T>(
   db: Database,
   userId: string,
-  agora: Date,
   fn: (tx: TransacaoTravada, saldo: number) => Promise<T>
 ): Promise<T> {
   return db.transaction(async (tx) => {
     await tx.execute(
       sql`select pg_advisory_xact_lock(hashtextextended(${`ponto:${userId}`}, 0))`
     );
-    const { saldo } = await linhasDoSaldo(
-      tx,
-      userId,
-      segundaDaSemana(diaLocal(agora))
-    );
-    return fn(tx as TransacaoTravada, saldo);
+    return fn(tx as TransacaoTravada, await saldoDe(tx, userId));
   });
 }

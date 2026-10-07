@@ -18,6 +18,7 @@ import {
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
+import { ativaDo } from "./comum";
 import { linhasDoSaldo } from "./pontos";
 
 // Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita
@@ -29,7 +30,7 @@ export async function linhasDoPainel(db: Database, userId: string) {
       db.query.liberacao.findMany({
         columns: { liberadaEm: true },
         orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
-        where: { revogadaEm: { isNull: true }, userId },
+        where: ativaDo(userId),
         with: {
           curso: COM_CONTEUDO,
           trilha: {

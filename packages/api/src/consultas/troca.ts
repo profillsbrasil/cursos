@@ -13,10 +13,9 @@ import {
   paraCursoDaTroca,
   type RecusaDaTroca,
 } from "../dominio/troca";
-import { ativasDo } from "./aula";
+import { ativaDo, ativasDo, type Executor } from "./comum";
 import {
   comSaldoTravado,
-  type Executor,
   linhasDoExtrato,
   linhasDoSaldo,
   type TransacaoTravada,
@@ -30,7 +29,7 @@ export async function linhasDosCursos(
   userId: string,
   filtro: { cursoId: CursoId } | "vitrine"
 ): Promise<CursoDaTroca[]> {
-  const ativas = { revogadaEm: { isNull: true }, userId } as const;
+  const ativas = ativaDo(userId);
   const linhas = await exec.query.curso.findMany({
     columns: {
       capaAlt: true,
@@ -189,7 +188,7 @@ export function trocar(
   precoVisto: number,
   agora: Date
 ): Promise<ResultadoDaTroca> {
-  return comSaldoTravado(db, userId, agora, async (tx, saldo) => {
+  return comSaldoTravado(db, userId, async (tx, saldo) => {
     const [curso] = await linhasDosCursos(tx, userId, { cursoId });
     const d = decidirTroca(curso ?? null, saldo, precoVisto);
     switch (d.tipo) {
