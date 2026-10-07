@@ -317,6 +317,12 @@ export function criarSessaoDeEstudo(
       return;
     }
     if (!temNovidade()) {
+      // Voltou ao que o servidor já tem: a falha anterior não deve mais nada.
+      if (envio.tipo !== "enviando" && envio.tipo !== "em_dia") {
+        tentativa = 0;
+        envio = { tipo: "em_dia" };
+        avisar();
+      }
       return;
     }
     pararEnvio?.();

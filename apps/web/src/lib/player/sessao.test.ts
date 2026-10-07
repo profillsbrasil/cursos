@@ -397,6 +397,25 @@ describe("envio sem mudança", () => {
   });
 });
 
+describe("nova tentativa", () => {
+  test("voltar à posição confirmada durante a espera devolve o envio a em dia", async () => {
+    const { relogio, servidor, sessao } = montar();
+    servidor.falhar({ tipo: "rede" });
+    sessao.comandar({ seg: 120, tipo: "buscar" });
+    await relogio.avancar(1600);
+    expect(sessao.estado().envio.tipo).toBe("esperando_nova_tentativa");
+    sessao.comandar({ seg: 0, tipo: "buscar" });
+    await relogio.avancar(1600);
+    expect(sessao.estado().envio).toEqual({ tipo: "em_dia" });
+    sessao.comandar({ seg: 200, tipo: "buscar" });
+    await relogio.avancar(1600);
+    expect(sessao.estado().envio).toEqual({
+      tentativa: 1,
+      tipo: "esperando_nova_tentativa",
+    });
+  });
+});
+
 describe("cadência do envio", () => {
   test("saltar com o vídeo tocando não envia na hora", async () => {
     const { relogio, servidor, sessao } = montar();
