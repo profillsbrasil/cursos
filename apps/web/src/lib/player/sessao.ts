@@ -251,6 +251,10 @@ export function criarSessaoDeEstudo(
 
   function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
     if (encerrada) {
+      // A página seguinte já leu o resumo: a conquista ainda precisa renová-lo.
+      if (r.tipo === "ok" && r.registro.conquista) {
+        deps.aoConquistar(r.registro.conquista);
+      }
       return;
     }
     if (r.tipo === "definitivo") {

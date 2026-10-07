@@ -407,6 +407,20 @@ describe("encerrar com a rede caída", () => {
     await relogio.avancar(120_000);
     expect(servidor.pedidos).toHaveLength(1);
   });
+
+  test("a conquista que chega no envio de saída ainda é avisada", async () => {
+    const { conquistas, relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(530_000);
+    servidor.falhar({ tipo: "rede" });
+    await relogio.avancar(11_000);
+    expect(conquistas).toHaveLength(0);
+    servidor.falhar(null);
+    sessao.encerrar();
+    await relogio.flush();
+    expect(servidor.coberturaSeg()).toBeGreaterThanOrEqual(540);
+    expect(conquistas).toHaveLength(1);
+  });
 });
 
 describe("transicao", () => {
