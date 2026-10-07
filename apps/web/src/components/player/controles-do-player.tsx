@@ -155,15 +155,17 @@ export function ControlesDoPlayer({
         <span className="sr-only" id={idVolume}>
           Volume
         </span>
-        <Slider
-          aria-labelledby={idVolume}
-          className="mr-1.5 w-[84px] py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:focus-visible:outline-2 [&_[data-slot=slider-thumb]]:focus-visible:outline-ceu [&_[data-slot=slider-thumb]]:focus-visible:outline-solid [&_[data-slot=slider-thumb]]:focus-visible:outline-offset-2 [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
-          max={100}
-          min={0}
-          onValueChange={definirVolume}
-          step={5}
-          value={nivelAudivel}
-        />
+        <span className="mr-1.5 w-[84px] shrink-0">
+          <Slider
+            aria-labelledby={idVolume}
+            className="py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:focus-visible:outline-2 [&_[data-slot=slider-thumb]]:focus-visible:outline-ceu [&_[data-slot=slider-thumb]]:focus-visible:outline-solid [&_[data-slot=slider-thumb]]:focus-visible:outline-offset-2 [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
+            max={100}
+            min={0}
+            onValueChange={definirVolume}
+            step={5}
+            value={nivelAudivel}
+          />
+        </span>
       </span>
       <span className="ml-1.5 font-mono text-[13px] text-muted-foreground tabular-nums">
         <b className="font-medium text-foreground">{mmss(estado.tempoSeg)}</b> /{" "}
