@@ -16,12 +16,10 @@ import {
 
 import { trpcClient } from "@/utils/trpc";
 import {
-  gravarPreferencias,
-  lerPreferencias,
+  criarSessaoComPreferencias,
   PREFERENCIAS_PADRAO,
 } from "./preferencias";
 import {
-  criarSessaoDeEstudo,
   type EstadoDaSessao,
   estadoInicial,
   motivoParadoDe,
@@ -98,31 +96,20 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     if (!elemento) {
       return;
     }
-    let gravadas = lerPreferencias();
-    const s = criarSessaoDeEstudo(
-      { ...inicial, preferencias: gravadas },
-      {
-        agendar: (fn, ms) => {
-          const id = window.setTimeout(fn, ms);
-          return () => window.clearTimeout(id);
-        },
-        aoConquistar: (c) => {
-          setConquista(c);
-          startTransition(() => router.refresh());
-        },
-        criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
-        enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
-        relogio: () => performance.now(),
-      }
-    );
-    setSessao(s);
-    const pararDeGravar = s.assinar(() => {
-      const { velocidade, volume } = s.estado();
-      if (velocidade !== gravadas.velocidade || volume !== gravadas.volume) {
-        gravadas = { velocidade, volume };
-        gravarPreferencias(gravadas);
-      }
+    const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(inicial, {
+      agendar: (fn, ms) => {
+        const id = window.setTimeout(fn, ms);
+        return () => window.clearTimeout(id);
+      },
+      aoConquistar: (c) => {
+        setConquista(c);
+        startTransition(() => router.refresh());
+      },
+      criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
+      enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
+      relogio: () => performance.now(),
     });
+    setSessao(s);
     const aoEsconder = () => {
       if (document.visibilityState === "hidden") {
         s.salvarAgora();

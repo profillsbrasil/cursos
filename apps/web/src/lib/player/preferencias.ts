@@ -1,6 +1,12 @@
 import { VELOCIDADES, type Velocidade } from "@cursos/api/dominio/regras";
 import { z } from "zod";
 
+import {
+  criarSessaoDeEstudo,
+  type DependenciasDaSessao,
+  type EntradaDaSessao,
+  type SessaoDeEstudo,
+} from "./sessao";
 import type { Volume } from "./video";
 
 /** Volume e velocidade valem por aparelho, não por aula. */
@@ -48,4 +54,24 @@ export function gravarPreferencias(p: Preferencias): void {
   } catch {
     // Sem armazenamento, a preferência dura só esta aula.
   }
+}
+
+/** A sessão nasce com a preferência gravada e grava cada mudança de volume ou velocidade. */
+export function criarSessaoComPreferencias(
+  entrada: Omit<EntradaDaSessao, "preferencias">,
+  deps: DependenciasDaSessao
+): { pararDeGravar: () => void; sessao: SessaoDeEstudo } {
+  let gravadas = lerPreferencias();
+  const sessao = criarSessaoDeEstudo(
+    { ...entrada, preferencias: gravadas },
+    deps
+  );
+  const pararDeGravar = sessao.assinar(() => {
+    const { velocidade, volume } = sessao.estado();
+    if (velocidade !== gravadas.velocidade || volume !== gravadas.volume) {
+      gravadas = { velocidade, volume };
+      gravarPreferencias(gravadas);
+    }
+  });
+  return { pararDeGravar, sessao };
 }
