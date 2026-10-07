@@ -36,6 +36,7 @@ import {
   PROGRESSO_A,
   SOLTOS,
   TRILHAS,
+  TROCA_A,
   VIDEO_EXEMPLO,
 } from "./dados";
 import {
@@ -135,6 +136,7 @@ function linhasDeConteudo() {
     codigo: c.codigo,
     destaque: c.destaque,
     id: idCurso(c.chave),
+    precoTroca: c.precoTroca ?? null,
     slug: c.chave,
     status: c.status,
     tema: c.tema,
@@ -199,6 +201,7 @@ async function upsertConteudo(tx: Transacao) {
         capaUrl: novo("capa_url"),
         codigo: novo("codigo"),
         destaque: novo("destaque"),
+        precoTroca: novo("preco_troca"),
         slug: novo("slug"),
         status: novo("status"),
         tema: novo("tema"),
@@ -390,6 +393,31 @@ async function semear(url: string, alunoA: string) {
         userId: alunoA,
       },
     ]);
+
+    // A troca é o par liberação + lançamento negativo, como troca.trocar grava.
+    const trocado = CURSOS.find((c) => c.chave === TROCA_A.curso);
+    if (!trocado?.precoTroca) {
+      throw new Error(
+        `Troca de exemplo aponta para curso sem preço: ${TROCA_A.curso}`
+      );
+    }
+    const trocadoEm = diasAtras(hoje, TROCA_A.diasAtras, 11);
+    const [lib] = await tx
+      .insert(liberacao)
+      .values({
+        cursoId: idCurso(trocado.chave),
+        liberadaEm: trocadoEm,
+        liberadaPor: alunoA,
+        userId: alunoA,
+      })
+      .returning({ id: liberacao.id });
+    await tx.insert(pontoLancamento).values({
+      criadoEm: trocadoEm,
+      liberacaoId: lib?.id,
+      motivo: "troca",
+      pontos: -trocado.precoTroca,
+      userId: alunoA,
+    });
   });
 
   const contagem = await db.execute<{ n: number; tabela: string }>(sql`
