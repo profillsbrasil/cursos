@@ -1,0 +1,264 @@
+// Consultas contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
+// Cada execução cria alunos user_teste<hex> e slugs teste-<hex> e apaga tudo no afterAll.
+// Sem db reset nem TRUNCATE: o banco local é compartilhado entre worktrees.
+
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { randomBytes } from "node:crypto";
+import { createDb } from "@cursos/db";
+import {
+  aula,
+  aulaAssistida,
+  curso,
+  liberacao,
+  modulo,
+  pontoLancamento,
+  posicaoAula,
+  trilha,
+  trilhaCurso,
+} from "@cursos/db/schema/index";
+import { urlDeTeste } from "@cursos/db/seed/guarda-local";
+import { TRPCError } from "@trpc/server";
+import { and, eq, inArray, isNull } from "drizzle-orm";
+
+import { createCaller } from "../routers/index";
+import { carregarPainel, carregarResumo } from "./meus-cursos";
+
+const URL_TESTE = urlDeTeste();
+const hex = () => randomBytes(4).toString("hex");
+const S = hex();
+const ALUNO_A = `user_teste${S}a`;
+const ALUNO_B = `user_teste${S}b`;
+const ALUNO_VAZIO = `user_teste${S}c`;
+const ALUNOS = [ALUNO_A, ALUNO_B, ALUNO_VAZIO];
+
+// quarta-feira, 2026-10-07, 15:00 em São Paulo
+const AGORA = new Date("2026-10-07T18:00:00Z");
+
+describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
+  let statements = 0;
+  const db = createDb(
+    { DATABASE_URL: URL_TESTE ?? "" },
+    {
+      logger: {
+        logQuery: () => {
+          statements += 1;
+        },
+      },
+    }
+  );
+  const trilhas: string[] = [];
+  const cursos: string[] = [];
+
+  /** Trilha com `n` cursos publicados de 1 módulo e 2 aulas cada. */
+  async function criarTrilha(n: number) {
+    const sufixo = hex();
+    const [t] = await db
+      .insert(trilha)
+      .values({
+        descricao: "teste",
+        slug: `teste-${sufixo}`,
+        titulo: `Trilha ${sufixo}`,
+      })
+      .returning({ id: trilha.id });
+    if (!t) {
+      throw new Error("trilha não criada");
+    }
+    trilhas.push(t.id);
+    const novos = await db
+      .insert(curso)
+      .values(
+        Array.from({ length: n }, (_, i) => ({
+          capaAlt: "Capa de teste",
+          capaUrl: "/capas/teste.jpg",
+          slug: `teste-${sufixo}-${i}`,
+          status: "publicado" as const,
+          tema: "teste",
+          titulo: `Curso ${i}`,
+        }))
+      )
+      .returning({ id: curso.id });
+    cursos.push(...novos.map((c) => c.id));
+    await db
+      .insert(trilhaCurso)
+      .values(
+        novos.map((c, i) => ({ cursoId: c.id, posicao: i + 1, trilhaId: t.id }))
+      );
+    const modulos = await db
+      .insert(modulo)
+      .values(
+        novos.map((c) => ({ cursoId: c.id, numero: 1, titulo: "Módulo" }))
+      )
+      .returning({ id: modulo.id });
+    const aulas = await db
+      .insert(aula)
+      .values(
+        modulos.flatMap((m) =>
+          [1, 2].map((posicao) => ({
+            duracaoSeg: 600,
+            moduloId: m.id,
+            posicao,
+            titulo: `Aula ${posicao}`,
+          }))
+        )
+      )
+      .returning({ id: aula.id, moduloId: aula.moduloId });
+    return {
+      aulas: aulas.map((a) => a.id),
+      cursos: novos.map((c) => c.id),
+      id: t.id,
+    };
+  }
+
+  const liberar = (userId: string, trilhaId: string) =>
+    db
+      .insert(liberacao)
+      .values({ liberadaPor: "user_admin", trilhaId, userId });
+
+  const comoAluno = (userId: string | null) =>
+    createCaller({ auth: userId ? { userId } : null, db });
+
+  let pequena: Awaited<ReturnType<typeof criarTrilha>>;
+
+  beforeAll(async () => {
+    pequena = await criarTrilha(1);
+  });
+
+  afterAll(async () => {
+    await db
+      .delete(pontoLancamento)
+      .where(inArray(pontoLancamento.userId, ALUNOS));
+    await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
+    await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
+    await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
+    await db.delete(trilha).where(inArray(trilha.id, trilhas));
+    await db.delete(curso).where(inArray(curso.id, cursos));
+    await db.$client.end();
+  });
+
+  test("sem login, painel e resumo lançam UNAUTHORIZED", async () => {
+    const anonimo = comoAluno(null);
+    const erros = await Promise.all(
+      [anonimo.meusCursos.painel(), anonimo.aluno.resumo()].map((chamada) =>
+        chamada.catch((e: unknown) => e)
+      )
+    );
+    for (const erro of erros) {
+      expect(erro).toBeInstanceOf(TRPCError);
+      expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
+    }
+  });
+
+  test("aluno sem liberação recebe painel vazio e retomada nula", async () => {
+    const painel = await comoAluno(ALUNO_VAZIO).meusCursos.painel();
+    expect(painel.trilhas).toEqual([]);
+    expect(painel.soltos).toEqual([]);
+    expect(painel.retomada).toBeNull();
+  });
+
+  test("aluno B não vê trilha liberada só para o aluno A", async () => {
+    await liberar(ALUNO_A, pequena.id);
+    const a = await comoAluno(ALUNO_A).meusCursos.painel();
+    const b = await comoAluno(ALUNO_B).meusCursos.painel();
+    expect(a.trilhas.map((t) => String(t.id))).toContain(pequena.id);
+    expect(b.trilhas.map((t) => String(t.id))).not.toContain(pequena.id);
+  });
+
+  test("liberação revogada tira a trilha do painel, e liberar de novo devolve o progresso", async () => {
+    const [primeira] = pequena.aulas;
+    await db
+      .insert(aulaAssistida)
+      .values({ aulaId: primeira ?? "", userId: ALUNO_A });
+    const antes = await carregarPainel(db, ALUNO_A, AGORA);
+    expect(antes.trilhas.find((t) => t.id === pequena.id)?.aulas.feitas).toBe(
+      1
+    );
+
+    await db
+      .update(liberacao)
+      .set({ revogadaEm: new Date(), revogadaPor: "user_admin" })
+      .where(and(eq(liberacao.userId, ALUNO_A), isNull(liberacao.revogadaEm)));
+    const revogado = await carregarPainel(db, ALUNO_A, AGORA);
+    expect(revogado.trilhas.map((t) => String(t.id))).not.toContain(pequena.id);
+
+    await liberar(ALUNO_A, pequena.id);
+    const deNovo = await carregarPainel(db, ALUNO_A, AGORA);
+    expect(deNovo.trilhas.find((t) => t.id === pequena.id)?.aulas).toEqual({
+      feitas: 1,
+      pct: 50,
+      total: 2,
+    });
+  });
+
+  test("aula assistida e posição de outro aluno não entram", async () => {
+    await liberar(ALUNO_B, pequena.id);
+    const [, segunda] = pequena.aulas;
+    await db
+      .insert(posicaoAula)
+      .values({ aulaId: segunda ?? "", posicaoSeg: 120, userId: ALUNO_A });
+    const b = await carregarPainel(db, ALUNO_B, AGORA);
+    const daTrilha = b.trilhas.find((t) => t.id === pequena.id);
+    expect(daTrilha?.aulas.feitas).toBe(0);
+    expect(daTrilha?.cursos[0]?.estado.tipo).toBe("nao_iniciado");
+    expect(b.retomada?.tipo).toBe("comecar");
+  });
+
+  test("saldo é a soma do livro-razão e a semana começa na segunda 00:00 de São Paulo", async () => {
+    const [primeira, segunda] = pequena.aulas;
+    // A aula 1 já foi assistida pelo aluno A no teste da revogação.
+    await db
+      .insert(aulaAssistida)
+      .values({ aulaId: segunda ?? "", userId: ALUNO_A });
+    await db.insert(pontoLancamento).values([
+      // domingo 23:59 em São Paulo: semana anterior
+      {
+        aulaId: primeira,
+        criadoEm: new Date("2026-10-05T02:59:00Z"),
+        motivo: "aula_assistida",
+        pontos: 10,
+        userId: ALUNO_A,
+      },
+      // segunda 00:00 em São Paulo: esta semana
+      {
+        aulaId: segunda,
+        criadoEm: new Date("2026-10-05T03:00:00Z"),
+        motivo: "aula_assistida",
+        pontos: 10,
+        userId: ALUNO_A,
+      },
+      {
+        criadoEm: new Date("2026-10-06T15:00:00Z"),
+        diaMarco: "2026-10-06",
+        motivo: "sequencia_7_dias",
+        pontos: 30,
+        userId: ALUNO_A,
+      },
+    ]);
+    const resumo = await carregarResumo(db, ALUNO_A, AGORA);
+    expect(resumo.saldo).toBe(50);
+    expect(resumo.pontosSemana).toBe(40);
+  });
+
+  test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
+    const grande = await criarTrilha(40);
+    await liberar(ALUNO_B, grande.id);
+    const contar = async (f: () => Promise<unknown>) => {
+      statements = 0;
+      await f();
+      return statements;
+    };
+    const comUm = {
+      painel: await contar(() => carregarPainel(db, ALUNO_A, AGORA)),
+      resumo: await contar(() => carregarResumo(db, ALUNO_A, AGORA)),
+    };
+    const comQuarenta = {
+      painel: await contar(() => carregarPainel(db, ALUNO_B, AGORA)),
+      resumo: await contar(() => carregarResumo(db, ALUNO_B, AGORA)),
+    };
+    const painelB = await carregarPainel(db, ALUNO_B, AGORA);
+    expect(
+      painelB.trilhas.find((t) => t.id === grande.id)?.cursos
+    ).toHaveLength(40);
+    expect(comUm).toEqual({ painel: 5, resumo: 2 });
+    expect(comQuarenta).toEqual({ painel: 5, resumo: 2 });
+  });
+});
