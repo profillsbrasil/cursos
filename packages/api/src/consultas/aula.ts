@@ -224,7 +224,7 @@ export function registrar(
         const efeitos = lancamentosDaAssistida(
           aulaId,
           fato.dia as DiaISO,
-          aberto.dias
+          aberto.diasComAulaAssistida
         );
         const gravados = await tx
           .insert(pontoLancamento)

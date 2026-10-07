@@ -52,7 +52,7 @@ export interface LinhasCurso {
 export interface CursoAberto {
   atividade: ReadonlyMap<AulaId, string>;
   curso: CursoCatalogo;
-  dias: ReadonlySet<DiaISO>;
+  diasComAulaAssistida: ReadonlySet<DiaISO>;
   estado: EstadoQueAbre;
   historico: Historico;
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
@@ -103,7 +103,9 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   return {
     atividade: atividadeDe(comPosicao),
     curso,
-    dias: new Set(linhas.assistidas.map((a) => a.dia as DiaISO)),
+    diasComAulaAssistida: new Set(
+      linhas.assistidas.map((a) => a.dia as DiaISO)
+    ),
     estado,
     historico,
     trechos: new Map(
