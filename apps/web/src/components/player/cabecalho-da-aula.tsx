@@ -11,7 +11,9 @@ const BOTAO =
   "h-11 gap-2 rounded-full border-[1.5px] px-[18px] font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2";
 const SECUNDARIO =
   "border-chart-5 bg-transparent text-foreground hover:border-foreground hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent";
-const DESTAQUE = "border-sol bg-sol text-sobre-cor hover:bg-sol/90";
+// O html tem .dark fixo: sem os dark: o outline mantém dark:bg-input/30 por especificidade.
+const DESTAQUE =
+  "border-sol bg-sol text-sobre-cor hover:bg-sol/90 dark:border-sol dark:bg-sol dark:hover:bg-sol/90";
 
 /** Título, onde a aula fica no curso, e Anterior e Próxima. Nada pula sozinho. */
 export function CabecalhoDaAula({
