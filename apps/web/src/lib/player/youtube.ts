@@ -90,7 +90,7 @@ export function criarPlayerDoYoutube(
   opcoes: OpcoesDoPlayer
 ): PlayerDeVideo {
   let instancia: YtPlayer | null = null;
-  let player: YtPlayer | null = null;
+  let playerPronto: YtPlayer | null = null;
   let destruido = false;
   const alvo = document.createElement("div");
   elemento.replaceChildren(alvo);
@@ -105,7 +105,7 @@ export function criarPlayerDoYoutube(
           onError: (e) =>
             opcoes.aoEvento({ motivo: motivoDoErro(e.data), tipo: "falhou" }),
           onReady: () => {
-            player = criado;
+            playerPronto = criado;
             opcoes.aoEvento({
               duracaoSeg: criado.getDuration(),
               tipo: "pronto",
@@ -137,19 +137,20 @@ export function criarPlayerDoYoutube(
   );
 
   return {
-    buscar: (seg) => player?.seekTo(seg, true),
-    definirMudo: (mudo) => (mudo ? player?.mute() : player?.unMute()),
-    definirVelocidade: (v) => player?.setPlaybackRate(v),
-    definirVolume: (nivel) => player?.setVolume(nivel),
+    buscar: (seg) => playerPronto?.seekTo(seg, true),
+    definirMudo: (mudo) =>
+      mudo ? playerPronto?.mute() : playerPronto?.unMute(),
+    definirVelocidade: (v) => playerPronto?.setPlaybackRate(v),
+    definirVolume: (nivel) => playerPronto?.setVolume(nivel),
     destruir: () => {
       destruido = true;
       instancia?.destroy();
       instancia = null;
-      player = null;
+      playerPronto = null;
     },
-    pausar: () => player?.pauseVideo(),
-    tempo: () => player?.getCurrentTime() ?? opcoes.inicioSeg,
-    tocar: () => player?.playVideo(),
-    velocidade: () => player?.getPlaybackRate() ?? 1,
+    pausar: () => playerPronto?.pauseVideo(),
+    tempo: () => playerPronto?.getCurrentTime() ?? opcoes.inicioSeg,
+    tocar: () => playerPronto?.playVideo(),
+    velocidade: () => playerPronto?.getPlaybackRate() ?? 1,
   };
 }
