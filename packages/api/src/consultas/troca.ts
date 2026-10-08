@@ -139,7 +139,7 @@ async function gravarTroca(
 ): Promise<{ lancamentoId: string }> {
   const liberacaoId = await inserirLiberacao(
     aluno,
-    { cursoId, origem: "troca" },
+    { alvo: { id: cursoId, tipo: "curso" }, origem: "troca" },
     agora
   ).catch((e: unknown) => {
     throw violou(e, "liberacao_curso_ativa_unica")
