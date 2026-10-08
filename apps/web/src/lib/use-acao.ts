@@ -2,28 +2,50 @@
 
 import { TRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
-
-/**
- * Códigos que o servidor só lança com mensagem nossa, em pt-BR, escrita para a
- * pessoa. BAD_REQUEST fica de fora porque é o zod da entrada, em inglês;
- * INTERNAL_SERVER_ERROR fica de fora para não mostrar texto do Postgres.
- */
-export const MOSTRA_A_MENSAGEM: ReadonlySet<string> = new Set([
-  "CONFLICT",
-  "FORBIDDEN",
-  "NOT_FOUND",
-  "PRECONDITION_FAILED",
-]);
 
 const ERRO_GENERICO = "Não deu para salvar. Tente de novo em instantes.";
 
 export interface OpcoesDaAcao<T> {
   depois?: (resultado: T) => void;
-  /** Texto do toast quando o erro não traz mensagem nossa. */
+  /** Texto do toast quando o erro não traz mensagem escrita para a pessoa. */
   erro?: string;
-  sucesso?: string;
+  sucesso?: string | ((resultado: T) => string);
+}
+
+interface Efeitos {
+  atualizar: () => void;
+  toast: { error: (texto: string) => void; success: (texto: string) => void };
+}
+
+/** Só ErroParaAPessoa, no servidor, chega com essa marca (errorFormatter). */
+const paraAPessoa = (e: unknown): string | null =>
+  e instanceof TRPCClientError && e.data?.paraAPessoa === true
+    ? e.message
+    : null;
+
+/**
+ * O corpo do useAcao, sem React. A página recarrega os dados do servidor no
+ * fim, com sucesso ou recusa, porque a recusa costuma dizer que a tela ficou velha.
+ */
+export async function rodarAcao<T>(
+  fazer: () => Promise<T>,
+  opcoes: OpcoesDaAcao<T>,
+  efeitos: Efeitos
+): Promise<void> {
+  try {
+    const r = await fazer();
+    const sucesso =
+      typeof opcoes.sucesso === "function" ? opcoes.sucesso(r) : opcoes.sucesso;
+    if (sucesso) {
+      efeitos.toast.success(sucesso);
+    }
+    opcoes.depois?.(r);
+  } catch (e) {
+    efeitos.toast.error(paraAPessoa(e) ?? opcoes.erro ?? ERRO_GENERICO);
+  }
+  efeitos.atualizar();
 }
 
 export interface Acao {
@@ -32,31 +54,17 @@ export interface Acao {
 }
 
 /**
- * O único jeito de uma tela mudar algo no servidor: a chamada roda numa
- * transition, o erro vira toast e a página recarrega os dados do servidor no
- * fim, com sucesso ou recusa, porque a recusa costuma dizer que a tela ficou velha.
+ * O caminho das mutações que a pessoa dispara: a chamada roda numa transition,
+ * e `pendente` vale até a página recarregada aparecer.
  */
 export function useAcao(): Acao {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
-  const executar = useCallback(
-    <T>(fazer: () => Promise<T>, opcoes?: OpcoesDaAcao<T>) => {
-      iniciar(async () => {
-        try {
-          const r = await fazer();
-          if (opcoes?.sucesso) {
-            toast.success(opcoes.sucesso);
-          }
-          opcoes?.depois?.(r);
-        } catch (e) {
-          const nossa =
-            e instanceof TRPCClientError && MOSTRA_A_MENSAGEM.has(e.data?.code);
-          toast.error(nossa ? e.message : (opcoes?.erro ?? ERRO_GENERICO));
-        }
-        router.refresh();
-      });
-    },
-    [router]
-  );
-  return { executar, pendente };
+  return {
+    executar: (fazer, opcoes = {}) =>
+      iniciar(() =>
+        rodarAcao(fazer, opcoes, { atualizar: () => router.refresh(), toast })
+      ),
+    pendente,
+  };
 }
