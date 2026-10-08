@@ -5,9 +5,9 @@ import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, Flame, Star } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { fmtNum, fmtPts } from "@/lib/formato";
 
-import { BOTAO_CONTORNO } from "./botoes";
 import { ComoGanhar } from "./como-ganhar";
 
 export function SaldoDeTroca({

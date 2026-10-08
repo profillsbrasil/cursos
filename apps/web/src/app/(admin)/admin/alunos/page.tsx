@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import type { Metadata } from "next";
 
 import { ListaDePessoas } from "@/components/admin/lista-de-pessoas";
-import { BOTAO } from "@/components/trocar-pontos/botoes";
+import { BOTAO } from "@/components/casca/botoes";
 import { carregarPessoas } from "@/server/api";
 
 export const metadata: Metadata = { title: "Alunos · Admin" };

@@ -20,7 +20,7 @@ import { ArrowLeft, Check, Loader2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useCallback, useState } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/trocar-pontos/botoes";
+import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";

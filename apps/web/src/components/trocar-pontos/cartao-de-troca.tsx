@@ -8,11 +8,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { type KeyboardEvent, useCallback, useEffect, useRef } from "react";
 
+import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { faltam, fmtMin, fmtNum, fmtPts, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
-import { BOTAO, BOTAO_CONTORNO } from "./botoes";
 
 type PodeTrocar = Extract<Cartao, { tipo: "pode_trocar" }>;
 type Momento = "parado" | "confirmando" | "enviando";
