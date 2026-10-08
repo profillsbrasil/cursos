@@ -37,8 +37,16 @@ export interface NivelCatalogo {
   ordem: number;
 }
 
+/** Largura e altura são a medida real da imagem, para o next/image reservar o espaço. */
+export interface Capa {
+  alt: string;
+  altura: number;
+  largura: number;
+  url: string;
+}
+
 export interface CursoCatalogo {
-  capa: { url: string; alt: string };
+  capa: Capa;
   /** codigo ?? destaque */
   extra: string | null;
   id: CursoId;

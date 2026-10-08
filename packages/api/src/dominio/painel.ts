@@ -15,6 +15,7 @@ import {
 } from "./sequencia";
 import type {
   AulaId,
+  Capa,
   CursoCatalogo,
   CursoId,
   DiaISO,
@@ -31,6 +32,8 @@ import { videoDaAula } from "./video";
 
 export interface CursoLinha {
   capaAlt: string;
+  capaAltura: number;
+  capaLargura: number;
   capaUrl: string;
   codigo: string | null;
   destaque: string | null;
@@ -93,7 +96,7 @@ export interface LinhasResumo {
 
 export interface CursoVM {
   aulas: number;
-  capa: { url: string; alt: string };
+  capa: Capa;
   duracaoSeg: number;
   estado: EstadoCurso;
   extra: string | null;
@@ -127,7 +130,7 @@ export interface TrilhaVM {
 }
 
 interface CursoRef {
-  capa: { url: string; alt: string };
+  capa: Capa;
   slug: string;
   titulo: string;
 }
@@ -195,7 +198,12 @@ export interface ResumoAluno {
 /** Borda: marca os ids das linhas do banco. */
 export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
-    capa: { alt: linha.capaAlt, url: linha.capaUrl },
+    capa: {
+      alt: linha.capaAlt,
+      altura: linha.capaAltura,
+      largura: linha.capaLargura,
+      url: linha.capaUrl,
+    },
     extra: linha.codigo ?? linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({

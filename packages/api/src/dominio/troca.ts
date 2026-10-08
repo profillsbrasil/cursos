@@ -5,7 +5,7 @@ import {
   type LinhaDoExtrato,
   type RegraDeGanho,
 } from "./pontos";
-import type { CursoId, DiaISO } from "./tipos";
+import type { Capa, CursoId, DiaISO } from "./tipos";
 
 export type Acesso =
   | { tipo: "nenhum" }
@@ -16,7 +16,7 @@ export type Acesso =
 export interface CursoDaTroca {
   acesso: Acesso;
   aulas: number;
-  capa: { alt: string; url: string };
+  capa: Capa;
   duracaoSeg: number;
   id: CursoId;
   precoTroca: number | null;
@@ -28,6 +28,8 @@ export interface CursoDaTroca {
 
 export interface LinhaDoCursoDaTroca {
   capaAlt: string;
+  capaAltura: number;
+  capaLargura: number;
   capaUrl: string;
   id: string;
   liberacoes: readonly {
@@ -65,7 +67,12 @@ export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
   return {
     acesso: acessoDe(linha),
     aulas: aulas.length,
-    capa: { alt: linha.capaAlt, url: linha.capaUrl },
+    capa: {
+      alt: linha.capaAlt,
+      altura: linha.capaAltura,
+      largura: linha.capaLargura,
+      url: linha.capaUrl,
+    },
     duracaoSeg: aulas.reduce((s, a) => s + a.duracaoSeg, 0),
     id: linha.id as CursoId,
     precoTroca: linha.precoTroca,

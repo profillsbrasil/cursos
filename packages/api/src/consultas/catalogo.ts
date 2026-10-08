@@ -1,6 +1,8 @@
 export const COM_CONTEUDO = {
   columns: {
     capaAlt: true,
+    capaAltura: true,
+    capaLargura: true,
     capaUrl: true,
     codigo: true,
     destaque: true,
