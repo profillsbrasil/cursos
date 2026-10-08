@@ -85,7 +85,7 @@ function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {
           <TableHead className={CABECA}>Trilha</TableHead>
           <TableHead className={cn(CABECA, NUMERO)}>Cursos</TableHead>
           <TableHead className={cn(CABECA, NUMERO)}>
-            Alunos com acesso
+            Alunos com a trilha liberada
           </TableHead>
         </TableRow>
       </TableHeader>
