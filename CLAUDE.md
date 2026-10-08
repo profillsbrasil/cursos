@@ -41,7 +41,7 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 - `src/schema/`: catálogo, acesso, estudo, pontos e comunicado; `index.ts` exporta tudo e `drizzle.config.ts` lê só esse arquivo e só o schema `public`. Toda tabela usa `snakeCase.table` (chave camelCase, coluna snake_case). `formatos.ts`, sem import, guarda as listas dos enums (`STATUS_DO_CURSO`, `ORIGEM_DA_LIBERACAO`) para o browser ler sem levar o `drizzle-orm`; `comum.ts` monta os `pgEnum` a partir delas. `restricoes.integration.test.ts` prova cada constraint, e `migracao.integration.test.ts` aplica as migrações sobre linhas plantadas antes de cada uma.
 - `src/relations.ts`: relations v2 do Drizzle 1.0 (`defineRelations(schema)`), passadas ao `drizzle()` em `src/index.ts`. A API de relations v1 (`relations()` por tabela) não vale nesta versão.
 - `src/migrations/`: saída do `db:generate`. `drizzle.local.config.ts` aponta só para o Supabase local e não lê o `.env`.
-- `src/seed/`: seed de exemplo. `guarda-local.ts` recusa host que não seja o Supabase local; `--cloud` exige `--sim-cloud`.
+- `src/seed/`: seed de exemplo. `guarda-local.ts` recusa host que não seja o Supabase local; `--cloud` exige `--sim-cloud`. O seed só planta curso e trilha que faltam: o que já existe é do admin, e mudar `dados.ts` de um curso existente pede um banco local limpo. Os fatos dos alunos de exemplo, liberações inclusive, são apagados e recriados por `user_id`. `index.integration.test.ts` prova as duas execuções.
 - `supabase/config.toml`: stack local do Supabase CLI (`project_id = "cursos"`, portas entre 54320 e 54329; o banco fica na 54322).
 
 ### `packages/ui` (`@cursos/ui`)

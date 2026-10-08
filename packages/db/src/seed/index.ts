@@ -1,6 +1,8 @@
 // Seed de EXEMPLO. Sem flag, só escreve no Supabase local (SEED_DATABASE_URL, padrão 127.0.0.1:54322).
 // Com --cloud, lê o DATABASE_URL do ambiente, imprime o destino e só segue com --sim-cloud.
-// Conteúdo: upsert por id fixo. Fatos dos alunos de exemplo: apagados só por user_id e reinseridos.
+// Catálogo: só cria curso e trilha que faltam, por id fixo. Curso ou trilha que já existe é do admin,
+// com tudo o que ele mudou ou tirou dentro dele. Fatos dos alunos de exemplo: apagados só por user_id
+// e reinseridos; fato que aponta para aula que o admin apagou fica de fora.
 // Uso: bun run db:seed -- --aluno user_xxx [--cloud --sim-cloud]
 
 import { createHash } from "node:crypto";
@@ -189,102 +191,79 @@ function linhasDeConteudo() {
   return { aulas, cursos, modulos, niveis, trilhaCursos, trilhas };
 }
 
-const novo = (coluna: string) => sql.raw(`excluded.${coluna}`);
-
-/** Conteúdo: upsert por id fixo, uma instrução por tabela, na ordem das FKs. */
-async function upsertConteudo(tx: Transacao) {
+/**
+ * Catálogo: cria só o que falta, na ordem das FKs. Níveis, módulos e aulas entram só para
+ * curso que nasceu nesta execução, e `trilha_curso` só para trilha que nasceu nela.
+ */
+async function plantarConteudo(tx: Transacao) {
   const l = linhasDeConteudo();
-  await tx
-    .insert(curso)
-    .values(l.cursos)
-    .onConflictDoUpdate({
-      set: {
-        capaAlt: novo("capa_alt"),
-        capaAltura: novo("capa_altura"),
-        capaLargura: novo("capa_largura"),
-        capaUrl: novo("capa_url"),
-        codigo: novo("codigo"),
-        destaque: novo("destaque"),
-        precoTroca: novo("preco_troca"),
-        slug: novo("slug"),
-        status: novo("status"),
-        tema: novo("tema"),
-        titulo: novo("titulo"),
-      },
-      target: curso.id,
-    });
-  await tx
-    .insert(nivel)
-    .values(l.niveis)
-    .onConflictDoUpdate({
-      set: { nome: novo("nome") },
-      target: [nivel.cursoId, nivel.ordem],
-    });
-  await tx
-    .insert(modulo)
-    .values(l.modulos)
-    .onConflictDoUpdate({
-      set: {
-        cursoId: novo("curso_id"),
-        nivelOrdem: novo("nivel_ordem"),
-        numero: novo("numero"),
-        titulo: novo("titulo"),
-      },
-      target: modulo.id,
-    });
-  await tx
-    .insert(aula)
-    .values(l.aulas)
-    .onConflictDoUpdate({
-      set: {
-        duracaoSeg: sql`case when ${aula.videoId} is null then excluded.duracao_seg else ${aula.duracaoSeg} end`,
-        moduloId: novo("modulo_id"),
-        posicao: novo("posicao"),
-        titulo: novo("titulo"),
-        videoId: sql`coalesce(${aula.videoId}, excluded.video_id)`,
-        videoProvedor: sql`coalesce(${aula.videoProvedor}, excluded.video_provedor)`,
-      },
-      target: aula.id,
-    });
-  await tx
-    .insert(trilha)
-    .values(l.trilhas)
-    .onConflictDoUpdate({
-      set: {
-        descricao: novo("descricao"),
-        slug: novo("slug"),
-        titulo: novo("titulo"),
-      },
-      target: trilha.id,
-    });
-  await tx
-    .insert(trilhaCurso)
-    .values(l.trilhaCursos)
-    .onConflictDoUpdate({
-      set: { posicao: novo("posicao"), trilhaId: novo("trilha_id") },
-      target: trilhaCurso.cursoId,
-    });
+  const cursosNovos = new Set(
+    (
+      await tx
+        .insert(curso)
+        .values(l.cursos)
+        .onConflictDoNothing()
+        .returning({ id: curso.id })
+    ).map((r) => r.id)
+  );
+  const niveis = l.niveis.filter((n) => cursosNovos.has(n.cursoId));
+  const modulos = l.modulos.filter((m) => cursosNovos.has(m.cursoId));
+  const modulosNovos = new Set(modulos.map((m) => m.id));
+  const aulas = l.aulas.filter((a) => modulosNovos.has(a.moduloId));
+  if (niveis.length > 0) {
+    await tx.insert(nivel).values(niveis).onConflictDoNothing();
+  }
+  if (modulos.length > 0) {
+    await tx.insert(modulo).values(modulos).onConflictDoNothing();
+  }
+  if (aulas.length > 0) {
+    await tx.insert(aula).values(aulas).onConflictDoNothing();
+  }
+
+  const trilhasNovas = new Set(
+    (
+      await tx
+        .insert(trilha)
+        .values(l.trilhas)
+        .onConflictDoNothing()
+        .returning({ id: trilha.id })
+    ).map((r) => r.id)
+  );
+  const trilhaCursos = l.trilhaCursos.filter((t) =>
+    trilhasNovas.has(t.trilhaId)
+  );
+  if (trilhaCursos.length > 0) {
+    await tx.insert(trilhaCurso).values(trilhaCursos).onConflictDoNothing();
+  }
+  return { cursosNovos: cursosNovos.size, trilhasNovas: trilhasNovas.size };
 }
 
-async function semear(url: string, alunoA: string) {
+export async function semear(url: string, alunoA: string) {
   const db = createDb({ DATABASE_URL: url });
+  try {
+    await semearNoBanco(db, alunoA);
+  } finally {
+    await db.$client.end();
+  }
+}
+
+async function semearNoBanco(db: Database, alunoA: string) {
   const agora = new Date();
   const hoje = diaSp(agora);
 
-  await db.transaction(async (tx) => {
-    await upsertConteudo(tx);
-    const com = {
-      cursoId: null,
-      id: idFixo(`comunicado:${COMUNICADO.chave}`),
-      publicadoEm: diasAtras(hoje, 5, 10),
-      publicadoPor: LIBERADA_POR,
-      texto: COMUNICADO.texto,
-      titulo: COMUNICADO.titulo,
-    };
+  const resumo = await db.transaction(async (tx) => {
+    const plantado = await plantarConteudo(tx);
     await tx
       .insert(comunicado)
-      .values(com)
-      .onConflictDoUpdate({ set: com, target: comunicado.id });
+      .values({
+        cursoId: null,
+        id: idFixo(`comunicado:${COMUNICADO.chave}`),
+        publicadoEm: diasAtras(hoje, 5, 10),
+        publicadoPor: LIBERADA_POR,
+        texto: COMUNICADO.texto,
+        titulo: COMUNICADO.titulo,
+      })
+      .onConflictDoNothing();
 
     // Fatos dos alunos de exemplo: apagados só por user_id, na ordem das FKs.
     const alunos = [alunoA, ALUNO_B];
@@ -361,20 +340,41 @@ async function semear(url: string, alunoA: string) {
       const atras = 40 - Math.floor((i * 20) / antigas.length);
       quando.set(id, diasAtras(hoje, atras, 15));
     }
-    const fatos = [...quando.entries()].map(([aulaId, assistidaEm]) => ({
-      assistidaEm,
-      aulaId,
-      userId: alunoA,
-    }));
-    await tx.insert(aulaAssistida).values(fatos);
+    // Aula de exemplo que o admin apagou fica sem fato: o seed não a recria.
+    const aulaDaPosicao = idAula(
+      POSICAO_A.curso,
+      POSICAO_A.modulo,
+      POSICAO_A.aula
+    );
+    const pedidas = [...quando.keys(), aulaDaPosicao];
+    const existentes = new Set(
+      (
+        await tx
+          .select({ id: aula.id })
+          .from(aula)
+          .where(inArray(aula.id, pedidas))
+      ).map((r) => r.id)
+    );
+    const fatos = [...quando.entries()]
+      .filter(([aulaId]) => existentes.has(aulaId))
+      .map(([aulaId, assistidaEm]) => ({
+        assistidaEm,
+        aulaId,
+        userId: alunoA,
+      }));
+    if (fatos.length > 0) {
+      await tx.insert(aulaAssistida).values(fatos);
+    }
 
-    await tx.insert(posicaoAula).values({
-      atualizadaEm: agora,
-      aulaId: idAula(POSICAO_A.curso, POSICAO_A.modulo, POSICAO_A.aula),
-      posicaoSeg: POSICAO_A.posicaoSeg,
-      trechosVistos: [{ fim: POSICAO_A.posicaoSeg, inicio: 0 }],
-      userId: alunoA,
-    });
+    if (existentes.has(aulaDaPosicao)) {
+      await tx.insert(posicaoAula).values({
+        atualizadaEm: agora,
+        aulaId: aulaDaPosicao,
+        posicaoSeg: POSICAO_A.posicaoSeg,
+        trechosVistos: [{ fim: POSICAO_A.posicaoSeg, inicio: 0 }],
+        userId: alunoA,
+      });
+    }
 
     const emitidoEm = diasAtras(hoje, 20, 16);
     await tx.insert(certificado).values({
@@ -425,6 +425,7 @@ async function semear(url: string, alunoA: string) {
       pontos: -trocado.precoTroca,
       userId: alunoA,
     });
+    return { ...plantado, aulasAusentes: pedidas.length - existentes.size };
   });
 
   const contagem = await db.execute<{ n: number; tabela: string }>(sql`
@@ -442,19 +443,23 @@ async function semear(url: string, alunoA: string) {
     union all select 'ponto_lancamento', count(*)::int from ponto_lancamento
     union all select 'comunicado', count(*)::int from comunicado`);
   console.table(contagem.rows);
-  await db.$client.end();
+  console.log(
+    `Cursos novos: ${resumo.cursosNovos}. Trilhas novas: ${resumo.trilhasNovas}. Aulas de exemplo que o admin apagou (fatos pulados): ${resumo.aulasAusentes}.`
+  );
 }
 
-try {
-  const args = lerArgs();
-  const url = destino(args);
-  console.log(`Aluno A: ${args.aluno}. Aluno B: ${ALUNO_B}.`);
-  await semear(url, args.aluno);
-} catch (erro) {
-  if (erro instanceof BancoNaoLocalError) {
-    console.error(erro.message);
-  } else {
-    console.error(erro instanceof Error ? erro.message : erro);
+if (import.meta.main) {
+  try {
+    const args = lerArgs();
+    const url = destino(args);
+    console.log(`Aluno A: ${args.aluno}. Aluno B: ${ALUNO_B}.`);
+    await semear(url, args.aluno);
+  } catch (erro) {
+    if (erro instanceof BancoNaoLocalError) {
+      console.error(erro.message);
+    } else {
+      console.error(erro instanceof Error ? erro.message : erro);
+    }
+    process.exit(1);
   }
-  process.exit(1);
 }
