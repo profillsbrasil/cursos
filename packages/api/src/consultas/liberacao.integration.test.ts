@@ -158,14 +158,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   /**
    * Espera até `n` statements desta suíte pararem em lock e devolve o tipo de
-   * espera de cada um: 'advisory' é a trava do aluno, 'relation' é o INSERT
-   * parado no SHARE lock.
+   * espera de cada um: 'advisory' é a trava do aluno, 'relation' é o INSERT ou
+   * o UPDATE parado no SHARE lock.
    */
   async function esperas(n: number, tentativas = 150): Promise<string[]> {
     const { rows } = await db.execute<{ e: string }>(sql`
       select wait_event as e from pg_stat_activity
       where datname = current_database() and wait_event_type = 'Lock'
         and (query like 'insert into "liberacao"%'
+          or query like 'update "liberacao"%'
           or query like 'select pg_advisory_xact_lock%')`);
     if (rows.length >= n) {
       return rows.map((r) => r.e).sort();
@@ -240,6 +241,34 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       paradas: ["advisory", "relation"],
       saldo: 0,
       troca: "fulfilled",
+    });
+  });
+
+  test("revogar antes de liberar: a liberação espera a revogação e grava uma nova", async () => {
+    const userId = await aluno();
+    const t = await trilhaCom();
+    const alvo = { id: t, tipo: "trilha" } as const;
+    const { liberacaoId } = await liberar(db, ADMIN, userId, alvo, AGORA);
+    const soltar = await seguraOsInserts();
+    const revogacao = revogar(db, ADMIN, liberacaoId, AGORA);
+    await esperas(1);
+    const liberacaoNova = liberar(db, ADMIN, userId, alvo, AGORA);
+    const paradas = await Promise.race([
+      liberacaoNova.then(() => "a liberação não esperou"),
+      esperas(2).catch(() => "a liberação não parou"),
+    ]);
+    await soltar();
+    const [rRevogar, rLiberar] = await Promise.all([revogacao, liberacaoNova]);
+    expect({
+      ativas: (await liberacoesDe(userId)).filter((l) => !l.revogadaEm).length,
+      liberar: rLiberar.nova,
+      paradas,
+      revogar: rRevogar,
+    }).toEqual({
+      ativas: 1,
+      liberar: true,
+      paradas: ["advisory", "relation"],
+      revogar: { revogada: true },
     });
   });
 
