@@ -165,4 +165,43 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       },
     ]);
   });
+
+  test("trilhas e cursos de mesmo título desempatam por id", async () => {
+    const titulo = `Mesma ${S}`;
+    const [menor, maior] = [
+      await novaTrilha(titulo),
+      await novaTrilha(titulo),
+    ].sort();
+    if (!(menor && maior)) {
+      throw new Error("trilhas não criadas");
+    }
+    // Na trilha de id maior os cursos vêm antes por título: sem o id no
+    // desempate, as duas trilhas se intercalam.
+    const z1 = await novoCurso(`Z1 ${S}`);
+    const z2 = await novoCurso(`Z2 ${S}`);
+    const a1 = await novoCurso(`A1 ${S}`);
+    const a2 = await novoCurso(`A2 ${S}`);
+    await db.insert(trilhaCurso).values([
+      { cursoId: z1, posicao: 1, trilhaId: menor },
+      { cursoId: z2, posicao: 2, trilhaId: menor },
+      { cursoId: a1, posicao: 1, trilhaId: maior },
+      { cursoId: a2, posicao: 2, trilhaId: maior },
+    ]);
+    const soltos = [
+      await novoCurso(`Solto igual ${S}`),
+      await novoCurso(`Solto igual ${S}`),
+    ];
+
+    const visao = await createCaller(
+      contextoDeTeste({ db, papel: "admin", userId: "user_dono" })
+    ).admin.catalogo.visao();
+
+    const nossos = new Set([z1, z2, a1, a2, ...soltos]);
+    expect(
+      visao.trilhas.filter((t) => t.titulo === titulo).map((t) => t.id)
+    ).toEqual([menor, maior]);
+    expect(
+      visao.cursos.filter((c) => nossos.has(c.id)).map((c) => c.id)
+    ).toEqual([z1, z2, a1, a2, ...soltos.sort()]);
+  });
 });

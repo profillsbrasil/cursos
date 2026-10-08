@@ -49,6 +49,7 @@ export const COM_CONTEUDO = {
 /**
  * Tela /admin/catalogo, em dois statements paralelos. Trilhas por título; cursos
  * na ordem das trilhas (título, depois posição) e os soltos no fim, por título.
+ * O id desempata títulos iguais, para duas trilhas de mesmo nome não se intercalarem.
  */
 export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
   const [cursos, trilhas] = await Promise.all([
@@ -71,8 +72,10 @@ export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
       .groupBy(curso.id, trilhaCurso.cursoId, trilha.id)
       .orderBy(
         sql`${trilha.titulo} asc nulls last`,
+        trilha.id,
         trilhaCurso.posicao,
-        curso.titulo
+        curso.titulo,
+        curso.id
       ),
     db
       .select({
@@ -88,7 +91,7 @@ export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
         and(eq(liberacao.trilhaId, trilha.id), isNull(liberacao.revogadaEm))
       )
       .groupBy(trilha.id)
-      .orderBy(trilha.titulo),
+      .orderBy(trilha.titulo, trilha.id),
   ]);
   return {
     cursos: cursos.map((c) => ({
