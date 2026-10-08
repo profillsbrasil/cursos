@@ -57,3 +57,12 @@ export const carregarPainelDeTroca = cache(async () =>
 export const carregarCatalogo = cache(async () =>
   (await exigirAdmin()).admin.catalogo.visao()
 );
+
+export const carregarPessoas = cache(async (termo: string) =>
+  (await exigirAdmin()).admin.alunos.buscar({ termo })
+);
+
+/** null: userId fora do formato, ou pessoa que o Clerk não conhece e sem liberação ativa. */
+export const carregarAcessoDoAluno = cache(async (userId: string) =>
+  (await exigirAdmin()).admin.alunos.acesso({ userId })
+);
