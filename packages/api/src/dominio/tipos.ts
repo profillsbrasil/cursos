@@ -8,6 +8,8 @@ export type AulaId = Marca<string, "AulaId">;
 export type TrilhaId = Marca<string, "TrilhaId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
+/** userId de quem passou pelo adminProcedure. Só o middleware cria um. */
+export type AdminId = Marca<string, "AdminId">;
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type VideoId = Marca<string, "VideoId">;

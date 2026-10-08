@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
+import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "./index";
 
-const caller = createCaller({ auth: { userId: "user_x" }, db: {} as never });
+const caller = createCaller(
+  contextoDeTeste({ db: {} as never, userId: "user_x" })
+);
 const FORA_DO_FORMATO = ["Comercial", "comercial.", "a_b", "%C3%A7urso"];
 const AULA = "00000000-0000-4000-8000-000000000000";
 

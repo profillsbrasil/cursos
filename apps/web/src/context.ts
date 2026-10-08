@@ -1,39 +1,19 @@
-import type { Context as ApiContext } from "@cursos/api/context";
-
-import { db } from "./services";
-
-type ClerkContextAuth = ApiContext["auth"];
-
-function toClerkContextAuth(auth: ClerkContextAuth): ClerkContextAuth {
-  return auth ? { userId: auth.userId } : null;
-}
-
 import { createClerkClient } from "@clerk/backend";
+import { type Context, contextoDe } from "@cursos/api/context";
+import type { NextRequest } from "next/server";
 
 import { ENV } from "./env.server";
+import { servicos } from "./services";
 
-const clerkClient = createClerkClient({
+const clerk = createClerkClient({
   publishableKey: ENV.CLERK_PUBLISHABLE_KEY,
   secretKey: ENV.CLERK_SECRET_KEY,
 });
 
-async function authenticateClerkRequest(
-  request: Request
-): Promise<ClerkContextAuth> {
-  const requestState = await clerkClient.authenticateRequest(request, {
+/** Context do route.ts do tRPC. O papel sai de contextoDe, a mesma leitura de server/api.ts. */
+export async function createContext(req: NextRequest): Promise<Context> {
+  const estado = await clerk.authenticateRequest(req, {
     authorizedParties: [ENV.CORS_ORIGIN],
   });
-  return toClerkContextAuth(requestState.toAuth());
+  return contextoDe(estado.toAuth(), servicos);
 }
-
-import type { NextRequest } from "next/server";
-
-export async function createContext(req: NextRequest): Promise<ApiContext> {
-  const clerkAuth = await authenticateClerkRequest(req);
-  return {
-    auth: clerkAuth,
-    db,
-  };
-}
-
-export type Context = Awaited<ReturnType<typeof createContext>>;
