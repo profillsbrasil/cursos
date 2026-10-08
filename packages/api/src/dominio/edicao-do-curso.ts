@@ -22,6 +22,9 @@ import type {
   VideoId,
 } from "./tipos";
 
+/** O formato do slug, para o editor conferir no campo (o app não importa @cursos/db). */
+export const FORMATO_DO_SLUG = SLUG;
+
 /**
  * Tetos do documento. gravarCurso deriva deles o deslocamento que regrava números
  * e posições sem colidir nos uniques não deferrable.
