@@ -10,6 +10,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Módulo | Grupo numerado de aulas dentro de um curso. O aluno vê o número ("Módulo 3"). Os cursos de exemplo começam em 0 ou em 1, e o admin escolhe o número. |
 | Aula | Vídeo com duração em segundos, numa posição dentro de um módulo. A aula mantém o id quando o admin a muda de lugar ou de módulo, e com ele a aula assistida e a posição dos alunos. |
 | Documento do curso | O curso inteiro como o admin edita: campos, capa, níveis, módulos e aulas. O admin salva o documento de uma vez, e o servidor grava o estado final. |
+| Rascunho | Documento do curso no editor, antes de salvar. O curso novo é rascunho até o primeiro salvamento, com o id já na URL, e o aluno não vê nada dele. O rascunho só some quando o admin pede "Recarregar" ou sai da página. |
 | Versão | Impressão do conteúdo de um documento do admin, derivada dele e não guardada. No curso, a capa entra no conteúdo. Salvar com a versão velha dá conflito; reenviar o que já está gravado é sucesso. |
 | Capa | Imagem do curso, JPG, PNG ou WebP, com até 4 MB e pelo menos 640 px de largura. Fica no bucket `capas` com o nome igual ao hash dos bytes. |
 | Nível | Grupo nomeado de módulos de um curso. Cada módulo pertence a no máximo um nível. Só o curso Comercial tem níveis hoje. |
