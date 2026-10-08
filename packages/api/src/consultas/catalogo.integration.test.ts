@@ -36,6 +36,8 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       .insert(curso)
       .values({
         capaAlt: "Capa de teste",
+        capaAltura: 720,
+        capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         slug: `teste-${S}-${cursos.length}`,
         tema: "teste",
@@ -109,12 +111,13 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     const [a, b, c] = ALUNOS as [string, string, string];
     const agora = new Date();
     await db.insert(liberacao).values([
-      { liberadaPor: "user_admin", trilhaId: t, userId: a },
-      { liberadaPor: "user_admin", trilhaId: t, userId: b },
+      { liberadaPor: "user_admin", origem: "admin", trilhaId: t, userId: a },
+      { liberadaPor: "user_admin", origem: "admin", trilhaId: t, userId: b },
       // Revogada e liberada de novo: a pessoa conta uma vez.
       {
         liberadaEm: agora,
         liberadaPor: "user_admin",
+        origem: "admin",
         revogadaEm: agora,
         revogadaPor: "user_admin",
         trilhaId: t,
@@ -123,6 +126,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       {
         liberadaEm: agora,
         liberadaPor: "user_admin",
+        origem: "admin",
         revogadaEm: agora,
         revogadaPor: "user_admin",
         trilhaId: t,
