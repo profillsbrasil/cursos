@@ -16,78 +16,77 @@ import {
   TableRow,
 } from "@cursos/ui/components/table";
 import { cn } from "@cursos/ui/lib/utils";
-import { ArrowLeft, Check, Loader2, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Check, TriangleAlert } from "lucide-react";
 import Link from "next/link";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useRef, useState } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
+import {
+  Carregando,
+  ConfirmacaoNaLinha,
+  type LinhaAberta,
+  PEQUENO,
+} from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { CABECA, CELULA, SELO, Secao, Vazio } from "./partes";
 
-const PEQUENO = "h-9 px-3.5 text-[13px]";
 const TIPO = { curso: "Curso", trilha: "Trilha" } as const;
+const CONTORNO_NEUTRO =
+  "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset";
 const ORIGEM = {
-  admin: {
-    classe:
-      "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset",
-    rotulo: "Admin",
-  },
+  admin: { classe: CONTORNO_NEUTRO, rotulo: "Admin" },
   troca: { classe: "bg-sol/14 text-sol", rotulo: "Troca" },
 } as const;
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
 
-type AlvoNaTela = CursoParaLiberar | TrilhaParaLiberar;
-
-const trocados = (a: AlvoNaTela) =>
-  a.alvo.tipo === "trilha" ? (a as TrilhaParaLiberar).trocadosNaTrilha : [];
-
-/** Qual linha está aberta ou enviando: a ação mais o id. */
-type Chave = `revogar:${string}` | `liberar:${string}`;
-
-/** O que toda linha recebe da tela. */
-interface Momento {
-  /** Linha aberta para confirmar. */
-  confirmando: Chave | null;
-  /** Linha cuja ação está no servidor agora. */
-  emCurso: Chave | null;
-  pedir: (chave: Chave | null) => void;
-  /** Alguma ação da tela está no servidor: todos os botões esperam. */
-  pendente: boolean;
+interface Para {
+  nome: string;
+  userId: string;
 }
+
+type Pedido = Parameters<
+  typeof trpcClient.admin.alunos.liberar.mutate
+>[0]["alvo"];
 
 /** "A", "A e B", "A, B e C". */
 const lista = (itens: readonly string[]) =>
   new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(itens);
 
-function Carregando({ ativo }: { ativo: boolean }) {
-  return ativo ? (
-    <Loader2
-      aria-hidden="true"
-      className="animate-spin motion-reduce:animate-none"
-    />
-  ) : null;
-}
+const focarLiberacoes = () => document.getElementById("liberacoes")?.focus();
 
 function AcaoDaLiberacao({
   l,
-  momento,
-  revogar,
+  linhaAberta,
 }: {
   l: LiberacaoNaTela;
-  momento: Momento;
-  revogar: (l: LiberacaoNaTela) => void;
+  linhaAberta: LinhaAberta;
 }) {
-  const chave: Chave = `revogar:${l.id}`;
-  const { pedir, pendente } = momento;
-  const abrir = useCallback(() => pedir(chave), [pedir, chave]);
-  const fechar = useCallback(() => pedir(null), [pedir]);
-  const confirmar = useCallback(() => revogar(l), [revogar, l]);
-  const enviando = pendente && momento.emCurso === chave;
+  const { executar, pendente } = useAcao();
+  const { titulo } = l.alvo;
+  const { pedir } = linhaAberta;
+  const revogar = useCallback(
+    () =>
+      executar(
+        () => trpcClient.admin.alunos.revogar.mutate({ liberacaoId: l.id }),
+        {
+          // O botão some e a linha desce para as revogadas: o foco vai para o título da tabela.
+          depois: () => {
+            pedir(null);
+            focarLiberacoes();
+          },
+          sucesso: (r) =>
+            r.revogada
+              ? `Acesso a ${titulo} revogado.`
+              : `O acesso a ${titulo} já estava revogado.`,
+        }
+      ),
+    [executar, pedir, l.id, titulo]
+  );
   const { acao } = l;
   switch (acao.tipo) {
     case "fixa_por_troca":
@@ -97,41 +96,17 @@ function AcaoDaLiberacao({
         <span className="tabular-nums">Revogada em {fmtData(acao.em)}</span>
       );
     case "revogar":
-      if (!(momento.confirmando === chave || enviando)) {
-        return (
-          <Button
-            aria-label={`Revogar ${l.alvo.titulo}`}
-            className={cn(BOTAO_CONTORNO, PEQUENO)}
-            disabled={pendente}
-            onClick={abrir}
-          >
-            Revogar
-          </Button>
-        );
-      }
       return (
-        <span className="inline-flex flex-wrap items-center justify-end gap-2">
-          <span className="text-foreground">Tirar o acesso?</span>
-          <Button
-            aria-busy={enviando}
-            aria-label={`Confirmar: revogar ${l.alvo.titulo}`}
-            autoFocus
-            className={cn(BOTAO, PEQUENO, "disabled:opacity-100")}
-            disabled={pendente}
-            focusableWhenDisabled
-            onClick={confirmar}
-          >
-            <Carregando ativo={enviando} />
-            Revogar
-          </Button>
-          <Button
-            className={cn(BOTAO_CONTORNO, PEQUENO)}
-            disabled={pendente}
-            onClick={fechar}
-          >
-            Cancelar
-          </Button>
-        </span>
+        <ConfirmacaoNaLinha
+          botao={{ nome: `Confirmar: revogar ${titulo}`, rotulo: "Revogar" }}
+          chave={`revogar:${l.id}`}
+          className="flex flex-wrap items-center justify-end gap-2"
+          confirmar={revogar}
+          enviando={pendente}
+          gatilho={{ nome: `Revogar ${titulo}`, rotulo: "Revogar" }}
+          linhaAberta={linhaAberta}
+          pergunta={<span className="text-foreground">Tirar o acesso?</span>}
+        />
       );
     default:
       return acao satisfies never;
@@ -140,12 +115,10 @@ function AcaoDaLiberacao({
 
 function Liberacoes({
   liberacoes,
-  momento,
-  revogar,
+  linhaAberta,
 }: {
   liberacoes: readonly LiberacaoNaTela[];
-  momento: Momento;
-  revogar: (l: LiberacaoNaTela) => void;
+  linhaAberta: LinhaAberta;
 }) {
   if (liberacoes.length === 0) {
     return (
@@ -197,7 +170,7 @@ function Liberacoes({
                 {fmtData(l.liberadaEm)}
               </TableCell>
               <TableCell className={cn(CELULA, "text-right")}>
-                <AcaoDaLiberacao l={l} momento={momento} revogar={revogar} />
+                <AcaoDaLiberacao l={l} linhaAberta={linhaAberta} />
               </TableCell>
             </TableRow>
           );
@@ -207,191 +180,204 @@ function Liberacoes({
   );
 }
 
-function LinhaParaLiberar({
-  a,
-  liberar,
-  momento,
-  nome,
-}: {
-  a: AlvoNaTela;
-  liberar: (a: AlvoNaTela) => void;
-  momento: Momento;
-  nome: string;
-}) {
-  const chave: Chave = `liberar:${a.alvo.id}`;
-  const { pedir, pendente } = momento;
-  const trocadosNaTrilha = trocados(a).map((c) => c.titulo);
-  const avisa = trocadosNaTrilha.length > 0;
-  const enviando = pendente && momento.emCurso === chave;
-  const aberto = momento.confirmando === chave;
-  const clicar = useCallback(
-    () => (avisa ? pedir(chave) : liberar(a)),
-    [avisa, pedir, chave, liberar, a]
+/**
+ * Liberar a partir de uma linha. Depois do sucesso a linha fica no lugar e o
+ * botão vira o selo "Liberado", que recebe o foco sem rolar a página.
+ */
+function useLiberar(
+  { nome, userId }: Para,
+  pedido: Pedido,
+  titulo: string,
+  depois?: () => void
+) {
+  const { executar, pendente } = useAcao();
+  const focarSelo = useRef(false);
+  const liberar = useCallback(
+    () =>
+      executar(
+        () => trpcClient.admin.alunos.liberar.mutate({ alvo: pedido, userId }),
+        {
+          depois: () => {
+            focarSelo.current = true;
+            depois?.();
+          },
+          sucesso: (r) =>
+            r.nova
+              ? `Acesso a ${titulo} liberado para ${nome}.`
+              : `O acesso a ${titulo} já estava liberado para ${nome}.`,
+        }
+      ),
+    [executar, pedido, userId, nome, titulo, depois]
   );
-  const confirmar = useCallback(() => liberar(a), [liberar, a]);
-  const fechar = useCallback(() => pedir(null), [pedir]);
-  const avisoId = `aviso-${a.alvo.id}`;
+  const selo = useCallback((el: HTMLSpanElement | null) => {
+    if (el && focarSelo.current) {
+      focarSelo.current = false;
+      el.focus({ preventScroll: true });
+    }
+  }, []);
+  return { enviando: pendente, liberar, selo };
+}
 
-  let acao: ReactNode = null;
-  if (a.liberado) {
-    acao = (
-      <span className={cn(SELO, "gap-1 bg-ceu/14 text-ceu")}>
-        <Check aria-hidden="true" className="size-3.5" strokeWidth={2.4} />
-        Liberado
-      </span>
-    );
-  } else if (!aberto) {
-    acao = (
-      <Button
-        aria-busy={enviando}
-        aria-label={`Liberar ${a.alvo.titulo}`}
-        className={cn(BOTAO_CONTORNO, PEQUENO, "disabled:opacity-100")}
-        disabled={pendente}
-        focusableWhenDisabled
-        onClick={clicar}
-      >
-        <Carregando ativo={enviando} />
-        Liberar
-      </Button>
-    );
-  }
-
+function Liberado({ selo }: { selo: (el: HTMLSpanElement | null) => void }) {
   return (
-    <li className="grid gap-3 px-5 py-3.5">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <span className="min-w-0 font-medium text-foreground">
-          {a.alvo.titulo}
-        </span>
-        {acao}
-      </div>
-      {aberto && !a.liberado ? (
-        <fieldset aria-labelledby={avisoId} className="grid min-w-0 gap-3">
-          <p className={cn(AVISO, "p-3.5")} id={avisoId}>
+    <span
+      className={cn(SELO, "gap-1 bg-ceu/14 text-ceu focus:outline-none")}
+      ref={selo}
+      tabIndex={-1}
+    >
+      <Check aria-hidden="true" className="size-3.5" strokeWidth={2.4} />
+      Liberado
+    </span>
+  );
+}
+
+function BotaoLiberar({
+  enviando,
+  liberar,
+  titulo,
+}: {
+  enviando: boolean;
+  liberar: () => void;
+  titulo: string;
+}) {
+  return (
+    <Button
+      aria-busy={enviando}
+      aria-label={`Liberar ${titulo}`}
+      className={cn(BOTAO_CONTORNO, PEQUENO, "disabled:opacity-100")}
+      disabled={enviando}
+      focusableWhenDisabled
+      onClick={liberar}
+    >
+      <Carregando ativo={enviando} />
+      Liberar
+    </Button>
+  );
+}
+
+function LinhaParaLiberar({
+  acao,
+  selos,
+  titulo,
+}: {
+  acao: ReactNode;
+  selos?: ReactNode;
+  titulo: string;
+}) {
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5">
+      <span className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <span className="font-medium text-foreground">{titulo}</span>
+        {selos}
+      </span>
+      {acao}
+    </li>
+  );
+}
+
+function LinhaDaTrilha({
+  linhaAberta,
+  para,
+  t,
+}: {
+  linhaAberta: LinhaAberta;
+  para: Para;
+  t: TrilhaParaLiberar;
+}) {
+  const { id, titulo } = t.alvo;
+  const trocados = t.trocadosNaTrilha;
+  const { pedir } = linhaAberta;
+  const fechar = useCallback(() => pedir(null), [pedir]);
+  const { enviando, liberar, selo } = useLiberar(
+    para,
+    { id, tipo: "trilha", trocadosVistos: trocados.map((c) => c.id) },
+    titulo,
+    fechar
+  );
+  let acao: ReactNode;
+  if (t.liberado) {
+    acao = <Liberado selo={selo} />;
+  } else if (trocados.length === 0) {
+    acao = (
+      <BotaoLiberar enviando={enviando} liberar={liberar} titulo={titulo} />
+    );
+  } else {
+    acao = (
+      <ConfirmacaoNaLinha
+        botao={{ rotulo: "Liberar mesmo assim" }}
+        chave={`liberar:${id}`}
+        className="grid basis-full gap-3"
+        confirmar={liberar}
+        enviando={enviando}
+        gatilho={{ nome: `Liberar ${titulo}`, rotulo: "Liberar" }}
+        linhaAberta={linhaAberta}
+        pergunta={
+          <p className={cn(AVISO, "p-3.5")}>
             <TriangleAlert
               aria-hidden="true"
               className="mt-0.5 size-4 shrink-0 text-sol"
             />
             <span>
-              {nome} trocou {lista(trocadosNaTrilha)} por pontos. A trilha passa
-              a cobrir{" "}
-              {trocadosNaTrilha.length === 1 ? "esse curso" : "esses cursos"}, e
-              os pontos não voltam.
+              {para.nome} trocou {lista(trocados.map((c) => c.titulo))} por
+              pontos. A trilha passa a cobrir{" "}
+              {trocados.length === 1 ? "esse curso" : "esses cursos"}, e os
+              pontos não voltam.
             </span>
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              aria-busy={enviando}
-              autoFocus
-              className={cn(BOTAO, PEQUENO, "disabled:opacity-100")}
-              disabled={pendente}
-              focusableWhenDisabled
-              onClick={confirmar}
-            >
-              <Carregando ativo={enviando} />
-              Liberar mesmo assim
-            </Button>
-            <Button
-              className={cn(BOTAO_CONTORNO, PEQUENO)}
-              disabled={pendente}
-              onClick={fechar}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </fieldset>
-      ) : null}
-    </li>
-  );
-}
-
-function ParaLiberar({
-  alvos,
-  liberar,
-  momento,
-  nome,
-  vazio,
-}: {
-  alvos: readonly AlvoNaTela[];
-  liberar: (a: AlvoNaTela) => void;
-  momento: Momento;
-  nome: string;
-  vazio: string;
-}) {
-  if (alvos.length === 0) {
-    return <Vazio>{vazio}</Vazio>;
+        }
+      />
+    );
   }
-  return (
-    <ul className="divide-y divide-border">
-      {alvos.map((a) => (
-        <LinhaParaLiberar
-          a={a}
-          key={a.alvo.id}
-          liberar={liberar}
-          momento={momento}
-          nome={nome}
-        />
-      ))}
-    </ul>
-  );
+  return <LinhaParaLiberar acao={acao} titulo={titulo} />;
 }
 
-// Depois da ação o botão some ou muda de lugar: o foco vai para o título da lista.
-const focarLiberacoes = () => document.getElementById("liberacoes")?.focus();
+function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
+  const { id, titulo } = c.alvo;
+  const { enviando, liberar, selo } = useLiberar(
+    para,
+    { id, tipo: "curso" },
+    titulo
+  );
+  return (
+    <LinhaParaLiberar
+      acao={
+        c.liberado ? (
+          <Liberado selo={selo} />
+        ) : (
+          <BotaoLiberar enviando={enviando} liberar={liberar} titulo={titulo} />
+        )
+      }
+      selos={
+        <>
+          {c.emProducao ? (
+            <span className={cn(SELO, CONTORNO_NEUTRO)}>Em produção</span>
+          ) : null}
+          {c.pelaTrilha ? (
+            <span
+              className={cn(
+                SELO,
+                "bg-transparent text-ceu ring-1 ring-ceu/60 ring-inset"
+              )}
+            >
+              Já tem pela trilha {c.pelaTrilha}
+            </span>
+          ) : null}
+        </>
+      }
+      titulo={titulo}
+    />
+  );
+}
 
 export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
-  const { executar, pendente } = useAcao();
-  const [confirmando, setConfirmando] = useState<Chave | null>(null);
-  const [emCurso, setEmCurso] = useState<Chave | null>(null);
+  const [chave, pedir] = useState<string | null>(null);
+  const linhaAberta: LinhaAberta = { chave, pedir };
   const { pessoa, userId } = acesso;
   const nome = pessoa?.nome ?? userId;
-
-  const depois = useCallback(() => {
-    setConfirmando(null);
-    focarLiberacoes();
-  }, []);
-
-  const liberar = useCallback(
-    (a: AlvoNaTela) => {
-      setEmCurso(`liberar:${a.alvo.id}`);
-      executar(
-        () =>
-          trpcClient.admin.alunos.liberar.mutate({
-            alvo:
-              a.alvo.tipo === "trilha"
-                ? {
-                    id: a.alvo.id,
-                    tipo: "trilha",
-                    trocadosVistos: trocados(a).map((c) => c.id),
-                  }
-                : { id: a.alvo.id, tipo: "curso" },
-            userId,
-          }),
-        { depois, sucesso: `Acesso a ${a.alvo.titulo} liberado para ${nome}.` }
-      );
-    },
-    [executar, depois, userId, nome]
-  );
-
-  const revogar = useCallback(
-    (l: LiberacaoNaTela) => {
-      setEmCurso(`revogar:${l.id}`);
-      executar(
-        () => trpcClient.admin.alunos.revogar.mutate({ liberacaoId: l.id }),
-        { depois, sucesso: `Acesso a ${l.alvo.titulo} revogado.` }
-      );
-    },
-    [executar, depois]
-  );
-
+  const para: Para = { nome, userId };
   const ativas = acesso.liberacoes.filter(
     (l) => l.acao.tipo !== "revogada"
   ).length;
-  const momento: Momento = {
-    confirmando,
-    emCurso,
-    pedir: setConfirmando,
-    pendente,
-  };
 
   return (
     <>
@@ -431,8 +417,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
         >
           <Liberacoes
             liberacoes={acesso.liberacoes}
-            momento={momento}
-            revogar={revogar}
+            linhaAberta={linhaAberta}
           />
         </Secao>
         {pessoa ? (
@@ -442,26 +427,35 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
               resumo={plural(acesso.trilhas.length, "trilha", "trilhas")}
               titulo="Liberar trilha"
             >
-              <ParaLiberar
-                alvos={acesso.trilhas}
-                liberar={liberar}
-                momento={momento}
-                nome={nome}
-                vazio="Nenhuma trilha no catálogo."
-              />
+              {acesso.trilhas.length === 0 ? (
+                <Vazio>Nenhuma trilha no catálogo.</Vazio>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {acesso.trilhas.map((t) => (
+                    <LinhaDaTrilha
+                      key={t.alvo.id}
+                      linhaAberta={linhaAberta}
+                      para={para}
+                      t={t}
+                    />
+                  ))}
+                </ul>
+              )}
             </Secao>
             <Secao
               id="liberar-curso"
               resumo={plural(acesso.cursos.length, "curso", "cursos")}
               titulo="Liberar curso"
             >
-              <ParaLiberar
-                alvos={acesso.cursos}
-                liberar={liberar}
-                momento={momento}
-                nome={nome}
-                vazio="Nenhum curso no catálogo."
-              />
+              {acesso.cursos.length === 0 ? (
+                <Vazio>Nenhum curso no catálogo.</Vazio>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {acesso.cursos.map((c) => (
+                    <LinhaDoCurso c={c} key={c.alvo.id} para={para} />
+                  ))}
+                </ul>
+              )}
             </Secao>
           </div>
         ) : null}

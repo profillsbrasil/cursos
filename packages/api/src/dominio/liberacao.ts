@@ -144,7 +144,6 @@ export interface CursoParaLiberar {
 
 export interface TrilhaParaLiberar {
   alvo: Extract<AlvoComTitulo, { tipo: "trilha" }>;
-  /** Já tem liberação ativa da trilha. */
   liberado: boolean;
   /**
    * Cursos da trilha que o aluno trocou por pontos. A confirmação avisa que os

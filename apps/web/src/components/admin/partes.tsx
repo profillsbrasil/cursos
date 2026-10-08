@@ -21,7 +21,7 @@ export function Secao({
 }: {
   children: ReactNode;
   id: string;
-  resumo?: string;
+  resumo: string;
   titulo: string;
 }) {
   return (
@@ -34,9 +34,7 @@ export function Secao({
         >
           {titulo}
         </h2>
-        {resumo ? (
-          <p className="text-muted-foreground text-sm tabular-nums">{resumo}</p>
-        ) : null}
+        <p className="text-muted-foreground text-sm tabular-nums">{resumo}</p>
       </div>
       <div className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
         {children}
