@@ -7,7 +7,6 @@ import {
   useSidebar,
 } from "@cursos/ui/components/sidebar";
 import type { LucideIcon } from "lucide-react";
-import { Award, BookOpen, Gift, House, Megaphone } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,7 +14,7 @@ import { useCallback } from "react";
 
 const ITEM = "h-10 gap-3 rounded-lg px-3 font-medium text-sm";
 
-type Item = { icone: LucideIcon; nome: string } & (
+export type ItemDoMenu = { icone: LucideIcon; nome: string } & (
   | {
       tipo: "link";
       href: Route;
@@ -23,26 +22,6 @@ type Item = { icone: LucideIcon; nome: string } & (
     }
   | { tipo: "em_breve" }
 );
-
-const ITENS: readonly Item[] = [
-  { icone: House, nome: "Início", tipo: "em_breve" },
-  {
-    href: "/meus-cursos",
-    icone: BookOpen,
-    nome: "Meus cursos",
-    outrosPrefixos: ["/cursos"],
-    tipo: "link",
-  },
-  {
-    href: "/trocar-pontos",
-    icone: Gift,
-    nome: "Trocar pontos",
-    outrosPrefixos: [],
-    tipo: "link",
-  },
-  { icone: Award, nome: "Conquistas", tipo: "em_breve" },
-  { icone: Megaphone, nome: "Comunicados", tipo: "em_breve" },
-];
 
 function atual(
   caminho: string,
@@ -58,7 +37,14 @@ function atual(
   return filha ? "true" : undefined;
 }
 
-export function NavPrincipal() {
+/** Menu da sidebar do aluno e do admin. Cada lista mora num arquivo "use client", porque o ícone não atravessa a fronteira do Server Component. */
+export function NavPrincipal({
+  itens,
+  rotulo,
+}: {
+  itens: readonly ItemDoMenu[];
+  rotulo: string;
+}) {
   const caminho = usePathname();
   const { setOpenMobile } = useSidebar();
   // O SidebarProvider fica no layout e persiste entre rotas: o sheet do celular fecha no clique.
@@ -67,9 +53,9 @@ export function NavPrincipal() {
     [setOpenMobile]
   );
   return (
-    <nav aria-label="Navegação principal">
+    <nav aria-label={rotulo}>
       <SidebarMenu className="gap-1">
-        {ITENS.map(({ icone: Icone, ...item }) => {
+        {itens.map(({ icone: Icone, ...item }) => {
           if (item.tipo === "em_breve") {
             return (
               <SidebarMenuItem key={item.nome}>

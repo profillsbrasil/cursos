@@ -5,28 +5,29 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@cursos/ui/components/sidebar";
+import { ShieldCheck } from "lucide-react";
 
-import { NavPrincipal } from "./nav-principal";
+import { ehAdmin } from "@/server/api";
 
-export function AppSidebar() {
+import { NavDoAluno } from "./nav-do-aluno";
+import { LinkDoRodape, MarcaDaSidebar } from "./partes-da-sidebar";
+
+export async function AppSidebar() {
+  const admin = await ehAdmin();
   return (
     <Sidebar variant="sidebar">
       <SidebarHeader className="px-5 pt-6 pb-5">
-        <p className="flex items-center gap-2.5 font-bold text-base text-titulo tracking-tight">
-          <span
-            aria-hidden="true"
-            className="grid size-8 place-items-center rounded-[10px] bg-sol font-extrabold text-sobre-cor"
-          >
-            P
-          </span>
-          Profills{" "}
-          <span className="font-medium text-muted-foreground">School</span>
-        </p>
+        <MarcaDaSidebar />
       </SidebarHeader>
       <SidebarContent className="px-3.5">
-        <NavPrincipal />
+        <NavDoAluno />
       </SidebarContent>
-      <SidebarFooter className="border-sidebar-border border-t px-5 pt-3.5 pb-5">
+      <SidebarFooter className="gap-3 border-sidebar-border border-t px-5 pt-3.5 pb-5">
+        {admin ? (
+          <LinkDoRodape href="/admin" icone={<ShieldCheck />}>
+            Área do admin
+          </LinkDoRodape>
+        ) : null}
         <UserButton showName />
       </SidebarFooter>
     </Sidebar>

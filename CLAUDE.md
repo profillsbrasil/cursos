@@ -13,23 +13,25 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 - `src/proxy.ts`: `clerkMiddleware()` em todas as rotas, sem regra por caminho. No Next 16 o `middleware.ts` virou `proxy.ts`. O `createRouteMatcher` está depreciado no `@clerk/nextjs` 7: a proteção mora em `src/server/api.ts`.
 - `src/app/`: rotas. `layout.tsx` monta `ClerkProvider` (com o `appearance` escuro) e `Providers`, com `lang="pt-BR"` e `class="dark"` fixos no `<html>`; `page.tsx` redireciona para `/meus-cursos` até o Início existir; `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
 - `src/app/(aluno)/`: páginas do aluno. `layout.tsx` monta a sidebar e o topo e lê o resumo; `error.tsx` é o erro das páginas do grupo; `meus-cursos/` tem `page.tsx` e `loading.tsx`; `trocar-pontos/` tem os dois e um `error.tsx` próprio, com o título da tela; `cursos/[slug]/page.tsx` é o stub do player.
-- `src/server/api.ts`: `server-only`. `carregarPainel`, `carregarResumo` e `carregarPainelDeTroca` chamam o router no processo por `createCaller`, com `React.cache` por request. O `caller` faz `auth.protect()`: quem não tem sessão vai para o login. Server Component busca dados por aqui, não pelo cliente de `utils/trpc.ts`.
-- `src/context.ts`: cria o contexto do tRPC por request. Valida o token do Clerk com `authenticateRequest`, aceitando só `authorizedParties: [ENV.CORS_ORIGIN]`, e entrega `{ auth: { userId } | null, db }`.
-- `src/services.ts`: o `db` único do app (`createDb(ENV)`).
+- `src/app/(admin)/admin/`: área do admin. `layout.tsx` chama `exigirAdmin()` (quem não é admin vê a 404 do app) e monta a sidebar do admin; `error.tsx` é o erro do grupo; `page.tsx` redireciona para `catalogo/`, que lista trilhas e cursos só para leitura.
+- `src/server/api.ts`: `server-only`. `carregarPainel`, `carregarResumo` e `carregarPainelDeTroca` chamam o router no processo por `createCaller`, com `React.cache` por request. O contexto faz `auth.protect()` (quem não tem sessão vai para o login) e passa por `contextoDe`, a mesma leitura de papel do `route.ts`. `exigirAdmin()` é a primeira porta do admin e dá `notFound()` para quem não é; `ehAdmin()` mostra o link "Área do admin" na sidebar do aluno; `carregarCatalogo` passa por `exigirAdmin`. Server Component busca dados por aqui, não pelo cliente de `utils/trpc.ts`.
+- `src/context.ts`: cria o contexto do tRPC por request. Valida o token do Clerk com `authenticateRequest`, aceitando só `authorizedParties: [ENV.CORS_ORIGIN]`, e entrega `contextoDe(estado.toAuth(), servicos)`.
+- `src/services.ts`: os `servicos` do app, montados uma vez (hoje só o `db`).
 - `src/env.server.ts`: ponto de entrada server-only do env. Código de servidor importa `ENV` daqui; `src/env.ts` é gerado.
 - `src/utils/trpc.ts`: cliente tRPC + `queryClient`. Manda `Authorization: Bearer <token do Clerk>` em todo request, no browser pelo getter de `utils/clerk-auth.ts` e no servidor por `auth()`.
 - `src/components/providers.tsx`: React Query, `Toaster theme="dark"` e o `ClerkApiAuthBridge`, que registra o `getToken` do Clerk para o cliente tRPC. O app tem um tema só, escuro, sem `ThemeProvider`.
-- `src/components/aluno/`: casca do aluno (sidebar, navegação, topo). `nav-principal.tsx` tem uma lista só de itens, link ou "Em breve", e marca o `aria-current` pelo prefixo da rota. `src/components/meus-cursos/`: as peças da tela; `conteudo.tsx` monta a página a partir do painel e do resumo. `src/components/trocar-pontos/`: saldo, grade de cursos com a confirmação no card, e extrato; `cartao-de-troca.tsx` chama `troca.trocar` pelo `trpcClient` numa transition do próprio card, que termina em `router.refresh()`, e move o foco; `cursos-para-trocar.tsx` guarda só quem está confirmando, o aviso e o destaque do extrato.
+- `src/components/aluno/`: casca do aluno (sidebar, navegação, topo). `nav-principal.tsx` recebe a lista de itens, link ou "Em breve", e marca o `aria-current` pelo prefixo da rota; `nav-do-aluno.tsx` e `admin/nav-do-admin.tsx` só declaram as listas. `partes-da-sidebar.tsx` tem a marca e o link do rodapé das duas sidebars. `src/components/admin/`: sidebar do admin e `visao-do-catalogo.tsx`. `src/components/meus-cursos/`: as peças da tela; `conteudo.tsx` monta a página a partir do painel e do resumo. `src/components/trocar-pontos/`: saldo, grade de cursos com a confirmação no card, e extrato; `cartao-de-troca.tsx` chama `troca.trocar` pelo `trpcClient` numa transition do próprio card, que termina em `router.refresh()`, e move o foco; `cursos-para-trocar.tsx` guarda só quem está confirmando, o aviso e o destaque do extrato.
 - `src/lib/formato.ts`: números, pontos com sinal, minutos, datas, o "quando" do extrato e plural em pt-BR. `src/lib/capas.ts`: largura e altura das capas de `public/capas/`.
 - `next.config.ts`: plugin do varlock por fora, PWA (`pwa.config.ts`) por dentro.
 
 ### `packages/api` (`@cursos/api`)
 
-- `src/index.ts`: `router`, `publicProcedure` e `protectedProcedure`. O protegido lança `UNAUTHORIZED` sem `ctx.auth.userId` e estreita `ctx.auth` para `{ userId: string }`.
-- `src/routers/index.ts`: `appRouter` (`meusCursos.painel`, `aluno.resumo`, `aula.*`, `troca.painel`, `troca.trocar`, `healthCheck`) e `createCaller`. Router novo entra aqui como chave.
+- `src/index.ts`: `router`, `publicProcedure`, `protectedProcedure` e `adminProcedure`. O protegido lança `UNAUTHORIZED` sem sessão e estreita `ctx.auth` para `Sessao`. O do admin lança `FORBIDDEN` para quem não tem papel `admin` e entrega `ctx.admin` (`AdminId`), que só ele fabrica.
+- `src/routers/index.ts`: `appRouter` (`admin.catalogo.visao`, `meusCursos.painel`, `aluno.resumo`, `aula.*`, `troca.painel`, `troca.trocar`, `healthCheck`) e `createCaller`. Router novo entra aqui como chave. `routers/admin.ts` usa só `adminProcedure`, e `admin.test.ts` percorre todo `admin.*` sem sessão e com aluno.
 - `src/dominio/`: regras puras, sem banco e sem relógio próprio: estado do curso, sequência em dias úteis, retomada e a montagem do painel. `pontos.ts` transforma lançamento em linha do extrato e monta "Como ganhar pontos"; `troca.ts` decide quem pode trocar (`situacao`, usada pela tela e pela mutação), monta os cards e decide a troca. Testes com `bun test`.
-- `src/consultas/`: as consultas do painel (5 statements) e do resumo (2), em paralelo, e o teste de integração no banco local. `pontos.ts` é a fonte única de saldo e semana (`linhasDoSaldo`), do extrato e da trava `comSaldoTravado`: todo débito passa por ela. `troca.ts` lê o painel de troca e grava a troca (liberação mais lançamento negativo, na mesma transação).
-- `src/context.ts`: o tipo `Context` que o app implementa.
+- `src/consultas/`: as consultas do painel (5 statements) e do resumo (2), em paralelo, e o teste de integração no banco local. `pontos.ts` é a fonte única de saldo e semana (`linhasDoSaldo`), do extrato e da trava `comSaldoTravado`: todo débito passa por ela. `troca.ts` lê o painel de troca e grava a troca (liberação mais lançamento negativo, na mesma transação). `catalogo.ts` tem a `visaoDoCatalogo` do admin.
+- `src/context.ts`: `Sessao { userId, papel }`, `Servicos`, `Context` e `contextoDe`, a única leitura de `sessionClaims` do app. O claim `papel` vem do session token do Clerk (`{{user.public_metadata.papel}}`); ausente, `null` ou outro texto vale `aluno`. `src/contexto-de-teste.ts` monta o `Context` dos testes.
+- `package.json` fecha os `exports`: o app importa só `.`, `./context`, `./dominio/*` e `./routers/index`. `consultas/` não sai do pacote.
 
 ### `packages/db` (`@cursos/db`)
 
@@ -73,6 +75,7 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 - App "cursos" na workspace PROFILLS DO BRASIL, só a instância Development (`pk_test`/`sk_test`). A instância de produção exige domínio próprio.
 - Usuário logado no servidor: `ctx.auth.userId` dentro de `protectedProcedure`. Não existe tabela de usuários; quando precisar, sincronize pelo webhook do Clerk (skill `clerk-webhooks`).
+- Papel de admin: `{ "papel": "admin" }` no Public metadata do usuário, e o claim `{ "papel": "{{user.public_metadata.papel}}" }` em Sessions, "Customize session token". Quem muda o metadata precisa sair e entrar de novo, ou esperar o token renovar (até 60 s).
 
 ## Comandos
 
