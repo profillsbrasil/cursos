@@ -76,6 +76,7 @@ export const MENSAGEM_DA_RESTRICAO = {
   trilha_slug_key: {
     code: "CONFLICT",
     message: "Já existe uma trilha com este endereço.",
+    motivo: "slug_repetido",
   },
 } as const satisfies Record<string, MensagemDaRestricao>;
 

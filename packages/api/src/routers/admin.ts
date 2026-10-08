@@ -7,6 +7,11 @@ import {
   salvarComunicado,
 } from "../consultas/comunicado";
 import {
+  abrirTrilha,
+  apagarTrilha,
+  salvarTrilha,
+} from "../consultas/edicao-da-trilha";
+import {
   abrirCurso,
   apagarCurso,
   salvarCurso,
@@ -17,8 +22,14 @@ import {
   TEXTO_MAX,
   TITULO_MAX,
 } from "../dominio/comunicado";
+import { documentoDaTrilha } from "../dominio/edicao-da-trilha";
 import { montarAcesso, type PedidoDeLiberar } from "../dominio/liberacao";
-import type { ComunicadoId, CursoId, LiberacaoId } from "../dominio/tipos";
+import type {
+  ComunicadoId,
+  CursoId,
+  LiberacaoId,
+  TrilhaId,
+} from "../dominio/tipos";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
 // O mesmo formato do check liberacao_user_id_clerk.
@@ -36,6 +47,10 @@ const alvo = z.discriminatedUnion("tipo", [
 
 const doCurso = z.object({
   id: z.uuid().transform((id) => id.toLowerCase() as CursoId),
+});
+
+const daTrilha = z.object({
+  id: z.uuid().transform((id) => id.toLowerCase() as TrilhaId),
 });
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
@@ -89,9 +104,16 @@ export const adminRouter = router({
     abrirCurso: adminProcedure
       .input(doCurso)
       .query(({ ctx, input }) => abrirCurso(ctx.db, input.id)),
+    /** Mesmo contrato de abrirCurso: a trilha nova vem de edicaoDeTrilhaNova(id). */
+    abrirTrilha: adminProcedure
+      .input(daTrilha)
+      .query(({ ctx, input }) => abrirTrilha(ctx.db, input.id)),
     apagarCurso: adminProcedure
       .input(doCurso)
       .mutation(({ ctx, input }) => apagarCurso(ctx.db, input.id)),
+    apagarTrilha: adminProcedure
+      .input(daTrilha)
+      .mutation(({ ctx, input }) => apagarTrilha(ctx.db, input.id)),
     /**
      * FormData com "documento" (JSON de DocumentoDoCurso) e "capa" (arquivo
      * opcional), montado por formularioDoCurso. O fetch adapter do tRPC lê
@@ -100,6 +122,10 @@ export const adminRouter = router({
     salvarCurso: adminProcedure
       .input(z.instanceof(FormData))
       .mutation(({ ctx, input }) => salvarCurso(ctx, input)),
+    /** A lista de cursos é o estado desejado: acrescentar, tirar e reordenar. */
+    salvarTrilha: adminProcedure
+      .input(documentoDaTrilha)
+      .mutation(({ ctx, input }) => salvarTrilha(ctx.db, input)),
     visao: adminProcedure.query(({ ctx }) => visaoDoCatalogo(ctx.db)),
   }),
   comunicados: router({
