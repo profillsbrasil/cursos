@@ -11,6 +11,11 @@ export interface OpcoesDaAcao<T> {
   depois?: (resultado: T) => void;
   /** Texto do toast quando o erro não traz mensagem escrita para a pessoa. */
   erro?: string;
+  /**
+   * Quem passa naRecusa decide o que a tela faz com a recusa, e a página não
+   * recarrega: o editor do curso não pode perder o que o admin digitou.
+   */
+  naRecusa?: (erro: unknown) => void;
   sucesso?: string | ((resultado: T) => string);
 }
 
@@ -28,6 +33,7 @@ const paraAPessoa = (e: unknown): string | null =>
 /**
  * O corpo do useAcao, sem React. A página recarrega os dados do servidor no
  * fim, com sucesso ou recusa, porque a recusa costuma dizer que a tela ficou velha.
+ * A exceção é a recusa com naRecusa.
  */
 export async function rodarAcao<T>(
   fazer: () => Promise<T>,
@@ -44,6 +50,10 @@ export async function rodarAcao<T>(
     opcoes.depois?.(r);
   } catch (e) {
     efeitos.toast.error(paraAPessoa(e) ?? opcoes.erro ?? ERRO_GENERICO);
+    if (opcoes.naRecusa) {
+      opcoes.naRecusa(e);
+      return;
+    }
   }
   efeitos.atualizar();
 }

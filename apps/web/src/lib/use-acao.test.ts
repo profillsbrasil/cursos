@@ -77,6 +77,26 @@ describe("rodarAcao", () => {
       })
     ).toEqual(["erro:Confira o saldo.", "atualizar"]);
   });
+
+  test("com naRecusa, a recusa mostra o toast, entrega o erro e não recarrega", async () => {
+    const recusa = erroDoServidor("CONFLICT", "Outra pessoa salvou.", true);
+    const recebidos: unknown[] = [];
+    expect(
+      await rodar(() => Promise.reject(recusa), {
+        naRecusa: (e) => recebidos.push(e),
+      })
+    ).toEqual(["erro:Outra pessoa salvou."]);
+    expect(recebidos).toEqual([recusa]);
+  });
+
+  test("com naRecusa, o sucesso ainda recarrega", async () => {
+    expect(
+      await rodar(() => Promise.resolve("ok"), {
+        naRecusa: () => undefined,
+        sucesso: "Curso salvo.",
+      })
+    ).toEqual(["sucesso:Curso salvo.", "depois:ok", "atualizar"]);
+  });
 });
 
 const SRC = join(import.meta.dir, "..");
