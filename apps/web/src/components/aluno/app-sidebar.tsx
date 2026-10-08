@@ -5,28 +5,61 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@cursos/ui/components/sidebar";
+import {
+  Award,
+  BookOpen,
+  Gift,
+  House,
+  Megaphone,
+  ShieldCheck,
+} from "lucide-react";
 
-import { NavPrincipal } from "./nav-principal";
+import {
+  type ItemDoMenu,
+  NavPrincipal,
+} from "@/components/casca/nav-principal";
+import {
+  LinkDoRodape,
+  MarcaDaSidebar,
+} from "@/components/casca/partes-da-sidebar";
+import { souAdmin } from "@/server/api";
 
-export function AppSidebar() {
+const ITENS_DO_ALUNO: readonly ItemDoMenu[] = [
+  { icone: <House />, nome: "Início", tipo: "em_breve" },
+  {
+    href: "/meus-cursos",
+    icone: <BookOpen />,
+    nome: "Meus cursos",
+    outrosPrefixos: ["/cursos"],
+    tipo: "link",
+  },
+  {
+    href: "/trocar-pontos",
+    icone: <Gift />,
+    nome: "Trocar pontos",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
+  { icone: <Award />, nome: "Conquistas", tipo: "em_breve" },
+  { icone: <Megaphone />, nome: "Comunicados", tipo: "em_breve" },
+];
+
+export async function AppSidebar() {
+  const admin = await souAdmin();
   return (
     <Sidebar variant="sidebar">
       <SidebarHeader className="px-5 pt-6 pb-5">
-        <p className="flex items-center gap-2.5 font-bold text-base text-titulo tracking-tight">
-          <span
-            aria-hidden="true"
-            className="grid size-8 place-items-center rounded-[10px] bg-sol font-extrabold text-sobre-cor"
-          >
-            P
-          </span>
-          Profills{" "}
-          <span className="font-medium text-muted-foreground">School</span>
-        </p>
+        <MarcaDaSidebar />
       </SidebarHeader>
       <SidebarContent className="px-3.5">
-        <NavPrincipal />
+        <NavPrincipal itens={ITENS_DO_ALUNO} rotulo="Navegação principal" />
       </SidebarContent>
-      <SidebarFooter className="border-sidebar-border border-t px-5 pt-3.5 pb-5">
+      <SidebarFooter className="gap-3 border-sidebar-border border-t px-5 pt-3.5 pb-5">
+        {admin ? (
+          <LinkDoRodape href="/admin" icone={<ShieldCheck />}>
+            Área do admin
+          </LinkDoRodape>
+        ) : null}
         <UserButton showName />
       </SidebarFooter>
     </Sidebar>

@@ -1,19 +1,38 @@
 import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
+import { contextoDe, ehAdmin } from "@cursos/api/context";
 import { createCaller } from "@cursos/api/routers/index";
+import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { db } from "@/services";
+import { servicos } from "@/services";
 
 // React.cache vale por request: generateMetadata e a página pedem a aula e ela roda uma vez.
 // auth.protect() manda quem não tem sessão para o login em toda página e layout que
 // lê dados por aqui (a checagem por recurso que o Clerk 7 recomenda no lugar do
 // createRouteMatcher no proxy). O protectedProcedure continua como segunda porta.
-const caller = cache(async () => {
-  const { userId } = await auth.protect();
-  return createCaller({ auth: { userId }, db });
+// contextoDe é a mesma leitura de papel do route.ts.
+const contexto = cache(async () => contextoDe(await auth.protect(), servicos));
+
+const caller = cache(async () => createCaller(await contexto()));
+
+/**
+ * Primeira porta do admin, para as páginas, o layout e os carregadores de /admin.
+ * Sem sessão, auth.protect() manda a pessoa para o login. Com sessão e sem o
+ * papel de admin, ela vê a 404 do app, sem saber que a área existe. O
+ * adminProcedure continua como segunda porta em cada procedimento.
+ */
+export const exigirAdmin = cache(async () => {
+  const ctx = await contexto();
+  if (!ehAdmin(ctx.auth)) {
+    notFound();
+  }
+  return createCaller(ctx);
 });
+
+/** Para a sidebar do aluno mostrar o link da área do admin. */
+export const souAdmin = cache(async () => ehAdmin((await contexto()).auth));
 
 export const carregarPainel = cache(async () =>
   (await caller()).meusCursos.painel()
@@ -33,4 +52,8 @@ export const carregarEntrada = cache(async (slug: string) =>
 
 export const carregarPainelDeTroca = cache(async () =>
   (await caller()).troca.painel()
+);
+
+export const carregarCatalogo = cache(async () =>
+  (await exigirAdmin()).admin.catalogo.visao()
 );

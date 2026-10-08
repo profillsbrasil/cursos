@@ -12,6 +12,7 @@ import {
   type DiaISO,
   type LinhaDaCapa,
   type OrigemDaLiberacao,
+  type StatusDoCurso,
 } from "./tipos";
 
 export type Acesso =
@@ -28,7 +29,7 @@ export interface CursoDaTroca {
   id: CursoId;
   precoTroca: number | null;
   slug: string;
-  status: "em_producao" | "publicado";
+  status: StatusDoCurso;
   tema: string;
   titulo: string;
 }
@@ -43,7 +44,7 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
   naTrilha: { trilha: { liberacoes: readonly unknown[] } } | null;
   precoTroca: number | null;
   slug: string;
-  status: "em_producao" | "publicado";
+  status: StatusDoCurso;
   tema: string;
   titulo: string;
 }

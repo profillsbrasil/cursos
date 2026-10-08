@@ -16,7 +16,8 @@ import {
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNull } from "drizzle-orm";
-import type { AulaId } from "../dominio/tipos";
+import { contextoDeTeste } from "../contexto-de-teste";
+import type { AulaId, StatusDoCurso } from "../dominio/tipos";
 import type { Trecho } from "../dominio/trechos";
 import { createCaller } from "../routers/index";
 import { carregarAula, carregarEntrada, registrar } from "./aula";
@@ -72,7 +73,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   async function criarCurso(
     n: number,
-    o: { comVideo?: boolean; status?: "em_producao" | "publicado" } = {}
+    o: { comVideo?: boolean; status?: StatusDoCurso } = {}
   ) {
     const slug = `teste-${hex()}`;
     const [c] = await db
@@ -129,7 +130,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   }
 
   const comoAluno = (userId: string | null) =>
-    createCaller({ auth: userId ? { userId } : null, db });
+    createCaller(contextoDeTeste({ db, userId }));
 
   const contar = async <T>(f: () => Promise<T>) => {
     statements = 0;

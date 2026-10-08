@@ -1,5 +1,8 @@
 import type { videoProvedor } from "@cursos/db/schema/comum";
-import type { ORIGEM_DA_LIBERACAO } from "@cursos/db/schema/formatos";
+import type {
+  ORIGEM_DA_LIBERACAO,
+  STATUS_DO_CURSO,
+} from "@cursos/db/schema/formatos";
 
 declare const marca: unique symbol;
 type Marca<T, M extends string> = T & { readonly [marca]: M };
@@ -9,9 +12,12 @@ export type AulaId = Marca<string, "AulaId">;
 export type TrilhaId = Marca<string, "TrilhaId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
+/** userId de quem passou pelo adminProcedure. Só o middleware cria um. */
+export type AdminId = Marca<string, "AdminId">;
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
+export type StatusDoCurso = (typeof STATUS_DO_CURSO)[number];
 export type VideoId = Marca<string, "VideoId">;
 
 export type VideoDaAula = {
@@ -72,7 +78,7 @@ export interface CursoCatalogo {
   /** Em ordem. */
   niveis: readonly NivelCatalogo[];
   slug: string;
-  status: "em_producao" | "publicado";
+  status: StatusDoCurso;
   tema: string;
   titulo: string;
 }

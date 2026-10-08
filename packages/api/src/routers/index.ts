@@ -1,10 +1,12 @@
 import { publicProcedure, router, t } from "../index";
+import { adminRouter } from "./admin";
 import { alunoRouter } from "./aluno";
 import { aulaRouter } from "./aula";
 import { meusCursosRouter } from "./meus-cursos";
 import { trocaRouter } from "./troca";
 
 export const appRouter = router({
+  admin: adminRouter,
   aluno: alunoRouter,
   aula: aulaRouter,
   healthCheck: publicProcedure.query(() => "OK"),
