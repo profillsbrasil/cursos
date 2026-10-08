@@ -6,6 +6,7 @@
     "./context": "./src/context.ts",
     "./dominio/*": "./src/dominio/*.ts",
     "./externos/capas": "./src/externos/capas.ts",
+    "./externos/pessoas": "./src/externos/pessoas.ts",
     "./routers/index": "./src/routers/index.ts"
   },
   "scripts": {

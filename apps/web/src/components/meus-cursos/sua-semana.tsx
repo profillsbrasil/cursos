@@ -4,7 +4,7 @@ import { cn } from "@cursos/ui/lib/utils";
 import { Check, Flame, Gift, Star } from "lucide-react";
 import Link from "next/link";
 
-import { BOTAO_CONTORNO } from "@/components/trocar-pontos/botoes";
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { faltam, fmtPts, plural } from "@/lib/formato";
 
 const DESCRICAO: Record<StatusDia, string> = {
