@@ -15,6 +15,7 @@ import {
   type RecusaDaTroca,
 } from "../dominio/troca";
 import {
+  COLUNAS_DA_CAPA,
   type Executor,
   filtroLiberacaoAtiva,
   relacaoLiberacoesAtivas,
@@ -33,10 +34,7 @@ export async function linhasDosCursos(
   const ativas = filtroLiberacaoAtiva(userId);
   const linhas = await exec.query.curso.findMany({
     columns: {
-      capaAlt: true,
-      capaAltura: true,
-      capaLargura: true,
-      capaUrl: true,
+      ...COLUNAS_DA_CAPA,
       id: true,
       precoTroca: true,
       slug: true,

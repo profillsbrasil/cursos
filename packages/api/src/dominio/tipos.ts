@@ -47,6 +47,21 @@ export interface Capa {
   url: string;
 }
 
+/** As colunas da capa como saem do banco (COLUNAS_DA_CAPA). */
+export interface LinhaDaCapa {
+  capaAlt: string;
+  capaAltura: number;
+  capaLargura: number;
+  capaUrl: string;
+}
+
+export const capaDe = (linha: LinhaDaCapa): Capa => ({
+  alt: linha.capaAlt,
+  altura: linha.capaAltura,
+  largura: linha.capaLargura,
+  url: linha.capaUrl,
+});
+
 export interface CursoCatalogo {
   capa: Capa;
   /** codigo ?? destaque */
