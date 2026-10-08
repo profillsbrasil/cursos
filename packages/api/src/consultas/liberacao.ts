@@ -9,6 +9,7 @@ import {
   decidirLiberar,
   type LiberacaoAtiva,
   type LinhasDoAcesso,
+  type PedidoDeLiberar,
 } from "../dominio/liberacao";
 import type {
   AdminId,
@@ -66,13 +67,25 @@ function alvoDa(l: {
   throw new Error(`Liberação ${l.id} sem alvo.`);
 }
 
-async function alvoExiste(exec: Executor, alvo: Alvo): Promise<boolean> {
+/** null: o alvo não existe. Os cursos da trilha, ou vazio para curso. */
+async function cursosDoAlvo(
+  exec: Executor,
+  alvo: Alvo
+): Promise<CursoId[] | null> {
   const where = { id: alvo.id };
-  const linha =
-    alvo.tipo === "curso"
-      ? await exec.query.curso.findFirst({ columns: { id: true }, where })
-      : await exec.query.trilha.findFirst({ columns: { id: true }, where });
-  return linha !== undefined;
+  if (alvo.tipo === "curso") {
+    const c = await exec.query.curso.findFirst({
+      columns: { id: true },
+      where,
+    });
+    return c ? [] : null;
+  }
+  const t = await exec.query.trilha.findFirst({
+    columns: { id: true },
+    where,
+    with: { cursos: { columns: { cursoId: true } } },
+  });
+  return t ? t.cursos.map((c) => c.cursoId as CursoId) : null;
 }
 
 async function liberacoesAtivas(
@@ -100,32 +113,39 @@ export function liberar(
   db: Database,
   admin: AdminId,
   pessoa: Pessoa,
-  alvo: Alvo,
+  pedido: PedidoDeLiberar,
   agora: Date
 ): Promise<{ liberacaoId: LiberacaoId; nova: boolean }> {
   return comAlunoTravado(db, pessoa.userId, async (aluno) => {
     // Em série: a transação tem um client só (consultas/aula.ts).
-    if (!(await alvoExiste(aluno.tx, alvo))) {
+    const cursosDaTrilha = await cursosDoAlvo(aluno.tx, pedido);
+    if (!cursosDaTrilha) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message:
-          alvo.tipo === "curso"
+          pedido.tipo === "curso"
             ? "Este curso não existe mais."
             : "Esta trilha não existe mais.",
       });
     }
     const d = decidirLiberar(
       await liberacoesAtivas(aluno.tx, aluno.userId),
-      alvo
+      pedido,
+      cursosDaTrilha
     );
     switch (d.tipo) {
+      case "trocados_mudaram":
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Os cursos que ${pessoa.nome} trocou por pontos nesta trilha mudaram desde que a tela abriu. Confira o aviso e libere de novo.`,
+        });
       case "ja_liberada":
         return { liberacaoId: d.liberacaoId, nova: false };
       case "inserir":
         return {
           liberacaoId: await inserirLiberacao(
             aluno,
-            { alvo, origem: "admin", por: admin },
+            { alvo: pedido, origem: "admin", por: admin },
             agora
           ),
           nova: true,
@@ -215,7 +235,7 @@ export async function linhasDoAcesso(
       },
     }),
     db.query.curso.findMany({
-      columns: { id: true, titulo: true },
+      columns: { id: true, status: true, titulo: true },
       orderBy: { titulo: "asc" },
       with: { naTrilha: { columns: { trilhaId: true } } },
     }),
@@ -228,6 +248,7 @@ export async function linhasDoAcesso(
     catalogo: {
       cursos: cursos.map((c) => ({
         id: c.id as CursoId,
+        status: c.status,
         titulo: c.titulo,
         trilhaId: (c.naTrilha?.trilhaId ?? null) as TrilhaId | null,
       })),

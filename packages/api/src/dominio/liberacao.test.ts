@@ -53,16 +53,19 @@ describe("acaoNaLiberacao", () => {
 });
 
 describe("decidirLiberar", () => {
+  const pedirTrilha = (trocadosVistos: CursoId[] = []) =>
+    ({ id: T1, tipo: "trilha", trocadosVistos }) as const;
+
   test("sem liberação ativa do alvo, insere", () => {
     const outras = [linha({ alvo: curso(C1) })];
-    expect(decidirLiberar(outras, { id: T1, tipo: "trilha" })).toEqual({
+    expect(decidirLiberar(outras, pedirTrilha(), [C1])).toEqual({
       tipo: "inserir",
     });
   });
 
   test("liberar de novo devolve a liberação ativa, sem inserir", () => {
     const ativa = linha({ alvo: trilha });
-    expect(decidirLiberar([ativa], { id: T1, tipo: "trilha" })).toEqual({
+    expect(decidirLiberar([ativa], pedirTrilha(), [])).toEqual({
       liberacaoId: ativa.id,
       tipo: "ja_liberada",
     });
@@ -70,7 +73,7 @@ describe("decidirLiberar", () => {
 
   test("curso que o aluno trocou já está liberado", () => {
     const troca = linha({ alvo: curso(C1), origem: "troca" });
-    expect(decidirLiberar([troca], { id: C1, tipo: "curso" })).toEqual({
+    expect(decidirLiberar([troca], { id: C1, tipo: "curso" }, [])).toEqual({
       liberacaoId: troca.id,
       tipo: "ja_liberada",
     });
@@ -82,8 +85,54 @@ describe("decidirLiberar", () => {
       alvo: { id: mesmo as TrilhaId, tipo: "trilha", titulo: "x" },
     });
     expect(
-      decidirLiberar([ativa], { id: mesmo as CursoId, tipo: "curso" })
+      decidirLiberar([ativa], { id: mesmo as CursoId, tipo: "curso" }, [])
     ).toEqual({ tipo: "inserir" });
+  });
+
+  describe("trilha: os cursos trocados que a tela mostrou", () => {
+    const trocouC1 = [linha({ alvo: curso(C1), origem: "troca" })];
+
+    test("a pessoa trocou um curso da trilha depois que a tela abriu: recusa", () => {
+      expect(decidirLiberar(trocouC1, pedirTrilha([]), [C1, C2])).toEqual({
+        tipo: "trocados_mudaram",
+      });
+    });
+
+    test("a tela mostrou a troca: insere", () => {
+      expect(decidirLiberar(trocouC1, pedirTrilha([C1]), [C1, C2])).toEqual({
+        tipo: "inserir",
+      });
+    });
+
+    test("o curso trocado saiu da trilha depois que a tela abriu: recusa", () => {
+      expect(decidirLiberar(trocouC1, pedirTrilha([C1]), [C2])).toEqual({
+        tipo: "trocados_mudaram",
+      });
+    });
+
+    test("a ordem dos vistos não importa", () => {
+      const trocouOsDois = [
+        ...trocouC1,
+        linha({ alvo: curso(C2), origem: "troca" }),
+      ];
+      expect(
+        decidirLiberar(trocouOsDois, pedirTrilha([C2, C1]), [C1, C2])
+      ).toEqual({ tipo: "inserir" });
+    });
+
+    test("curso liberado pelo admin não conta como trocado", () => {
+      const doAdmin = [linha({ alvo: curso(C1) })];
+      expect(decidirLiberar(doAdmin, pedirTrilha([]), [C1])).toEqual({
+        tipo: "inserir",
+      });
+    });
+
+    test("trilha já liberada devolve a liberação, mesmo com troca nova", () => {
+      const ativa = linha({ alvo: trilha });
+      expect(
+        decidirLiberar([ativa, ...trocouC1], pedirTrilha([]), [C1])
+      ).toEqual({ liberacaoId: ativa.id, tipo: "ja_liberada" });
+    });
   });
 });
 
@@ -96,9 +145,9 @@ describe("montarAcesso", () => {
   };
   const catalogo: LinhasDoAcesso["catalogo"] = {
     cursos: [
-      { id: C1, titulo: "BPF", trilhaId: T1 },
-      { id: C2, titulo: "APPCC", trilhaId: T1 },
-      { id: SOLTO, titulo: "Excel", trilhaId: null },
+      { id: C1, status: "publicado", titulo: "BPF", trilhaId: T1 },
+      { id: C2, status: "publicado", titulo: "APPCC", trilhaId: T1 },
+      { id: SOLTO, status: "em_producao", titulo: "Excel", trilhaId: null },
     ],
     trilhas: [{ id: T1, titulo: "Gestão" }],
   };
@@ -121,9 +170,31 @@ describe("montarAcesso", () => {
       {
         alvo: { id: T1, tipo: "trilha", titulo: "Gestão" },
         liberado: false,
-        trocadosNaTrilha: ["BPF"],
+        trocadosNaTrilha: [{ id: C1, titulo: "BPF" }],
       },
     ]);
+  });
+
+  test("curso diz se está em produção e se a pessoa já o alcança por uma trilha liberada", () => {
+    const acesso = montarAcesso("user_ana", pessoa, {
+      catalogo,
+      liberacoes: [linha({ alvo: trilha })],
+    });
+    expect(
+      acesso?.cursos.map((c) => [c.alvo.titulo, c.emProducao, c.pelaTrilha])
+    ).toEqual([
+      ["BPF", false, "Gestão"],
+      ["APPCC", false, "Gestão"],
+      ["Excel", true, null],
+    ]);
+  });
+
+  test("trilha revogada não cobre mais o curso", () => {
+    const acesso = montarAcesso("user_ana", pessoa, {
+      catalogo,
+      liberacoes: [linha({ alvo: trilha, revogadaEm: new Date() })],
+    });
+    expect(acesso?.cursos.map((c) => c.pelaTrilha)).toEqual([null, null, null]);
   });
 
   test("ativas primeiro, a mais recente antes; revogadas no fim", () => {

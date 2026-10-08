@@ -7,6 +7,7 @@ import type {
   LiberacaoId,
   OrigemDaLiberacao,
   Pessoa,
+  StatusDoCurso,
   TrilhaId,
 } from "./tipos";
 
@@ -61,24 +62,60 @@ export const ativaDoAlvo = <L extends { alvo: Alvo }>(
   alvo: Alvo
 ): L | undefined => ativas.find((l) => mesmoAlvo(l.alvo, alvo));
 
-export type DecisaoDeLiberar =
-  | { tipo: "inserir" }
-  | { tipo: "ja_liberada"; liberacaoId: LiberacaoId };
+/** Os cursos da lista que o aluno tem por troca ativa. */
+export const trocadosNaTrilha = <C extends { id: CursoId }>(
+  ativas: readonly Pick<LiberacaoAtiva, "alvo" | "origem">[],
+  cursosDaTrilha: readonly C[]
+): C[] =>
+  cursosDaTrilha.filter((c) =>
+    ativas.some(
+      (l) =>
+        l.origem === "troca" && mesmoAlvo(l.alvo, { id: c.id, tipo: "curso" })
+    )
+  );
 
 /**
- * `ativas` são lidas depois da trava do aluno. Liberar o que já está ativo
- * devolve a liberação existente, de qualquer origem: o segundo clique não gera
- * erro nem linha nova. Liberar curso que o aluno já alcança pela trilha é
- * permitido, e a liberação direta tira o curso da ordem da trilha.
+ * O que a tela pede. Na trilha vão os cursos trocados que o aviso mostrou: os
+ * pontos deles não voltam, e liberar sem ter visto o aviso é recusado.
+ */
+export type PedidoDeLiberar =
+  | { tipo: "curso"; id: CursoId }
+  | { tipo: "trilha"; id: TrilhaId; trocadosVistos: readonly CursoId[] };
+
+export type DecisaoDeLiberar =
+  | { tipo: "inserir" }
+  | { tipo: "ja_liberada"; liberacaoId: LiberacaoId }
+  | { tipo: "trocados_mudaram" };
+
+const mesmosIds = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((id) => b.includes(id));
+
+/**
+ * `ativas` são lidas depois da trava do aluno, e `cursosDaTrilha` são os cursos
+ * da trilha pedida (vazio para curso). Liberar o que já está ativo devolve a
+ * liberação existente, de qualquer origem: o segundo clique não gera erro nem
+ * linha nova. Liberar curso que o aluno já alcança pela trilha é permitido, e a
+ * liberação direta tira o curso da ordem da trilha.
  */
 export function decidirLiberar(
   ativas: readonly LiberacaoAtiva[],
-  alvo: Alvo
+  pedido: PedidoDeLiberar,
+  cursosDaTrilha: readonly CursoId[]
 ): DecisaoDeLiberar {
-  const existente = ativaDoAlvo(ativas, alvo);
-  return existente
-    ? { liberacaoId: existente.id, tipo: "ja_liberada" }
-    : { tipo: "inserir" };
+  const existente = ativaDoAlvo(ativas, pedido);
+  if (existente) {
+    return { liberacaoId: existente.id, tipo: "ja_liberada" };
+  }
+  if (pedido.tipo === "trilha") {
+    const trocados = trocadosNaTrilha(
+      ativas,
+      cursosDaTrilha.map((id) => ({ id }))
+    ).map((c) => c.id);
+    if (!mesmosIds(trocados, pedido.trocadosVistos)) {
+      return { tipo: "trocados_mudaram" };
+    }
+  }
+  return { tipo: "inserir" };
 }
 
 /** A ação como a tela recebe: a data já em texto. */
@@ -95,24 +132,34 @@ export interface LiberacaoNaTela {
   origem: OrigemDaLiberacao;
 }
 
-export interface AlvoNaTela {
-  alvo: AlvoComTitulo;
-  /** Já tem liberação ativa direta deste alvo, de qualquer origem. */
+export interface CursoParaLiberar {
+  alvo: Extract<AlvoComTitulo, { tipo: "curso" }>;
+  /** O aluno vê o curso como "em breve" até ele ser publicado. */
+  emProducao: boolean;
+  /** Já tem liberação ativa direta do curso, de qualquer origem. */
+  liberado: boolean;
+  /** Título da trilha liberada que já cobre o curso, ou null. */
+  pelaTrilha: string | null;
+}
+
+export interface TrilhaParaLiberar {
+  alvo: Extract<AlvoComTitulo, { tipo: "trilha" }>;
+  /** Já tem liberação ativa da trilha. */
   liberado: boolean;
   /**
-   * Só em trilha: cursos dela que o aluno trocou por pontos. A confirmação
-   * avisa que os pontos não voltam quando a trilha passa a cobrir o curso.
+   * Cursos da trilha que o aluno trocou por pontos. A confirmação avisa que os
+   * pontos não voltam, e o pedido devolve os ids como trocadosVistos.
    */
-  trocadosNaTrilha: readonly string[];
+  trocadosNaTrilha: readonly { id: CursoId; titulo: string }[];
 }
 
 export interface AcessoDoAluno {
-  cursos: readonly AlvoNaTela[];
+  cursos: readonly CursoParaLiberar[];
   /** Ativas primeiro, a mais recente antes; depois as revogadas. */
   liberacoes: readonly LiberacaoNaTela[];
   /** null: o Clerk não conhece mais o userId. A tela mostra o userId e não oferece liberar. */
   pessoa: Pessoa | null;
-  trilhas: readonly AlvoNaTela[];
+  trilhas: readonly TrilhaParaLiberar[];
   userId: string;
 }
 
@@ -120,6 +167,7 @@ export interface LinhasDoAcesso {
   catalogo: {
     cursos: readonly {
       id: CursoId;
+      status: StatusDoCurso;
       titulo: string;
       trilhaId: TrilhaId | null;
     }[];
@@ -155,29 +203,21 @@ export function montarAcesso(
   }
   const ativas = linhas.liberacoes.filter((l) => l.revogadaEm === null);
   const liberado = (alvo: Alvo) => ativaDoAlvo(ativas, alvo) !== undefined;
-  const trocados = new Set(
-    ativas.flatMap((l) =>
-      l.origem === "troca" && l.alvo.tipo === "curso" ? [l.alvo.id] : []
-    )
-  );
-  const cursos = linhas.catalogo.cursos.map(
-    (c): AlvoNaTela => ({
-      alvo: { id: c.id, tipo: "curso", titulo: c.titulo },
-      liberado: liberado({ id: c.id, tipo: "curso" }),
-      trocadosNaTrilha: [],
-    })
-  );
-  const trilhas = linhas.catalogo.trilhas.map(
-    (t): AlvoNaTela => ({
-      alvo: { id: t.id, tipo: "trilha", titulo: t.titulo },
-      liberado: liberado({ id: t.id, tipo: "trilha" }),
-      trocadosNaTrilha: linhas.catalogo.cursos
-        .filter((c) => c.trilhaId === t.id && trocados.has(c.id))
-        .map((c) => c.titulo),
-    })
+  const { cursos, trilhas } = linhas.catalogo;
+  const trilhasLiberadas = new Map(
+    trilhas
+      .filter((t) => liberado({ id: t.id, tipo: "trilha" }))
+      .map((t) => [t.id, t.titulo])
   );
   return {
-    cursos,
+    cursos: cursos.map((c) => ({
+      alvo: { id: c.id, tipo: "curso", titulo: c.titulo },
+      emProducao: c.status === "em_producao",
+      liberado: liberado({ id: c.id, tipo: "curso" }),
+      pelaTrilha: c.trilhaId
+        ? (trilhasLiberadas.get(c.trilhaId) ?? null)
+        : null,
+    })),
     liberacoes: [...linhas.liberacoes].sort(ordemNaTela).map((l) => ({
       acao: acaoNaTela(l),
       alvo: l.alvo,
@@ -186,7 +226,14 @@ export function montarAcesso(
       origem: l.origem,
     })),
     pessoa,
-    trilhas,
+    trilhas: trilhas.map((t) => ({
+      alvo: { id: t.id, tipo: "trilha", titulo: t.titulo },
+      liberado: liberado({ id: t.id, tipo: "trilha" }),
+      trocadosNaTrilha: trocadosNaTrilha(
+        ativas,
+        cursos.filter((c) => c.trilhaId === t.id)
+      ).map((c) => ({ id: c.id, titulo: c.titulo })),
+    })),
     userId,
   };
 }

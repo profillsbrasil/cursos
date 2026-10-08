@@ -214,7 +214,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       db,
       ADMIN,
       pessoa(userId),
-      { id: t, tipo: "trilha" },
+      { id: t, tipo: "trilha", trocadosVistos: [] },
       AGORA
     );
     await esperas(1);
@@ -235,7 +235,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     });
   });
 
-  test("troca antes da trilha: a liberação espera a troca, e as duas ficam", async () => {
+  test("troca antes da trilha: a liberação espera a troca, vê que a tela ficou velha e recusa", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
     const t = await trilhaCom(c);
@@ -246,7 +246,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       db,
       ADMIN,
       pessoa(userId),
-      { id: t, tipo: "trilha" },
+      { id: t, tipo: "trilha", trocadosVistos: [] },
       AGORA
     );
     const paradas = await esperas(2);
@@ -260,18 +260,48 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       saldo: await saldoDe(userId),
       troca: resultado(rTroca),
     }).toEqual({
-      admin: "fulfilled",
-      ativas: ["admin", "troca"],
+      admin: "CONFLICT",
+      ativas: ["troca"],
       paradas: ["advisory", "relation"],
       saldo: 0,
       troca: "fulfilled",
     });
   });
 
+  test("trilha com curso trocado: libera só quando a tela mostrou a troca, e as duas ficam", async () => {
+    const userId = await aluno(300);
+    const c = await cursoTrocavel(300);
+    const t = await trilhaCom(c);
+    await trocar(db, userId, c, 300, AGORA);
+    const semAviso = await liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      { id: t, tipo: "trilha", trocadosVistos: [] },
+      AGORA
+    ).catch((e: unknown) => e);
+    expect(semAviso).toMatchObject({ code: "CONFLICT" });
+    expect((await liberacoesDe(userId)).map((l) => l.origem).sort()).toEqual([
+      "troca",
+    ]);
+    const comAviso = await liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      { id: t, tipo: "trilha", trocadosVistos: [c] },
+      AGORA
+    );
+    expect(comAviso.nova).toBe(true);
+    expect((await liberacoesDe(userId)).map((l) => l.origem).sort()).toEqual([
+      "admin",
+      "troca",
+    ]);
+  });
+
   test("revogar antes de liberar: a liberação espera a revogação e grava uma nova", async () => {
     const userId = await aluno();
     const t = await trilhaCom();
-    const alvo = { id: t, tipo: "trilha" } as const;
+    const alvo = { id: t, tipo: "trilha", trocadosVistos: [] } as const;
     const { liberacaoId } = await liberar(
       db,
       ADMIN,
@@ -305,7 +335,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
   test("liberar duas vezes, em série ou em paralelo, grava uma linha", async () => {
     const userId = await aluno();
     const t = await trilhaCom();
-    const alvo = { id: t, tipo: "trilha" } as const;
+    const alvo = { id: t, tipo: "trilha", trocadosVistos: [] } as const;
     const [a, b] = await Promise.all([
       liberar(db, ADMIN, pessoa(userId), alvo, AGORA),
       liberar(db, ADMIN, pessoa(userId), alvo, AGORA),
@@ -323,7 +353,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       db,
       ADMIN,
       pessoa(userId),
-      { id: t, tipo: "trilha" },
+      { id: t, tipo: "trilha", trocadosVistos: [] },
       AGORA
     );
     const depois = new Date(AGORA.getTime() + 60_000);
@@ -350,7 +380,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       db,
       ADMIN,
       pessoa(userId),
-      { id: t, tipo: "trilha" },
+      { id: t, tipo: "trilha", trocadosVistos: [] },
       AGORA
     );
     const atrasado = new Date(AGORA.getTime() - 2000);
@@ -401,7 +431,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       })
     );
     const { liberacaoId } = await admin.admin.alunos.liberar({
-      alvo: { id: t, tipo: "trilha" },
+      alvo: { id: t, tipo: "trilha", trocadosVistos: [] },
       userId: dono,
     });
     const acesso = await admin.admin.alunos.acesso({ userId: dono });
@@ -421,7 +451,10 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       contextoDeTeste({ db, papel: "admin", userId: "user_dono" })
     );
     const erro = await admin.admin.alunos
-      .liberar({ alvo: { id: t, tipo: "trilha" }, userId: sumiu })
+      .liberar({
+        alvo: { id: t, tipo: "trilha", trocadosVistos: [] },
+        userId: sumiu,
+      })
       .catch((e: unknown) => e);
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
     expect(await liberacoesDe(sumiu)).toHaveLength(0);

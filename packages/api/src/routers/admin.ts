@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { visaoDoCatalogo } from "../consultas/catalogo";
 import { liberar, linhasDoAcesso, revogar } from "../consultas/liberacao";
-import { type Alvo, montarAcesso } from "../dominio/liberacao";
+import { montarAcesso, type PedidoDeLiberar } from "../dominio/liberacao";
 import type { LiberacaoId } from "../dominio/tipos";
 import { adminProcedure, router } from "../index";
 
@@ -13,7 +13,11 @@ const userId = z.string().regex(USER_ID);
 
 const alvo = z.discriminatedUnion("tipo", [
   z.object({ id: z.uuid(), tipo: z.literal("curso") }),
-  z.object({ id: z.uuid(), tipo: z.literal("trilha") }),
+  z.object({
+    id: z.uuid(),
+    tipo: z.literal("trilha"),
+    trocadosVistos: z.array(z.uuid()).max(500),
+  }),
 ]);
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
@@ -49,7 +53,7 @@ export const adminRouter = router({
           ctx.db,
           ctx.admin,
           pessoa,
-          input.alvo as Alvo,
+          input.alvo as PedidoDeLiberar,
           new Date()
         );
       }),

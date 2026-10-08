@@ -2,8 +2,9 @@
 
 import type {
   AcessoDoAluno as Acesso,
-  AlvoNaTela,
+  CursoParaLiberar,
   LiberacaoNaTela,
+  TrilhaParaLiberar,
 } from "@cursos/api/dominio/liberacao";
 import { Button } from "@cursos/ui/components/button";
 import {
@@ -39,6 +40,11 @@ const ORIGEM = {
 } as const;
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
+
+type AlvoNaTela = CursoParaLiberar | TrilhaParaLiberar;
+
+const trocados = (a: AlvoNaTela) =>
+  a.alvo.tipo === "trilha" ? (a as TrilhaParaLiberar).trocadosNaTrilha : [];
 
 /** Qual linha está aberta ou enviando: a ação mais o id. */
 type Chave = `revogar:${string}` | `liberar:${string}`;
@@ -214,7 +220,8 @@ function LinhaParaLiberar({
 }) {
   const chave: Chave = `liberar:${a.alvo.id}`;
   const { pedir, pendente } = momento;
-  const avisa = a.trocadosNaTrilha.length > 0;
+  const trocadosNaTrilha = trocados(a).map((c) => c.titulo);
+  const avisa = trocadosNaTrilha.length > 0;
   const enviando = pendente && momento.emCurso === chave;
   const aberto = momento.confirmando === chave;
   const clicar = useCallback(
@@ -265,10 +272,10 @@ function LinhaParaLiberar({
               className="mt-0.5 size-4 shrink-0 text-sol"
             />
             <span>
-              {nome} trocou {lista(a.trocadosNaTrilha)} por pontos. A trilha
-              passa a cobrir{" "}
-              {a.trocadosNaTrilha.length === 1 ? "esse curso" : "esses cursos"},
-              e os pontos não voltam.
+              {nome} trocou {lista(trocadosNaTrilha)} por pontos. A trilha passa
+              a cobrir{" "}
+              {trocadosNaTrilha.length === 1 ? "esse curso" : "esses cursos"}, e
+              os pontos não voltam.
             </span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -349,7 +356,14 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
       executar(
         () =>
           trpcClient.admin.alunos.liberar.mutate({
-            alvo: { id: a.alvo.id, tipo: a.alvo.tipo },
+            alvo:
+              a.alvo.tipo === "trilha"
+                ? {
+                    id: a.alvo.id,
+                    tipo: "trilha",
+                    trocadosVistos: trocados(a).map((c) => c.id),
+                  }
+                : { id: a.alvo.id, tipo: "curso" },
             userId,
           }),
         { depois, sucesso: `Acesso a ${a.alvo.titulo} liberado para ${nome}.` }
