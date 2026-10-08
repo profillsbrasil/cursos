@@ -1,4 +1,5 @@
 import type { videoProvedor } from "@cursos/db/schema/comum";
+import type { ORIGEM_DA_LIBERACAO } from "@cursos/db/schema/formatos";
 
 declare const marca: unique symbol;
 type Marca<T, M extends string> = T & { readonly [marca]: M };
@@ -10,6 +11,7 @@ export type TrilhaId = Marca<string, "TrilhaId">;
 export type DiaISO = Marca<string, "DiaISO">;
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
+export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
 export type VideoId = Marca<string, "VideoId">;
 
 export type VideoDaAula = {

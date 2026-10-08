@@ -5,7 +5,7 @@ import {
   type LinhaDoExtrato,
   type RegraDeGanho,
 } from "./pontos";
-import type { Capa, CursoId, DiaISO } from "./tipos";
+import type { Capa, CursoId, DiaISO, OrigemDaLiberacao } from "./tipos";
 
 export type Acesso =
   | { tipo: "nenhum" }
@@ -33,6 +33,7 @@ export interface LinhaDoCursoDaTroca {
   capaUrl: string;
   id: string;
   liberacoes: readonly {
+    origem: OrigemDaLiberacao;
     trocaLancamento: { id: string; pontos: number } | null;
   }[];
   modulos: readonly { aulas: readonly { duracaoSeg: number }[] }[];
@@ -44,9 +45,15 @@ export interface LinhaDoCursoDaTroca {
   titulo: string;
 }
 
+/** A origem decide, como no check liberacao_troca_nao_revoga; o lançamento só dá o id e o valor. */
 function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
   const [direta] = linha.liberacoes;
-  if (direta?.trocaLancamento) {
+  if (direta?.origem === "troca") {
+    if (!direta.trocaLancamento) {
+      throw new Error(
+        `Liberação de troca do curso ${linha.id} sem lançamento de troca.`
+      );
+    }
     return {
       lancamentoId: direta.trocaLancamento.id,
       pago: -direta.trocaLancamento.pontos,

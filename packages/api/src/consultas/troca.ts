@@ -49,13 +49,13 @@ export async function linhasDosCursos(
         ? {
             OR: [
               { precoTroca: { isNotNull: true } },
-              { liberacoes: { ...ativas, trocaLancamento: true } },
+              { liberacoes: { ...ativas, origem: "troca" } },
             ],
           }
         : { id: filtro.cursoId },
     with: {
       liberacoes: {
-        columns: {},
+        columns: { origem: true },
         where: ativas,
         with: { trocaLancamento: { columns: { id: true, pontos: true } } },
       },

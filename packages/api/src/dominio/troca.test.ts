@@ -176,10 +176,15 @@ describe("paraCursoDaTroca", () => {
     });
   });
 
-  test("liberação com lançamento de troca vira trocado, com o valor pago", () => {
+  test("liberação de origem troca vira trocado, com o valor pago", () => {
     const c = paraCursoDaTroca(
       linha({
-        liberacoes: [{ trocaLancamento: { id: "lanc-9", pontos: -200 } }],
+        liberacoes: [
+          {
+            origem: "troca",
+            trocaLancamento: { id: "lanc-9", pontos: -200 },
+          },
+        ],
       })
     );
     expect(c.acesso).toEqual({
@@ -189,8 +194,25 @@ describe("paraCursoDaTroca", () => {
     });
   });
 
-  test("liberação sem lançamento é do admin; trilha liberada dá na_trilha", () => {
-    const direta = { trocaLancamento: null };
+  test("a origem decide: liberação do admin é liberado, mesmo com lançamento", () => {
+    const doAdmin = {
+      origem: "admin",
+      trocaLancamento: { id: "lanc-9", pontos: -200 },
+    } as const;
+    expect(paraCursoDaTroca(linha({ liberacoes: [doAdmin] })).acesso.tipo).toBe(
+      "liberado"
+    );
+  });
+
+  test("liberação de origem troca sem lançamento é estado quebrado e lança", () => {
+    const semLancamento = { origem: "troca", trocaLancamento: null } as const;
+    expect(() =>
+      paraCursoDaTroca(linha({ liberacoes: [semLancamento] }))
+    ).toThrow();
+  });
+
+  test("liberação do admin dá liberado; trilha liberada dá na_trilha", () => {
+    const direta = { origem: "admin", trocaLancamento: null } as const;
     expect(paraCursoDaTroca(linha({ liberacoes: [direta] })).acesso.tipo).toBe(
       "liberado"
     );
