@@ -66,17 +66,18 @@ export function estadoDoCurso(
     // em_breve vence bloqueado
     return { tipo: "em_breve" };
   }
-  if (antes.tipo === "na_trilha" && !antes.concluido) {
+  const tocado = aulas.some(
+    (a) => h.assistidas.has(a.id) || h.posicoes.has(a.id)
+  );
+  // Curso começado nunca volta a ter cadeado quando a trilha muda de ordem.
+  if (!tocado && antes.tipo === "na_trilha" && !antes.concluido) {
     return { liberadoPor: antes.curso, tipo: "bloqueado" };
   }
   const proxima = aulas.find((a) => !h.assistidas.has(a.id));
   if (!proxima) {
     return { tipo: "prova" };
   }
-  const comecou = aulas.some(
-    (a) => h.assistidas.has(a.id) || h.posicoes.has(a.id)
-  );
-  return comecou
+  return tocado
     ? { proximaAula: proxima.id, tipo: "em_andamento" }
     : { primeiraAula: primeira.id, tipo: "nao_iniciado" };
 }

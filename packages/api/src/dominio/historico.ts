@@ -23,7 +23,7 @@ export function historicoDe(l: LinhasHistorico): Historico {
       ])
     ),
     posicoes: new Map(
-      l.posicoes.map((p) => [
+      l.posicoes.filter(posicaoComecada).map((p) => [
         p.aulaId as AulaId,
         {
           atualizadaEm: p.atualizadaEm.toISOString(),
