@@ -1,5 +1,4 @@
 import type { Database } from "@cursos/db";
-import type { cursoStatus } from "@cursos/db/schema/comum";
 import {
   aula,
   curso,
@@ -10,6 +9,7 @@ import {
 } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
+import type { VisaoDoCatalogo } from "../dominio/catalogo";
 import type { CursoId, TrilhaId } from "../dominio/tipos";
 
 export const COM_CONTEUDO = {
@@ -45,31 +45,6 @@ export const COM_CONTEUDO = {
     niveis: { columns: { nome: true, ordem: true }, orderBy: { ordem: "asc" } },
   },
 } as const;
-
-export type StatusDoCurso = (typeof cursoStatus.enumValues)[number];
-
-export interface CursoNaVisao {
-  aulas: number;
-  id: CursoId;
-  precoTroca: number | null;
-  status: StatusDoCurso;
-  titulo: string;
-  /** null: curso solto, fora de trilha. */
-  trilha: { id: TrilhaId; posicao: number; titulo: string } | null;
-}
-
-export interface TrilhaNaVisao {
-  /** Pessoas com liberação ativa da trilha. */
-  alunos: number;
-  cursos: number;
-  id: TrilhaId;
-  titulo: string;
-}
-
-export interface VisaoDoCatalogo {
-  cursos: readonly CursoNaVisao[];
-  trilhas: readonly TrilhaNaVisao[];
-}
 
 /**
  * Tela /admin/catalogo, em dois statements paralelos. Trilhas por título; cursos

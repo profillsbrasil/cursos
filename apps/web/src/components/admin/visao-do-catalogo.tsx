@@ -1,3 +1,7 @@
+import type {
+  StatusDoCurso,
+  VisaoDoCatalogo as Visao,
+} from "@cursos/api/dominio/catalogo";
 import { badgeVariants } from "@cursos/ui/components/badge";
 import {
   Table,
@@ -11,19 +15,12 @@ import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { fmtNum, fmtPts, plural } from "@/lib/formato";
-import type { carregarCatalogo } from "@/server/api";
-
-type Visao = Awaited<ReturnType<typeof carregarCatalogo>>;
-type CursoNaVisao = Visao["cursos"][number];
 
 const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
 const CELULA = "px-5 py-3.5 text-sm";
 const NUMERO = "text-right tabular-nums";
 
-const STATUS: Record<
-  CursoNaVisao["status"],
-  { classe: string; rotulo: string }
-> = {
+const STATUS: Record<StatusDoCurso, { classe: string; rotulo: string }> = {
   em_producao: {
     classe:
       "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset",
@@ -62,7 +59,7 @@ function Vazio({ children }: { children: ReactNode }) {
   return <p className="px-5 py-4 text-muted-foreground">{children}</p>;
 }
 
-function SeloDeStatus({ status }: { status: CursoNaVisao["status"] }) {
+function SeloDeStatus({ status }: { status: StatusDoCurso }) {
   const { classe, rotulo } = STATUS[status];
   return (
     <span
