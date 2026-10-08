@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 import {
   acaoNaLiberacao,
   decidirLiberar,
-  decidirRevogar,
   type LinhaDaLiberacao,
   type LinhasDoAcesso,
   montarAcesso,
@@ -47,30 +46,23 @@ describe("acaoNaLiberacao", () => {
   test("liberação revogada diz quando, qualquer que seja a origem", () => {
     const em = new Date("2026-10-05T09:30:00Z");
     expect(acaoNaLiberacao(linha({ alvo: trilha, revogadaEm: em }))).toEqual({
-      em: "2026-10-05T09:30:00.000Z",
+      em,
       tipo: "revogada",
     });
   });
 });
 
 describe("decidirLiberar", () => {
-  test("alvo que não existe é recusado", () => {
-    expect(decidirLiberar(false, [], trilha)).toEqual({
-      recusa: "alvo_desconhecido",
-      tipo: "recusa",
-    });
-  });
-
   test("sem liberação ativa do alvo, insere", () => {
     const outras = [linha({ alvo: curso(C1) })];
-    expect(decidirLiberar(true, outras, { id: T1, tipo: "trilha" })).toEqual({
+    expect(decidirLiberar(outras, { id: T1, tipo: "trilha" })).toEqual({
       tipo: "inserir",
     });
   });
 
   test("liberar de novo devolve a liberação ativa, sem inserir", () => {
     const ativa = linha({ alvo: trilha });
-    expect(decidirLiberar(true, [ativa], { id: T1, tipo: "trilha" })).toEqual({
+    expect(decidirLiberar([ativa], { id: T1, tipo: "trilha" })).toEqual({
       liberacaoId: ativa.id,
       tipo: "ja_liberada",
     });
@@ -78,7 +70,7 @@ describe("decidirLiberar", () => {
 
   test("curso que o aluno trocou já está liberado", () => {
     const troca = linha({ alvo: curso(C1), origem: "troca" });
-    expect(decidirLiberar(true, [troca], { id: C1, tipo: "curso" })).toEqual({
+    expect(decidirLiberar([troca], { id: C1, tipo: "curso" })).toEqual({
       liberacaoId: troca.id,
       tipo: "ja_liberada",
     });
@@ -90,27 +82,8 @@ describe("decidirLiberar", () => {
       alvo: { id: mesmo as TrilhaId, tipo: "trilha", titulo: "x" },
     });
     expect(
-      decidirLiberar(true, [ativa], { id: mesmo as CursoId, tipo: "curso" })
+      decidirLiberar([ativa], { id: mesmo as CursoId, tipo: "curso" })
     ).toEqual({ tipo: "inserir" });
-  });
-});
-
-describe("decidirRevogar", () => {
-  test("revoga liberação de admin ativa", () => {
-    expect(decidirRevogar(linha({ alvo: trilha }))).toEqual({
-      tipo: "revogar",
-    });
-  });
-
-  test("revogar de novo não muda nada", () => {
-    const revogada = linha({ alvo: trilha, revogadaEm: new Date() });
-    expect(decidirRevogar(revogada)).toEqual({ tipo: "ja_revogada" });
-  });
-
-  test("recusa revogar troca", () => {
-    expect(decidirRevogar(linha({ alvo: curso(C1), origem: "troca" }))).toEqual(
-      { recusa: "troca", tipo: "recusa" }
-    );
   });
 });
 

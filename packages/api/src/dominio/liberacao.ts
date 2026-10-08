@@ -1,6 +1,6 @@
 // Uma regra decide se uma liberação se revoga: acaoNaLiberacao. A tela mostra o
-// botão a partir dela e decidirRevogar recusa a partir dela. O check
-// liberacao_troca_nao_revoga é a última porta, no banco.
+// botão a partir dela e revogar, em consultas/liberacao.ts, recusa a partir dela.
+// O check liberacao_troca_nao_revoga é a última porta, no banco.
 
 import type {
   CursoId,
@@ -16,7 +16,14 @@ export type Alvo =
 
 export type AlvoComTitulo = Alvo & { titulo: string };
 
-/** Linha de liberacao com o título do alvo, como consultas/liberacao.ts lê. */
+/** Liberação ativa, como liberar lê depois da trava: sem o título do alvo. */
+export interface LiberacaoAtiva {
+  alvo: Alvo;
+  id: LiberacaoId;
+  origem: OrigemDaLiberacao;
+}
+
+/** Linha de liberacao com o título do alvo, como a tela de acesso lê. */
 export interface LinhaDaLiberacao {
   alvo: AlvoComTitulo;
   id: LiberacaoId;
@@ -28,11 +35,13 @@ export interface LinhaDaLiberacao {
 export type AcaoNaLiberacao =
   | { tipo: "revogar" }
   | { tipo: "fixa_por_troca" }
-  | { tipo: "revogada"; em: string };
+  | { tipo: "revogada"; em: Date };
 
-export function acaoNaLiberacao(l: LinhaDaLiberacao): AcaoNaLiberacao {
+export function acaoNaLiberacao(
+  l: Pick<LinhaDaLiberacao, "origem" | "revogadaEm">
+): AcaoNaLiberacao {
   if (l.revogadaEm) {
-    return { em: l.revogadaEm.toISOString(), tipo: "revogada" };
+    return { em: l.revogadaEm, tipo: "revogada" };
   }
   switch (l.origem) {
     case "troca":
@@ -46,56 +55,40 @@ export function acaoNaLiberacao(l: LinhaDaLiberacao): AcaoNaLiberacao {
 
 const mesmoAlvo = (a: Alvo, b: Alvo) => a.tipo === b.tipo && a.id === b.id;
 
+/** A liberação ativa deste alvo, de qualquer origem. `ativas` já vêm sem as revogadas. */
+export const ativaDoAlvo = <L extends { alvo: Alvo }>(
+  ativas: readonly L[],
+  alvo: Alvo
+): L | undefined => ativas.find((l) => mesmoAlvo(l.alvo, alvo));
+
 export type DecisaoDeLiberar =
   | { tipo: "inserir" }
-  | { tipo: "ja_liberada"; liberacaoId: LiberacaoId }
-  | { tipo: "recusa"; recusa: "alvo_desconhecido" };
+  | { tipo: "ja_liberada"; liberacaoId: LiberacaoId };
 
 /**
- * `ativas` são as liberações ativas do aluno, lidas depois da trava dele, e
- * `alvoExiste` vem da mesma transação. Liberar o que já está ativo devolve a
- * liberação existente, de qualquer origem: o segundo clique não gera erro nem
- * linha nova. Liberar curso que o aluno já alcança pela trilha é permitido, e a
- * liberação direta tira o curso da ordem da trilha.
+ * `ativas` são lidas depois da trava do aluno. Liberar o que já está ativo
+ * devolve a liberação existente, de qualquer origem: o segundo clique não gera
+ * erro nem linha nova. Liberar curso que o aluno já alcança pela trilha é
+ * permitido, e a liberação direta tira o curso da ordem da trilha.
  */
 export function decidirLiberar(
-  alvoExiste: boolean,
-  ativas: readonly LinhaDaLiberacao[],
+  ativas: readonly LiberacaoAtiva[],
   alvo: Alvo
 ): DecisaoDeLiberar {
-  if (!alvoExiste) {
-    return { recusa: "alvo_desconhecido", tipo: "recusa" };
-  }
-  const existente = ativas.find(
-    (l) => l.revogadaEm === null && mesmoAlvo(l.alvo, alvo)
-  );
+  const existente = ativaDoAlvo(ativas, alvo);
   return existente
     ? { liberacaoId: existente.id, tipo: "ja_liberada" }
     : { tipo: "inserir" };
 }
 
-export type DecisaoDeRevogar =
-  | { tipo: "revogar" }
-  | { tipo: "ja_revogada" }
-  | { tipo: "recusa"; recusa: "troca" };
-
-export function decidirRevogar(l: LinhaDaLiberacao): DecisaoDeRevogar {
-  const acao = acaoNaLiberacao(l);
-  switch (acao.tipo) {
-    case "revogar":
-      return { tipo: "revogar" };
-    case "revogada":
-      return { tipo: "ja_revogada" };
-    case "fixa_por_troca":
-      return { recusa: "troca", tipo: "recusa" };
-    default:
-      return acao satisfies never;
-  }
-}
+/** A ação como a tela recebe: a data já em texto. */
+export type AcaoNaTela =
+  | Exclude<AcaoNaLiberacao, { tipo: "revogada" }>
+  | { tipo: "revogada"; em: string };
 
 /** O que a tela /admin/alunos/[userId] mostra de cada liberação. */
 export interface LiberacaoNaTela {
-  acao: AcaoNaLiberacao;
+  acao: AcaoNaTela;
   alvo: AlvoComTitulo;
   id: LiberacaoId;
   liberadaEm: string;
@@ -140,6 +133,13 @@ const ordemNaTela = (a: LinhaDaLiberacao, b: LinhaDaLiberacao) =>
   (b.revogadaEm?.getTime() ?? 0) - (a.revogadaEm?.getTime() ?? 0) ||
   b.liberadaEm.getTime() - a.liberadaEm.getTime();
 
+function acaoNaTela(l: LinhaDaLiberacao): AcaoNaTela {
+  const acao = acaoNaLiberacao(l);
+  return acao.tipo === "revogada"
+    ? { em: acao.em.toISOString(), tipo: "revogada" }
+    : acao;
+}
+
 /**
  * null quando o Clerk não conhece a pessoa e ela nunca teve liberação: o userId
  * não é de ninguém. Com histórico, a tela continua aberta depois da última
@@ -150,11 +150,11 @@ export function montarAcesso(
   pessoa: Pessoa | null,
   linhas: LinhasDoAcesso
 ): AcessoDoAluno | null {
-  const ativas = linhas.liberacoes.filter((l) => l.revogadaEm === null);
   if (!pessoa && linhas.liberacoes.length === 0) {
     return null;
   }
-  const liberado = (alvo: Alvo) => ativas.some((l) => mesmoAlvo(l.alvo, alvo));
+  const ativas = linhas.liberacoes.filter((l) => l.revogadaEm === null);
+  const liberado = (alvo: Alvo) => ativaDoAlvo(ativas, alvo) !== undefined;
   const trocados = new Set(
     ativas.flatMap((l) =>
       l.origem === "troca" && l.alvo.tipo === "curso" ? [l.alvo.id] : []
@@ -179,7 +179,7 @@ export function montarAcesso(
   return {
     cursos,
     liberacoes: [...linhas.liberacoes].sort(ordemNaTela).map((l) => ({
-      acao: acaoNaLiberacao(l),
+      acao: acaoNaTela(l),
       alvo: l.alvo,
       id: l.id,
       liberadaEm: l.liberadaEm.toISOString(),

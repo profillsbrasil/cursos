@@ -16,7 +16,13 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import type { AdminId, CursoId, LiberacaoId, TrilhaId } from "../dominio/tipos";
+import type {
+  AdminId,
+  CursoId,
+  LiberacaoId,
+  Pessoa,
+  TrilhaId,
+} from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { liberar, revogar } from "./liberacao";
 import { trocar } from "./troca";
@@ -26,6 +32,12 @@ const hex = () => randomBytes(4).toString("hex");
 const S = hex();
 const AGORA = new Date("2026-10-07T18:00:00Z");
 const ADMIN = "user_admin" as AdminId;
+const pessoa = (userId: string): Pessoa => ({
+  email: null,
+  foto: null,
+  nome: "Aluno",
+  userId,
+});
 
 describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
@@ -198,7 +210,13 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const c = await cursoTrocavel(300);
     const t = await trilhaCom(c);
     const soltar = await seguraOsInserts();
-    const admin = liberar(db, ADMIN, userId, { id: t, tipo: "trilha" }, AGORA);
+    const admin = liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      { id: t, tipo: "trilha" },
+      AGORA
+    );
     await esperas(1);
     const troca = trocar(db, userId, c, 300, AGORA);
     const paradas = await esperas(2);
@@ -224,7 +242,13 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const soltar = await seguraOsInserts();
     const troca = trocar(db, userId, c, 300, AGORA);
     await esperas(1);
-    const admin = liberar(db, ADMIN, userId, { id: t, tipo: "trilha" }, AGORA);
+    const admin = liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      { id: t, tipo: "trilha" },
+      AGORA
+    );
     const paradas = await esperas(2);
     await soltar();
     const [rTroca, r] = await Promise.allSettled([troca, admin]);
@@ -248,11 +272,17 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const userId = await aluno();
     const t = await trilhaCom();
     const alvo = { id: t, tipo: "trilha" } as const;
-    const { liberacaoId } = await liberar(db, ADMIN, userId, alvo, AGORA);
+    const { liberacaoId } = await liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      alvo,
+      AGORA
+    );
     const soltar = await seguraOsInserts();
     const revogacao = revogar(db, ADMIN, liberacaoId, AGORA);
     await esperas(1);
-    const liberacaoNova = liberar(db, ADMIN, userId, alvo, AGORA);
+    const liberacaoNova = liberar(db, ADMIN, pessoa(userId), alvo, AGORA);
     const paradas = await Promise.race([
       liberacaoNova.then(() => "a liberação não esperou"),
       esperas(2).catch(() => "a liberação não parou"),
@@ -277,10 +307,10 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const t = await trilhaCom();
     const alvo = { id: t, tipo: "trilha" } as const;
     const [a, b] = await Promise.all([
-      liberar(db, ADMIN, userId, alvo, AGORA),
-      liberar(db, ADMIN, userId, alvo, AGORA),
+      liberar(db, ADMIN, pessoa(userId), alvo, AGORA),
+      liberar(db, ADMIN, pessoa(userId), alvo, AGORA),
     ]);
-    const c = await liberar(db, ADMIN, userId, alvo, AGORA);
+    const c = await liberar(db, ADMIN, pessoa(userId), alvo, AGORA);
     expect([a.nova, b.nova].sort()).toEqual([false, true]);
     expect(c).toEqual({ liberacaoId: a.liberacaoId, nova: false });
     expect(await liberacoesDe(userId)).toHaveLength(1);
@@ -292,7 +322,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const { liberacaoId } = await liberar(
       db,
       ADMIN,
-      userId,
+      pessoa(userId),
       { id: t, tipo: "trilha" },
       AGORA
     );
@@ -319,7 +349,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const { liberacaoId } = await liberar(
       db,
       ADMIN,
-      userId,
+      pessoa(userId),
       { id: t, tipo: "trilha" },
       AGORA
     );

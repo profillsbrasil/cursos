@@ -4,12 +4,11 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import {
-  type AcessoDoAluno,
   type Alvo,
+  acaoNaLiberacao,
   decidirLiberar,
-  decidirRevogar,
-  type LinhaDaLiberacao,
-  montarAcesso,
+  type LiberacaoAtiva,
+  type LinhasDoAcesso,
 } from "../dominio/liberacao";
 import type {
   AdminId,
@@ -53,69 +52,18 @@ export async function inserirLiberacao(
   return linha.id as LiberacaoId;
 }
 
-const COM_O_ALVO = {
-  columns: {
-    cursoId: true,
-    id: true,
-    liberadaEm: true,
-    origem: true,
-    revogadaEm: true,
-    trilhaId: true,
-  },
-  with: {
-    curso: { columns: { titulo: true } },
-    trilha: { columns: { titulo: true } },
-  },
-} as const;
-
-interface LinhaComOAlvo {
-  curso: { titulo: string } | null;
+function alvoDa(l: {
   cursoId: string | null;
   id: string;
-  liberadaEm: Date;
-  origem: LinhaDaLiberacao["origem"];
-  revogadaEm: Date | null;
-  trilha: { titulo: string } | null;
   trilhaId: string | null;
-}
-
-function paraLinha(l: LinhaComOAlvo): LinhaDaLiberacao {
-  let alvo: LinhaDaLiberacao["alvo"];
-  if (l.cursoId && l.curso) {
-    alvo = { id: l.cursoId as CursoId, tipo: "curso", titulo: l.curso.titulo };
-  } else if (l.trilhaId && l.trilha) {
-    alvo = {
-      id: l.trilhaId as TrilhaId,
-      tipo: "trilha",
-      titulo: l.trilha.titulo,
-    };
-  } else {
-    throw new Error(`Liberação ${l.id} sem alvo.`);
+}): Alvo {
+  if (l.cursoId) {
+    return { id: l.cursoId as CursoId, tipo: "curso" };
   }
-  return {
-    alvo,
-    id: l.id as LiberacaoId,
-    liberadaEm: l.liberadaEm,
-    origem: l.origem,
-    revogadaEm: l.revogadaEm,
-  };
-}
-
-/**
- * Liberações do aluno com o título do alvo. Dentro de comAlunoTravado, passe
- * aluno.tx: o statement nasce depois da trava e vê o que a transação concorrente
- * do mesmo aluno comitou enquanto esta esperava.
- */
-export async function linhasDasLiberacoes(
-  exec: Executor,
-  userId: string,
-  filtro: "ativas" | "todas"
-): Promise<LinhaDaLiberacao[]> {
-  const linhas = await exec.query.liberacao.findMany({
-    ...COM_O_ALVO,
-    where: filtro === "ativas" ? filtroLiberacaoAtiva(userId) : { userId },
-  });
-  return linhas.map(paraLinha);
+  if (l.trilhaId) {
+    return { id: l.trilhaId as TrilhaId, tipo: "trilha" };
+  }
+  throw new Error(`Liberação ${l.id} sem alvo.`);
 }
 
 async function alvoExiste(exec: Executor, alvo: Alvo): Promise<boolean> {
@@ -127,34 +75,50 @@ async function alvoExiste(exec: Executor, alvo: Alvo): Promise<boolean> {
   return linha !== undefined;
 }
 
+async function liberacoesAtivas(
+  exec: Executor,
+  userId: string
+): Promise<LiberacaoAtiva[]> {
+  const linhas = await exec.query.liberacao.findMany({
+    columns: { cursoId: true, id: true, origem: true, trilhaId: true },
+    where: filtroLiberacaoAtiva(userId),
+  });
+  return linhas.map((l) => ({
+    alvo: alvoDa(l),
+    id: l.id as LiberacaoId,
+    origem: l.origem,
+  }));
+}
+
 /**
  * Admin libera trilha ou curso. Com a trava do aluno, uma troca concorrente
  * espera, lê a liberação nova e devolve "já tem" sem debitar. Liberar o que já
- * está ativo devolve a liberação existente. Quem chama já conferiu no Clerk que
- * a pessoa existe.
+ * está ativo devolve a liberação existente. A Pessoa vem de Pessoas.porId: só
+ * libera para quem o Clerk conhece.
  */
 export function liberar(
   db: Database,
   admin: AdminId,
-  userId: string,
+  pessoa: Pessoa,
   alvo: Alvo,
   agora: Date
 ): Promise<{ liberacaoId: LiberacaoId; nova: boolean }> {
-  return comAlunoTravado(db, userId, async (aluno) => {
-    const [existe, ativas] = await Promise.all([
-      alvoExiste(aluno.tx, alvo),
-      linhasDasLiberacoes(aluno.tx, aluno.userId, "ativas"),
-    ]);
-    const d = decidirLiberar(existe, ativas, alvo);
+  return comAlunoTravado(db, pessoa.userId, async (aluno) => {
+    // Em série: a transação tem um client só (consultas/aula.ts).
+    if (!(await alvoExiste(aluno.tx, alvo))) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          alvo.tipo === "curso"
+            ? "Este curso não existe mais."
+            : "Esta trilha não existe mais.",
+      });
+    }
+    const d = decidirLiberar(
+      await liberacoesAtivas(aluno.tx, aluno.userId),
+      alvo
+    );
     switch (d.tipo) {
-      case "recusa":
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message:
-            alvo.tipo === "curso"
-              ? "Este curso não existe mais."
-              : "Esta trilha não existe mais.",
-        });
       case "ja_liberada":
         return { liberacaoId: d.liberacaoId, nova: false };
       case "inserir":
@@ -196,21 +160,21 @@ export async function revogar(
   }
   return comAlunoTravado(db, dono.userId, async (aluno) => {
     const linha = await aluno.tx.query.liberacao.findFirst({
-      ...COM_O_ALVO,
+      columns: { origem: true, revogadaEm: true },
       where: { id: liberacaoId },
     });
     if (!linha) {
       throw new Error(`Liberação ${liberacaoId} sumiu com o aluno travado.`);
     }
-    const d = decidirRevogar(paraLinha(linha));
-    switch (d.tipo) {
-      case "recusa":
+    const acao = acaoNaLiberacao(linha);
+    switch (acao.tipo) {
+      case "fixa_por_troca":
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message:
             "Liberação de troca não se revoga. O aluno pagou por ela com pontos.",
         });
-      case "ja_revogada":
+      case "revogada":
         return { revogada: false };
       case "revogar":
         await aluno.tx
@@ -224,19 +188,32 @@ export async function revogar(
           );
         return { revogada: true };
       default:
-        return d satisfies never;
+        return acao satisfies never;
     }
   });
 }
 
 /** Tela /admin/alunos/[userId]: todas as liberações da pessoa e o catálogo, em paralelo. */
-export async function carregarAcesso(
+export async function linhasDoAcesso(
   db: Database,
-  userId: string,
-  pessoa: Pessoa | null
-): Promise<AcessoDoAluno | null> {
+  userId: string
+): Promise<LinhasDoAcesso> {
   const [liberacoes, cursos, trilhas] = await Promise.all([
-    linhasDasLiberacoes(db, userId, "todas"),
+    db.query.liberacao.findMany({
+      columns: {
+        cursoId: true,
+        id: true,
+        liberadaEm: true,
+        origem: true,
+        revogadaEm: true,
+        trilhaId: true,
+      },
+      where: { userId },
+      with: {
+        curso: { columns: { titulo: true } },
+        trilha: { columns: { titulo: true } },
+      },
+    }),
     db.query.curso.findMany({
       columns: { id: true, titulo: true },
       orderBy: { titulo: "asc" },
@@ -247,7 +224,7 @@ export async function carregarAcesso(
       orderBy: { titulo: "asc" },
     }),
   ]);
-  return montarAcesso(userId, pessoa, {
+  return {
     catalogo: {
       cursos: cursos.map((c) => ({
         id: c.id as CursoId,
@@ -256,6 +233,18 @@ export async function carregarAcesso(
       })),
       trilhas: trilhas.map((t) => ({ id: t.id as TrilhaId, titulo: t.titulo })),
     },
-    liberacoes,
-  });
+    liberacoes: liberacoes.map((l) => {
+      const titulo = l.curso?.titulo ?? l.trilha?.titulo;
+      if (titulo === undefined) {
+        throw new Error(`Liberação ${l.id} sem o título do alvo.`);
+      }
+      return {
+        alvo: { ...alvoDa(l), titulo },
+        id: l.id as LiberacaoId,
+        liberadaEm: l.liberadaEm,
+        origem: l.origem,
+        revogadaEm: l.revogadaEm,
+      };
+    }),
+  };
 }
