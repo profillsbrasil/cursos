@@ -1,14 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import {
-  capasDesligadas,
-  capasDoSupabase,
-  LIMITE_DA_CAPA,
-  lerCapa,
-} from "./capas";
+import { LIMITE_DA_CAPA } from "../dominio/capa";
+import { capasDesligadas, capasDoSupabase, lerCapa } from "./capas";
 
 const PASTA = join(import.meta.dir, "../../../../apps/web/public/capas");
 
@@ -77,7 +73,7 @@ describe("lerCapa", () => {
     });
   });
 
-  test("PNG estreito, PNG enorme e arquivo pesado são recusados", () => {
+  test("PNG estreito e PNG enorme são recusados", () => {
     expect(lerCapa(cabecalhoPng(639, 400))).toEqual({
       recusa: { larguraMinima: 640, tipo: "estreita" },
       tipo: "recusa",
@@ -86,10 +82,11 @@ describe("lerCapa", () => {
       recusa: { ladoMaximo: 8000, tipo: "enorme" },
       tipo: "recusa",
     });
-    const pesado = new Uint8Array(LIMITE_DA_CAPA.bytes + 1);
-    pesado.set(cabecalhoPng(1280, 720));
-    expect(lerCapa(pesado)).toEqual({
-      recusa: { limiteMb: 4, tipo: "pesada" },
+  });
+
+  test("PNG com altura 0 é recusado pelo formato", () => {
+    expect(lerCapa(cabecalhoPng(1280, 0))).toEqual({
+      recusa: { tipo: "formato" },
       tipo: "recusa",
     });
   });
@@ -139,7 +136,7 @@ describe("capasDoSupabase", () => {
     });
   });
 
-  test("capa recusada não chega ao Storage; erro do Storage sobe", async () => {
+  test("capa recusada não chega ao Storage; o corpo do erro do Storage vai ao log, não à mensagem", async () => {
     let chamadas = 0;
     const falha = (() => {
       chamadas += 1;
@@ -149,14 +146,43 @@ describe("capasDoSupabase", () => {
       { chave: "k", url: "https://x.supabase.co" },
       falha
     );
+    const log = spyOn(console, "error").mockImplementation(() => undefined);
 
     expect(await capas.receber(new Blob(["texto"]))).toMatchObject({
       tipo: "recusa",
     });
     expect(chamadas).toBe(0);
-    await expect(
-      capas.receber(new Blob([await ler("comercial.jpg")]))
-    ).rejects.toThrow("O Storage respondeu 404: sem bucket");
+    const erro = await capas
+      .receber(new Blob([await ler("comercial.jpg")]))
+      .catch((e: unknown) => e);
+    const registrado = log.mock.calls.flat().join(" ");
+    log.mockRestore();
+
+    expect(String(erro)).toBe(
+      "Error: Não foi possível enviar a capa. Tente de novo."
+    );
+    expect(registrado).toContain("404 sem bucket");
+  });
+
+  test("arquivo acima do teto é recusado sem ler os bytes", async () => {
+    let lidos = 0;
+    const pesado = {
+      arrayBuffer: () => {
+        lidos += 1;
+        return Promise.resolve(new ArrayBuffer(0));
+      },
+      size: LIMITE_DA_CAPA.bytes + 1,
+    } as unknown as Blob;
+    const capas = capasDoSupabase(
+      { chave: "k", url: "https://x.supabase.co" },
+      fetch
+    );
+
+    expect(await capas.receber(pesado)).toEqual({
+      recusa: { limiteMb: 4, tipo: "pesada" },
+      tipo: "recusa",
+    });
+    expect(lidos).toBe(0);
   });
 
   test("sem configuração, recusa com desligado", async () => {

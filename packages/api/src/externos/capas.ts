@@ -1,30 +1,16 @@
 // Capas no Supabase Storage (bucket público "capas"). Só o servidor importa este
 // arquivo: node:crypto, image-size e a chave service role, que entra por
-// apps/web/src/services.ts.
+// apps/web/src/services.ts. O que é uma capa aceitável mora em dominio/capa.ts.
 
 import { createHash } from "node:crypto";
 import { imageSize } from "image-size";
 
-export const LIMITE_DA_CAPA = {
-  /** Corpo de função na Vercel vai até 4,5 MB; sobra espaço para o documento. */
-  bytes: 4 * 1024 * 1024,
-  ladoMaximo: 8000,
-  /** O banner mostra a capa a 44vw; abaixo disso ela fica borrada. */
-  larguraMinima: 640,
-} as const;
-
-export type RecusaDaCapa =
-  | { tipo: "formato" }
-  | { tipo: "pesada"; limiteMb: number }
-  | { tipo: "estreita"; larguraMinima: number }
-  | { tipo: "enorme"; ladoMaximo: number }
-  | { tipo: "desligado" };
-
-export interface ImagemDaCapa {
-  altura: number;
-  largura: number;
-  url: string;
-}
+import {
+  type ImagemDaCapa,
+  type RecusaDaCapa,
+  recusaDaMedida,
+  recusaDoTamanho,
+} from "../dominio/capa";
 
 export type CapaRecebida =
   | { tipo: "guardada"; imagem: ImagemDaCapa }
@@ -61,12 +47,6 @@ const recusa = (r: RecusaDaCapa) => ({ recusa: r, tipo: "recusa" }) as const;
 
 /** Formato e medida pelo conteúdo, não pelo content-type que o navegador manda. */
 export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
-  if (bytes.byteLength > LIMITE_DA_CAPA.bytes) {
-    return recusa({
-      limiteMb: LIMITE_DA_CAPA.bytes / 1024 / 1024,
-      tipo: "pesada",
-    });
-  }
   let medida: ReturnType<typeof imageSize>;
   try {
     medida = imageSize(bytes);
@@ -80,14 +60,9 @@ export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
   const girada = (medida.orientation ?? 1) >= 5;
   const largura = girada ? medida.height : medida.width;
   const altura = girada ? medida.width : medida.height;
-  if (largura < LIMITE_DA_CAPA.larguraMinima) {
-    return recusa({
-      larguraMinima: LIMITE_DA_CAPA.larguraMinima,
-      tipo: "estreita",
-    });
-  }
-  if (Math.max(largura, altura) > LIMITE_DA_CAPA.ladoMaximo) {
-    return recusa({ ladoMaximo: LIMITE_DA_CAPA.ladoMaximo, tipo: "enorme" });
+  const daMedida = recusaDaMedida(largura, altura);
+  if (daMedida) {
+    return recusa(daMedida);
   }
   const hash = createHash("sha256").update(bytes).digest("hex");
   return {
@@ -115,6 +90,10 @@ export function capasDoSupabase(
   const base = cfg.url.replace(BARRAS_NO_FIM, "");
   return {
     async receber(arquivo) {
+      const pesada = recusaDoTamanho(arquivo.size);
+      if (pesada) {
+        return recusa(pesada);
+      }
       const lida = lerCapa(new Uint8Array(await arquivo.arrayBuffer()));
       if (lida.tipo === "recusa") {
         return lida;
@@ -134,9 +113,12 @@ export function capasDoSupabase(
         }
       );
       if (!resposta.ok) {
-        throw new Error(
-          `O Storage respondeu ${resposta.status}: ${await resposta.text()}`
+        console.error(
+          "Storage recusou a capa:",
+          resposta.status,
+          await resposta.text()
         );
+        throw new Error("Não foi possível enviar a capa. Tente de novo.");
       }
       return {
         imagem: {
