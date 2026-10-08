@@ -47,3 +47,48 @@ export function mmss(seg: number) {
 
 /** "1,25×". */
 export const fmtVelocidade = (v: number) => `${NUMERO.format(v)}×`;
+
+export const fmtNum = (n: number) => NUMERO.format(n);
+
+const SINAL_DE_MENOS = "\u2212";
+
+export const fmtPtsComSinal = (n: number) =>
+  n < 0 ? `${SINAL_DE_MENOS}${fmtPts(-n)}` : `+${fmtPts(n)}`;
+
+const DIA_DA_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const MES = [
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
+];
+const MS_POR_DIA = 86_400_000;
+
+const utc = (dia: string) => new Date(`${dia}T00:00:00Z`);
+
+export function quando(dia: string, hoje: string) {
+  const data = utc(dia);
+  const atras = Math.round((utc(hoje).getTime() - data.getTime()) / MS_POR_DIA);
+  if (atras === 0) {
+    return "Hoje";
+  }
+  if (atras === 1) {
+    return "Ontem";
+  }
+  if (atras > 1 && atras < 7) {
+    return DIA_DA_SEMANA[data.getUTCDay()];
+  }
+  const ano =
+    data.getUTCFullYear() === utc(hoje).getUTCFullYear()
+      ? ""
+      : ` ${data.getUTCFullYear()}`;
+  return `${data.getUTCDate()} ${MES[data.getUTCMonth()]}${ano}`;
+}

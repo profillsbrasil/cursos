@@ -30,3 +30,7 @@ export const carregarAula = cache(async (slug: string, aulaId: string) =>
 export const carregarEntrada = cache(async (slug: string) =>
   (await caller()).aula.entrada({ slug })
 );
+
+export const carregarPainelDeTroca = cache(async () =>
+  (await caller()).troca.painel()
+);

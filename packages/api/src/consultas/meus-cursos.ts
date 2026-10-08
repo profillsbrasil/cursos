@@ -4,21 +4,10 @@ import {
   certificado,
   comunicado,
   liberacao,
-  pontoLancamento,
   posicaoAula,
   trilhaCurso,
 } from "@cursos/db/schema/index";
-import {
-  and,
-  desc,
-  eq,
-  gt,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNotNull, isNull, or } from "drizzle-orm";
 
 import {
   montarPainel,
@@ -29,8 +18,8 @@ import {
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
-
-const FUSO = "America/Sao_Paulo";
+import { filtroLiberacaoAtiva } from "./comum";
+import { linhasDoSaldo } from "./pontos";
 
 // Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita
 // prepared statement nomeado. Os statements correm em paralelo no Pool do node-postgres.
@@ -41,7 +30,7 @@ export async function linhasDoPainel(db: Database, userId: string) {
       db.query.liberacao.findMany({
         columns: { liberadaEm: true },
         orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
-        where: { revogadaEm: { isNull: true }, userId },
+        where: filtroLiberacaoAtiva(userId),
         with: {
           curso: COM_CONTEUDO,
           trilha: {
@@ -141,21 +130,13 @@ export async function linhasDoResumo(
   userId: string,
   segunda: DiaISO
 ) {
-  const [dias, [pontos]] = await Promise.all([
+  const [dias, pontos] = await Promise.all([
     // 6. dias com aula assistida pela primeira vez
     db
       .selectDistinct({ dia: aulaAssistida.dia })
       .from(aulaAssistida)
       .where(eq(aulaAssistida.userId, userId)),
-    // 7. saldo e pontos da semana numa linha; o filtro usa o índice (user_id, criado_em)
-    db
-      .select({
-        saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
-        semana: sql<number>`coalesce(sum(${pontoLancamento.pontos}) filter (
-          where ${pontoLancamento.criadoEm} >= (${segunda}::date)::timestamp at time zone ${FUSO}), 0)::int`,
-      })
-      .from(pontoLancamento)
-      .where(eq(pontoLancamento.userId, userId)),
+    linhasDoSaldo(db, userId, segunda),
   ]);
   return { dias, pontos };
 }

@@ -35,6 +35,7 @@ const ALUNO_DIRETO = `user_teste${S}e`;
 const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
 const ALUNO_REVOGADO_TRILHA = `user_teste${S}g`;
 const ALUNO_MESMO_INSTANTE = `user_teste${S}h`;
+const ALUNO_TROCA = `user_teste${S}i`;
 const ALUNOS = [
   ALUNO_A,
   ALUNO_B,
@@ -44,6 +45,7 @@ const ALUNOS = [
   ALUNO_REVOGADO_DIRETO,
   ALUNO_REVOGADO_TRILHA,
   ALUNO_MESMO_INSTANTE,
+  ALUNO_TROCA,
 ];
 
 // quarta-feira, 2026-10-07, 15:00 em São Paulo
@@ -288,6 +290,47 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const resumo = await carregarResumo(db, ALUNO_A, AGORA);
     expect(resumo.saldo).toBe(50);
     expect(resumo.pontosSemana).toBe(40);
+  });
+
+  test("troca nesta semana baixa o saldo e não baixa os pontos da semana", async () => {
+    const t = await criarTrilha(1);
+    const [aulaId] = t.aulas;
+    const [cursoId] = t.cursos;
+    await db
+      .insert(aulaAssistida)
+      .values({ aulaId: aulaId ?? "", userId: ALUNO_TROCA });
+    const [lib] = await db
+      .insert(liberacao)
+      .values({ cursoId, liberadaPor: ALUNO_TROCA, userId: ALUNO_TROCA })
+      .returning({ id: liberacao.id });
+    await db.insert(pontoLancamento).values([
+      {
+        aulaId,
+        criadoEm: new Date("2026-10-06T15:00:00Z"),
+        motivo: "aula_assistida",
+        pontos: 10,
+        userId: ALUNO_TROCA,
+      },
+      {
+        criadoEm: new Date("2026-10-06T15:00:00Z"),
+        diaMarco: "2026-10-06",
+        motivo: "sequencia_7_dias",
+        pontos: 30,
+        userId: ALUNO_TROCA,
+      },
+      {
+        criadoEm: new Date("2026-10-07T12:00:00Z"),
+        liberacaoId: lib?.id,
+        motivo: "troca",
+        pontos: -25,
+        userId: ALUNO_TROCA,
+      },
+    ]);
+    const resumo = await carregarResumo(db, ALUNO_TROCA, AGORA);
+    expect({ saldo: resumo.saldo, semana: resumo.pontosSemana }).toEqual({
+      saldo: 15,
+      semana: 40,
+    });
   });
 
   test("comunicado do curso liberado aparece mesmo com 20 mais novos de cursos fora do alcance", async () => {

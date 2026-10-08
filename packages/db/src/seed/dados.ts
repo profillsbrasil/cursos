@@ -23,6 +23,7 @@ export interface CursoSeed {
   destaque: string | null;
   modulos: ModuloSeed[];
   niveis: { nome: string; ordem: number }[];
+  precoTroca?: number;
   status: "em_producao" | "publicado";
   tema: string;
   titulo: string;
@@ -228,6 +229,114 @@ export const CURSOS: CursoSeed[] = [
     tema: "Vendas e negócios",
     titulo: "Autoavaliação Comercial",
   },
+  {
+    capaAlt:
+      "Ilustração de um celular com balões de conversa, um fone de atendimento e uma caixa de ferramentas",
+    capaUrl: "/capas/pos-venda.jpg",
+    chave: "pos-venda",
+    codigo: null,
+    destaque: null,
+    modulos: [
+      {
+        aulas: geradas("Atendimento pós-venda", 5),
+        nivelOrdem: null,
+        numero: 1,
+        titulo: "Atendimento pós-venda",
+      },
+    ],
+    niveis: [],
+    precoTroca: 300,
+    status: "publicado",
+    tema: "Vendas e negócios",
+    titulo: "Atendimento pós-venda",
+  },
+  {
+    capaAlt:
+      "Ilustração de uma operadora de touca e jaleco conferindo garrafas numa esteira de envase",
+    capaUrl: "/capas/bpf.jpg",
+    chave: "bpf",
+    codigo: null,
+    destaque: null,
+    modulos: [
+      {
+        aulas: geradas("Boas práticas de fabricação", 3),
+        nivelOrdem: null,
+        numero: 1,
+        titulo: "Boas práticas de fabricação",
+      },
+    ],
+    niveis: [],
+    precoTroca: 200,
+    status: "publicado",
+    tema: "Processo de envase",
+    titulo: "Boas práticas de fabricação",
+  },
+  {
+    capaAlt:
+      "Ilustração de uma linha com envasadora, embaladora e enfardadeira lado a lado",
+    capaUrl: "/capas/portfolio.jpg",
+    chave: "portfolio",
+    codigo: null,
+    destaque: null,
+    modulos: [
+      {
+        aulas: geradas(
+          "Portfólio: envasadoras, embaladoras e enfardadeiras",
+          4
+        ),
+        nivelOrdem: null,
+        numero: 1,
+        titulo: "Portfólio: envasadoras, embaladoras e enfardadeiras",
+      },
+    ],
+    niveis: [],
+    precoTroca: 500,
+    status: "publicado",
+    tema: "Produtos e aplicações",
+    titulo: "Portfólio: envasadoras, embaladoras e enfardadeiras",
+  },
+  {
+    capaAlt:
+      "Ilustração de dois frascos despejando líquido num funil sobre um béquer",
+    capaUrl: "/capas/fundamentos.jpg",
+    chave: "fundamentos",
+    codigo: null,
+    destaque: null,
+    modulos: [
+      {
+        aulas: geradas("Fundamentos do envase de líquidos", 5),
+        nivelOrdem: null,
+        numero: 1,
+        titulo: "Fundamentos do envase de líquidos",
+      },
+    ],
+    niveis: [],
+    precoTroca: 800,
+    status: "publicado",
+    tema: "Processo de envase",
+    titulo: "Fundamentos do envase de líquidos",
+  },
+  {
+    capaAlt:
+      "Ilustração de tubulações de aço com bolhas e uma mangueira lançando jato de água",
+    capaUrl: "/capas/limpeza.jpg",
+    chave: "limpeza",
+    codigo: null,
+    destaque: null,
+    modulos: [
+      {
+        aulas: geradas("Limpeza CIP e troca de formato", 4),
+        nivelOrdem: null,
+        numero: 1,
+        titulo: "Limpeza CIP e troca de formato",
+      },
+    ],
+    niveis: [],
+    precoTroca: 1000,
+    status: "publicado",
+    tema: "Fábrica e montagem",
+    titulo: "Limpeza CIP e troca de formato",
+  },
 ];
 
 export const TRILHAS: TrilhaSeed[] = [
@@ -267,6 +376,8 @@ export const PROGRESSO_A: { curso: string; modulo: number; aulas: number }[] = [
   { aulas: 3, curso: "nova-rotina", modulo: 1 },
   { aulas: 2, curso: "autoavaliacao", modulo: 0 },
 ];
+
+export const TROCA_A = { curso: "bpf", diasAtras: 3 };
 
 export const POSICAO_A = {
   aula: 4,

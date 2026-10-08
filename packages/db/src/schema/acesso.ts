@@ -4,6 +4,7 @@ import {
   index,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -17,7 +18,7 @@ export const liberacao = tabela(
     cursoId: uuid().references(() => curso.id, { onDelete: "restrict" }),
     id: uuid().primaryKey().defaultRandom(),
     liberadaEm: momento(),
-    liberadaPor: text().notNull(), // userId do admin
+    liberadaPor: text().notNull(),
     revogadaEm: timestamp({ withTimezone: true }),
     revogadaPor: text(),
     trilhaId: uuid().references(() => trilha.id, { onDelete: "restrict" }),
@@ -34,6 +35,11 @@ export const liberacao = tabela(
       sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
           and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
     ),
+    check(
+      "liberacao_troca_nao_revoga",
+      sql`${t.revogadaEm} is null or ${t.liberadaPor} <> ${t.userId}`
+    ),
+    unique("liberacao_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento de troca
     // Uma liberação ativa por alvo. Revogar e liberar de novo continua possível.
     uniqueIndex("liberacao_trilha_ativa_unica")
       .on(t.userId, t.trilhaId)

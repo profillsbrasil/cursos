@@ -91,6 +91,14 @@ export type LancamentoNovo =
   | { aulaId: AulaId; motivo: "aula_assistida"; pontos: number }
   | { diaMarco: DiaISO; motivo: "sequencia_7_dias"; pontos: number };
 
+const MOTIVOS_GRAVADOS: Record<LancamentoNovo["motivo"], true> = {
+  aula_assistida: true,
+  sequencia_7_dias: true,
+};
+
+export const pontuaHoje = (motivo: keyof typeof PONTOS): boolean =>
+  Object.hasOwn(MOTIVOS_GRAVADOS, motivo);
+
 export interface EfeitosDaAssistida {
   lancamentos: readonly LancamentoNovo[];
   sequenciaDias: number;

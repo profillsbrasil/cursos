@@ -12,23 +12,23 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 - `src/proxy.ts`: `clerkMiddleware()` em todas as rotas, sem regra por caminho. No Next 16 o `middleware.ts` virou `proxy.ts`. O `createRouteMatcher` está depreciado no `@clerk/nextjs` 7: a proteção mora em `src/server/api.ts`.
 - `src/app/`: rotas. `layout.tsx` monta `ClerkProvider` (com o `appearance` escuro) e `Providers`, com `lang="pt-BR"` e `class="dark"` fixos no `<html>`; `page.tsx` redireciona para `/meus-cursos` até o Início existir; `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
-- `src/app/(aluno)/`: páginas do aluno. `layout.tsx` monta a sidebar e o topo e lê o resumo; `meus-cursos/` tem `page.tsx`, `loading.tsx` e `error.tsx`; `cursos/[slug]/page.tsx` é o stub do player.
-- `src/server/api.ts`: `server-only`. `carregarPainel` e `carregarResumo` chamam o router no processo por `createCaller`, com `React.cache` por request. O `caller` faz `auth.protect()`: quem não tem sessão vai para o login. Server Component busca dados por aqui, não pelo cliente de `utils/trpc.ts`.
+- `src/app/(aluno)/`: páginas do aluno. `layout.tsx` monta a sidebar e o topo e lê o resumo; `error.tsx` é o erro das páginas do grupo; `meus-cursos/` tem `page.tsx` e `loading.tsx`; `trocar-pontos/` tem os dois e um `error.tsx` próprio, com o título da tela; `cursos/[slug]/page.tsx` é o stub do player.
+- `src/server/api.ts`: `server-only`. `carregarPainel`, `carregarResumo` e `carregarPainelDeTroca` chamam o router no processo por `createCaller`, com `React.cache` por request. O `caller` faz `auth.protect()`: quem não tem sessão vai para o login. Server Component busca dados por aqui, não pelo cliente de `utils/trpc.ts`.
 - `src/context.ts`: cria o contexto do tRPC por request. Valida o token do Clerk com `authenticateRequest`, aceitando só `authorizedParties: [ENV.CORS_ORIGIN]`, e entrega `{ auth: { userId } | null, db }`.
 - `src/services.ts`: o `db` único do app (`createDb(ENV)`).
 - `src/env.server.ts`: ponto de entrada server-only do env. Código de servidor importa `ENV` daqui; `src/env.ts` é gerado.
 - `src/utils/trpc.ts`: cliente tRPC + `queryClient`. Manda `Authorization: Bearer <token do Clerk>` em todo request, no browser pelo getter de `utils/clerk-auth.ts` e no servidor por `auth()`.
 - `src/components/providers.tsx`: React Query, `Toaster theme="dark"` e o `ClerkApiAuthBridge`, que registra o `getToken` do Clerk para o cliente tRPC. O app tem um tema só, escuro, sem `ThemeProvider`.
-- `src/components/aluno/`: casca do aluno (sidebar, navegação, topo). `src/components/meus-cursos/`: as peças da tela; `conteudo.tsx` monta a página a partir do painel e do resumo.
-- `src/lib/formato.ts`: números, minutos, datas e plural em pt-BR. `src/lib/capas.ts`: largura e altura das capas de `public/capas/`.
+- `src/components/aluno/`: casca do aluno (sidebar, navegação, topo). `nav-principal.tsx` tem uma lista só de itens, link ou "Em breve", e marca o `aria-current` pelo prefixo da rota. `src/components/meus-cursos/`: as peças da tela; `conteudo.tsx` monta a página a partir do painel e do resumo. `src/components/trocar-pontos/`: saldo, grade de cursos com a confirmação no card, e extrato; `cartao-de-troca.tsx` chama `troca.trocar` pelo `trpcClient` numa transition do próprio card, que termina em `router.refresh()`, e move o foco; `cursos-para-trocar.tsx` guarda só quem está confirmando, o aviso e o destaque do extrato.
+- `src/lib/formato.ts`: números, pontos com sinal, minutos, datas, o "quando" do extrato e plural em pt-BR. `src/lib/capas.ts`: largura e altura das capas de `public/capas/`.
 - `next.config.ts`: plugin do varlock por fora, PWA (`pwa.config.ts`) por dentro.
 
 ### `packages/api` (`@cursos/api`)
 
 - `src/index.ts`: `router`, `publicProcedure` e `protectedProcedure`. O protegido lança `UNAUTHORIZED` sem `ctx.auth.userId` e estreita `ctx.auth` para `{ userId: string }`.
-- `src/routers/index.ts`: `appRouter` (`meusCursos.painel`, `aluno.resumo`, `healthCheck`) e `createCaller`. Router novo entra aqui como chave.
-- `src/dominio/`: regras puras, sem banco e sem relógio próprio: estado do curso, sequência em dias úteis, retomada e a montagem do painel. Testes com `bun test`.
-- `src/consultas/`: as consultas do painel (5 statements) e do resumo (2), em paralelo, e o teste de integração no banco local.
+- `src/routers/index.ts`: `appRouter` (`meusCursos.painel`, `aluno.resumo`, `aula.*`, `troca.painel`, `troca.trocar`, `healthCheck`) e `createCaller`. Router novo entra aqui como chave.
+- `src/dominio/`: regras puras, sem banco e sem relógio próprio: estado do curso, sequência em dias úteis, retomada e a montagem do painel. `pontos.ts` transforma lançamento em linha do extrato e monta "Como ganhar pontos"; `troca.ts` decide quem pode trocar (`situacao`, usada pela tela e pela mutação), monta os cards e decide a troca. Testes com `bun test`.
+- `src/consultas/`: as consultas do painel (5 statements) e do resumo (2), em paralelo, e o teste de integração no banco local. `pontos.ts` é a fonte única de saldo e semana (`linhasDoSaldo`), do extrato e da trava `comSaldoTravado`: todo débito passa por ela. `troca.ts` lê o painel de troca e grava a troca (liberação mais lançamento negativo, na mesma transação).
 - `src/context.ts`: o tipo `Context` que o app implementa.
 
 ### `packages/db` (`@cursos/db`)

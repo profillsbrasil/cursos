@@ -33,6 +33,7 @@ export const curso = tabela(
     criadoEm: momento(),
     destaque: text(), // ex.: "Regra 5x4"
     id: uuid().primaryKey().defaultRandom(),
+    precoTroca: integer(),
     slug: text().notNull().unique(),
     status: cursoStatus().notNull().default("em_producao"),
     tema: text().notNull(),
@@ -41,6 +42,10 @@ export const curso = tabela(
   (t) => [
     check("curso_slug_formato", sql`${t.slug} ~ ${SLUG}`),
     check("curso_capa_alt_preenchido", sql`length(trim(${t.capaAlt})) > 0`),
+    check(
+      "curso_preco_troca_positivo",
+      sql`${t.precoTroca} is null or ${t.precoTroca} > 0`
+    ),
   ]
 );
 
