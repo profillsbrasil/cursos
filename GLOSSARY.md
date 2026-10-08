@@ -4,7 +4,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 
 | Termo | Definição |
 |---|---|
-| Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. |
+| Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. Curso que o aluno já começou ou concluiu continua aberto quando o admin insere ou reordena cursos. |
 | Curso | Unidade com módulos, aulas, prova e certificado. Existe uma vez no catálogo e está em no máximo uma trilha. |
 | Curso solto | Curso que a pessoa recebeu por liberação direta e que não está numa trilha liberada a ela. Na tela, aparece em "Cursos rápidos". |
 | Módulo | Grupo numerado de aulas dentro de um curso. O número começa em 0. |
@@ -22,6 +22,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Prova | Avaliação final do curso. Abre quando todas as aulas estão assistidas. |
 | Certificado | Comprovante emitido quando o aluno assistiu a todas as aulas e passou na prova. Tem código único e continua valendo se o curso ganhar aula nova. |
 | Curso concluído | Curso em que o aluno tem certificado. |
+| Curso começado | Curso em que o aluno tem pelo menos uma aula assistida ou uma posição acima de 0 s. Nunca fica `bloqueado` pela ordem da trilha; só volta a fechar como `em_breve`, quando o admin o põe em produção. |
 | Ponto | Valor inteiro de um lançamento. O saldo é a soma dos lançamentos do aluno. |
 | Lançamento | Fato imutável de pontos, ligado ao fato que o gerou. Entrada é positiva; saída é negativa, e hoje só a troca sai. O mesmo fato não gera dois lançamentos. |
 | Saldo | Soma dos lançamentos do aluno. Toda saída lê o saldo com o aluno travado, e por isso ele nunca fica negativo. |
