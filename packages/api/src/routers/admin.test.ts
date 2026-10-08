@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
 import { type AuthDoClerk, contextoDe } from "../context";
-import { contextoDeTeste } from "../contexto-de-teste";
+import { contextoDeTeste, pessoasDeTeste } from "../contexto-de-teste";
 import { appRouter, createCaller } from "./index";
 
 const db = {} as never;
-const servicos = { db };
+const servicos = { db, pessoas: pessoasDeTeste([]) };
 
 const sessao = (claims: Record<string, unknown>, userId = "user_x") =>
   ({ sessionClaims: claims, userId }) as unknown as AuthDoClerk;
@@ -48,6 +48,20 @@ function chamar(caller: ReturnType<typeof createCaller>, caminho: string) {
     );
   return (alvo as (entrada?: unknown) => Promise<unknown>)();
 }
+
+describe("admin.alunos.acesso com userId fora do formato", () => {
+  test("devolve null, de qualquer tamanho, e a página vira 404", async () => {
+    const admin = createCaller(
+      contextoDeTeste({ db, papel: "admin", userId: "user_dono" })
+    );
+    const r = await Promise.all(
+      ["qualquer-coisa", `user_${"a".repeat(120)}-`, ""].map((userId) =>
+        admin.admin.alunos.acesso({ userId })
+      )
+    );
+    expect(r).toEqual([null, null, null]);
+  });
+});
 
 describe("todo procedimento admin.* passa pelo adminProcedure", () => {
   test("o router tem procedimentos do admin", () => {

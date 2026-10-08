@@ -17,7 +17,13 @@ import {
 } from "@/components/casca/partes-da-sidebar";
 
 const ITENS_DO_ADMIN: readonly ItemDoMenu[] = [
-  { icone: <Users />, nome: "Alunos", tipo: "em_breve" },
+  {
+    href: "/admin/alunos",
+    icone: <Users />,
+    nome: "Alunos",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
   {
     href: "/admin/catalogo",
     icone: <Library />,

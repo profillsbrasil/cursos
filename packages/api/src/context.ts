@@ -1,6 +1,7 @@
 import type { SessionAuthObject } from "@clerk/backend";
 import type { Database } from "@cursos/db";
 
+import type { Pessoas } from "./externos/pessoas";
 import { type marca, sessaoDe } from "./sessao";
 
 export type Papel = "aluno" | "admin";
@@ -27,6 +28,7 @@ export const ehAdmin = (sessao: Sessao | null): sessao is SessaoDeAdmin =>
  */
 export interface Servicos {
   readonly db: Database;
+  readonly pessoas: Pessoas;
 }
 
 export interface Context extends Servicos {

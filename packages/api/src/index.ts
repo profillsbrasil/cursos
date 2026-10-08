@@ -3,7 +3,19 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { type Context, ehAdmin } from "./context";
 import type { AdminId } from "./dominio/tipos";
 
-export const t = initTRPC.context<Context>().create();
+/**
+ * Recusa com a mensagem escrita para a pessoa, em pt-BR. O errorFormatter marca
+ * `data.paraAPessoa`, e só essa mensagem chega ao toast do useAcao; qualquer
+ * outro erro (zod, banco, o NOT_FOUND do próprio tRPC) vira um texto genérico.
+ */
+export class ErroParaAPessoa extends TRPCError {}
+
+export const t = initTRPC.context<Context>().create({
+  errorFormatter: ({ error, shape }) => ({
+    ...shape,
+    data: { ...shape.data, paraAPessoa: error instanceof ErroParaAPessoa },
+  }),
+});
 
 export const { router } = t;
 
@@ -30,7 +42,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   const { auth } = ctx;
   if (!ehAdmin(auth)) {
-    throw new TRPCError({
+    throw new ErroParaAPessoa({
       code: "FORBIDDEN",
       message: "Esta ação é só do admin.",
     });

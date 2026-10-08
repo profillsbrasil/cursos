@@ -1,6 +1,5 @@
 import type { VisaoDoCatalogo as Visao } from "@cursos/api/dominio/catalogo";
 import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
-import { badgeVariants } from "@cursos/ui/components/badge";
 import {
   Table,
   TableBody,
@@ -10,13 +9,10 @@ import {
   TableRow,
 } from "@cursos/ui/components/table";
 import { cn } from "@cursos/ui/lib/utils";
-import type { ReactNode } from "react";
 
 import { fmtNum, fmtPts, plural } from "@/lib/formato";
 
-const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
-const CELULA = "px-5 py-3.5 text-sm";
-const NUMERO = "text-right tabular-nums";
+import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
 
 const STATUS: Record<StatusDoCurso, { classe: string; rotulo: string }> = {
   em_producao: {
@@ -27,49 +23,9 @@ const STATUS: Record<StatusDoCurso, { classe: string; rotulo: string }> = {
   publicado: { classe: "bg-ceu/14 text-ceu", rotulo: "Publicado" },
 };
 
-function Secao({
-  children,
-  id,
-  resumo,
-  titulo,
-}: {
-  children: ReactNode;
-  id: string;
-  resumo: string;
-  titulo: string;
-}) {
-  return (
-    <section aria-labelledby={id} className="grid gap-3.5">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="font-bold text-titulo text-xl tracking-tight" id={id}>
-          {titulo}
-        </h2>
-        <p className="text-muted-foreground text-sm tabular-nums">{resumo}</p>
-      </div>
-      <div className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function Vazio({ children }: { children: ReactNode }) {
-  return <p className="px-5 py-4 text-muted-foreground">{children}</p>;
-}
-
 function SeloDeStatus({ status }: { status: StatusDoCurso }) {
   const { classe, rotulo } = STATUS[status];
-  return (
-    <span
-      className={cn(
-        badgeVariants({ variant: "secondary" }),
-        "h-6 rounded-full px-2.5 font-semibold text-xs",
-        classe
-      )}
-    >
-      {rotulo}
-    </span>
-  );
+  return <span className={cn(SELO, classe)}>{rotulo}</span>;
 }
 
 function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {

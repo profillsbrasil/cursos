@@ -6,9 +6,7 @@ import {
   pontoLancamento,
   posicaoAula,
 } from "@cursos/db/schema/index";
-import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-
 import {
   type AulaNoPlayer,
   aulaPorId,
@@ -29,6 +27,7 @@ import {
 import { COTA_VIDEO } from "../dominio/regras";
 import type { AulaId, DiaISO } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
+import { ErroParaAPessoa } from "../index";
 import { COM_CONTEUDO } from "./catalogo";
 import { type Executor, relacaoLiberacoesAtivas } from "./comum";
 
@@ -133,10 +132,10 @@ export async function carregarEntrada(
 }
 
 const erroSemAcesso = () =>
-  new TRPCError({ code: "NOT_FOUND", message: "Aula não encontrada." });
+  new ErroParaAPessoa({ code: "NOT_FOUND", message: "Aula não encontrada." });
 
 const erroSemVideo = () =>
-  new TRPCError({
+  new ErroParaAPessoa({
     code: "PRECONDITION_FAILED",
     message: "O vídeo desta aula ainda não foi publicado.",
   });

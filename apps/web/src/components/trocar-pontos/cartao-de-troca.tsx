@@ -1,39 +1,23 @@
 "use client";
 
-import {
-  type CartaoDeTroca as Cartao,
-  CODIGOS_DE_RECUSA,
-} from "@cursos/api/dominio/troca";
+import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
-import { TRPCClientError } from "@trpc/client";
 import { BookOpen, Check, Gift, Loader2, Play, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useTransition,
-} from "react";
-import { toast } from "sonner";
+import { type KeyboardEvent, useCallback, useEffect, useRef } from "react";
 
+import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { faltam, fmtMin, fmtNum, fmtPts, plural } from "@/lib/formato";
+import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
-import { BOTAO, BOTAO_CONTORNO } from "./botoes";
 
 type PodeTrocar = Extract<Cartao, { tipo: "pode_trocar" }>;
 type Momento = "parado" | "confirmando" | "enviando";
 
-function mensagemDoErro(e: unknown) {
-  if (e instanceof TRPCClientError && CODIGOS_DE_RECUSA.has(e.data?.code)) {
-    return e.message;
-  }
-  return "Não deu para confirmar a troca. Confira seu saldo e o extrato antes de tentar de novo.";
-}
+const ERRO_DA_TROCA =
+  "Não deu para confirmar a troca. Confira seu saldo e o extrato antes de tentar de novo.";
 
 interface AcoesDoCartao {
   cancelar: () => void;
@@ -217,8 +201,7 @@ export function CartaoDeTroca({
   grade: Grade;
   sizes: string;
 }) {
-  const router = useRouter();
-  const [enviando, iniciar] = useTransition();
+  const { executar, pendente: enviando } = useAcao();
   const card = useRef<HTMLElement>(null);
   const titulo = useRef<HTMLHeadingElement>(null);
   const alvoDoFoco = useRef<HTMLElement | null>(null);
@@ -258,18 +241,17 @@ export function CartaoDeTroca({
       }
       querFoco.current = true;
       grade.fechar(curso.id);
-      iniciar(async () => {
-        try {
-          const r = await trpcClient.troca.trocar.mutate({
+      executar(
+        () =>
+          trpcClient.troca.trocar.mutate({
             cursoId: curso.id,
             precoVisto: cartao.preco,
-          });
-          grade.trocou(r.lancamentoId);
-        } catch (e) {
-          toast.error(mensagemDoErro(e));
+          }),
+        {
+          depois: (r) => grade.trocou(r.lancamentoId),
+          erro: ERRO_DA_TROCA,
         }
-        router.refresh();
-      });
+      );
     },
     trocar: () => {
       querFoco.current = true;

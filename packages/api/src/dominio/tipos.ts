@@ -10,10 +10,25 @@ type Marca<T, M extends string> = T & { readonly [marca]: M };
 export type CursoId = Marca<string, "CursoId">;
 export type AulaId = Marca<string, "AulaId">;
 export type TrilhaId = Marca<string, "TrilhaId">;
+export type LiberacaoId = Marca<string, "LiberacaoId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
 /** userId de quem passou pelo adminProcedure. Só o middleware cria um. */
 export type AdminId = Marca<string, "AdminId">;
+
+/** Uma pessoa do Clerk, como o admin a vê. O Clerk é a tabela de usuários. */
+export interface Pessoa {
+  email: string | null;
+  foto: string | null;
+  nome: string;
+  userId: string;
+}
+
+/** Uma página da busca de pessoas, e quantas casaram no total. */
+export interface ResultadoDaBusca {
+  pessoas: readonly Pessoa[];
+  total: number;
+}
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];

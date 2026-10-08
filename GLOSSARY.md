@@ -15,6 +15,8 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Papel | `aluno` ou `admin`, lido do claim `papel` do session token do Clerk, que vem do Public metadata da pessoa. Claim ausente ou com outro valor vale `aluno`. |
 | Liberação | Registro de que um aluno pode ver uma trilha ou um curso. É permanente até o admin revogar. A liberação de uma troca não se revoga. |
 | Origem da liberação | De onde veio a liberação: `admin` ou `troca`. Fica gravada na liberação e não se deduz de quem liberou. Só a de `troca` não se revoga, e ela é sempre de um curso, liberado pelo próprio aluno. |
+| Revogação | O admin tira uma liberação de `admin`: a linha fica, com a data e quem revogou. Revogar de novo não muda nada, e liberar o mesmo alvo depois cria uma liberação nova. |
+| Pessoa | Quem tem conta no Clerk, como o admin a busca: nome, e-mail e `userId`. Uma pessoa apagada do Clerk ainda aparece na tela de acesso pelo `userId`, com as liberações dela, para o admin revogar. |
 | Aula assistida | Fato imutável: a cobertura do aluno numa aula chegou a 90% da duração. Acontece uma vez por aluno e aula. |
 | Posição | Último segundo em que o aluno parou numa aula. É estado mutável, usado pelo "Continuar". |
 | Trecho visto | Intervalo de segundos inteiros de uma aula que o vídeo tocou sem salto, `[início, fim)`. Buscar para a frente não cria trecho. Os trechos de um aluno numa aula só crescem. |

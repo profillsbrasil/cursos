@@ -219,10 +219,6 @@ export const CODIGO_DA_RECUSA = {
   saldo_curto: "PRECONDITION_FAILED",
 } as const satisfies Record<RecusaDaTroca["tipo"], string>;
 
-export const CODIGOS_DE_RECUSA: ReadonlySet<string> = new Set(
-  Object.values(CODIGO_DA_RECUSA)
-);
-
 export type Decisao =
   | { tipo: "debitar"; preco: number }
   | { tipo: "ja_trocado"; lancamentoId: string }
