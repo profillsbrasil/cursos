@@ -6,8 +6,9 @@ import type { Transacao } from "./comum";
 /**
  * `ponto:<userId>` trava o aluno: todo débito de pontos e toda escrita de liberação.
  * O crédito de aula.registrar não trava: ele só soma e não deixa o saldo negativo.
+ * `curso:<id>` serializa a edição e o apagamento de um curso pelo admin.
  */
-type ChaveDeTrava = `ponto:${string}`;
+type ChaveDeTrava = `ponto:${string}` | `curso:${string}`;
 
 /**
  * Transação com pg_advisory_xact_lock na chave, solta no commit ou no rollback.
