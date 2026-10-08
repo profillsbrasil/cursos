@@ -1,8 +1,6 @@
 import type { Database } from "@cursos/db";
 import { liberacao } from "@cursos/db/schema/index";
-import { TRPCError } from "@trpc/server";
 import { and, eq, isNull, sql } from "drizzle-orm";
-
 import {
   type Alvo,
   acaoNaLiberacao,
@@ -18,6 +16,7 @@ import type {
   Pessoa,
   TrilhaId,
 } from "../dominio/tipos";
+import { ErroParaAPessoa } from "../index";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
@@ -120,7 +119,7 @@ export function liberar(
     // Em série: a transação tem um client só (consultas/aula.ts).
     const cursosDaTrilha = await cursosDoAlvo(aluno.tx, pedido);
     if (!cursosDaTrilha) {
-      throw new TRPCError({
+      throw new ErroParaAPessoa({
         code: "NOT_FOUND",
         message:
           pedido.tipo === "curso"
@@ -135,7 +134,7 @@ export function liberar(
     );
     switch (d.tipo) {
       case "trocados_mudaram":
-        throw new TRPCError({
+        throw new ErroParaAPessoa({
           code: "CONFLICT",
           message: `Os cursos que ${pessoa.nome} trocou por pontos nesta trilha mudaram desde que a tela abriu. Confira o aviso e libere de novo.`,
         });
@@ -173,7 +172,7 @@ export async function revogar(
     where: { id: liberacaoId },
   });
   if (!dono) {
-    throw new TRPCError({
+    throw new ErroParaAPessoa({
       code: "NOT_FOUND",
       message: "Esta liberação não existe.",
     });
@@ -189,7 +188,7 @@ export async function revogar(
     const acao = acaoNaLiberacao(linha);
     switch (acao.tipo) {
       case "fixa_por_troca":
-        throw new TRPCError({
+        throw new ErroParaAPessoa({
           code: "PRECONDITION_FAILED",
           message:
             "Liberação de troca não se revoga. O aluno pagou por ela com pontos.",

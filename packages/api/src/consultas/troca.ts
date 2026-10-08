@@ -1,6 +1,5 @@
 import type { Database } from "@cursos/db";
 import { pontoLancamento } from "@cursos/db/schema/index";
-import { TRPCError } from "@trpc/server";
 import { DrizzleQueryError } from "drizzle-orm";
 
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
@@ -14,6 +13,7 @@ import {
   paraCursoDaTroca,
   type RecusaDaTroca,
 } from "../dominio/troca";
+import { ErroParaAPessoa } from "../index";
 import {
   COLUNAS_DA_CAPA,
   type Executor,
@@ -93,25 +93,25 @@ export interface ResultadoDaTroca {
   lancamentoId: string;
 }
 
-function erroDaRecusa(r: RecusaDaTroca): TRPCError {
+function erroDaRecusa(r: RecusaDaTroca): ErroParaAPessoa {
   switch (r.tipo) {
     case "indisponivel":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: CODIGO_DA_RECUSA[r.tipo],
         message: "Este curso não está disponível para troca.",
       });
     case "ja_tem":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: CODIGO_DA_RECUSA[r.tipo],
         message: "Você já tem este curso. Ele está em Meus cursos.",
       });
     case "preco_mudou":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: CODIGO_DA_RECUSA[r.tipo],
         message: `O preço deste curso mudou para ${r.preco} pts. Confira e troque de novo.`,
       });
     case "saldo_curto":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: CODIGO_DA_RECUSA[r.tipo],
         message: `Faltam ${r.faltam} pts para trocar este curso.`,
       });

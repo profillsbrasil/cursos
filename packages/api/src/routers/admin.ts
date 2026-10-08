@@ -1,11 +1,10 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { visaoDoCatalogo } from "../consultas/catalogo";
 import { liberar, linhasDoAcesso, revogar } from "../consultas/liberacao";
 import { montarAcesso, type PedidoDeLiberar } from "../dominio/liberacao";
 import type { LiberacaoId } from "../dominio/tipos";
-import { adminProcedure, router } from "../index";
+import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
 // O mesmo formato do check liberacao_user_id_clerk.
 const USER_ID = /^user_[A-Za-z0-9]+$/;
@@ -44,7 +43,7 @@ export const adminRouter = router({
       .mutation(async ({ ctx, input }) => {
         const pessoa = await ctx.pessoas.porId(input.userId);
         if (!pessoa) {
-          throw new TRPCError({
+          throw new ErroParaAPessoa({
             code: "NOT_FOUND",
             message: "Esta pessoa não existe mais no login da plataforma.",
           });
