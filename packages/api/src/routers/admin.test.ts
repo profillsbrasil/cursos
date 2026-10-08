@@ -18,10 +18,12 @@ describe("contextoDe lê o papel do claim", () => {
 
   test("claim ausente, null ou com outro texto vira aluno", () => {
     const claims = [{}, { papel: null }, { papel: "Admin" }, { papel: "root" }];
-    const papeis = claims.map(
-      (c) => contextoDe(sessao(c), servicos).auth?.papel
-    );
-    expect(papeis).toEqual(claims.map(() => "aluno"));
+    for (const c of claims) {
+      expect(contextoDe(sessao(c), servicos).auth).toMatchObject({
+        papel: "aluno",
+        userId: "user_x",
+      });
+    }
   });
 
   test("sem sessão não tem auth", () => {
