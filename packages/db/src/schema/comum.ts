@@ -20,5 +20,3 @@ export const videoProvedor = pgEnum("video_provedor", ["youtube"]);
 
 export const momento = () =>
   timestamp({ withTimezone: true }).notNull().defaultNow();
-
-export const SLUG = "^[a-z0-9]+(-[a-z0-9]+)*$";

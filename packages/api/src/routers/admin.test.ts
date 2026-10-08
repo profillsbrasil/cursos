@@ -2,10 +2,11 @@ import { describe, expect, test } from "bun:test";
 
 import { type AuthDoClerk, contextoDe } from "../context";
 import { contextoDeTeste, pessoasDeTeste } from "../contexto-de-teste";
+import { capasDesligadas } from "../externos/capas";
 import { appRouter, createCaller } from "./index";
 
 const db = {} as never;
-const servicos = { db, pessoas: pessoasDeTeste([]) };
+const servicos = { capas: capasDesligadas, db, pessoas: pessoasDeTeste([]) };
 
 const sessao = (claims: Record<string, unknown>, userId = "user_x") =>
   ({ sessionClaims: claims, userId }) as unknown as AuthDoClerk;

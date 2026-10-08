@@ -1,6 +1,7 @@
 import type { SessionAuthObject } from "@clerk/backend";
 import type { Database } from "@cursos/db";
 
+import type { Capas } from "./externos/capas";
 import type { Pessoas } from "./externos/pessoas";
 import { type marca, sessaoDe } from "./sessao";
 
@@ -27,6 +28,7 @@ export const ehAdmin = (sessao: Sessao | null): sessao is SessaoDeAdmin =>
  * Os testes montam o Context por contextoDeTeste.
  */
 export interface Servicos {
+  readonly capas: Capas;
   readonly db: Database;
   readonly pessoas: Pessoas;
 }

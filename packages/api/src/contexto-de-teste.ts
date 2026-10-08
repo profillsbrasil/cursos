@@ -2,10 +2,13 @@ import type { Database } from "@cursos/db";
 
 import type { Context, Papel } from "./context";
 import type { Pessoa } from "./dominio/tipos";
+import { type Capas, capasDesligadas } from "./externos/capas";
 import { LIMITE, type Pessoas } from "./externos/pessoas";
 import { sessaoDe } from "./sessao";
 
 export interface OpcoesDeTeste {
+  /** Sem a porta, o envio de capa recusa como num ambiente sem Storage. */
+  capas?: Capas;
   db: Database;
   papel?: Papel;
   /** As pessoas que o Clerk falso conhece. Sem a lista, ele não conhece ninguém. */
@@ -38,6 +41,7 @@ export function pessoasDeTeste(lista: readonly Pessoa[]): Pessoas {
 export function contextoDeTeste(o: OpcoesDeTeste): Context {
   return {
     auth: o.userId ? sessaoDe(o.papel ?? "aluno", o.userId) : null,
+    capas: o.capas ?? capasDesligadas,
     db: o.db,
     pessoas: pessoasDeTeste(o.pessoas ?? []),
   };

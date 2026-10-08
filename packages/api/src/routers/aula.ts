@@ -1,4 +1,4 @@
-import { SLUG } from "@cursos/db/schema/comum";
+import { SLUG } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
 import { carregarAula, carregarEntrada, registrar } from "../consultas/aula";

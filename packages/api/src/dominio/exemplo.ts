@@ -12,6 +12,7 @@ import {
   VIDEO_EXEMPLO,
 } from "@cursos/db/seed/dados";
 
+import type { DocumentoDoCurso } from "./edicao-do-curso";
 import type { CursoLinha, LinhasPainel } from "./painel";
 import {
   type AulaId,
@@ -19,10 +20,73 @@ import {
   type CursoId,
   capaDe,
   type Historico,
+  type ModuloId,
   type StatusDoCurso,
   type TrilhaCatalogo,
   type TrilhaId,
+  type Versao,
 } from "./tipos";
+
+/** Uuid com letra, para o teste ver a caixa. */
+export const uuidDeExemplo = (n: number) =>
+  `0a0b0c0d-0000-4000-8000-${String(n).padStart(12, "0")}`;
+
+export const EDICAO = {
+  A1: uuidDeExemplo(21) as AulaId,
+  A2: uuidDeExemplo(22) as AulaId,
+  A3: uuidDeExemplo(23) as AulaId,
+  CURSO: uuidDeExemplo(1) as CursoId,
+  M1: uuidDeExemplo(11) as ModuloId,
+  M2: uuidDeExemplo(12) as ModuloId,
+} as const;
+
+export const aulaDeExemplo = (id: AulaId, titulo: string) => ({
+  duracaoSeg: 300,
+  id,
+  titulo,
+  video: null,
+});
+
+/** Dois módulos (0: A1, A2; 1: A3), dois níveis, na forma canônica do schema. */
+export function documentoDeExemplo(
+  versao: Versao | null = null
+): DocumentoDoCurso {
+  return {
+    capaAlt: "Capa",
+    codigo: null,
+    destaque: null,
+    id: EDICAO.CURSO,
+    modulos: [
+      {
+        aulas: [
+          aulaDeExemplo(EDICAO.A1, "Aula 1"),
+          aulaDeExemplo(EDICAO.A2, "Aula 2"),
+        ],
+        id: EDICAO.M1,
+        nivelOrdem: 1,
+        numero: 0,
+        titulo: "Módulo zero",
+      },
+      {
+        aulas: [aulaDeExemplo(EDICAO.A3, "Aula 3")],
+        id: EDICAO.M2,
+        nivelOrdem: 2,
+        numero: 1,
+        titulo: "Módulo um",
+      },
+    ],
+    niveis: [
+      { nome: "Básico", ordem: 1 },
+      { nome: "Avançado", ordem: 2 },
+    ],
+    precoTroca: null,
+    slug: "curso-teste",
+    status: "publicado",
+    tema: "teste",
+    titulo: "Curso",
+    versao,
+  };
+}
 
 export const idAula = (curso: string, modulo: number, posicao: number) =>
   `${curso}-m${modulo}-a${posicao}`;
