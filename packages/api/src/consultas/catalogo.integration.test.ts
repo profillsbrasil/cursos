@@ -16,6 +16,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import type { CursoId, TrilhaId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 
 const URL_TESTE = urlDeTeste();
@@ -24,8 +25,8 @@ const ALUNOS = ["a", "b", "c"].map((l) => `user_teste${S}${l}`);
 
 describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
-  const trilhas: string[] = [];
+  const cursos: CursoId[] = [];
+  const trilhas: TrilhaId[] = [];
 
   async function novoCurso(
     titulo: string,
@@ -45,8 +46,26 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     if (!c) {
       throw new Error("curso não criado");
     }
-    cursos.push(c.id);
-    return c.id;
+    const id = c.id as CursoId;
+    cursos.push(id);
+    return id;
+  }
+
+  async function novaTrilha(titulo: string) {
+    const [linha] = await db
+      .insert(trilha)
+      .values({
+        descricao: "teste",
+        slug: `teste-${S}-t${trilhas.length}`,
+        titulo,
+      })
+      .returning({ id: trilha.id });
+    if (!linha) {
+      throw new Error("trilha não criada");
+    }
+    const id = linha.id as TrilhaId;
+    trilhas.push(id);
+    return id;
   }
 
   afterAll(async () => {
@@ -57,14 +76,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
   });
 
   test("admin vê trilhas com contagens e cursos na ordem da trilha", async () => {
-    const [t] = await db
-      .insert(trilha)
-      .values({ descricao: "teste", slug: `teste-${S}`, titulo: `Trilha ${S}` })
-      .returning({ id: trilha.id });
-    if (!t) {
-      throw new Error("trilha não criada");
-    }
-    trilhas.push(t.id);
+    const t = await novaTrilha(`Trilha ${S}`);
     const segundo = await novoCurso(`A segundo ${S}`);
     const primeiro = await novoCurso(`B primeiro ${S}`, {
       status: "publicado",
@@ -74,8 +86,8 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       status: "publicado",
     });
     await db.insert(trilhaCurso).values([
-      { cursoId: primeiro, posicao: 1, trilhaId: t.id },
-      { cursoId: segundo, posicao: 2, trilhaId: t.id },
+      { cursoId: primeiro, posicao: 1, trilhaId: t },
+      { cursoId: segundo, posicao: 2, trilhaId: t },
     ]);
     const modulos = await db
       .insert(modulo)
@@ -97,15 +109,15 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     const [a, b, c] = ALUNOS as [string, string, string];
     const agora = new Date();
     await db.insert(liberacao).values([
-      { liberadaPor: "user_admin", trilhaId: t.id, userId: a },
-      { liberadaPor: "user_admin", trilhaId: t.id, userId: b },
+      { liberadaPor: "user_admin", trilhaId: t, userId: a },
+      { liberadaPor: "user_admin", trilhaId: t, userId: b },
       // Revogada e liberada de novo: a pessoa conta uma vez.
       {
         liberadaEm: agora,
         liberadaPor: "user_admin",
         revogadaEm: agora,
         revogadaPor: "user_admin",
-        trilhaId: t.id,
+        trilhaId: t,
         userId: b,
       },
       {
@@ -113,7 +125,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         liberadaPor: "user_admin",
         revogadaEm: agora,
         revogadaPor: "user_admin",
-        trilhaId: t.id,
+        trilhaId: t,
         userId: c,
       },
     ]);
@@ -123,9 +135,9 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     );
     const visao = await admin.admin.catalogo.visao();
 
-    expect(visao.trilhas.filter((x) => x.id === t.id)).toEqual([
-      { alunos: 2, cursos: 2, id: t.id, titulo: `Trilha ${S}` },
-    ] as never);
+    expect(visao.trilhas.filter((x) => x.id === t)).toEqual([
+      { alunos: 2, cursos: 2, id: t, titulo: `Trilha ${S}` },
+    ]);
     expect(visao.cursos.filter((x) => cursos.includes(x.id))).toEqual([
       {
         aulas: 3,
@@ -133,7 +145,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         precoTroca: null,
         status: "publicado",
         titulo: `B primeiro ${S}`,
-        trilha: { id: t.id, posicao: 1, titulo: `Trilha ${S}` },
+        trilha: { id: t, posicao: 1, titulo: `Trilha ${S}` },
       },
       {
         aulas: 0,
@@ -141,7 +153,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         precoTroca: null,
         status: "em_producao",
         titulo: `A segundo ${S}`,
-        trilha: { id: t.id, posicao: 2, titulo: `Trilha ${S}` },
+        trilha: { id: t, posicao: 2, titulo: `Trilha ${S}` },
       },
       {
         aulas: 0,
@@ -151,6 +163,6 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         titulo: `Solto ${S}`,
         trilha: null,
       },
-    ] as never);
+    ]);
   });
 });
