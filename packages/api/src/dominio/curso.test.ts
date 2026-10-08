@@ -1,7 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
 import { estadoDoCurso, estadosDaTrilha, niveis, progresso } from "./curso";
-import { cursoCat, historico, idAula, trilhaCat } from "./exemplo";
+import {
+  cursoCat,
+  cursoLinha,
+  historico,
+  idAula,
+  SEM_LIBERACAO,
+  trilhaCat,
+} from "./exemplo";
+import { historicoDe } from "./historico";
+import { montarPainel } from "./painel";
 import type { AulaId, CursoId } from "./tipos";
 
 const livre = { tipo: "livre" } as const;
@@ -206,5 +215,146 @@ describe("niveis", () => {
     expect(niveis(meio, soA).proximo?.nome).toBe("C");
     const tudo = new Set(todas("v", [1, 1]) as AulaId[]);
     expect(niveis(meio, tudo).proximo).toBeNull();
+  });
+});
+
+describe("começou abre", () => {
+  const a = cursoCat("a", { aulas: [2] });
+  const b = cursoCat("b", { aulas: [3] });
+  const c = cursoCat("c", { aulas: [2] });
+  const novo = cursoCat("novo", { aulas: [2] });
+  // a concluído, b começado só por posição salva, c e novo intocados
+  const h = historico({
+    assistidas: todas("a", [2]),
+    certificados: ["a"],
+    posicoes: [[idAula("b", 0, 1), 40]],
+  });
+  const tipos = (cursos: (typeof a)[], hist = h) =>
+    estadosDaTrilha(trilhaCat("t", cursos), hist, new Set()).map((e) => e.tipo);
+
+  test("curso começado não volta a bloqueado quando um curso entra antes dele", () => {
+    expect(tipos([a, b, c])).toEqual([
+      "concluido",
+      "em_andamento",
+      "bloqueado",
+    ]);
+    expect(tipos([a, novo, b, c])).toEqual([
+      "concluido",
+      "nao_iniciado",
+      "em_andamento",
+      "bloqueado",
+    ]);
+  });
+
+  test("curso novo no topo não tranca o começado", () => {
+    expect(tipos([novo, b, a])).toEqual([
+      "nao_iniciado",
+      "em_andamento",
+      "concluido",
+    ]);
+  });
+
+  test("reordenar não tranca o curso começado", () => {
+    expect(tipos([c, b, a])).toEqual([
+      "nao_iniciado",
+      "em_andamento",
+      "concluido",
+    ]);
+  });
+
+  test("curso com aula assistida atrás de um curso novo continua em_andamento", () => {
+    const comAula = historico({ assistidas: [idAula("b", 0, 1)] });
+    expect(
+      estadoDoCurso(b, comAula, {
+        concluido: false,
+        curso: { id: "novo" as CursoId, titulo: "Curso novo" },
+        tipo: "na_trilha",
+      })
+    ).toEqual({
+      proximaAula: idAula("b", 0, 2) as AulaId,
+      tipo: "em_andamento",
+    });
+  });
+
+  test("curso com todas as aulas assistidas atrás de um curso novo vai para a prova", () => {
+    const comTudo = historico({ assistidas: todas("b", [3]) });
+    expect(tipos([novo, b], comTudo)).toEqual(["nao_iniciado", "prova"]);
+  });
+
+  test("curso não tocado atrás de um curso novo continua bloqueado", () => {
+    expect(tipos([novo, c])).toEqual(["nao_iniciado", "bloqueado"]);
+  });
+
+  test("curso começado que voltou para em produção é em_breve", () => {
+    const arquivado = cursoCat("b", { aulas: [3], status: "em_producao" });
+    expect(tipos([a, arquivado])).toEqual(["concluido", "em_breve"]);
+  });
+
+  test("no painel, a retomada continua no curso começado depois da inserção", () => {
+    const linhaB = cursoLinha("b", { aulas: [3] });
+    const painel = montarPainel({
+      ...SEM_LIBERACAO,
+      assistidas: [
+        {
+          assistidaEm: new Date("2026-10-06T15:00:00Z"),
+          aulaId: idAula("b", 0, 1),
+        },
+      ],
+      liberacoes: [
+        {
+          curso: null,
+          liberadaEm: new Date("2026-08-01T12:00:00Z"),
+          trilha: {
+            cursos: [
+              { curso: cursoLinha("novo", { aulas: [2] }), posicao: 1 },
+              { curso: linhaB, posicao: 2 },
+            ],
+            descricao: "Descrição",
+            id: "t",
+            slug: "t",
+            titulo: "Trilha t",
+          },
+        },
+      ],
+    });
+    expect(
+      painel.trilhas[0]?.cursos.map((x) => [x.slug, x.estado.tipo])
+    ).toEqual([
+      ["novo", "nao_iniciado"],
+      ["b", "em_andamento"],
+    ]);
+    expect(painel.retomada).toMatchObject({
+      curso: { slug: "b" },
+      tipo: "continuar",
+    });
+  });
+});
+
+describe("historicoDe", () => {
+  test("posição em 0 s não entra no histórico e não conta como começado", () => {
+    const h = historicoDe({
+      assistidas: [],
+      certificados: [],
+      posicoes: [
+        {
+          atualizadaEm: new Date("2026-10-07T12:00:00Z"),
+          aulaId: idAula("b", 0, 1),
+          posicaoSeg: 0,
+        },
+        {
+          atualizadaEm: new Date("2026-10-07T12:00:00Z"),
+          aulaId: idAula("c", 0, 1),
+          posicaoSeg: 12,
+        },
+      ],
+    });
+    expect([...h.posicoes.keys()]).toEqual([idAula("c", 0, 1) as AulaId]);
+    const novo = cursoCat("novo", { aulas: [1] });
+    const b = cursoCat("b", { aulas: [2] });
+    expect(
+      estadosDaTrilha(trilhaCat("t", [novo, b]), h, new Set()).map(
+        (e) => e.tipo
+      )
+    ).toEqual(["nao_iniciado", "bloqueado"]);
   });
 });

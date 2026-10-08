@@ -80,6 +80,8 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       .insert(curso)
       .values({
         capaAlt: "Capa de teste",
+        capaAltura: 720,
+        capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         slug,
         status: o.status ?? "publicado",
@@ -113,7 +115,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   }
 
   const liberarCurso = (userId: string, cursoId: string) =>
-    db.insert(liberacao).values({ cursoId, liberadaPor: "user_admin", userId });
+    db.insert(liberacao).values({
+      cursoId,
+      liberadaPor: "user_admin",
+      origem: "admin",
+      userId,
+    });
 
   async function cursoLiberado(n = 2) {
     const aluno = novoAluno();
@@ -192,9 +199,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       { cursoId: primeiro.id, posicao: 1, trilhaId: tr?.id ?? "" },
       { cursoId: segundo.id, posicao: 2, trilhaId: tr?.id ?? "" },
     ]);
-    await db
-      .insert(liberacao)
-      .values({ liberadaPor: "user_admin", trilhaId: tr?.id, userId: aluno });
+    await db.insert(liberacao).values({
+      liberadaPor: "user_admin",
+      origem: "admin",
+      trilhaId: tr?.id,
+      userId: aluno,
+    });
 
     expect(await tentar(semLiberacao.aulas[0] ?? "")).toBe("NOT_FOUND");
     expect(await tentar(breve.aulas[0] ?? "")).toBe("NOT_FOUND");

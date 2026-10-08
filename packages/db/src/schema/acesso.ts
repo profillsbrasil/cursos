@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { curso, trilha } from "./catalogo";
-import { momento, tabela } from "./comum";
+import { liberacaoOrigem, momento, tabela } from "./comum";
 
 export const liberacao = tabela(
   "liberacao",
@@ -19,6 +19,8 @@ export const liberacao = tabela(
     id: uuid().primaryKey().defaultRandom(),
     liberadaEm: momento(),
     liberadaPor: text().notNull(),
+    // Sem default: todo INSERT diz de onde veio a liberação.
+    origem: liberacaoOrigem().notNull(),
     revogadaEm: timestamp({ withTimezone: true }),
     revogadaPor: text(),
     trilhaId: uuid().references(() => trilha.id, { onDelete: "restrict" }),
@@ -35,9 +37,17 @@ export const liberacao = tabela(
       sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
           and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
     ),
+    // ::text pelo mesmo padrão dos checks de ponto_lancamento. Lá ele é obrigatório: a
+    // migração troca faz ALTER TYPE ... ADD VALUE, e o Postgres recusa o valor novo na
+    // mesma transação. Aqui o enum nasce com CREATE TYPE, que não tem essa regra.
     check(
       "liberacao_troca_nao_revoga",
-      sql`${t.revogadaEm} is null or ${t.liberadaPor} <> ${t.userId}`
+      sql`${t.revogadaEm} is null or ${t.origem}::text <> 'troca'`
+    ),
+    check(
+      "liberacao_troca_pelo_aluno",
+      sql`${t.origem}::text <> 'troca'
+          or (${t.liberadaPor} = ${t.userId} and ${t.cursoId} is not null)`
     ),
     unique("liberacao_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento de troca
     // Uma liberação ativa por alvo. Revogar e liberar de novo continua possível.

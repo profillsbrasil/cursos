@@ -4,7 +4,8 @@ import { eq, sql } from "drizzle-orm";
 
 import type { LinhaDoExtrato } from "../dominio/pontos";
 import type { DiaISO } from "../dominio/tipos";
-import type { Executor, Transacao } from "./comum";
+import type { Executor } from "./comum";
+import { type AlunoTravado, comAlunoTravado } from "./trava";
 
 const FUSO = "America/Sao_Paulo";
 
@@ -60,23 +61,17 @@ export function linhasDoExtrato(
   });
 }
 
-declare const travada: unique symbol;
-export type TransacaoTravada = Transacao & { readonly [travada]: true };
-
 /**
- * Abre a transação, trava o aluno e só então lê o saldo, num statement separado:
- * em READ COMMITTED o snapshot de um statement nasce antes de ele esperar a trava,
- * e a soma no mesmo statement leria o saldo de antes da troca que segurava a trava.
+ * Trava o aluno e só então lê o saldo, num statement separado (ver comAlunoTravado).
+ * Todo débito passa por aqui, por convenção: o tipo não garante, porque
+ * comAlunoTravado também entrega um AlunoTravado, sem saldo lido.
  */
 export function comSaldoTravado<T>(
   db: Database,
   userId: string,
-  fn: (tx: TransacaoTravada, saldo: number) => Promise<T>
+  fn: (aluno: AlunoTravado, saldo: number) => Promise<T>
 ): Promise<T> {
-  return db.transaction(async (tx) => {
-    await tx.execute(
-      sql`select pg_advisory_xact_lock(hashtextextended(${`ponto:${userId}`}, 0))`
-    );
-    return fn(tx as TransacaoTravada, await saldoDe(tx, userId));
-  });
+  return comAlunoTravado(db, userId, async (aluno) =>
+    fn(aluno, await saldoDe(aluno.tx, aluno.userId))
+  );
 }

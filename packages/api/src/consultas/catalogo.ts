@@ -11,11 +11,11 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { VisaoDoCatalogo } from "../dominio/catalogo";
 import type { CursoId, TrilhaId } from "../dominio/tipos";
+import { COLUNAS_DA_CAPA } from "./comum";
 
 export const COM_CONTEUDO = {
   columns: {
-    capaAlt: true,
-    capaUrl: true,
+    ...COLUNAS_DA_CAPA,
     codigo: true,
     destaque: true,
     id: true,

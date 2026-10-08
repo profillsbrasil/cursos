@@ -31,8 +31,8 @@ async function montarBase(c: Client): Promise<Base> {
     [`teste-${s}`]
   );
   const curso = await c.query<{ id: string }>(
-    `insert into curso (slug, titulo, tema, capa_url, capa_alt, status)
-     values ($1, 'Curso teste', 'teste', '/capas/x.jpg', 'Capa de teste', 'publicado') returning id`,
+    `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
+     values ($1, 'Curso teste', 'teste', '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
     [`teste-${s}`]
   );
   const cursoId = curso.rows[0]?.id ?? "";
@@ -67,7 +67,7 @@ interface Caso {
 
 const liberar = (c: Client, b: Base, alvo: "curso" | "trilha") =>
   c.query(
-    `insert into liberacao (user_id, ${alvo}_id, liberada_por) values ($1, $2, 'user_admin')`,
+    `insert into liberacao (user_id, ${alvo}_id, liberada_por, origem) values ($1, $2, 'user_admin', 'admin')`,
     [b.aluno, alvo === "curso" ? b.cursoId : b.trilhaId]
   );
 
@@ -85,7 +85,7 @@ const certificar = (c: Client, b: Base) =>
 
 async function liberarParaTroca(c: Client, aluno: string, cursoId: string) {
   const r = await c.query<{ id: string }>(
-    "insert into liberacao (user_id, curso_id, liberada_por) values ($1, $2, $1) returning id",
+    "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $1, 'troca') returning id",
     [aluno, cursoId]
   );
   return r.rows[0]?.id ?? "";
@@ -109,7 +109,7 @@ const CASOS: Caso[] = [
     nome: "liberação com trilha e curso ao mesmo tempo",
     violar: (c, b) =>
       c.query(
-        "insert into liberacao (user_id, trilha_id, curso_id, liberada_por) values ($1, $2, $3, 'user_admin')",
+        "insert into liberacao (user_id, trilha_id, curso_id, liberada_por, origem) values ($1, $2, $3, 'user_admin', 'admin')",
         [b.aluno, b.trilhaId, b.cursoId]
       ),
   },
@@ -128,7 +128,7 @@ const CASOS: Caso[] = [
     nome: "e-mail no lugar do userId",
     violar: (c, b) =>
       c.query(
-        "insert into liberacao (user_id, trilha_id, liberada_por) values ('marina@x.com', $1, 'user_admin')",
+        "insert into liberacao (user_id, trilha_id, liberada_por, origem) values ('marina@x.com', $1, 'user_admin', 'admin')",
         [b.trilhaId]
       ),
   },
@@ -139,7 +139,7 @@ const CASOS: Caso[] = [
     nome: "revogação sem autor",
     violar: (c, b) =>
       c.query(
-        "insert into liberacao (user_id, trilha_id, liberada_por, revogada_em) values ($1, $2, 'user_admin', now())",
+        "insert into liberacao (user_id, trilha_id, liberada_por, origem, revogada_em) values ($1, $2, 'user_admin', 'admin', now())",
         [b.aluno, b.trilhaId]
       ),
   },
@@ -154,6 +154,26 @@ const CASOS: Caso[] = [
         [id]
       );
     },
+  },
+  {
+    apagar: "alter table liberacao drop constraint liberacao_troca_pelo_aluno",
+    constraint: "liberacao_troca_pelo_aluno",
+    nome: "troca liberada por outra pessoa",
+    violar: (c, b) =>
+      c.query(
+        "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, 'user_admin', 'troca')",
+        [b.aluno, b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table liberacao drop constraint liberacao_troca_pelo_aluno",
+    constraint: "liberacao_troca_pelo_aluno",
+    nome: "troca de uma trilha",
+    violar: (c, b) =>
+      c.query(
+        "insert into liberacao (user_id, trilha_id, liberada_por, origem) values ($1, $2, $1, 'troca')",
+        [b.aluno, b.trilhaId]
+      ),
   },
   {
     apagar: "alter table trilha_curso drop constraint trilha_curso_pkey",
@@ -176,8 +196,8 @@ const CASOS: Caso[] = [
     nome: "módulo apontando para nível de outro curso",
     violar: async (c, b) => {
       const outro = await c.query<{ id: string }>(
-        `insert into curso (slug, titulo, tema, capa_url, capa_alt)
-         values ($1, 'Outro', 'teste', '/capas/x.jpg', 'Capa') returning id`,
+        `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura)
+         values ($1, 'Outro', 'teste', '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
         [`teste-${sufixo()}`]
       );
       await c.query(
@@ -368,9 +388,16 @@ const CASOS: Caso[] = [
     nome: "capa sem texto alternativo",
     violar: (c) =>
       c.query(
-        "insert into curso (slug, titulo, tema, capa_url, capa_alt) values ($1, 'Curso', 'teste', '/capas/x.jpg', '   ')",
+        "insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura) values ($1, 'Curso', 'teste', '/capas/x.jpg', '   ', 1280, 720)",
         [`teste-${sufixo()}`]
       ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_capa_dimensoes_positivas",
+    constraint: "curso_capa_dimensoes_positivas",
+    nome: "capa com largura zero",
+    violar: (c, b) =>
+      c.query("update curso set capa_largura = 0 where id = $1", [b.cursoId]),
   },
   {
     apagar: "alter table aula drop constraint aula_video_completo",
@@ -481,6 +508,21 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [b.aluno]
       );
       expect(n.rows[0]?.n).toBe(2);
+    });
+  });
+
+  test("aceita revogar o curso que o admin liberou para si mesmo", async () => {
+    await emTransacao(async () => {
+      const b = await montarBase(c);
+      await c.query(
+        "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $1, 'admin')",
+        [b.aluno, b.cursoId]
+      );
+      const r = await c.query(
+        "update liberacao set revogada_em = now(), revogada_por = $1 where user_id = $1",
+        [b.aluno]
+      );
+      expect(r.rowCount).toBe(1);
     });
   });
 

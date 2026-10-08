@@ -13,13 +13,14 @@ import {
 } from "@cursos/db/seed/dados";
 
 import type { CursoLinha, LinhasPainel } from "./painel";
-import type {
-  AulaId,
-  CursoCatalogo,
-  CursoId,
-  Historico,
-  TrilhaCatalogo,
-  TrilhaId,
+import {
+  type AulaId,
+  type CursoCatalogo,
+  type CursoId,
+  capaDe,
+  type Historico,
+  type TrilhaCatalogo,
+  type TrilhaId,
 } from "./tipos";
 
 export const idAula = (curso: string, modulo: number, posicao: number) =>
@@ -41,6 +42,8 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
   const primeiro = o.primeiroNumero ?? 0;
   return {
     capaAlt: `Capa de ${chave}`,
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: `/capas/${chave}.jpg`,
     codigo: null,
     destaque: null,
@@ -70,7 +73,7 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
 export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   const l = cursoLinha(chave, o);
   return {
-    capa: { alt: l.capaAlt, url: l.capaUrl },
+    capa: capaDe(l),
     extra: null,
     id: l.id as CursoId,
     modulos: l.modulos.map((m) => ({
@@ -139,6 +142,8 @@ function linhaDoSeed(chave: string): CursoLinha {
   }
   return {
     capaAlt: c.capaAlt,
+    capaAltura: c.capaAltura,
+    capaLargura: c.capaLargura,
     capaUrl: c.capaUrl,
     codigo: c.codigo,
     destaque: c.destaque,

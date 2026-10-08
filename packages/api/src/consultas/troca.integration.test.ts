@@ -56,6 +56,8 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       .insert(curso)
       .values({
         capaAlt: "Capa de teste",
+        capaAltura: 720,
+        capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         precoTroca,
         slug: `teste-${s}`,
@@ -236,9 +238,12 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       adminInseriu = r;
     });
     const admin = db.transaction(async (tx) => {
-      await tx
-        .insert(liberacao)
-        .values({ cursoId: c, liberadaPor: "user_admin", userId });
+      await tx.insert(liberacao).values({
+        cursoId: c,
+        liberadaPor: "user_admin",
+        origem: "admin",
+        userId,
+      });
       adminInseriu();
       await portao;
     });
@@ -281,9 +286,12 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     await db
       .insert(trilhaCurso)
       .values({ cursoId: c, posicao: 1, trilhaId: t?.id ?? "" });
-    await db
-      .insert(liberacao)
-      .values({ liberadaPor: "user_admin", trilhaId: t?.id, userId });
+    await db.insert(liberacao).values({
+      liberadaPor: "user_admin",
+      origem: "admin",
+      trilhaId: t?.id,
+      userId,
+    });
     const erro = await trocar(db, userId, c, 300, AGORA).catch(
       (e: unknown) => e
     );

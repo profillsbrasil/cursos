@@ -1,11 +1,11 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
+import type { Capa as CapaDoCurso } from "@cursos/api/dominio/tipos";
 import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { Award, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { dimensoesDaCapa } from "@/lib/capas";
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
 import { BarraProgresso } from "./barra-progresso";
@@ -17,8 +17,7 @@ const BOTAO = cn(
   "h-11 gap-2 self-start rounded-full px-5 font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 max-[760px]:self-stretch"
 );
 
-function Capa({ capa }: { capa: { alt: string; url: string } }) {
-  const { height, width } = dimensoesDaCapa(capa.url);
+function Capa({ capa }: { capa: CapaDoCurso }) {
   return (
     // A capa é uma peça com logo e texto: aparece inteira, e a mesma imagem desfocada preenche a sobra.
     <div className="relative grid place-items-center overflow-hidden bg-sidebar max-[760px]:order-first">
@@ -33,11 +32,11 @@ function Capa({ capa }: { capa: { alt: string; url: string } }) {
       <Image
         alt={capa.alt}
         className="relative h-auto w-full"
-        height={height}
+        height={capa.altura}
         preload
         sizes="(max-width: 760px) 100vw, 44vw"
         src={capa.url}
-        width={width}
+        width={capa.largura}
       />
     </div>
   );

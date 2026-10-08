@@ -13,25 +13,26 @@ import {
   semana,
   sequenciaDiasUteis,
 } from "./sequencia";
-import type {
-  AulaId,
-  CursoCatalogo,
-  CursoId,
-  DiaISO,
-  EstadoCurso,
-  Historico,
-  TipoEstado,
-  TrilhaCatalogo,
-  TrilhaId,
-  VideoProvedor,
+import {
+  type AulaId,
+  type Capa,
+  type CursoCatalogo,
+  type CursoId,
+  capaDe,
+  type DiaISO,
+  type EstadoCurso,
+  type Historico,
+  type LinhaDaCapa,
+  type TipoEstado,
+  type TrilhaCatalogo,
+  type TrilhaId,
+  type VideoProvedor,
 } from "./tipos";
 import { videoDaAula } from "./video";
 
 // ---------- entrada: as linhas cruas das consultas (seção 4.3 do desenho) ----------
 
-export interface CursoLinha {
-  capaAlt: string;
-  capaUrl: string;
+export interface CursoLinha extends LinhaDaCapa {
   codigo: string | null;
   destaque: string | null;
   id: string;
@@ -93,7 +94,7 @@ export interface LinhasResumo {
 
 export interface CursoVM {
   aulas: number;
-  capa: { url: string; alt: string };
+  capa: Capa;
   duracaoSeg: number;
   estado: EstadoCurso;
   extra: string | null;
@@ -127,7 +128,7 @@ export interface TrilhaVM {
 }
 
 interface CursoRef {
-  capa: { url: string; alt: string };
+  capa: Capa;
   slug: string;
   titulo: string;
 }
@@ -195,7 +196,7 @@ export interface ResumoAluno {
 /** Borda: marca os ids das linhas do banco. */
 export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
-    capa: { alt: linha.capaAlt, url: linha.capaUrl },
+    capa: capaDe(linha),
     extra: linha.codigo ?? linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({
