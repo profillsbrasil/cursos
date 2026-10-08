@@ -1,5 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 
+import { erroDoBanco } from "./consultas/erros";
 import { type Context, ehAdmin } from "./context";
 import type { AdminId } from "./dominio/tipos";
 
@@ -23,11 +24,26 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 });
 
 /**
+ * Violação de restrição com frase em consultas/erros.ts vira TRPCError em pt-BR.
+ * A regra pura recusa antes; isto cobre a corrida que escapa dela.
+ */
+const traduzErroDoBanco = t.middleware(async ({ next }) => {
+  const resultado = await next();
+  const traduzido = resultado.ok ? null : erroDoBanco(resultado.error);
+  if (traduzido) {
+    throw traduzido;
+  }
+  return resultado;
+});
+
+const protegidoComTraducao = protectedProcedure.use(traduzErroDoBanco);
+
+/**
  * Segunda porta do admin; a primeira é exigirAdmin em apps/web/src/server/api.ts.
  * É o único lugar que fabrica um AdminId, então quem grava autoria de admin
  * (liberada_por, revogada_por, publicado_por) só roda atrás desta porta.
  */
-export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+export const adminProcedure = protegidoComTraducao.use(({ ctx, next }) => {
   const { auth } = ctx;
   if (!ehAdmin(auth)) {
     throw new TRPCError({
