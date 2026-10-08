@@ -13,19 +13,24 @@ import {
   nivel,
 } from "@cursos/db/schema/index";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, type SQL, sql } from "drizzle-orm";
+import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 
 import type { Servicos } from "../context";
+import type { ImagemDaCapa, RecusaDaCapa } from "../dominio/capa";
 import {
   type DocumentoDoCurso,
   type EdicaoDoCurso,
   LIMITES,
   lerFormularioDoCurso,
-  type Plano,
-  planejarCurso,
   podeApagarCurso,
-  type RecusaDaEdicao,
 } from "../dominio/edicao-do-curso";
+import {
+  type PlanoDeGravacao,
+  planejarCurso,
+  type RecusaDaEdicao,
+  versaoDoCurso,
+} from "../dominio/plano-do-curso";
 import {
   type AulaId,
   type CursoId,
@@ -34,11 +39,9 @@ import {
   type TrilhaId,
   type Versao,
 } from "../dominio/tipos";
-import { versaoDe } from "../dominio/versao";
 import { videoDaAula } from "../dominio/video";
-import type { ImagemDaCapa, RecusaDaCapa } from "../externos/capas";
 import { COLUNAS_DA_CAPA, type Executor, type Transacao } from "./comum";
-import { CURSO_EM_USO } from "./erros";
+import { CURSO_EM_USO, violacaoDe } from "./erros";
 import { comTrava } from "./trava";
 
 /**
@@ -48,6 +51,9 @@ import { comTrava } from "./trava";
  * do smallint.
  */
 const TETO_FINAL = Math.max(LIMITES.numeroDeModulo, LIMITES.aulasPorModulo);
+
+/** Aulas por INSERT: 7 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
+const AULAS_POR_LOTE = 1000;
 
 /**
  * O curso como o editor abre: documento (com versão), capa e uso. Três
@@ -153,7 +159,10 @@ export async function abrirCurso(
   };
   return {
     capa: capaDe(linha),
-    documento: { ...semVersao, versao: versaoDe(semVersao) },
+    documento: {
+      ...semVersao,
+      versao: versaoDoCurso(semVersao, linha.capaUrl),
+    },
     podeApagar: podeApagarCurso(uso),
     uso,
   };
@@ -196,7 +205,7 @@ function erroDaEdicao(r: RecusaDaEdicao): TRPCError {
 }
 
 /** Todas saem como PRECONDITION_FAILED, um dos códigos cuja mensagem a tela mostra. */
-export function erroDaCapa(r: RecusaDaCapa): TRPCError {
+function erroDaCapa(r: RecusaDaCapa): TRPCError {
   return new TRPCError({
     code: "PRECONDITION_FAILED",
     message: mensagemDaCapa(r),
@@ -242,68 +251,75 @@ export async function salvarCurso(
   if (recebida?.tipo === "recusa") {
     throw erroDaCapa(recebida.recusa);
   }
-  const imagem = recebida?.imagem ?? null;
   const { documento } = lido;
   return comTrava(s.db, `curso:${documento.id}`, async (tx) => {
     const atual = await abrirCurso(tx, documento.id);
-    const plano = planejarCurso(atual, documento, imagem !== null);
-    switch (plano.tipo) {
-      case "recusa":
-        throw erroDaEdicao(plano.recusa);
-      case "nada_mudou":
-        return {
-          cursoId: documento.id,
-          slug: documento.slug,
-          versao: versaoDe(documento),
-        };
-      case "gravar":
-        await gravarCurso(tx, plano, imagem);
-        return {
-          cursoId: documento.id,
-          slug: documento.slug,
-          versao: versaoDe(documento),
-        };
-      default: {
-        const nenhum: never = plano;
-        throw new Error(`Plano sem gravação: ${JSON.stringify(nenhum)}`);
-      }
+    const plano = planejarCurso(atual, documento, recebida?.imagem ?? null);
+    if (plano.tipo === "recusa") {
+      throw erroDaEdicao(plano.recusa);
     }
+    if (plano.tipo !== "nada_mudou") {
+      await gravarCurso(tx, plano);
+    }
+    return {
+      cursoId: documento.id,
+      slug: documento.slug,
+      versao: plano.versao,
+    };
   });
 }
 
-/** Linhas como jsonb_to_recordset as lê: um parâmetro só, qualquer tamanho. */
-const registros = (linhas: readonly object[]) =>
-  sql`jsonb_to_recordset(${JSON.stringify(linhas)}::jsonb)`;
+const colunasDaCapa = (c: ImagemDaCapa) => ({
+  capaAltura: c.altura,
+  capaLargura: c.largura,
+  capaUrl: c.url,
+});
+
+/** O valor que o INSERT propôs, no SET de um upsert. */
+const proposto = (coluna: AnyPgColumn) =>
+  sql`excluded.${sql.identifier(coluna.name)}`;
+
+/** Lista de uuid como um parâmetro só, de qualquer tamanho. */
+const umDe = (coluna: AnyPgColumn, ids: readonly string[]) =>
+  sql`${coluna} = any(${`{${ids.join(",")}}`}::uuid[])`;
 
 /**
- * Escreve o estado final do documento em no máximo onze statements de ordem fixa:
+ * Soma a todas as linhas do filtro o mesmo deslocamento, que leva cada valor para
+ * acima do maior valor antigo: o UPDATE não colide no meio, mesmo com o unique
+ * conferido linha a linha.
+ */
+const deslocado = (tabela: PgTable, coluna: AnyPgColumn, filtro: SQL) =>
+  sql`${coluna} + (select greatest(max(${coluna}), ${TETO_FINAL}) + 1 from ${tabela} where ${filtro})`;
+
+function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
+  return Array.from({ length: Math.ceil(lista.length / tamanho) }, (_, i) =>
+    lista.slice(i * tamanho, (i + 1) * tamanho)
+  );
+}
+
+/**
+ * Escreve o estado final do documento em statements de ordem fixa:
  *
  *   1. curso: INSERT ou UPDATE; as colunas da capa só com imagem nova.
  *   2. níveis: upsert por (curso_id, ordem).
  *   3. aulas que saem: DELETE. A posição delas cai em cascade; aula assistida
  *      segura (o planejador já recusou, o banco confirma).
  *   4. todos os módulos do curso: numero + deslocamento.
- *   5. módulos novos: INSERT com o número final.
- *   6. módulos mantidos: número final, título, nível.
- *   7. todas as aulas do curso: posicao + deslocamento.
- *   8. aulas mantidas: módulo, posição final, título, duração, vídeo. Aula que
- *      troca de módulo muda aqui e mantém o id.
- *   9. aulas novas: INSERT com a posição final.
- *  10. módulos que saem: DELETE (já vazios depois dos passos 3 e 8).
- *  11. níveis que saem: DELETE (nenhum módulo aponta para eles depois do passo 6).
+ *   5. todas as aulas do curso: posicao + deslocamento.
+ *   6. módulos: upsert por id com o número final.
+ *   7. aulas: upsert por id com módulo e posição finais, em lotes. Aula que troca
+ *      de módulo muda aqui e mantém o id.
+ *   8. módulos que saem: DELETE (já vazios depois dos passos 3 e 7).
+ *   9. níveis que saem: DELETE (nenhum módulo aponta para eles depois do passo 6).
  *
- * Somar o mesmo deslocamento a todas as linhas leva cada valor para acima do
- * maior valor antigo, então o UPDATE não colide no meio, mesmo com o unique
- * conferido linha a linha. Depois, todo valor antigo fica acima de TETO_FINAL e
- * todo valor final abaixo dele. Os finais são únicos porque o schema recusa número
- * de módulo repetido e a posição da aula é o índice.
+ * Depois dos passos 4 e 5, todo valor antigo fica acima de TETO_FINAL e todo
+ * valor final abaixo dele, então o upsert não colide com linha nova nem mantida.
+ * Os finais são únicos porque o schema recusa número de módulo repetido e a
+ * posição da aula é o índice. O upsert só atualiza linha deste curso: id de outro
+ * curso volta fora do returning, e a contagem recusa o documento inteiro.
  */
-async function gravarCurso(
-  tx: Transacao,
-  plano: Extract<Plano, { tipo: "gravar" }>,
-  capa: ImagemDaCapa | null
-): Promise<void> {
-  const { apagar, documento: d, novos } = plano;
+async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
+  const { documento: d } = plano;
   const cursoId = d.id;
   const campos = {
     capaAlt: d.capaAlt,
@@ -315,19 +331,20 @@ async function gravarCurso(
     tema: d.tema,
     titulo: d.titulo,
   };
-  const colunasDaCapa = capa
-    ? { capaAltura: capa.altura, capaLargura: capa.largura, capaUrl: capa.url }
-    : null;
+  const doCurso = eq(modulo.cursoId, cursoId);
+  const nosModulosDoCurso = inArray(
+    aula.moduloId,
+    tx.select({ id: modulo.id }).from(modulo).where(doCurso)
+  );
 
-  if (plano.criar) {
-    if (!colunasDaCapa) {
-      throw new Error("Curso novo chegou à gravação sem capa.");
-    }
-    await tx.insert(curso).values({ ...campos, ...colunasDaCapa, id: cursoId });
+  if (plano.tipo === "criar") {
+    await tx
+      .insert(curso)
+      .values({ ...campos, ...colunasDaCapa(plano.capa), id: cursoId });
   } else {
     await tx
       .update(curso)
-      .set({ ...campos, ...colunasDaCapa })
+      .set({ ...campos, ...(plano.capa && colunasDaCapa(plano.capa)) })
       .where(eq(curso.id, cursoId));
   }
 
@@ -336,142 +353,137 @@ async function gravarCurso(
       .insert(nivel)
       .values(d.niveis.map((n) => ({ ...n, cursoId })))
       .onConflictDoUpdate({
-        set: { nome: sql`excluded.nome` },
+        set: { nome: proposto(nivel.nome) },
         target: [nivel.cursoId, nivel.ordem],
       });
   }
 
-  if (apagar.aulas.length > 0) {
-    await tx.delete(aula).where(inArray(aula.id, [...apagar.aulas]));
+  if (plano.tipo === "atualizar") {
+    if (plano.apagar.aulas.length > 0) {
+      await tx.delete(aula).where(umDe(aula.id, plano.apagar.aulas));
+    }
+    await tx
+      .update(modulo)
+      .set({ numero: deslocado(modulo, modulo.numero, doCurso) })
+      .where(doCurso);
+    await tx
+      .update(aula)
+      .set({ posicao: deslocado(aula, aula.posicao, nosModulosDoCurso) })
+      .where(nosModulosDoCurso);
   }
 
-  const modulosNovos = new Set<string>(novos.modulos);
-  const aulasNovas = new Set<string>(novos.aulas);
-  const modulosDoCurso = sql`(select ${modulo.id} from ${modulo} where ${modulo.cursoId} = ${cursoId})`;
-
-  if (!plano.criar) {
-    await tx.execute(sql`
-      update ${modulo} set numero = numero + (
-        select greatest(max(numero), ${TETO_FINAL}) + 1 from ${modulo} where curso_id = ${cursoId}
-      ) where curso_id = ${cursoId}`);
+  if (d.modulos.length > 0) {
+    const gravados = await tx
+      .insert(modulo)
+      .values(
+        d.modulos.map((m) => ({
+          cursoId,
+          id: m.id,
+          nivelOrdem: m.nivelOrdem,
+          numero: m.numero,
+          titulo: m.titulo,
+        }))
+      )
+      .onConflictDoUpdate({
+        set: {
+          nivelOrdem: proposto(modulo.nivelOrdem),
+          numero: proposto(modulo.numero),
+          titulo: proposto(modulo.titulo),
+        },
+        setWhere: sql`${modulo.cursoId} = ${proposto(modulo.cursoId)}`,
+        target: modulo.id,
+      })
+      .returning({ id: modulo.id });
+    if (gravados.length !== d.modulos.length) {
+      throw new Error("O documento traz módulo de outro curso.");
+    }
   }
 
-  const [mNovos, mMantidos] = particionar(d.modulos, (m) =>
-    modulosNovos.has(m.id)
-  );
-  if (mNovos.length > 0) {
-    await tx.insert(modulo).values(
-      mNovos.map((m) => ({
-        cursoId,
-        id: m.id,
-        nivelOrdem: m.nivelOrdem,
-        numero: m.numero,
-        titulo: m.titulo,
-      }))
-    );
-  }
-  if (mMantidos.length > 0) {
-    const linhas = mMantidos.map((m) => ({
-      id: m.id,
-      nivel_ordem: m.nivelOrdem,
-      numero: m.numero,
-      titulo: m.titulo,
-    }));
-    await tx.execute(sql`
-      update ${modulo} m set numero = x.numero, titulo = x.titulo, nivel_ordem = x.nivel_ordem
-      from ${registros(linhas)} as x(id uuid, numero smallint, titulo text, nivel_ordem smallint)
-      where m.id = x.id and m.curso_id = ${cursoId}`);
-  }
-
-  const aulasFinais = d.modulos.flatMap((m) =>
+  const aulas = d.modulos.flatMap((m) =>
     m.aulas.map((a, i) => ({
-      duracao_seg: a.duracaoSeg,
+      duracaoSeg: a.duracaoSeg,
       id: a.id,
-      modulo_id: m.id,
+      moduloId: m.id,
       posicao: i + 1,
       titulo: a.titulo,
-      video_id: a.video?.id ?? null,
-      video_provedor: a.video?.provedor ?? null,
+      videoId: a.video?.id ?? null,
+      videoProvedor: a.video?.provedor ?? null,
     }))
   );
-  const [aNovas, aMantidas] = particionar(aulasFinais, (a) =>
-    aulasNovas.has(a.id)
-  );
-
-  if (aMantidas.length > 0) {
-    await tx.execute(sql`
-      update ${aula} set posicao = posicao + (
-        select greatest(max(posicao), ${TETO_FINAL}) + 1 from ${aula} where modulo_id in ${modulosDoCurso}
-      ) where modulo_id in ${modulosDoCurso}`);
-    await tx.execute(sql`
-      update ${aula} a set modulo_id = x.modulo_id, posicao = x.posicao, titulo = x.titulo,
-        duracao_seg = x.duracao_seg, video_id = x.video_id,
-        video_provedor = x.video_provedor::video_provedor
-      from ${registros(aMantidas)} as x(id uuid, modulo_id uuid, posicao smallint, titulo text,
-        duracao_seg integer, video_id text, video_provedor text)
-      where a.id = x.id and a.modulo_id in ${modulosDoCurso}`);
-  }
-  if (aNovas.length > 0) {
-    await tx.insert(aula).values(
-      aNovas.map((a) => ({
-        duracaoSeg: a.duracao_seg,
-        id: a.id,
-        moduloId: a.modulo_id,
-        posicao: a.posicao,
-        titulo: a.titulo,
-        videoId: a.video_id,
-        videoProvedor: a.video_provedor,
-      }))
-    );
+  for (const lote of lotes(aulas, AULAS_POR_LOTE)) {
+    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    const gravadas = await tx
+      .insert(aula)
+      .values(lote)
+      .onConflictDoUpdate({
+        set: {
+          duracaoSeg: proposto(aula.duracaoSeg),
+          moduloId: proposto(aula.moduloId),
+          posicao: proposto(aula.posicao),
+          titulo: proposto(aula.titulo),
+          videoId: proposto(aula.videoId),
+          videoProvedor: proposto(aula.videoProvedor),
+        },
+        setWhere: nosModulosDoCurso,
+        target: aula.id,
+      })
+      .returning({ id: aula.id });
+    if (gravadas.length !== lote.length) {
+      throw new Error("O documento traz aula de outro curso.");
+    }
   }
 
-  if (apagar.modulos.length > 0) {
-    await tx.delete(modulo).where(inArray(modulo.id, [...apagar.modulos]));
+  if (plano.tipo === "atualizar") {
+    if (plano.apagar.modulos.length > 0) {
+      await tx.delete(modulo).where(umDe(modulo.id, plano.apagar.modulos));
+    }
+    if (plano.apagar.niveis.length > 0) {
+      await tx
+        .delete(nivel)
+        .where(
+          and(
+            eq(nivel.cursoId, cursoId),
+            inArray(nivel.ordem, [...plano.apagar.niveis])
+          )
+        );
+    }
   }
-  if (apagar.niveis.length > 0) {
-    await tx
-      .delete(nivel)
-      .where(
-        and(
-          eq(nivel.cursoId, cursoId),
-          inArray(nivel.ordem, [...apagar.niveis])
-        )
-      );
-  }
-}
-
-function particionar<T>(
-  lista: readonly T[],
-  sim: (x: T) => boolean
-): [T[], T[]] {
-  const a: T[] = [];
-  const b: T[] = [];
-  for (const x of lista) {
-    (sim(x) ? a : b).push(x);
-  }
-  return [a, b];
 }
 
 /**
  * admin.catalogo.apagarCurso. Níveis, módulos, aulas e comunicados do curso caem
  * em cascade. Id que não existe: { apagado: false }, sem erro.
  */
-export function apagarCurso(
+export async function apagarCurso(
   db: Database,
   id: CursoId
 ): Promise<{ apagado: boolean }> {
-  return comTrava(db, `curso:${id}`, async (tx) => {
-    const atual = await abrirCurso(tx, id);
-    if (!atual) {
-      return { apagado: false };
-    }
-    if (!atual.podeApagar) {
+  try {
+    return await comTrava(db, `curso:${id}`, async (tx) => {
+      const atual = await abrirCurso(tx, id);
+      if (!atual) {
+        return { apagado: false };
+      }
+      if (!atual.podeApagar) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: CURSO_EM_USO,
+        });
+      }
+      await tx.delete(curso).where(eq(curso.id, id));
+      return { apagado: true };
+    });
+  } catch (erro) {
+    // O aluno não pega a trava do curso: uma aula assistida, liberação ou
+    // certificado que entra depois da conta de uso para no FK restrict.
+    if (violacaoDe(erro)?.codigo === "23503") {
+      // biome-ignore lint/style/useErrorCause: o TRPCError leva a causa nas opções, como abaixo.
       throw new TRPCError({
+        cause: erro,
         code: "PRECONDITION_FAILED",
         message: CURSO_EM_USO,
       });
     }
-    await tx.delete(curso).where(eq(curso.id, id));
-    return { apagado: true };
-  });
+    throw erro;
+  }
 }

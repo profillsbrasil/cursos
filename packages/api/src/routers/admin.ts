@@ -6,29 +6,25 @@ import {
   apagarCurso,
   salvarCurso,
 } from "../consultas/edicao-do-curso";
-import { edicaoDeCursoNovo } from "../dominio/edicao-do-curso";
 import type { CursoId } from "../dominio/tipos";
 import { adminProcedure, router } from "../index";
 
-/** "novo" abre a edição vazia com id gerado aqui; id fora do formato é "não existe". */
-const NOVO = "novo";
-const UUID = z.uuid();
+const doCurso = z.object({
+  id: z.uuid().transform((id) => id.toLowerCase() as CursoId),
+});
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
 export const adminRouter = router({
   catalogo: router({
+    /**
+     * null quando o id não existe. O curso novo não passa por aqui: quem abre o
+     * rascunho gera o id uma vez e monta a edição com edicaoDeCursoNovo(id).
+     */
     abrirCurso: adminProcedure
-      .input(z.object({ id: z.string() }))
-      .query(({ ctx, input }) => {
-        if (input.id === NOVO) {
-          return edicaoDeCursoNovo(crypto.randomUUID() as CursoId);
-        }
-        return UUID.safeParse(input.id).success
-          ? abrirCurso(ctx.db, input.id as CursoId)
-          : null;
-      }),
+      .input(doCurso)
+      .query(({ ctx, input }) => abrirCurso(ctx.db, input.id)),
     apagarCurso: adminProcedure
-      .input(z.object({ id: z.uuid().transform((id) => id as CursoId) }))
+      .input(doCurso)
       .mutation(({ ctx, input }) => apagarCurso(ctx.db, input.id)),
     /**
      * FormData com "documento" (JSON de DocumentoDoCurso) e "capa" (arquivo

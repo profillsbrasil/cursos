@@ -4,6 +4,7 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
+import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -11,6 +12,7 @@ import {
   curso,
   liberacao,
   modulo,
+  nivel,
   posicaoAula,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -22,22 +24,27 @@ import {
   type DocumentoDoCurso,
   type EdicaoDoCurso,
   formularioDoCurso,
+  type ModuloDoDocumento,
 } from "../dominio/edicao-do-curso";
 import type { AulaId, CursoId, ModuloId } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import { createCaller } from "../routers/index";
-import { violacaoDe } from "./erros";
+import { CURSO_EM_USO, violacaoDe } from "./erros";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 const ALUNO = `user_teste${S}edicao`;
-const UUID = /^[0-9a-f-]{36}$/;
 
-const CAPA = { altura: 720, largura: 1280, url: `/capas/teste-${S}.jpg` };
+/** Como no Storage, a URL sai do conteúdo: o mesmo arquivo dá a mesma URL. */
+const urlDaCapa = (n: number) => `/capas/teste-${S}-${n}.jpg`;
+const CAPA = { altura: 720, largura: 1280, url: urlDaCapa(1) };
 const capasDeTeste: Capas = {
-  receber: () => Promise.resolve({ imagem: CAPA, tipo: "guardada" }),
+  receber: async (arquivo) => {
+    const [n = 0] = new Uint8Array(await arquivo.arrayBuffer());
+    return { imagem: { ...CAPA, url: urlDaCapa(n) }, tipo: "guardada" };
+  },
 };
-const arquivoDaCapa = () => new Blob([new Uint8Array([1])]);
+const arquivoDaCapa = (n = 1) => new Blob([new Uint8Array([n])]);
 
 /** Erro sem tradução mostra a restrição violada no lugar do texto do Postgres. */
 const resultado = (p: Promise<unknown>) =>
@@ -54,6 +61,8 @@ const resultado = (p: Promise<unknown>) =>
       };
     }
   );
+
+const OK = { code: "ok", message: "" };
 
 describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
@@ -82,32 +91,30 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     video: null,
   });
 
-  /** Curso salvo pelo admin com dois módulos (0: A1, A2, A3; 1: B1) e um nível. */
-  async function cursoSalvo(): Promise<EdicaoDoCurso> {
+  const novoModulo = (
+    numero: number,
+    titulo: string,
+    aulas: ModuloDoDocumento["aulas"] = []
+  ): ModuloDoDocumento => ({
+    aulas,
+    id: randomUUID() as ModuloId,
+    nivelOrdem: null,
+    numero,
+    titulo,
+  });
+
+  function documentoNovo(
+    modulosDoCurso: ModuloDoDocumento[] = []
+  ): DocumentoDoCurso {
     const id = randomUUID() as CursoId;
     cursos.push(id);
-    const documento: DocumentoDoCurso = {
+    return {
       capaAlt: "Capa de teste",
       codigo: null,
       destaque: null,
       id,
-      modulos: [
-        {
-          aulas: [novaAula("A1"), novaAula("A2"), novaAula("A3")],
-          id: randomUUID() as ModuloId,
-          nivelOrdem: 1,
-          numero: 0,
-          titulo: "Módulo A",
-        },
-        {
-          aulas: [novaAula("B1")],
-          id: randomUUID() as ModuloId,
-          nivelOrdem: null,
-          numero: 1,
-          titulo: "Módulo B",
-        },
-      ],
-      niveis: [{ nome: "Básico", ordem: 1 }],
+      modulos: modulosDoCurso,
+      niveis: [],
       precoTroca: null,
       slug: `teste-${S}-${cursos.length}`,
       status: "em_producao",
@@ -115,10 +122,22 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       titulo: `Curso ${S} ${cursos.length}`,
       versao: null,
     };
-    await admin.admin.catalogo.salvarCurso(
-      formularioDoCurso(documento, arquivoDaCapa())
-    );
-    return abrir(id);
+  }
+
+  /** Curso salvo pelo admin com dois módulos (0: A1, A2, A3; 1: B1) e um nível. */
+  async function cursoSalvo(): Promise<EdicaoDoCurso> {
+    const a = novoModulo(0, "Módulo A", [
+      novaAula("A1"),
+      novaAula("A2"),
+      novaAula("A3"),
+    ]);
+    const documento = {
+      ...documentoNovo([{ ...a, nivelOrdem: 1 }, novoModulo(1, "Módulo B")]),
+      niveis: [{ nome: "Básico", ordem: 1 }],
+    };
+    documento.modulos[1]?.aulas.push(novaAula("B1"));
+    await salvarComCapa(documento);
+    return abrir(documento.id);
   }
 
   async function abrir(id: CursoId): Promise<EdicaoDoCurso> {
@@ -131,6 +150,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
   const salvar = (documento: DocumentoDoCurso) =>
     admin.admin.catalogo.salvarCurso(formularioDoCurso(documento, null));
+
+  const salvarComCapa = (documento: DocumentoDoCurso, capa = 1) =>
+    admin.admin.catalogo.salvarCurso(
+      formularioDoCurso(documento, arquivoDaCapa(capa))
+    );
 
   const modulos = (d: DocumentoDoCurso) => {
     const [a, b] = d.modulos;
@@ -148,6 +172,21 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       .orderBy(asc(aula.posicao));
   }
 
+  const titulos = async (moduloId: string) =>
+    (await aulasNoBanco(moduloId)).map((x) => x.titulo);
+
+  function modulosNoBanco(cursoId: CursoId) {
+    return db
+      .select({
+        id: modulo.id,
+        nivelOrdem: modulo.nivelOrdem,
+        numero: modulo.numero,
+      })
+      .from(modulo)
+      .where(eq(modulo.cursoId, cursoId))
+      .orderBy(asc(modulo.numero));
+  }
+
   async function assistir(aulaId: AulaId) {
     await db.insert(aulaAssistida).values({ aulaId, userId: ALUNO });
     await db
@@ -156,27 +195,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   }
 
   test("criar curso sem capa é recusado; com capa grava url, largura e altura", async () => {
-    const id = randomUUID() as CursoId;
-    cursos.push(id);
-    const documento: DocumentoDoCurso = {
-      ...(await cursoSalvo()).documento,
-      id,
-      modulos: [],
-      slug: `teste-${S}-sem-capa`,
-      versao: null,
-    };
-    expect(
-      await resultado(
-        admin.admin.catalogo.salvarCurso(formularioDoCurso(documento, null))
-      )
-    ).toEqual({
+    const documento = documentoNovo();
+    expect(await resultado(salvar(documento))).toEqual({
       code: "PRECONDITION_FAILED",
       message: "Curso novo precisa de capa.",
     });
 
-    await admin.admin.catalogo.salvarCurso(
-      formularioDoCurso(documento, arquivoDaCapa())
-    );
+    await salvarComCapa(documento);
     const [linha] = await db
       .select({
         altura: curso.capaAltura,
@@ -184,7 +209,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
         url: curso.capaUrl,
       })
       .from(curso)
-      .where(eq(curso.id, id));
+      .where(eq(curso.id, documento.id));
     expect(linha).toEqual(CAPA);
   });
 
@@ -211,20 +236,53 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     a.numero = 1;
     b.numero = 0;
 
-    expect(await resultado(salvar(documento))).toEqual({
-      code: "ok",
-      message: "",
-    });
+    expect(await resultado(salvar(documento))).toEqual(OK);
 
-    const linhas = await db
-      .select({ id: modulo.id, numero: modulo.numero })
-      .from(modulo)
-      .where(eq(modulo.cursoId, documento.id))
-      .orderBy(asc(modulo.numero));
-    expect(linhas).toEqual([
-      { id: b.id, numero: 0 },
-      { id: a.id, numero: 1 },
+    expect(await modulosNoBanco(documento.id)).toEqual([
+      { id: b.id, nivelOrdem: null, numero: 0 },
+      { id: a.id, nivelOrdem: 1, numero: 1 },
     ]);
+  });
+
+  test("módulos fora de ordem no array: a versão devolvida é a que abrirCurso lê", async () => {
+    const { documento } = await cursoSalvo();
+    const [a, b] = modulos(documento);
+    a.numero = 1;
+    b.numero = 0;
+
+    const salvo = await salvar(documento);
+
+    expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);
+    expect(
+      await resultado(
+        salvar({ ...documento, tema: "outro tema", versao: salvo.versao })
+      )
+    ).toEqual(OK);
+  });
+
+  test("id de aula em maiúscula é a mesma aula: aula assistida e posição ficam", async () => {
+    const { documento } = await cursoSalvo();
+    const [a] = modulos(documento);
+    const [a1] = a.aulas;
+    if (!a1) {
+      throw new Error("sem A1");
+    }
+    await assistir(a1.id);
+    a1.id = a1.id.toUpperCase() as AulaId;
+    a1.titulo = "A1 renomeada";
+
+    expect(await resultado(salvar(documento))).toEqual(OK);
+
+    expect(await aulasNoBanco(a.id)).toContainEqual({
+      id: a1.id.toLowerCase(),
+      posicao: 1,
+      titulo: "A1 renomeada",
+    });
+    const posicoes = await db
+      .select({ seg: posicaoAula.posicaoSeg })
+      .from(posicaoAula)
+      .where(eq(posicaoAula.aulaId, a1.id.toLowerCase()));
+    expect(posicoes).toEqual([{ seg: 42 }]);
   });
 
   test("aula muda de módulo e mantém aula assistida e posição do aluno", async () => {
@@ -249,10 +307,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       [true, "A2", 1],
       [false, "B1", 2],
     ]);
-    expect((await aulasNoBanco(a.id)).map((x) => x.titulo)).toEqual([
-      "A1",
-      "A3",
-    ]);
+    expect(await titulos(a.id)).toEqual(["A1", "A3"]);
     const assistidas = await db
       .select({ aulaId: aulaAssistida.aulaId })
       .from(aulaAssistida)
@@ -272,17 +327,167 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
     await salvar(documento);
 
-    const restantes = await db
-      .select({ id: modulo.id })
-      .from(modulo)
-      .where(eq(modulo.cursoId, documento.id));
-    expect(restantes).toEqual([{ id: a.id }]);
-    expect((await aulasNoBanco(a.id)).map((x) => x.titulo)).toEqual([
-      "A1",
-      "A2",
-      "A3",
-      "B1",
+    expect((await modulosNoBanco(documento.id)).map((m) => m.id)).toEqual([
+      a.id,
     ]);
+    expect(await titulos(a.id)).toEqual(["A1", "A2", "A3", "B1"]);
+  });
+
+  test("num salvamento só: módulo 0 novo empurra os outros, aula vai para ele, aula nova em módulo antigo, módulo e nível saem, capa troca", async () => {
+    const base = await cursoSalvo();
+    const c = { ...novoModulo(5, "Módulo C", [novaAula("C1")]), nivelOrdem: 2 };
+    const comC = await salvar({
+      ...base.documento,
+      modulos: [...base.documento.modulos, c],
+      niveis: [...base.documento.niveis, { nome: "Avançado", ordem: 2 }],
+    });
+
+    const { documento } = await abrir(base.documento.id);
+    expect(documento.versao).toBe(comC.versao);
+    const [a, b] = modulos(documento);
+    const [a2] = a.aulas.splice(1, 1);
+    if (!a2) {
+      throw new Error("sem A2");
+    }
+    const zero = novoModulo(0, "Módulo zero", [a2, novaAula("N1")]);
+    a.numero = 1;
+    b.numero = 2;
+    b.aulas.push(novaAula("B2"));
+    documento.modulos = [zero, a, b];
+    documento.niveis = [{ nome: "Básico", ordem: 1 }];
+
+    const salvo = await salvarComCapa(documento, 2);
+
+    expect(await modulosNoBanco(documento.id)).toEqual([
+      { id: zero.id, nivelOrdem: null, numero: 0 },
+      { id: a.id, nivelOrdem: 1, numero: 1 },
+      { id: b.id, nivelOrdem: null, numero: 2 },
+    ]);
+    expect([
+      await titulos(zero.id),
+      await titulos(a.id),
+      await titulos(b.id),
+    ]).toEqual([
+      ["A2", "N1"],
+      ["A1", "A3"],
+      ["B1", "B2"],
+    ]);
+    expect(await aulasNoBanco(c.id)).toEqual([]);
+    expect(
+      await db
+        .select({ ordem: nivel.ordem })
+        .from(nivel)
+        .where(eq(nivel.cursoId, documento.id))
+    ).toEqual([{ ordem: 1 }]);
+    const aberto = await abrir(documento.id);
+    expect([aberto.capa?.url, aberto.documento.versao]).toEqual([
+      urlDaCapa(2),
+      salvo.versao,
+    ]);
+  });
+
+  test("bordas: módulo 999 troca com o 0, e as 500 aulas de um módulo se invertem", async () => {
+    const cheio = novoModulo(
+      999,
+      "Cheio",
+      Array.from({ length: 500 }, (_, i) => novaAula(`X${i + 1}`))
+    );
+    const documento = documentoNovo([
+      novoModulo(0, "Pequeno", [novaAula("P1")]),
+      cheio,
+    ]);
+    await salvarComCapa(documento);
+
+    const aberto = (await abrir(documento.id)).documento;
+    const [pequeno, grande] = modulos(aberto);
+    pequeno.numero = 999;
+    grande.numero = 0;
+    grande.aulas.reverse();
+    const salvo = await salvar(aberto);
+
+    expect(
+      (await modulosNoBanco(documento.id)).map((m) => [m.id, m.numero])
+    ).toEqual([
+      [cheio.id, 0],
+      [pequeno.id, 999],
+    ]);
+    const aulas = await aulasNoBanco(cheio.id);
+    expect([
+      aulas.length,
+      aulas[0]?.id === cheio.aulas[499]?.id,
+      aulas[0]?.posicao,
+      aulas[0]?.titulo,
+      aulas.at(-1)?.titulo,
+    ]).toEqual([500, true, 1, "X500", "X1"]);
+    expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);
+  });
+
+  test("dois salvamentos da mesma versão em paralelo: um grava, o outro dá CONFLICT", async () => {
+    const { documento } = await cursoSalvo();
+    const codigos = await Promise.all([
+      resultado(salvar({ ...documento, titulo: `${documento.titulo} um` })),
+      resultado(salvar({ ...documento, tema: "dois" })),
+    ]);
+    expect(codigos.map((r) => r.code).sort()).toEqual(["CONFLICT", "ok"]);
+  });
+
+  test("criação repetida, em série e em paralelo, é sucesso e cria um curso só", async () => {
+    const documento = documentoNovo([novoModulo(0, "Único")]);
+    const primeiro = await salvarComCapa(documento);
+    expect(await salvarComCapa(documento)).toEqual(primeiro);
+
+    const outro = documentoNovo();
+    const paralelos = await Promise.all([
+      resultado(salvarComCapa(outro)),
+      resultado(salvarComCapa(outro)),
+    ]);
+    expect(paralelos).toEqual([OK, OK]);
+    expect((await abrir(documento.id)).documento.versao).toBe(primeiro.versao);
+  });
+
+  test("capa trocada muda a versão; reenviar a troca é sucesso; troca concorrente dá CONFLICT", async () => {
+    const { documento } = await cursoSalvo();
+
+    const trocada = await salvarComCapa(documento, 2);
+    expect(trocada.versao).not.toBe(documento.versao);
+    expect((await abrir(documento.id)).documento.versao).toBe(trocada.versao);
+
+    expect(await resultado(salvarComCapa(documento, 2))).toEqual(OK);
+    expect((await resultado(salvarComCapa(documento, 3))).code).toBe(
+      "CONFLICT"
+    );
+    expect((await abrir(documento.id)).capa?.url).toBe(urlDaCapa(2));
+  });
+
+  test("id de módulo ou de aula de outro curso é recusado e nada muda", async () => {
+    const outro = await cursoSalvo();
+    const { documento } = await cursoSalvo();
+    const [deFora] = outro.documento.modulos;
+    const aulaDeFora = deFora?.aulas[0];
+    if (!(deFora && aulaDeFora)) {
+      throw new Error("o outro curso tem módulo e aula");
+    }
+
+    const comModulo = structuredClone(documento);
+    comModulo.modulos.push({ ...deFora, aulas: [], numero: 7 });
+    const comAula = structuredClone(documento);
+    comAula.modulos[1]?.aulas.push(aulaDeFora);
+
+    expect([
+      await resultado(salvar(comModulo)),
+      await resultado(salvar(comAula)),
+    ]).toEqual([
+      {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "O documento traz módulo de outro curso.",
+      },
+      {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "O documento traz aula de outro curso.",
+      },
+    ]);
+    expect(await abrir(outro.documento.id)).toEqual(outro);
+    expect((await abrir(documento.id)).documento).toEqual(documento);
   });
 
   test("apagar aula assistida é recusado com o título da aula e nada muda", async () => {
@@ -309,10 +514,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const primeiro = { ...documento, titulo: `${documento.titulo} editado` };
     const salvo = await salvar(primeiro);
-    expect(await resultado(salvar(primeiro))).toEqual({
-      code: "ok",
-      message: "",
-    });
+    expect(await resultado(salvar(primeiro))).toEqual(OK);
 
     const velho = { ...documento, tema: "outro tema" };
     expect((await resultado(salvar(velho))).code).toBe("CONFLICT");
@@ -341,11 +543,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect(usado.podeApagar).toBe(true);
     expect((await abrir(usado.documento.id)).podeApagar).toBe(false);
 
-    const recusa = await resultado(
-      admin.admin.catalogo.apagarCurso({ id: usado.documento.id })
-    );
-    expect(recusa.code).toBe("PRECONDITION_FAILED");
-    expect(recusa.message).toContain("Em produção");
+    expect(
+      await resultado(
+        admin.admin.catalogo.apagarCurso({ id: usado.documento.id })
+      )
+    ).toEqual({ code: "PRECONDITION_FAILED", message: CURSO_EM_USO });
     expect(
       await admin.admin.catalogo.abrirCurso({ id: usado.documento.id })
     ).not.toBeNull();
@@ -359,12 +561,55 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     ).toBeNull();
   });
 
-  test("abrir 'novo' devolve edição vazia com id; id fora do formato é null", async () => {
-    const novo = await admin.admin.catalogo.abrirCurso({ id: "novo" });
-    expect(novo?.documento.versao).toBeNull();
-    expect(novo?.documento.id).toMatch(UUID);
+  test("aula assistida que chega depois da conta de uso: apagarCurso diz que o curso está em uso", async () => {
+    const { documento } = await cursoSalvo();
+    const aulaId = documento.modulos[0]?.aulas[0]?.id;
+    if (!aulaId) {
+      throw new Error("sem aula");
+    }
+    const aluno = await db.$client.connect();
+    try {
+      await aluno.query("begin");
+      await aluno.query(
+        "insert into aula_assistida (user_id, aula_id) values ($1, $2)",
+        [ALUNO, aulaId]
+      );
+      const apagando = resultado(
+        admin.admin.catalogo.apagarCurso({ id: documento.id })
+      );
+      await esperarAlguemEsperandoTrava();
+      await aluno.query("commit");
+
+      expect(await apagando).toEqual({
+        code: "PRECONDITION_FAILED",
+        message: CURSO_EM_USO,
+      });
+    } finally {
+      aluno.release();
+    }
+  });
+
+  /** O DELETE do curso fica parado na linha da aula que o aluno travou ao inserir. */
+  async function esperarAlguemEsperandoTrava(tentativas = 100): Promise<void> {
+    const { rows } = await db.$client.query<{ n: number }>(
+      "select count(*)::int as n from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock'"
+    );
+    if ((rows[0]?.n ?? 0) > 0) {
+      return;
+    }
+    if (tentativas === 0) {
+      throw new Error("o apagamento não chegou a esperar a trava do aluno");
+    }
+    await esperar(50);
+    return esperarAlguemEsperandoTrava(tentativas - 1);
+  }
+
+  test("abrirCurso aceita só uuid; id que não existe é null", async () => {
     expect(
-      await admin.admin.catalogo.abrirCurso({ id: "nao-e-uuid" })
+      (await resultado(admin.admin.catalogo.abrirCurso({ id: "novo" }))).code
+    ).toBe("BAD_REQUEST");
+    expect(
+      await admin.admin.catalogo.abrirCurso({ id: randomUUID() })
     ).toBeNull();
   });
 });

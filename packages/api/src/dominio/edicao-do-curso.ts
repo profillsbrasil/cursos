@@ -1,7 +1,7 @@
 // O curso como o admin edita: um documento só (campos do curso, níveis, módulos e
 // aulas), salvo de uma vez. Roda no editor e no servidor, então nada aqui importa
-// node:crypto, banco ou Clerk. O único escritor do que o documento descreve é
-// consultas/edicao-do-curso.ts, a partir do Plano de planejarCurso.
+// node:crypto, banco ou Clerk. O planejador, que só roda no servidor, mora em
+// plano-do-curso.ts.
 
 // formatos.ts, não comum.ts: este módulo vai para o bundle do browser.
 import {
@@ -21,7 +21,6 @@ import type {
   VideoDaAula,
   VideoId,
 } from "./tipos";
-import { versaoDe } from "./versao";
 
 /**
  * Tetos do documento. gravarCurso deriva deles o deslocamento que regrava números
@@ -44,6 +43,9 @@ const opcional = (max: number) =>
     .nullable()
     .transform((s) => (s ? s : null));
 
+/** O Postgres devolve uuid em minúscula; o mesmo id em outra caixa seria outra linha. */
+const uuid = z.uuid().transform((id) => id.toLowerCase());
+
 const video = z
   .object({
     id: z.string().regex(new RegExp(ID_DO_YOUTUBE)),
@@ -56,14 +58,14 @@ const video = z
 const aula = z.object({
   duracaoSeg: z.int().positive().max(86_400),
   /** Aula nova: o editor gera o id. A posição é o índice no módulo mais 1. */
-  id: z.uuid().transform((id) => id as AulaId),
+  id: uuid.transform((id) => id as AulaId),
   titulo: texto(160),
   video: video.nullable(),
 });
 
 const modulo = z.object({
   aulas: z.array(aula).max(LIMITES.aulasPorModulo),
-  id: z.uuid().transform((id) => id as ModuloId),
+  id: uuid.transform((id) => id as ModuloId),
   nivelOrdem: z.int().min(1).max(LIMITES.niveis).nullable(),
   /** O número que o aluno vê ("Módulo 3"). O seed começa em 0 ou em 1; buracos valem. */
   numero: z.int().min(0).max(LIMITES.numeroDeModulo),
@@ -76,15 +78,30 @@ const nivel = z.object({
 });
 
 function repetidos<T>(valores: readonly T[]): T[] {
-  return [...new Set(valores.filter((v, i) => valores.indexOf(v) !== i))];
+  const vistos = new Set<T>();
+  const repetido = new Set<T>();
+  for (const v of valores) {
+    (vistos.has(v) ? repetido : vistos).add(v);
+  }
+  return [...repetido];
 }
 
+const porNumero = (a: { numero: number }, b: { numero: number }) =>
+  a.numero - b.numero;
+const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
+  a.ordem - b.ordem;
+
+/**
+ * Sai na forma que abrirCurso lê do banco: módulos por número, níveis por ordem,
+ * ids em minúscula. Assim a versão do que chegou é a versão do que fica gravado.
+ * A ordem das aulas é conteúdo: é a posição.
+ */
 export const documentoDoCurso = z
   .object({
     capaAlt: texto(300),
     codigo: opcional(40),
     destaque: opcional(60),
-    id: z.uuid().transform((id) => id as CursoId),
+    id: uuid.transform((id) => id as CursoId),
     modulos: z.array(modulo).max(LIMITES.modulos),
     niveis: z.array(nivel).max(LIMITES.niveis),
     precoTroca: z.int().positive().max(1_000_000).nullable(),
@@ -124,7 +141,12 @@ export const documentoDoCurso = z
         ]);
       }
     });
-  });
+  })
+  .transform((d) => ({
+    ...d,
+    modulos: d.modulos.toSorted(porNumero),
+    niveis: d.niveis.toSorted(porOrdem),
+  }));
 
 export type DocumentoDoCurso = z.output<typeof documentoDoCurso>;
 export type ModuloDoDocumento = DocumentoDoCurso["modulos"][number];
@@ -150,25 +172,11 @@ export type FormularioLido =
   | { tipo: "lido"; documento: DocumentoDoCurso; capa: Blob | null }
   | { tipo: "invalido"; mensagem: string };
 
-/** "modulos.2.aulas.0.titulo" vira "Módulo 3, aula 1, titulo". */
-function caminhoLegivel(path: readonly PropertyKey[]): string {
-  const partes: string[] = [];
-  for (const chave of path) {
-    const anterior = partes.at(-1);
-    if (
-      typeof chave === "number" &&
-      (anterior === "modulos" || anterior === "aulas")
-    ) {
-      partes[partes.length - 1] =
-        `${anterior === "modulos" ? "Módulo" : "aula"} ${chave + 1}`;
-    } else {
-      partes.push(String(chave));
-    }
-  }
-  return partes.join(", ");
-}
-
-/** Servidor: o inverso de formularioDoCurso. Arquivo vazio conta como sem capa. */
+/**
+ * Servidor: o inverso de formularioDoCurso. Arquivo vazio conta como sem capa.
+ * O editor valida com o mesmo schema antes de enviar, então documento inválido
+ * aqui é defeito ou envio forjado, e a frase não detalha.
+ */
 export function lerFormularioDoCurso(fd: FormData): FormularioLido {
   const json = fd.get(CAMPO.documento);
   if (typeof json !== "string") {
@@ -182,13 +190,7 @@ export function lerFormularioDoCurso(fd: FormData): FormularioLido {
   }
   const lido = documentoDoCurso.safeParse(bruto);
   if (!lido.success) {
-    const [issue] = lido.error.issues;
-    return {
-      mensagem: issue
-        ? `${caminhoLegivel(issue.path)}: ${issue.message}`
-        : "Documento inválido.",
-      tipo: "invalido",
-    };
+    return { mensagem: "Documento inválido.", tipo: "invalido" };
   }
   const capa = fd.get(CAMPO.capa);
   return {
@@ -229,7 +231,11 @@ export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   u.trilha === null &&
   Object.values(u.assistidasPorAula).every((n) => n === 0);
 
-/** /admin/catalogo/cursos/novo: o id vem de quem chama, a versão é null. */
+/**
+ * O rascunho de um curso que ainda não existe. O id vem de quem chama e não pode
+ * mudar enquanto o rascunho vive: a trava curso:<id> e o reenvio sem duplicar
+ * dependem dele.
+ */
 export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
   return {
     capa: null,
@@ -249,109 +255,5 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
     },
     podeApagar: false,
     uso: SEM_USO,
-  };
-}
-
-export type RecusaDaEdicao =
-  | { tipo: "versao_mudou" }
-  | { tipo: "sumiu" }
-  | { tipo: "sem_capa" }
-  | { tipo: "aula_assistida"; titulo: string; alunos: number };
-
-export interface Apagar {
-  aulas: readonly AulaId[];
-  modulos: readonly ModuloId[];
-  niveis: readonly number[];
-}
-
-/** Ids do documento que o curso ainda não tem: entram por INSERT, o resto por UPDATE. */
-export interface Novos {
-  aulas: readonly AulaId[];
-  modulos: readonly ModuloId[];
-}
-
-export type Plano =
-  | { tipo: "nada_mudou" }
-  | {
-      tipo: "gravar";
-      criar: boolean;
-      documento: DocumentoDoCurso;
-      apagar: Apagar;
-      novos: Novos;
-    }
-  | { tipo: "recusa"; recusa: RecusaDaEdicao };
-
-const recusa = (r: RecusaDaEdicao): Plano => ({ recusa: r, tipo: "recusa" });
-
-const idsDosModulos = (d: DocumentoDoCurso) => d.modulos.map((m) => m.id);
-const idsDasAulas = (d: DocumentoDoCurso) =>
-  d.modulos.flatMap((m) => m.aulas.map((a) => a.id));
-const fora = <T>(lista: readonly T[], de: readonly T[]) => {
-  const conjunto = new Set(de);
-  return lista.filter((x) => !conjunto.has(x));
-};
-
-/**
- * `atual` é o que abrirCurso leu com o curso travado. O plano descreve o estado
- * final; gravarCurso escreve o documento inteiro. Aqui só se decide o que some e
- * se pode sumir. Aula que muda de módulo mantém o id, então mantém assistidas e
- * posição do aluno.
- */
-export function planejarCurso(
-  atual: EdicaoDoCurso | null,
-  desejado: DocumentoDoCurso,
-  temCapaNova: boolean
-): Plano {
-  if (atual === null) {
-    if (desejado.versao !== null) {
-      return recusa({ tipo: "sumiu" });
-    }
-    if (!temCapaNova) {
-      return recusa({ tipo: "sem_capa" });
-    }
-    return {
-      apagar: { aulas: [], modulos: [], niveis: [] },
-      criar: true,
-      documento: desejado,
-      novos: { aulas: idsDasAulas(desejado), modulos: idsDosModulos(desejado) },
-      tipo: "gravar",
-    };
-  }
-  // Antes da versão: duplo clique e reenvio depois de resposta perdida são sucesso.
-  if (!temCapaNova && versaoDe(desejado) === atual.documento.versao) {
-    return { tipo: "nada_mudou" };
-  }
-  if (desejado.versao !== atual.documento.versao) {
-    return recusa({ tipo: "versao_mudou" });
-  }
-  const aulasQueSaem = fora(
-    idsDasAulas(atual.documento),
-    idsDasAulas(desejado)
-  );
-  for (const id of aulasQueSaem) {
-    const alunos = atual.uso.assistidasPorAula[id] ?? 0;
-    if (alunos > 0) {
-      const titulo =
-        atual.documento.modulos.flatMap((m) => m.aulas).find((a) => a.id === id)
-          ?.titulo ?? id;
-      return recusa({ alunos, tipo: "aula_assistida", titulo });
-    }
-  }
-  return {
-    apagar: {
-      aulas: aulasQueSaem,
-      modulos: fora(idsDosModulos(atual.documento), idsDosModulos(desejado)),
-      niveis: fora(
-        atual.documento.niveis.map((n) => n.ordem),
-        desejado.niveis.map((n) => n.ordem)
-      ),
-    },
-    criar: false,
-    documento: desejado,
-    novos: {
-      aulas: fora(idsDasAulas(desejado), idsDasAulas(atual.documento)),
-      modulos: fora(idsDosModulos(desejado), idsDosModulos(atual.documento)),
-    },
-    tipo: "gravar",
   };
 }
