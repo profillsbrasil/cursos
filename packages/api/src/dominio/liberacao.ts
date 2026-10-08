@@ -141,8 +141,9 @@ const ordemNaTela = (a: LinhaDaLiberacao, b: LinhaDaLiberacao) =>
   b.liberadaEm.getTime() - a.liberadaEm.getTime();
 
 /**
- * null quando o Clerk não conhece a pessoa e ela não tem liberação ativa: não
- * há nada a mostrar nem a revogar.
+ * null quando o Clerk não conhece a pessoa e ela nunca teve liberação: o userId
+ * não é de ninguém. Com histórico, a tela continua aberta depois da última
+ * revogação.
  */
 export function montarAcesso(
   userId: string,
@@ -150,7 +151,7 @@ export function montarAcesso(
   linhas: LinhasDoAcesso
 ): AcessoDoAluno | null {
   const ativas = linhas.liberacoes.filter((l) => l.revogadaEm === null);
-  if (!pessoa && ativas.length === 0) {
+  if (!pessoa && linhas.liberacoes.length === 0) {
     return null;
   }
   const liberado = (alvo: Alvo) => ativas.some((l) => mesmoAlvo(l.alvo, alvo));

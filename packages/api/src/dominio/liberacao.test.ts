@@ -179,10 +179,17 @@ describe("montarAcesso", () => {
     expect(acesso?.liberacoes[0]?.acao).toEqual({ tipo: "revogar" });
   });
 
-  test("pessoa apagada sem liberação ativa não tem tela", () => {
+  test("pessoa apagada continua com tela depois da última revogação", () => {
     const revogada = linha({ alvo: trilha, revogadaEm: new Date() });
     expect(
       montarAcesso("user_sumiu", null, { catalogo, liberacoes: [revogada] })
+        ?.liberacoes
+    ).toHaveLength(1);
+  });
+
+  test("userId sem pessoa no Clerk e sem liberação não tem tela", () => {
+    expect(
+      montarAcesso("user_ninguem", null, { catalogo, liberacoes: [] })
     ).toBeNull();
   });
 });
