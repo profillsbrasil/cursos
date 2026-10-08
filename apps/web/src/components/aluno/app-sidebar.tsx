@@ -7,13 +7,13 @@ import {
 } from "@cursos/ui/components/sidebar";
 import { ShieldCheck } from "lucide-react";
 
-import { ehAdmin } from "@/server/api";
+import { souAdmin } from "@/server/api";
 
 import { NavDoAluno } from "./nav-do-aluno";
 import { LinkDoRodape, MarcaDaSidebar } from "./partes-da-sidebar";
 
 export async function AppSidebar() {
-  const admin = await ehAdmin();
+  const admin = await souAdmin();
   return (
     <Sidebar variant="sidebar">
       <SidebarHeader className="px-5 pt-6 pb-5">

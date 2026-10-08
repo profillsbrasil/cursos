@@ -15,6 +15,72 @@
         "apps/web/public/**"
       ],
       "linter": { "enabled": false }
+    },
+    {
+      // Cerca do admin: o banco só chega ao app por um Context de contextoDe.
+      // Um Server Action com o db na mão grava sem passar pelo adminProcedure.
+      "includes": ["apps/web/src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@cursos/db", "@cursos/db/**"],
+                    "message": "Só src/services.ts importa @cursos/db. Leia e grave pelo caller de src/server/api.ts."
+                  },
+                  {
+                    "group": ["@/services", "**/services"],
+                    "message": "Só src/context.ts e src/server/api.ts importam os serviços. Use os carregadores de src/server/api.ts."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/web/src/services.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/services", "**/services"],
+                    "message": "Só src/context.ts e src/server/api.ts importam os serviços."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/web/src/context.ts", "apps/web/src/server/api.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@cursos/db", "@cursos/db/**"],
+                    "message": "Só src/services.ts importa @cursos/db."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

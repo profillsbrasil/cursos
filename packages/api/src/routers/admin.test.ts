@@ -13,15 +13,15 @@ const sessao = (claims: Record<string, unknown>, userId = "user_x") =>
 describe("contextoDe lê o papel do claim", () => {
   test("claim papel admin vira admin", () => {
     const ctx = contextoDe(sessao({ papel: "admin" }, "user_dono"), servicos);
-    expect(ctx.auth).toEqual({ papel: "admin", userId: "user_dono" });
+    expect([ctx.auth?.papel, ctx.auth?.userId]).toEqual(["admin", "user_dono"]);
   });
 
   test("claim ausente, null ou com outro texto vira aluno", () => {
     const claims = [{}, { papel: null }, { papel: "Admin" }, { papel: "root" }];
-    const papeis = claims.map((c) => contextoDe(sessao(c), servicos).auth);
-    expect(papeis).toEqual(
-      claims.map(() => ({ papel: "aluno", userId: "user_x" }))
+    const papeis = claims.map(
+      (c) => contextoDe(sessao(c), servicos).auth?.papel
     );
+    expect(papeis).toEqual(claims.map(() => "aluno"));
   });
 
   test("sem sessão não tem auth", () => {

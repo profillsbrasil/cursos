@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import type { Context, Sessao } from "./context";
+import { type Context, ehAdmin } from "./context";
 import type { AdminId } from "./dominio/tipos";
 
 export const t = initTRPC.context<Context>().create();
@@ -22,11 +22,6 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, auth } });
 });
 
-type SessaoDeAdmin = Sessao & { readonly papel: "admin" };
-
-const ehSessaoDeAdmin = (auth: Sessao): auth is SessaoDeAdmin =>
-  auth.papel === "admin";
-
 /**
  * Segunda porta do admin; a primeira é exigirAdmin em apps/web/src/server/api.ts.
  * É o único lugar que fabrica um AdminId, então quem grava autoria de admin
@@ -34,7 +29,7 @@ const ehSessaoDeAdmin = (auth: Sessao): auth is SessaoDeAdmin =>
  */
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   const { auth } = ctx;
-  if (!ehSessaoDeAdmin(auth)) {
+  if (!ehAdmin(auth)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Esta ação é só do admin.",

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
-import { contextoDe } from "@cursos/api/context";
+import { contextoDe, ehAdmin } from "@cursos/api/context";
 import { createCaller } from "@cursos/api/routers/index";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -18,22 +18,21 @@ const contexto = cache(async () => contextoDe(await auth.protect(), servicos));
 const caller = cache(async () => createCaller(await contexto()));
 
 /**
- * Primeira porta do admin, para o layout e os carregadores de /admin. Quem não é
- * admin vê a 404 do app, sem saber que a área existe. O adminProcedure continua
- * como segunda porta em cada procedimento.
+ * Primeira porta do admin, para as páginas, o layout e os carregadores de /admin.
+ * Sem sessão, auth.protect() manda a pessoa para o login. Com sessão e sem o
+ * papel de admin, ela vê a 404 do app, sem saber que a área existe. O
+ * adminProcedure continua como segunda porta em cada procedimento.
  */
 export const exigirAdmin = cache(async () => {
   const ctx = await contexto();
-  if (ctx.auth?.papel !== "admin") {
+  if (!ehAdmin(ctx.auth)) {
     notFound();
   }
   return createCaller(ctx);
 });
 
 /** Para a sidebar do aluno mostrar o link da área do admin. */
-export const ehAdmin = cache(
-  async () => (await contexto()).auth?.papel === "admin"
-);
+export const souAdmin = cache(async () => ehAdmin((await contexto()).auth));
 
 export const carregarPainel = cache(async () =>
   (await caller()).meusCursos.painel()
