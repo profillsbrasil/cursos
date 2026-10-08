@@ -1,5 +1,5 @@
 import type { Database } from "@cursos/db";
-import { liberacao, pontoLancamento } from "@cursos/db/schema/index";
+import { pontoLancamento } from "@cursos/db/schema/index";
 import { TRPCError } from "@trpc/server";
 import { DrizzleQueryError } from "drizzle-orm";
 
@@ -19,12 +19,9 @@ import {
   filtroLiberacaoAtiva,
   relacaoLiberacoesAtivas,
 } from "./comum";
-import {
-  comSaldoTravado,
-  linhasDoExtrato,
-  linhasDoSaldo,
-  type TransacaoTravada,
-} from "./pontos";
+import { inserirLiberacao } from "./liberacao";
+import { comSaldoTravado, linhasDoExtrato, linhasDoSaldo } from "./pontos";
+import type { AlunoTravado } from "./trava";
 
 const LIMITE_DO_EXTRATO = 10;
 
@@ -37,6 +34,8 @@ export async function linhasDosCursos(
   const linhas = await exec.query.curso.findMany({
     columns: {
       capaAlt: true,
+      capaAltura: true,
+      capaLargura: true,
       capaUrl: true,
       id: true,
       precoTroca: true,
@@ -135,32 +134,28 @@ const violou = (e: unknown, constraint: string): boolean => {
 };
 
 async function gravarTroca(
-  tx: TransacaoTravada,
-  userId: string,
+  aluno: AlunoTravado,
   cursoId: CursoId,
   preco: number,
   agora: Date
 ): Promise<{ lancamentoId: string }> {
-  const [lib] = await tx
-    .insert(liberacao)
-    .values({ cursoId, liberadaEm: agora, liberadaPor: userId, userId })
-    .returning({ id: liberacao.id })
-    .catch((e: unknown) => {
-      throw violou(e, "liberacao_curso_ativa_unica")
-        ? erroDaRecusa({ tipo: "ja_tem" })
-        : e;
-    });
-  if (!lib) {
-    throw new Error("O insert da liberação não devolveu a linha.");
-  }
-  const [lancamento] = await tx
+  const liberacaoId = await inserirLiberacao(
+    aluno,
+    { cursoId, origem: "troca" },
+    agora
+  ).catch((e: unknown) => {
+    throw violou(e, "liberacao_curso_ativa_unica")
+      ? erroDaRecusa({ tipo: "ja_tem" })
+      : e;
+  });
+  const [lancamento] = await aluno.tx
     .insert(pontoLancamento)
     .values({
       criadoEm: agora,
-      liberacaoId: lib.id,
+      liberacaoId,
       motivo: "troca",
       pontos: -preco,
-      userId,
+      userId: aluno.userId,
     })
     .returning({ id: pontoLancamento.id });
   if (!lancamento) {
@@ -176,8 +171,8 @@ export function trocar(
   precoVisto: number,
   agora: Date
 ): Promise<ResultadoDaTroca> {
-  return comSaldoTravado(db, userId, async (tx, saldo) => {
-    const [curso] = await linhasDosCursos(tx, userId, { cursoId });
+  return comSaldoTravado(db, userId, async (aluno, saldo) => {
+    const [curso] = await linhasDosCursos(aluno.tx, aluno.userId, { cursoId });
     const d = decidirTroca(curso ?? null, saldo, precoVisto);
     switch (d.tipo) {
       case "recusa":
@@ -185,7 +180,7 @@ export function trocar(
       case "ja_trocado":
         return { lancamentoId: d.lancamentoId };
       case "debitar":
-        return gravarTroca(tx, userId, cursoId, d.preco, agora);
+        return gravarTroca(aluno, cursoId, d.preco, agora);
       default:
         return d satisfies never;
     }

@@ -86,6 +86,8 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       .values(
         Array.from({ length: n }, (_, i) => ({
           capaAlt: "Capa de teste",
+          capaAltura: 720,
+          capaLargura: 1280,
           capaUrl: "/capas/teste.jpg",
           slug: `teste-${sufixo}-${i}`,
           status: "publicado" as const,
@@ -129,13 +131,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   const liberar = (userId: string, trilhaId: string) =>
     db
       .insert(liberacao)
-      .values({ liberadaPor: "user_admin", trilhaId, userId });
+      .values({ liberadaPor: "user_admin", origem: "admin", trilhaId, userId });
 
   /** Liberação de um curso só, ativa ou já revogada. */
   const liberarCurso = (userId: string, cursoId: string, revogada = false) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
+      origem: "admin",
       userId,
       ...(revogada ? revogacao() : {}),
     });
@@ -144,6 +147,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   const liberarERevogarTrilha = (userId: string, trilhaId: string) =>
     db.insert(liberacao).values({
       liberadaPor: "user_admin",
+      origem: "admin",
       trilhaId,
       userId,
       ...revogacao(),
@@ -301,7 +305,12 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       .values({ aulaId: aulaId ?? "", userId: ALUNO_TROCA });
     const [lib] = await db
       .insert(liberacao)
-      .values({ cursoId, liberadaPor: ALUNO_TROCA, userId: ALUNO_TROCA })
+      .values({
+        cursoId,
+        liberadaPor: ALUNO_TROCA,
+        origem: "troca",
+        userId: ALUNO_TROCA,
+      })
       .returning({ id: liberacao.id });
     await db.insert(pontoLancamento).values([
       {
@@ -404,12 +413,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       {
         id: maior,
         liberadaPor: "user_admin",
+        origem: "admin",
         trilhaId: dois.id,
         userId: ALUNO_MESMO_INSTANTE,
       },
       {
         id: menor,
         liberadaPor: "user_admin",
+        origem: "admin",
         trilhaId: um.id,
         userId: ALUNO_MESMO_INSTANTE,
       },

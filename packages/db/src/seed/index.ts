@@ -132,6 +132,8 @@ type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
 function linhasDeConteudo() {
   const cursos = CURSOS.map((c) => ({
     capaAlt: c.capaAlt,
+    capaAltura: c.capaAltura,
+    capaLargura: c.capaLargura,
     capaUrl: c.capaUrl,
     codigo: c.codigo,
     destaque: c.destaque,
@@ -198,6 +200,8 @@ async function upsertConteudo(tx: Transacao) {
     .onConflictDoUpdate({
       set: {
         capaAlt: novo("capa_alt"),
+        capaAltura: novo("capa_altura"),
+        capaLargura: novo("capa_largura"),
         capaUrl: novo("capa_url"),
         codigo: novo("codigo"),
         destaque: novo("destaque"),
@@ -298,6 +302,7 @@ async function semear(url: string, alunoA: string) {
       ...TRILHAS.map((t, i) => ({
         liberadaEm: diasAtras(hoje, 60 - i, 9),
         liberadaPor: LIBERADA_POR,
+        origem: "admin" as const,
         trilhaId: idTrilha(t.chave),
         userId: alunoA,
       })),
@@ -305,11 +310,13 @@ async function semear(url: string, alunoA: string) {
         cursoId: idCurso(chave),
         liberadaEm: diasAtras(hoje, 50 - i, 9),
         liberadaPor: LIBERADA_POR,
+        origem: "admin" as const,
         userId: alunoA,
       })),
       {
         liberadaEm: diasAtras(hoje, 30, 9),
         liberadaPor: LIBERADA_POR,
+        origem: "admin",
         trilhaId: idTrilha("fabrica-montagem"),
         userId: ALUNO_B,
       },
@@ -407,6 +414,7 @@ async function semear(url: string, alunoA: string) {
         cursoId: idCurso(trocado.chave),
         liberadaEm: trocadoEm,
         liberadaPor: alunoA,
+        origem: "troca",
         userId: alunoA,
       })
       .returning({ id: liberacao.id });
