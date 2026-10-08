@@ -37,8 +37,9 @@ export const liberacao = tabela(
       sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
           and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
     ),
-    // ::text como em ponto_lancamento_referencia: o migrador roda as migrações
-    // pendentes numa transação só, junto com o CREATE TYPE.
+    // ::text pelo mesmo padrão dos checks de ponto_lancamento. Lá ele é obrigatório: a
+    // migração troca faz ALTER TYPE ... ADD VALUE, e o Postgres recusa o valor novo na
+    // mesma transação. Aqui o enum nasce com CREATE TYPE, que não tem essa regra.
     check(
       "liberacao_troca_nao_revoga",
       sql`${t.revogadaEm} is null or ${t.origem}::text <> 'troca'`

@@ -63,7 +63,8 @@ export function linhasDoExtrato(
 
 /**
  * Trava o aluno e só então lê o saldo, num statement separado (ver comAlunoTravado).
- * Único jeito de debitar pontos: a troca só recebe o AlunoTravado daqui.
+ * Todo débito passa por aqui, por convenção: o tipo não garante, porque
+ * comAlunoTravado também entrega um AlunoTravado, sem saldo lido.
  */
 export function comSaldoTravado<T>(
   db: Database,

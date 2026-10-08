@@ -3,7 +3,10 @@ import { sql } from "drizzle-orm";
 
 import type { Transacao } from "./comum";
 
-/** `ponto:<userId>` trava o aluno: a troca e toda escrita de liberação. */
+/**
+ * `ponto:<userId>` trava o aluno: todo débito de pontos e toda escrita de liberação.
+ * O crédito de aula.registrar não trava: ele só soma e não deixa o saldo negativo.
+ */
 type ChaveDeTrava = `ponto:${string}`;
 
 /**
