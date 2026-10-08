@@ -58,6 +58,11 @@ export const carregarCatalogo = cache(async () =>
   (await exigirAdmin()).admin.catalogo.visao()
 );
 
+/** null: a trilha não existe. O id precisa ser uuid; a página confere antes. */
+export const carregarTrilha = cache(async (id: string) =>
+  (await exigirAdmin()).admin.catalogo.abrirTrilha({ id })
+);
+
 export const carregarPessoas = cache(async (termo: string) =>
   (await exigirAdmin()).admin.alunos.buscar({ termo })
 );

@@ -55,4 +55,25 @@ describe("visão do catálogo", () => {
     expect(t).toContain("Nenhuma trilha no catálogo.");
     expect(t).toContain("Nenhum curso no catálogo.");
   });
+
+  test("cada trilha leva ao editor dela, e Nova trilha aparece com ou sem trilhas", () => {
+    const html = (trilhas: number) =>
+      renderToStaticMarkup(
+        <VisaoDoCatalogo
+          visao={{
+            cursos: [],
+            trilhas: Array.from({ length: trilhas }, () => ({
+              alunos: 0,
+              cursos: 0,
+              id: TRILHA,
+              titulo: "Operador",
+            })),
+          }}
+        />
+      );
+    expect(html(1)).toContain('href="/admin/catalogo/trilhas/t1">Operador</a>');
+    for (const n of [0, 1]) {
+      expect(html(n)).toContain('href="/admin/catalogo/trilhas/novo"');
+    }
+  });
 });
