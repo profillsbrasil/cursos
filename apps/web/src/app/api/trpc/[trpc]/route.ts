@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 
 import { createContext } from "../../../../context";
 import { ENV } from "../../../../env.server";
+import { registrarErroInterno } from "../../../../lib/erro-interno";
 import { recusaDeOrigem } from "../../../../lib/origem";
 
 function handler(req: NextRequest) {
@@ -12,6 +13,7 @@ function handler(req: NextRequest) {
     fetchRequestHandler({
       createContext: () => createContext(req),
       endpoint: "/api/trpc",
+      onError: registrarErroInterno,
       req,
       router: appRouter,
     })
