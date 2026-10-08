@@ -31,8 +31,8 @@ export const pontoLancamento = tabela(
     userId: text().notNull(),
   },
   (t) => [
-    // ::text: o migrador roda tudo numa transação, e o literal 'troca' do enum recém-criado
-    // daria "unsafe use of new value".
+    // ::text: o migrador roda tudo numa transação, e o literal 'troca', que entrou no enum
+    // por ADD VALUE, daria "unsafe use of new value".
     check(
       "ponto_lancamento_referencia",
       sql`num_nonnulls(${t.aulaId}, ${t.cursoId}, ${t.trilhaId}, ${t.diaMarco}, ${t.liberacaoId}) = 1
