@@ -419,6 +419,33 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
   });
 
+  test("liberar curso ou trilha que não existe dá NOT_FOUND e não grava", async () => {
+    const userId = await aluno();
+    const doCurso = await liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      { id: crypto.randomUUID() as CursoId, tipo: "curso" },
+      AGORA
+    ).catch((e: unknown) => e);
+    const daTrilha = await liberar(
+      db,
+      ADMIN,
+      pessoa(userId),
+      {
+        id: crypto.randomUUID() as TrilhaId,
+        tipo: "trilha",
+        trocadosVistos: [],
+      },
+      AGORA
+    ).catch((e: unknown) => e);
+    expect([doCurso, daTrilha]).toMatchObject([
+      { code: "NOT_FOUND", message: "Este curso não existe mais." },
+      { code: "NOT_FOUND", message: "Esta trilha não existe mais." },
+    ]);
+    expect(await liberacoesDe(userId)).toEqual([]);
+  });
+
   test("o admin libera para si mesmo pela API e revoga", async () => {
     const dono = await aluno();
     const t = await trilhaCom();
