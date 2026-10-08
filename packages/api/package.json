@@ -5,6 +5,7 @@
     ".": "./src/index.ts",
     "./context": "./src/context.ts",
     "./dominio/*": "./src/dominio/*.ts",
+    "./externos/capas": "./src/externos/capas.ts",
     "./routers/index": "./src/routers/index.ts"
   },
   "scripts": {
@@ -17,6 +18,7 @@
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "drizzle-orm": "1.0.0-rc.4",
+    "image-size": "^2.0.4",
     "zod": "catalog:"
   },
   "devDependencies": {
