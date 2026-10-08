@@ -6,15 +6,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@cursos/ui/components/sidebar";
-import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { type ReactNode, useCallback } from "react";
 
 const ITEM = "h-10 gap-3 rounded-lg px-3 font-medium text-sm";
 
-export type ItemDoMenu = { icone: LucideIcon; nome: string } & (
+/** `icone` é o elemento pronto, como `<House />`: atravessa a fronteira do Server Component, e o lucide já põe aria-hidden. */
+export type ItemDoMenu = { icone: ReactNode; nome: string } & (
   | {
       tipo: "link";
       href: Route;
@@ -37,7 +37,7 @@ function atual(
   return filha ? "true" : undefined;
 }
 
-/** Menu da sidebar do aluno e do admin. Cada lista mora num arquivo "use client", porque o ícone não atravessa a fronteira do Server Component. */
+/** Menu da sidebar do aluno e do admin. Cada sidebar declara a própria lista. */
 export function NavPrincipal({
   itens,
   rotulo,
@@ -55,7 +55,7 @@ export function NavPrincipal({
   return (
     <nav aria-label={rotulo}>
       <SidebarMenu className="gap-1">
-        {itens.map(({ icone: Icone, ...item }) => {
+        {itens.map(({ icone, ...item }) => {
           if (item.tipo === "em_breve") {
             return (
               <SidebarMenuItem key={item.nome}>
@@ -63,7 +63,7 @@ export function NavPrincipal({
                   aria-disabled="true"
                   className={`${ITEM} text-muted-foreground aria-disabled:opacity-100`}
                 >
-                  <Icone aria-hidden="true" />
+                  {icone}
                   <span>{item.nome}</span>
                   <span className="ml-auto font-normal text-muted-foreground text-xs">
                     Em breve
@@ -82,7 +82,7 @@ export function NavPrincipal({
                 onClick={fecharNoCelular}
                 render={<Link href={item.href} />}
               >
-                <Icone aria-hidden="true" />
+                {icone}
                 <span>{item.nome}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>

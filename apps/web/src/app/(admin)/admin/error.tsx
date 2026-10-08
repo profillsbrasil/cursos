@@ -1,6 +1,6 @@
 "use client";
 
-import { TelaDeErro } from "@/components/aluno/tela-de-erro";
+import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
 // Erro das páginas do admin, dentro da sidebar. Erro do próprio layout cai no app/error.tsx.
 export default function ErroDoAdmin(props: {

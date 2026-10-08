@@ -5,14 +5,28 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@cursos/ui/components/sidebar";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Library, Megaphone, Users } from "lucide-react";
 
+import {
+  type ItemDoMenu,
+  NavPrincipal,
+} from "@/components/casca/nav-principal";
 import {
   LinkDoRodape,
   MarcaDaSidebar,
-} from "@/components/aluno/partes-da-sidebar";
+} from "@/components/casca/partes-da-sidebar";
 
-import { NavDoAdmin } from "./nav-do-admin";
+const ITENS_DO_ADMIN: readonly ItemDoMenu[] = [
+  { icone: <Users />, nome: "Alunos", tipo: "em_breve" },
+  {
+    href: "/admin/catalogo",
+    icone: <Library />,
+    nome: "Catálogo",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
+  { icone: <Megaphone />, nome: "Comunicados", tipo: "em_breve" },
+];
 
 export function SidebarDoAdmin() {
   return (
@@ -27,7 +41,7 @@ export function SidebarDoAdmin() {
         />
       </SidebarHeader>
       <SidebarContent className="px-3.5">
-        <NavDoAdmin />
+        <NavPrincipal itens={ITENS_DO_ADMIN} rotulo="Navegação do admin" />
       </SidebarContent>
       <SidebarFooter className="gap-3 border-sidebar-border border-t px-5 pt-3.5 pb-5">
         <LinkDoRodape href="/meus-cursos" icone={<ArrowLeftRight />}>
