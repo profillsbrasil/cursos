@@ -2,7 +2,6 @@ import type { CursoCatalogo, CursoId, TrilhaId } from "./tipos";
 
 export type StatusDoCurso = CursoCatalogo["status"];
 
-/** Linha de curso da tela /admin/catalogo. */
 export interface CursoNaVisao {
   aulas: number;
   id: CursoId;

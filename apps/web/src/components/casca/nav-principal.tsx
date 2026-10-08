@@ -37,7 +37,6 @@ function atual(
   return filha ? "true" : undefined;
 }
 
-/** Menu da sidebar do aluno e do admin. Cada sidebar declara a própria lista. */
 export function NavPrincipal({
   itens,
   rotulo,
