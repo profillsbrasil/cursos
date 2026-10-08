@@ -19,6 +19,7 @@ import {
   type CursoId,
   capaDe,
   type Historico,
+  type StatusDoCurso,
   type TrilhaCatalogo,
   type TrilhaId,
 } from "./tipos";
@@ -35,7 +36,7 @@ interface OpcoesCurso {
   /** Nível de cada módulo, na mesma ordem de `aulas`. */
   nivelPorModulo?: (number | null)[];
   primeiroNumero?: number;
-  status?: "em_producao" | "publicado";
+  status?: StatusDoCurso;
 }
 
 export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {

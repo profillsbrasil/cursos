@@ -1,7 +1,5 @@
-import type {
-  StatusDoCurso,
-  VisaoDoCatalogo as Visao,
-} from "@cursos/api/dominio/catalogo";
+import type { VisaoDoCatalogo as Visao } from "@cursos/api/dominio/catalogo";
+import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { badgeVariants } from "@cursos/ui/components/badge";
 import {
   Table,

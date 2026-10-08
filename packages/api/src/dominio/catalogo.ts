@@ -1,6 +1,4 @@
-import type { CursoCatalogo, CursoId, TrilhaId } from "./tipos";
-
-export type StatusDoCurso = CursoCatalogo["status"];
+import type { CursoId, StatusDoCurso, TrilhaId } from "./tipos";
 
 export interface CursoNaVisao {
   aulas: number;

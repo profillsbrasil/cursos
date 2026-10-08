@@ -1,5 +1,8 @@
 import type { videoProvedor } from "@cursos/db/schema/comum";
-import type { ORIGEM_DA_LIBERACAO } from "@cursos/db/schema/formatos";
+import type {
+  ORIGEM_DA_LIBERACAO,
+  STATUS_DO_CURSO,
+} from "@cursos/db/schema/formatos";
 
 declare const marca: unique symbol;
 type Marca<T, M extends string> = T & { readonly [marca]: M };
@@ -14,6 +17,7 @@ export type AdminId = Marca<string, "AdminId">;
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
+export type StatusDoCurso = (typeof STATUS_DO_CURSO)[number];
 export type VideoId = Marca<string, "VideoId">;
 
 export type VideoDaAula = {
@@ -74,7 +78,7 @@ export interface CursoCatalogo {
   /** Em ordem. */
   niveis: readonly NivelCatalogo[];
   slug: string;
-  status: "em_producao" | "publicado";
+  status: StatusDoCurso;
   tema: string;
   titulo: string;
 }

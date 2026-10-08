@@ -23,6 +23,7 @@ import {
   type EstadoCurso,
   type Historico,
   type LinhaDaCapa,
+  type StatusDoCurso,
   type TipoEstado,
   type TrilhaCatalogo,
   type TrilhaId,
@@ -51,7 +52,7 @@ export interface CursoLinha extends LinhaDaCapa {
   }[];
   niveis: { nome: string; ordem: number }[];
   slug: string;
-  status: "em_producao" | "publicado";
+  status: StatusDoCurso;
   tema: string;
   titulo: string;
 }
