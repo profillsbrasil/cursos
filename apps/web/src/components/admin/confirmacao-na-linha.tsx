@@ -27,6 +27,8 @@ export function Carregando({ ativo }: { ativo: boolean }) {
 /** A linha da tela com a confirmação aberta; uma por vez. */
 export interface LinhaAberta {
   chave: string | null;
+  /** Fecha só se a confirmação aberta ainda for esta: outra linha pode ter aberto a dela no meio do envio. */
+  fechar: (chave: string) => void;
   pedir: (chave: string | null) => void;
 }
 

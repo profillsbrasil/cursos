@@ -57,7 +57,12 @@ type Pedido = Parameters<
 const lista = (itens: readonly string[]) =>
   new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(itens);
 
-const focarLiberacoes = () => document.getElementById("liberacoes")?.focus();
+// Só quando o foco caiu no body: se o admin já está em outra linha, não o tira de lá.
+const focarLiberacoes = () => {
+  if (document.activeElement === document.body) {
+    document.getElementById("liberacoes")?.focus();
+  }
+};
 
 function AcaoDaLiberacao({
   l,
@@ -68,7 +73,7 @@ function AcaoDaLiberacao({
 }) {
   const { executar, pendente } = useAcao();
   const { titulo } = l.alvo;
-  const { pedir } = linhaAberta;
+  const { fechar } = linhaAberta;
   const revogar = useCallback(
     () =>
       executar(
@@ -76,7 +81,7 @@ function AcaoDaLiberacao({
         {
           // O botão some e a linha desce para as revogadas: o foco vai para o título da tabela.
           depois: () => {
-            pedir(null);
+            fechar(`revogar:${l.id}`);
             focarLiberacoes();
           },
           sucesso: (r) =>
@@ -85,7 +90,7 @@ function AcaoDaLiberacao({
               : `O acesso a ${titulo} já estava revogado.`,
         }
       ),
-    [executar, pedir, l.id, titulo]
+    [executar, fechar, l.id, titulo]
   );
   const { acao } = l;
   switch (acao.tipo) {
@@ -286,8 +291,11 @@ function LinhaDaTrilha({
 }) {
   const { id, titulo } = t.alvo;
   const trocados = t.trocadosNaTrilha;
-  const { pedir } = linhaAberta;
-  const fechar = useCallback(() => pedir(null), [pedir]);
+  const fecharAMinha = linhaAberta.fechar;
+  const fechar = useCallback(
+    () => fecharAMinha(`liberar:${id}`),
+    [fecharAMinha, id]
+  );
   const { enviando, liberar, selo } = useLiberar(
     para,
     { id, tipo: "trilha", trocadosVistos: trocados.map((c) => c.id) },
@@ -371,7 +379,11 @@ function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
 
 export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
   const [chave, pedir] = useState<string | null>(null);
-  const linhaAberta: LinhaAberta = { chave, pedir };
+  const fechar = useCallback(
+    (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
+    []
+  );
+  const linhaAberta: LinhaAberta = { chave, fechar, pedir };
   const { pessoa, userId } = acesso;
   const nome = pessoa?.nome ?? userId;
   const para: Para = { nome, userId };
