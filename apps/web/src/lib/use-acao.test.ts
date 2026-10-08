@@ -61,6 +61,28 @@ describe("rodarAcao", () => {
     ).toEqual(["erro:O preço mudou.", "atualizar"]);
   });
 
+  test("com aoRecusar, a recusa entrega o motivo e não recarrega a página", async () => {
+    const recusa = new TRPCClientError("Outra pessoa salvou.", {
+      result: {
+        error: {
+          code: -32_000,
+          data: { code: "CONFLICT", motivo: "versao_mudou", paraAPessoa: true },
+          message: "Outra pessoa salvou.",
+        },
+      },
+    });
+    const motivos: unknown[] = [];
+    expect(
+      await rodar(() => Promise.reject(recusa), {
+        aoRecusar: (motivo) => motivos.push(motivo),
+      })
+    ).toEqual(["erro:Outra pessoa salvou."]);
+    expect(motivos).toEqual(["versao_mudou"]);
+    expect(
+      await rodar(() => Promise.resolve("ok"), { aoRecusar: () => undefined })
+    ).toEqual(["depois:ok", "atualizar"]);
+  });
+
   test("erro sem a marca mostra o texto genérico, mesmo com código de recusa", async () => {
     const semMarca = [
       erroDoServidor("NOT_FOUND", 'No procedure found on path "x"', false),
