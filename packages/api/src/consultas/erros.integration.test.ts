@@ -75,6 +75,19 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
     expect(sem).toEqual([]);
   });
 
+  test("FK e pkey de linha do editor não têm frase: a FK dispara nos dois sentidos, e a pkey é defeito", async () => {
+    const { rows } = await db.execute<{ nome: string }>(sql`
+      select conname as nome from pg_constraint
+       where contype in ('f', 'p')
+         and conname in (${sql.join(
+           Object.keys(MENSAGEM_DA_RESTRICAO).map((n) => sql`${n}`),
+           sql`, `
+         )})`);
+    // Curso que já está numa trilha: a chave é o próprio curso, um sentido só.
+    const comFrase = new Set(["trilha_curso_pkey"]);
+    expect(rows.map((r) => r.nome).filter((n) => !comFrase.has(n))).toEqual([]);
+  });
+
   test("nenhuma restrição está nas duas listas", () => {
     expect(
       Object.keys(MENSAGEM_DA_RESTRICAO).filter((n) =>

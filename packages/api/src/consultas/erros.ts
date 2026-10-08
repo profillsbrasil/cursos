@@ -41,22 +41,11 @@ export function violacaoDe(erro: unknown): Violacao | null {
 export const CURSO_EM_USO =
   "Este curso já tem aluno (aula assistida, certificado ou liberação) ou está numa trilha. Para tirá-lo do ar, mude o status para Em produção.";
 
-/** Só restrições que uma escrita do admin dispara com o app funcionando. */
+/**
+ * Só unique e check que uma escrita do admin dispara com o app funcionando: cada
+ * um tem um sentido só, então a frase vale para qualquer procedimento.
+ */
 export const MENSAGEM_DA_RESTRICAO = {
-  aula_assistida_aula_id_aula_id_fkey: {
-    code: "PRECONDITION_FAILED",
-    message:
-      "Uma aula já assistida não se apaga. Troque o vídeo ou o título dela.",
-  },
-  // Id de outro curso no documento: envio forjado ou defeito do editor.
-  aula_pkey: {
-    code: "CONFLICT",
-    message: "Id de aula repetido. Recarregue o editor.",
-  },
-  certificado_curso_id_curso_id_fkey: {
-    code: "PRECONDITION_FAILED",
-    message: CURSO_EM_USO,
-  },
   curso_codigo_key: {
     code: "CONFLICT",
     message: "Já existe um curso com este código.",
@@ -69,35 +58,13 @@ export const MENSAGEM_DA_RESTRICAO = {
     code: "CONFLICT",
     message: "A pessoa já tem este curso liberado.",
   },
-  liberacao_curso_id_curso_id_fkey: {
-    code: "PRECONDITION_FAILED",
-    message: CURSO_EM_USO,
-  },
   liberacao_trilha_ativa_unica: {
     code: "CONFLICT",
     message: "A pessoa já tem esta trilha liberada.",
   },
-  liberacao_trilha_id_trilha_id_fkey: {
-    code: "PRECONDITION_FAILED",
-    message:
-      "Esta trilha já foi liberada para alguém, mesmo que depois revogada, e não se apaga. Tire os cursos dela, se quiser esvaziá-la.",
-  },
   liberacao_troca_nao_revoga: {
     code: "PRECONDITION_FAILED",
     message: "Liberação de troca não se revoga.",
-  },
-  modulo_pkey: {
-    code: "CONFLICT",
-    message: "Id de módulo repetido. Recarregue o editor.",
-  },
-  ponto_lancamento_trilha_id_trilha_id_fkey: {
-    code: "PRECONDITION_FAILED",
-    message:
-      "Alguém já concluiu esta trilha, e ela não se apaga. Tire os cursos dela, se quiser esvaziá-la.",
-  },
-  trilha_curso_curso_id_curso_id_fkey: {
-    code: "PRECONDITION_FAILED",
-    message: CURSO_EM_USO,
   },
   trilha_curso_pkey: {
     code: "CONFLICT",
@@ -117,14 +84,21 @@ export const MENSAGEM_DA_RESTRICAO = {
  * documento e a regra pura recusam antes (formato, positivo, número único), ou a
  * ordem de gravarCurso as respeita, ou a escrita nunca as viola (cascade, chave
  * gerada). Se uma disparar, é defeito, e o admin vê a mensagem genérica.
+ *
+ * Uma FK tem um nome só para os dois sentidos: apagar o pai que tem filho e
+ * inserir o filho de um pai que sumiu. Por isso nenhuma FK tem frase aqui: quem
+ * apaga traduz a própria corrida (apagarCurso devolve CURSO_EM_USO).
  */
 export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
+  "aula_assistida_aula_id_aula_id_fkey",
   "aula_duracao_positiva",
   "aula_modulo_id_modulo_id_fkey",
+  "aula_pkey",
   "aula_posicao_positiva",
   "aula_posicao_unica",
   "aula_video_completo",
   "aula_video_formato",
+  "certificado_curso_id_curso_id_fkey",
   "comunicado_curso_id_curso_id_fkey",
   "comunicado_pkey",
   "curso_capa_alt_preenchido",
@@ -133,20 +107,25 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "curso_preco_troca_positivo",
   "curso_slug_formato",
   "liberacao_alvo_unico",
+  "liberacao_curso_id_curso_id_fkey",
   "liberacao_do_aluno",
   "liberacao_pkey",
   "liberacao_revogacao_coerente",
+  "liberacao_trilha_id_trilha_id_fkey",
   "liberacao_troca_pelo_aluno",
   "liberacao_user_id_clerk",
   "modulo_curso_id_curso_id_fkey",
   "modulo_nivel_do_mesmo_curso",
   "modulo_numero_nao_negativo",
   "modulo_numero_unico",
+  "modulo_pkey",
   "nivel_curso_id_curso_id_fkey",
   "nivel_ordem_positiva",
   "nivel_pkey",
+  "ponto_lancamento_trilha_id_trilha_id_fkey",
   "ponto_liberacao_fk",
   "posicao_aula_aula_id_aula_id_fkey",
+  "trilha_curso_curso_id_curso_id_fkey",
   "trilha_curso_posicao_positiva",
   "trilha_curso_posicao_unica",
   "trilha_curso_trilha_id_trilha_id_fkey",
