@@ -10,7 +10,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { cursoStatus, momento, SLUG, tabela, videoProvedor } from "./comum";
+import { cursoStatus, momento, tabela, videoProvedor } from "./comum";
+import { SLUG } from "./formatos";
 
 export const trilha = tabela(
   "trilha",
