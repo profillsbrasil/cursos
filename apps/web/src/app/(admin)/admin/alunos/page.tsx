@@ -2,6 +2,7 @@ import { Button } from "@cursos/ui/components/button";
 import { Input } from "@cursos/ui/components/input";
 import { Search } from "lucide-react";
 import type { Metadata } from "next";
+import Form from "next/form";
 
 import { ListaDePessoas } from "@/components/admin/lista-de-pessoas";
 import { BOTAO } from "@/components/casca/botoes";
@@ -9,7 +10,8 @@ import { carregarPessoas } from "@/server/api";
 
 export const metadata: Metadata = { title: "Alunos · Admin" };
 
-// A busca é um form GET: a página relê ?q= e chama o Clerk, e o endereço guarda a busca.
+// A busca é um form GET pelo next/form: navega no cliente, a página relê ?q= e
+// chama o Clerk, e o endereço guarda a busca.
 export default async function Alunos({
   searchParams,
 }: {
@@ -29,11 +31,7 @@ export default async function Alunos({
         </p>
       </header>
       <search className="mb-10 block">
-        <form
-          action="/admin/alunos"
-          className="flex flex-wrap gap-2.5"
-          method="get"
-        >
+        <Form action="/admin/alunos" className="flex flex-wrap gap-2.5">
           <label className="sr-only" htmlFor="busca-de-alunos">
             Nome ou e-mail
           </label>
@@ -47,6 +45,7 @@ export default async function Alunos({
               className="h-11 rounded-full border-muted-foreground bg-card pr-4 pl-10 text-sm md:text-sm dark:border-muted-foreground dark:bg-card"
               defaultValue={termo}
               id="busca-de-alunos"
+              key={termo}
               maxLength={100}
               name="q"
               placeholder="Nome ou e-mail"
@@ -56,7 +55,7 @@ export default async function Alunos({
           <Button className={BOTAO} type="submit">
             Buscar
           </Button>
-        </form>
+        </Form>
       </search>
       <ListaDePessoas resultado={resultado} termo={termo} />
     </>
