@@ -1,7 +1,8 @@
+import { COLUNAS_DA_CAPA } from "./comum";
+
 export const COM_CONTEUDO = {
   columns: {
-    capaAlt: true,
-    capaUrl: true,
+    ...COLUNAS_DA_CAPA,
     codigo: true,
     destaque: true,
     id: true,

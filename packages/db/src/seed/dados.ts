@@ -17,6 +17,9 @@ export interface ModuloSeed {
 
 export interface CursoSeed {
   capaAlt: string;
+  /** Medida real da imagem em public/capas. */
+  capaAltura: number;
+  capaLargura: number;
   capaUrl: string;
   chave: string;
   codigo: string | null;
@@ -108,6 +111,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Peça do treinamento Profills School: Vender com técnica, convencer com valor, fechar com método, com vendedores apertando a mão de um cliente",
+    capaAltura: 604,
+    capaLargura: 900,
     capaUrl: "/capas/comercial.jpg",
     chave: "comercial",
     codigo: null,
@@ -129,6 +134,8 @@ export const CURSOS: CursoSeed[] = [
   },
   {
     capaAlt: "Ilustração de um posto de montagem com equipamento de proteção",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/seguranca.jpg",
     chave: "seguranca-posto",
     codigo: null,
@@ -145,6 +152,8 @@ export const CURSOS: CursoSeed[] = [
   },
   {
     capaAlt: "Ilustração de uma envasadora e seus conjuntos",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/operacao.jpg",
     chave: "envasadora",
     codigo: null,
@@ -160,6 +169,8 @@ export const CURSOS: CursoSeed[] = [
   },
   {
     capaAlt: "Ilustração de montagem de componentes pneumáticos",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/calibracao.jpg",
     chave: "montagem",
     codigo: null,
@@ -176,6 +187,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Equipe comercial da Profills reunida em volta de uma mesa com notebooks, diante de um painel de fechamento de vendas",
+    capaAltura: 604,
+    capaLargura: 900,
     capaUrl: "/capas/nova-rotina.jpg",
     chave: "nova-rotina",
     codigo: "POP-COM-001",
@@ -199,6 +212,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Peça Como filmar as máquinas Profills: uma pessoa grava com o celular uma envasadora na fábrica",
+    capaAltura: 507,
+    capaLargura: 900,
     capaUrl: "/capas/gravacao.jpg",
     chave: "gravacao",
     codigo: null,
@@ -216,6 +231,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Peça azul da Profills School com o lema Vender com técnica, convencer com valor, fechar com método",
+    capaAltura: 437,
+    capaLargura: 900,
     capaUrl: "/capas/autoavaliacao.jpg",
     chave: "autoavaliacao",
     codigo: null,
@@ -232,6 +249,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Ilustração de um celular com balões de conversa, um fone de atendimento e uma caixa de ferramentas",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/pos-venda.jpg",
     chave: "pos-venda",
     codigo: null,
@@ -253,6 +272,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Ilustração de uma operadora de touca e jaleco conferindo garrafas numa esteira de envase",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/bpf.jpg",
     chave: "bpf",
     codigo: null,
@@ -274,6 +295,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Ilustração de uma linha com envasadora, embaladora e enfardadeira lado a lado",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/portfolio.jpg",
     chave: "portfolio",
     codigo: null,
@@ -298,6 +321,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Ilustração de dois frascos despejando líquido num funil sobre um béquer",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/fundamentos.jpg",
     chave: "fundamentos",
     codigo: null,
@@ -319,6 +344,8 @@ export const CURSOS: CursoSeed[] = [
   {
     capaAlt:
       "Ilustração de tubulações de aço com bolhas e uma mangueira lançando jato de água",
+    capaAltura: 720,
+    capaLargura: 1280,
     capaUrl: "/capas/limpeza.jpg",
     chave: "limpeza",
     codigo: null,

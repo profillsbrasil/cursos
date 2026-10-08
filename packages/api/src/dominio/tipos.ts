@@ -1,4 +1,5 @@
 import type { videoProvedor } from "@cursos/db/schema/comum";
+import type { ORIGEM_DA_LIBERACAO } from "@cursos/db/schema/formatos";
 
 declare const marca: unique symbol;
 type Marca<T, M extends string> = T & { readonly [marca]: M };
@@ -10,6 +11,7 @@ export type TrilhaId = Marca<string, "TrilhaId">;
 export type DiaISO = Marca<string, "DiaISO">;
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
+export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
 export type VideoId = Marca<string, "VideoId">;
 
 export type VideoDaAula = {
@@ -37,8 +39,31 @@ export interface NivelCatalogo {
   ordem: number;
 }
 
+/** Largura e altura são a medida real da imagem, para o next/image reservar o espaço. */
+export interface Capa {
+  alt: string;
+  altura: number;
+  largura: number;
+  url: string;
+}
+
+/** As colunas da capa como saem do banco (COLUNAS_DA_CAPA). */
+export interface LinhaDaCapa {
+  capaAlt: string;
+  capaAltura: number;
+  capaLargura: number;
+  capaUrl: string;
+}
+
+export const capaDe = (linha: LinhaDaCapa): Capa => ({
+  alt: linha.capaAlt,
+  altura: linha.capaAltura,
+  largura: linha.capaLargura,
+  url: linha.capaUrl,
+});
+
 export interface CursoCatalogo {
-  capa: { url: string; alt: string };
+  capa: Capa;
   /** codigo ?? destaque */
   extra: string | null;
   id: CursoId;

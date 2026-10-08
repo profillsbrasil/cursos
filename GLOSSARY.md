@@ -13,6 +13,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Aluno | Pessoa logada que estuda. É identificada pelo `userId` do Clerk e não tem tabela própria. |
 | Admin | Pessoa que cria trilhas, libera, revoga e publica comunicados. |
 | Liberação | Registro de que um aluno pode ver uma trilha ou um curso. É permanente até o admin revogar. A liberação de uma troca não se revoga. |
+| Origem da liberação | De onde veio a liberação: `admin` ou `troca`. Fica gravada na liberação e não se deduz de quem liberou. Só a de `troca` não se revoga, e ela é sempre de um curso, liberado pelo próprio aluno. |
 | Aula assistida | Fato imutável: a cobertura do aluno numa aula chegou a 90% da duração. Acontece uma vez por aluno e aula. |
 | Posição | Último segundo em que o aluno parou numa aula. É estado mutável, usado pelo "Continuar". |
 | Trecho visto | Intervalo de segundos inteiros de uma aula que o vídeo tocou sem salto, `[início, fim)`. Buscar para a frente não cria trecho. Os trechos de um aluno numa aula só crescem. |

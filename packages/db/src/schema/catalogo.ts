@@ -28,6 +28,9 @@ export const curso = tabela(
   "curso",
   {
     capaAlt: text().notNull(),
+    // Medida real da imagem em capa_url, para o next/image reservar o espaço.
+    capaAltura: smallint().notNull(),
+    capaLargura: smallint().notNull(),
     capaUrl: text().notNull(),
     codigo: text().unique(), // ex.: POP-COM-001
     criadoEm: momento(),
@@ -42,6 +45,10 @@ export const curso = tabela(
   (t) => [
     check("curso_slug_formato", sql`${t.slug} ~ ${SLUG}`),
     check("curso_capa_alt_preenchido", sql`length(trim(${t.capaAlt})) > 0`),
+    check(
+      "curso_capa_dimensoes_positivas",
+      sql`${t.capaLargura} > 0 and ${t.capaAltura} > 0`
+    ),
     check(
       "curso_preco_troca_positivo",
       sql`${t.precoTroca} is null or ${t.precoTroca} > 0`
