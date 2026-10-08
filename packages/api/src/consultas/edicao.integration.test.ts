@@ -28,6 +28,7 @@ import {
 } from "../dominio/edicao-do-curso";
 import type { AulaId, CursoId, ModuloId } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
+import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
 import { CURSO_EM_USO, violacaoDe } from "./erros";
 
@@ -63,6 +64,14 @@ const resultado = (p: Promise<unknown>) =>
   );
 
 const OK = { code: "ok", message: "" };
+
+/** O motivo que o errorFormatter manda ao editor. */
+const motivoDe = (p: Promise<unknown>) =>
+  p.then(
+    () => "ok",
+    (e: unknown) =>
+      e instanceof ErroParaAPessoa ? e.motivo : "não é ErroParaAPessoa"
+  );
 
 describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
@@ -518,6 +527,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
     const velho = { ...documento, tema: "outro tema" };
     expect((await resultado(salvar(velho))).code).toBe("CONFLICT");
+    expect(await motivoDe(salvar(velho))).toBe("versao_mudou");
     expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);
   });
 
@@ -530,6 +540,9 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       code: "CONFLICT",
       message: "Já existe um curso com este endereço.",
     });
+    expect(
+      await motivoDe(salvar({ ...documento, slug: um.documento.slug }))
+    ).toBe("slug_repetido");
   });
 
   test("curso com liberação não se apaga; curso sem uso se apaga", async () => {

@@ -12,7 +12,6 @@ import {
   modulo,
   nivel,
 } from "@cursos/db/schema/index";
-import { TRPCError } from "@trpc/server";
 import { and, count, eq, inArray, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 
@@ -40,6 +39,7 @@ import {
   type Versao,
 } from "../dominio/tipos";
 import { videoDaAula } from "../dominio/video";
+import { ErroParaAPessoa } from "../index";
 import { COLUNAS_DA_CAPA, type Executor, type Transacao } from "./comum";
 import { CURSO_EM_USO, violacaoDe } from "./erros";
 import { comTrava } from "./trava";
@@ -174,26 +174,27 @@ export interface CursoSalvo {
   versao: Versao;
 }
 
-function erroDaEdicao(r: RecusaDaEdicao): TRPCError {
+function erroDaEdicao(r: RecusaDaEdicao): ErroParaAPessoa {
   switch (r.tipo) {
     case "versao_mudou":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: "CONFLICT",
         message:
           "Outra pessoa salvou este curso depois que você abriu. Recarregue para ver a versão nova.",
+        motivo: "versao_mudou",
       });
     case "sumiu":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: "NOT_FOUND",
         message: "Este curso foi apagado enquanto você editava.",
       });
     case "sem_capa":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: "PRECONDITION_FAILED",
         message: "Curso novo precisa de capa.",
       });
     case "aula_assistida":
-      return new TRPCError({
+      return new ErroParaAPessoa({
         code: "PRECONDITION_FAILED",
         message: `A aula "${r.titulo}" já foi assistida por ${r.alunos} ${r.alunos === 1 ? "aluno" : "alunos"} e não se apaga. Troque o vídeo ou o título dela.`,
       });
@@ -205,8 +206,8 @@ function erroDaEdicao(r: RecusaDaEdicao): TRPCError {
 }
 
 /** Todas saem como PRECONDITION_FAILED, um dos códigos cuja mensagem a tela mostra. */
-function erroDaCapa(r: RecusaDaCapa): TRPCError {
-  return new TRPCError({
+function erroDaCapa(r: RecusaDaCapa): ErroParaAPessoa {
+  return new ErroParaAPessoa({
     code: "PRECONDITION_FAILED",
     message: mensagemDaCapa(r),
   });
@@ -245,7 +246,7 @@ export async function salvarCurso(
 ): Promise<CursoSalvo> {
   const lido = lerFormularioDoCurso(formulario);
   if (lido.tipo === "invalido") {
-    throw new TRPCError({ code: "BAD_REQUEST", message: lido.mensagem });
+    throw new ErroParaAPessoa({ code: "BAD_REQUEST", message: lido.mensagem });
   }
   const recebida = lido.capa ? await s.capas.receber(lido.capa) : null;
   if (recebida?.tipo === "recusa") {
@@ -465,7 +466,7 @@ export async function apagarCurso(
         return { apagado: false };
       }
       if (!atual.podeApagar) {
-        throw new TRPCError({
+        throw new ErroParaAPessoa({
           code: "PRECONDITION_FAILED",
           message: CURSO_EM_USO,
         });
@@ -477,8 +478,8 @@ export async function apagarCurso(
     // O aluno não pega a trava do curso: uma aula assistida, liberação ou
     // certificado que entra depois da conta de uso para no FK restrict.
     if (violacaoDe(erro)?.codigo === "23503") {
-      // biome-ignore lint/style/useErrorCause: o TRPCError leva a causa nas opções, como abaixo.
-      throw new TRPCError({
+      // biome-ignore lint/style/useErrorCause: o ErroParaAPessoa leva a causa nas opções, como abaixo.
+      throw new ErroParaAPessoa({
         cause: erro,
         code: "PRECONDITION_FAILED",
         message: CURSO_EM_USO,

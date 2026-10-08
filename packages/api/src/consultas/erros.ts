@@ -1,10 +1,11 @@
-// Violação de restrição do Postgres vira TRPCError com mensagem para o admin.
+// Violação de restrição do Postgres vira ErroParaAPessoa com mensagem para o admin.
 // erros.integration.test.ts amarra a tabela ao banco nos dois sentidos: toda chave
 // daqui existe lá, e toda restrição que uma escrita do admin pode violar está aqui
 // ou em SEM_MENSAGEM_PROPRIA.
 
 import type { TRPC_ERROR_CODE_KEY } from "@trpc/server";
-import { TRPCError } from "@trpc/server";
+
+import type { Motivo } from "../index";
 
 const CODIGOS = new Set(["23503", "23505", "23514"]);
 
@@ -49,10 +50,12 @@ export const MENSAGEM_DA_RESTRICAO = {
   curso_codigo_key: {
     code: "CONFLICT",
     message: "Já existe um curso com este código.",
+    motivo: "codigo_repetido",
   },
   curso_slug_key: {
     code: "CONFLICT",
     message: "Já existe um curso com este endereço.",
+    motivo: "slug_repetido",
   },
   liberacao_curso_ativa_unica: {
     code: "CONFLICT",
@@ -74,10 +77,13 @@ export const MENSAGEM_DA_RESTRICAO = {
     code: "CONFLICT",
     message: "Já existe uma trilha com este endereço.",
   },
-} as const satisfies Record<
-  string,
-  { code: TRPC_ERROR_CODE_KEY; message: string }
->;
+} as const satisfies Record<string, MensagemDaRestricao>;
+
+interface MensagemDaRestricao {
+  code: TRPC_ERROR_CODE_KEY;
+  message: string;
+  motivo?: Motivo;
+}
 
 /**
  * Restrições das tabelas que o admin escreve que não ganham frase. Ou o schema do
@@ -134,15 +140,16 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * A violação conhecida vira TRPCError com a frase da tabela. Qualquer outro erro
- * devolve null e sobe como está (INTERNAL_SERVER_ERROR, texto genérico na tela).
+ * A frase da violação conhecida, que index.ts lança como ErroParaAPessoa. Qualquer
+ * outro erro devolve null e sobe como está (INTERNAL_SERVER_ERROR, texto genérico
+ * na tela).
  */
-export function erroDoBanco(erro: unknown): TRPCError | null {
+export function mensagemDoBanco(erro: unknown): MensagemDaRestricao | null {
   const v = violacaoDe(erro);
   if (!(v && Object.hasOwn(MENSAGEM_DA_RESTRICAO, v.restricao))) {
     return null;
   }
-  const m =
-    MENSAGEM_DA_RESTRICAO[v.restricao as keyof typeof MENSAGEM_DA_RESTRICAO];
-  return new TRPCError({ cause: erro, code: m.code, message: m.message });
+  return MENSAGEM_DA_RESTRICAO[
+    v.restricao as keyof typeof MENSAGEM_DA_RESTRICAO
+  ];
 }
