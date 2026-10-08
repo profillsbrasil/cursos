@@ -11,6 +11,7 @@ export type CursoId = Marca<string, "CursoId">;
 export type AulaId = Marca<string, "AulaId">;
 export type TrilhaId = Marca<string, "TrilhaId">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;
+export type ComunicadoId = Marca<string, "ComunicadoId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
 /** userId de quem passou pelo adminProcedure. Só o middleware cria um. */

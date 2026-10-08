@@ -1,9 +1,19 @@
 import { z } from "zod";
 
 import { visaoDoCatalogo } from "../consultas/catalogo";
+import {
+  apagarComunicado,
+  linhasDosComunicados,
+  salvarComunicado,
+} from "../consultas/comunicado";
 import { liberar, linhasDoAcesso, revogar } from "../consultas/liberacao";
+import {
+  montarComunicados,
+  TEXTO_MAX,
+  TITULO_MAX,
+} from "../dominio/comunicado";
 import { montarAcesso, type PedidoDeLiberar } from "../dominio/liberacao";
-import type { LiberacaoId } from "../dominio/tipos";
+import type { ComunicadoId, CursoId, LiberacaoId } from "../dominio/tipos";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
 // O mesmo formato do check liberacao_user_id_clerk.
@@ -64,5 +74,42 @@ export const adminRouter = router({
   }),
   catalogo: router({
     visao: adminProcedure.query(({ ctx }) => visaoDoCatalogo(ctx.db)),
+  }),
+  comunicados: router({
+    apagar: adminProcedure
+      .input(z.object({ id: z.uuid() }))
+      .mutation(({ ctx, input }) =>
+        apagarComunicado(ctx.db, input.id as ComunicadoId)
+      ),
+    lista: adminProcedure.query(async ({ ctx }) => {
+      const linhas = await linhasDosComunicados(ctx.db);
+      const autores = new Set(linhas.comunicados.map((c) => c.publicadoPor));
+      return montarComunicados(
+        linhas,
+        await Promise.all([...autores].map((id) => ctx.pessoas.porId(id)))
+      );
+    }),
+    salvar: adminProcedure
+      .input(
+        z.object({
+          cursoId: z.uuid().nullable(),
+          id: z.uuid(),
+          texto: z.string().trim().min(1).max(TEXTO_MAX),
+          titulo: z.string().trim().min(1).max(TITULO_MAX),
+        })
+      )
+      .mutation(({ ctx, input }) =>
+        salvarComunicado(
+          ctx.db,
+          ctx.admin,
+          {
+            cursoId: input.cursoId as CursoId | null,
+            id: input.id as ComunicadoId,
+            texto: input.texto,
+            titulo: input.titulo,
+          },
+          new Date()
+        )
+      ),
   }),
 });

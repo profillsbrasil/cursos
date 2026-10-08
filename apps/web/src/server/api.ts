@@ -66,3 +66,7 @@ export const carregarPessoas = cache(async (termo: string) =>
 export const carregarAcessoDoAluno = cache(async (userId: string) =>
   (await exigirAdmin()).admin.alunos.acesso({ userId })
 );
+
+export const carregarComunicados = cache(async () =>
+  (await exigirAdmin()).admin.comunicados.lista()
+);
