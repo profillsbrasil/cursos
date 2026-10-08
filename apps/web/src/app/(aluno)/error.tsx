@@ -1,7 +1,7 @@
 "use client";
 
-import { TelaDeErro } from "@/components/aluno/tela-de-erro";
 import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
+import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
 // Erro das páginas do aluno, dentro da sidebar. Erro do próprio layout cai no app/error.tsx.
 // No Next 16.3 a função de recuperação do error.js se chama retry (antes, reset).

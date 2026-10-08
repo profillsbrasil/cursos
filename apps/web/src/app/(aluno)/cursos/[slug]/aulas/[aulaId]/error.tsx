@@ -1,7 +1,7 @@
 "use client";
 
-import { TelaDeErro } from "@/components/aluno/tela-de-erro";
 import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
+import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
 export default function ErroDaAula(props: {
   error: Error & { digest?: string };

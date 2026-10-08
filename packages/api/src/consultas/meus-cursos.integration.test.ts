@@ -21,6 +21,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
+import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "../routers/index";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
 
@@ -173,7 +174,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     });
 
   const comoAluno = (userId: string | null) =>
-    createCaller({ auth: userId ? { userId } : null, db });
+    createCaller(contextoDeTeste({ db, userId }));
 
   let pequena: Awaited<ReturnType<typeof criarTrilha>>;
 

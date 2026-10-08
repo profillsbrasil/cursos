@@ -15,6 +15,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
+import { contextoDeTeste } from "../contexto-de-teste";
 import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { carregarPainelDeTroca, trocar } from "./troca";
@@ -132,7 +133,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   test("troca debita o preço, libera o curso e aparece no painel e no extrato", async () => {
     const userId = await aluno(500);
     const c = await cursoTrocavel(300, "Troca feita");
-    const r = await createCaller({ auth: { userId }, db }).troca.trocar({
+    const r = await createCaller(contextoDeTeste({ db, userId })).troca.trocar({
       cursoId: c,
       precoVisto: 300,
     });
@@ -318,8 +319,10 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   });
 
   test("sem login dá UNAUTHORIZED; cursoId fora do formato dá BAD_REQUEST", async () => {
-    const anonimo = createCaller({ auth: null, db });
-    const logado = createCaller({ auth: { userId: await aluno(0) }, db });
+    const anonimo = createCaller(contextoDeTeste({ db, userId: null }));
+    const logado = createCaller(
+      contextoDeTeste({ db, userId: await aluno(0) })
+    );
     const r = await Promise.allSettled([
       anonimo.troca.painel(),
       logado.troca.trocar({ cursoId: "nao-e-uuid", precoVisto: 300 }),

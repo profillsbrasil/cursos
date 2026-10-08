@@ -11,7 +11,8 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Aula | Vídeo com duração em segundos, numa posição dentro de um módulo. |
 | Nível | Grupo nomeado de módulos de um curso. Cada módulo pertence a no máximo um nível. Só o curso Comercial tem níveis hoje. |
 | Aluno | Pessoa logada que estuda. É identificada pelo `userId` do Clerk e não tem tabela própria. |
-| Admin | Pessoa que cria trilhas, libera, revoga e publica comunicados. |
+| Admin | Pessoa que cria trilhas, libera, revoga e publica comunicados. É quem tem o papel `admin`. |
+| Papel | `aluno` ou `admin`, lido do claim `papel` do session token do Clerk, que vem do Public metadata da pessoa. Claim ausente ou com outro valor vale `aluno`. |
 | Liberação | Registro de que um aluno pode ver uma trilha ou um curso. É permanente até o admin revogar. A liberação de uma troca não se revoga. |
 | Origem da liberação | De onde veio a liberação: `admin` ou `troca`. Fica gravada na liberação e não se deduz de quem liberou. Só a de `troca` não se revoga, e ela é sempre de um curso, liberado pelo próprio aluno. |
 | Aula assistida | Fato imutável: a cobertura do aluno numa aula chegou a 90% da duração. Acontece uma vez por aluno e aula. |

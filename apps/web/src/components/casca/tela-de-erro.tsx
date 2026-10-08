@@ -9,10 +9,12 @@ import { useEffect } from "react";
 export function TelaDeErro({
   error,
   retry,
+  texto = "A conexão com o servidor falhou. Seu progresso está salvo; tente de novo em instantes.",
   titulo,
 }: {
   error: Error & { digest?: string };
   retry: () => void;
+  texto?: string;
   titulo: string;
 }) {
   useEffect(() => {
@@ -26,10 +28,7 @@ export function TelaDeErro({
       <h1 className="font-bold text-2xl text-titulo tracking-tight">
         {titulo}
       </h1>
-      <p className="text-muted-foreground">
-        A conexão com o servidor falhou. Seu progresso está salvo; tente de novo
-        em instantes.
-      </p>
+      <p className="text-muted-foreground">{texto}</p>
       <button
         className={cn(
           buttonVariants(),

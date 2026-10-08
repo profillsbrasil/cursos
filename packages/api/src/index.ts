@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import type { Context } from "./context";
+import { type Context, ehAdmin } from "./context";
+import type { AdminId } from "./dominio/tipos";
 
 export const t = initTRPC.context<Context>().create();
 
@@ -8,20 +9,33 @@ export const { router } = t;
 
 export const publicProcedure = t.procedure;
 
-// O middleware estreita o userId: depois dele, ctx.auth.userId é string, não string | null.
+// O middleware estreita a sessão: depois dele, ctx.auth é Sessao, não Sessao | null.
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  const userId = ctx.auth?.userId;
-  if (!userId) {
+  const { auth } = ctx;
+  if (!auth) {
     throw new TRPCError({
       cause: "No Clerk userId",
       code: "UNAUTHORIZED",
       message: "Authentication required",
     });
   }
+  return next({ ctx: { ...ctx, auth } });
+});
+
+/**
+ * Segunda porta do admin; a primeira é exigirAdmin em apps/web/src/server/api.ts.
+ * É o único lugar que fabrica um AdminId, então quem grava autoria de admin
+ * (liberada_por, revogada_por, publicado_por) só roda atrás desta porta.
+ */
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  const { auth } = ctx;
+  if (!ehAdmin(auth)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Esta ação é só do admin.",
+    });
+  }
   return next({
-    ctx: {
-      ...ctx,
-      auth: { userId },
-    },
+    ctx: { ...ctx, admin: auth.userId as AdminId, auth },
   });
 });
