@@ -31,7 +31,13 @@ const ITENS_DO_ADMIN: readonly ItemDoMenu[] = [
     outrosPrefixos: [],
     tipo: "link",
   },
-  { icone: <Megaphone />, nome: "Comunicados", tipo: "em_breve" },
+  {
+    href: "/admin/comunicados",
+    icone: <Megaphone />,
+    nome: "Comunicados",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
 ];
 
 export function SidebarDoAdmin() {
