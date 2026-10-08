@@ -45,6 +45,30 @@ export function mmss(seg: number) {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
+const MM_SS = /^(\d+):([0-5]\d)$/;
+const H_MM_SS = /^(\d+):([0-5]\d):([0-5]\d)$/;
+/** O teto de duracaoSeg no documento do curso. */
+const DURACAO_MAXIMA = 86_400;
+
+/**
+ * O que o admin digita na duração da aula: "mm:ss" (os minutos passam de 59) ou
+ * "h:mm:ss". null quando não é uma duração entre 1 s e 24 h.
+ */
+export function duracaoDoTexto(texto: string): number | null {
+  const s = texto.trim();
+  const curta = MM_SS.exec(s);
+  const longa = H_MM_SS.exec(s);
+  let total: number;
+  if (curta) {
+    total = Number(curta[1]) * 60 + Number(curta[2]);
+  } else if (longa) {
+    total = Number(longa[1]) * 3600 + Number(longa[2]) * 60 + Number(longa[3]);
+  } else {
+    return null;
+  }
+  return total > 0 && total <= DURACAO_MAXIMA ? total : null;
+}
+
 /** "1,25×". */
 export const fmtVelocidade = (v: number) => `${NUMERO.format(v)}×`;
 
