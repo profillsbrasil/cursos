@@ -1,23 +1,28 @@
-import type { Pessoa } from "@cursos/api/dominio/tipos";
+import type { ResultadoDaBusca } from "@cursos/api/dominio/tipos";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-import { plural } from "@/lib/formato";
+import { fmtNum, plural } from "@/lib/formato";
 
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { Secao, Vazio } from "./partes";
 
 export function ListaDePessoas({
-  pessoas,
+  resultado: { pessoas, total },
   termo,
 }: {
-  pessoas: readonly Pessoa[];
+  resultado: ResultadoDaBusca;
   termo: string;
 }) {
+  const cortada = total > pessoas.length;
   return (
     <Secao
       id="pessoas"
-      resumo={plural(pessoas.length, "pessoa", "pessoas")}
+      resumo={
+        cortada
+          ? `${fmtNum(pessoas.length)} de ${plural(total, "pessoa", "pessoas")}`
+          : plural(pessoas.length, "pessoa", "pessoas")
+      }
       titulo={termo ? `Resultado para "${termo}"` : "Ativos recentemente"}
     >
       {pessoas.length === 0 ? (
@@ -50,6 +55,13 @@ export function ListaDePessoas({
               </Link>
             </li>
           ))}
+          {cortada ? (
+            <li className="px-5 py-3.5 text-muted-foreground text-sm">
+              {termo
+                ? `Mostrando as ${fmtNum(pessoas.length)} primeiras. Refine a busca com o nome completo ou o e-mail para achar quem falta.`
+                : `Mostrando as ${fmtNum(pessoas.length)} com atividade mais recente. Busque pelo nome ou pelo e-mail para achar outra pessoa.`}
+            </li>
+          ) : null}
         </ul>
       )}
     </Secao>

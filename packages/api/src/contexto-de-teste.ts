@@ -2,7 +2,7 @@ import type { Database } from "@cursos/db";
 
 import type { Context, Papel } from "./context";
 import type { Pessoa } from "./dominio/tipos";
-import type { Pessoas } from "./externos/pessoas";
+import { LIMITE, type Pessoas } from "./externos/pessoas";
 import { sessaoDe } from "./sessao";
 
 export interface OpcoesDeTeste {
@@ -14,18 +14,20 @@ export interface OpcoesDeTeste {
   userId: string | null;
 }
 
-/** Clerk falso: busca por trecho de nome, e-mail ou userId, sem caixa. */
+/** Clerk falso: busca por trecho de nome, e-mail ou userId, sem caixa, e corta em LIMITE. */
 export function pessoasDeTeste(lista: readonly Pessoa[]): Pessoas {
   return {
     buscar: (termo) => {
       const t = termo.toLowerCase();
-      return Promise.resolve(
-        lista.filter((p) =>
-          [p.nome, p.email ?? "", p.userId].some((campo) =>
-            campo.toLowerCase().includes(t)
-          )
+      const casadas = lista.filter((p) =>
+        [p.nome, p.email ?? "", p.userId].some((campo) =>
+          campo.toLowerCase().includes(t)
         )
       );
+      return Promise.resolve({
+        pessoas: casadas.slice(0, LIMITE),
+        total: casadas.length,
+      });
     },
     porId: (userId) =>
       Promise.resolve(lista.find((p) => p.userId === userId) ?? null),

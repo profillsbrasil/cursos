@@ -24,6 +24,12 @@ export interface Pessoa {
   userId: string;
 }
 
+/** Uma página da busca de pessoas, e quantas casaram no total. */
+export interface ResultadoDaBusca {
+  pessoas: readonly Pessoa[];
+  total: number;
+}
+
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
 export type StatusDoCurso = (typeof STATUS_DO_CURSO)[number];

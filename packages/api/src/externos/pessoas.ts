@@ -3,21 +3,22 @@
 
 import type { ClerkClient, User } from "@clerk/backend";
 
-import type { Pessoa } from "../dominio/tipos";
+import type { Pessoa, ResultadoDaBusca } from "../dominio/tipos";
 
 export interface Pessoas {
   /**
-   * Casa nome, sobrenome, e-mail, telefone, username e userId, por trecho.
-   * Termo vazio lista as pessoas ativas mais recentes, para a tela abrir com alguém.
+   * Casa nome, sobrenome, e-mail, telefone, username e userId, por trecho, e
+   * devolve até LIMITE pessoas. Termo vazio lista as pessoas ativas mais
+   * recentes, para a tela abrir com alguém.
    */
-  buscar: (termo: string) => Promise<readonly Pessoa[]>;
+  buscar: (termo: string) => Promise<ResultadoDaBusca>;
   /** null quando o Clerk não conhece o userId. */
   porId: (userId: string) => Promise<Pessoa | null>;
 }
 
-const LIMITE = 20;
+export const LIMITE = 20;
 
-function paraPessoa(u: User): Pessoa {
+export function paraPessoa(u: User): Pessoa {
   const email = u.primaryEmailAddress?.emailAddress ?? null;
   return {
     email,
@@ -35,7 +36,7 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
           ? { limit: LIMITE, query: termo }
           : { limit: LIMITE, orderBy: "-last_active_at" }
       );
-      return r.data.map(paraPessoa);
+      return { pessoas: r.data.map(paraPessoa), total: r.totalCount };
     },
     // A lista filtrada por userId devolve vazio para quem não existe; getUser
     // lançaria 404 e pediria tradução de erro.

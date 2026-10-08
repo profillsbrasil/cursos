@@ -17,7 +17,7 @@ export default async function Alunos({
 }) {
   const { q } = await searchParams;
   const termo = typeof q === "string" ? q.trim().slice(0, 100) : "";
-  const pessoas = await carregarPessoas(termo);
+  const resultado = await carregarPessoas(termo);
   return (
     <>
       <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
@@ -58,7 +58,7 @@ export default async function Alunos({
           </Button>
         </form>
       </search>
-      <ListaDePessoas pessoas={pessoas} termo={termo} />
+      <ListaDePessoas resultado={resultado} termo={termo} />
     </>
   );
 }
