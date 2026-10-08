@@ -174,10 +174,11 @@ export interface CursoSalvo {
   versao: Versao;
 }
 
-function erroDaEdicao(r: RecusaDaEdicao): ErroParaAPessoa {
+function erroDaEdicao(r: RecusaDaEdicao, cause?: unknown): ErroParaAPessoa {
   switch (r.tipo) {
     case "versao_mudou":
       return new ErroParaAPessoa({
+        cause,
         code: "CONFLICT",
         message:
           "Outra pessoa salvou este curso depois que você abriu. Recarregue para ver a versão nova.",
@@ -185,16 +186,19 @@ function erroDaEdicao(r: RecusaDaEdicao): ErroParaAPessoa {
       });
     case "sumiu":
       return new ErroParaAPessoa({
+        cause,
         code: "NOT_FOUND",
         message: "Este curso foi apagado enquanto você editava.",
       });
     case "sem_capa":
       return new ErroParaAPessoa({
+        cause,
         code: "PRECONDITION_FAILED",
         message: "Curso novo precisa de capa.",
       });
     case "aula_assistida":
       return new ErroParaAPessoa({
+        cause,
         code: "PRECONDITION_FAILED",
         message: `A aula "${r.titulo}" já foi assistida por ${r.alunos} ${r.alunos === 1 ? "aluno" : "alunos"} e não se apaga. Troque o vídeo ou o título dela.`,
       });
@@ -253,21 +257,38 @@ export async function salvarCurso(
     throw erroDaCapa(recebida.recusa);
   }
   const { documento } = lido;
-  return comTrava(s.db, `curso:${documento.id}`, async (tx) => {
-    const atual = await abrirCurso(tx, documento.id);
-    const plano = planejarCurso(atual, documento, recebida?.imagem ?? null);
-    if (plano.tipo === "recusa") {
-      throw erroDaEdicao(plano.recusa);
+  const capa = recebida?.imagem ?? null;
+  try {
+    return await comTrava(s.db, `curso:${documento.id}`, async (tx) => {
+      const atual = await abrirCurso(tx, documento.id);
+      const plano = planejarCurso(atual, documento, capa);
+      if (plano.tipo === "recusa") {
+        throw erroDaEdicao(plano.recusa);
+      }
+      if (plano.tipo !== "nada_mudou") {
+        await gravarCurso(tx, plano);
+      }
+      return {
+        cursoId: documento.id,
+        slug: documento.slug,
+        versao: plano.versao,
+      };
+    });
+  } catch (erro) {
+    // O aluno não pega a trava do curso: a aula assistida que entra entre a conta
+    // e o DELETE para no FK restrict. O plano refeito já conta essa aula.
+    if (violacaoDe(erro)?.restricao === "aula_assistida_aula_id_aula_id_fkey") {
+      const plano = planejarCurso(
+        await abrirCurso(s.db, documento.id),
+        documento,
+        capa
+      );
+      if (plano.tipo === "recusa") {
+        throw erroDaEdicao(plano.recusa, erro);
+      }
     }
-    if (plano.tipo !== "nada_mudou") {
-      await gravarCurso(tx, plano);
-    }
-    return {
-      cursoId: documento.id,
-      slug: documento.slug,
-      versao: plano.versao,
-    };
-  });
+    throw erro;
+  }
 }
 
 const colunasDaCapa = (c: ImagemDaCapa) => ({

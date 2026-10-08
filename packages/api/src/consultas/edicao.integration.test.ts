@@ -602,6 +602,36 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     }
   });
 
+  test("aula assistida que chega depois da conta: salvarCurso recusa com o título da aula e nada muda", async () => {
+    const antes = await cursoSalvo();
+    const { documento } = structuredClone(antes);
+    const [a] = modulos(documento);
+    const a1 = a.aulas.shift();
+    if (!a1) {
+      throw new Error("sem A1");
+    }
+    const aluno = await db.$client.connect();
+    try {
+      await aluno.query("begin");
+      await aluno.query(
+        "insert into aula_assistida (user_id, aula_id) values ($1, $2)",
+        [ALUNO, a1.id]
+      );
+      const salvando = resultado(salvar(documento));
+      await esperarAlguemEsperandoTrava();
+      await aluno.query("commit");
+
+      expect(await salvando).toEqual({
+        code: "PRECONDITION_FAILED",
+        message:
+          'A aula "A1" já foi assistida por 1 aluno e não se apaga. Troque o vídeo ou o título dela.',
+      });
+    } finally {
+      aluno.release();
+    }
+    expect((await abrir(documento.id)).documento).toEqual(antes.documento);
+  });
+
   /** O DELETE do curso fica parado na linha da aula que o aluno travou ao inserir. */
   async function esperarAlguemEsperandoTrava(tentativas = 100): Promise<void> {
     const { rows } = await db.$client.query<{ n: number }>(
