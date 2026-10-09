@@ -7,8 +7,41 @@ import {
   apoioEm,
   apoioSalvo,
   primeiroNaPagina,
+  setaDepoisDeMover,
   sincronizarComAPagina,
+  trocado,
 } from "./editor";
+
+describe("trocado", () => {
+  test("troca o item com o vizinho de cima ou de baixo", () => {
+    expect(trocado(["a", "b", "c"], 1, "acima")).toEqual(["b", "a", "c"]);
+    expect(trocado(["a", "b", "c"], 1, "abaixo")).toEqual(["a", "c", "b"]);
+  });
+
+  test("na borda e fora da lista não troca", () => {
+    expect(trocado(["a", "b"], 0, "acima")).toBeNull();
+    expect(trocado(["a", "b"], 1, "abaixo")).toBeNull();
+    expect(trocado(["a", "b"], -1, "abaixo")).toBeNull();
+  });
+
+  test("não mexe na lista recebida", () => {
+    const lista = ["a", "b"] as const;
+    trocado(lista, 0, "abaixo");
+    expect(lista).toEqual(["a", "b"]);
+  });
+});
+
+describe("setaDepoisDeMover", () => {
+  test("longe da borda, o foco fica na seta clicada", () => {
+    expect(setaDepoisDeMover("acima", false)).toBe("acima");
+    expect(setaDepoisDeMover("abaixo", false)).toBe("abaixo");
+  });
+
+  test("na borda, a seta clicada desliga e o foco vai para a outra", () => {
+    expect(setaDepoisDeMover("acima", true)).toBe("abaixo");
+    expect(setaDepoisDeMover("abaixo", true)).toBe("acima");
+  });
+});
 
 interface Campo {
   compareDocumentPosition: (outro: Campo) => number;

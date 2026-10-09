@@ -34,7 +34,7 @@ import {
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import {
   apoioEm,
   apoioSalvo,
@@ -52,24 +52,20 @@ import {
 } from "@/lib/use-salvar-documento";
 import { trpcClient } from "@/utils/trpc";
 
-import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
+import { BarraDeSalvar } from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
-import {
-  Carregando,
-  ConfirmacaoNaLinha,
-  type LinhaAberta,
-} from "./confirmacao-na-linha";
+import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
 import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
 import { BlocoDoModulo } from "./modulos-do-curso";
 import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import { errosPorCampo, type Problema } from "./problemas";
 import {
   ID,
   lerPreco,
   lerRascunho,
   mesmoRascunho,
-  type Problema,
   problemasDaRecusa,
   type RascunhoDoCurso,
   type Recusa,
@@ -471,42 +467,6 @@ function ApagarCurso({
   );
 }
 
-function Situacao({
-  novo,
-  problemas,
-  sujo,
-}: {
-  novo: boolean;
-  problemas: readonly Problema[];
-  sujo: boolean;
-}) {
-  const marcados = problemas.filter((p) => p.campo !== null).length;
-  const frases = problemas
-    .filter((p) => p.campo === null)
-    .map((p) => p.mensagem);
-  if (marcados > 0 || frases.length > 0) {
-    return (
-      <ul className="grid gap-0.5 text-destructive">
-        {marcados > 0 ? (
-          <li>
-            Confira {plural(marcados, "campo marcado", "campos marcados")}.
-          </li>
-        ) : null}
-        {frases.map((f) => (
-          <li key={f}>{f}</li>
-        ))}
-      </ul>
-    );
-  }
-  let texto = "Tudo salvo.";
-  if (novo) {
-    texto = "Rascunho. Os alunos não veem nada até você salvar.";
-  } else if (sujo) {
-    texto = "Alterações não salvas.";
-  }
-  return <p className="text-muted-foreground">{texto}</p>;
-}
-
 const SEM_CAPA: Problema = {
   campo: ID.curso("capa"),
   mensagem: "Escolha a imagem da capa.",
@@ -569,9 +529,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     ...(tentou ? semCapa : []),
     ...problemasDaRecusa(recusa, rascunho),
   ];
-  const erros = new Map(
-    problemas.flatMap((p) => (p.campo ? [[p.campo, p.mensagem] as const] : []))
-  );
+  const erros = errosPorCampo(problemas);
 
   const mudarTexto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const campo = e.target.name as CampoDeTextoDoCurso;
@@ -751,26 +709,15 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
           </Secao>
         )}
 
-        <div className="sticky bottom-3 z-10 grid gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
-          {versaoMudou || apoio.versaoDeFora ? (
-            <AvisoDeVersaoMudou oQue="este curso" recarregar={descartar} />
-          ) : null}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div aria-live="polite" className="min-w-0 flex-1 text-sm">
-              <Situacao novo={novo} problemas={problemas} sujo={sujo} />
-            </div>
-            <Button
-              aria-busy={pendente}
-              className={cn(BOTAO, "disabled:opacity-100")}
-              disabled={pendente}
-              focusableWhenDisabled
-              type="submit"
-            >
-              <Carregando ativo={pendente} />
-              Salvar
-            </Button>
-          </div>
-        </div>
+        <BarraDeSalvar
+          novo={novo}
+          oQue="este curso"
+          pendente={pendente}
+          problemas={problemas}
+          recarregar={descartar}
+          sujo={sujo}
+          versaoMudou={versaoMudou || apoio.versaoDeFora}
+        />
       </form>
     </ErrosDoEditor>
   );

@@ -16,6 +16,15 @@ import type { z } from "zod";
 
 import { duracaoDoTexto, fmtNum, mmss } from "@/lib/formato";
 
+import {
+  fraseDeReserva,
+  mensagemDoTexto,
+  naoVazia,
+  type Problema,
+  type Problemas,
+  semRepetir,
+} from "./problemas";
+
 export interface AulaDoRascunho {
   duracao: string;
   id: AulaId;
@@ -160,14 +169,9 @@ export const ID = {
   nivel: (ordem: number) => `nivel-${ordem}`,
 };
 
-export interface Problema {
-  campo: string | null;
-  mensagem: string;
-}
-
 export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDoCurso }
-  | { tipo: "problemas"; problemas: Problema[] };
+  | { tipo: "problemas"; problemas: Problemas };
 
 export interface Recusa {
   campo: "codigo" | "slug";
@@ -267,23 +271,18 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   if (i.code === "custom") {
     return i.message;
   }
-  if (i.code === "too_small" && i.origin === "string") {
-    return "Preencha este campo.";
-  }
-  if (i.code === "too_big" && i.origin === "string") {
-    return `Use até ${fmtNum(Number(i.maximum))} caracteres.`;
+  const doTexto = mensagemDoTexto(i);
+  if (doTexto !== null) {
+    return doTexto;
   }
   if (i.code === "too_big" && i.origin === "array") {
     const lista = NOME_DA_LISTA[String(i.path.at(-1))] ?? "itens";
     return `O limite é de ${fmtNum(Number(i.maximum))} ${lista}.`;
   }
-  if (i.code === "invalid_format" && i.path.at(-1) === "slug") {
-    return "Use letras minúsculas, números e hífen, sem espaço.";
-  }
   if (temCampo) {
     return "Confira este campo.";
   }
-  return `O curso tem um valor que o servidor recusa (${i.path.join(".") || "documento"}). Recarregue a página e tente de novo.`;
+  return fraseDeReserva("O curso", i.path);
 }
 
 export function lerRascunho(r: RascunhoDoCurso): RascunhoLido {
@@ -329,20 +328,14 @@ export function lerRascunho(r: RascunhoDoCurso): RascunhoLido {
       });
     }
   }
-  if (problemas.length > 0 || !lido.success) {
+  if (naoVazia(problemas)) {
     return { problemas: semRepetir(problemas), tipo: "problemas" };
   }
+  if (!lido.success) {
+    return {
+      problemas: [{ campo: null, mensagem: fraseDeReserva("O curso", []) }],
+      tipo: "problemas",
+    };
+  }
   return { documento: lido.data, tipo: "lido" };
-}
-
-function semRepetir(problemas: readonly Problema[]): Problema[] {
-  const vistos = new Set<string>();
-  return problemas.filter((p) => {
-    const chave = p.campo ?? `frase:${p.mensagem}`;
-    if (vistos.has(chave)) {
-      return false;
-    }
-    vistos.add(chave);
-    return true;
-  });
 }

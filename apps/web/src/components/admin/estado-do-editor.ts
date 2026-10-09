@@ -1,6 +1,8 @@
 import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
+import { type Direcao, trocado } from "@/lib/editor";
+
 import {
   type AulaDoRascunho,
   lerNumeroDoModulo,
@@ -14,8 +16,6 @@ type CampoDoCurso = Exclude<
   keyof RascunhoDoCurso,
   "id" | "modulos" | "niveis" | "versao"
 >;
-
-export type Direcao = "acima" | "abaixo";
 
 export type Mudanca =
   | { tipo: "campos"; mudanca: Partial<Pick<RascunhoDoCurso, CampoDoCurso>> }
@@ -60,16 +60,6 @@ const numeroDe = (m: ModuloDoRascunho) => {
   const lido = lerNumeroDoModulo(m.numero);
   return "valor" in lido ? lido.valor : null;
 };
-
-function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
-  const j = direcao === "acima" ? i - 1 : i + 1;
-  if (i < 0 || j < 0 || j >= lista.length) {
-    return null;
-  }
-  const nova = [...lista];
-  [nova[i], nova[j]] = [nova[j] as T, nova[i] as T];
-  return nova;
-}
 
 const porNumero = (modulos: ModuloDoRascunho[]) =>
   modulos.toSorted(
