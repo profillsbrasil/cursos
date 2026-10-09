@@ -77,18 +77,23 @@ async function contarUso(exec: Executor, id: TrilhaId): Promise<Contagens> {
 }
 
 /**
- * UsoDaTrilha.comecaramSoPelaTrilha: um item por curso da trilha, zero incluído.
+ * UsoDaTrilha.comecaramSoPelaTrilha: um item por curso do documento lido, zero
+ * incluído. A lista vem do documento, não de outra leitura de trilha_curso: um
+ * salvar que comita entre as duas leituras não desencontra os cursos.
  * "Começou" é a regra do painel (aula assistida ou posição acima de 0 s), mais o
  * certificado; "só pela trilha" é não ter liberação ativa do próprio curso.
  */
 async function comecaramSoPelaTrilha(
-  exec: Executor,
-  id: TrilhaId
+  db: Database,
+  { cursos, id }: Pick<DocumentoDaTrilha, "cursos" | "id">
 ): Promise<PessoasNoCurso[]> {
-  const { rows } = await exec.execute<{ cursoId: string; pessoas: number }>(sql`
+  if (cursos.length === 0) {
+    return [];
+  }
+  const { rows } = await db.execute<{ cursoId: string; pessoas: number }>(sql`
     select tc.curso_id as "cursoId",
       (select count(distinct l.user_id)::int from liberacao l
-        where l.trilha_id = tc.trilha_id and l.revogada_em is null
+        where l.trilha_id = ${id} and l.revogada_em is null
           and not exists (
             select 1 from liberacao d
             where d.user_id = l.user_id and d.curso_id = tc.curso_id
@@ -108,35 +113,31 @@ async function comecaramSoPelaTrilha(
                     select 1 from posicao_aula p
                     where p.user_id = l.user_id and p.aula_id = a.id
                       and p.posicao_seg > 0))))) as pessoas
-    from trilha_curso tc
-    where tc.trilha_id = ${id}
-    order by tc.posicao`);
+    from unnest(${`{${cursos.join(",")}}`}::uuid[]) with ordinality as tc(curso_id, n)
+    order by tc.n`);
   return rows.map((r) => ({
     cursoId: r.cursoId as CursoId,
     pessoas: r.pessoas,
   }));
 }
 
-/**
- * A trilha como o editor abre: documento (com versão) e uso. null quando o id não
- * existe. Statements em série, porque dentro da transação eles dividem um client.
- */
+/** A trilha como o editor abre: documento (com versão) e uso. null quando o id não existe. */
 export async function abrirTrilha(
-  exec: Executor,
+  db: Database,
   id: TrilhaId
 ): Promise<EdicaoDaTrilha | null> {
-  const documento = await lerDocumento(exec, id);
+  const documento = await lerDocumento(db, id);
   if (!documento) {
     return null;
   }
-  const contagens = await contarUso(exec, id);
+  const [contagens, comecaram] = await Promise.all([
+    contarUso(db, id),
+    comecaramSoPelaTrilha(db, documento),
+  ]);
   return {
     documento,
     podeApagar: podeApagarTrilha(contagens),
-    uso: {
-      ...contagens,
-      comecaramSoPelaTrilha: await comecaramSoPelaTrilha(exec, id),
-    },
+    uso: { ...contagens, comecaramSoPelaTrilha: comecaram },
   };
 }
 

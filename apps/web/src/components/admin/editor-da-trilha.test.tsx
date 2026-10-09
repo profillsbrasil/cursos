@@ -161,6 +161,19 @@ describe("aviso de quem tem a trilha", () => {
     expect(t).not.toContain("continua aberto");
   });
 
+  test("curso sem número não afirma que ninguém começou", () => {
+    const t = aviso({
+      alunos: 3,
+      perdas: [{ ...SEGURANCA, pessoas: null }],
+      sujo: true,
+    });
+    expect(t).toContain(
+      "Segurança do posto: quem só tinha a trilha perde o curso na hora."
+    );
+    expect(t).not.toContain("Ninguém");
+    expect(t).not.toContain("começado");
+  });
+
   test("uma pessoa fala no singular", () => {
     expect(
       aviso({

@@ -29,6 +29,7 @@ import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
 import { esperas, seguraATabela } from "./corrida-de-teste";
+import { abrirTrilha } from "./edicao-da-trilha";
 import { violacaoDe } from "./erros";
 
 const URL_TESTE = urlDeTeste();
@@ -422,6 +423,45 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     expect([await entra(SO_TRILHA), await entra(COM_DIRETA)]).toEqual([
       false,
       true,
+    ]);
+  });
+
+  test("o uso conta os cursos do documento lido, mesmo com um salvar entre as leituras", async () => {
+    const [a, b, c] = await criarCursos(3);
+    if (!(a && b && c)) {
+      throw new Error("cursos não criados");
+    }
+    const aberta = await salva(trilhaNova([a.id, b.id]));
+    const salvarNoMeio = () =>
+      admin.admin.catalogo.salvarTrilha({
+        ...aberta.documento,
+        cursos: [b.id, c.id],
+      });
+    // O documento sai da leitura; o outro admin salva antes da contagem.
+    const query = new Proxy(db.query, {
+      get: (alvo, tabela) =>
+        tabela === "trilha"
+          ? {
+              findFirst: async (
+                ...args: Parameters<typeof db.query.trilha.findFirst>
+              ) => {
+                const lido = await alvo.trilha.findFirst(...args);
+                await salvarNoMeio();
+                return lido;
+              },
+            }
+          : Reflect.get(alvo, tabela),
+    });
+    const comSalvarNoMeio = new Proxy(db, {
+      get: (alvo, p) => (p === "query" ? query : Reflect.get(alvo, p)),
+    });
+
+    const lida = await abrirTrilha(comSalvarNoMeio, aberta.documento.id);
+
+    expect(lida?.documento.cursos).toEqual([a.id, b.id]);
+    expect(lida?.uso.comecaramSoPelaTrilha.map((p) => p.cursoId)).toEqual([
+      a.id,
+      b.id,
     ]);
   });
 

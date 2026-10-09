@@ -151,8 +151,11 @@ export const candidatos = (
 
 export interface Perda {
   cursoId: CursoId;
-  /** Quem começou o curso só pela trilha, contado na abertura da página. */
-  pessoas: number;
+  /**
+   * Quem começou o curso só pela trilha, contado na abertura da página. null:
+   * o uso que a página trouxe não conta este curso (a base é de outro salvar).
+   */
+  pessoas: number | null;
   titulo: string;
 }
 
@@ -177,7 +180,7 @@ export function perdas({
       cursoId,
       pessoas:
         uso.comecaramSoPelaTrilha.find((p) => p.cursoId === cursoId)?.pessoas ??
-        0,
+        null,
       titulo:
         catalogo.find((c) => c.id === cursoId)?.titulo ??
         "Curso apagado do catálogo",

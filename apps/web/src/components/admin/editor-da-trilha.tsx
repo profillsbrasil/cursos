@@ -156,8 +156,13 @@ export function AvisoDePerda({
             {tirados.map((p) => (
               <li key={p.cursoId}>
                 <span className="font-semibold">{p.titulo}</span>: quem só tinha
-                a trilha perde o curso na hora.{" "}
-                <span className="tabular-nums">{quemComecou(p.pessoas)}</span>
+                a trilha perde o curso na hora.
+                {p.pessoas === null ? null : (
+                  <span className="tabular-nums">
+                    {" "}
+                    {quemComecou(p.pessoas)}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

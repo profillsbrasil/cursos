@@ -64,7 +64,7 @@ describe("perdas", () => {
   test("só os tirados, na ordem salva, com o número do servidor", () => {
     expect(de([F])).toEqual([
       { cursoId: E, pessoas: 2, titulo: "Envasadora" },
-      { cursoId: G, pessoas: 0, titulo: "Curso apagado do catálogo" },
+      { cursoId: G, pessoas: null, titulo: "Curso apagado do catálogo" },
     ]);
   });
 
@@ -73,9 +73,13 @@ describe("perdas", () => {
     expect(de([E, F, G, curso(9)])).toEqual([]);
   });
 
-  test("curso sem número do servidor conta zero", () => {
+  test("curso sem número do servidor fica sem número, não com zero", () => {
     expect(de([], [curso(8)])).toEqual([
-      { cursoId: curso(8), pessoas: 0, titulo: "Curso apagado do catálogo" },
+      {
+        cursoId: curso(8),
+        pessoas: null,
+        titulo: "Curso apagado do catálogo",
+      },
     ]);
   });
 });
