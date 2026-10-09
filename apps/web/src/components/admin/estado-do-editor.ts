@@ -1,6 +1,3 @@
-// As mudanças que o editor do curso faz no rascunho, sem React e sem rede. O
-// servidor confere tudo de novo no salvamento; aqui fica só o que a tela mostra.
-
 import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
@@ -22,7 +19,6 @@ export type Direcao = "acima" | "abaixo";
 
 export type Mudanca =
   | { tipo: "campos"; mudanca: Partial<Pick<RascunhoDoCurso, CampoDoCurso>> }
-  /** A ordem vem de quem chama, que também põe o foco no nível novo. */
   | { tipo: "nivel_novo"; ordem: number }
   | { tipo: "nivel_renomeado"; ordem: number; nome: string }
   | { tipo: "nivel_removido"; ordem: number }
@@ -34,7 +30,6 @@ export type Mudanca =
         Pick<ModuloDoRascunho, "nivelOrdem" | "numero" | "titulo">
       >;
     }
-  /** Põe os módulos na ordem do número, quando o admin termina de digitar um. */
   | { tipo: "modulos_ordenados" }
   | { tipo: "modulo_movido"; id: ModuloId; direcao: Direcao }
   | { tipo: "modulo_removido"; id: ModuloId }
@@ -58,7 +53,6 @@ export type Mudanca =
     }
   | { tipo: "recomecado"; documento: DocumentoDoCurso };
 
-/** O próximo número de nível; o componente calcula e manda em nivel_novo. */
 export const proximaOrdem = (niveis: RascunhoDoCurso["niveis"]) =>
   Math.max(0, ...niveis.map((n) => n.ordem)) + 1;
 
@@ -67,7 +61,6 @@ const numeroDe = (m: ModuloDoRascunho) => {
   return "valor" in lido ? lido.valor : null;
 };
 
-/** Troca o item i com o vizinho; fora dos limites devolve null. */
 function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
   const j = direcao === "acima" ? i - 1 : i + 1;
   if (i < 0 || j < 0 || j >= lista.length) {
@@ -78,10 +71,6 @@ function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
   return nova;
 }
 
-/**
- * A ordem que o aluno vê é a do número; o sort é estável para números
- * repetidos, e número que não lê fica no fim, onde o admin o digitou.
- */
 const porNumero = (modulos: ModuloDoRascunho[]) =>
   modulos.toSorted(
     (a, b) =>
@@ -112,18 +101,6 @@ const comAulas = (
 const moduloDaAula = (r: RascunhoDoCurso, id: AulaId) =>
   r.modulos.find((m) => m.aulas.some((a) => a.id === id));
 
-/**
- * Regras:
- *  - o módulo novo recebe o maior número mais 1 (1 no curso vazio); mudar o
- *    número não move o módulo enquanto o admin digita, e modulos_ordenados
- *    põe a lista na ordem do número;
- *  - subir ou descer um módulo troca o lugar e o número com o vizinho;
- *  - remover um nível deixa sem nível os módulos que o usavam;
- *  - a posição da aula é o índice: subir e descer trocam com a vizinha do mesmo
- *    módulo, e a aula que muda de módulo vai para o fim do outro, com o texto
- *    que estava nos campos dela;
- *  - mudança impossível (topo, fim, id que não existe) devolve o mesmo rascunho.
- */
 export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
   switch (m.tipo) {
     case "campos":

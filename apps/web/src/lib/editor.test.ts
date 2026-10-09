@@ -8,7 +8,6 @@ import {
   sincronizarComAPagina,
 } from "./editor";
 
-/** Um elemento falso que sabe a própria posição na página, como o DOM sabe. */
 interface Campo {
   compareDocumentPosition: (outro: Campo) => number;
   id: string;

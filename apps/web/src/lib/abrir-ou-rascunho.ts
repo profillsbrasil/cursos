@@ -2,12 +2,6 @@ import { z } from "zod";
 
 const UUID = z.uuid();
 
-/**
- * O que a página [id] de um editor de documento abre. O banco vence: o ?novo=1
- * só vale para um id que ainda não existe (a aba duplicada, ou o primeiro
- * salvamento cuja resposta se perdeu, abrem o documento gravado). null: a página
- * responde 404, inclusive para id fora do formato que o router aceita.
- */
 export async function abrirOuRascunho<T>(
   { id, novo }: { id: string; novo: string | string[] | undefined },
   {

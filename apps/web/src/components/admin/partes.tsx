@@ -6,21 +6,15 @@ export const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
 export const CELULA = "px-5 py-3.5 text-sm";
 export const NUMERO = "text-right tabular-nums";
 
-/** Campo de texto e seleção dos formulários do admin. */
 export const CAMPO =
   "rounded-[12px] border-muted-foreground bg-background px-3.5 text-sm md:text-sm dark:border-muted-foreground dark:bg-background";
 export const SELECAO =
   "w-full *:data-[slot=native-select]:h-11 *:data-[slot=native-select]:rounded-[12px] *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-sm";
 export const ROTULO = "font-semibold text-foreground text-sm";
 
-/** Aviso em amarelo com ícone à esquerda (link que quebra, versão que mudou). */
 export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
-/**
- * Botão redondo só com ícone (subir, descer, remover). Vai como className de um
- * Button sem variant, que aplica a default (bg-primary): cada cor dela é trocada aqui.
- */
 export const ICONE = cn(
   "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
   "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0"

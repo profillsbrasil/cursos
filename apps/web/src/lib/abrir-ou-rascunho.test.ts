@@ -5,7 +5,6 @@ import { abrirOuRascunho } from "./abrir-ou-rascunho";
 const GRAVADO = "6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b";
 const NOVO = "0A1B2C3D-4E5F-4061-8728-394A5B6C7D8E";
 
-/** Um banco de um documento só, que anota cada leitura. */
 function banco() {
   const lidos: string[] = [];
   return {
@@ -47,11 +46,9 @@ describe("abrirOuRascunho", () => {
   test("id fora do formato do router é 404 e nem chega ao banco", async () => {
     const { fontes, lidos } = banco();
     const abertos = await Promise.all(
-      [
-        "nao-e-uuid",
-        // Passa numa regex frouxa de hexadecimal, mas a versão 0 não é RFC.
-        "6f1c2a3b-4d5e-0f60-8a7b-9c0d1e2f3a4b",
-      ].map((id) => abrirOuRascunho({ id, novo: "1" }, fontes))
+      ["nao-e-uuid", "6f1c2a3b-4d5e-0f60-8a7b-9c0d1e2f3a4b"].map((id) =>
+        abrirOuRascunho({ id, novo: "1" }, fontes)
+      )
     );
     expect(abertos).toEqual([null, null]);
     expect(lidos).toEqual([]);

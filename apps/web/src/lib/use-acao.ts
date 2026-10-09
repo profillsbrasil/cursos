@@ -10,7 +10,6 @@ import { toast } from "sonner";
 const ERRO_GENERICO = "Não deu para salvar. Tente de novo em instantes.";
 
 export interface OpcoesDaAcao<T> {
-  /** Recebe o motivo da recusa, para a tela marcar um campo ou o aviso. */
   aoRecusar?: (motivo: Motivo | null) => void;
   depois?: (resultado: T) => void;
   /** Texto do toast quando o erro não traz mensagem escrita para a pessoa. */
@@ -46,7 +45,6 @@ export async function rodarAcao<T>(
       isTRPCClientError<AppRouter>(e) && e.data
         ? { ...e.data, mensagem: e.message }
         : null;
-    // Só ErroParaAPessoa, no servidor, chega com essa marca (errorFormatter).
     efeitos.toast.error(
       recusa?.paraAPessoa ? recusa.mensagem : (opcoes.erro ?? ERRO_GENERICO)
     );

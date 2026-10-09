@@ -6,17 +6,12 @@ import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 
 import { AVISO } from "./partes";
 
-/**
- * O salvar voltou com versao_mudou: alguém salvou o mesmo documento depois que
- * esta aba abriu. O rascunho fica na tela até a pessoa escolher recarregar.
- */
 export function AvisoDeVersaoMudou({
   className,
   oQue,
   recarregar,
 }: {
   className?: string;
-  /** "este curso", "esta trilha". */
   oQue: string;
   recarregar: () => void;
 }) {

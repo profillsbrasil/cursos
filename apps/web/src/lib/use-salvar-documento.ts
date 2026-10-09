@@ -12,13 +12,10 @@ export type Desfecho =
   | { tipo: "recusado"; motivo: Motivo | null };
 
 export interface TelaDepoisDeSalvar {
-  /** O documento novo ganhou a URL dele, sem o ?novo=1. */
   substituirPor: Route | null;
-  /** Liga o AvisoDeVersaoMudou. */
   versaoMudou: boolean;
 }
 
-/** O que o editor mostra depois de salvar. */
 export function telaDepoisDeSalvar(
   desfecho: Desfecho,
   { caminho, novo }: { caminho: Route; novo: boolean }
@@ -34,7 +31,6 @@ export function telaDepoisDeSalvar(
 
 export interface OpcoesDeSalvar<T> {
   aoRecusar?: (motivo: Motivo | null) => void;
-  /** Roda antes da troca de URL e do refresh. */
   aoSalvar?: (resultado: T) => void;
   sucesso: string;
 }
@@ -48,10 +44,6 @@ export interface SalvarDocumento {
   versaoMudou: boolean;
 }
 
-/**
- * O salvar dos editores de documento (curso, trilha). `caminho` é a URL do
- * documento sem o ?novo=1; `novo`, se ele ainda não existe no banco.
- */
 export function useSalvarDocumento({
   caminho,
   novo,

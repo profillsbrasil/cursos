@@ -3,8 +3,6 @@ import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { ICONE } from "./partes";
 
-// O que o <Button> sem variant aplica: button.tsx faz
-// cn(buttonVariants({ className, size, variant })) com variant "default".
 const classesDoBotao = (className: string) =>
   cn(buttonVariants({ className, size: "default", variant: "default" })).split(
     " "

@@ -1,6 +1,6 @@
 import type { Versao } from "@cursos/api/dominio/tipos";
 
-/** Foca o elemento depois que o React pôs a lista na ordem nova. */
+/** O elemento novo ou movido só está no DOM depois que o React aplica a mudança. */
 export const focarDepois = (id: string) =>
   requestAnimationFrame(() => document.getElementById(id)?.focus());
 
@@ -11,10 +11,6 @@ interface NaPagina<T> {
 /** Node.DOCUMENT_POSITION_PRECEDING, sem depender do DOM no teste. */
 const VEM_ANTES = 2;
 
-/**
- * O elemento que aparece primeiro na página. A lista de problemas sai na ordem
- * da validação (o schema começa pela capaAlt), e o foco segue a leitura.
- */
 export function primeiroNaPagina<T extends NaPagina<T>>(
   elementos: readonly T[]
 ): T | undefined {
@@ -29,7 +25,6 @@ export function primeiroNaPagina<T extends NaPagina<T>>(
   );
 }
 
-/** Foca, entre os ids, o campo que aparece primeiro na página. */
 export function focarOPrimeiro(ids: readonly string[]) {
   const elementos = ids.flatMap((id) => {
     const e = document.getElementById(id);
@@ -38,7 +33,6 @@ export function focarOPrimeiro(ids: readonly string[]) {
   primeiroNaPagina(elementos)?.focus();
 }
 
-/** O id de um item novo do rascunho (módulo, aula, curso, trilha). */
 export const novoId = <T extends string>() => crypto.randomUUID() as T;
 
 interface ComVersao {

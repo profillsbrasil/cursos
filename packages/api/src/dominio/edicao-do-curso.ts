@@ -22,7 +22,6 @@ import type {
   VideoId,
 } from "./tipos";
 
-/** O formato do slug, para o editor conferir no campo (o app não importa @cursos/db). */
 export const FORMATO_DO_SLUG = SLUG;
 
 /**
@@ -36,7 +35,6 @@ export const LIMITES = {
   numeroDeModulo: 999,
 } as const;
 
-/** Tetos de texto, em caracteres, que o schema e os campos do editor dividem. */
 export const CARACTERES = {
   capaAlt: 300,
   codigo: 40,

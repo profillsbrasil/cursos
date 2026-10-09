@@ -58,7 +58,6 @@ export const carregarCatalogo = cache(async () =>
   (await exigirAdmin()).admin.catalogo.visao()
 );
 
-/** null: o curso não existe. O id precisa ser uuid (abrirCurso recusa outro formato). */
 export const carregarCurso = cache(async (id: string) =>
   (await exigirAdmin()).admin.catalogo.abrirCurso({ id })
 );

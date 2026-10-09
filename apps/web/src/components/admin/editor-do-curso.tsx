@@ -91,7 +91,6 @@ const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
   },
 };
 
-/** Os campos de texto do curso; o nome do input é o nome no rascunho. */
 type CampoDeTextoDoCurso =
   | "capaAlt"
   | "codigo"
@@ -108,7 +107,6 @@ function CampoDoSlug({
 }: {
   mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
   slug: string;
-  /** null no curso novo: ainda não há link antigo para quebrar. */
   slugSalvo: string | null;
 }) {
   const id = ID.curso("slug");
@@ -438,7 +436,6 @@ function ApagarCurso({
   );
   if (!edicao.podeApagar) {
     const motivos = motivosDoUso(edicao.uso);
-    // Só a trilha impede: tirar o curso dela, no editor da trilha, libera o apagar.
     const soATrilha = edicao.uso.trilha !== null && motivos.length === 1;
     return (
       <p className="max-w-[70ch] p-5 text-muted-foreground text-sm">
@@ -529,7 +526,6 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     edicao.documento,
     rascunhoDoCurso
   );
-  /** A montagem muda depois de salvar, para a prévia sair junto com o arquivo. */
   const [capa, setCapa] = useState<{ arquivo: File | null; montagem: number }>({
     arquivo: null,
     montagem: 0,
@@ -538,7 +534,6 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     (arquivo: File | null) => setCapa((atual) => ({ ...atual, arquivo })),
     []
   );
-  /** Depois de um salvar recusado na tela, os problemas acompanham a digitação. */
   const [tentou, setTentou] = useState(false);
   const [recusa, setRecusa] = useState<Recusa | null>(null);
   const [chave, pedir] = useState<string | null>(null);

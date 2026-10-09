@@ -9,10 +9,6 @@ import { carregarCurso } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Admin" };
 
-/**
- * ?novo=1 é o rascunho que catalogo/cursos/novo abriu com este id. Sem ele, um id
- * que não existe é 404: a URL de um curso apagado não abre editor vazio.
- */
 export default async function Curso({
   params,
   searchParams,

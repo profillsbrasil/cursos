@@ -2,10 +2,7 @@
 
 import { useEffect } from "react";
 
-/**
- * Com mudança não salva, o browser pergunta antes de fechar a aba ou recarregar.
- * A navegação dentro do app (links, sidebar) não passa por aqui.
- */
+/** A navegação dentro do app (links, sidebar) não passa por aqui. */
 export function useGuardaDeSaida(sujo: boolean) {
   useEffect(() => {
     if (!sujo) {

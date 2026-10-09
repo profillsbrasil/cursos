@@ -60,7 +60,6 @@ interface Medida {
   largura: number;
 }
 
-/** Tipo, tamanho e medida, na ordem barata primeiro. O servidor confere de novo. */
 async function conferir(
   arquivo: File
 ): Promise<{ medida: Medida } | { erro: string }> {
@@ -93,10 +92,6 @@ interface Escolhida {
 const MOLDURA =
   "relative grid aspect-video w-full place-items-center overflow-hidden rounded-[14px] bg-background ring-1 ring-border";
 
-/**
- * A capa atual ou a prévia do arquivo escolhido, o botão de escolher e o texto
- * alternativo. Curso novo exige arquivo: o input fica required até haver um.
- */
 function Previa({
   alt,
   atual,
@@ -145,7 +140,6 @@ export function CampoDeCapa({
   alt: string;
   aoEscolher: (arquivo: File | null) => void;
   atual: Capa | null;
-  /** O input se chama capaAlt, o nome do campo no documento. */
   mudarAlt: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   const id = useId();

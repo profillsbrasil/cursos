@@ -36,21 +36,15 @@ type Despachar = Dispatch<Mudanca>;
 
 const SELECAO_PEQUENA =
   "w-36 *:data-[slot=native-select]:h-10 *:data-[slot=native-select]:rounded-full *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-[13px] md:*:data-[slot=native-select]:h-9";
-/** Colunas da aula a partir de xl; abaixo disso a aula empilha. */
 const GRADE_DA_AULA =
   "xl:grid-cols-[2rem_minmax(0,1fr)_7rem_minmax(0,0.9fr)_16.5rem] xl:gap-x-3";
 
-/** O nome nos rótulos dos botões: "aula 2 (Ajuste da válvula)". */
 const nomeFalado = (tipo: string, n: number | string, titulo: string) =>
   titulo.trim() ? `${tipo} ${n} (${titulo.trim()})` : `${tipo} ${n}`;
 
 const nomeDoModulo = (m: ModuloDoRascunho) =>
   m.titulo.trim() ? `Módulo ${m.numero} · ${m.titulo}` : `Módulo ${m.numero}`;
 
-/**
- * Depois de subir ou descer, o foco fica no mesmo botão; se a linha chegou à
- * borda e o botão desligou, vai para o outro.
- */
 function focarNoBotao(
   prefixo: string,
   direcao: Direcao,

@@ -2,7 +2,6 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 const PULSO = "bg-card motion-reduce:animate-none";
 
-// O título e os cartões do curso, da capa e dos módulos, enquanto o banco responde.
 export default function Carregando() {
   return (
     <div aria-busy="true" className="mx-auto grid max-w-5xl gap-10">

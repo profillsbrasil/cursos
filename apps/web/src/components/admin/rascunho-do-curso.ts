@@ -1,7 +1,5 @@
-// O curso como o editor guarda enquanto o admin digita: o documento com os
-// campos lidos (duração, vídeo, número do módulo e preço) ainda em texto. O
-// texto mora aqui, e não no input, para sobreviver quando a linha remonta (uma
-// aula movida de módulo). lerRascunho converte no salvar.
+// O texto dos campos lidos mora aqui, e não no input, para sobreviver quando a
+// linha remonta (uma aula movida de módulo).
 
 import type { Motivo } from "@cursos/api";
 import {
@@ -38,7 +36,6 @@ export type RascunhoDoCurso = Omit<
   "modulos" | "precoTroca"
 > & {
   modulos: ModuloDoRascunho[];
-  /** null: o curso não aceita troca. Texto: aceita, e é o preço digitado. */
   precoTroca: string | null;
 };
 
@@ -73,7 +70,6 @@ export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
   };
 }
 
-/** Compara pelo que o admin vê, sem depender da ordem das chaves. */
 export const mesmoRascunho = (a: RascunhoDoCurso, b: RascunhoDoCurso) =>
   JSON.stringify(emOrdem(a)) === JSON.stringify(emOrdem(b));
 
@@ -155,7 +151,6 @@ type CampoDoCursoComId =
   | "tema"
   | "titulo";
 
-/** O id do input de cada campo: o erro marca e foca o campo por ele. */
 export const ID = {
   aula: (id: AulaId, campo: "duracao" | "titulo" | "video") =>
     `aula-${id}-${campo}`,
@@ -165,7 +160,6 @@ export const ID = {
   nivel: (ordem: number) => `nivel-${ordem}`,
 };
 
-/** campo null: o problema não é de um input, e aparece como frase na barra. */
 export interface Problema {
   campo: string | null;
   mensagem: string;
@@ -175,7 +169,6 @@ export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDoCurso }
   | { tipo: "problemas"; problemas: Problema[] };
 
-/** O servidor recusou um valor que outro curso já usa. */
 export interface Recusa {
   campo: "codigo" | "slug";
   valor: string;
@@ -199,7 +192,6 @@ const JA_USADO = {
   slug: "Outro curso já usa este endereço.",
 } as const;
 
-/** O campo recusado fica marcado enquanto tiver o valor que o servidor recusou. */
 export function problemasDaRecusa(
   recusa: Recusa | null,
   r: RascunhoDoCurso
@@ -210,7 +202,6 @@ export function problemasDaRecusa(
   return [{ campo: ID.curso(recusa.campo), mensagem: JA_USADO[recusa.campo] }];
 }
 
-/** A soma das durações que já leem; a que não lê conta zero. */
 export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
   aulas.reduce((s, a) => {
     const lido = lerDuracao(a.duracao);
@@ -227,7 +218,6 @@ const CAMPOS_DO_CURSO = new Set<string>([
   "titulo",
 ] satisfies CampoDoCursoComId[]);
 
-/** O input de um caminho do zod, ou null quando ele não aponta um input. */
 function campoDoCaminho(
   r: RascunhoDoCurso,
   caminho: readonly PropertyKey[]
@@ -254,7 +244,6 @@ function campoDoCaminho(
   return aula && campo && caminho.length === 5 ? ID.aula(aula.id, campo) : null;
 }
 
-/** Chave do schema no módulo, para o input que a mostra; aulas demais marcam o título. */
 const CAMPO_DO_MODULO: Record<string, "nivel" | "numero" | "titulo"> = {
   aulas: "titulo",
   nivelOrdem: "nivel",
@@ -297,14 +286,8 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   return `O curso tem um valor que o servidor recusa (${i.path.join(".") || "documento"}). Recarregue a página e tente de novo.`;
 }
 
-/**
- * Converte o rascunho no documento que o servidor recebe, ou devolve todos os
- * problemas de uma vez. Cada problema aponta o input dele; o que não tem input
- * vira frase. Nenhuma recusa do schema termina sem aparecer.
- */
 export function lerRascunho(r: RascunhoDoCurso): RascunhoLido {
   const problemas: Problema[] = [];
-  /** O valor lido, ou um substituto válido para o zod conferir o resto. */
   const ler = <T>(leitura: Leitura<T>, campo: string, substituto: T): T => {
     if ("valor" in leitura) {
       return leitura.valor;
@@ -352,7 +335,6 @@ export function lerRascunho(r: RascunhoDoCurso): RascunhoLido {
   return { documento: lido.data, tipo: "lido" };
 }
 
-/** Um problema por campo (o primeiro) e uma frase por mensagem. */
 function semRepetir(problemas: readonly Problema[]): Problema[] {
   const vistos = new Set<string>();
   return problemas.filter((p) => {

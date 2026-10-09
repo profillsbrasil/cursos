@@ -48,10 +48,6 @@ export function mmss(seg: number) {
 const MM_SS = /^(\d+):([0-5]\d)$/;
 const H_MM_SS = /^(\d+):([0-5]\d):([0-5]\d)$/;
 
-/**
- * O que o admin digita na duração da aula: "mm:ss" (os minutos passam de 59) ou
- * "h:mm:ss". null quando não é duração ou é zero; o teto é do documento do curso.
- */
 export function duracaoDoTexto(texto: string): number | null {
   const s = texto.trim();
   const curta = MM_SS.exec(s);

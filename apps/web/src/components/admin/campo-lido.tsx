@@ -20,7 +20,6 @@ import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { CAMPO, ROTULO } from "./partes";
 import type { Leitura } from "./rascunho-do-curso";
 
-/** Campo de texto do editor: rótulo, input, ajuda opcional e o erro do salvar. */
 export function CampoDeTexto({
   ajuda,
   campoClasse,
@@ -61,11 +60,6 @@ export function CampoDeTexto({
   );
 }
 
-/**
- * Campo de texto que vira outro tipo (duração, vídeo, número, preço). O texto
- * mora no rascunho; aqui só se decide quando mostrar o erro da leitura: depois
- * que a pessoa sai do campo, ou quando o salvar marca o campo.
- */
 export function CampoLido<T>({
   aoMudar,
   aoSair,

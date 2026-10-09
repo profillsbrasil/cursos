@@ -19,7 +19,6 @@ function erroDoServidor(
   });
 }
 
-/** O que o cliente tRPC lança quando o fetch nem chega ao servidor: sem data. */
 const erroDeRede = () => TRPCClientError.from(new TypeError("Failed to fetch"));
 
 /** Roda a ação com efeitos falsos e devolve, em ordem, tudo o que ela fez. */

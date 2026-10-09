@@ -29,7 +29,6 @@ const exemplo = () => rascunhoDoCurso(documentoDeExemplo());
 const aplicar = (r: RascunhoDoCurso, ...mudancas: Mudanca[]) =>
   mudancas.reduce(mudar, r);
 
-/** O que o aluno vê: número e título de cada módulo, com as aulas em ordem. */
 const ordem = (r: RascunhoDoCurso) =>
   r.modulos.map((m) => [m.numero, m.titulo, m.aulas.map((a) => a.titulo)]);
 
