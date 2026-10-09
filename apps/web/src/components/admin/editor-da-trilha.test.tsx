@@ -3,6 +3,7 @@ import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import {
   type EdicaoDaTrilha,
   edicaoDeTrilhaNova,
+  TRILHA_EM_USO,
 } from "@cursos/api/dominio/edicao-da-trilha";
 import type { CursoId, TrilhaId, Versao } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -18,7 +19,7 @@ mock.module("next/navigation", () => ({
   }),
 }));
 
-const { EditorDaTrilha } = await import("./editor-da-trilha");
+const { AvisoDePerda, EditorDaTrilha } = await import("./editor-da-trilha");
 
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
@@ -83,17 +84,16 @@ describe("editor da trilha", () => {
     expect(t).not.toContain("Apagar a trilha");
   });
 
-  test("trilha liberada mostra os cursos em ordem, o aviso de quem tem e por que não se apaga", () => {
+  test("trilha liberada mostra os cursos em ordem e a frase da recusa de apagar", () => {
     const html = renderToStaticMarkup(
       <EditorDaTrilha cursos={CURSOS} edicao={existente(3, false)} />
     );
     const t = texto(html);
     expect(t).toContain("1 1º: Segurança do posto");
     expect(t).toContain("2 2º: Envasadora Em produção");
-    expect(t).toContain(
-      "3 pessoas têm esta trilha liberada, e a mudança vale na hora."
-    );
-    expect(t).toContain("não se apaga");
+    expect(t).toContain(TRILHA_EM_USO);
+    expect(t).toContain("Tudo salvo.");
+    expect(t).not.toContain("esta trilha liberada");
     expect(
       [
         "Subir Segurança do posto",
@@ -112,5 +112,62 @@ describe("editor da trilha", () => {
     );
     expect(t).not.toContain("esta trilha liberada");
     expect(t).toContain("Apagar a trilha Apagar");
+  });
+});
+
+describe("aviso de quem tem a trilha", () => {
+  const SPAN = /<\/?span[^>]*>/g;
+  const aviso = (props: Parameters<typeof AvisoDePerda>[0]) =>
+    texto(
+      renderToStaticMarkup(<AvisoDePerda {...props} />).replace(SPAN, "")
+    ).trim();
+  const ENVASADORA = {
+    cursoId: "c2" as CursoId,
+    pessoas: 2,
+    titulo: "Envasadora",
+  };
+  const SEGURANCA = {
+    cursoId: "c1" as CursoId,
+    pessoas: 0,
+    titulo: "Segurança do posto",
+  };
+
+  test("sem mudança no rascunho, ou sem ninguém com a trilha, não aparece", () => {
+    expect(aviso({ alunos: 3, perdas: [ENVASADORA], sujo: false })).toBe("");
+    expect(aviso({ alunos: 0, perdas: [ENVASADORA], sujo: true })).toBe("");
+  });
+
+  test("inserir e reordenar mantêm a frase de hoje: curso começado continua aberto", () => {
+    expect(aviso({ alunos: 3, perdas: [], sujo: true })).toBe(
+      "3 pessoas têm esta trilha liberada, e a mudança vale na hora. Curso que alguém já começou continua aberto."
+    );
+  });
+
+  test("curso tirado: uma linha por curso, com quem perde na hora e quantos começaram", () => {
+    const t = aviso({
+      alunos: 3,
+      perdas: [ENVASADORA, SEGURANCA],
+      sujo: true,
+    });
+    expect(t).toContain(
+      "3 pessoas têm esta trilha liberada, e a mudança vale na hora."
+    );
+    expect(t).toContain(
+      "Envasadora: quem só tinha a trilha perde o curso na hora. 2 pessoas já tinham começado."
+    );
+    expect(t).toContain(
+      "Segurança do posto: quem só tinha a trilha perde o curso na hora. Ninguém tinha começado."
+    );
+    expect(t).not.toContain("continua aberto");
+  });
+
+  test("uma pessoa fala no singular", () => {
+    expect(
+      aviso({
+        alunos: 1,
+        perdas: [{ ...ENVASADORA, pessoas: 1 }],
+        sujo: true,
+      })
+    ).toContain("1 pessoa já tinha começado.");
   });
 });

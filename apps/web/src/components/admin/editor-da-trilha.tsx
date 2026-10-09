@@ -51,6 +51,8 @@ import {
   type MudancaDaTrilha,
   mesmoRascunho,
   mudarTrilha,
+  type Perda,
+  perdas,
   problemasNaTela,
   type RascunhoDaTrilha,
   rascunhoDaTrilha,
@@ -128,20 +130,50 @@ function DadosDaTrilha({
   );
 }
 
-function AvisoDeQuemTem({ alunos }: { alunos: number }) {
-  if (alunos === 0) {
+const quemComecou = (pessoas: number) =>
+  pessoas === 0
+    ? "Ninguém tinha começado."
+    : `${plural(pessoas, "pessoa já tinha começado", "pessoas já tinham começado")}.`;
+
+/**
+ * Inserir e reordenar não fecham curso começado. Tirar fecha: quem só tinha a
+ * trilha perde o curso na hora, e o número vem do servidor na abertura.
+ */
+export function AvisoDePerda({
+  alunos,
+  perdas: tirados,
+  sujo,
+}: {
+  alunos: number;
+  perdas: readonly Perda[];
+  sujo: boolean;
+}) {
+  if (alunos === 0 || !sujo) {
     return null;
   }
+  const quemTem = `${plural(alunos, "pessoa tem", "pessoas têm")} esta trilha liberada, e a mudança vale na hora.`;
   return (
     <div className={AVISO} role="status">
       <TriangleAlert
         aria-hidden="true"
         className="mt-0.5 size-4 shrink-0 text-sol"
       />
-      <p>
-        {plural(alunos, "pessoa tem", "pessoas têm")} esta trilha liberada, e a
-        mudança vale na hora. Curso que alguém já começou continua aberto.
-      </p>
+      {tirados.length === 0 ? (
+        <p>{quemTem} Curso que alguém já começou continua aberto.</p>
+      ) : (
+        <div className="grid gap-2">
+          <p>{quemTem}</p>
+          <ul className="grid gap-1.5">
+            {tirados.map((p) => (
+              <li key={p.cursoId}>
+                <span className="font-semibold">{p.titulo}</span>: quem só tinha
+                a trilha perde o curso na hora.{" "}
+                <span className="tabular-nums">{quemComecou(p.pessoas)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -364,7 +396,16 @@ export function EditorDaTrilha({
             sujo={sujo}
             versaoMudou={versaoMudou || apoio.versaoDeFora}
           >
-            <AvisoDeQuemTem alunos={edicao.uso.alunosComATrilha} />
+            <AvisoDePerda
+              alunos={edicao.uso.alunosComATrilha}
+              perdas={perdas({
+                catalogo: cursos,
+                rascunho,
+                salvo: apoio.base.cursos,
+                uso: edicao.uso,
+              })}
+              sujo={sujo}
+            />
           </BarraDeSalvar>
         </form>
       </ErrosDoEditor>

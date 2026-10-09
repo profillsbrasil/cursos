@@ -15,12 +15,71 @@ import {
   type MudancaDaTrilha,
   mesmoRascunho,
   mudarTrilha,
+  perdas,
   problemasNaTela,
   type RascunhoDaTrilha,
   rascunhoDaTrilha,
   textoDaBusca,
 } from "./estado-da-trilha";
 import { fraseDeReserva } from "./problemas";
+
+const curso = (n: number) => uuidDeExemplo(100 + n) as CursoId;
+const [A, B, C, D] = [curso(1), curso(2), curso(3), curso(4)];
+const TRILHA = uuidDeExemplo(900) as TrilhaId;
+const OUTRA = uuidDeExemplo(901) as TrilhaId;
+
+describe("perdas", () => {
+  const [E, F, G] = [curso(201), curso(202), curso(203)];
+  const catalogo: CursoNaVisao[] = [
+    {
+      aulas: 1,
+      id: E,
+      precoTroca: null,
+      status: "publicado",
+      titulo: "Envasadora",
+      trilha: null,
+    },
+    {
+      aulas: 1,
+      id: F,
+      precoTroca: null,
+      status: "publicado",
+      titulo: "Fardos",
+      trilha: null,
+    },
+  ];
+  const uso = {
+    comecaramSoPelaTrilha: [
+      { cursoId: E, pessoas: 2 },
+      { cursoId: F, pessoas: 0 },
+    ],
+  };
+  const de = (cursos: CursoId[], salvo: CursoId[] = [E, F, G]) =>
+    perdas({
+      catalogo,
+      rascunho: { cursos, descricao: "", slug: "", titulo: "" },
+      salvo,
+      uso,
+    });
+
+  test("só os tirados, na ordem salva, com o número do servidor", () => {
+    expect(de([F])).toEqual([
+      { cursoId: E, pessoas: 2, titulo: "Envasadora" },
+      { cursoId: G, pessoas: 0, titulo: "Curso apagado do catálogo" },
+    ]);
+  });
+
+  test("reordenar e acrescentar não são perda", () => {
+    expect(de([G, F, E])).toEqual([]);
+    expect(de([E, F, G, curso(9)])).toEqual([]);
+  });
+
+  test("curso sem número do servidor conta zero", () => {
+    expect(de([], [curso(8)])).toEqual([
+      { cursoId: curso(8), pessoas: 0, titulo: "Curso apagado do catálogo" },
+    ]);
+  });
+});
 
 describe("textoDaBusca", () => {
   test("escolher um curso da lista limpa a busca, em vez de guardar o título", () => {
@@ -32,11 +91,6 @@ describe("textoDaBusca", () => {
     expect(textoDaBusca("", "input-clear")).toBe("");
   });
 });
-
-const curso = (n: number) => uuidDeExemplo(100 + n) as CursoId;
-const [A, B, C, D] = [curso(1), curso(2), curso(3), curso(4)];
-const TRILHA = uuidDeExemplo(900) as TrilhaId;
-const OUTRA = uuidDeExemplo(901) as TrilhaId;
 
 const documento = (o: Partial<DocumentoDaTrilha> = {}): DocumentoDaTrilha => ({
   cursos: [A, B, C],

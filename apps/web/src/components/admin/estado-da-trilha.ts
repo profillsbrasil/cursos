@@ -6,6 +6,7 @@ import {
   type DocumentoDaTrilha,
   documentoDaTrilha,
   LIMITES_DA_TRILHA,
+  type UsoDaTrilha,
 } from "@cursos/api/dominio/edicao-da-trilha";
 import type { CursoId, TrilhaId } from "@cursos/api/dominio/tipos";
 import type { Combobox } from "@cursos/ui/components/combobox";
@@ -147,6 +148,41 @@ export const candidatos = (
       !r.cursos.includes(c.id) &&
       (c.trilha === null || c.trilha.id === trilhaId)
   );
+
+export interface Perda {
+  cursoId: CursoId;
+  /** Quem começou o curso só pela trilha, contado na abertura da página. */
+  pessoas: number;
+  titulo: string;
+}
+
+/**
+ * Os cursos que saem neste salvamento, na ordem da lista salva. Reordenar e
+ * acrescentar não são perda. Quem só tinha a trilha perde o curso na hora.
+ */
+export function perdas({
+  catalogo,
+  rascunho,
+  salvo,
+  uso,
+}: {
+  catalogo: readonly CursoNaVisao[];
+  rascunho: RascunhoDaTrilha;
+  salvo: readonly CursoId[];
+  uso: Pick<UsoDaTrilha, "comecaramSoPelaTrilha">;
+}): Perda[] {
+  return salvo
+    .filter((id) => !rascunho.cursos.includes(id))
+    .map((cursoId) => ({
+      cursoId,
+      pessoas:
+        uso.comecaramSoPelaTrilha.find((p) => p.cursoId === cursoId)?.pessoas ??
+        0,
+      titulo:
+        catalogo.find((c) => c.id === cursoId)?.titulo ??
+        "Curso apagado do catálogo",
+    }));
+}
 
 export type MotivoDaBusca = Parameters<
   NonNullable<ComponentProps<typeof Combobox>["onInputValueChange"]>
