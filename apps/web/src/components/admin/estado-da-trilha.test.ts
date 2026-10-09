@@ -168,13 +168,21 @@ describe("mover pelo id", () => {
 describe("acrescentar e tirar", () => {
   test("acrescentar põe no fim", () => {
     expect(
-      ativos(mudarTrilha(rascunho(), { id: D, tipo: "curso_acrescentado" }))
+      ativos(
+        mudarTrilha(rascunho(), {
+          id: D,
+          salvo: false,
+          tipo: "curso_acrescentado",
+        })
+      )
     ).toEqual([A, B, C, D]);
   });
 
   test("curso que já está na lista não entra de novo", () => {
     const r = rascunho();
-    expect(mudarTrilha(r, { id: B, tipo: "curso_acrescentado" })).toBe(r);
+    expect(
+      mudarTrilha(r, { id: B, salvo: true, tipo: "curso_acrescentado" })
+    ).toBe(r);
   });
 
   test("a lista para no teto de cursos por trilha", () => {
@@ -183,9 +191,9 @@ describe("acrescentar e tirar", () => {
         curso(10 + i)
       ),
     });
-    expect(mudarTrilha(cheia, { id: D, tipo: "curso_acrescentado" })).toBe(
-      cheia
-    );
+    expect(
+      mudarTrilha(cheia, { id: D, salvo: false, tipo: "curso_acrescentado" })
+    ).toBe(cheia);
   });
 
   test("tirar tira só o curso pedido; id ausente não muda nada", () => {
@@ -370,7 +378,7 @@ describe("linha riscada e Desfazer", () => {
   test("curso que entrou e saiu neste rascunho não vira linha riscada", () => {
     const novo = curso(9);
     const r = de(
-      { id: novo, tipo: "curso_acrescentado" },
+      { id: novo, salvo: false, tipo: "curso_acrescentado" },
       { id: novo, tipo: "curso_tirado" }
     );
     expect(linhas(r)).toEqual([`1:${A}`, `2:${B}`, `3:${C}`, `4:${D}`]);
@@ -379,13 +387,33 @@ describe("linha riscada e Desfazer", () => {
   test("acrescentar pela busca um curso riscado o devolve ao lugar dele, como o Desfazer", () => {
     const r = de(
       { id: B, tipo: "curso_tirado" },
-      { id: B, tipo: "curso_acrescentado" }
+      { id: B, salvo: true, tipo: "curso_acrescentado" }
     );
     expect(r.lista.filter((c) => c.id === B)).toEqual([
       { id: B, tirado: false },
     ]);
     expect(linhas(r)).toEqual([`1:${A}`, `2:${B}`, `3:${C}`, `4:${D}`]);
     expect(mesmoRascunho(r, rascunho({ cursos: SALVO }))).toBe(true);
+  });
+
+  test("curso que nunca foi salvo, tirado e acrescentado de novo, vai para o fim", () => {
+    const [X, Y] = [curso(11), curso(12)];
+    const salvo = [A];
+    const mudancas: MudancaDaTrilha[] = [
+      { id: X, salvo: false, tipo: "curso_acrescentado" },
+      { id: Y, salvo: false, tipo: "curso_acrescentado" },
+      { id: X, tipo: "curso_tirado" },
+      { id: X, salvo: false, tipo: "curso_acrescentado" },
+    ];
+    const r = mudancas.reduce(mudarTrilha, rascunho({ cursos: salvo }));
+    expect(
+      linhasDaLista(r, salvo).map((l) =>
+        l.tipo === "curso" ? `${l.posicao}:${l.id}` : `~${l.id}`
+      )
+    ).toEqual([`1:${A}`, `2:${Y}`, `3:${X}`]);
+    expect(r.lista.filter((c) => c.id === X)).toEqual([
+      { id: X, tirado: false },
+    ]);
   });
 });
 

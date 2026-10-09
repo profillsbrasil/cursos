@@ -74,7 +74,7 @@ describe("o rascunho apoiado da trilha", () => {
     const depois = passo(
       enviando,
       {
-        mudanca: { id: D, tipo: "curso_acrescentado" },
+        mudanca: { id: D, salvo: false, tipo: "curso_acrescentado" },
         tipo: "mudou",
       },
       { enviado: enviando.rascunho, gravado, tipo: "salvo" },
