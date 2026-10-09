@@ -410,6 +410,33 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
       { cursoId: b.id, pessoas: 1 },
     ]);
 
+    // A contagem do admin e o painel do aluno são a mesma regra de "começou":
+    // conta quem vê o curso fora de nao_iniciado e bloqueado no painel, entre
+    // os que não têm liberação direta dele.
+    const direta = new Set([`${COM_DIRETA}:${a.id}`]);
+    const pelosPaineis = await Promise.all(
+      [a.id, b.id].map(async (cursoId) => {
+        const contados = await Promise.all(
+          ALUNOS.map(async (userId) => {
+            const painel = await comoAluno(userId).meusCursos.painel();
+            const tipo = painel.trilhas
+              .find((t) => t.id === aberta.documento.id)
+              ?.cursos.find((c) => c.id === cursoId)?.estado.tipo;
+            return (
+              tipo !== undefined &&
+              tipo !== "nao_iniciado" &&
+              tipo !== "bloqueado" &&
+              !direta.has(`${userId}:${cursoId}`)
+            );
+          })
+        );
+        return { cursoId, pessoas: contados.filter(Boolean).length };
+      })
+    );
+    expect(pelosPaineis).toEqual([
+      ...(contada?.uso.comecaramSoPelaTrilha ?? []),
+    ]);
+
     const entra = async (userId: string) =>
       (await comoAluno(userId).aula.entrada({ slug: a.slug })) !== null;
     expect([await entra(SO_TRILHA), await entra(COM_DIRETA)]).toEqual([

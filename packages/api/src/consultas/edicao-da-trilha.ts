@@ -2,13 +2,19 @@
 
 import type { Database } from "@cursos/db";
 import {
+  aula,
+  aulaAssistida,
+  certificado,
   curso,
   liberacao,
+  modulo,
   pontoLancamento,
+  posicaoAula,
   trilha,
   trilhaCurso,
 } from "@cursos/db/schema/index";
 import { eq, inArray, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import {
   type DocumentoDaTrilha,
@@ -27,7 +33,7 @@ import {
 } from "../dominio/plano-da-trilha";
 import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
-import type { Executor, Transacao } from "./comum";
+import { type Executor, liberacaoAtiva, type Transacao } from "./comum";
 import { violacaoDe } from "./erros";
 import { comTrava, travarCursos } from "./trava";
 
@@ -66,7 +72,7 @@ async function contarUso(exec: Executor, id: TrilhaId): Promise<Contagens> {
   } = await exec.execute<Contagens>(sql`
     select
       (select count(distinct ${liberacao.userId})::int from ${liberacao}
-        where ${liberacao.trilhaId} = ${id} and ${liberacao.revogadaEm} is null) as "alunosComATrilha",
+        where ${liberacao.trilhaId} = ${id} and ${liberacaoAtiva(liberacao)}) as "alunosComATrilha",
       (select count(*)::int from ${pontoLancamento} where ${pontoLancamento.trilhaId} = ${id}) as conclusoes,
       (select count(*)::int from ${liberacao} where ${liberacao.trilhaId} = ${id}) as liberacoes`);
   return {
@@ -80,8 +86,10 @@ async function contarUso(exec: Executor, id: TrilhaId): Promise<Contagens> {
  * UsoDaTrilha.comecaramSoPelaTrilha: um item por curso do documento lido, zero
  * incluído. A lista vem do documento, não de outra leitura de trilha_curso: um
  * salvar que comita entre as duas leituras não desencontra os cursos.
- * "Começou" é a regra do painel (aula assistida ou posição acima de 0 s), mais o
- * certificado; "só pela trilha" é não ter liberação ativa do próprio curso.
+ * "Começou" é a regra de estadoDoCurso no painel (aula assistida ou posição
+ * acima de 0 s), mais o certificado; o teste de integração confere esta conta
+ * contra meusCursos.painel. "Só pela trilha" é não ter liberação ativa do
+ * próprio curso.
  */
 async function comecaramSoPelaTrilha(
   db: Database,
@@ -90,29 +98,34 @@ async function comecaramSoPelaTrilha(
   if (cursos.length === 0) {
     return [];
   }
+  const l = alias(liberacao, "l");
+  const d = alias(liberacao, "d");
   const { rows } = await db.execute<{ cursoId: string; pessoas: number }>(sql`
     select tc.curso_id as "cursoId",
-      (select count(distinct l.user_id)::int from liberacao l
-        where l.trilha_id = ${id} and l.revogada_em is null
+      (select count(distinct ${l.userId})::int from ${liberacao} as ${sql.identifier("l")}
+        where ${l.trilhaId} = ${id} and ${liberacaoAtiva(l)}
           and not exists (
-            select 1 from liberacao d
-            where d.user_id = l.user_id and d.curso_id = tc.curso_id
-              and d.revogada_em is null)
+            select 1 from ${liberacao} as ${sql.identifier("d")}
+            where ${d.userId} = ${l.userId} and ${d.cursoId} = tc.curso_id
+              and ${liberacaoAtiva(d)})
           and (
             exists (
-              select 1 from certificado c
-              where c.user_id = l.user_id and c.curso_id = tc.curso_id)
+              select 1 from ${certificado}
+              where ${certificado.userId} = ${l.userId}
+                and ${certificado.cursoId} = tc.curso_id)
             or exists (
-              select 1 from aula a join modulo m on m.id = a.modulo_id
-              where m.curso_id = tc.curso_id
+              select 1 from ${aula} join ${modulo} on ${modulo.id} = ${aula.moduloId}
+              where ${modulo.cursoId} = tc.curso_id
                 and (
                   exists (
-                    select 1 from aula_assistida aa
-                    where aa.user_id = l.user_id and aa.aula_id = a.id)
+                    select 1 from ${aulaAssistida}
+                    where ${aulaAssistida.userId} = ${l.userId}
+                      and ${aulaAssistida.aulaId} = ${aula.id})
                   or exists (
-                    select 1 from posicao_aula p
-                    where p.user_id = l.user_id and p.aula_id = a.id
-                      and p.posicao_seg > 0))))) as pessoas
+                    select 1 from ${posicaoAula}
+                    where ${posicaoAula.userId} = ${l.userId}
+                      and ${posicaoAula.aulaId} = ${aula.id}
+                      and ${posicaoAula.posicaoSeg} > 0))))) as pessoas
     from unnest(${`{${cursos.join(",")}}`}::uuid[]) with ordinality as tc(curso_id, n)
     order by tc.n`);
   return rows.map((r) => ({
