@@ -1,3 +1,5 @@
+import type { Versao } from "@cursos/api/dominio/tipos";
+
 /** Foca o elemento depois que o React pôs a lista na ordem nova. */
 export const focarDepois = (id: string) =>
   requestAnimationFrame(() => document.getElementById(id)?.focus());
@@ -38,3 +40,55 @@ export function focarOPrimeiro(ids: readonly string[]) {
 
 /** O id de um item novo do rascunho (módulo, aula, curso, trilha). */
 export const novoId = <T extends string>() => crypto.randomUUID() as T;
+
+interface ComVersao {
+  versao: Versao | null;
+}
+
+export interface Apoio<D extends ComVersao> {
+  /** O documento em que o rascunho se apoia; o próximo salvar manda a versão dele. */
+  base: D;
+  /** Os Recarregar que este apoio já atendeu. */
+  descartes: number;
+  /** O último documento que a página entregou. */
+  pagina: D;
+  versaoDeFora: boolean;
+}
+
+export const apoioEm = <D extends ComVersao>(
+  pagina: D,
+  descartes: number
+): Apoio<D> => ({ base: pagina, descartes, pagina, versaoDeFora: false });
+
+export const apoioSalvo = <D extends ComVersao>(
+  apoio: Apoio<D>,
+  salvo: D
+): Apoio<D> => ({ ...apoio, base: salvo, versaoDeFora: false });
+
+export interface Sincronia<D extends ComVersao> {
+  apoio: Apoio<D>;
+  /** O editor joga fora o rascunho e recomeça de `apoio.base`. */
+  recomecar: boolean;
+}
+
+/**
+ * A página entregou um documento, ou o admin clicou Recarregar (`descartes`
+ * maior que o do apoio). O refresh do próprio salvar traz a versão que já é a
+ * da base; versão de fora com o rascunho sujo fica para o Recarregar, porque o
+ * próximo salvar seria recusado com versao_mudou.
+ */
+export function sincronizarComAPagina<D extends ComVersao>(
+  apoio: Apoio<D>,
+  { descartes, limpo, pagina }: { descartes: number; limpo: boolean; pagina: D }
+): Sincronia<D> {
+  if (descartes !== apoio.descartes) {
+    return { apoio: apoioEm(pagina, descartes), recomecar: true };
+  }
+  if (pagina.versao === apoio.base.versao) {
+    return { apoio: { ...apoio, pagina }, recomecar: false };
+  }
+  if (limpo) {
+    return { apoio: apoioEm(pagina, descartes), recomecar: true };
+  }
+  return { apoio: { ...apoio, pagina, versaoDeFora: true }, recomecar: false };
+}

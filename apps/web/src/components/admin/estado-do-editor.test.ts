@@ -5,7 +5,7 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
+import type { AulaId, ModuloId, Versao } from "@cursos/api/dominio/tipos";
 
 import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
 import {
@@ -377,6 +377,16 @@ describe("recusa de valor repetido", () => {
 });
 
 describe("depois de salvar", () => {
+  const V2 = "v2" as Versao;
+
+  const gravado = (r: RascunhoDoCurso) => {
+    const lido = lerRascunho(r);
+    if (lido.tipo !== "lido") {
+      throw new Error("o rascunho devia ler");
+    }
+    return { ...lido.documento, versao: V2 };
+  };
+
   test("o rascunho normalizado pelo servidor deixa de estar sujo", () => {
     const base = exemplo();
     const r = mudar(base, {
@@ -384,38 +394,47 @@ describe("depois de salvar", () => {
       tipo: "campos",
     });
     expect(mesmoRascunho(base, r)).toBe(false);
-    const lido = lerRascunho(r);
-    if (lido.tipo !== "lido") {
-      throw new Error("o rascunho devia ler");
-    }
-    const salvo = mudar(r, {
-      documento: lido.documento,
-      enviado: r,
-      tipo: "salvo",
-    });
-    expect(mesmoRascunho(base, salvo)).toBe(true);
+    const documento = gravado(r);
+    const salvo = mudar(r, { documento, enviado: r, tipo: "salvo" });
+    expect(mesmoRascunho(rascunhoDoCurso(documento), salvo)).toBe(true);
+    expect(salvo.titulo).toBe("Curso");
   });
 
-  test("o que o admin digitou com o salvar pendente fica", () => {
+  test("o que o admin digitou com o salvar pendente fica, na versão nova", () => {
     const enviado = mudar(exemplo(), {
       mudanca: { titulo: "Curso   " },
       tipo: "campos",
     });
-    const lido = lerRascunho(enviado);
-    if (lido.tipo !== "lido") {
-      throw new Error("o rascunho devia ler");
-    }
     const digitado = mudar(enviado, {
       mudanca: { tema: "Outro tema" },
       tipo: "campos",
     });
     const salvo = mudar(digitado, {
-      documento: lido.documento,
+      documento: gravado(enviado),
       enviado,
       tipo: "salvo",
     });
     expect(salvo.tema).toBe("Outro tema");
     expect(salvo.titulo).toBe("Curso   ");
+    expect(salvo.versao).toBe(V2);
+  });
+
+  test("recomeçar troca o rascunho inteiro pelo documento", () => {
+    const outro = {
+      ...documentoDeExemplo(),
+      titulo: "De outra aba",
+      versao: V2,
+    };
+    const sujo = mudar(exemplo(), {
+      mudanca: { tema: "Outro tema" },
+      tipo: "campos",
+    });
+    expect(
+      mesmoRascunho(
+        mudar(sujo, { documento: outro, tipo: "recomecado" }),
+        rascunhoDoCurso(outro)
+      )
+    ).toBe(true);
   });
 });
 

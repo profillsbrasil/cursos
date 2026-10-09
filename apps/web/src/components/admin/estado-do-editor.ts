@@ -48,14 +48,15 @@ export type Mudanca =
   | { tipo: "aula_para_modulo"; id: AulaId; moduloId: ModuloId }
   | { tipo: "aula_removida"; id: AulaId }
   /**
-   * O servidor aceitou `enviado`: o rascunho vira o documento como o servidor o
-   * guarda, se o admin não editou nada enquanto o salvar estava pendente.
+   * O servidor gravou `enviado` como `documento`. O que o admin editou com o
+   * salvar pendente fica, apoiado na versão nova.
    */
   | {
       tipo: "salvo";
       documento: DocumentoDoCurso;
       enviado: RascunhoDoCurso;
-    };
+    }
+  | { tipo: "recomecado"; documento: DocumentoDoCurso };
 
 /** O próximo número de nível; o componente calcula e manda em nivel_novo. */
 export const proximaOrdem = (niveis: RascunhoDoCurso["niveis"]) =>
@@ -231,7 +232,11 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
         : r;
     }
     case "salvo":
-      return mesmoRascunho(r, m.enviado) ? rascunhoDoCurso(m.documento) : r;
+      return mesmoRascunho(r, m.enviado)
+        ? rascunhoDoCurso(m.documento)
+        : { ...r, versao: m.documento.versao };
+    case "recomecado":
+      return rascunhoDoCurso(m.documento);
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);

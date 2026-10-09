@@ -24,11 +24,8 @@ interface Efeitos {
 }
 
 /**
- * O corpo do useAcao, sem React. A página recarrega no fim do sucesso e da
- * recusa do servidor, porque a recusa costuma dizer que a tela ficou velha.
- * Duas falhas não recarregam: versao_mudou, porque a página remontaria o editor
- * pela versão nova e o rascunho sumiria; e o erro de rede, porque o refresh sem
- * servidor cai em navegação de página inteira, que também perde o rascunho.
+ * O erro de rede não recarrega: router.refresh sem resposta do servidor vira
+ * navegação de página inteira, que perde o rascunho.
  */
 export async function rodarAcao<T>(
   fazer: () => Promise<T>,

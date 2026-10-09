@@ -31,12 +31,5 @@ export default async function Curso({
   if (!edicao) {
     notFound();
   }
-  // A versão muda a cada salvamento: o refresh que vem depois remonta o editor
-  // com o documento do banco, sem reconciliar o rascunho.
-  return (
-    <EditorDoCurso
-      edicao={edicao}
-      key={edicao.documento.versao ?? edicao.documento.id}
-    />
-  );
+  return <EditorDoCurso edicao={edicao} key={edicao.documento.id} />;
 }

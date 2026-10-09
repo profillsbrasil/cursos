@@ -18,10 +18,7 @@ export interface TelaDepoisDeSalvar {
   versaoMudou: boolean;
 }
 
-/**
- * O que o editor mostra depois de salvar. O resto vem do refresh do useAcao: no
- * sucesso, a página remonta o editor pela versão nova.
- */
+/** O que o editor mostra depois de salvar. */
 export function telaDepoisDeSalvar(
   desfecho: Desfecho,
   { caminho, novo }: { caminho: Route; novo: boolean }
@@ -43,8 +40,9 @@ export interface OpcoesDeSalvar<T> {
 }
 
 export interface SalvarDocumento {
+  /** Quantas vezes o admin clicou Recarregar; o editor descarta o rascunho a cada uma. */
+  descartes: number;
   pendente: boolean;
-  /** Descarta o rascunho: a página volta com a versão do banco. */
   recarregar: () => void;
   salvar: <T>(fazer: () => Promise<T>, opcoes: OpcoesDeSalvar<T>) => void;
   versaoMudou: boolean;
@@ -94,15 +92,19 @@ export function useSalvarDocumento({
     [executar, mostrar]
   );
 
-  const recarregar = useCallback(() => router.refresh(), [router]);
+  const [descartes, setDescartes] = useState(0);
+  const recarregar = useCallback(() => {
+    setVersaoMudou(false);
+    setDescartes((n) => n + 1);
+    router.refresh();
+  }, [router]);
 
-  return { pendente, recarregar, salvar, versaoMudou };
+  return { descartes, pendente, recarregar, salvar, versaoMudou };
 }
 
 /**
- * O título da página com foco quando o editor monta sem foco em lugar nenhum:
- * depois de salvar, a key por versão remonta o editor, o botão Salvar sai do
- * DOM e o foco cairia no <body>. O h1 precisa de tabIndex={-1}.
+ * Na navegação do App Router, o link clicado sai do DOM e o foco cai no
+ * <body>; o editor que abre assim põe o foco no título.
  */
 export function useTituloComFoco<T extends HTMLElement>() {
   const titulo = useRef<T>(null);

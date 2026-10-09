@@ -35,7 +35,14 @@ import {
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { focarDepois, focarOPrimeiro, novoId } from "@/lib/editor";
+import {
+  apoioEm,
+  apoioSalvo,
+  focarDepois,
+  focarOPrimeiro,
+  novoId,
+  sincronizarComAPagina,
+} from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { useGuardaDeSaida } from "@/lib/use-guarda-de-saida";
@@ -508,16 +515,14 @@ const SEM_CAPA: Problema = {
   mensagem: "Escolha a imagem da capa.",
 };
 
-/**
- * O curso inteiro num formulário, salvo de uma vez com a capa. O rascunho vive
- * no reducer; a página remonta o editor pela versão depois de salvar.
- */
 export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
-  const novo = edicao.documento.versao === null;
-  const { pendente, recarregar, salvar, versaoMudou } = useSalvarDocumento({
-    caminho: `/admin/catalogo/cursos/${edicao.documento.id}` as Route,
-    novo,
-  });
+  const [apoio, setApoio] = useState(() => apoioEm(edicao.documento, 0));
+  const novo = apoio.base.versao === null;
+  const { descartes, pendente, recarregar, salvar, versaoMudou } =
+    useSalvarDocumento({
+      caminho: `/admin/catalogo/cursos/${edicao.documento.id}` as Route,
+      novo,
+    });
   const titulo = useTituloComFoco<HTMLHeadingElement>();
   const [rascunho, despachar] = useReducer(
     mudar,
@@ -544,7 +549,19 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
   const sujo =
     capa.arquivo !== null ||
-    !mesmoRascunho(rascunhoDoCurso(edicao.documento), rascunho);
+    !mesmoRascunho(rascunhoDoCurso(apoio.base), rascunho);
+  if (edicao.documento !== apoio.pagina || descartes !== apoio.descartes) {
+    const s = sincronizarComAPagina(apoio, {
+      descartes,
+      limpo: !sujo,
+      pagina: edicao.documento,
+    });
+    setApoio(s.apoio);
+    if (s.recomecar) {
+      despachar({ documento: s.apoio.base, tipo: "recomecado" });
+      setCapa((atual) => ({ arquivo: null, montagem: atual.montagem + 1 }));
+    }
+  }
   useGuardaDeSaida(sujo);
 
   const semCapa = novo && capa.arquivo === null ? [SEM_CAPA] : [];
@@ -595,15 +612,10 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
               document.getElementById(ID.curso(r.campo))?.focus();
             }
           },
-          // O servidor pode ter normalizado sem mudar a versão (nada_mudou): o
-          // editor não remonta, e o rascunho precisa virar o que foi gravado.
-          // O que o admin mudou com o salvar pendente fica no rascunho.
-          aoSalvar: () => {
-            despachar({
-              documento: lido.documento,
-              enviado: rascunho,
-              tipo: "salvo",
-            });
+          aoSalvar: ({ versao }) => {
+            const gravado = { ...lido.documento, versao };
+            setApoio((atual) => apoioSalvo(atual, gravado));
+            despachar({ documento: gravado, enviado: rascunho, tipo: "salvo" });
             setCapa((atual) =>
               atual.arquivo === enviada
                 ? { arquivo: null, montagem: atual.montagem + 1 }
@@ -622,6 +634,12 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     despachar({ id, tipo: "modulo_novo" });
     focarDepois(ID.modulo(id, "titulo"));
   }, []);
+
+  // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
+  const descartar = useCallback(() => {
+    recarregar();
+    titulo.current?.focus({ preventScroll: true });
+  }, [recarregar, titulo]);
 
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
   const duracao = rascunho.modulos.reduce(
@@ -668,7 +686,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
             despachar={despachar}
             mudarTexto={mudarTexto}
             rascunho={rascunho}
-            slugSalvo={novo ? null : edicao.documento.slug}
+            slugSalvo={novo ? null : apoio.base.slug}
           />
         </Secao>
 
@@ -736,8 +754,8 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
         )}
 
         <div className="sticky bottom-3 z-10 grid gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
-          {versaoMudou ? (
-            <AvisoDeVersaoMudou oQue="este curso" recarregar={recarregar} />
+          {versaoMudou || apoio.versaoDeFora ? (
+            <AvisoDeVersaoMudou oQue="este curso" recarregar={descartar} />
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div aria-live="polite" className="min-w-0 flex-1 text-sm">
