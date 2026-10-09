@@ -35,7 +35,7 @@ import {
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { focarDepois, novoId } from "@/lib/editor";
+import { focarDepois, focarOPrimeiro, novoId } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { useGuardaDeSaida } from "@/lib/use-guarda-de-saida";
@@ -570,10 +570,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
       ];
       if (lido.tipo === "problemas" || achados.length > 0) {
         setTentou(true);
-        const primeiro = achados.find((p) => p.campo !== null)?.campo;
-        if (primeiro) {
-          document.getElementById(primeiro)?.focus();
-        }
+        focarOPrimeiro(achados.flatMap((p) => (p.campo ? [p.campo] : [])));
         return;
       }
       setTentou(false);
