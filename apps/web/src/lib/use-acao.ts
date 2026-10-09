@@ -1,6 +1,8 @@
 "use client";
 
-import { TRPCClientError } from "@trpc/client";
+import type { Motivo } from "@cursos/api";
+import type { AppRouter } from "@cursos/api/routers/index";
+import { isTRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -8,14 +10,11 @@ import { toast } from "sonner";
 const ERRO_GENERICO = "Não deu para salvar. Tente de novo em instantes.";
 
 export interface OpcoesDaAcao<T> {
+  /** Recebe o motivo da recusa, para a tela marcar um campo ou o aviso. */
+  aoRecusar?: (motivo: Motivo | null) => void;
   depois?: (resultado: T) => void;
   /** Texto do toast quando o erro não traz mensagem escrita para a pessoa. */
   erro?: string;
-  /**
-   * Quem passa naRecusa decide o que a tela faz com a recusa, e a página não
-   * recarrega: o editor do curso não pode perder o que o admin digitou.
-   */
-  naRecusa?: (erro: unknown) => void;
   sucesso?: string | ((resultado: T) => string);
 }
 
@@ -24,16 +23,12 @@ interface Efeitos {
   toast: { error: (texto: string) => void; success: (texto: string) => void };
 }
 
-/** Só ErroParaAPessoa, no servidor, chega com essa marca (errorFormatter). */
-const paraAPessoa = (e: unknown): string | null =>
-  e instanceof TRPCClientError && e.data?.paraAPessoa === true
-    ? e.message
-    : null;
-
 /**
- * O corpo do useAcao, sem React. A página recarrega os dados do servidor no
- * fim, com sucesso ou recusa, porque a recusa costuma dizer que a tela ficou velha.
- * A exceção é a recusa com naRecusa.
+ * O corpo do useAcao, sem React. A página recarrega no fim do sucesso e da
+ * recusa do servidor, porque a recusa costuma dizer que a tela ficou velha.
+ * Duas falhas não recarregam: versao_mudou, porque a página remontaria o editor
+ * pela versão nova e o rascunho sumiria; e o erro de rede, porque o refresh sem
+ * servidor cai em navegação de página inteira, que também perde o rascunho.
  */
 export async function rodarAcao<T>(
   fazer: () => Promise<T>,
@@ -49,9 +44,18 @@ export async function rodarAcao<T>(
     }
     opcoes.depois?.(r);
   } catch (e) {
-    efeitos.toast.error(paraAPessoa(e) ?? opcoes.erro ?? ERRO_GENERICO);
-    if (opcoes.naRecusa) {
-      opcoes.naRecusa(e);
+    // Erro de rede chega sem data: o servidor não respondeu.
+    const recusa =
+      isTRPCClientError<AppRouter>(e) && e.data
+        ? { ...e.data, mensagem: e.message }
+        : null;
+    // Só ErroParaAPessoa, no servidor, chega com essa marca (errorFormatter).
+    efeitos.toast.error(
+      recusa?.paraAPessoa ? recusa.mensagem : (opcoes.erro ?? ERRO_GENERICO)
+    );
+    const motivo = recusa?.motivo ?? null;
+    opcoes.aoRecusar?.(motivo);
+    if (recusa === null || motivo === "versao_mudou") {
       return;
     }
   }

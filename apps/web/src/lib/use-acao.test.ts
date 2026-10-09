@@ -6,13 +6,21 @@ import { Glob } from "bun";
 
 import { type OpcoesDaAcao, rodarAcao } from "./use-acao";
 
-function erroDoServidor(code: string, message: string, paraAPessoa: boolean) {
+function erroDoServidor(
+  code: string,
+  message: string,
+  paraAPessoa: boolean,
+  motivo: string | null = null
+) {
   return new TRPCClientError(message, {
     result: {
-      error: { code: -32_000, data: { code, paraAPessoa }, message },
+      error: { code: -32_000, data: { code, motivo, paraAPessoa }, message },
     },
   });
 }
+
+/** O que o cliente tRPC lança quando o fetch nem chega ao servidor: sem data. */
+const erroDeRede = () => TRPCClientError.from(new TypeError("Failed to fetch"));
 
 /** Roda a ação com efeitos falsos e devolve, em ordem, tudo o que ela fez. */
 async function rodar<T>(fazer: () => Promise<T>, opcoes: OpcoesDaAcao<T>) {
@@ -78,24 +86,47 @@ describe("rodarAcao", () => {
     ).toEqual(["erro:Confira o saldo.", "atualizar"]);
   });
 
-  test("com naRecusa, a recusa mostra o toast, entrega o erro e não recarrega", async () => {
-    const recusa = erroDoServidor("CONFLICT", "Outra pessoa salvou.", true);
-    const recebidos: unknown[] = [];
+  test("a recusa do servidor entrega o motivo e recarrega", async () => {
+    const recusa = erroDoServidor(
+      "CONFLICT",
+      "Já existe um curso com este endereço.",
+      true,
+      "slug_repetido"
+    );
+    const motivos: unknown[] = [];
     expect(
       await rodar(() => Promise.reject(recusa), {
-        naRecusa: (e) => recebidos.push(e),
+        aoRecusar: (m) => motivos.push(m),
       })
-    ).toEqual(["erro:Outra pessoa salvou."]);
-    expect(recebidos).toEqual([recusa]);
+    ).toEqual(["erro:Já existe um curso com este endereço.", "atualizar"]);
+    expect(motivos).toEqual(["slug_repetido"]);
   });
 
-  test("com naRecusa, o sucesso ainda recarrega", async () => {
+  test("em versao_mudou não recarrega: o rascunho fica na tela", async () => {
+    const recusa = erroDoServidor(
+      "CONFLICT",
+      "Outra pessoa salvou.",
+      true,
+      "versao_mudou"
+    );
+    const motivos: unknown[] = [];
     expect(
-      await rodar(() => Promise.resolve("ok"), {
-        naRecusa: () => undefined,
-        sucesso: "Curso salvo.",
+      await rodar(() => Promise.reject(recusa), {
+        aoRecusar: (m) => motivos.push(m),
       })
-    ).toEqual(["sucesso:Curso salvo.", "depois:ok", "atualizar"]);
+    ).toEqual(["erro:Outra pessoa salvou."]);
+    expect(motivos).toEqual(["versao_mudou"]);
+  });
+
+  test("erro de rede não recarrega e chega sem motivo", async () => {
+    const motivos: unknown[] = [];
+    const feitos = await Promise.all(
+      [erroDeRede(), new Error("Failed to fetch")].map((e) =>
+        rodar(() => Promise.reject(e), { aoRecusar: (m) => motivos.push(m) })
+      )
+    );
+    expect(feitos).toEqual([[GENERICO], [GENERICO]]);
+    expect(motivos).toEqual([null, null]);
   });
 });
 

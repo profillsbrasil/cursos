@@ -21,7 +21,6 @@ import {
 } from "@cursos/ui/components/native-select";
 import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
-import { TRPCClientError } from "@trpc/client";
 import { ArrowLeft, Plus, Trash2, TriangleAlert } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -366,9 +365,6 @@ function Niveis({
   );
 }
 
-const motivoDe = (e: unknown) =>
-  e instanceof TRPCClientError ? (e.data?.motivo ?? null) : null;
-
 /** O zod só chega aqui com o que o formulário não confere sozinho. */
 function problemasDe(documento: DocumentoDoCurso): string[] {
   const lido = documentoDoCurso.safeParse(documento);
@@ -555,12 +551,12 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
             formularioDoCurso(documento, capa)
           ),
         {
+          aoRecusar: (motivo) => setConflito(motivo === "versao_mudou"),
           depois: () => {
             if (novo) {
               router.replace(`/admin/catalogo/cursos/${documento.id}` as Route);
             }
           },
-          naRecusa: (erro) => setConflito(motivoDe(erro) === "versao_mudou"),
           sucesso: "Curso salvo.",
         }
       );
