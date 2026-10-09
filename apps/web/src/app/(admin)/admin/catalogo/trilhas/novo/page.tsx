@@ -1,6 +1,8 @@
+import type { TrilhaId } from "@cursos/api/dominio/tipos";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 
+import { novoId } from "@/lib/editor";
 import { exigirAdmin } from "@/server/api";
 
 /**
@@ -9,5 +11,5 @@ import { exigirAdmin } from "@/server/api";
  */
 export default async function NovaTrilha() {
   await exigirAdmin();
-  redirect(`/admin/catalogo/trilhas/${crypto.randomUUID()}?novo=1` as Route);
+  redirect(`/admin/catalogo/trilhas/${novoId<TrilhaId>()}?novo=1` as Route);
 }

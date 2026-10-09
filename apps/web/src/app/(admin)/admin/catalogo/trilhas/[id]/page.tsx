@@ -4,27 +4,27 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { EditorDaTrilha } from "@/components/admin/editor-da-trilha";
+import { abrirOuRascunho } from "@/lib/abrir-ou-rascunho";
 import { carregarCatalogo, carregarTrilha } from "@/server/api";
 
 export const metadata: Metadata = { title: "Trilha · Admin" };
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function Trilha({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ novo?: string }>;
+  searchParams: Promise<{ novo?: string | string[] }>;
 }) {
   const [{ id }, { novo }] = await Promise.all([params, searchParams]);
-  if (!UUID.test(id)) {
-    notFound();
-  }
   const [edicao, catalogo] = await Promise.all([
-    novo === "1"
-      ? edicaoDeTrilhaNova(id.toLowerCase() as TrilhaId)
-      : carregarTrilha(id),
+    abrirOuRascunho(
+      { id, novo },
+      {
+        carregar: carregarTrilha,
+        rascunho: (minusculo) => edicaoDeTrilhaNova(minusculo as TrilhaId),
+      }
+    ),
     carregarCatalogo(),
   ]);
   if (!edicao) {
@@ -34,7 +34,7 @@ export default async function Trilha({
     <EditorDaTrilha
       cursos={catalogo.cursos}
       edicao={edicao}
-      key={edicao.documento.versao ?? edicao.documento.id}
+      key={edicao.documento.id}
     />
   );
 }

@@ -11,7 +11,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 const navegacao = await import("next/navigation");
 mock.module("next/navigation", () => ({
   ...navegacao,
-  useRouter: () => ({ push: () => undefined, refresh: () => undefined }),
+  useRouter: () => ({
+    push: () => undefined,
+    refresh: () => undefined,
+    replace: () => undefined,
+  }),
 }));
 
 const { EditorDaTrilha } = await import("./editor-da-trilha");
@@ -67,7 +71,7 @@ const existente = (alunos: number, podeApagar: boolean): EdicaoDaTrilha => ({
 });
 
 describe("editor da trilha", () => {
-  test("trilha nova abre vazia, com Criar trilha e sem a parte de apagar", () => {
+  test("trilha nova abre vazia, como rascunho e sem a parte de apagar", () => {
     const html = renderToStaticMarkup(
       <EditorDaTrilha cursos={CURSOS} edicao={edicaoDeTrilhaNova(TRILHA)} />
     );
@@ -75,7 +79,7 @@ describe("editor da trilha", () => {
     expect(t).toContain("Nova trilha");
     expect(t).toContain("0 cursos");
     expect(t).toContain("Nenhum curso ainda.");
-    expect(t).toContain("Criar trilha");
+    expect(t).toContain("Rascunho. Os alunos não veem nada até você salvar.");
     expect(t).not.toContain("Apagar a trilha");
   });
 
