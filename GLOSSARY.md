@@ -4,7 +4,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 
 | Termo | Definição |
 |---|---|
-| Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. Curso que o aluno já começou ou concluiu continua aberto quando o admin insere ou reordena cursos. Tirar um curso da trilha tira o acesso de quem só o tinha pela trilha, inclusive de quem já o começou ou concluiu. A edição da trilha conta, por curso, quantas dessas pessoas o começaram, e a conta inclui quem concluiu (tem o certificado). |
+| Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. Curso que o aluno já começou ou concluiu continua aberto quando o admin insere ou reordena cursos. Tirar um curso da trilha tira o acesso de quem só o tinha pela trilha, inclusive de quem já o começou ou concluiu. A edição da trilha conta, por curso, quantas dessas pessoas o começaram, e a conta inclui quem concluiu (tem o certificado). O editor mostra esse número para cada curso tirado antes do Salvar. |
 | Curso | Unidade com módulos, aulas, prova e certificado. Existe uma vez no catálogo e está em no máximo uma trilha. |
 | Curso solto | Curso que a pessoa recebeu por liberação direta e que não está numa trilha liberada a ela. Na tela, aparece em "Cursos rápidos". |
 | Módulo | Grupo numerado de aulas dentro de um curso. O aluno vê o número ("Módulo 3"). Os cursos de exemplo começam em 0 ou em 1, e o admin escolhe o número. |
