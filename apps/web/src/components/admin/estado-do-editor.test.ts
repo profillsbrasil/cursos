@@ -7,7 +7,13 @@ import {
 } from "@cursos/api/dominio/exemplo";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
-import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
+import {
+  type CapaEscolhida,
+  capaDepoisDeSalvar,
+  type Mudanca,
+  mudar,
+  proximaOrdem,
+} from "./estado-do-editor";
 import { recusaNaTela } from "./problemas";
 import {
   ID,
@@ -422,4 +428,33 @@ test("o rascunho editado vira um documento que passa no schema do servidor", () 
     [2, "Módulo um", [["Aula 3", 300, null]]],
   ]);
   expect(servidor.data?.precoTroca).toBe(300);
+});
+
+describe("capaDepoisDeSalvar: o campo da capa só remonta depois de enviar uma capa", () => {
+  const foto = new File(["a"], "capa.jpg", { type: "image/jpeg" });
+  const outra = new File(["b"], "outra.png", { type: "image/png" });
+  const capa = (arquivo: File | null): CapaEscolhida => ({
+    arquivo,
+    geracao: 0,
+    montagem: 3,
+  });
+
+  test("o salvar que enviou a capa esvazia o arquivo e remonta o campo", () => {
+    expect(capaDepoisDeSalvar(capa(foto), foto)).toEqual({
+      arquivo: null,
+      geracao: 0,
+      montagem: 4,
+    });
+  });
+
+  test("o salvar sem capa não remonta: o foco no texto alternativo fica", () => {
+    const atual = capa(null);
+    expect(capaDepoisDeSalvar(atual, null)).toBe(atual);
+  });
+
+  test("a capa escolhida durante o salvar fica, e o campo não remonta", () => {
+    const comOutra = capa(outra);
+    expect(capaDepoisDeSalvar(comOutra, foto)).toBe(comOutra);
+    expect(capaDepoisDeSalvar(comOutra, null)).toBe(comOutra);
+  });
 });
