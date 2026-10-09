@@ -57,10 +57,22 @@ export type DocumentoDaTrilha = z.output<typeof documentoDaTrilha>;
 export interface UsoDaTrilha {
   /** Pessoas com liberação ativa da trilha: a mudança vale para elas na hora. */
   alunosComATrilha: number;
+  /**
+   * Um item por curso da trilha, na ordem dela: pessoas que alcançam o curso só
+   * por esta trilha (nenhuma liberação ativa do próprio curso) e já o começaram
+   * (aula assistida ou posição acima de 0 s) ou concluíram (certificado). Tirar
+   * o curso tira o acesso delas. É o retrato da leitura: o salvar não reconta.
+   */
+  comecaramSoPelaTrilha: readonly PessoasNoCurso[];
   /** Lançamentos de trilha concluída. */
   conclusoes: number;
   /** Liberações da trilha, ativas ou revogadas: a FK restrict conta as duas. */
   liberacoes: number;
+}
+
+export interface PessoasNoCurso {
+  cursoId: CursoId;
+  pessoas: number;
 }
 
 export interface EdicaoDaTrilha {
@@ -70,8 +82,9 @@ export interface EdicaoDaTrilha {
 }
 
 /** Única regra de "dá para apagar a trilha". A tela e apagarTrilha usam esta. */
-export const podeApagarTrilha = (u: UsoDaTrilha): boolean =>
-  u.liberacoes === 0 && u.conclusoes === 0;
+export const podeApagarTrilha = (
+  u: Pick<UsoDaTrilha, "conclusoes" | "liberacoes">
+): boolean => u.liberacoes === 0 && u.conclusoes === 0;
 
 /**
  * O rascunho de uma trilha que ainda não existe. O id vem de quem chama e não
@@ -89,6 +102,11 @@ export function edicaoDeTrilhaNova(id: TrilhaId): EdicaoDaTrilha {
       versao: null,
     },
     podeApagar: false,
-    uso: { alunosComATrilha: 0, conclusoes: 0, liberacoes: 0 },
+    uso: {
+      alunosComATrilha: 0,
+      comecaramSoPelaTrilha: [],
+      conclusoes: 0,
+      liberacoes: 0,
+    },
   };
 }

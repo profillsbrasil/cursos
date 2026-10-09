@@ -13,6 +13,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import {
   type DocumentoDaTrilha,
   type EdicaoDaTrilha,
+  type PessoasNoCurso,
   podeApagarTrilha,
   TRILHA_EM_USO,
   type UsoDaTrilha,
@@ -56,11 +57,13 @@ async function lerDocumento(
   return { ...semVersao, versao: versaoDaTrilha(semVersao) };
 }
 
-/** As contagens de uso, num statement. */
-async function contarUso(exec: Executor, id: TrilhaId): Promise<UsoDaTrilha> {
+type Contagens = Omit<UsoDaTrilha, "comecaramSoPelaTrilha">;
+
+/** As contagens de uso que decidem o apagar, num statement. */
+async function contarUso(exec: Executor, id: TrilhaId): Promise<Contagens> {
   const {
     rows: [contagens],
-  } = await exec.execute<{ [K in keyof UsoDaTrilha]: number }>(sql`
+  } = await exec.execute<Contagens>(sql`
     select
       (select count(distinct ${liberacao.userId})::int from ${liberacao}
         where ${liberacao.trilhaId} = ${id} and ${liberacao.revogadaEm} is null) as "alunosComATrilha",
@@ -71,6 +74,47 @@ async function contarUso(exec: Executor, id: TrilhaId): Promise<UsoDaTrilha> {
     conclusoes: contagens?.conclusoes ?? 0,
     liberacoes: contagens?.liberacoes ?? 0,
   };
+}
+
+/**
+ * UsoDaTrilha.comecaramSoPelaTrilha: um item por curso da trilha, zero incluído.
+ * "Começou" é a regra do painel (aula assistida ou posição acima de 0 s), mais o
+ * certificado; "só pela trilha" é não ter liberação ativa do próprio curso.
+ */
+async function comecaramSoPelaTrilha(
+  exec: Executor,
+  id: TrilhaId
+): Promise<PessoasNoCurso[]> {
+  const { rows } = await exec.execute<{ cursoId: string; pessoas: number }>(sql`
+    select tc.curso_id as "cursoId",
+      (select count(distinct l.user_id)::int from liberacao l
+        where l.trilha_id = tc.trilha_id and l.revogada_em is null
+          and not exists (
+            select 1 from liberacao d
+            where d.user_id = l.user_id and d.curso_id = tc.curso_id
+              and d.revogada_em is null)
+          and (
+            exists (
+              select 1 from certificado c
+              where c.user_id = l.user_id and c.curso_id = tc.curso_id)
+            or exists (
+              select 1 from aula a join modulo m on m.id = a.modulo_id
+              where m.curso_id = tc.curso_id
+                and (
+                  exists (
+                    select 1 from aula_assistida aa
+                    where aa.user_id = l.user_id and aa.aula_id = a.id)
+                  or exists (
+                    select 1 from posicao_aula p
+                    where p.user_id = l.user_id and p.aula_id = a.id
+                      and p.posicao_seg > 0))))) as pessoas
+    from trilha_curso tc
+    where tc.trilha_id = ${id}
+    order by tc.posicao`);
+  return rows.map((r) => ({
+    cursoId: r.cursoId as CursoId,
+    pessoas: r.pessoas,
+  }));
 }
 
 /**
@@ -85,8 +129,15 @@ export async function abrirTrilha(
   if (!documento) {
     return null;
   }
-  const uso = await contarUso(exec, id);
-  return { documento, podeApagar: podeApagarTrilha(uso), uso };
+  const contagens = await contarUso(exec, id);
+  return {
+    documento,
+    podeApagar: podeApagarTrilha(contagens),
+    uso: {
+      ...contagens,
+      comecaramSoPelaTrilha: await comecaramSoPelaTrilha(exec, id),
+    },
+  };
 }
 
 /** Os cursos da lista que existem, cada um com a trilha em que está hoje. */

@@ -58,7 +58,12 @@ const existente = (alunos: number, podeApagar: boolean): EdicaoDaTrilha => ({
     versao: "v1" as Versao,
   },
   podeApagar,
-  uso: { alunosComATrilha: alunos, conclusoes: 0, liberacoes: alunos },
+  uso: {
+    alunosComATrilha: alunos,
+    comecaramSoPelaTrilha: [],
+    conclusoes: 0,
+    liberacoes: alunos,
+  },
 });
 
 describe("editor da trilha", () => {

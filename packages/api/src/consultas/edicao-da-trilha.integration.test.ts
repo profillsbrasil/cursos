@@ -7,6 +7,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { createDb } from "@cursos/db";
 import {
   aula,
+  aulaAssistida,
   certificado,
   curso,
   liberacao,
@@ -34,7 +35,9 @@ const S = randomBytes(4).toString("hex");
 const SO_TRILHA = `user_teste${S}trilha`;
 const COM_DIRETA = `user_teste${S}direta`;
 const COMECOU = `user_teste${S}comecou`;
-const ALUNOS = [SO_TRILHA, COM_DIRETA, COMECOU];
+const PAROU = `user_teste${S}parou`;
+const NO_ZERO = `user_teste${S}nozero`;
+const ALUNOS = [SO_TRILHA, COM_DIRETA, COMECOU, PAROU, NO_ZERO];
 
 /** Erro sem tradução mostra a restrição violada no lugar do texto do Postgres. */
 const resultado = (p: Promise<unknown>) =>
@@ -63,6 +66,7 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
   const cursos: string[] = [];
 
   afterAll(async () => {
+    await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
     await db.delete(certificado).where(inArray(certificado.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
@@ -271,6 +275,68 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
       cursos: [b.id],
     });
 
+    expect([await entra(SO_TRILHA), await entra(COM_DIRETA)]).toEqual([
+      false,
+      true,
+    ]);
+  });
+
+  test("conta por curso quem começou ou concluiu só pela trilha, e tirar o curso tira o acesso dessas pessoas", async () => {
+    const [a, b] = await criarCursos(2);
+    if (!(a && b)) {
+      throw new Error("cursos não criados");
+    }
+    const aberta = await salva(trilhaNova([a.id, b.id]));
+    expect(aberta.uso.comecaramSoPelaTrilha).toEqual([
+      { cursoId: a.id, pessoas: 0 },
+      { cursoId: b.id, pessoas: 0 },
+    ]);
+    await db.insert(liberacao).values([
+      ...[SO_TRILHA, COM_DIRETA, COMECOU, PAROU, NO_ZERO].map((userId) => ({
+        liberadaPor: "user_admin",
+        origem: "admin" as const,
+        trilhaId: aberta.documento.id,
+        userId,
+      })),
+      {
+        cursoId: a.id,
+        liberadaPor: "user_admin",
+        origem: "admin",
+        userId: COM_DIRETA,
+      },
+    ]);
+    await db.insert(aulaAssistida).values([
+      { aulaId: a.primeiraAula, userId: SO_TRILHA },
+      { aulaId: a.primeiraAula, userId: COM_DIRETA },
+    ]);
+    await db.insert(certificado).values({
+      codigo: `TESTE-${S}-17`,
+      cursoId: a.id,
+      userId: COMECOU,
+    });
+    await db.insert(posicaoAula).values([
+      { aulaId: b.primeiraAula, posicaoSeg: 90, userId: PAROU },
+      { aulaId: b.primeiraAula, posicaoSeg: 0, userId: NO_ZERO },
+    ]);
+
+    const contada = await admin.admin.catalogo.abrirTrilha({
+      id: aberta.documento.id,
+    });
+    expect(contada?.uso.comecaramSoPelaTrilha).toEqual([
+      { cursoId: a.id, pessoas: 2 },
+      { cursoId: b.id, pessoas: 1 },
+    ]);
+
+    const entra = async (userId: string) =>
+      (await comoAluno(userId).aula.entrada({ slug: a.slug })) !== null;
+    expect([await entra(SO_TRILHA), await entra(COM_DIRETA)]).toEqual([
+      true,
+      true,
+    ]);
+    await admin.admin.catalogo.salvarTrilha({
+      ...aberta.documento,
+      cursos: [b.id],
+    });
     expect([await entra(SO_TRILHA), await entra(COM_DIRETA)]).toEqual([
       false,
       true,
