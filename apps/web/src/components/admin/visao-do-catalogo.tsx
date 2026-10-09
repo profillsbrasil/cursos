@@ -13,10 +13,9 @@ import { Plus } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum, fmtPts, plural } from "@/lib/formato";
 
-import { PEQUENO } from "./confirmacao-na-linha";
 import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
 
 const LINK_DA_LINHA =

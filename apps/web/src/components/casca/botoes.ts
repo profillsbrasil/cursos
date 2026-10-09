@@ -20,3 +20,6 @@ export const BOTAO_CONTORNO = cn(
   "focus-visible:border-muted-foreground dark:focus-visible:border-muted-foreground",
   FOCO
 );
+
+/** Some-se a BOTAO ou BOTAO_CONTORNO: o botão de 36 px das linhas e rodapés. */
+export const PEQUENO = "h-9 px-3.5 text-[13px]";

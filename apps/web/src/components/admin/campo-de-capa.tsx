@@ -27,10 +27,9 @@ import {
   useState,
 } from "react";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum } from "@/lib/formato";
 
-import { PEQUENO } from "./confirmacao-na-linha";
 import { CAMPO, ROTULO } from "./partes";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];

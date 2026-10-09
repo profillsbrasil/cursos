@@ -37,7 +37,7 @@ import {
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -48,11 +48,10 @@ import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
-  PEQUENO,
 } from "./confirmacao-na-linha";
 import { type Edicao, editar } from "./estado-do-editor";
-import { BlocoDoModulo, focarDepois, ICONE, novoId } from "./modulos-do-curso";
-import { CAMPO, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import { BlocoDoModulo, focarDepois, novoId } from "./modulos-do-curso";
+import { CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
 
 type Despachar = Dispatch<Edicao>;
 

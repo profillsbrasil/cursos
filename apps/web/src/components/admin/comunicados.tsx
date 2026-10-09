@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -35,7 +35,6 @@ import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
-  PEQUENO,
 } from "./confirmacao-na-linha";
 import { CAMPO, ROTULO, SELECAO, SELO, Secao, Vazio } from "./partes";
 

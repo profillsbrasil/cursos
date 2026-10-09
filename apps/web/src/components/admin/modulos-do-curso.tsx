@@ -6,7 +6,7 @@ import type {
   ModuloDoDocumento,
 } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
-import { Button, buttonVariants } from "@cursos/ui/components/button";
+import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
 import {
@@ -17,7 +17,7 @@ import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { type ChangeEvent, type Dispatch, useCallback } from "react";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtHoras, mmss, plural } from "@/lib/formato";
 
 import {
@@ -26,21 +26,12 @@ import {
   lerNumeroDoModulo,
   lerVideo,
 } from "./campo-lido";
-import {
-  ConfirmacaoNaLinha,
-  type LinhaAberta,
-  PEQUENO,
-} from "./confirmacao-na-linha";
+import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import type { Direcao, Edicao } from "./estado-do-editor";
-import { CAMPO, ROTULO, SELECAO } from "./partes";
+import { CAMPO, ICONE, ROTULO, SELECAO } from "./partes";
 
 type Despachar = Dispatch<Edicao>;
 
-export const ICONE = cn(
-  buttonVariants({ size: "icon", variant: "ghost" }),
-  "size-10 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
-  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0"
-);
 const SELECAO_PEQUENA =
   "w-36 *:data-[slot=native-select]:h-10 *:data-[slot=native-select]:rounded-full *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-[13px] md:*:data-[slot=native-select]:h-9";
 /** Colunas da aula a partir de xl; abaixo disso a aula empilha. */

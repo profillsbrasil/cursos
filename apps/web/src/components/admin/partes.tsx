@@ -1,4 +1,5 @@
 import { badgeVariants } from "@cursos/ui/components/badge";
+import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
@@ -12,6 +13,13 @@ export const CAMPO =
 export const SELECAO =
   "w-full *:data-[slot=native-select]:h-11 *:data-[slot=native-select]:rounded-[12px] *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-sm";
 export const ROTULO = "font-semibold text-foreground text-sm";
+
+/** Botão redondo só com ícone (subir, descer, remover). */
+export const ICONE = cn(
+  buttonVariants({ size: "icon", variant: "ghost" }),
+  "size-10 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
+  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0"
+);
 
 /** Selo em pílula das tabelas do admin; a cor vem de quem chama. */
 export const SELO = cn(
