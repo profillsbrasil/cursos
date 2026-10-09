@@ -7,28 +7,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAcao } from "./use-acao";
 
-export type Desfecho =
-  | { tipo: "salvo" }
-  | { tipo: "recusado"; motivo: Motivo | null };
-
-export interface TelaDepoisDeSalvar {
-  substituirPor: Route | null;
-  versaoMudou: boolean;
-}
-
-export function telaDepoisDeSalvar(
-  desfecho: Desfecho,
-  { caminho, novo }: { caminho: Route; novo: boolean }
-): TelaDepoisDeSalvar {
-  if (desfecho.tipo === "salvo") {
-    return { substituirPor: novo ? caminho : null, versaoMudou: false };
-  }
-  return {
-    substituirPor: null,
-    versaoMudou: desfecho.motivo === "versao_mudou",
-  };
-}
-
 export interface OpcoesDeSalvar<T> {
   aoRecusar?: (motivo: Motivo | null) => void;
   aoSalvar?: (resultado: T) => void;
@@ -41,7 +19,6 @@ export interface SalvarDocumento {
   pendente: boolean;
   recarregar: () => void;
   salvar: <T>(fazer: () => Promise<T>, opcoes: OpcoesDeSalvar<T>) => void;
-  versaoMudou: boolean;
 }
 
 export function useSalvarDocumento({
@@ -53,45 +30,31 @@ export function useSalvarDocumento({
 }): SalvarDocumento {
   const router = useRouter();
   const { executar, pendente } = useAcao();
-  const [versaoMudou, setVersaoMudou] = useState(false);
-
-  const mostrar = useCallback(
-    (desfecho: Desfecho) => {
-      const tela = telaDepoisDeSalvar(desfecho, { caminho, novo });
-      setVersaoMudou(tela.versaoMudou);
-      if (tela.substituirPor) {
-        router.replace(tela.substituirPor);
-      }
-    },
-    [caminho, novo, router]
-  );
 
   const salvar = useCallback(
     <T>(fazer: () => Promise<T>, opcoes: OpcoesDeSalvar<T>) => {
-      setVersaoMudou(false);
       executar(fazer, {
-        aoRecusar: (motivo) => {
-          mostrar({ motivo, tipo: "recusado" });
-          opcoes.aoRecusar?.(motivo);
-        },
+        aoRecusar: opcoes.aoRecusar,
         depois: (r) => {
           opcoes.aoSalvar?.(r);
-          mostrar({ tipo: "salvo" });
+          // O documento novo perde o ?novo=1 depois do primeiro salvar.
+          if (novo) {
+            router.replace(caminho);
+          }
         },
         sucesso: opcoes.sucesso,
       });
     },
-    [executar, mostrar]
+    [caminho, executar, novo, router]
   );
 
   const [descartes, setDescartes] = useState(0);
   const recarregar = useCallback(() => {
-    setVersaoMudou(false);
     setDescartes((n) => n + 1);
     router.refresh();
   }, [router]);
 
-  return { descartes, pendente, recarregar, salvar, versaoMudou };
+  return { descartes, pendente, recarregar, salvar };
 }
 
 /**

@@ -41,7 +41,12 @@ export type AcaoApoiada<D extends Documento, R, M> =
   | { tipo: "mudou"; mudanca: M }
   | { tipo: "pagina"; pagina: D; descartes: number; limpo: boolean }
   /** O servidor gravou `enviado` como `gravado`; o que o admin editou depois fica. */
-  | { tipo: "salvo"; gravado: D; enviado: R };
+  | { tipo: "salvo"; gravado: D; enviado: R }
+  /**
+   * O servidor recusou o salvar. versao_mudou liga o aviso já, antes de o
+   * refresh trazer a página; a página que chega decide se ele fica.
+   */
+  | { tipo: "recusado"; motivo: Motivo | null };
 
 export const estadoApoiadoEm = <D extends Documento, R, M>(
   regras: RegrasDoRascunho<D, R, M>,
@@ -78,6 +83,10 @@ export function apoiado<D extends Documento, R, M>(
           ? regras.deDocumento(a.gravado)
           : e.rascunho,
       };
+    case "recusado":
+      return a.motivo === "versao_mudou"
+        ? { ...e, apoio: { ...e.apoio, versaoDeFora: true } }
+        : e;
     default: {
       const nenhuma: never = a;
       throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
@@ -115,8 +124,10 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
   );
   const { apoio, geracao, rascunho } = estado;
   const novo = apoio.base.versao === null;
-  const { descartes, pendente, recarregar, salvar, versaoMudou } =
-    useSalvarDocumento({ caminho, novo });
+  const { descartes, pendente, recarregar, salvar } = useSalvarDocumento({
+    caminho,
+    novo,
+  });
   const titulo = useTituloComFoco<HTMLHeadingElement>();
   const sujo = (sujoAlem?.(geracao) ?? false) || rascunhoSujo(regras, estado);
   if (pagina !== apoio.pagina || descartes !== apoio.descartes) {
@@ -137,7 +148,10 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
     ) => {
       const enviado = rascunho;
       salvar(fazer, {
-        aoRecusar: opcoes.aoRecusar,
+        aoRecusar: (motivo) => {
+          despachar({ motivo, tipo: "recusado" });
+          opcoes.aoRecusar?.(motivo);
+        },
         aoSalvar: ({ versao }) => {
           despachar({
             enviado,
@@ -169,7 +183,7 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
     salvar: salvarDocumento,
     sujo,
     titulo,
-    versaoMudou: versaoMudou || apoio.versaoDeFora,
+    versaoMudou: apoio.versaoDeFora,
   };
 }
 
