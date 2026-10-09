@@ -46,6 +46,8 @@ import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
 import {
+  type CapaEscolhida,
+  capaDepoisDeSalvar,
   type Mudanca,
   proximaOrdem,
   REGRAS_DO_CURSO,
@@ -461,16 +463,6 @@ const SEM_CAPA: Problema = {
   mensagem: "Escolha a imagem da capa.",
 };
 
-/**
- * O arquivo escolhido vale na geração em que foi escolhido. `montagem` remonta
- * o campo depois do salvar que enviou o arquivo, e o input volta vazio.
- */
-interface CapaEscolhida {
-  arquivo: File | null;
-  geracao: number;
-  montagem: number;
-}
-
 export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
   const [capaGuardada, guardarCapa] = useState<CapaEscolhida>({
     arquivo: null,
@@ -564,11 +556,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
             }
           },
           aoSalvar: () =>
-            guardarCapa((atual) =>
-              atual.arquivo === enviada
-                ? { ...atual, arquivo: null, montagem: atual.montagem + 1 }
-                : atual
-            ),
+            guardarCapa((atual) => capaDepoisDeSalvar(atual, enviada)),
           sucesso: "Curso salvo.",
         }
       );

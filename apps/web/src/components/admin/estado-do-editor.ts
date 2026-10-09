@@ -201,3 +201,21 @@ export const REGRAS_DO_CURSO: RegrasDoRascunho<
   RascunhoDoCurso,
   Mudanca
 > = { deDocumento: rascunhoDoCurso, mesmo: mesmoRascunho, mudar };
+
+/**
+ * O arquivo escolhido vale na geração em que foi escolhido. `montagem` remonta
+ * o campo depois do salvar que enviou o arquivo, e o input volta vazio.
+ */
+export interface CapaEscolhida {
+  arquivo: File | null;
+  geracao: number;
+  montagem: number;
+}
+
+export const capaDepoisDeSalvar = (
+  atual: CapaEscolhida,
+  enviada: File | null
+): CapaEscolhida =>
+  atual.arquivo === enviada
+    ? { ...atual, arquivo: null, montagem: atual.montagem + 1 }
+    : atual;
