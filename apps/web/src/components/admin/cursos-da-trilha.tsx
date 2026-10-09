@@ -29,6 +29,7 @@ import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import {
   cabeMaisUm,
   candidatos,
+  cursosDoRascunho,
   enterSeguraOFormulario,
   ID_DA_TRILHA,
   linhasDaLista,
@@ -256,6 +257,7 @@ export function CursosDaTrilha({
   }, []);
   const cabe = cabeMaisUm(rascunho);
   const linhas = linhasDaLista(rascunho, salvo);
+  const total = cursosDoRascunho(rascunho).length;
   const ajuda = `${ID_DA_TRILHA.acrescentar}-ajuda`;
   return (
     <>
@@ -291,7 +293,7 @@ export function CursosDaTrilha({
                 key={l.id}
                 mudar={mudar}
                 posicao={l.posicao}
-                total={rascunho.cursos.length}
+                total={total}
               />
             ) : null;
           })}

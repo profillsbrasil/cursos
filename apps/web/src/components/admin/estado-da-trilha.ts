@@ -27,21 +27,20 @@ import {
 } from "./problemas";
 
 /**
- * Um curso que saiu da lista neste rascunho. `antesDe` é o curso que vinha logo
- * depois dele quando saiu (null: era o último); o Desfazer o devolve ali.
+ * Um curso na lista do editor. O tirado fica no lugar dele até o Desfazer; só
+ * os não tirados vão ao servidor.
  */
-export interface Tirado {
-  antesDe: CursoId | null;
+export interface CursoNaLista {
   id: CursoId;
+  tirado: boolean;
 }
 
 /** O que o admin edita. Id e versão não mudam no editor e ficam no Apoio. */
 export type RascunhoDaTrilha = Pick<
   DocumentoDaTrilha,
-  "cursos" | "descricao" | "slug" | "titulo"
+  "descricao" | "slug" | "titulo"
 > & {
-  /** Em ordem de saída. Não vai ao servidor nem conta para o sujo. */
-  tirados: readonly Tirado[];
+  lista: readonly CursoNaLista[];
 };
 export type CampoDaTrilha = "descricao" | "slug" | "titulo";
 
@@ -56,26 +55,15 @@ export type MudancaDaTrilha =
   | { tipo: "curso_devolvido"; id: CursoId };
 
 export const rascunhoDaTrilha = (d: DocumentoDaTrilha): RascunhoDaTrilha => ({
-  cursos: d.cursos,
   descricao: d.descricao,
+  lista: d.cursos.map((id) => ({ id, tirado: false })),
   slug: d.slug,
-  tirados: [],
   titulo: d.titulo,
 });
 
-/**
- * Os cursos e os tirados na ordem da tela: cada tirado volta para antes do
- * curso que vinha depois dele, do último a sair para o primeiro, que é a ordem
- * que reconstrói a lista de antes de cada saída.
- */
-function ordemComTirados(r: RascunhoDaTrilha): CursoId[] {
-  const ids = [...r.cursos];
-  for (const t of r.tirados.toReversed()) {
-    const i = t.antesDe === null ? -1 : ids.indexOf(t.antesDe);
-    ids.splice(i < 0 ? ids.length : i, 0, t.id);
-  }
-  return ids;
-}
+/** Os cursos que o documento leva: os não tirados, na ordem da lista. */
+export const cursosDoRascunho = (r: RascunhoDaTrilha): CursoId[] =>
+  r.lista.flatMap((c) => (c.tirado ? [] : [c.id]));
 
 export type LinhaDaLista =
   | { tipo: "curso"; id: CursoId; posicao: number }
@@ -90,8 +78,8 @@ export function linhasDaLista(
   salvo: readonly CursoId[]
 ): LinhaDaLista[] {
   let posicao = 0;
-  return ordemComTirados(r).flatMap((id): LinhaDaLista[] => {
-    if (r.cursos.includes(id)) {
+  return r.lista.flatMap(({ id, tirado }): LinhaDaLista[] => {
+    if (!tirado) {
       posicao += 1;
       return [{ id, posicao, tipo: "curso" }];
     }
@@ -99,33 +87,46 @@ export function linhasDaLista(
   });
 }
 
-const semTirado = (r: RascunhoDaTrilha, id: CursoId) =>
-  r.tirados.filter((t) => t.id !== id);
-
-function devolvido(r: RascunhoDaTrilha, id: CursoId): RascunhoDaTrilha {
-  if (!(r.tirados.some((t) => t.id === id) && cabeMaisUm(r))) {
-    return r;
-  }
-  const ordem = ordemComTirados(r);
-  const antes = ordem
-    .slice(0, ordem.indexOf(id))
-    .filter((c) => r.cursos.includes(c)).length;
-  return {
-    ...r,
-    cursos: r.cursos.toSpliced(antes, 0, id),
-    tirados: semTirado(r, id),
-  };
-}
-
-export const mesmoRascunho = (a: RascunhoDaTrilha, b: RascunhoDaTrilha) =>
-  a.titulo === b.titulo &&
-  a.slug === b.slug &&
-  a.descricao === b.descricao &&
-  a.cursos.length === b.cursos.length &&
-  a.cursos.every((c, i) => c === b.cursos[i]);
+export const mesmoRascunho = (a: RascunhoDaTrilha, b: RascunhoDaTrilha) => {
+  const [ca, cb] = [cursosDoRascunho(a), cursosDoRascunho(b)];
+  return (
+    a.titulo === b.titulo &&
+    a.slug === b.slug &&
+    a.descricao === b.descricao &&
+    ca.length === cb.length &&
+    ca.every((c, i) => c === cb[i])
+  );
+};
 
 export const cabeMaisUm = (r: RascunhoDaTrilha) =>
-  r.cursos.length < LIMITES_DA_TRILHA.cursos;
+  cursosDoRascunho(r).length < LIMITES_DA_TRILHA.cursos;
+
+const marcado = (r: RascunhoDaTrilha, id: CursoId, tirado: boolean) => {
+  const i = r.lista.findIndex((c) => c.id === id && c.tirado !== tirado);
+  return i < 0 ? r : { ...r, lista: r.lista.with(i, { id, tirado }) };
+};
+
+/** Troca o curso com o próximo não tirado na direção; sem ele, null. */
+function movida(
+  lista: readonly CursoNaLista[],
+  id: CursoId,
+  direcao: Direcao
+): CursoNaLista[] | null {
+  const i = lista.findIndex((c) => c.id === id && !c.tirado);
+  if (i < 0) {
+    return null;
+  }
+  const j =
+    direcao === "acima"
+      ? lista.findLastIndex((c, k) => k < i && !c.tirado)
+      : lista.findIndex((c, k) => k > i && !c.tirado);
+  if (j < 0) {
+    return null;
+  }
+  const nova = [...lista];
+  [nova[i], nova[j]] = [nova[j] as CursoNaLista, nova[i] as CursoNaLista];
+  return nova;
+}
 
 export function mudarTrilha(
   r: RascunhoDaTrilha,
@@ -135,32 +136,23 @@ export function mudarTrilha(
     case "campos":
       return { ...r, ...m.mudanca };
     case "curso_acrescentado":
-      return r.cursos.includes(m.id) || !cabeMaisUm(r)
+      return cursosDoRascunho(r).includes(m.id) || !cabeMaisUm(r)
         ? r
         : {
             ...r,
-            cursos: [...r.cursos, m.id],
-            tirados: semTirado(r, m.id),
-          };
-    case "curso_movido": {
-      const cursos = trocado(r.cursos, r.cursos.indexOf(m.id), m.direcao);
-      return cursos ? { ...r, cursos } : r;
-    }
-    case "curso_tirado": {
-      const i = r.cursos.indexOf(m.id);
-      return i < 0
-        ? r
-        : {
-            ...r,
-            cursos: r.cursos.toSpliced(i, 1),
-            tirados: [
-              ...semTirado(r, m.id),
-              { antesDe: r.cursos[i + 1] ?? null, id: m.id },
+            lista: [
+              ...r.lista.filter((c) => c.id !== m.id),
+              { id: m.id, tirado: false },
             ],
           };
+    case "curso_movido": {
+      const lista = movida(r.lista, m.id, m.direcao);
+      return lista ? { ...r, lista } : r;
     }
+    case "curso_tirado":
+      return marcado(r, m.id, true);
     case "curso_devolvido":
-      return devolvido(r, m.id);
+      return cabeMaisUm(r) ? marcado(r, m.id, false) : r;
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);
@@ -196,25 +188,26 @@ export function focoDepois(
   m: MudancaDaTrilha,
   salvo: readonly CursoId[]
 ): string | null {
+  const cursos = cursosDoRascunho(r);
   switch (m.tipo) {
     case "curso_movido": {
-      const i = r.cursos.indexOf(m.id);
-      if (trocado(r.cursos, i, m.direcao) === null) {
+      const i = cursos.indexOf(m.id);
+      if (trocado(cursos, i, m.direcao) === null) {
         return null;
       }
       const borda =
-        m.direcao === "acima" ? i - 1 === 0 : i + 1 === r.cursos.length - 1;
+        m.direcao === "acima" ? i - 1 === 0 : i + 1 === cursos.length - 1;
       return ID_DA_TRILHA.curso(m.id, setaDepoisDeMover(m.direcao, borda));
     }
     case "curso_tirado": {
-      const i = r.cursos.indexOf(m.id);
+      const i = cursos.indexOf(m.id);
       if (i < 0) {
         return null;
       }
       if (salvo.includes(m.id)) {
         return ID_DA_TRILHA.curso(m.id, "desfazer");
       }
-      const vizinho = r.cursos[i + 1] ?? r.cursos[i - 1];
+      const vizinho = cursos[i + 1] ?? cursos[i - 1];
       return vizinho
         ? ID_DA_TRILHA.curso(vizinho, "tirar")
         : ID_DA_TRILHA.acrescentar;
@@ -222,7 +215,7 @@ export function focoDepois(
     case "curso_acrescentado":
       return ID_DA_TRILHA.acrescentar;
     case "curso_devolvido":
-      return r.tirados.some((t) => t.id === m.id) && cabeMaisUm(r)
+      return r.lista.some((c) => c.id === m.id && c.tirado) && cabeMaisUm(r)
         ? ID_DA_TRILHA.curso(m.id, "tirar")
         : null;
     default:
@@ -238,7 +231,7 @@ export const candidatos = (
 ): CursoNaVisao[] =>
   catalogo.filter(
     (c) =>
-      !r.cursos.includes(c.id) &&
+      !cursosDoRascunho(r).includes(c.id) &&
       (c.trilha === null || c.trilha.id === trilhaId)
   );
 
@@ -267,8 +260,9 @@ export function perdas({
   salvo: readonly CursoId[];
   uso: Pick<UsoDaTrilha, "comecaramSoPelaTrilha">;
 }): Perda[] {
+  const cursos = cursosDoRascunho(rascunho);
   return salvo
-    .filter((id) => !rascunho.cursos.includes(id))
+    .filter((id) => !cursos.includes(id))
     .map((cursoId) => ({
       cursoId,
       pessoas:
@@ -320,23 +314,26 @@ const CAMPOS = new Set<PropertyKey>([
 ] satisfies CampoDaTrilha[]);
 
 /** A posição é a que a lista mostra no número redondo de cada linha. */
-function mensagemDosCursos(i: z.core.$ZodIssue, r: RascunhoDaTrilha) {
+function mensagemDosCursos(i: z.core.$ZodIssue, cursos: readonly CursoId[]) {
   const [, posicao] = i.path;
   if (typeof posicao !== "number") {
     return i.code === "too_big"
-      ? `Uma trilha tem no máximo ${Number(i.maximum)} cursos. Tire ${r.cursos.length - Number(i.maximum)} para salvar.`
+      ? `Uma trilha tem no máximo ${Number(i.maximum)} cursos. Tire ${cursos.length - Number(i.maximum)} para salvar.`
       : fraseDeReserva("A trilha", i.path);
   }
   if (i.code === "custom") {
-    const id = r.cursos[posicao]?.toLowerCase();
-    const primeira = r.cursos.findIndex((c) => c.toLowerCase() === id);
+    const id = cursos[posicao]?.toLowerCase();
+    const primeira = cursos.findIndex((c) => c.toLowerCase() === id);
     return `O ${posicao + 1}º curso da lista repete o ${primeira + 1}º. Tire um deles.`;
   }
   return `O ${posicao + 1}º curso da lista tem um identificador que o servidor recusa. Tire-o da trilha e salve de novo.`;
 }
 
 /** Total: toda recusa do schema vira um problema com frase. */
-function problemaDaIssue(i: z.core.$ZodIssue, r: RascunhoDaTrilha): Problema {
+function problemaDaIssue(
+  i: z.core.$ZodIssue,
+  cursos: readonly CursoId[]
+): Problema {
   const [raiz] = i.path;
   if (i.path.length === 1 && raiz !== undefined && CAMPOS.has(raiz)) {
     return {
@@ -345,7 +342,10 @@ function problemaDaIssue(i: z.core.$ZodIssue, r: RascunhoDaTrilha): Problema {
     };
   }
   if (raiz === "cursos") {
-    return { campo: ID_DA_TRILHA.cursos, mensagem: mensagemDosCursos(i, r) };
+    return {
+      campo: ID_DA_TRILHA.cursos,
+      mensagem: mensagemDosCursos(i, cursos),
+    };
   }
   return { campo: null, mensagem: fraseDeReserva("A trilha", i.path) };
 }
@@ -354,16 +354,20 @@ export function lerRascunhoDaTrilha(
   r: RascunhoDaTrilha,
   salvo: Pick<DocumentoDaTrilha, "id" | "versao">
 ): RascunhoLido {
+  const cursos = cursosDoRascunho(r);
   const lido = documentoDaTrilha.safeParse({
-    ...r,
+    cursos,
+    descricao: r.descricao,
     id: salvo.id,
+    slug: r.slug,
+    titulo: r.titulo,
     versao: salvo.versao,
   });
   if (lido.success) {
     return { documento: lido.data, tipo: "lido" };
   }
   const [primeiro, ...outros] = lido.error.issues.map((i) =>
-    problemaDaIssue(i, r)
+    problemaDaIssue(i, cursos)
   );
   return {
     problemas: semRepetir([

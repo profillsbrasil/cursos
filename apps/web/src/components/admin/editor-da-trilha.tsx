@@ -35,6 +35,7 @@ import { CursosDaTrilha } from "./cursos-da-trilha";
 import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
 import {
   type CampoDaTrilha,
+  cursosDoRascunho,
   focoDepois,
   ID_DA_TRILHA,
   lerRascunhoDaTrilha,
@@ -370,7 +371,11 @@ export function EditorDaTrilha({
                   : undefined
               }
               id={ID_DA_TRILHA.cursos}
-              resumo={plural(rascunho.cursos.length, "curso", "cursos")}
+              resumo={plural(
+                cursosDoRascunho(rascunho).length,
+                "curso",
+                "cursos"
+              )}
               titulo="Cursos da trilha"
             >
               <CursosDaTrilha

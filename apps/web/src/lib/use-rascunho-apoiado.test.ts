@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { documentoDeExemplo } from "@cursos/api/dominio/exemplo";
 import type { CursoId, TrilhaId, Versao } from "@cursos/api/dominio/tipos";
 import {
+  cursosDoRascunho,
   type MudancaDaTrilha,
   REGRAS_DA_TRILHA,
 } from "@/components/admin/estado-da-trilha";
@@ -79,7 +80,7 @@ describe("o rascunho apoiado da trilha", () => {
       { enviado: enviando.rascunho, gravado, tipo: "salvo" },
       pagina(doc({ titulo: "Operador 2", versao: V2 }), false)
     );
-    expect(depois.rascunho.cursos).toEqual([A, B, D]);
+    expect(cursosDoRascunho(depois.rascunho)).toEqual([A, B, D]);
     expect(depois.geracao).toBe(0);
     expect(depois.apoio.versaoDeFora).toBe(false);
     expect(sujo(depois)).toBe(true);

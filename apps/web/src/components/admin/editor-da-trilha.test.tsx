@@ -226,10 +226,12 @@ describe("linha riscada na lista", () => {
           { cursoId: "c1" as CursoId, pessoas, titulo: "Segurança do posto" },
         ]}
         rascunho={{
-          cursos: ["c2" as CursoId],
           descricao: "",
+          lista: [
+            { id: "c1" as CursoId, tirado: true },
+            { id: "c2" as CursoId, tirado: false },
+          ],
           slug: "",
-          tirados: [{ antesDe: "c2" as CursoId, id: "c1" as CursoId }],
           titulo: "",
         }}
         salvo={["c1" as CursoId, "c2" as CursoId]}
