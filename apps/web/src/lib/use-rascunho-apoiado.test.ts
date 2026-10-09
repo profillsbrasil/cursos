@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { documentoDeExemplo } from "@cursos/api/dominio/exemplo";
 import type { CursoId, TrilhaId, Versao } from "@cursos/api/dominio/tipos";
+import type { Route } from "next";
 import {
   cursosDoRascunho,
   type MudancaDaTrilha,
@@ -18,6 +19,7 @@ import {
   type EstadoApoiado,
   estadoApoiadoEm,
   rascunhoSujo,
+  urlDepoisDoSalvar,
 } from "./use-rascunho-apoiado";
 
 const V1 = "v1" as Versao;
@@ -167,6 +169,23 @@ describe("o rascunho apoiado da trilha", () => {
       mudou({ id: D, tipo: "curso_acrescentado" })
     );
     expect(cursosDoRascunho(depois.rascunho)).toEqual([A, B, E, D]);
+  });
+
+  test("o primeiro salvar da trilha nova troca a URL pela sem ?novo=1; o da trilha existente, não", () => {
+    const caminho = "/admin/catalogo/trilhas/x" as Route;
+    const nova = estadoApoiadoEm(
+      REGRAS_DA_TRILHA,
+      doc({ cursos: [], titulo: "", versao: null })
+    );
+    expect(urlDepoisDoSalvar(nova.apoio.base, caminho)).toBe(caminho);
+    const salva = passo(nova, {
+      enviado: nova.rascunho,
+      gravado: doc({ cursos: [], titulo: "", versao: V1 }),
+      tipo: "salvo",
+    });
+    expect(urlDepoisDoSalvar(salva.apoio.base, caminho)).toBeNull();
+    const existente = estadoApoiadoEm(REGRAS_DA_TRILHA, doc());
+    expect(urlDepoisDoSalvar(existente.apoio.base, caminho)).toBeNull();
   });
 
   test("a trilha nova salva e troca de URL sem recomeçar", () => {

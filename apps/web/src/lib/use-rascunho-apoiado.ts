@@ -113,6 +113,12 @@ export const rascunhoSujo = <D extends Documento, R, M>(
   e: EstadoApoiado<D, R>
 ) => !regras.mesmo(regras.deDocumento(e.apoio.base), e.rascunho);
 
+/** O documento novo abre com ?novo=1 e o perde no primeiro salvar. */
+export const urlDepoisDoSalvar = (
+  base: Documento,
+  caminho: Route
+): Route | null => (base.versao === null ? caminho : null);
+
 export interface OpcoesDoSalvar {
   aoRecusar?: (motivo: Motivo | null) => void;
   aoSalvar?: () => void;
@@ -174,6 +180,7 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
       opcoes: OpcoesDoSalvar
     ) => {
       const enviado = rascunho;
+      const url = urlDepoisDoSalvar(apoio.base, caminho);
       executar(fazer, {
         aoRecusar: (motivo) => {
           despachar({ motivo, tipo: "recusado" });
@@ -186,15 +193,14 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
             tipo: "salvo",
           });
           opcoes.aoSalvar?.();
-          // O documento novo perde o ?novo=1 depois do primeiro salvar.
-          if (novo) {
-            router.replace(caminho);
+          if (url) {
+            router.replace(url);
           }
         },
         sucesso: opcoes.sucesso,
       });
     },
-    [caminho, executar, novo, rascunho, router]
+    [apoio.base, caminho, executar, rascunho, router]
   );
 
   // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
