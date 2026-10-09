@@ -28,7 +28,6 @@ describe("duracaoDoTexto", () => {
       "-1:00",
       "1,5:00",
       "abc",
-      "24:00:01",
     ]) {
       expect(duracaoDoTexto(texto)).toBeNull();
     }

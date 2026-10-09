@@ -1,8 +1,10 @@
 "use client";
 
-import type { AulaDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
-import { videoDoTexto } from "@cursos/api/dominio/video";
-import { Field, FieldError, FieldLabel } from "@cursos/ui/components/field";
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
@@ -11,72 +13,89 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   useCallback,
-  useEffect,
-  useId,
-  useRef,
   useState,
 } from "react";
 
-import { duracaoDoTexto } from "@/lib/formato";
-
+import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { CAMPO, ROTULO } from "./partes";
+import type { Leitura } from "./rascunho-do-curso";
 
-export type Leitura<T> = { valor: T } | { erro: string };
-
-/**
- * Campo de texto que vira outro tipo (duração, vídeo, número). Guarda o texto
- * enquanto ele não lê, marca o campo inválido para o formulário não enviar e
- * mostra o erro depois que a pessoa sai do campo ou tenta salvar.
- */
-export function CampoLido<T>({
-  aoLer,
-  aoSair,
-  inicial,
-  ler,
+/** Campo de texto do editor: rótulo, input, ajuda opcional e o erro do salvar. */
+export function CampoDeTexto({
+  ajuda,
+  campoClasse,
+  id,
   rotulo,
   rotuloClasse,
   ...input
 }: {
-  aoLer: (valor: T) => void;
+  ajuda?: ReactNode;
+  campoClasse?: string;
+  id: string;
+  rotulo: ReactNode;
+  rotuloClasse?: string;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "id">) {
+  const { aria, mensagem } = useErroDoCampo(
+    id,
+    ajuda ? `${id}-ajuda` : undefined
+  );
+  return (
+    <Field className={campoClasse} data-invalid={mensagem ? true : undefined}>
+      <FieldLabel className={cn(ROTULO, rotuloClasse)} htmlFor={id}>
+        {rotulo}
+      </FieldLabel>
+      <Input
+        {...input}
+        {...aria}
+        autoComplete="off"
+        className={cn(CAMPO, "h-11", input.className)}
+        id={id}
+      />
+      {ajuda ? (
+        <FieldDescription className="text-xs" id={`${id}-ajuda`}>
+          {ajuda}
+        </FieldDescription>
+      ) : null}
+      <ErroDoCampo id={id} mensagem={mensagem} />
+    </Field>
+  );
+}
+
+/**
+ * Campo de texto que vira outro tipo (duração, vídeo, número, preço). O texto
+ * mora no rascunho; aqui só se decide quando mostrar o erro da leitura: depois
+ * que a pessoa sai do campo, ou quando o salvar marca o campo.
+ */
+export function CampoLido<T>({
+  aoMudar,
+  aoSair,
+  id,
+  ler,
+  rotulo,
+  rotuloClasse,
+  texto,
+  ...input
+}: {
+  aoMudar: (texto: string) => void;
   aoSair?: () => void;
-  /** O valor do documento como texto; quando ele muda por fora, o campo acompanha. */
-  inicial: string;
+  id: string;
   ler: (texto: string) => Leitura<T>;
   rotulo: ReactNode;
   rotuloClasse?: string;
+  texto: string;
 } & Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  "defaultValue" | "onBlur" | "onChange" | "value"
+  "defaultValue" | "id" | "onBlur" | "onChange" | "value"
 >) {
-  const id = useId();
-  const campo = useRef<HTMLInputElement>(null);
-  const [texto, setTexto] = useState(inicial);
-  const [base, setBase] = useState(inicial);
   const [tocado, setTocado] = useState(false);
-  // Subir e descer o módulo trocam o número sem passar pelo campo. O texto que a
-  // pessoa digitou e que já lê como o valor novo fica como está.
-  if (inicial !== base) {
-    setBase(inicial);
-    if (JSON.stringify(ler(texto)) !== JSON.stringify(ler(inicial))) {
-      setTexto(inicial);
-    }
-  }
+  const doSalvar = useErroDoCampo(id);
   const lido = ler(texto);
-  const erro = "erro" in lido ? lido.erro : null;
-
-  useEffect(() => {
-    campo.current?.setCustomValidity(erro ?? "");
-  }, [erro]);
+  const mensagem =
+    doSalvar.mensagem ?? (tocado && "erro" in lido ? lido.erro : null);
 
   const mudar = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setTexto(e.target.value);
-      const r = ler(e.target.value);
-      if ("valor" in r) {
-        aoLer(r.valor);
-      }
-    },
-    [ler, aoLer]
+    (e: ChangeEvent<HTMLInputElement>) => aoMudar(e.target.value),
+    [aoMudar]
   );
   const sair = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
@@ -92,68 +111,24 @@ export function CampoLido<T>({
     },
     [aoSair]
   );
-  const marcar = useCallback(() => setTocado(true), []);
 
   return (
-    <Field className="gap-1.5">
+    <Field className="gap-1.5" data-invalid={mensagem ? true : undefined}>
       <FieldLabel className={cn(ROTULO, rotuloClasse)} htmlFor={id}>
         {rotulo}
       </FieldLabel>
       <Input
         {...input}
-        aria-describedby={erro && tocado ? `${id}-erro` : undefined}
-        aria-invalid={tocado && erro ? true : undefined}
+        aria-describedby={mensagem ? `${id}-erro` : undefined}
+        aria-invalid={mensagem ? true : undefined}
         autoComplete="off"
         className={cn(CAMPO, "h-11 md:h-10", input.className)}
         id={id}
         onBlur={sair}
         onChange={mudar}
-        onInvalid={marcar}
-        ref={campo}
         value={texto}
       />
-      {tocado && erro ? (
-        <FieldError className="text-xs" id={`${id}-erro`}>
-          {erro}
-        </FieldError>
-      ) : null}
+      <ErroDoCampo id={id} mensagem={mensagem} />
     </Field>
   );
 }
-
-export function lerDuracao(texto: string): Leitura<number> {
-  const seg = duracaoDoTexto(texto);
-  return seg === null
-    ? { erro: "Escreva a duração em mm:ss, como 12:30." }
-    : { valor: seg };
-}
-
-export function lerVideo(texto: string): Leitura<AulaDoDocumento["video"]> {
-  if (texto.trim() === "") {
-    return { valor: null };
-  }
-  const video = videoDoTexto(texto);
-  return video
-    ? { valor: video }
-    : { erro: "Cole um link do YouTube ou o id do vídeo." };
-}
-
-const lerInteiro =
-  (min: number, max: number, erro: string) =>
-  (texto: string): Leitura<number> => {
-    const n = Number(texto.trim());
-    return texto.trim() !== "" && Number.isInteger(n) && n >= min && n <= max
-      ? { valor: n }
-      : { erro };
-  };
-
-export const lerNumeroDoModulo = lerInteiro(
-  0,
-  999,
-  "Use um número de 0 a 999."
-);
-export const lerPreco = lerInteiro(
-  1,
-  1_000_000,
-  "Use um preço de 1 a 1.000.000 pontos."
-);

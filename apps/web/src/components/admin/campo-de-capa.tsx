@@ -6,12 +6,12 @@ import {
   recusaDaMedida,
   recusaDoTamanho,
 } from "@cursos/api/dominio/capa";
+import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import type { Capa } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldLabel,
 } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
@@ -30,7 +30,9 @@ import {
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum } from "@/lib/formato";
 
+import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { CAMPO, ROTULO } from "./partes";
+import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];
 
@@ -196,6 +198,11 @@ export function CampoDeCapa({
   }, [aoEscolher]);
 
   const medida = escolhida?.medida ?? atual;
+  const arquivo = ID.curso("capa");
+  const daImagem = useErroDoCampo(arquivo, `${id}-regra`);
+  const mensagemDaImagem = erro ?? daImagem.mensagem;
+  const descricao = ID.curso("capaAlt");
+  const daDescricao = useErroDoCampo(descricao, `${id}-alt-ajuda`);
   return (
     <div className="grid gap-5 p-5 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:items-start">
       <div className="grid gap-2">
@@ -210,7 +217,7 @@ export function CampoDeCapa({
         ) : null}
       </div>
       <div className="grid gap-5">
-        <Field>
+        <Field data-invalid={mensagemDaImagem ? true : undefined}>
           <p className={ROTULO}>Imagem</p>
           <div className="flex flex-wrap items-center gap-2">
             <label
@@ -219,16 +226,20 @@ export function CampoDeCapa({
                 PEQUENO,
                 "cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-ceu has-focus-visible:outline-solid has-focus-visible:outline-offset-3"
               )}
-              htmlFor={`${id}-arquivo`}
+              htmlFor={arquivo}
             >
               <ImageUp aria-hidden="true" className="size-4" />
               {atual || escolhida ? "Trocar imagem" : "Escolher imagem"}
               <input
                 accept={TIPOS.join(",")}
-                aria-describedby={`${id}-regra`}
-                aria-invalid={erro ? true : undefined}
+                aria-describedby={
+                  mensagemDaImagem
+                    ? `${id}-regra ${arquivo}-erro`
+                    : `${id}-regra`
+                }
+                aria-invalid={mensagemDaImagem ? true : undefined}
                 className="sr-only"
-                id={`${id}-arquivo`}
+                id={arquivo}
                 onChange={escolher}
                 ref={input}
                 required={!(atual || escolhida)}
@@ -248,26 +259,28 @@ export function CampoDeCapa({
             JPG, PNG ou WebP, até {LIMITE_DA_CAPA.bytes / 1024 / 1024} MB, com
             pelo menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
           </FieldDescription>
-          {erro ? <FieldError className="text-sm">{erro}</FieldError> : null}
+          <ErroDoCampo id={arquivo} mensagem={mensagemDaImagem} />
         </Field>
-        <Field>
-          <FieldLabel className={ROTULO} htmlFor={`${id}-alt`}>
+        <Field data-invalid={daDescricao.mensagem ? true : undefined}>
+          <FieldLabel className={ROTULO} htmlFor={descricao}>
             Descrição da capa
           </FieldLabel>
           <Input
+            {...daDescricao.aria}
             autoComplete="off"
             className={cn(CAMPO, "h-11")}
-            id={`${id}-alt`}
-            maxLength={300}
+            id={descricao}
+            maxLength={CARACTERES.capaAlt}
             name="capaAlt"
             onChange={mudarAlt}
             placeholder="Envasadora de líquidos com o painel aberto"
             required
             value={alt}
           />
-          <FieldDescription className="text-xs">
+          <FieldDescription className="text-xs" id={`${id}-alt-ajuda`}>
             Quem usa leitor de tela ouve este texto no lugar da imagem.
           </FieldDescription>
+          <ErroDoCampo id={descricao} mensagem={daDescricao.mensagem} />
         </Field>
       </div>
     </div>

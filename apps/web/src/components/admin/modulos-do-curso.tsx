@@ -1,14 +1,9 @@
 "use client";
 
-import type {
-  AulaDoDocumento,
-  DocumentoDoCurso,
-  ModuloDoDocumento,
-} from "@cursos/api/dominio/edicao-do-curso";
+import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
-import { Input } from "@cursos/ui/components/input";
 import {
   NativeSelect,
   NativeSelectOption,
@@ -18,19 +13,26 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { type ChangeEvent, type Dispatch, useCallback } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { fmtHoras, mmss, plural } from "@/lib/formato";
+import { focarDepois, novoId } from "@/lib/editor";
+import { fmtHoras, plural } from "@/lib/formato";
 
+import { CampoDeTexto, CampoLido } from "./campo-lido";
+import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
+import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
+import type { Direcao, Mudanca } from "./estado-do-editor";
+import { ICONE, ROTULO, SELECAO } from "./partes";
 import {
-  CampoLido,
+  type AulaDoRascunho,
+  ID,
   lerDuracao,
   lerNumeroDoModulo,
   lerVideo,
-} from "./campo-lido";
-import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
-import type { Direcao, Edicao } from "./estado-do-editor";
-import { CAMPO, ICONE, ROTULO, SELECAO } from "./partes";
+  type ModuloDoRascunho,
+  type RascunhoDoCurso,
+  segundosDas,
+} from "./rascunho-do-curso";
 
-type Despachar = Dispatch<Edicao>;
+type Despachar = Dispatch<Mudanca>;
 
 const SELECAO_PEQUENA =
   "w-36 *:data-[slot=native-select]:h-10 *:data-[slot=native-select]:rounded-full *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-[13px] md:*:data-[slot=native-select]:h-9";
@@ -38,21 +40,12 @@ const SELECAO_PEQUENA =
 const GRADE_DA_AULA =
   "xl:grid-cols-[2rem_minmax(0,1fr)_7rem_minmax(0,0.9fr)_16.5rem] xl:gap-x-3";
 
-/** Foca o elemento depois que o React pôs a lista na ordem nova. */
-export const focarDepois = (id: string) =>
-  requestAnimationFrame(() => document.getElementById(id)?.focus());
-
-export const novoId = <T extends string>() => crypto.randomUUID() as T;
-
 /** O nome nos rótulos dos botões: "aula 2 (Ajuste da válvula)". */
-const nomeFalado = (tipo: string, n: number, titulo: string) =>
+const nomeFalado = (tipo: string, n: number | string, titulo: string) =>
   titulo.trim() ? `${tipo} ${n} (${titulo.trim()})` : `${tipo} ${n}`;
 
-const nomeDoModulo = (m: ModuloDoDocumento) =>
+const nomeDoModulo = (m: ModuloDoRascunho) =>
   m.titulo.trim() ? `Módulo ${m.numero} · ${m.titulo}` : `Módulo ${m.numero}`;
-
-const linkDoVideo = (v: AulaDoDocumento["video"]) =>
-  v ? `https://www.youtube.com/watch?v=${v.id}` : "";
 
 /**
  * Depois de subir ou descer, o foco fica no mesmo botão; se a linha chegou à
@@ -77,10 +70,10 @@ function LinhaDaAula({
   total,
 }: {
   assistida: number;
-  aula: AulaDoDocumento;
+  aula: AulaDoRascunho;
   despachar: Despachar;
-  modulo: ModuloDoDocumento;
-  modulos: readonly ModuloDoDocumento[];
+  modulo: ModuloDoRascunho;
+  modulos: readonly ModuloDoRascunho[];
   posicao: number;
   total: number;
 }) {
@@ -89,7 +82,7 @@ function LinhaDaAula({
   const outros = modulos.filter((m) => m.id !== modulo.id);
 
   const editarAula = useCallback(
-    (mudanca: Extract<Edicao, { tipo: "aula_editada" }>["mudanca"]) =>
+    (mudanca: Extract<Mudanca, { tipo: "aula_editada" }>["mudanca"]) =>
       despachar({ id, mudanca, tipo: "aula_editada" }),
     [despachar, id]
   );
@@ -99,11 +92,11 @@ function LinhaDaAula({
     [editarAula]
   );
   const mudarDuracao = useCallback(
-    (duracaoSeg: number) => editarAula({ duracaoSeg }),
+    (duracao: string) => editarAula({ duracao }),
     [editarAula]
   );
   const mudarVideo = useCallback(
-    (video: AulaDoDocumento["video"]) => editarAula({ video }),
+    (video: string) => editarAula({ video }),
     [editarAula]
   );
   const subir = useCallback(() => {
@@ -143,21 +136,17 @@ function LinhaDaAula({
       >
         {posicao}
       </span>
-      <Field className="gap-1.5">
-        <FieldLabel
-          className={cn(ROTULO, "xl:sr-only")}
-          htmlFor={`aula-${id}-titulo`}
-        >
-          Aula {posicao}
-        </FieldLabel>
-        <Input
-          autoComplete="off"
-          className={cn(CAMPO, "h-11 md:h-10")}
-          id={`aula-${id}-titulo`}
-          maxLength={160}
+      <div className="grid gap-1.5">
+        <CampoDeTexto
+          campoClasse="gap-1.5"
+          className="md:h-10"
+          id={ID.aula(id, "titulo")}
+          maxLength={CARACTERES.tituloDaAula}
           onChange={mudarTitulo}
           placeholder="Título da aula"
           required
+          rotulo={`Aula ${posicao}`}
+          rotuloClasse="xl:sr-only"
           value={aula.titulo}
         />
         {assistida > 0 ? (
@@ -166,11 +155,11 @@ function LinhaDaAula({
             mas dá para trocar o vídeo e o título.
           </p>
         ) : null}
-      </Field>
+      </div>
       <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-3 xl:contents">
         <CampoLido
-          aoLer={mudarDuracao}
-          inicial={aula.duracaoSeg > 0 ? mmss(aula.duracaoSeg) : ""}
+          aoMudar={mudarDuracao}
+          id={ID.aula(id, "duracao")}
           ler={lerDuracao}
           placeholder="12:30"
           required
@@ -180,10 +169,11 @@ function LinhaDaAula({
             </>
           }
           rotuloClasse="xl:sr-only"
+          texto={aula.duracao}
         />
         <CampoLido
-          aoLer={mudarVideo}
-          inicial={linkDoVideo(aula.video)}
+          aoMudar={mudarVideo}
+          id={ID.aula(id, "video")}
           ler={lerVideo}
           placeholder="Link ou id do YouTube"
           rotulo={
@@ -192,6 +182,7 @@ function LinhaDaAula({
             </>
           }
           rotuloClasse="xl:sr-only"
+          texto={aula.video}
         />
       </div>
       <div className="flex flex-wrap items-center gap-1">
@@ -246,6 +237,42 @@ function LinhaDaAula({
   );
 }
 
+function NivelDoModulo({
+  id,
+  mudar,
+  niveis,
+  valor,
+}: {
+  id: string;
+  mudar: (e: ChangeEvent<HTMLSelectElement>) => void;
+  niveis: RascunhoDoCurso["niveis"];
+  valor: number | null;
+}) {
+  const { aria, mensagem } = useErroDoCampo(id);
+  return (
+    <Field className="gap-1.5" data-invalid={mensagem ? true : undefined}>
+      <FieldLabel className={ROTULO} htmlFor={id}>
+        Nível
+      </FieldLabel>
+      <NativeSelect
+        {...aria}
+        className={cn(SELECAO, "md:*:data-[slot=native-select]:h-10")}
+        id={id}
+        onChange={mudar}
+        value={valor === null ? "" : String(valor)}
+      >
+        <NativeSelectOption value="">Sem nível</NativeSelectOption>
+        {niveis.map((n) => (
+          <NativeSelectOption key={n.ordem} value={String(n.ordem)}>
+            {n.nome || `Nível ${n.ordem}`}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+      <ErroDoCampo id={id} mensagem={mensagem} />
+    </Field>
+  );
+}
+
 export function BlocoDoModulo({
   assistidasPorAula,
   despachar,
@@ -259,25 +286,25 @@ export function BlocoDoModulo({
   despachar: Despachar;
   indice: number;
   linhaAberta: LinhaAberta;
-  modulo: ModuloDoDocumento;
-  modulos: readonly ModuloDoDocumento[];
-  niveis: DocumentoDoCurso["niveis"];
+  modulo: ModuloDoRascunho;
+  modulos: readonly ModuloDoRascunho[];
+  niveis: RascunhoDoCurso["niveis"];
 }) {
   const { id } = modulo;
   const nome = nomeFalado("módulo", modulo.numero, modulo.titulo);
   const assistidas = modulo.aulas.filter(
     (a) => (assistidasPorAula[a.id] ?? 0) > 0
   ).length;
-  const duracao = modulo.aulas.reduce((s, a) => s + a.duracaoSeg, 0);
+  const duracao = segundosDas(modulo.aulas);
   const ultimo = modulos.length - 1;
 
   const editarModulo = useCallback(
-    (mudanca: Extract<Edicao, { tipo: "modulo_editado" }>["mudanca"]) =>
+    (mudanca: Extract<Mudanca, { tipo: "modulo_editado" }>["mudanca"]) =>
       despachar({ id, mudanca, tipo: "modulo_editado" }),
     [despachar, id]
   );
   const mudarNumero = useCallback(
-    (numero: number) => editarModulo({ numero }),
+    (numero: string) => editarModulo({ numero }),
     [editarModulo]
   );
   const ordenar = useCallback(
@@ -311,7 +338,7 @@ export function BlocoDoModulo({
   const adicionarAula = useCallback(() => {
     const aula = novoId<AulaId>();
     despachar({ id: aula, moduloId: id, tipo: "aula_nova" });
-    focarDepois(`aula-${aula}-titulo`);
+    focarDepois(ID.aula(aula, "titulo"));
   }, [despachar, id]);
 
   return (
@@ -321,9 +348,9 @@ export function BlocoDoModulo({
     >
       <div className="grid gap-3 bg-muted/30 px-5 py-4 md:grid-cols-[6rem_minmax(0,1fr)_12rem] md:items-start">
         <CampoLido
-          aoLer={mudarNumero}
+          aoMudar={mudarNumero}
           aoSair={ordenar}
-          inicial={String(modulo.numero)}
+          id={ID.modulo(id, "numero")}
           inputMode="numeric"
           ler={lerNumeroDoModulo}
           required
@@ -332,44 +359,31 @@ export function BlocoDoModulo({
               Número<span className="sr-only"> do módulo</span>
             </>
           }
+          texto={modulo.numero}
         />
-        <Field className="gap-1.5">
-          <FieldLabel className={ROTULO} htmlFor={`modulo-${id}-titulo`}>
-            Título do módulo
-          </FieldLabel>
-          <Input
-            autoComplete="off"
-            className={cn(CAMPO, "h-11 font-semibold md:h-10")}
-            id={`modulo-${id}-titulo`}
-            maxLength={160}
+        <div className="grid gap-1.5">
+          <CampoDeTexto
+            campoClasse="gap-1.5"
+            className="font-semibold md:h-10"
+            id={ID.modulo(id, "titulo")}
+            maxLength={CARACTERES.tituloDoModulo}
             onChange={mudarTitulo}
             placeholder="Limpeza e higienização"
             required
+            rotulo="Título do módulo"
             value={modulo.titulo}
           />
           <p className="text-muted-foreground text-xs tabular-nums">
             {plural(modulo.aulas.length, "aula", "aulas")}
             {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
           </p>
-        </Field>
-        <Field className="gap-1.5">
-          <FieldLabel className={ROTULO} htmlFor={`modulo-${id}-nivel`}>
-            Nível
-          </FieldLabel>
-          <NativeSelect
-            className={cn(SELECAO, "md:*:data-[slot=native-select]:h-10")}
-            id={`modulo-${id}-nivel`}
-            onChange={mudarNivel}
-            value={modulo.nivelOrdem === null ? "" : String(modulo.nivelOrdem)}
-          >
-            <NativeSelectOption value="">Sem nível</NativeSelectOption>
-            {niveis.map((n) => (
-              <NativeSelectOption key={n.ordem} value={String(n.ordem)}>
-                {n.nome || `Nível ${n.ordem}`}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </Field>
+        </div>
+        <NivelDoModulo
+          id={ID.modulo(id, "nivel")}
+          mudar={mudarNivel}
+          niveis={niveis}
+          valor={modulo.nivelOrdem}
+        />
         <div className="flex flex-wrap items-center gap-1 md:col-span-3">
           <Button
             aria-label={`Subir o ${nome}`}

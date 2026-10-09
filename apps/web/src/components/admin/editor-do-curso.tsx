@@ -1,8 +1,7 @@
 "use client";
 
 import {
-  type DocumentoDoCurso,
-  documentoDoCurso,
+  CARACTERES,
   type EdicaoDoCurso,
   FORMATO_DO_SLUG,
   formularioDoCurso,
@@ -30,29 +29,49 @@ import {
   type Dispatch,
   type FormEvent,
   useCallback,
-  useEffect,
   useId,
   useReducer,
   useState,
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { focarDepois, novoId } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
+import { useGuardaDeSaida } from "@/lib/use-guarda-de-saida";
+import {
+  useSalvarDocumento,
+  useTituloComFoco,
+} from "@/lib/use-salvar-documento";
 import { trpcClient } from "@/utils/trpc";
 
+import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
 import { CampoDeCapa } from "./campo-de-capa";
-import { CampoLido, lerPreco } from "./campo-lido";
+import { CampoDeTexto, CampoLido } from "./campo-lido";
 import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
-import { type Edicao, editar } from "./estado-do-editor";
-import { BlocoDoModulo, focarDepois, novoId } from "./modulos-do-curso";
-import { CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
+import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
+import { BlocoDoModulo } from "./modulos-do-curso";
+import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import {
+  ID,
+  lerPreco,
+  lerRascunho,
+  mesmoRascunho,
+  type Problema,
+  problemasDaRecusa,
+  type RascunhoDoCurso,
+  type Recusa,
+  rascunhoDoCurso,
+  recusaDoMotivo,
+  segundosDas,
+} from "./rascunho-do-curso";
 
-type Despachar = Dispatch<Edicao>;
+type Despachar = Dispatch<Mudanca>;
 
 const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
   em_producao: {
@@ -65,33 +84,91 @@ const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
   },
 };
 
-const AVISO =
-  "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
-
-/** Os campos de texto do curso; o nome do input é o nome no documento. */
-type CampoDeTexto =
+/** Os campos de texto do curso; o nome do input é o nome no rascunho. */
+type CampoDeTextoDoCurso =
   | "capaAlt"
   | "codigo"
   | "destaque"
   | "slug"
   | "tema"
   | "titulo";
-const OPCIONAIS = new Set<CampoDeTexto>(["codigo", "destaque"]);
+const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
-function CamposDoCurso({
-  despachar,
-  documento,
+function CampoDoSlug({
   mudarTexto,
+  slug,
   slugSalvo,
 }: {
-  despachar: Despachar;
-  documento: DocumentoDoCurso;
   mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
+  slug: string;
   /** null no curso novo: ainda não há link antigo para quebrar. */
   slugSalvo: string | null;
 }) {
+  const id = ID.curso("slug");
+  const { aria, mensagem } = useErroDoCampo(id, `${id}-regra`);
+  const slugMudou = slugSalvo !== null && slug !== slugSalvo;
+  return (
+    <Field className="md:col-span-2" data-invalid={mensagem ? true : undefined}>
+      <FieldLabel className={ROTULO} htmlFor={id}>
+        Endereço
+      </FieldLabel>
+      <div className="flex min-w-0 items-center rounded-[12px] border border-muted-foreground bg-background has-aria-invalid:border-destructive has-focus-visible:outline-2 has-focus-visible:outline-ceu has-focus-visible:outline-solid has-focus-visible:outline-offset-2">
+        <span
+          aria-hidden="true"
+          className="shrink-0 pl-3.5 text-muted-foreground text-sm"
+        >
+          /cursos/
+        </span>
+        <Input
+          {...aria}
+          autoCapitalize="none"
+          autoComplete="off"
+          className="h-11 min-w-0 border-0 bg-transparent pl-0.5 text-sm focus-visible:ring-0 aria-invalid:ring-0 md:text-sm dark:bg-transparent dark:aria-invalid:ring-0"
+          id={id}
+          maxLength={CARACTERES.slug}
+          name="slug"
+          onChange={mudarTexto}
+          pattern={FORMATO_DO_SLUG}
+          placeholder="operacao-envasadora"
+          required
+          spellCheck={false}
+          value={slug}
+        />
+      </div>
+      <FieldDescription className="text-xs" id={`${id}-regra`}>
+        Letras minúsculas, números e hífen, sem espaço. É o link do curso para o
+        aluno.
+      </FieldDescription>
+      <ErroDoCampo id={id} mensagem={mensagem} />
+      {slugMudou ? (
+        <p className={AVISO} role="status">
+          <TriangleAlert
+            aria-hidden="true"
+            className="mt-0.5 size-4 shrink-0 text-sol"
+          />
+          <span>
+            Ao salvar, o link antigo{" "}
+            <span className="font-semibold">/cursos/{slugSalvo}</span> deixa de
+            abrir. Quem guardou esse link cai na página de não encontrado.
+          </span>
+        </p>
+      ) : null}
+    </Field>
+  );
+}
+
+function CamposDoCurso({
+  despachar,
+  mudarTexto,
+  rascunho,
+  slugSalvo,
+}: {
+  despachar: Despachar;
+  mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
+  rascunho: RascunhoDoCurso;
+  slugSalvo: string | null;
+}) {
   const id = useId();
-  const [aceitaTroca, setAceitaTroca] = useState(documento.precoTroca !== null);
   const mudarStatus = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) =>
       despachar({
@@ -101,98 +178,46 @@ function CamposDoCurso({
     [despachar]
   );
   const ligarTroca = useCallback(
-    (ligado: boolean) => {
-      setAceitaTroca(ligado);
-      if (!ligado) {
-        despachar({ mudanca: { precoTroca: null }, tipo: "campos" });
-      }
-    },
+    (ligado: boolean) =>
+      despachar({
+        mudanca: { precoTroca: ligado ? "" : null },
+        tipo: "campos",
+      }),
     [despachar]
   );
   const mudarPreco = useCallback(
-    (precoTroca: number) =>
+    (precoTroca: string) =>
       despachar({ mudanca: { precoTroca }, tipo: "campos" }),
     [despachar]
   );
-  const slugMudou = slugSalvo !== null && documento.slug !== slugSalvo;
   return (
     <div className="grid gap-5 p-5 md:grid-cols-2">
-      <Field className="md:col-span-2">
-        <FieldLabel className={ROTULO} htmlFor={`${id}-titulo`}>
-          Título
-        </FieldLabel>
-        <Input
-          autoComplete="off"
-          className={cn(CAMPO, "h-11")}
-          id={`${id}-titulo`}
-          maxLength={120}
-          name="titulo"
-          onChange={mudarTexto}
-          placeholder="Operação da envasadora volumétrica"
-          required
-          value={documento.titulo}
-        />
-      </Field>
-      <Field className="md:col-span-2">
-        <FieldLabel className={ROTULO} htmlFor={`${id}-slug`}>
-          Endereço
-        </FieldLabel>
-        <div className="flex min-w-0 items-center rounded-[12px] border border-muted-foreground bg-background has-focus-visible:outline-2 has-focus-visible:outline-ceu has-focus-visible:outline-solid has-focus-visible:outline-offset-2">
-          <span
-            aria-hidden="true"
-            className="shrink-0 pl-3.5 text-muted-foreground text-sm"
-          >
-            /cursos/
-          </span>
-          <Input
-            aria-describedby={`${id}-slug-regra`}
-            autoComplete="off"
-            className="h-11 min-w-0 border-0 bg-transparent pl-0.5 text-sm focus-visible:ring-0 md:text-sm dark:bg-transparent"
-            id={`${id}-slug`}
-            maxLength={80}
-            name="slug"
-            onChange={mudarTexto}
-            pattern={FORMATO_DO_SLUG}
-            placeholder="operacao-envasadora"
-            required
-            title="Letras minúsculas, números e hífen, sem espaço."
-            value={documento.slug}
-          />
-        </div>
-        <FieldDescription className="text-xs" id={`${id}-slug-regra`}>
-          Letras minúsculas, números e hífen, sem espaço. É o link do curso para
-          o aluno.
-        </FieldDescription>
-        {slugMudou ? (
-          <p className={AVISO} role="status">
-            <TriangleAlert
-              aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0 text-sol"
-            />
-            <span>
-              Ao salvar, o link antigo{" "}
-              <span className="font-semibold">/cursos/{slugSalvo}</span> deixa
-              de abrir. Quem guardou esse link cai na página de não encontrado.
-            </span>
-          </p>
-        ) : null}
-      </Field>
-      <Field>
-        <FieldLabel className={ROTULO} htmlFor={`${id}-tema`}>
-          Tema
-        </FieldLabel>
-        <Input
-          autoComplete="off"
-          className={cn(CAMPO, "h-11")}
-          id={`${id}-tema`}
-          maxLength={80}
-          name="tema"
-          onChange={mudarTexto}
-          placeholder="Máquinas"
-          required
-          value={documento.tema}
-        />
-      </Field>
+      <CampoDeTexto
+        campoClasse="md:col-span-2"
+        id={ID.curso("titulo")}
+        maxLength={CARACTERES.titulo}
+        name="titulo"
+        onChange={mudarTexto}
+        placeholder="Operação da envasadora volumétrica"
+        required
+        rotulo="Título"
+        value={rascunho.titulo}
+      />
+      <CampoDoSlug
+        mudarTexto={mudarTexto}
+        slug={rascunho.slug}
+        slugSalvo={slugSalvo}
+      />
+      <CampoDeTexto
+        id={ID.curso("tema")}
+        maxLength={CARACTERES.tema}
+        name="tema"
+        onChange={mudarTexto}
+        placeholder="Máquinas"
+        required
+        rotulo="Tema"
+        value={rascunho.tema}
+      />
       <Field>
         <FieldLabel className={ROTULO} htmlFor={`${id}-status`}>
           Status
@@ -202,7 +227,7 @@ function CamposDoCurso({
           className={SELECAO}
           id={`${id}-status`}
           onChange={mudarStatus}
-          value={documento.status}
+          value={rascunho.status}
         >
           <NativeSelectOption value="em_producao">
             {STATUS.em_producao.rotulo}
@@ -212,49 +237,46 @@ function CamposDoCurso({
           </NativeSelectOption>
         </NativeSelect>
         <FieldDescription className="text-xs" id={`${id}-status-descricao`}>
-          {STATUS[documento.status].descricao}
+          {STATUS[rascunho.status].descricao}
         </FieldDescription>
       </Field>
-      <Field>
-        <FieldLabel className={ROTULO} htmlFor={`${id}-codigo`}>
-          Código{" "}
-          <span className="font-normal text-muted-foreground">(opcional)</span>
-        </FieldLabel>
-        <Input
-          autoComplete="off"
-          className={cn(CAMPO, "h-11")}
-          id={`${id}-codigo`}
-          maxLength={40}
-          name="codigo"
-          onChange={mudarTexto}
-          placeholder="NR-12"
-          value={documento.codigo ?? ""}
-        />
-      </Field>
-      <Field>
-        <FieldLabel className={ROTULO} htmlFor={`${id}-destaque`}>
-          Destaque{" "}
-          <span className="font-normal text-muted-foreground">(opcional)</span>
-        </FieldLabel>
-        <Input
-          aria-describedby={`${id}-destaque-descricao`}
-          autoComplete="off"
-          className={cn(CAMPO, "h-11")}
-          id={`${id}-destaque`}
-          maxLength={60}
-          name="destaque"
-          onChange={mudarTexto}
-          placeholder="Novo"
-          value={documento.destaque ?? ""}
-        />
-        <FieldDescription className="text-xs" id={`${id}-destaque-descricao`}>
-          O card mostra o código; sem código, mostra o destaque.
-        </FieldDescription>
-      </Field>
+      <CampoDeTexto
+        id={ID.curso("codigo")}
+        maxLength={CARACTERES.codigo}
+        name="codigo"
+        onChange={mudarTexto}
+        placeholder="NR-12"
+        rotulo={
+          <>
+            Código{" "}
+            <span className="font-normal text-muted-foreground">
+              (opcional)
+            </span>
+          </>
+        }
+        value={rascunho.codigo ?? ""}
+      />
+      <CampoDeTexto
+        ajuda="O card mostra o código; sem código, mostra o destaque."
+        id={ID.curso("destaque")}
+        maxLength={CARACTERES.destaque}
+        name="destaque"
+        onChange={mudarTexto}
+        placeholder="Novo"
+        rotulo={
+          <>
+            Destaque{" "}
+            <span className="font-normal text-muted-foreground">
+              (opcional)
+            </span>
+          </>
+        }
+        value={rascunho.destaque ?? ""}
+      />
       <div className="grid gap-3 md:col-span-2">
         <Field className="w-auto" orientation="horizontal">
           <Switch
-            checked={aceitaTroca}
+            checked={rascunho.precoTroca !== null}
             id={`${id}-troca`}
             onCheckedChange={ligarTroca}
           />
@@ -262,23 +284,20 @@ function CamposDoCurso({
             Aceita troca por pontos
           </FieldLabel>
         </Field>
-        {aceitaTroca ? (
+        {rascunho.precoTroca === null ? null : (
           <div className="max-w-60">
             <CampoLido
-              aoLer={mudarPreco}
-              inicial={
-                documento.precoTroca === null
-                  ? ""
-                  : String(documento.precoTroca)
-              }
+              aoMudar={mudarPreco}
+              id={ID.curso("precoTroca")}
               inputMode="numeric"
               ler={lerPreco}
               placeholder="300"
               required
               rotulo="Preço em pontos"
+              texto={rascunho.precoTroca}
             />
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );
@@ -289,9 +308,11 @@ function LinhaDoNivel({
   nivel,
 }: {
   despachar: Despachar;
-  nivel: DocumentoDoCurso["niveis"][number];
+  nivel: RascunhoDoCurso["niveis"][number];
 }) {
   const { ordem } = nivel;
+  const id = ID.nivel(ordem);
+  const { aria, mensagem } = useErroDoCampo(id);
   const renomear = useCallback(
     (e: ChangeEvent<HTMLInputElement>) =>
       despachar({ nome: e.target.value, ordem, tipo: "nivel_renomeado" }),
@@ -302,29 +323,33 @@ function LinhaDoNivel({
     [despachar, ordem]
   );
   return (
-    <li className="flex items-end gap-2">
-      <Field className="min-w-0 flex-1 gap-1.5">
-        <FieldLabel className={ROTULO} htmlFor={`nivel-${ordem}`}>
+    <li>
+      <Field className="gap-1.5" data-invalid={mensagem ? true : undefined}>
+        <FieldLabel className={ROTULO} htmlFor={id}>
           Nível {ordem}
         </FieldLabel>
-        <Input
-          autoComplete="off"
-          className={cn(CAMPO, "h-11 md:h-10")}
-          id={`nivel-${ordem}`}
-          maxLength={60}
-          onChange={renomear}
-          placeholder="Básico"
-          required
-          value={nivel.nome}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            {...aria}
+            autoComplete="off"
+            className={cn(CAMPO, "h-11 min-w-0 flex-1 md:h-10")}
+            id={id}
+            maxLength={CARACTERES.nomeDoNivel}
+            onChange={renomear}
+            placeholder="Básico"
+            required
+            value={nivel.nome}
+          />
+          <Button
+            aria-label={`Remover o nível ${ordem}. Os módulos dele ficam sem nível.`}
+            className={ICONE}
+            onClick={remover}
+          >
+            <Trash2 aria-hidden="true" />
+          </Button>
+        </div>
+        <ErroDoCampo id={id} mensagem={mensagem} />
       </Field>
-      <Button
-        aria-label={`Remover o nível ${ordem}. Os módulos dele ficam sem nível.`}
-        className={ICONE}
-        onClick={remover}
-      >
-        <Trash2 aria-hidden="true" />
-      </Button>
     </li>
   );
 }
@@ -334,12 +359,12 @@ function Niveis({
   niveis,
 }: {
   despachar: Despachar;
-  niveis: DocumentoDoCurso["niveis"];
+  niveis: RascunhoDoCurso["niveis"];
 }) {
-  const proxima = Math.max(0, ...niveis.map((n) => n.ordem)) + 1;
+  const proxima = proximaOrdem(niveis);
   const adicionar = useCallback(() => {
-    despachar({ nome: "", tipo: "nivel_novo" });
-    focarDepois(`nivel-${proxima}`);
+    despachar({ ordem: proxima, tipo: "nivel_novo" });
+    focarDepois(ID.nivel(proxima));
   }, [despachar, proxima]);
   return (
     <div className="grid gap-4 p-5">
@@ -365,42 +390,25 @@ function Niveis({
   );
 }
 
-/** O zod só chega aqui com o que o formulário não confere sozinho. */
-function problemasDe(documento: DocumentoDoCurso): string[] {
-  const lido = documentoDoCurso.safeParse(documento);
-  if (lido.success) {
-    return [];
-  }
-  return [
-    ...new Set(
-      lido.error.issues.map((i) =>
-        i.code === "custom" ? i.message : "Confira os campos marcados."
-      )
-    ),
-  ];
-}
-
 const lista = (itens: readonly string[]) =>
   new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(itens);
 
-function motivosDoUso(uso: EdicaoDoCurso["uso"]): string {
+function motivosDoUso(uso: EdicaoDoCurso["uso"]): string[] {
   const aulas = Object.values(uso.assistidasPorAula).filter(
     (n) => n > 0
   ).length;
-  return lista(
-    [
-      uso.trilha ? `está na trilha ${uso.trilha.titulo}` : null,
-      uso.liberacoes > 0
-        ? `já foi liberado ${plural(uso.liberacoes, "vez", "vezes")}`
-        : null,
-      uso.certificados > 0
-        ? `tem ${plural(uso.certificados, "certificado", "certificados")}`
-        : null,
-      aulas > 0
-        ? `tem ${plural(aulas, "aula assistida", "aulas assistidas")}`
-        : null,
-    ].filter((m): m is string => m !== null)
-  );
+  return [
+    uso.trilha ? `está na trilha ${uso.trilha.titulo}` : null,
+    uso.liberacoes > 0
+      ? `já foi liberado ${plural(uso.liberacoes, "vez", "vezes")}`
+      : null,
+    uso.certificados > 0
+      ? `tem ${plural(uso.certificados, "certificado", "certificados")}`
+      : null,
+    aulas > 0
+      ? `tem ${plural(aulas, "aula assistida", "aulas assistidas")}`
+      : null,
+  ].filter((m): m is string => m !== null);
 }
 
 function ApagarCurso({
@@ -422,10 +430,16 @@ function ApagarCurso({
     [executar, id, router, titulo]
   );
   if (!edicao.podeApagar) {
+    const motivos = motivosDoUso(edicao.uso);
+    // Só a trilha impede: tirar o curso dela, no editor da trilha, libera o apagar.
+    const soATrilha = edicao.uso.trilha !== null && motivos.length === 1;
     return (
       <p className="max-w-[70ch] p-5 text-muted-foreground text-sm">
-        O curso não se apaga porque {motivosDoUso(edicao.uso)}. Para tirar do
-        ar, mude o status para Em produção e salve.
+        O curso não se apaga porque {lista(motivos)}.{" "}
+        {soATrilha
+          ? "Para apagar, tire o curso dessa trilha e volte aqui. "
+          : null}
+        Para só tirar do ar, mude o status para Em produção e salve.
       </p>
     );
   }
@@ -454,35 +468,28 @@ function ApagarCurso({
 }
 
 function Situacao({
-  conflito,
   novo,
   problemas,
   sujo,
 }: {
-  conflito: boolean;
   novo: boolean;
-  problemas: readonly string[];
+  problemas: readonly Problema[];
   sujo: boolean;
 }) {
-  if (conflito) {
-    return (
-      <p className="flex items-start gap-2 text-foreground">
-        <TriangleAlert
-          aria-hidden="true"
-          className="mt-0.5 size-4 shrink-0 text-sol"
-        />
-        <span>
-          Outra pessoa salvou este curso depois que você abriu. Recarregar traz
-          a versão dela e descarta o que você mudou aqui.
-        </span>
-      </p>
-    );
-  }
-  if (problemas.length > 0) {
+  const marcados = problemas.filter((p) => p.campo !== null).length;
+  const frases = problemas
+    .filter((p) => p.campo === null)
+    .map((p) => p.mensagem);
+  if (marcados > 0 || frases.length > 0) {
     return (
       <ul className="grid gap-0.5 text-destructive">
-        {problemas.map((p) => (
-          <li key={p}>{p}</li>
+        {marcados > 0 ? (
+          <li>
+            Confira {plural(marcados, "campo marcado", "campos marcados")}.
+          </li>
+        ) : null}
+        {frases.map((f) => (
+          <li key={f}>{f}</li>
         ))}
       </ul>
     );
@@ -496,39 +503,57 @@ function Situacao({
   return <p className="text-muted-foreground">{texto}</p>;
 }
 
+const SEM_CAPA: Problema = {
+  campo: ID.curso("capa"),
+  mensagem: "Escolha a imagem da capa.",
+};
+
 /**
- * O curso inteiro num formulário, salvo de uma vez com a capa. O documento vive
+ * O curso inteiro num formulário, salvo de uma vez com a capa. O rascunho vive
  * no reducer; a página remonta o editor pela versão depois de salvar.
  */
 export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
-  const router = useRouter();
-  const { executar, pendente } = useAcao();
-  const [documento, despachar] = useReducer(editar, edicao.documento);
+  const novo = edicao.documento.versao === null;
+  const { pendente, recarregar, salvar, versaoMudou } = useSalvarDocumento({
+    caminho: `/admin/catalogo/cursos/${edicao.documento.id}` as Route,
+    novo,
+  });
+  const titulo = useTituloComFoco<HTMLHeadingElement>();
+  const [rascunho, despachar] = useReducer(
+    mudar,
+    edicao.documento,
+    rascunhoDoCurso
+  );
   const [capa, setCapa] = useState<File | null>(null);
-  const [problemas, setProblemas] = useState<string[]>([]);
-  const [conflito, setConflito] = useState(false);
+  /** Remonta a capa depois de salvar, para a prévia sair junto com o arquivo. */
+  const [salvamentos, setSalvamentos] = useState(0);
+  /** Depois de um salvar recusado na tela, os problemas acompanham a digitação. */
+  const [tentou, setTentou] = useState(false);
+  const [recusa, setRecusa] = useState<Recusa | null>(null);
   const [chave, pedir] = useState<string | null>(null);
   const fechar = useCallback(
     (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
     []
   );
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
-  const novo = edicao.documento.versao === null;
   const sujo =
     capa !== null ||
-    JSON.stringify(documento) !== JSON.stringify(edicao.documento);
+    !mesmoRascunho(rascunhoDoCurso(edicao.documento), rascunho);
+  useGuardaDeSaida(sujo);
 
-  useEffect(() => {
-    if (!sujo) {
-      return;
-    }
-    const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", avisar);
-    return () => window.removeEventListener("beforeunload", avisar);
-  }, [sujo]);
+  const semCapa = novo && capa === null ? [SEM_CAPA] : [];
+  const lido = lerRascunho(rascunho);
+  const problemas = [
+    ...(tentou && lido.tipo === "problemas" ? lido.problemas : []),
+    ...(tentou ? semCapa : []),
+    ...problemasDaRecusa(recusa, rascunho),
+  ];
+  const erros = new Map(
+    problemas.flatMap((p) => (p.campo ? [[p.campo, p.mensagem] as const] : []))
+  );
 
   const mudarTexto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const campo = e.target.name as CampoDeTexto;
+    const campo = e.target.name as CampoDeTextoDoCurso;
     const valor = e.target.value;
     despachar({
       mudanca: { [campo]: OPCIONAIS.has(campo) && valor === "" ? null : valor },
@@ -536,167 +561,189 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     });
   }, []);
 
-  const salvar = useCallback(
+  const enviar = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const achados = problemasDe(documento);
-      setProblemas(achados);
-      if (achados.length > 0) {
+      const achados = [
+        ...(lido.tipo === "problemas" ? lido.problemas : []),
+        ...semCapa,
+      ];
+      if (lido.tipo === "problemas" || achados.length > 0) {
+        setTentou(true);
+        const primeiro = achados.find((p) => p.campo !== null)?.campo;
+        if (primeiro) {
+          document.getElementById(primeiro)?.focus();
+        }
         return;
       }
-      setConflito(false);
-      executar(
+      setTentou(false);
+      setRecusa(null);
+      salvar(
         () =>
           trpcClient.admin.catalogo.salvarCurso.mutate(
-            formularioDoCurso(documento, capa)
+            formularioDoCurso(lido.documento, capa)
           ),
         {
-          aoRecusar: (motivo) => setConflito(motivo === "versao_mudou"),
-          depois: () => {
-            if (novo) {
-              router.replace(`/admin/catalogo/cursos/${documento.id}` as Route);
+          aoRecusar: (motivo) => {
+            const r = recusaDoMotivo(motivo, rascunho);
+            setRecusa(r);
+            if (r) {
+              document.getElementById(ID.curso(r.campo))?.focus();
             }
+          },
+          // O servidor pode ter normalizado sem mudar a versão (nada_mudou): o
+          // editor não remonta, e o rascunho precisa virar o que foi gravado.
+          aoSalvar: () => {
+            despachar({ documento: lido.documento, tipo: "salvo" });
+            setCapa(null);
+            setSalvamentos((n) => n + 1);
           },
           sucesso: "Curso salvo.",
         }
       );
     },
-    [capa, documento, executar, novo, router]
+    [capa, lido, rascunho, salvar, semCapa]
   );
 
   const adicionarModulo = useCallback(() => {
     const id = novoId<ModuloId>();
     despachar({ id, tipo: "modulo_novo" });
-    focarDepois(`modulo-${id}-titulo`);
+    focarDepois(ID.modulo(id, "titulo"));
   }, []);
 
-  const recarregar = useCallback(() => router.refresh(), [router]);
-
-  const aulas = documento.modulos.reduce((s, m) => s + m.aulas.length, 0);
-  const duracao = documento.modulos.reduce(
-    (s, m) => s + m.aulas.reduce((t, a) => t + a.duracaoSeg, 0),
+  const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
+  const duracao = rascunho.modulos.reduce(
+    (s, m) => s + segundosDas(m.aulas),
     0
   );
   return (
-    <form className="mx-auto grid max-w-5xl gap-10" onSubmit={salvar}>
-      <div>
-        <Link
-          className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
-          href="/admin/catalogo"
+    <ErrosDoEditor value={erros}>
+      <form
+        className="mx-auto grid max-w-5xl gap-10"
+        noValidate
+        onSubmit={enviar}
+      >
+        <div>
+          <Link
+            className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
+            href="/admin/catalogo"
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            Catálogo
+          </Link>
+          <header className="grid gap-1.5">
+            <h1
+              className="text-balance font-bold text-3xl text-titulo tracking-tight focus:outline-none"
+              ref={titulo}
+              tabIndex={-1}
+            >
+              {rascunho.titulo.trim() || "Curso novo"}
+            </h1>
+            <p className="text-muted-foreground tabular-nums">
+              {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
+              {plural(aulas, "aula", "aulas")}
+              {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
+            </p>
+          </header>
+        </div>
+
+        <Secao
+          id="curso"
+          resumo={STATUS[rascunho.status].rotulo}
+          titulo="Curso"
         >
-          <ArrowLeft aria-hidden="true" className="size-4" />
-          Catálogo
-        </Link>
-        <header className="grid gap-1.5">
-          <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight">
-            {documento.titulo.trim() || "Curso novo"}
-          </h1>
-          <p className="text-muted-foreground tabular-nums">
-            {plural(documento.modulos.length, "módulo", "módulos")},{" "}
-            {plural(aulas, "aula", "aulas")}
-            {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
-          </p>
-        </header>
-      </div>
-
-      <Secao id="curso" resumo={STATUS[documento.status].rotulo} titulo="Curso">
-        <CamposDoCurso
-          despachar={despachar}
-          documento={documento}
-          mudarTexto={mudarTexto}
-          slugSalvo={novo ? null : edicao.documento.slug}
-        />
-      </Secao>
-
-      <Secao
-        id="capa"
-        resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
-        titulo="Capa"
-      >
-        <CampoDeCapa
-          alt={documento.capaAlt}
-          aoEscolher={setCapa}
-          atual={edicao.capa}
-          mudarAlt={mudarTexto}
-        />
-      </Secao>
-
-      <Secao
-        id="niveis"
-        resumo={plural(documento.niveis.length, "nível", "níveis")}
-        titulo="Níveis"
-      >
-        <Niveis despachar={despachar} niveis={documento.niveis} />
-      </Secao>
-
-      <Secao
-        id="modulos"
-        resumo={`${plural(documento.modulos.length, "módulo", "módulos")}, ${plural(aulas, "aula", "aulas")}`}
-        titulo="Módulos e aulas"
-      >
-        {documento.modulos.length === 0 ? (
-          <Vazio>
-            O curso ainda não tem módulos. Cada módulo agrupa aulas, e o aluno
-            vê o número dele.
-          </Vazio>
-        ) : (
-          documento.modulos.map((m, i) => (
-            <BlocoDoModulo
-              assistidasPorAula={edicao.uso.assistidasPorAula}
-              despachar={despachar}
-              indice={i}
-              key={m.id}
-              linhaAberta={linhaAberta}
-              modulo={m}
-              modulos={documento.modulos}
-              niveis={documento.niveis}
-            />
-          ))
-        )}
-        <div className="border-border border-t px-5 py-4">
-          <Button
-            className={cn(BOTAO_CONTORNO, PEQUENO)}
-            onClick={adicionarModulo}
-          >
-            <Plus aria-hidden="true" className="size-4" />
-            Adicionar módulo
-          </Button>
-        </div>
-      </Secao>
-
-      {novo ? null : (
-        <Secao id="apagar" resumo="" titulo="Apagar">
-          <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
-        </Secao>
-      )}
-
-      <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
-        <div aria-live="polite" className="min-w-0 flex-1 text-sm">
-          <Situacao
-            conflito={conflito}
-            novo={novo}
-            problemas={problemas}
-            sujo={sujo}
+          <CamposDoCurso
+            despachar={despachar}
+            mudarTexto={mudarTexto}
+            rascunho={rascunho}
+            slugSalvo={novo ? null : edicao.documento.slug}
           />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {conflito ? (
-            <Button className={BOTAO_CONTORNO} onClick={recarregar}>
-              Recarregar
+        </Secao>
+
+        <Secao
+          id="capa"
+          resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
+          titulo="Capa"
+        >
+          <CampoDeCapa
+            alt={rascunho.capaAlt}
+            aoEscolher={setCapa}
+            atual={edicao.capa}
+            key={salvamentos}
+            mudarAlt={mudarTexto}
+          />
+        </Secao>
+
+        <Secao
+          id="niveis"
+          resumo={plural(rascunho.niveis.length, "nível", "níveis")}
+          titulo="Níveis"
+        >
+          <Niveis despachar={despachar} niveis={rascunho.niveis} />
+        </Secao>
+
+        <Secao
+          id="modulos"
+          resumo={`${plural(rascunho.modulos.length, "módulo", "módulos")}, ${plural(aulas, "aula", "aulas")}`}
+          titulo="Módulos e aulas"
+        >
+          {rascunho.modulos.length === 0 ? (
+            <Vazio>
+              O curso ainda não tem módulos. Cada módulo agrupa aulas, e o aluno
+              vê o número dele.
+            </Vazio>
+          ) : (
+            rascunho.modulos.map((m, i) => (
+              <BlocoDoModulo
+                assistidasPorAula={edicao.uso.assistidasPorAula}
+                despachar={despachar}
+                indice={i}
+                key={m.id}
+                linhaAberta={linhaAberta}
+                modulo={m}
+                modulos={rascunho.modulos}
+                niveis={rascunho.niveis}
+              />
+            ))
+          )}
+          <div className="border-border border-t px-5 py-4">
+            <Button
+              className={cn(BOTAO_CONTORNO, PEQUENO)}
+              onClick={adicionarModulo}
+            >
+              <Plus aria-hidden="true" className="size-4" />
+              Adicionar módulo
             </Button>
+          </div>
+        </Secao>
+
+        {novo ? null : (
+          <Secao id="apagar" resumo="" titulo="Apagar">
+            <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
+          </Secao>
+        )}
+
+        <div className="sticky bottom-3 z-10 grid gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
+          {versaoMudou ? (
+            <AvisoDeVersaoMudou oQue="este curso" recarregar={recarregar} />
           ) : null}
-          <Button
-            aria-busy={pendente}
-            className={cn(BOTAO, "disabled:opacity-100")}
-            disabled={pendente}
-            focusableWhenDisabled
-            type="submit"
-          >
-            <Carregando ativo={pendente} />
-            Salvar
-          </Button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div aria-live="polite" className="min-w-0 flex-1 text-sm">
+              <Situacao novo={novo} problemas={problemas} sujo={sujo} />
+            </div>
+            <Button
+              aria-busy={pendente}
+              className={cn(BOTAO, "disabled:opacity-100")}
+              disabled={pendente}
+              focusableWhenDisabled
+              type="submit"
+            >
+              <Carregando ativo={pendente} />
+              Salvar
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </ErrosDoEditor>
   );
 }

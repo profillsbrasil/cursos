@@ -47,12 +47,10 @@ export function mmss(seg: number) {
 
 const MM_SS = /^(\d+):([0-5]\d)$/;
 const H_MM_SS = /^(\d+):([0-5]\d):([0-5]\d)$/;
-/** O teto de duracaoSeg no documento do curso. */
-const DURACAO_MAXIMA = 86_400;
 
 /**
  * O que o admin digita na duração da aula: "mm:ss" (os minutos passam de 59) ou
- * "h:mm:ss". null quando não é uma duração entre 1 s e 24 h.
+ * "h:mm:ss". null quando não é duração ou é zero; o teto é do documento do curso.
  */
 export function duracaoDoTexto(texto: string): number | null {
   const s = texto.trim();
@@ -66,7 +64,7 @@ export function duracaoDoTexto(texto: string): number | null {
   } else {
     return null;
   }
-  return total > 0 && total <= DURACAO_MAXIMA ? total : null;
+  return total > 0 ? total : null;
 }
 
 /** "1,25×". */

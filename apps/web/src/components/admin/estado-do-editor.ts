@@ -1,23 +1,28 @@
-// As mudanças que o editor do curso faz no documento, sem React e sem rede. O
+// As mudanças que o editor do curso faz no rascunho, sem React e sem rede. O
 // servidor confere tudo de novo no salvamento; aqui fica só o que a tela mostra.
 
-import type {
-  AulaDoDocumento,
-  DocumentoDoCurso,
-  ModuloDoDocumento,
-} from "@cursos/api/dominio/edicao-do-curso";
+import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
+import {
+  type AulaDoRascunho,
+  lerNumeroDoModulo,
+  type ModuloDoRascunho,
+  type RascunhoDoCurso,
+  rascunhoDoCurso,
+} from "./rascunho-do-curso";
+
 type CampoDoCurso = Exclude<
-  keyof DocumentoDoCurso,
+  keyof RascunhoDoCurso,
   "id" | "modulos" | "niveis" | "versao"
 >;
 
 export type Direcao = "acima" | "abaixo";
 
-export type Edicao =
-  | { tipo: "campos"; mudanca: Partial<Pick<DocumentoDoCurso, CampoDoCurso>> }
-  | { tipo: "nivel_novo"; nome: string }
+export type Mudanca =
+  | { tipo: "campos"; mudanca: Partial<Pick<RascunhoDoCurso, CampoDoCurso>> }
+  /** A ordem vem de quem chama, que também põe o foco no nível novo. */
+  | { tipo: "nivel_novo"; ordem: number }
   | { tipo: "nivel_renomeado"; ordem: number; nome: string }
   | { tipo: "nivel_removido"; ordem: number }
   | { tipo: "modulo_novo"; id: ModuloId }
@@ -25,7 +30,7 @@ export type Edicao =
       tipo: "modulo_editado";
       id: ModuloId;
       mudanca: Partial<
-        Pick<ModuloDoDocumento, "nivelOrdem" | "numero" | "titulo">
+        Pick<ModuloDoRascunho, "nivelOrdem" | "numero" | "titulo">
       >;
     }
   /** Põe os módulos na ordem do número, quando o admin termina de digitar um. */
@@ -36,14 +41,22 @@ export type Edicao =
   | {
       tipo: "aula_editada";
       id: AulaId;
-      mudanca: Partial<Omit<AulaDoDocumento, "id">>;
+      mudanca: Partial<Omit<AulaDoRascunho, "id">>;
     }
   | { tipo: "aula_movida"; id: AulaId; direcao: Direcao }
   | { tipo: "aula_para_modulo"; id: AulaId; moduloId: ModuloId }
-  | { tipo: "aula_removida"; id: AulaId };
+  | { tipo: "aula_removida"; id: AulaId }
+  /** O servidor aceitou: o rascunho vira o documento como o servidor o guarda. */
+  | { tipo: "salvo"; documento: DocumentoDoCurso };
 
-const maior = (valores: readonly number[], vazio: number) =>
-  valores.length === 0 ? vazio : Math.max(...valores);
+/** O próximo número de nível; o componente calcula e manda em nivel_novo. */
+export const proximaOrdem = (niveis: RascunhoDoCurso["niveis"]) =>
+  Math.max(0, ...niveis.map((n) => n.ordem)) + 1;
+
+const numeroDe = (m: ModuloDoRascunho) => {
+  const lido = lerNumeroDoModulo(m.numero);
+  return "valor" in lido ? lido.valor : null;
+};
 
 /** Troca o item i com o vizinho; fora dos limites devolve null. */
 function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
@@ -56,32 +69,39 @@ function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
   return nova;
 }
 
-/** A ordem que o aluno vê é a do número; o sort é estável para números repetidos. */
-const porNumero = (modulos: ModuloDoDocumento[]) =>
-  modulos.toSorted((a, b) => a.numero - b.numero);
+/**
+ * A ordem que o aluno vê é a do número; o sort é estável para números
+ * repetidos, e número que não lê fica no fim, onde o admin o digitou.
+ */
+const porNumero = (modulos: ModuloDoRascunho[]) =>
+  modulos.toSorted(
+    (a, b) =>
+      (numeroDe(a) ?? Number.POSITIVE_INFINITY) -
+      (numeroDe(b) ?? Number.POSITIVE_INFINITY)
+  );
 
 const comAulas = (
-  doc: DocumentoDoCurso,
+  r: RascunhoDoCurso,
   moduloId: ModuloId,
-  mudar: (aulas: AulaDoDocumento[]) => AulaDoDocumento[] | null
-): DocumentoDoCurso => {
+  trocar: (aulas: AulaDoRascunho[]) => AulaDoRascunho[] | null
+): RascunhoDoCurso => {
   let mudou = false;
-  const modulos = doc.modulos.map((m) => {
+  const modulos = r.modulos.map((m) => {
     if (m.id !== moduloId) {
       return m;
     }
-    const aulas = mudar(m.aulas);
+    const aulas = trocar(m.aulas);
     if (aulas === null) {
       return m;
     }
     mudou = true;
     return { ...m, aulas };
   });
-  return mudou ? { ...doc, modulos } : doc;
+  return mudou ? { ...r, modulos } : r;
 };
 
-const moduloDaAula = (doc: DocumentoDoCurso, id: AulaId) =>
-  doc.modulos.find((m) => m.aulas.some((a) => a.id === id));
+const moduloDaAula = (r: RascunhoDoCurso, id: AulaId) =>
+  r.modulos.find((m) => m.aulas.some((a) => a.id === id));
 
 /**
  * Regras:
@@ -89,55 +109,44 @@ const moduloDaAula = (doc: DocumentoDoCurso, id: AulaId) =>
  *    número não move o módulo enquanto o admin digita, e modulos_ordenados
  *    põe a lista na ordem do número;
  *  - subir ou descer um módulo troca o lugar e o número com o vizinho;
- *  - o nível novo recebe a maior ordem mais 1; remover um nível deixa sem nível
- *    os módulos que o usavam;
+ *  - remover um nível deixa sem nível os módulos que o usavam;
  *  - a posição da aula é o índice: subir e descer trocam com a vizinha do mesmo
- *    módulo, e a aula que muda de módulo vai para o fim do outro;
- *  - mudança impossível (topo, fim, id que não existe) devolve o mesmo documento.
+ *    módulo, e a aula que muda de módulo vai para o fim do outro, com o texto
+ *    que estava nos campos dela;
+ *  - mudança impossível (topo, fim, id que não existe) devolve o mesmo rascunho.
  */
-export function editar(doc: DocumentoDoCurso, e: Edicao): DocumentoDoCurso {
-  switch (e.tipo) {
+export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
+  switch (m.tipo) {
     case "campos":
-      return { ...doc, ...e.mudanca };
-    case "nivel_novo": {
-      const ordem = maior(
-        doc.niveis.map((n) => n.ordem),
-        0
-      );
-      return {
-        ...doc,
-        niveis: [...doc.niveis, { nome: e.nome, ordem: ordem + 1 }],
-      };
-    }
+      return { ...r, ...m.mudanca };
+    case "nivel_novo":
+      return { ...r, niveis: [...r.niveis, { nome: "", ordem: m.ordem }] };
     case "nivel_renomeado":
       return {
-        ...doc,
-        niveis: doc.niveis.map((n) =>
-          n.ordem === e.ordem ? { ...n, nome: e.nome } : n
+        ...r,
+        niveis: r.niveis.map((n) =>
+          n.ordem === m.ordem ? { ...n, nome: m.nome } : n
         ),
       };
     case "nivel_removido":
       return {
-        ...doc,
-        modulos: doc.modulos.map((m) =>
-          m.nivelOrdem === e.ordem ? { ...m, nivelOrdem: null } : m
+        ...r,
+        modulos: r.modulos.map((x) =>
+          x.nivelOrdem === m.ordem ? { ...x, nivelOrdem: null } : x
         ),
-        niveis: doc.niveis.filter((n) => n.ordem !== e.ordem),
+        niveis: r.niveis.filter((n) => n.ordem !== m.ordem),
       };
     case "modulo_novo": {
-      const numero = maior(
-        doc.modulos.map((m) => m.numero),
-        0
-      );
+      const numero = Math.max(0, ...r.modulos.map((x) => numeroDe(x) ?? 0));
       return {
-        ...doc,
+        ...r,
         modulos: [
-          ...doc.modulos,
+          ...r.modulos,
           {
             aulas: [],
-            id: e.id,
+            id: m.id,
             nivelOrdem: null,
-            numero: numero + 1,
+            numero: String(numero + 1),
             titulo: "",
           },
         ],
@@ -145,77 +154,79 @@ export function editar(doc: DocumentoDoCurso, e: Edicao): DocumentoDoCurso {
     }
     case "modulo_editado":
       return {
-        ...doc,
-        modulos: doc.modulos.map((m) =>
-          m.id === e.id ? { ...m, ...e.mudanca } : m
+        ...r,
+        modulos: r.modulos.map((x) =>
+          x.id === m.id ? { ...x, ...m.mudanca } : x
         ),
       };
     case "modulos_ordenados":
-      return { ...doc, modulos: porNumero(doc.modulos) };
+      return { ...r, modulos: porNumero(r.modulos) };
     case "modulo_movido": {
-      const i = doc.modulos.findIndex((m) => m.id === e.id);
-      const modulos = trocado(doc.modulos, i, e.direcao);
+      const i = r.modulos.findIndex((x) => x.id === m.id);
+      const modulos = trocado(r.modulos, i, m.direcao);
       if (modulos === null) {
-        return doc;
+        return r;
       }
-      const j = e.direcao === "acima" ? i - 1 : i + 1;
-      const a = modulos[i] as ModuloDoDocumento;
-      const b = modulos[j] as ModuloDoDocumento;
+      const j = m.direcao === "acima" ? i - 1 : i + 1;
+      const a = modulos[i] as ModuloDoRascunho;
+      const b = modulos[j] as ModuloDoRascunho;
       modulos[i] = { ...a, numero: b.numero };
       modulos[j] = { ...b, numero: a.numero };
-      return { ...doc, modulos };
+      return { ...r, modulos };
     }
     case "modulo_removido":
-      return { ...doc, modulos: doc.modulos.filter((m) => m.id !== e.id) };
+      return { ...r, modulos: r.modulos.filter((x) => x.id !== m.id) };
     case "aula_nova":
-      return comAulas(doc, e.moduloId, (aulas) => [
+      return comAulas(r, m.moduloId, (aulas) => [
         ...aulas,
-        { duracaoSeg: 0, id: e.id, titulo: "", video: null },
+        { duracao: "", id: m.id, titulo: "", video: "" },
       ]);
     case "aula_editada": {
-      const m = moduloDaAula(doc, e.id);
-      return m
-        ? comAulas(doc, m.id, (aulas) =>
-            aulas.map((a) => (a.id === e.id ? { ...a, ...e.mudanca } : a))
+      const de = moduloDaAula(r, m.id);
+      return de
+        ? comAulas(r, de.id, (aulas) =>
+            aulas.map((a) => (a.id === m.id ? { ...a, ...m.mudanca } : a))
           )
-        : doc;
+        : r;
     }
     case "aula_movida": {
-      const m = moduloDaAula(doc, e.id);
-      return m
-        ? comAulas(doc, m.id, (aulas) =>
+      const de = moduloDaAula(r, m.id);
+      return de
+        ? comAulas(r, de.id, (aulas) =>
             trocado(
               aulas,
-              aulas.findIndex((a) => a.id === e.id),
-              e.direcao
+              aulas.findIndex((a) => a.id === m.id),
+              m.direcao
             )
           )
-        : doc;
+        : r;
     }
     case "aula_para_modulo": {
-      const de = moduloDaAula(doc, e.id);
-      const aula = de?.aulas.find((a) => a.id === e.id);
+      const de = moduloDaAula(r, m.id);
+      const aula = de?.aulas.find((a) => a.id === m.id);
       if (
         !(de && aula) ||
-        de.id === e.moduloId ||
-        !doc.modulos.some((m) => m.id === e.moduloId)
+        de.id === m.moduloId ||
+        !r.modulos.some((x) => x.id === m.moduloId)
       ) {
-        return doc;
+        return r;
       }
-      const sem = comAulas(doc, de.id, (aulas) =>
-        aulas.filter((a) => a.id !== e.id)
+      const sem = comAulas(r, de.id, (aulas) =>
+        aulas.filter((a) => a.id !== m.id)
       );
-      return comAulas(sem, e.moduloId, (aulas) => [...aulas, aula]);
+      return comAulas(sem, m.moduloId, (aulas) => [...aulas, aula]);
     }
     case "aula_removida": {
-      const m = moduloDaAula(doc, e.id);
-      return m
-        ? comAulas(doc, m.id, (aulas) => aulas.filter((a) => a.id !== e.id))
-        : doc;
+      const de = moduloDaAula(r, m.id);
+      return de
+        ? comAulas(r, de.id, (aulas) => aulas.filter((a) => a.id !== m.id))
+        : r;
     }
+    case "salvo":
+      return rascunhoDoCurso(m.documento);
     default: {
-      const nenhuma: never = e;
-      throw new Error(`Edição sem regra: ${JSON.stringify(nenhuma)}`);
+      const nenhuma: never = m;
+      throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);
     }
   }
 }
