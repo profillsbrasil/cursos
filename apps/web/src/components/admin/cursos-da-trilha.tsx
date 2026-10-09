@@ -230,10 +230,14 @@ export function CursosDaTrilha({
   const acrescentar = useCallback(
     (c: CursoNaVisao | null) => {
       if (c) {
-        mudar({ id: c.id, tipo: "curso_acrescentado" });
+        mudar({
+          id: c.id,
+          salvo: salvo.includes(c.id),
+          tipo: "curso_acrescentado",
+        });
       }
     },
-    [mudar]
+    [mudar, salvo]
   );
   // Só o onKeyDown lê: guardar em ref não redesenha a lista a cada seta.
   const lista = useRef({ aberto: false, destacado: null as number | null });

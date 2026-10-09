@@ -43,7 +43,8 @@ export type MudancaDaTrilha =
       tipo: "campos";
       mudanca: Partial<Pick<RascunhoDaTrilha, CampoDaTrilha>>;
     }
-  | { tipo: "curso_acrescentado"; id: CursoId }
+  /** `salvo`: o curso está na lista salva, conferido no despacho contra a base. */
+  | { tipo: "curso_acrescentado"; id: CursoId; salvo: boolean }
   | { tipo: "curso_movido"; id: CursoId; direcao: Direcao }
   | { tipo: "curso_tirado"; id: CursoId }
   | { tipo: "curso_devolvido"; id: CursoId };
@@ -128,9 +129,17 @@ export function mudarTrilha(
       if (cursosDoRascunho(r).includes(m.id) || !cabeMaisUm(r)) {
         return r;
       }
-      return r.lista.some((c) => c.id === m.id)
+      // O salvo volta ao lugar dele, como o Desfazer; o que nunca foi salvo
+      // não tem lugar e vai ao fim, como diz o "Acrescentar curso no fim".
+      return m.salvo && r.lista.some((c) => c.id === m.id)
         ? marcado(r, m.id, false)
-        : { ...r, lista: [...r.lista, { id: m.id, tirado: false }] };
+        : {
+            ...r,
+            lista: [
+              ...r.lista.filter((c) => c.id !== m.id),
+              { id: m.id, tirado: false },
+            ],
+          };
     case "curso_movido": {
       const lista = movida(r.lista, m.id, m.direcao);
       return lista ? { ...r, lista } : r;
