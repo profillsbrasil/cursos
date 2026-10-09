@@ -74,7 +74,7 @@ describe("o rascunho apoiado da trilha", () => {
     const depois = passo(
       enviando,
       {
-        mudanca: { id: D, salvo: false, tipo: "curso_acrescentado" },
+        mudanca: { id: D, tipo: "curso_acrescentado" },
         tipo: "mudou",
       },
       { enviado: enviando.rascunho, gravado, tipo: "salvo" },
@@ -143,6 +143,24 @@ describe("o rascunho apoiado da trilha", () => {
       { motivo: null, tipo: "recusado" }
     );
     expect(depois.apoio.versaoDeFora).toBe(false);
+  });
+
+  test("acrescentar decide pela base: o curso salvo volta ao lugar, o que não está nela vai ao fim", () => {
+    const E = "00000000-0000-4000-8000-00000000000e" as CursoId;
+    const mudou = (mudanca: MudancaDaTrilha): Acao => ({
+      mudanca,
+      tipo: "mudou",
+    });
+    const depois = passo(
+      estadoApoiadoEm(REGRAS_DA_TRILHA, doc()),
+      mudou({ id: A, tipo: "curso_tirado" }),
+      mudou({ id: D, tipo: "curso_acrescentado" }),
+      mudou({ id: E, tipo: "curso_acrescentado" }),
+      mudou({ id: D, tipo: "curso_tirado" }),
+      mudou({ id: A, tipo: "curso_acrescentado" }),
+      mudou({ id: D, tipo: "curso_acrescentado" })
+    );
+    expect(cursosDoRascunho(depois.rascunho)).toEqual([A, B, E, D]);
   });
 
   test("a trilha nova salva e troca de URL sem recomeçar", () => {

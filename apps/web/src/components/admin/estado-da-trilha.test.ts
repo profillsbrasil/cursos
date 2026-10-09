@@ -139,28 +139,37 @@ const documento = (o: Partial<DocumentoDaTrilha> = {}): DocumentoDaTrilha => ({
 const rascunho = (o: Partial<DocumentoDaTrilha> = {}) =>
   rascunhoDaTrilha(documento(o));
 const ativos = cursosDoRascunho;
+const BASE = documento();
+const naBase =
+  (base: Pick<DocumentoDaTrilha, "cursos">) =>
+  (r: RascunhoDaTrilha, m: MudancaDaTrilha) =>
+    mudarTrilha(r, m, base);
 
 describe("mover pelo id", () => {
   test("subir e descer trocam o curso com o vizinho", () => {
     const r = rascunho();
     expect(
-      ativos(mudarTrilha(r, { direcao: "acima", id: B, tipo: "curso_movido" }))
+      ativos(
+        mudarTrilha(r, { direcao: "acima", id: B, tipo: "curso_movido" }, BASE)
+      )
     ).toEqual([B, A, C]);
     expect(
-      ativos(mudarTrilha(r, { direcao: "abaixo", id: B, tipo: "curso_movido" }))
+      ativos(
+        mudarTrilha(r, { direcao: "abaixo", id: B, tipo: "curso_movido" }, BASE)
+      )
     ).toEqual([A, C, B]);
   });
 
   test("na borda e com id ausente o rascunho fica o mesmo", () => {
     const r = rascunho();
     expect(
-      mudarTrilha(r, { direcao: "acima", id: A, tipo: "curso_movido" })
+      mudarTrilha(r, { direcao: "acima", id: A, tipo: "curso_movido" }, BASE)
     ).toBe(r);
     expect(
-      mudarTrilha(r, { direcao: "abaixo", id: C, tipo: "curso_movido" })
+      mudarTrilha(r, { direcao: "abaixo", id: C, tipo: "curso_movido" }, BASE)
     ).toBe(r);
     expect(
-      mudarTrilha(r, { direcao: "acima", id: D, tipo: "curso_movido" })
+      mudarTrilha(r, { direcao: "acima", id: D, tipo: "curso_movido" }, BASE)
     ).toBe(r);
   });
 });
@@ -169,20 +178,14 @@ describe("acrescentar e tirar", () => {
   test("acrescentar põe no fim", () => {
     expect(
       ativos(
-        mudarTrilha(rascunho(), {
-          id: D,
-          salvo: false,
-          tipo: "curso_acrescentado",
-        })
+        mudarTrilha(rascunho(), { id: D, tipo: "curso_acrescentado" }, BASE)
       )
     ).toEqual([A, B, C, D]);
   });
 
   test("curso que já está na lista não entra de novo", () => {
     const r = rascunho();
-    expect(
-      mudarTrilha(r, { id: B, salvo: true, tipo: "curso_acrescentado" })
-    ).toBe(r);
+    expect(mudarTrilha(r, { id: B, tipo: "curso_acrescentado" }, BASE)).toBe(r);
   });
 
   test("a lista para no teto de cursos por trilha", () => {
@@ -192,17 +195,16 @@ describe("acrescentar e tirar", () => {
       ),
     });
     expect(
-      mudarTrilha(cheia, { id: D, salvo: false, tipo: "curso_acrescentado" })
+      mudarTrilha(cheia, { id: D, tipo: "curso_acrescentado" }, BASE)
     ).toBe(cheia);
   });
 
   test("tirar tira só o curso pedido; id ausente não muda nada", () => {
     const r = rascunho();
-    expect(ativos(mudarTrilha(r, { id: B, tipo: "curso_tirado" }))).toEqual([
-      A,
-      C,
-    ]);
-    expect(mudarTrilha(r, { id: D, tipo: "curso_tirado" })).toBe(r);
+    expect(
+      ativos(mudarTrilha(r, { id: B, tipo: "curso_tirado" }, BASE))
+    ).toEqual([A, C]);
+    expect(mudarTrilha(r, { id: D, tipo: "curso_tirado" }, BASE)).toBe(r);
   });
 });
 
@@ -267,7 +269,7 @@ describe("focoDepois", () => {
     expect(focoDepois(r, { id: B, tipo: "curso_tirado" }, [A, B, C])).toBe(
       ID_DA_TRILHA.curso(B, "desfazer")
     );
-    const tirado = mudarTrilha(r, { id: B, tipo: "curso_tirado" });
+    const tirado = mudarTrilha(r, { id: B, tipo: "curso_tirado" }, BASE);
     expect(
       focoDepois(tirado, { id: B, tipo: "curso_devolvido" }, [A, B, C])
     ).toBe(ID_DA_TRILHA.curso(B, "tirar"));
@@ -276,8 +278,9 @@ describe("focoDepois", () => {
 
 describe("linha riscada e Desfazer", () => {
   const SALVO = [A, B, C, D];
+  const mudar = naBase({ cursos: SALVO });
   const de = (...mudancas: MudancaDaTrilha[]) =>
-    mudancas.reduce(mudarTrilha, rascunho({ cursos: SALVO }));
+    mudancas.reduce(mudar, rascunho({ cursos: SALVO }));
   const linhas = (r: RascunhoDaTrilha) =>
     linhasDaLista(r, SALVO).map((l) =>
       l.tipo === "curso" ? `${l.posicao}:${l.id}` : `~${l.id}`
@@ -299,10 +302,10 @@ describe("linha riscada e Desfazer", () => {
     );
     expect(linhas(doisTirados)).toEqual([`1:${A}`, `~${B}`, `2:${C}`, `~${D}`]);
     expect(
-      ativos(mudarTrilha(doisTirados, { id: B, tipo: "curso_devolvido" }))
+      ativos(mudar(doisTirados, { id: B, tipo: "curso_devolvido" }))
     ).toEqual([A, B, C]);
     expect(
-      ativos(mudarTrilha(doisTirados, { id: D, tipo: "curso_devolvido" }))
+      ativos(mudar(doisTirados, { id: D, tipo: "curso_devolvido" }))
     ).toEqual([A, C, D]);
   });
 
@@ -326,7 +329,7 @@ describe("linha riscada e Desfazer", () => {
     const meio = de(tirar(C), tirar(B), desfazer(C));
     expect(linhas(meio)).toEqual([`1:${A}`, `~${B}`, `2:${C}`, `3:${D}`]);
     expect(enviado(meio)).toEqual([A, C, D]);
-    const fim = mudarTrilha(meio, desfazer(B));
+    const fim = mudar(meio, desfazer(B));
     expect(linhas(fim)).toEqual([`1:${A}`, `2:${B}`, `3:${C}`, `4:${D}`]);
     expect(enviado(fim)).toEqual(SALVO);
   });
@@ -334,20 +337,25 @@ describe("linha riscada e Desfazer", () => {
   test("desfazer dois vizinhos na ordem contrária também", () => {
     const meio = de(tirar(C), tirar(B), desfazer(B));
     expect(linhas(meio)).toEqual([`1:${A}`, `2:${B}`, `~${C}`, `3:${D}`]);
-    const fim = mudarTrilha(meio, desfazer(C));
+    const fim = mudar(meio, desfazer(C));
     expect(enviado(fim)).toEqual(SALVO);
   });
 
   test("desfazer os dois últimos na ordem em que saíram", () => {
     const salvo = [A, B, C];
     const inicio = rascunho({ cursos: salvo });
-    const meio = [tirar(C), tirar(B), desfazer(C)].reduce(mudarTrilha, inicio);
+    const meio = [tirar(C), tirar(B), desfazer(C)].reduce(
+      naBase({ cursos: salvo }),
+      inicio
+    );
     expect(
       linhasDaLista(meio, salvo).map((l) =>
         l.tipo === "curso" ? `${l.posicao}:${l.id}` : `~${l.id}`
       )
     ).toEqual([`1:${A}`, `~${B}`, `2:${C}`]);
-    expect(enviado(mudarTrilha(meio, desfazer(B)))).toEqual(salvo);
+    expect(enviado(mudarTrilha(meio, desfazer(B), { cursos: salvo }))).toEqual(
+      salvo
+    );
   });
 
   test("tirar e desfazer tudo deixa o rascunho igual ao salvo", () => {
@@ -359,14 +367,12 @@ describe("linha riscada e Desfazer", () => {
   test("mover passa por cima da linha riscada, que fica no lugar e volta ali", () => {
     const r = de(tirar(B), { direcao: "acima", id: C, tipo: "curso_movido" });
     expect(linhas(r)).toEqual([`1:${C}`, `~${B}`, `2:${A}`, `3:${D}`]);
-    expect(enviado(mudarTrilha(r, desfazer(B)))).toEqual([C, B, A, D]);
+    expect(enviado(mudar(r, desfazer(B)))).toEqual([C, B, A, D]);
   });
 
   test("a seta conta só os cursos ativos para achar a borda", () => {
     const r = de(tirar(A));
-    expect(
-      mudarTrilha(r, { direcao: "acima", id: B, tipo: "curso_movido" })
-    ).toBe(r);
+    expect(mudar(r, { direcao: "acima", id: B, tipo: "curso_movido" })).toBe(r);
     expect(
       focoDepois(r, { direcao: "abaixo", id: B, tipo: "curso_movido" }, SALVO)
     ).toBe(ID_DA_TRILHA.curso(B, "abaixo"));
@@ -378,7 +384,7 @@ describe("linha riscada e Desfazer", () => {
   test("curso que entrou e saiu neste rascunho não vira linha riscada", () => {
     const novo = curso(9);
     const r = de(
-      { id: novo, salvo: false, tipo: "curso_acrescentado" },
+      { id: novo, tipo: "curso_acrescentado" },
       { id: novo, tipo: "curso_tirado" }
     );
     expect(linhas(r)).toEqual([`1:${A}`, `2:${B}`, `3:${C}`, `4:${D}`]);
@@ -387,7 +393,7 @@ describe("linha riscada e Desfazer", () => {
   test("acrescentar pela busca um curso riscado o devolve ao lugar dele, como o Desfazer", () => {
     const r = de(
       { id: B, tipo: "curso_tirado" },
-      { id: B, salvo: true, tipo: "curso_acrescentado" }
+      { id: B, tipo: "curso_acrescentado" }
     );
     expect(r.lista.filter((c) => c.id === B)).toEqual([
       { id: B, tirado: false },
@@ -400,12 +406,15 @@ describe("linha riscada e Desfazer", () => {
     const [X, Y] = [curso(11), curso(12)];
     const salvo = [A];
     const mudancas: MudancaDaTrilha[] = [
-      { id: X, salvo: false, tipo: "curso_acrescentado" },
-      { id: Y, salvo: false, tipo: "curso_acrescentado" },
+      { id: X, tipo: "curso_acrescentado" },
+      { id: Y, tipo: "curso_acrescentado" },
       { id: X, tipo: "curso_tirado" },
-      { id: X, salvo: false, tipo: "curso_acrescentado" },
+      { id: X, tipo: "curso_acrescentado" },
     ];
-    const r = mudancas.reduce(mudarTrilha, rascunho({ cursos: salvo }));
+    const r = mudancas.reduce(
+      naBase({ cursos: salvo }),
+      rascunho({ cursos: salvo })
+    );
     expect(
       linhasDaLista(r, salvo).map((l) =>
         l.tipo === "curso" ? `${l.posicao}:${l.id}` : `~${l.id}`
