@@ -54,7 +54,12 @@ function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {
         {trilhas.map((t) => (
           <TableRow key={t.id}>
             <TableCell className={cn(CELULA, "font-medium text-foreground")}>
-              {t.titulo}
+              <Link
+                className="underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-titulo focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
+                href={`/admin/catalogo/trilhas/${t.id}` as Route}
+              >
+                {t.titulo}
+              </Link>
             </TableCell>
             <TableCell className={cn(CELULA, NUMERO)}>
               {fmtNum(t.cursos)}
@@ -140,6 +145,15 @@ export function VisaoDoCatalogo({ visao }: { visao: Visao }) {
         titulo="Trilhas"
       >
         <TrilhasDoCatalogo trilhas={visao.trilhas} />
+        <div className="border-border border-t px-5 py-4">
+          <Link
+            className={cn(BOTAO_CONTORNO, PEQUENO)}
+            href="/admin/catalogo/trilhas/novo"
+          >
+            <Plus aria-hidden="true" />
+            Nova trilha
+          </Link>
+        </div>
       </Secao>
       <Secao
         id="cursos"

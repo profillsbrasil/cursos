@@ -7,8 +7,41 @@ import {
   apoioEm,
   apoioSalvo,
   primeiroNaPagina,
+  setaDepoisDeMover,
   sincronizarComAPagina,
+  trocado,
 } from "./editor";
+
+describe("trocado", () => {
+  test("troca o item com o vizinho de cima ou de baixo", () => {
+    expect(trocado(["a", "b", "c"], 1, "acima")).toEqual(["b", "a", "c"]);
+    expect(trocado(["a", "b", "c"], 1, "abaixo")).toEqual(["a", "c", "b"]);
+  });
+
+  test("na borda e fora da lista não troca", () => {
+    expect(trocado(["a", "b"], 0, "acima")).toBeNull();
+    expect(trocado(["a", "b"], 1, "abaixo")).toBeNull();
+    expect(trocado(["a", "b"], -1, "abaixo")).toBeNull();
+  });
+
+  test("não mexe na lista recebida", () => {
+    const lista = ["a", "b"] as const;
+    trocado(lista, 0, "abaixo");
+    expect(lista).toEqual(["a", "b"]);
+  });
+});
+
+describe("setaDepoisDeMover", () => {
+  test("longe da borda, o foco fica na seta clicada", () => {
+    expect(setaDepoisDeMover("acima", false)).toBe("acima");
+    expect(setaDepoisDeMover("abaixo", false)).toBe("abaixo");
+  });
+
+  test("na borda, a seta clicada desliga e o foco vai para a outra", () => {
+    expect(setaDepoisDeMover("acima", true)).toBe("abaixo");
+    expect(setaDepoisDeMover("abaixo", true)).toBe("acima");
+  });
+});
 
 interface Campo {
   compareDocumentPosition: (outro: Campo) => number;
@@ -153,13 +186,29 @@ describe("sincronizarComAPagina", () => {
   });
 });
 
-test("a página do curso monta o editor pela key do id, nunca da versão", () => {
-  // Key pela versão remonta o editor no refresh do salvar e apaga o que o
-  // admin digitou com o salvar pendente; o Apoio decide quando recomeçar.
-  const pagina = readFileSync(
-    join(import.meta.dir, "../app/(admin)/admin/catalogo/cursos/[id]/page.tsx"),
-    "utf8"
-  );
-  const keys = [...pagina.matchAll(/<EditorDoCurso\b[^>]*?\bkey=\{([^}]*)\}/g)];
-  expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
+// Key pela versão remonta o editor no refresh do salvar e apaga o que o admin
+// digitou com o salvar pendente; o Apoio decide quando recomeçar.
+describe("a página monta o editor pela key do id, nunca da versão", () => {
+  const EDITORES = [
+    { editor: "EditorDoCurso", pasta: "cursos" },
+    { editor: "EditorDaTrilha", pasta: "trilhas" },
+  ];
+  for (const { editor, pasta } of EDITORES) {
+    test(pasta, () => {
+      const pagina = readFileSync(
+        join(
+          import.meta.dir,
+          `../app/(admin)/admin/catalogo/${pasta}/[id]/page.tsx`
+        ),
+        "utf8"
+      );
+      const keys = [
+        ...pagina.matchAll(
+          new RegExp(`<${editor}\\b[^>]*?\\bkey=\\{([^}]*)\\}`, "g")
+        ),
+      ];
+      expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
+      expect(pagina).toContain("abrirOuRascunho(");
+    });
+  }
 });

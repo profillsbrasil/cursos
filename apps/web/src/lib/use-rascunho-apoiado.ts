@@ -1,0 +1,194 @@
+"use client";
+
+import type { Motivo } from "@cursos/api";
+import type { Versao } from "@cursos/api/dominio/tipos";
+import type { Route } from "next";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useReducer,
+  useState,
+} from "react";
+
+import {
+  type Apoio,
+  apoioEm,
+  apoioSalvo,
+  sincronizarComAPagina,
+} from "./editor";
+import { useGuardaDeSaida } from "./use-guarda-de-saida";
+import { useSalvarDocumento, useTituloComFoco } from "./use-salvar-documento";
+
+interface Documento {
+  versao: Versao | null;
+}
+
+export interface RegrasDoRascunho<D extends Documento, R, M> {
+  deDocumento: (d: D) => R;
+  mesmo: (a: R, b: R) => boolean;
+  mudar: (r: R, m: M) => R;
+}
+
+export interface EstadoApoiado<D extends Documento, R> {
+  apoio: Apoio<D>;
+  /** Cresce a cada recomeço: o estado próprio do editor volta ao início com ela. */
+  geracao: number;
+  rascunho: R;
+}
+
+export type AcaoApoiada<D extends Documento, R, M> =
+  | { tipo: "mudou"; mudanca: M }
+  | { tipo: "pagina"; pagina: D; descartes: number; limpo: boolean }
+  /** O servidor gravou `enviado` como `gravado`; o que o admin editou depois fica. */
+  | { tipo: "salvo"; gravado: D; enviado: R };
+
+export const estadoApoiadoEm = <D extends Documento, R, M>(
+  regras: RegrasDoRascunho<D, R, M>,
+  pagina: D
+): EstadoApoiado<D, R> => ({
+  apoio: apoioEm(pagina, 0),
+  geracao: 0,
+  rascunho: regras.deDocumento(pagina),
+});
+
+export function apoiado<D extends Documento, R, M>(
+  regras: RegrasDoRascunho<D, R, M>,
+  e: EstadoApoiado<D, R>,
+  a: AcaoApoiada<D, R, M>
+): EstadoApoiado<D, R> {
+  switch (a.tipo) {
+    case "mudou":
+      return { ...e, rascunho: regras.mudar(e.rascunho, a.mudanca) };
+    case "pagina": {
+      const s = sincronizarComAPagina(e.apoio, a);
+      return s.recomecar
+        ? {
+            apoio: s.apoio,
+            geracao: e.geracao + 1,
+            rascunho: regras.deDocumento(s.apoio.base),
+          }
+        : { ...e, apoio: s.apoio };
+    }
+    case "salvo":
+      return {
+        ...e,
+        apoio: apoioSalvo(e.apoio, a.gravado),
+        rascunho: regras.mesmo(e.rascunho, a.enviado)
+          ? regras.deDocumento(a.gravado)
+          : e.rascunho,
+      };
+    default: {
+      const nenhuma: never = a;
+      throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
+    }
+  }
+}
+
+export const rascunhoSujo = <D extends Documento, R, M>(
+  regras: RegrasDoRascunho<D, R, M>,
+  e: EstadoApoiado<D, R>
+) => !regras.mesmo(regras.deDocumento(e.apoio.base), e.rascunho);
+
+export interface OpcoesDoSalvar {
+  aoRecusar?: (motivo: Motivo | null) => void;
+  aoSalvar?: () => void;
+  sucesso: string;
+}
+
+export function useRascunhoApoiado<D extends Documento, R, M>({
+  caminho,
+  pagina,
+  regras,
+  sujoAlem,
+}: {
+  caminho: Route;
+  pagina: D;
+  regras: RegrasDoRascunho<D, R, M>;
+  /** O que o editor guarda fora do rascunho e ainda não salvou, nesta geração. */
+  sujoAlem?: (geracao: number) => boolean;
+}) {
+  const [estado, despachar] = useReducer(
+    (e: EstadoApoiado<D, R>, a: AcaoApoiada<D, R, M>) => apoiado(regras, e, a),
+    pagina,
+    (p) => estadoApoiadoEm(regras, p)
+  );
+  const { apoio, geracao, rascunho } = estado;
+  const novo = apoio.base.versao === null;
+  const { descartes, pendente, recarregar, salvar, versaoMudou } =
+    useSalvarDocumento({ caminho, novo });
+  const titulo = useTituloComFoco<HTMLHeadingElement>();
+  const sujo = (sujoAlem?.(geracao) ?? false) || rascunhoSujo(regras, estado);
+  if (pagina !== apoio.pagina || descartes !== apoio.descartes) {
+    despachar({ descartes, limpo: !sujo, pagina, tipo: "pagina" });
+  }
+  useGuardaDeSaida(sujo);
+
+  const mudar = useCallback(
+    (mudanca: M) => despachar({ mudanca, tipo: "mudou" }),
+    []
+  );
+
+  const salvarDocumento = useCallback(
+    (
+      documento: D,
+      fazer: () => Promise<{ versao: Versao }>,
+      opcoes: OpcoesDoSalvar
+    ) => {
+      const enviado = rascunho;
+      salvar(fazer, {
+        aoRecusar: opcoes.aoRecusar,
+        aoSalvar: ({ versao }) => {
+          despachar({
+            enviado,
+            gravado: { ...documento, versao },
+            tipo: "salvo",
+          });
+          opcoes.aoSalvar?.();
+        },
+        sucesso: opcoes.sucesso,
+      });
+    },
+    [rascunho, salvar]
+  );
+
+  // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
+  const descartar = useCallback(() => {
+    recarregar();
+    titulo.current?.focus({ preventScroll: true });
+  }, [recarregar, titulo]);
+
+  return {
+    base: apoio.base,
+    descartar,
+    geracao,
+    mudar,
+    novo,
+    pendente,
+    rascunho,
+    salvar: salvarDocumento,
+    sujo,
+    titulo,
+    versaoMudou: versaoMudou || apoio.versaoDeFora,
+  };
+}
+
+export function useDaGeracao<T>(
+  geracao: number,
+  inicial: T
+): [T, Dispatch<SetStateAction<T>>] {
+  const [guardado, guardar] = useState({ geracao, valor: inicial });
+  const valor = guardado.geracao === geracao ? guardado.valor : inicial;
+  const mudar = useCallback(
+    (v: SetStateAction<T>) =>
+      guardar((atual) => {
+        const antes = atual.geracao === geracao ? atual.valor : inicial;
+        return {
+          geracao,
+          valor: v instanceof Function ? v(antes) : v,
+        };
+      }),
+    [geracao, inicial]
+  );
+  return [valor, mudar];
+}

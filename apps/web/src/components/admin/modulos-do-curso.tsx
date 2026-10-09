@@ -13,13 +13,18 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { type ChangeEvent, type Dispatch, useCallback } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { focarDepois, novoId } from "@/lib/editor";
+import {
+  type Direcao,
+  focarDepois,
+  novoId,
+  setaDepoisDeMover,
+} from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import type { Direcao, Mudanca } from "./estado-do-editor";
+import type { Mudanca } from "./estado-do-editor";
 import { ICONE, ROTULO, SELECAO } from "./partes";
 import {
   type AulaDoRascunho,
@@ -50,8 +55,7 @@ function focarNoBotao(
   direcao: Direcao,
   chegouNaBorda: boolean
 ) {
-  const outra = direcao === "acima" ? "abaixo" : "acima";
-  focarDepois(`${prefixo}-${chegouNaBorda ? outra : direcao}`);
+  focarDepois(`${prefixo}-${setaDepoisDeMover(direcao, chegouNaBorda)}`);
 }
 
 function LinhaDaAula({

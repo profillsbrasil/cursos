@@ -4,12 +4,13 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 
 | Termo | Definição |
 |---|---|
-| Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. Curso que o aluno já começou ou concluiu continua aberto quando o admin insere ou reordena cursos. |
+| Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. Curso que o aluno já começou ou concluiu continua aberto quando o admin insere ou reordena cursos. Tirar um curso da trilha tira o acesso de quem só o tinha pela trilha, inclusive de quem já o começou ou concluiu. A edição da trilha conta, por curso, quantas dessas pessoas o começaram, e a conta inclui quem concluiu (tem o certificado). O editor mostra esse número para cada curso tirado antes do Salvar. |
 | Curso | Unidade com módulos, aulas, prova e certificado. Existe uma vez no catálogo e está em no máximo uma trilha. |
 | Curso solto | Curso que a pessoa recebeu por liberação direta e que não está numa trilha liberada a ela. Na tela, aparece em "Cursos rápidos". |
 | Módulo | Grupo numerado de aulas dentro de um curso. O aluno vê o número ("Módulo 3"). Os cursos de exemplo começam em 0 ou em 1, e o admin escolhe o número. |
 | Aula | Vídeo com duração em segundos, numa posição dentro de um módulo. A aula mantém o id quando o admin a muda de lugar ou de módulo, e com ele a aula assistida e a posição dos alunos. |
 | Documento do curso | O curso inteiro como o admin edita: campos, capa, níveis, módulos e aulas. O admin salva o documento de uma vez, e o servidor grava o estado final. |
+| Documento da trilha | A trilha como o admin edita: título, endereço, descrição e a lista ordenada de cursos. A lista é o estado desejado: acrescentar, tirar e reordenar são o mesmo salvamento. Trilha que já foi liberada para alguém, mesmo com a liberação revogada, não se apaga. |
 | Rascunho | Documento (curso ou trilha) no editor, antes de salvar. No curso, os campos lidos (duração, vídeo, número do módulo e preço) ficam no texto que o admin digitou até o salvar convertê-los. O documento novo é rascunho até o primeiro salvamento, com o id já na URL, e o aluno não vê nada dele. O rascunho só some quando o admin pede "Recarregar" ou sai da página. |
 | Versão | Impressão do conteúdo de um documento do admin, derivada dele e não guardada. No curso, a capa entra no conteúdo. Salvar com a versão velha dá conflito; reenviar o que já está gravado é sucesso. |
 | Capa | Imagem do curso, JPG, PNG ou WebP, com até 4 MB e pelo menos 640 px de largura. Fica no bucket `capas` com o nome igual ao hash dos bytes. |

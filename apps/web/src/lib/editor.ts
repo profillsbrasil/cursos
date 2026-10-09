@@ -4,6 +4,33 @@ import type { Versao } from "@cursos/api/dominio/tipos";
 export const focarDepois = (id: string) =>
   requestAnimationFrame(() => document.getElementById(id)?.focus());
 
+export type Direcao = "acima" | "abaixo";
+
+export function trocado<T>(
+  lista: readonly T[],
+  i: number,
+  direcao: Direcao
+): T[] | null {
+  const j = direcao === "acima" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= lista.length) {
+    return null;
+  }
+  const nova = [...lista];
+  [nova[i], nova[j]] = [nova[j] as T, nova[i] as T];
+  return nova;
+}
+
+/** A seta da borda desabilita e perderia o foco. */
+export const setaDepoisDeMover = (
+  direcao: Direcao,
+  chegouNaBorda: boolean
+): Direcao => {
+  if (!chegouNaBorda) {
+    return direcao;
+  }
+  return direcao === "acima" ? "abaixo" : "acima";
+};
+
 interface NaPagina<T> {
   compareDocumentPosition: (outro: T) => number;
 }

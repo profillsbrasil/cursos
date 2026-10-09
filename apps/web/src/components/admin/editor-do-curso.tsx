@@ -30,50 +30,35 @@ import {
   type FormEvent,
   useCallback,
   useId,
-  useReducer,
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import {
-  apoioEm,
-  apoioSalvo,
-  focarDepois,
-  focarOPrimeiro,
-  novoId,
-  sincronizarComAPagina,
-} from "@/lib/editor";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { focarDepois, focarOPrimeiro, novoId } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
-import { useGuardaDeSaida } from "@/lib/use-guarda-de-saida";
-import {
-  useSalvarDocumento,
-  useTituloComFoco,
-} from "@/lib/use-salvar-documento";
+import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
 import { trpcClient } from "@/utils/trpc";
 
-import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
+import { BarraDeSalvar } from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
-import {
-  Carregando,
-  ConfirmacaoNaLinha,
-  type LinhaAberta,
-} from "./confirmacao-na-linha";
+import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
-import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
+import {
+  type Mudanca,
+  proximaOrdem,
+  REGRAS_DO_CURSO,
+} from "./estado-do-editor";
 import { BlocoDoModulo } from "./modulos-do-curso";
 import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,
   lerPreco,
   lerRascunho,
-  mesmoRascunho,
-  type Problema,
-  problemasDaRecusa,
   type RascunhoDoCurso,
-  type Recusa,
-  rascunhoDoCurso,
+  type RecusaDoCurso,
   recusaDoMotivo,
   segundosDas,
 } from "./rascunho-do-curso";
@@ -471,116 +456,83 @@ function ApagarCurso({
   );
 }
 
-function Situacao({
-  novo,
-  problemas,
-  sujo,
-}: {
-  novo: boolean;
-  problemas: readonly Problema[];
-  sujo: boolean;
-}) {
-  const marcados = problemas.filter((p) => p.campo !== null).length;
-  const frases = problemas
-    .filter((p) => p.campo === null)
-    .map((p) => p.mensagem);
-  if (marcados > 0 || frases.length > 0) {
-    return (
-      <ul className="grid gap-0.5 text-destructive">
-        {marcados > 0 ? (
-          <li>
-            Confira {plural(marcados, "campo marcado", "campos marcados")}.
-          </li>
-        ) : null}
-        {frases.map((f) => (
-          <li key={f}>{f}</li>
-        ))}
-      </ul>
-    );
-  }
-  let texto = "Tudo salvo.";
-  if (novo) {
-    texto = "Rascunho. Os alunos não veem nada até você salvar.";
-  } else if (sujo) {
-    texto = "Alterações não salvas.";
-  }
-  return <p className="text-muted-foreground">{texto}</p>;
-}
-
 const SEM_CAPA: Problema = {
   campo: ID.curso("capa"),
   mensagem: "Escolha a imagem da capa.",
 };
 
+/**
+ * O arquivo escolhido vale na geração em que foi escolhido. `montagem` remonta
+ * o campo depois do salvar que enviou o arquivo, e o input volta vazio.
+ */
+interface CapaEscolhida {
+  arquivo: File | null;
+  geracao: number;
+  montagem: number;
+}
+
 export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
-  const [apoio, setApoio] = useState(() => apoioEm(edicao.documento, 0));
-  const novo = apoio.base.versao === null;
-  const { descartes, pendente, recarregar, salvar, versaoMudou } =
-    useSalvarDocumento({
-      caminho: `/admin/catalogo/cursos/${edicao.documento.id}` as Route,
-      novo,
-    });
-  const titulo = useTituloComFoco<HTMLHeadingElement>();
-  const [rascunho, despachar] = useReducer(
-    mudar,
-    edicao.documento,
-    rascunhoDoCurso
-  );
-  const [capa, setCapa] = useState<{ arquivo: File | null; montagem: number }>({
+  const [capaGuardada, guardarCapa] = useState<CapaEscolhida>({
     arquivo: null,
+    geracao: 0,
     montagem: 0,
   });
+  const {
+    base,
+    descartar,
+    geracao,
+    mudar: despachar,
+    novo,
+    pendente,
+    rascunho,
+    salvar,
+    sujo,
+    titulo,
+    versaoMudou,
+  } = useRascunhoApoiado({
+    caminho: `/admin/catalogo/cursos/${edicao.documento.id}` as Route,
+    pagina: edicao.documento,
+    regras: REGRAS_DO_CURSO,
+    sujoAlem: (g) =>
+      capaGuardada.geracao === g && capaGuardada.arquivo !== null,
+  });
+  const capa = capaGuardada.geracao === geracao ? capaGuardada.arquivo : null;
   const escolherCapa = useCallback(
-    (arquivo: File | null) => setCapa((atual) => ({ ...atual, arquivo })),
-    []
+    (arquivo: File | null) =>
+      guardarCapa((atual) => ({ ...atual, arquivo, geracao })),
+    [geracao]
   );
-  const [tentou, setTentou] = useState(false);
-  const [recusa, setRecusa] = useState<Recusa | null>(null);
-  const [chave, pedir] = useState<string | null>(null);
+  const [tentou, setTentou] = useDaGeracao<boolean>(geracao, false);
+  const [recusa, setRecusa] = useDaGeracao<RecusaDoCurso | null>(geracao, null);
+  const [chave, pedir] = useDaGeracao<string | null>(geracao, null);
   const fechar = useCallback(
     (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
-    []
+    [pedir]
   );
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
-  const sujo =
-    capa.arquivo !== null ||
-    !mesmoRascunho(rascunhoDoCurso(apoio.base), rascunho);
-  if (edicao.documento !== apoio.pagina || descartes !== apoio.descartes) {
-    const s = sincronizarComAPagina(apoio, {
-      descartes,
-      limpo: !sujo,
-      pagina: edicao.documento,
-    });
-    setApoio(s.apoio);
-    if (s.recomecar) {
-      despachar({ documento: s.apoio.base, tipo: "recomecado" });
-      setCapa((atual) => ({ arquivo: null, montagem: atual.montagem + 1 }));
-      setTentou(false);
-      setRecusa(null);
-      pedir(null);
-    }
-  }
-  useGuardaDeSaida(sujo);
 
-  const semCapa = novo && capa.arquivo === null ? [SEM_CAPA] : [];
-  const lido = lerRascunho(rascunho);
+  const semCapa = novo && capa === null ? [SEM_CAPA] : [];
+  const lido = lerRascunho(rascunho, base);
   const problemas = [
     ...(tentou && lido.tipo === "problemas" ? lido.problemas : []),
     ...(tentou ? semCapa : []),
-    ...problemasDaRecusa(recusa, rascunho),
+    ...recusaNaTela(recusa, rascunho, ID.curso),
   ];
-  const erros = new Map(
-    problemas.flatMap((p) => (p.campo ? [[p.campo, p.mensagem] as const] : []))
-  );
+  const erros = errosPorCampo(problemas);
 
-  const mudarTexto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const campo = e.target.name as CampoDeTextoDoCurso;
-    const valor = e.target.value;
-    despachar({
-      mudanca: { [campo]: OPCIONAIS.has(campo) && valor === "" ? null : valor },
-      tipo: "campos",
-    });
-  }, []);
+  const mudarTexto = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const campo = e.target.name as CampoDeTextoDoCurso;
+      const valor = e.target.value;
+      despachar({
+        mudanca: {
+          [campo]: OPCIONAIS.has(campo) && valor === "" ? null : valor,
+        },
+        tipo: "campos",
+      });
+    },
+    [despachar]
+  );
 
   const enviar = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
@@ -596,8 +548,9 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
       }
       setTentou(false);
       setRecusa(null);
-      const enviada = capa.arquivo;
+      const enviada = capa;
       salvar(
+        lido.documento,
         () =>
           trpcClient.admin.catalogo.salvarCurso.mutate(
             formularioDoCurso(lido.documento, enviada)
@@ -610,34 +563,24 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
               document.getElementById(ID.curso(r.campo))?.focus();
             }
           },
-          aoSalvar: ({ versao }) => {
-            const gravado = { ...lido.documento, versao };
-            setApoio((atual) => apoioSalvo(atual, gravado));
-            despachar({ documento: gravado, enviado: rascunho, tipo: "salvo" });
-            setCapa((atual) =>
+          aoSalvar: () =>
+            guardarCapa((atual) =>
               atual.arquivo === enviada
-                ? { arquivo: null, montagem: atual.montagem + 1 }
+                ? { ...atual, arquivo: null, montagem: atual.montagem + 1 }
                 : atual
-            );
-          },
+            ),
           sucesso: "Curso salvo.",
         }
       );
     },
-    [capa.arquivo, lido, rascunho, salvar, semCapa]
+    [capa, lido, rascunho, salvar, semCapa, setRecusa, setTentou]
   );
 
   const adicionarModulo = useCallback(() => {
     const id = novoId<ModuloId>();
     despachar({ id, tipo: "modulo_novo" });
     focarDepois(ID.modulo(id, "titulo"));
-  }, []);
-
-  // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
-  const descartar = useCallback(() => {
-    recarregar();
-    titulo.current?.focus({ preventScroll: true });
-  }, [recarregar, titulo]);
+  }, [despachar]);
 
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
   const duracao = rascunho.modulos.reduce(
@@ -684,20 +627,20 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
             despachar={despachar}
             mudarTexto={mudarTexto}
             rascunho={rascunho}
-            slugSalvo={novo ? null : apoio.base.slug}
+            slugSalvo={novo ? null : base.slug}
           />
         </Secao>
 
         <Secao
           id="capa"
-          resumo={novo && !capa.arquivo ? "Obrigatória" : "JPG, PNG ou WebP"}
+          resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
           titulo="Capa"
         >
           <CampoDeCapa
             alt={rascunho.capaAlt}
             aoEscolher={escolherCapa}
             atual={edicao.capa}
-            key={capa.montagem}
+            key={`${geracao}:${capaGuardada.montagem}`}
             mudarAlt={mudarTexto}
           />
         </Secao>
@@ -751,26 +694,15 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
           </Secao>
         )}
 
-        <div className="sticky bottom-3 z-10 grid gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
-          {versaoMudou || apoio.versaoDeFora ? (
-            <AvisoDeVersaoMudou oQue="este curso" recarregar={descartar} />
-          ) : null}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div aria-live="polite" className="min-w-0 flex-1 text-sm">
-              <Situacao novo={novo} problemas={problemas} sujo={sujo} />
-            </div>
-            <Button
-              aria-busy={pendente}
-              className={cn(BOTAO, "disabled:opacity-100")}
-              disabled={pendente}
-              focusableWhenDisabled
-              type="submit"
-            >
-              <Carregando ativo={pendente} />
-              Salvar
-            </Button>
-          </div>
-        </div>
+        <BarraDeSalvar
+          novo={novo}
+          oQue="este curso"
+          pendente={pendente}
+          problemas={problemas}
+          recarregar={descartar}
+          sujo={sujo}
+          versaoMudou={versaoMudou}
+        />
       </form>
     </ErrosDoEditor>
   );

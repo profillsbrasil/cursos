@@ -1,14 +1,19 @@
 import type { Database } from "@cursos/db";
 import { sql } from "drizzle-orm";
 
+import type { CursoId } from "../dominio/tipos";
 import type { Transacao } from "./comum";
 
 /**
  * `ponto:<userId>` trava o aluno: todo débito de pontos e toda escrita de liberação.
  * O crédito de aula.registrar não trava: ele só soma e não deixa o saldo negativo.
- * `curso:<id>` serializa a edição e o apagamento de um curso pelo admin.
+ * `curso:<id>` e `trilha:<id>` serializam a edição e o apagamento pelo admin.
+ *
+ * Ordem, que não deixa ciclo: `trilha:<id>` antes de qualquer `curso:<id>`; várias
+ * `curso:<id>` só por travarCursos, em ordem de id; salvarCurso e apagarCurso pegam
+ * só a `curso:<id>` deles. Ninguém pede `trilha:` segurando `curso:`.
  */
-type ChaveDeTrava = `ponto:${string}` | `curso:${string}`;
+type ChaveDeTrava = `ponto:${string}` | `curso:${string}` | `trilha:${string}`;
 
 /**
  * Transação com pg_advisory_xact_lock na chave, solta no commit ou no rollback.
@@ -25,6 +30,28 @@ export function comTrava<T>(
     );
     return fn(tx);
   });
+}
+
+/**
+ * Trava `curso:<id>` de cada curso, sem repetir, em ordem de id e num statement,
+ * dentro da transação de quem chama. O `order by n` fixa a ordem das chamadas
+ * (medido no Postgres 17.11). A lista vai como literal de array: um array do
+ * drizzle em `sql` vira `($1, $2)`, que o cast para text[] recusa.
+ */
+export async function travarCursos(
+  tx: Transacao,
+  ids: Iterable<CursoId>
+): Promise<void> {
+  const chaves = [...new Set(ids)]
+    .sort()
+    .map((id) => `curso:${id}` satisfies ChaveDeTrava);
+  if (chaves.length === 0) {
+    return;
+  }
+  await tx.execute(sql`
+    select pg_advisory_xact_lock(hashtextextended(chave, 0))
+    from unnest(${`{${chaves.join(",")}}`}::text[]) with ordinality as t(chave, n)
+    order by n`);
 }
 
 declare const travado: unique symbol;

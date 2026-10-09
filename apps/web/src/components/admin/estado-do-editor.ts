@@ -1,6 +1,9 @@
 import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
+import { type Direcao, trocado } from "@/lib/editor";
+import type { RegrasDoRascunho } from "@/lib/use-rascunho-apoiado";
+
 import {
   type AulaDoRascunho,
   lerNumeroDoModulo,
@@ -14,8 +17,6 @@ type CampoDoCurso = Exclude<
   keyof RascunhoDoCurso,
   "id" | "modulos" | "niveis" | "versao"
 >;
-
-export type Direcao = "acima" | "abaixo";
 
 export type Mudanca =
   | { tipo: "campos"; mudanca: Partial<Pick<RascunhoDoCurso, CampoDoCurso>> }
@@ -41,17 +42,7 @@ export type Mudanca =
     }
   | { tipo: "aula_movida"; id: AulaId; direcao: Direcao }
   | { tipo: "aula_para_modulo"; id: AulaId; moduloId: ModuloId }
-  | { tipo: "aula_removida"; id: AulaId }
-  /**
-   * O servidor gravou `enviado` como `documento`. O que o admin editou com o
-   * salvar pendente fica, apoiado na versão nova.
-   */
-  | {
-      tipo: "salvo";
-      documento: DocumentoDoCurso;
-      enviado: RascunhoDoCurso;
-    }
-  | { tipo: "recomecado"; documento: DocumentoDoCurso };
+  | { tipo: "aula_removida"; id: AulaId };
 
 export const proximaOrdem = (niveis: RascunhoDoCurso["niveis"]) =>
   Math.max(0, ...niveis.map((n) => n.ordem)) + 1;
@@ -60,16 +51,6 @@ const numeroDe = (m: ModuloDoRascunho) => {
   const lido = lerNumeroDoModulo(m.numero);
   return "valor" in lido ? lido.valor : null;
 };
-
-function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
-  const j = direcao === "acima" ? i - 1 : i + 1;
-  if (i < 0 || j < 0 || j >= lista.length) {
-    return null;
-  }
-  const nova = [...lista];
-  [nova[i], nova[j]] = [nova[j] as T, nova[i] as T];
-  return nova;
-}
 
 const porNumero = (modulos: ModuloDoRascunho[]) =>
   modulos.toSorted(
@@ -208,15 +189,15 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
         ? comAulas(r, de.id, (aulas) => aulas.filter((a) => a.id !== m.id))
         : r;
     }
-    case "salvo":
-      return mesmoRascunho(r, m.enviado)
-        ? rascunhoDoCurso(m.documento)
-        : { ...r, versao: m.documento.versao };
-    case "recomecado":
-      return rascunhoDoCurso(m.documento);
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);
     }
   }
 }
+
+export const REGRAS_DO_CURSO: RegrasDoRascunho<
+  DocumentoDoCurso,
+  RascunhoDoCurso,
+  Mudanca
+> = { deDocumento: rascunhoDoCurso, mesmo: mesmoRascunho, mudar };
