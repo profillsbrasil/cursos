@@ -448,7 +448,8 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       });
       expect(await liberacoesDe(userId)).toEqual([]);
     } finally {
-      outro.release();
+      // Sem o commit, a transação aberta morre com a conexão em vez de voltar ao pool.
+      outro.release(true);
     }
   });
 
