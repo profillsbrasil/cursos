@@ -19,7 +19,10 @@ mock.module("next/navigation", () => ({
   }),
 }));
 
-const { AvisoDePerda, EditorDaTrilha } = await import("./editor-da-trilha");
+const { AvisoDePerda, EditorDaTrilha, resumoDasPerdas } = await import(
+  "./editor-da-trilha"
+);
+const { CursosDaTrilha } = await import("./cursos-da-trilha");
 
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
@@ -143,44 +146,100 @@ describe("aviso de quem tem a trilha", () => {
     );
   });
 
-  test("curso tirado: uma linha por curso, com quem perde na hora e quantos começaram", () => {
-    const t = aviso({
+  test("curso tirado: a barra fica numa frase só, sem a lista por curso", () => {
+    const um = aviso({ alunos: 3, perdas: [ENVASADORA], sujo: true });
+    expect(um).toBe(
+      "1 curso sai da trilha ao salvar: 2 pessoas que começaram perdem o acesso."
+    );
+    const muitos = aviso({
       alunos: 3,
-      perdas: [ENVASADORA, SEGURANCA],
+      perdas: Array.from({ length: 12 }, (_, i) => ({
+        ...SEGURANCA,
+        cursoId: `c${i}` as CursoId,
+        pessoas: i < 2 ? 4 : 0,
+      })),
       sujo: true,
     });
-    expect(t).toContain(
-      "3 pessoas têm esta trilha liberada, e a mudança vale na hora."
+    expect(muitos).toBe(
+      "12 cursos saem da trilha ao salvar. Em 2 deles, quem começou perde o acesso."
     );
-    expect(t).toContain(
-      "Envasadora: quem só tinha a trilha perde o curso na hora. 2 pessoas já tinham começado."
-    );
-    expect(t).toContain(
-      "Segurança do posto: quem só tinha a trilha perde o curso na hora. Ninguém tinha começado."
-    );
-    expect(t).not.toContain("continua aberto");
+    expect(
+      renderToStaticMarkup(
+        <AvisoDePerda alunos={3} perdas={[ENVASADORA, SEGURANCA]} sujo />
+      )
+    ).not.toContain("<li");
   });
 
-  test("curso sem número não afirma que ninguém começou", () => {
-    const t = aviso({
-      alunos: 3,
-      perdas: [{ ...SEGURANCA, pessoas: null }],
-      sujo: true,
-    });
-    expect(t).toContain(
-      "Segurança do posto: quem só tinha a trilha perde o curso na hora."
+  test("o resumo não soma pessoas de cursos diferentes, nem afirma zero sem número", () => {
+    expect(resumoDasPerdas([SEGURANCA])).toBe(
+      "1 curso sai da trilha ao salvar. Ninguém tinha começado."
     );
-    expect(t).not.toContain("Ninguém");
+    expect(resumoDasPerdas([{ ...SEGURANCA, pessoas: null }])).toBe(
+      "1 curso sai da trilha ao salvar, e quem só tinha a trilha perde o acesso."
+    );
+    expect(resumoDasPerdas([{ ...ENVASADORA, pessoas: 1 }])).toBe(
+      "1 curso sai da trilha ao salvar: 1 pessoa que começou perde o acesso."
+    );
+    expect(
+      resumoDasPerdas([SEGURANCA, { ...SEGURANCA, cursoId: "c9" as CursoId }])
+    ).toBe("2 cursos saem da trilha ao salvar. Ninguém tinha começado.");
+    expect(resumoDasPerdas([SEGURANCA, { ...ENVASADORA, pessoas: null }])).toBe(
+      "2 cursos saem da trilha ao salvar, e quem só tinha a trilha perde o acesso."
+    );
+  });
+});
+
+describe("linha riscada na lista", () => {
+  const nada = () => undefined;
+  const lista = (alunos: number, pessoas: number | null) => {
+    const html = renderToStaticMarkup(
+      <CursosDaTrilha
+        alunos={alunos}
+        catalogo={CURSOS}
+        mudar={nada}
+        perdas={[
+          { cursoId: "c1" as CursoId, pessoas, titulo: "Segurança do posto" },
+        ]}
+        rascunho={{
+          cursos: ["c2" as CursoId],
+          descricao: "",
+          slug: "",
+          tirados: [{ antesDe: "c2" as CursoId, id: "c1" as CursoId }],
+          titulo: "",
+        }}
+        salvo={["c1" as CursoId, "c2" as CursoId]}
+        trilhaId={TRILHA}
+      />
+    );
+    return { html, t: texto(html) };
+  };
+
+  test("o curso tirado fica no lugar dele, riscado, com o número e o Desfazer", () => {
+    const { html, t } = lista(3, 2);
+    expect(t).toContain(
+      "Tirado: Segurança do posto Ao salvar, quem só tinha a trilha perde o curso. 2 pessoas já tinham começado."
+    );
+    expect(t.indexOf("Segurança do posto")).toBeLessThan(
+      t.indexOf("Envasadora")
+    );
+    expect(t).toContain("1 1º: Envasadora");
+    expect(html).toContain("line-through");
+    expect(
+      desabilitado(html, "Desfazer: devolver Segurança do posto à trilha")
+    ).toBe(false);
+  });
+
+  test("sem número, a linha diz só que quem tinha a trilha perde o curso", () => {
+    const { t } = lista(3, null);
+    expect(t).toContain(
+      "Segurança do posto Ao salvar, quem só tinha a trilha perde o curso. Desfazer"
+    );
     expect(t).not.toContain("começado");
   });
 
-  test("uma pessoa fala no singular", () => {
-    expect(
-      aviso({
-        alunos: 1,
-        perdas: [{ ...ENVASADORA, pessoas: 1 }],
-        sujo: true,
-      })
-    ).toContain("1 pessoa já tinha começado.");
+  test("sem ninguém com a trilha, a linha só diz que o curso sai", () => {
+    expect(lista(0, 0).t).toContain(
+      "Segurança do posto Sai da trilha ao salvar."
+    );
   });
 });

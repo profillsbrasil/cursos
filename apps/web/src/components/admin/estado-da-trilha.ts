@@ -26,11 +26,23 @@ import {
   semRepetir,
 } from "./problemas";
 
+/**
+ * Um curso que saiu da lista neste rascunho. `antesDe` é o curso que vinha logo
+ * depois dele quando saiu (null: era o último); o Desfazer o devolve ali.
+ */
+export interface Tirado {
+  antesDe: CursoId | null;
+  id: CursoId;
+}
+
 /** O que o admin edita. Id e versão não mudam no editor e ficam no Apoio. */
 export type RascunhoDaTrilha = Pick<
   DocumentoDaTrilha,
   "cursos" | "descricao" | "slug" | "titulo"
->;
+> & {
+  /** Em ordem de saída. Não vai ao servidor nem conta para o sujo. */
+  tirados: readonly Tirado[];
+};
 export type CampoDaTrilha = "descricao" | "slug" | "titulo";
 
 export type MudancaDaTrilha =
@@ -40,14 +52,70 @@ export type MudancaDaTrilha =
     }
   | { tipo: "curso_acrescentado"; id: CursoId }
   | { tipo: "curso_movido"; id: CursoId; direcao: Direcao }
-  | { tipo: "curso_tirado"; id: CursoId };
+  | { tipo: "curso_tirado"; id: CursoId }
+  | { tipo: "curso_devolvido"; id: CursoId };
 
 export const rascunhoDaTrilha = (d: DocumentoDaTrilha): RascunhoDaTrilha => ({
   cursos: d.cursos,
   descricao: d.descricao,
   slug: d.slug,
+  tirados: [],
   titulo: d.titulo,
 });
+
+/**
+ * Os cursos e os tirados na ordem da tela: cada tirado volta para antes do
+ * curso que vinha depois dele, do último a sair para o primeiro, que é a ordem
+ * que reconstrói a lista de antes de cada saída.
+ */
+function ordemComTirados(r: RascunhoDaTrilha): CursoId[] {
+  const ids = [...r.cursos];
+  for (const t of r.tirados.toReversed()) {
+    const i = t.antesDe === null ? -1 : ids.indexOf(t.antesDe);
+    ids.splice(i < 0 ? ids.length : i, 0, t.id);
+  }
+  return ids;
+}
+
+export type LinhaDaLista =
+  | { tipo: "curso"; id: CursoId; posicao: number }
+  | { tipo: "tirado"; id: CursoId };
+
+/**
+ * As linhas da lista. O tirado que estava na lista salva fica no lugar dele,
+ * riscado; o que entrou e saiu neste rascunho some, porque não é perda.
+ */
+export function linhasDaLista(
+  r: RascunhoDaTrilha,
+  salvo: readonly CursoId[]
+): LinhaDaLista[] {
+  let posicao = 0;
+  return ordemComTirados(r).flatMap((id): LinhaDaLista[] => {
+    if (r.cursos.includes(id)) {
+      posicao += 1;
+      return [{ id, posicao, tipo: "curso" }];
+    }
+    return salvo.includes(id) ? [{ id, tipo: "tirado" }] : [];
+  });
+}
+
+const semTirado = (r: RascunhoDaTrilha, id: CursoId) =>
+  r.tirados.filter((t) => t.id !== id);
+
+function devolvido(r: RascunhoDaTrilha, id: CursoId): RascunhoDaTrilha {
+  if (!(r.tirados.some((t) => t.id === id) && cabeMaisUm(r))) {
+    return r;
+  }
+  const ordem = ordemComTirados(r);
+  const antes = ordem
+    .slice(0, ordem.indexOf(id))
+    .filter((c) => r.cursos.includes(c)).length;
+  return {
+    ...r,
+    cursos: r.cursos.toSpliced(antes, 0, id),
+    tirados: semTirado(r, id),
+  };
+}
 
 export const mesmoRascunho = (a: RascunhoDaTrilha, b: RascunhoDaTrilha) =>
   a.titulo === b.titulo &&
@@ -69,15 +137,30 @@ export function mudarTrilha(
     case "curso_acrescentado":
       return r.cursos.includes(m.id) || !cabeMaisUm(r)
         ? r
-        : { ...r, cursos: [...r.cursos, m.id] };
+        : {
+            ...r,
+            cursos: [...r.cursos, m.id],
+            tirados: semTirado(r, m.id),
+          };
     case "curso_movido": {
       const cursos = trocado(r.cursos, r.cursos.indexOf(m.id), m.direcao);
       return cursos ? { ...r, cursos } : r;
     }
-    case "curso_tirado":
-      return r.cursos.includes(m.id)
-        ? { ...r, cursos: r.cursos.filter((c) => c !== m.id) }
-        : r;
+    case "curso_tirado": {
+      const i = r.cursos.indexOf(m.id);
+      return i < 0
+        ? r
+        : {
+            ...r,
+            cursos: r.cursos.toSpliced(i, 1),
+            tirados: [
+              ...semTirado(r, m.id),
+              { antesDe: r.cursos[i + 1] ?? null, id: m.id },
+            ],
+          };
+    }
+    case "curso_devolvido":
+      return devolvido(r, m.id);
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);
@@ -95,7 +178,7 @@ export const REGRAS_DA_TRILHA: RegrasDoRascunho<
 export const ID_DA_TRILHA = {
   acrescentar: "trilha-acrescentar",
   campo: (c: CampoDaTrilha) => `trilha-${c}`,
-  curso: (id: CursoId, botao: Direcao | "tirar") =>
+  curso: (id: CursoId, botao: Direcao | "desfazer" | "tirar") =>
     `trilha-curso-${id}-${botao}`,
   /** O h2 da seção (o Secao põe tabIndex={-1}): os problemas da lista marcam e focam aqui. */
   cursos: "trilha-cursos",
@@ -103,12 +186,15 @@ export const ID_DA_TRILHA = {
 
 /**
  * O id que recebe o foco depois da mudança, calculado com o rascunho de antes.
- * Mover leva à mesma seta, ou à outra quando o curso chega à borda; tirar leva
- * ao Tirar do curso seguinte, senão ao do anterior, senão à busca.
+ * Mover leva à mesma seta, ou à outra quando o curso chega à borda. Tirar um
+ * curso da lista salva leva ao Desfazer da linha riscada; tirar o que entrou
+ * neste rascunho leva ao Tirar do curso seguinte, senão ao do anterior, senão à
+ * busca. Desfazer leva ao Tirar do curso devolvido.
  */
 export function focoDepois(
   r: RascunhoDaTrilha,
-  m: MudancaDaTrilha
+  m: MudancaDaTrilha,
+  salvo: readonly CursoId[]
 ): string | null {
   switch (m.tipo) {
     case "curso_movido": {
@@ -125,6 +211,9 @@ export function focoDepois(
       if (i < 0) {
         return null;
       }
+      if (salvo.includes(m.id)) {
+        return ID_DA_TRILHA.curso(m.id, "desfazer");
+      }
       const vizinho = r.cursos[i + 1] ?? r.cursos[i - 1];
       return vizinho
         ? ID_DA_TRILHA.curso(vizinho, "tirar")
@@ -132,6 +221,10 @@ export function focoDepois(
     }
     case "curso_acrescentado":
       return ID_DA_TRILHA.acrescentar;
+    case "curso_devolvido":
+      return r.tirados.some((t) => t.id === m.id) && cabeMaisUm(r)
+        ? ID_DA_TRILHA.curso(m.id, "tirar")
+        : null;
     default:
       return null;
   }

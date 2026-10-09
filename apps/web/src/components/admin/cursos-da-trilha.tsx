@@ -13,18 +13,21 @@ import {
   ComboboxList,
 } from "@cursos/ui/components/combobox";
 import { cn } from "@cursos/ui/lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Minus, Undo2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { plural } from "@/lib/formato";
 
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import {
   cabeMaisUm,
   candidatos,
   ID_DA_TRILHA,
+  linhasDaLista,
   type MotivoDaBusca,
   type MudancaDaTrilha,
+  type Perda,
   type RascunhoDaTrilha,
   textoDaBusca,
 } from "./estado-da-trilha";
@@ -128,16 +131,85 @@ function LinhaDoCurso({
   );
 }
 
+/** O que tirar este curso faz com quem tem a trilha, com o número da abertura. */
+export function consequenciaDoTirado(perda: Perda, alunos: number): string {
+  if (alunos === 0) {
+    return "Sai da trilha ao salvar.";
+  }
+  const perde = "Ao salvar, quem só tinha a trilha perde o curso.";
+  if (perda.pessoas === null) {
+    return perde;
+  }
+  return perda.pessoas === 0
+    ? `${perde} Ninguém tinha começado.`
+    : `${perde} ${plural(perda.pessoas, "pessoa já tinha começado", "pessoas já tinham começado")}.`;
+}
+
+function LinhaTirada({
+  alunos,
+  cabe,
+  mudar,
+  perda,
+}: {
+  alunos: number;
+  cabe: boolean;
+  mudar: Mudar;
+  perda: Perda;
+}) {
+  const { cursoId, titulo } = perda;
+  const desfazer = useCallback(
+    () => mudar({ id: cursoId, tipo: "curso_devolvido" }),
+    [cursoId, mudar]
+  );
+  return (
+    <li className="flex flex-wrap items-center gap-x-4 gap-y-3 bg-sol/5 px-5 py-3.5">
+      <span
+        aria-hidden="true"
+        className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground ring-1 ring-muted-foreground ring-inset"
+      >
+        <Minus className="size-4" />
+      </span>
+      <span className="grid min-w-0 flex-1 basis-48 gap-1">
+        <span className="font-medium text-muted-foreground leading-snug line-through decoration-muted-foreground">
+          <span className="sr-only">Tirado: </span>
+          {titulo}
+        </span>
+        <span className="text-foreground text-sm leading-snug">
+          {consequenciaDoTirado(perda, alunos)}
+        </span>
+      </span>
+      <Button
+        aria-label={`Desfazer: devolver ${titulo} à trilha`}
+        className={cn(BOTAO_CONTORNO, PEQUENO)}
+        disabled={!cabe}
+        id={ID_DA_TRILHA.curso(cursoId, "desfazer")}
+        onClick={desfazer}
+      >
+        <Undo2 aria-hidden="true" className="size-4" />
+        Desfazer
+      </Button>
+    </li>
+  );
+}
+
 export function CursosDaTrilha({
+  alunos,
   catalogo,
   mudar,
+  perdas,
   rascunho,
+  salvo,
   trilhaId,
 }: {
+  /** Pessoas com a trilha liberada: decidem o que a linha riscada diz. */
+  alunos: number;
   /** O catálogo inteiro: os nomes da lista e os candidatos da busca. */
   catalogo: readonly CursoNaVisao[];
   mudar: Mudar;
+  /** Os cursos da lista salva que este rascunho tira. */
+  perdas: readonly Perda[];
   rascunho: RascunhoDaTrilha;
+  salvo: readonly CursoId[];
   trilhaId: TrilhaId;
 }) {
   const [busca, setBusca] = useState("");
@@ -160,6 +232,7 @@ export function CursosDaTrilha({
     [mudar]
   );
   const cabe = cabeMaisUm(rascunho);
+  const linhas = linhasDaLista(rascunho, salvo);
   const ajuda = `${ID_DA_TRILHA.acrescentar}-ajuda`;
   return (
     <>
@@ -168,20 +241,37 @@ export function CursosDaTrilha({
           <ErroDoCampo id={ID_DA_TRILHA.cursos} mensagem={mensagem} />
         </div>
       ) : null}
-      {rascunho.cursos.length === 0 ? (
+      {linhas.length === 0 ? (
         <Vazio>Nenhum curso ainda. Acrescente o primeiro abaixo.</Vazio>
       ) : (
         <ol className="divide-y divide-border">
-          {rascunho.cursos.map((cursoId, i) => (
-            <LinhaDoCurso
-              curso={porId.get(cursoId)}
-              cursoId={cursoId}
-              key={cursoId}
-              mudar={mudar}
-              posicao={i + 1}
-              total={rascunho.cursos.length}
-            />
-          ))}
+          {linhas.map((l) => {
+            const perda =
+              l.tipo === "tirado"
+                ? perdas.find((p) => p.cursoId === l.id)
+                : undefined;
+            if (perda) {
+              return (
+                <LinhaTirada
+                  alunos={alunos}
+                  cabe={cabe}
+                  key={l.id}
+                  mudar={mudar}
+                  perda={perda}
+                />
+              );
+            }
+            return l.tipo === "curso" ? (
+              <LinhaDoCurso
+                curso={porId.get(l.id)}
+                cursoId={l.id}
+                key={l.id}
+                mudar={mudar}
+                posicao={l.posicao}
+                total={rascunho.cursos.length}
+              />
+            ) : null;
+          })}
         </ol>
       )}
       <div className="grid gap-2 border-border border-t p-5">

@@ -119,14 +119,35 @@ function DadosDaTrilha({
   );
 }
 
-const quemComecou = (pessoas: number) =>
-  pessoas === 0
-    ? "Ninguém tinha começado."
-    : `${plural(pessoas, "pessoa já tinha começado", "pessoas já tinham começado")}.`;
+/**
+ * Uma linha para a barra presa. Com vários cursos a frase conta cursos, não
+ * pessoas: a mesma pessoa pode ter começado mais de um, e a soma contaria duas
+ * vezes. O número de cada curso fica na linha riscada.
+ */
+export function resumoDasPerdas(tirados: readonly Perda[]): string {
+  const [unico] = tirados;
+  if (tirados.length === 1 && unico) {
+    const sai = "1 curso sai da trilha ao salvar";
+    if (unico.pessoas === null) {
+      return `${sai}, e quem só tinha a trilha perde o acesso.`;
+    }
+    return unico.pessoas === 0
+      ? `${sai}. Ninguém tinha começado.`
+      : `${sai}: ${plural(unico.pessoas, "pessoa que começou perde", "pessoas que começaram perdem")} o acesso.`;
+  }
+  const saem = `${tirados.length} cursos saem da trilha ao salvar`;
+  const comGente = tirados.filter((p) => (p.pessoas ?? 0) > 0).length;
+  if (comGente > 0) {
+    return `${saem}. Em ${comGente} deles, quem começou perde o acesso.`;
+  }
+  return tirados.some((p) => p.pessoas === null)
+    ? `${saem}, e quem só tinha a trilha perde o acesso.`
+    : `${saem}. Ninguém tinha começado.`;
+}
 
 /**
  * Inserir e reordenar não fecham curso começado. Tirar fecha: quem só tinha a
- * trilha perde o curso na hora, e o número vem do servidor na abertura.
+ * trilha perde o curso ao salvar. O detalhe de cada curso fica na lista.
  */
 export function AvisoDePerda({
   alunos,
@@ -140,34 +161,17 @@ export function AvisoDePerda({
   if (alunos === 0 || !sujo) {
     return null;
   }
-  const quemTem = `${plural(alunos, "pessoa tem", "pessoas têm")} esta trilha liberada, e a mudança vale na hora.`;
   return (
     <div className={AVISO} role="status">
       <TriangleAlert
         aria-hidden="true"
         className="mt-0.5 size-4 shrink-0 text-sol"
       />
-      {tirados.length === 0 ? (
-        <p>{quemTem} Curso que alguém já começou continua aberto.</p>
-      ) : (
-        <div className="grid gap-2">
-          <p>{quemTem}</p>
-          <ul className="grid gap-1.5">
-            {tirados.map((p) => (
-              <li key={p.cursoId}>
-                <span className="font-semibold">{p.titulo}</span>: quem só tinha
-                a trilha perde o curso na hora.
-                {p.pessoas === null ? null : (
-                  <span className="tabular-nums">
-                    {" "}
-                    {quemComecou(p.pessoas)}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <p>
+        {tirados.length === 0
+          ? `${plural(alunos, "pessoa tem", "pessoas têm")} esta trilha liberada, e a mudança vale na hora. Curso que alguém já começou continua aberto.`
+          : resumoDasPerdas(tirados)}
+      </p>
     </div>
   );
 }
@@ -263,16 +267,22 @@ export function EditorDaTrilha({
 
   const lido = lerRascunhoDaTrilha(rascunho, base);
   const problemas = problemasNaTela({ lido, rascunho, recusa, tentou });
+  const tirados = perdas({
+    catalogo: cursos,
+    rascunho,
+    salvo: base.cursos,
+    uso: edicao.uso,
+  });
 
   const mudar = useCallback(
     (m: MudancaDaTrilha) => {
-      const alvo = focoDepois(rascunho, m);
+      const alvo = focoDepois(rascunho, m, base.cursos);
       despachar(m);
       if (alvo) {
         focarDepois(alvo);
       }
     },
-    [despachar, rascunho]
+    [base.cursos, despachar, rascunho]
   );
 
   const mudarTexto = useCallback<MudarTexto>(
@@ -356,9 +366,12 @@ export function EditorDaTrilha({
               titulo="Cursos da trilha"
             >
               <CursosDaTrilha
+                alunos={edicao.uso.alunosComATrilha}
                 catalogo={cursos}
                 mudar={mudar}
+                perdas={tirados}
                 rascunho={rascunho}
+                salvo={base.cursos}
                 trilhaId={base.id}
               />
             </Secao>
@@ -375,12 +388,7 @@ export function EditorDaTrilha({
           >
             <AvisoDePerda
               alunos={edicao.uso.alunosComATrilha}
-              perdas={perdas({
-                catalogo: cursos,
-                rascunho,
-                salvo: base.cursos,
-                uso: edicao.uso,
-              })}
+              perdas={tirados}
               sujo={sujo}
             />
           </BarraDeSalvar>
