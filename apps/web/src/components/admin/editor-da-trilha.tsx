@@ -122,11 +122,7 @@ function DadosDaTrilha({
   );
 }
 
-/**
- * Uma linha para a barra presa. Com vários cursos a frase conta cursos, não
- * pessoas: a mesma pessoa pode ter começado mais de um, e a soma contaria duas
- * vezes. O número de cada curso fica na linha riscada.
- */
+/** Com vários cursos a frase conta cursos: a mesma pessoa pode ter começado mais de um. */
 export function resumoDasPerdas(tirados: readonly Perda[]): string {
   const [unico] = tirados;
   if (tirados.length === 1 && unico) {
@@ -148,10 +144,6 @@ export function resumoDasPerdas(tirados: readonly Perda[]): string {
     : `${saem}. Ninguém tinha começado.`;
 }
 
-/**
- * Inserir e reordenar não fecham curso começado. Tirar fecha: quem só tinha a
- * trilha perde o curso ao salvar. O detalhe de cada curso fica na lista.
- */
 export function AvisoDePerda({
   alunos,
   perdas: tirados,
@@ -241,7 +233,6 @@ export function EditorDaTrilha({
   cursos,
   edicao,
 }: {
-  /** O catálogo inteiro: os nomes da lista e os candidatos da busca. */
   cursos: readonly CursoNaVisao[];
   edicao: EdicaoDaTrilha;
 }) {

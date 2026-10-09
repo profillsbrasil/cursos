@@ -139,7 +139,6 @@ function LinhaDoCurso({
   );
 }
 
-/** O que tirar este curso faz com quem tem a trilha, com o número da abertura. */
 export function consequenciaDoTirado(perda: Perda, alunos: number): string {
   if (alunos === 0) {
     return "Sai da trilha ao salvar.";
@@ -209,12 +208,9 @@ export function CursosDaTrilha({
   salvo,
   trilhaId,
 }: {
-  /** Pessoas com a trilha liberada: decidem o que a linha riscada diz. */
   alunos: number;
-  /** O catálogo inteiro: os nomes da lista e os candidatos da busca. */
   catalogo: readonly CursoNaVisao[];
   mudar: Mudar;
-  /** Os cursos da lista salva que este rascunho tira. */
   perdas: readonly Perda[];
   rascunho: RascunhoDaTrilha;
   salvo: readonly CursoId[];

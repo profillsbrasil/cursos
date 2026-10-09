@@ -1,6 +1,3 @@
-// O rascunho da trilha e as regras da lista de cursos, sem React: a tela só
-// despacha a mudança e desenha.
-
 import type { Motivo } from "@cursos/api";
 import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import {
@@ -26,16 +23,13 @@ import {
   semRepetir,
 } from "./problemas";
 
-/**
- * Um curso na lista do editor. O tirado fica no lugar dele até o Desfazer; só
- * os não tirados vão ao servidor.
- */
+/** O tirado fica no lugar até o Desfazer; só os não tirados vão ao servidor. */
 export interface CursoNaLista {
   id: CursoId;
   tirado: boolean;
 }
 
-/** O que o admin edita. Id e versão não mudam no editor e ficam no Apoio. */
+/** Id e versão não mudam no editor e ficam no Apoio. */
 export type RascunhoDaTrilha = Pick<
   DocumentoDaTrilha,
   "descricao" | "slug" | "titulo"
@@ -61,7 +55,6 @@ export const rascunhoDaTrilha = (d: DocumentoDaTrilha): RascunhoDaTrilha => ({
   titulo: d.titulo,
 });
 
-/** Os cursos que o documento leva: os não tirados, na ordem da lista. */
 export const cursosDoRascunho = (r: RascunhoDaTrilha): CursoId[] =>
   r.lista.flatMap((c) => (c.tirado ? [] : [c.id]));
 
@@ -69,10 +62,7 @@ export type LinhaDaLista =
   | { tipo: "curso"; id: CursoId; posicao: number }
   | { tipo: "tirado"; id: CursoId };
 
-/**
- * As linhas da lista. O tirado que estava na lista salva fica no lugar dele,
- * riscado; o que entrou e saiu neste rascunho some, porque não é perda.
- */
+/** O que entrou e saiu neste rascunho some, porque não é perda. */
 export function linhasDaLista(
   r: RascunhoDaTrilha,
   salvo: readonly CursoId[]
@@ -106,7 +96,6 @@ const marcado = (r: RascunhoDaTrilha, id: CursoId, tirado: boolean) => {
   return i < 0 ? r : { ...r, lista: r.lista.with(i, { id, tirado }) };
 };
 
-/** Troca o curso com o próximo não tirado na direção; sem ele, null. */
 function movida(
   lista: readonly CursoNaLista[],
   id: CursoId,
@@ -169,17 +158,11 @@ export const ID_DA_TRILHA = {
   campo: (c: CampoDaTrilha) => `trilha-${c}`,
   curso: (id: CursoId, botao: Direcao | "desfazer" | "tirar") =>
     `trilha-curso-${id}-${botao}`,
-  /** O h2 da seção (o Secao põe tabIndex={-1}): os problemas da lista marcam e focam aqui. */
+  /** O Secao põe tabIndex={-1} no h2: é ele que recebe o foco. */
   cursos: "trilha-cursos",
 } as const;
 
-/**
- * O id que recebe o foco depois da mudança, calculado com o rascunho de antes.
- * Mover leva à mesma seta, ou à outra quando o curso chega à borda. Tirar um
- * curso da lista salva leva ao Desfazer da linha riscada; tirar o que entrou
- * neste rascunho leva ao Tirar do curso seguinte, senão ao do anterior, senão à
- * busca. Desfazer leva ao Tirar do curso devolvido.
- */
+/** Calculado com o rascunho de antes da mudança. */
 export function focoDepois(
   r: RascunhoDaTrilha,
   m: MudancaDaTrilha,
@@ -220,7 +203,6 @@ export function focoDepois(
   }
 }
 
-/** Cursos do catálogo que podem entrar: fora da lista, soltos ou desta trilha, na ordem do catálogo. */
 export const candidatos = (
   catalogo: readonly CursoNaVisao[],
   r: RascunhoDaTrilha,
@@ -242,10 +224,6 @@ export interface Perda {
   titulo: string;
 }
 
-/**
- * Os cursos que saem neste salvamento, na ordem da lista salva. Reordenar e
- * acrescentar não são perda. Quem só tinha a trilha perde o curso na hora.
- */
 export function perdas({
   catalogo,
   rascunho,
@@ -310,7 +288,6 @@ const CAMPOS = new Set<PropertyKey>([
   "titulo",
 ] satisfies CampoDaTrilha[]);
 
-/** A posição é a que a lista mostra no número redondo de cada linha. */
 function mensagemDosCursos(i: z.core.$ZodIssue, cursos: readonly CursoId[]) {
   const [, posicao] = i.path;
   if (typeof posicao !== "number") {
@@ -326,7 +303,6 @@ function mensagemDosCursos(i: z.core.$ZodIssue, cursos: readonly CursoId[]) {
   return `O ${posicao + 1}º curso da lista tem um identificador que o servidor recusa. Tire-o da trilha e salve de novo.`;
 }
 
-/** Total: toda recusa do schema vira um problema com frase. */
 function problemaDaIssue(
   i: z.core.$ZodIssue,
   cursos: readonly CursoId[]
@@ -389,10 +365,6 @@ export const recusaDaTrilha = (
       }
     : null;
 
-/**
- * O que a tela marca: a leitura depois de um salvar recusado na tela, e o
- * endereço que o servidor recusou enquanto o admin não o muda.
- */
 export function problemasNaTela({
   lido,
   rascunho,

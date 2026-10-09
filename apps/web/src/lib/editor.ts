@@ -6,7 +6,6 @@ export const focarDepois = (id: string) =>
 
 export type Direcao = "acima" | "abaixo";
 
-/** A lista com o item i trocado pelo vizinho; fora dos limites, null. */
 export function trocado<T>(
   lista: readonly T[],
   i: number,
@@ -21,10 +20,7 @@ export function trocado<T>(
   return nova;
 }
 
-/**
- * A seta que fica com o foco depois de mover: a mesma, ou a outra quando o
- * item chegou à borda e a seta dele desligou.
- */
+/** A seta da borda desabilita e perderia o foco. */
 export const setaDepoisDeMover = (
   direcao: Direcao,
   chegouNaBorda: boolean

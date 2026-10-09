@@ -104,7 +104,6 @@ export const adminRouter = router({
     abrirCurso: adminProcedure
       .input(doCurso)
       .query(({ ctx, input }) => abrirCurso(ctx.db, input.id)),
-    /** Mesmo contrato de abrirCurso: a trilha nova vem de edicaoDeTrilhaNova(id). */
     abrirTrilha: adminProcedure
       .input(daTrilha)
       .query(({ ctx, input }) => abrirTrilha(ctx.db, input.id)),
@@ -122,7 +121,6 @@ export const adminRouter = router({
     salvarCurso: adminProcedure
       .input(z.instanceof(FormData))
       .mutation(({ ctx, input }) => salvarCurso(ctx, input)),
-    /** A lista de cursos é o estado desejado: acrescentar, tirar e reordenar. */
     salvarTrilha: adminProcedure
       .input(documentoDaTrilha)
       .mutation(({ ctx, input }) => salvarTrilha(ctx.db, input)),

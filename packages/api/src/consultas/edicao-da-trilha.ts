@@ -1,5 +1,3 @@
-// Único escritor de trilha e trilha_curso no app (o seed só planta trilhas novas).
-
 import type { Database } from "@cursos/db";
 import {
   aula,
@@ -37,7 +35,6 @@ import { type Executor, liberacaoAtiva, type Transacao } from "./comum";
 import { violacaoDe } from "./erros";
 import { comTrava, travarCursos } from "./trava";
 
-/** O documento como está no banco, com a versão. null: o id não existe. */
 async function lerDocumento(
   exec: Executor,
   id: TrilhaId
@@ -65,7 +62,6 @@ async function lerDocumento(
 
 type Contagens = Omit<UsoDaTrilha, "comecaramSoPelaTrilha">;
 
-/** As contagens de uso que decidem o apagar, num statement. */
 async function contarUso(exec: Executor, id: TrilhaId): Promise<Contagens> {
   const {
     rows: [contagens],
@@ -83,11 +79,11 @@ async function contarUso(exec: Executor, id: TrilhaId): Promise<Contagens> {
 }
 
 /**
- * UsoDaTrilha.comecaramSoPelaTrilha: um item por curso do documento lido, zero
- * incluído. A lista vem do documento, não de outra leitura de trilha_curso: um
- * salvar que comita entre as duas leituras não desencontra os cursos.
- * "Começou" é a regra de estadoDoCurso no painel (aula assistida ou posição
- * acima de 0 s), mais o certificado; o teste de integração confere esta conta
+ * A lista vem do documento, não de outra leitura de trilha_curso: um salvar que
+ * comita entre as duas leituras não desencontra os cursos. "Começou" é a regra
+ * de estadoDoCurso no painel (aula assistida ou posição acima de 0 s), mais o
+ * certificado, também no curso em produção, que o painel mostra como em_breve:
+ * quem o começou também perde o acesso. O teste de integração confere esta conta
  * contra meusCursos.painel. "Só pela trilha" é não ter liberação ativa do
  * próprio curso.
  */
@@ -134,7 +130,6 @@ async function comecaramSoPelaTrilha(
   }));
 }
 
-/** A trilha como o editor abre: documento (com versão) e uso. null quando o id não existe. */
 export async function abrirTrilha(
   db: Database,
   id: TrilhaId
@@ -153,7 +148,6 @@ export async function abrirTrilha(
   };
 }
 
-/** Os cursos da lista que existem, cada um com a trilha em que está hoje. */
 async function cursosDaLista(
   exec: Executor,
   ids: readonly CursoId[]
@@ -225,12 +219,11 @@ export interface TrilhaSalva {
 }
 
 /**
- * admin.catalogo.salvarTrilha. A trava trilha:<id> serializa dois salvamentos da
- * mesma trilha, inclusive a criação repetida. Depois dela, curso:<id> dos cursos
- * de hoje e dos desejados: duas trilhas com um curso em comum se serializam, e a
- * segunda decide com a lista que a primeira gravou. Não pega trava de aluno: a
- * troca que comitou antes continua valendo, porque o aluno trocou quando o curso
- * não estava na trilha.
+ * A trava trilha:<id> serializa dois salvamentos da mesma trilha, inclusive a
+ * criação repetida. Depois dela, curso:<id> dos cursos de hoje e dos desejados:
+ * duas trilhas com um curso em comum se serializam, e a segunda decide com a
+ * lista que a primeira gravou. Não pega trava de aluno: a troca que comitou antes
+ * continua valendo, porque o aluno trocou quando o curso não estava na trilha.
  */
 export function salvarTrilha(
   db: Database,
@@ -255,15 +248,9 @@ export function salvarTrilha(
 }
 
 /**
- * Estado final em três statements:
- *
- *   1. trilha: INSERT ou UPDATE de slug, título e descrição.
- *   2. DELETE de todo trilha_curso da trilha.
- *   3. INSERT de trilha_curso com posição = índice + 1.
- *
  * Apagar e reinserir é seguro porque nada referencia trilha_curso, e o unique não
  * deferrable trilha_curso_posicao_unica nunca vê duas linhas na mesma posição: no
- * passo 3 a trilha está vazia. Curso de outra trilha não chega aqui pelo app: as
+ * INSERT a trilha está vazia. Curso de outra trilha não chega aqui pelo app: as
  * travas curso:<id> de salvarTrilha serializam duas trilhas que disputam um
  * curso, e o planejador da segunda já recusa. trilha_curso_pkey é a rede para
  * quem escreve fora do app.
@@ -292,8 +279,8 @@ async function gravarTrilha(
 }
 
 /**
- * admin.catalogo.apagarTrilha. trilha_curso cai em cascade. Id que não existe
- * conta uso zero e o DELETE não acha linha: { apagado: false }, sem erro.
+ * trilha_curso cai em cascade. Id que não existe conta uso zero e o DELETE não
+ * acha linha: { apagado: false }, sem erro.
  */
 export async function apagarTrilha(
   db: Database,

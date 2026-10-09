@@ -41,7 +41,7 @@ export interface ModuloDoRascunho {
   titulo: string;
 }
 
-/** O que o admin edita. A versão não muda no editor e fica no Apoio. */
+/** A versão não muda no editor e fica no Apoio. */
 export type RascunhoDoCurso = Omit<
   DocumentoDoCurso,
   "modulos" | "precoTroca" | "versao"

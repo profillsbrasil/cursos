@@ -1,6 +1,3 @@
-// Ajudantes dos testes de corrida: param cada lado num ponto conhecido do banco,
-// sem mexer no código que se testa. Só os *.integration.test.ts importam daqui.
-
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
 import type { Database } from "@cursos/db";

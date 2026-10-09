@@ -1,6 +1,4 @@
-// O que um salvamento da trilha faz, decidido sem banco. Só o servidor importa este
-// arquivo (versao.ts usa node:crypto). O único escritor do plano é gravarTrilha, em
-// consultas/edicao-da-trilha.ts.
+// Só o servidor importa este arquivo: versao.ts usa node:crypto.
 
 import type { DocumentoDaTrilha } from "./edicao-da-trilha";
 import type { CursoId, TrilhaId, Versao } from "./tipos";
@@ -11,7 +9,6 @@ export function versaoDaTrilha(documento: DocumentoDaTrilha): Versao {
   return versaoDe(conteudo);
 }
 
-/** Um curso da lista desejada como está no banco agora. */
 export interface CursoDaLista {
   id: CursoId;
   titulo: string;
@@ -40,14 +37,7 @@ const recusa = (r: RecusaDaTrilha): PlanoDaTrilha => ({
   tipo: "recusa",
 });
 
-/**
- * `atual` é o documento que lerDocumento leu com a trilha travada (null: a trilha
- * não existe); só a versão dele decide, e o uso nunca chega aqui. `cursos`, os
- * cursos da lista desejada lidos na mesma transação. Tirar curso da trilha é
- * permitido: quem só o alcançava pela trilha perde o acesso na hora, e a tela
- * avisa antes. Pela regra "começou abre", inserir e reordenar não trancam curso
- * começado de ninguém.
- */
+/** Só a versão de `atual` decide; o uso nunca chega aqui. */
 export function planejarTrilha(
   atual: DocumentoDaTrilha | null,
   desejado: DocumentoDaTrilha,

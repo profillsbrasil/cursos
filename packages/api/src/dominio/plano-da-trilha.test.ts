@@ -32,7 +32,6 @@ const CURSOS = new Map<CursoId, CursoDaLista>([
   [C, cursoDaLista(C, "Montagem", null)],
 ]);
 
-/** O documento como lerDocumento devolve: com a versão do que está gravado. */
 function documento(cursos: CursoId[] = [A, B]): DocumentoDaTrilha {
   const d: DocumentoDaTrilha = {
     cursos,

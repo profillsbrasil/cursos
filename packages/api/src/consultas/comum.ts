@@ -14,7 +14,6 @@ export const COLUNAS_DA_CAPA = {
 export const filtroLiberacaoAtiva = (userId: string) =>
   ({ revogadaEm: { isNull: true }, userId }) as const;
 
-/** O par de filtroLiberacaoAtiva para SQL escrito à mão, com a tabela ou um alias dela. */
 export const liberacaoAtiva = (l: { revogadaEm: AnyColumn }) =>
   isNull(l.revogadaEm);
 

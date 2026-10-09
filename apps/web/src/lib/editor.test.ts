@@ -208,7 +208,6 @@ describe("a página monta o editor pela key do id, nunca da versão", () => {
         ),
       ];
       expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
-      // Com ?novo=1 o banco vence: Recarregar numa URL velha não volta ao rascunho.
       expect(pagina).toContain("abrirOuRascunho(");
     });
   }

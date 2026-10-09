@@ -1,7 +1,3 @@
-// Edição da trilha contra o Supabase local, pelo caller do tRPC como admin e como
-// aluno. Roda só com TEST_DATABASE_URL em host local. Cada execução cria trilhas e
-// cursos com sufixo aleatório, e o afterAll apaga tudo.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createDb } from "@cursos/db";
@@ -42,7 +38,6 @@ const PAROU = `user_teste${S}parou`;
 const NO_ZERO = `user_teste${S}nozero`;
 const ALUNOS = [SO_TRILHA, COM_DIRETA, COMECOU, PAROU, NO_ZERO];
 
-/** Erro sem tradução mostra a restrição violada no lugar do texto do Postgres. */
 const resultado = (p: Promise<unknown>) =>
   p.then(
     () => ({ code: "ok", message: "" }),
@@ -78,7 +73,6 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     await db.$client.end();
   });
 
-  /** Cursos publicados soltos, de 1 módulo e 2 aulas cada. */
   async function criarCursos(n: number) {
     const sufixo = randomBytes(4).toString("hex");
     const novos = await db

@@ -45,7 +45,6 @@ function Situacao({
   return <p className="text-muted-foreground">{texto}</p>;
 }
 
-/** A barra presa ao pé do editor: avisos, a situação do rascunho e o Salvar. */
 export function BarraDeSalvar({
   children,
   novo,
@@ -56,10 +55,8 @@ export function BarraDeSalvar({
   sujo,
   versaoMudou,
 }: {
-  /** Avisos acima da situação, como o de quem perde um curso tirado. */
   children?: ReactNode;
   novo: boolean;
-  /** "este curso", "esta trilha": vai no aviso de versão. */
   oQue: string;
   pendente: boolean;
   problemas: readonly Problema[];

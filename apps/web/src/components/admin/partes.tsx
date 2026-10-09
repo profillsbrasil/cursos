@@ -35,7 +35,6 @@ export function Secao({
   titulo,
 }: {
   children: ReactNode;
-  /** O id da mensagem de erro da seção, quando o erro foca o título. */
   descritoPor?: string;
   id: string;
   resumo: string;

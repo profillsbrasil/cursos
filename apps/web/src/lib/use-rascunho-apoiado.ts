@@ -1,9 +1,5 @@
 "use client";
 
-// O protocolo do rascunho dos editores do admin: em que documento ele se apoia,
-// quando recomeça da página e o que sobra dele depois do salvar. Os editores do
-// curso e da trilha passam só as regras do próprio rascunho.
-
 import type { Motivo } from "@cursos/api";
 import type { Versao } from "@cursos/api/dominio/tipos";
 import type { Route } from "next";
@@ -29,7 +25,6 @@ interface Documento {
 }
 
 export interface RegrasDoRascunho<D extends Documento, R, M> {
-  /** O rascunho que o documento salvo dá. */
   deDocumento: (d: D) => R;
   mesmo: (a: R, b: R) => boolean;
   mudar: (r: R, m: M) => R;
@@ -108,7 +103,6 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
   sujoAlem,
 }: {
   caminho: Route;
-  /** O documento que a página entregou neste render. */
   pagina: D;
   regras: RegrasDoRascunho<D, R, M>;
   /** O que o editor guarda fora do rascunho e ainda não salvou, nesta geração. */
@@ -179,7 +173,6 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
   };
 }
 
-/** Estado do editor que volta a `inicial` a cada recomeço do rascunho. */
 export function useDaGeracao<T>(
   geracao: number,
   inicial: T

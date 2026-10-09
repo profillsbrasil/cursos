@@ -26,7 +26,6 @@ const { CursosDaTrilha } = await import("./cursos-da-trilha");
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 const BOTAO = /<button[^>]*>/g;
-/** O botão com este aria-label está desabilitado? */
 const desabilitado = (html: string, rotulo: string) => {
   const tag = html
     .match(BOTAO)
@@ -67,7 +66,6 @@ describe("apagar a trilha", () => {
   });
 });
 
-/** Com alunos, a trilha tem liberações e não se apaga. */
 const existente = (alunos: number): EdicaoDaTrilha => ({
   documento: {
     cursos: ["c1" as CursoId, "c2" as CursoId],
