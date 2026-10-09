@@ -11,7 +11,13 @@ import { z } from "zod";
 
 import type { CursoId, TrilhaId, Versao } from "./tipos";
 
-export const CURSOS_POR_TRILHA = 100;
+/** Tetos do documento: o schema, os maxLength do editor e as frases dele usam estes. */
+export const LIMITES_DA_TRILHA = {
+  cursos: 100,
+  descricao: 600,
+  slug: 80,
+  titulo: 120,
+} as const;
 
 /** A recusa de apagarTrilha, e a frase que o editor mostra antes de tentar. */
 export const TRILHA_EM_USO =
@@ -27,11 +33,11 @@ export const documentoDaTrilha = z
     /** Em ordem: o primeiro é a posição 1. */
     cursos: z
       .array(uuid.transform((id) => id as CursoId))
-      .max(CURSOS_POR_TRILHA),
-    descricao: texto(600),
+      .max(LIMITES_DA_TRILHA.cursos),
+    descricao: texto(LIMITES_DA_TRILHA.descricao),
     id: uuid.transform((id) => id as TrilhaId),
-    slug: z.string().regex(new RegExp(SLUG)).max(80),
-    titulo: texto(120),
+    slug: z.string().regex(new RegExp(SLUG)).max(LIMITES_DA_TRILHA.slug),
+    titulo: texto(LIMITES_DA_TRILHA.titulo),
     /** null: o editor acha que a trilha é nova. Senão, a versão que ele abriu. */
     versao: z
       .string()
