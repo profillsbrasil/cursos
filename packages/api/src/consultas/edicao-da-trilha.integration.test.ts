@@ -517,6 +517,43 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     }
   });
 
+  test("liberar a trilha enquanto ela é apagada: o liberar espera e recusa com a frase de trilha que não existe", async () => {
+    const t = await salva(trilhaNova([]));
+    const comAluno = createCaller(
+      contextoDeTeste({
+        db,
+        papel: "admin",
+        pessoas: [
+          { email: null, foto: null, nome: "Aluno", userId: SO_TRILHA },
+        ],
+        userId: "user_admin",
+      })
+    );
+    const outro = await db.$client.connect();
+    try {
+      await outro.query("begin");
+      await outro.query("delete from trilha where id = $1", [t.documento.id]);
+      const liberando = resultado(
+        comAluno.admin.alunos.liberar({
+          alvo: { id: t.documento.id, tipo: "trilha", trocadosVistos: [] },
+          userId: SO_TRILHA,
+        })
+      );
+      const paradas = await esperas(db, 1, ['insert into "liberacao"']);
+      await outro.query("commit");
+
+      expect({ liberando: await liberando, paradas }).toEqual({
+        liberando: {
+          code: "NOT_FOUND",
+          message: "Esta trilha não existe mais.",
+        },
+        paradas: ["transactionid"],
+      });
+    } finally {
+      outro.release();
+    }
+  });
+
   test("trilha liberada, mesmo revogada, não se apaga; sem uso, apaga com os vínculos", async () => {
     const [a, b] = await criarCursos(2);
     if (!(a && b)) {

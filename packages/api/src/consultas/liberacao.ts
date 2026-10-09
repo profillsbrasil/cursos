@@ -18,6 +18,7 @@ import type {
 } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
+import { violacaoDe } from "./erros";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
 export type NovaLiberacao =
@@ -108,51 +109,63 @@ async function liberacoesAtivas(
  * está ativo devolve a liberação existente. A Pessoa vem de Pessoas.porId: só
  * libera para quem o Clerk conhece.
  */
-export function liberar(
+export async function liberar(
   db: Database,
   admin: AdminId,
   pessoa: Pessoa,
   pedido: PedidoDeLiberar,
   agora: Date
 ): Promise<{ liberacaoId: LiberacaoId; nova: boolean }> {
-  return comAlunoTravado(db, pessoa.userId, async (aluno) => {
-    // Em série: a transação tem um client só (consultas/aula.ts).
-    const cursosDaTrilha = await cursosDoAlvo(aluno.tx, pedido);
-    if (!cursosDaTrilha) {
-      throw new ErroParaAPessoa({
-        code: "NOT_FOUND",
-        message:
-          pedido.tipo === "curso"
-            ? "Este curso não existe mais."
-            : "Esta trilha não existe mais.",
-      });
+  const sumiu = (cause?: unknown) =>
+    new ErroParaAPessoa({
+      cause,
+      code: "NOT_FOUND",
+      message:
+        pedido.tipo === "curso"
+          ? "Este curso não existe mais."
+          : "Esta trilha não existe mais.",
+    });
+  try {
+    return await comAlunoTravado(db, pessoa.userId, async (aluno) => {
+      // Em série: a transação tem um client só (consultas/aula.ts).
+      const cursosDaTrilha = await cursosDoAlvo(aluno.tx, pedido);
+      if (!cursosDaTrilha) {
+        throw sumiu();
+      }
+      const d = decidirLiberar(
+        await liberacoesAtivas(aluno.tx, aluno.userId),
+        pedido,
+        cursosDaTrilha
+      );
+      switch (d.tipo) {
+        case "trocados_mudaram":
+          throw new ErroParaAPessoa({
+            code: "CONFLICT",
+            message: `Os cursos que ${pessoa.nome} trocou por pontos nesta trilha mudaram desde que a tela abriu. Confira o aviso e libere de novo.`,
+          });
+        case "ja_liberada":
+          return { liberacaoId: d.liberacaoId, nova: false };
+        case "inserir":
+          return {
+            liberacaoId: await inserirLiberacao(
+              aluno,
+              { alvo: pedido, origem: "admin", por: admin },
+              agora
+            ),
+            nova: true,
+          };
+        default:
+          return d satisfies never;
+      }
+    });
+  } catch (erro) {
+    // A trilha foi lida antes de o DELETE de apagarTrilha comitar: liberar trava
+    // o aluno, não a trilha, e o INSERT espera a linha e para no FK.
+    if (violacaoDe(erro)?.restricao === "liberacao_trilha_id_trilha_id_fkey") {
+      throw sumiu(erro);
     }
-    const d = decidirLiberar(
-      await liberacoesAtivas(aluno.tx, aluno.userId),
-      pedido,
-      cursosDaTrilha
-    );
-    switch (d.tipo) {
-      case "trocados_mudaram":
-        throw new ErroParaAPessoa({
-          code: "CONFLICT",
-          message: `Os cursos que ${pessoa.nome} trocou por pontos nesta trilha mudaram desde que a tela abriu. Confira o aviso e libere de novo.`,
-        });
-      case "ja_liberada":
-        return { liberacaoId: d.liberacaoId, nova: false };
-      case "inserir":
-        return {
-          liberacaoId: await inserirLiberacao(
-            aluno,
-            { alvo: pedido, origem: "admin", por: admin },
-            agora
-          ),
-          nova: true,
-        };
-      default:
-        return d satisfies never;
-    }
-  });
+    throw erro;
+  }
 }
 
 /**
