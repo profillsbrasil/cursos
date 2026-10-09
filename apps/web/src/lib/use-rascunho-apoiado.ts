@@ -3,11 +3,14 @@
 import type { Motivo } from "@cursos/api";
 import type { Versao } from "@cursos/api/dominio/tipos";
 import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import {
   type Dispatch,
   type SetStateAction,
   useCallback,
+  useEffect,
   useReducer,
+  useRef,
   useState,
 } from "react";
 
@@ -17,8 +20,8 @@ import {
   apoioSalvo,
   sincronizarComAPagina,
 } from "./editor";
+import { useAcao } from "./use-acao";
 import { useGuardaDeSaida } from "./use-guarda-de-saida";
-import { useSalvarDocumento, useTituloComFoco } from "./use-salvar-documento";
 
 interface Documento {
   versao: Versao | null;
@@ -27,7 +30,7 @@ interface Documento {
 export interface RegrasDoRascunho<D extends Documento, R, M> {
   deDocumento: (d: D) => R;
   mesmo: (a: R, b: R) => boolean;
-  mudar: (r: R, m: M) => R;
+  mudar: (r: R, m: M, base: D) => R;
 }
 
 export interface EstadoApoiado<D extends Documento, R> {
@@ -39,15 +42,22 @@ export interface EstadoApoiado<D extends Documento, R> {
 
 export type AcaoApoiada<D extends Documento, R, M> =
   | { tipo: "mudou"; mudanca: M }
-  | { tipo: "pagina"; pagina: D; descartes: number; limpo: boolean }
+  | { tipo: "pagina"; pagina: D; limpo: boolean }
+  /** O Recarregar recomeça da última página que chegou, e o refresh traz a seguinte. */
+  | { tipo: "descartado" }
   /** O servidor gravou `enviado` como `gravado`; o que o admin editou depois fica. */
-  | { tipo: "salvo"; gravado: D; enviado: R };
+  | { tipo: "salvo"; gravado: D; enviado: R }
+  /**
+   * versao_mudou liga o aviso já, antes de o refresh trazer a página; a página
+   * que chega decide se ele fica.
+   */
+  | { tipo: "recusado"; motivo: Motivo | null };
 
 export const estadoApoiadoEm = <D extends Documento, R, M>(
   regras: RegrasDoRascunho<D, R, M>,
   pagina: D
 ): EstadoApoiado<D, R> => ({
-  apoio: apoioEm(pagina, 0),
+  apoio: apoioEm(pagina),
   geracao: 0,
   rascunho: regras.deDocumento(pagina),
 });
@@ -59,7 +69,10 @@ export function apoiado<D extends Documento, R, M>(
 ): EstadoApoiado<D, R> {
   switch (a.tipo) {
     case "mudou":
-      return { ...e, rascunho: regras.mudar(e.rascunho, a.mudanca) };
+      return {
+        ...e,
+        rascunho: regras.mudar(e.rascunho, a.mudanca, e.apoio.base),
+      };
     case "pagina": {
       const s = sincronizarComAPagina(e.apoio, a);
       return s.recomecar
@@ -70,6 +83,12 @@ export function apoiado<D extends Documento, R, M>(
           }
         : { ...e, apoio: s.apoio };
     }
+    case "descartado":
+      return {
+        apoio: apoioEm(e.apoio.pagina),
+        geracao: e.geracao + 1,
+        rascunho: regras.deDocumento(e.apoio.pagina),
+      };
     case "salvo":
       return {
         ...e,
@@ -78,6 +97,10 @@ export function apoiado<D extends Documento, R, M>(
           ? regras.deDocumento(a.gravado)
           : e.rascunho,
       };
+    case "recusado":
+      return a.motivo === "versao_mudou"
+        ? { ...e, apoio: { ...e.apoio, versaoDeFora: true } }
+        : e;
     default: {
       const nenhuma: never = a;
       throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
@@ -90,10 +113,31 @@ export const rascunhoSujo = <D extends Documento, R, M>(
   e: EstadoApoiado<D, R>
 ) => !regras.mesmo(regras.deDocumento(e.apoio.base), e.rascunho);
 
+/** O documento novo abre com ?novo=1 e o perde no primeiro salvar. */
+export const urlDepoisDoSalvar = (
+  base: Documento,
+  caminho: Route
+): Route | null => (base.versao === null ? caminho : null);
+
 export interface OpcoesDoSalvar {
   aoRecusar?: (motivo: Motivo | null) => void;
   aoSalvar?: () => void;
   sucesso: string;
+}
+
+/**
+ * Na navegação do App Router, o link clicado sai do DOM e o foco cai no
+ * <body>; o editor que abre assim põe o foco no título.
+ */
+function useTituloComFoco<T extends HTMLElement>() {
+  const titulo = useRef<T>(null);
+  useEffect(() => {
+    const ativo = document.activeElement;
+    if (ativo === null || ativo === document.body) {
+      titulo.current?.focus({ preventScroll: true });
+    }
+  }, []);
+  return titulo;
 }
 
 export function useRascunhoApoiado<D extends Documento, R, M>({
@@ -108,6 +152,8 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
   /** O que o editor guarda fora do rascunho e ainda não salvou, nesta geração. */
   sujoAlem?: (geracao: number) => boolean;
 }) {
+  const router = useRouter();
+  const { executar, pendente } = useAcao();
   const [estado, despachar] = useReducer(
     (e: EstadoApoiado<D, R>, a: AcaoApoiada<D, R, M>) => apoiado(regras, e, a),
     pagina,
@@ -115,12 +161,10 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
   );
   const { apoio, geracao, rascunho } = estado;
   const novo = apoio.base.versao === null;
-  const { descartes, pendente, recarregar, salvar, versaoMudou } =
-    useSalvarDocumento({ caminho, novo });
   const titulo = useTituloComFoco<HTMLHeadingElement>();
   const sujo = (sujoAlem?.(geracao) ?? false) || rascunhoSujo(regras, estado);
-  if (pagina !== apoio.pagina || descartes !== apoio.descartes) {
-    despachar({ descartes, limpo: !sujo, pagina, tipo: "pagina" });
+  if (pagina !== apoio.pagina) {
+    despachar({ limpo: !sujo, pagina, tipo: "pagina" });
   }
   useGuardaDeSaida(sujo);
 
@@ -129,34 +173,42 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
     []
   );
 
-  const salvarDocumento = useCallback(
+  const salvar = useCallback(
     (
       documento: D,
       fazer: () => Promise<{ versao: Versao }>,
       opcoes: OpcoesDoSalvar
     ) => {
       const enviado = rascunho;
-      salvar(fazer, {
-        aoRecusar: opcoes.aoRecusar,
-        aoSalvar: ({ versao }) => {
+      const url = urlDepoisDoSalvar(apoio.base, caminho);
+      executar(fazer, {
+        aoRecusar: (motivo) => {
+          despachar({ motivo, tipo: "recusado" });
+          opcoes.aoRecusar?.(motivo);
+        },
+        depois: ({ versao }) => {
           despachar({
             enviado,
             gravado: { ...documento, versao },
             tipo: "salvo",
           });
           opcoes.aoSalvar?.();
+          if (url) {
+            router.replace(url);
+          }
         },
         sucesso: opcoes.sucesso,
       });
     },
-    [rascunho, salvar]
+    [apoio.base, caminho, executar, rascunho, router]
   );
 
   // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
   const descartar = useCallback(() => {
-    recarregar();
+    despachar({ tipo: "descartado" });
+    router.refresh();
     titulo.current?.focus({ preventScroll: true });
-  }, [recarregar, titulo]);
+  }, [router, titulo]);
 
   return {
     base: apoio.base,
@@ -166,10 +218,10 @@ export function useRascunhoApoiado<D extends Documento, R, M>({
     novo,
     pendente,
     rascunho,
-    salvar: salvarDocumento,
+    salvar,
     sujo,
     titulo,
-    versaoMudou: versaoMudou || apoio.versaoDeFora,
+    versaoMudou: apoio.versaoDeFora,
   };
 }
 

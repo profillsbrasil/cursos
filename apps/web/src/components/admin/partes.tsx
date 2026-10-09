@@ -2,6 +2,8 @@ import { badgeVariants } from "@cursos/ui/components/badge";
 import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+
 export const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
 export const CELULA = "px-5 py-3.5 text-sm";
 export const NUMERO = "text-right tabular-nums";
@@ -15,9 +17,25 @@ export const ROTULO = "font-semibold text-foreground text-sm";
 export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
+/**
+ * O focusableWhenDisabled do Base UI marca data-disabled, não disabled, e as
+ * classes disabled: do Button não pegam. O botão do envio pendente fica com
+ * opacidade cheia porque nada estiliza o data-disabled dele.
+ */
+const NAO_PODE = "data-disabled:cursor-not-allowed data-disabled:opacity-50";
+
 export const ICONE = cn(
   "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
-  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0"
+  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0",
+  NAO_PODE,
+  "data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
+);
+
+/** O dark:hover:border-titulo do BOTAO_CONTORNO vence a classe sem variante. */
+export const CONTORNO_DESLIGADO = cn(
+  BOTAO_CONTORNO,
+  NAO_PODE,
+  "data-disabled:hover:border-muted-foreground dark:data-disabled:hover:border-muted-foreground"
 );
 
 /** Selo em pílula das tabelas do admin; a cor vem de quem chama. */

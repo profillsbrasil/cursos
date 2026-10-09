@@ -104,7 +104,7 @@ export function ConfirmacaoNaLinha({
           aria-busy={enviando}
           aria-label={botao.nome}
           autoFocus
-          className={cn(BOTAO, PEQUENO, "disabled:opacity-100")}
+          className={cn(BOTAO, PEQUENO)}
           disabled={enviando}
           focusableWhenDisabled
           onClick={confirmar}

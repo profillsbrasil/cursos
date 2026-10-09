@@ -412,6 +412,47 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     expect(await liberacoesDe(userId)).toEqual([]);
   });
 
+  test("liberar o curso enquanto ele é apagado: o liberar espera e recusa com a frase de curso que não existe", async () => {
+    const userId = await aluno();
+    const c = await cursoTrocavel(300);
+    const admin = createCaller(
+      contextoDeTeste({
+        db,
+        papel: "admin",
+        pessoas: [pessoa(userId)],
+        userId: ADMIN,
+      })
+    );
+    const outro = await db.$client.connect();
+    try {
+      await outro.query("begin");
+      await outro.query("delete from curso where id = $1", [c]);
+      const liberando = admin.admin.alunos
+        .liberar({ alvo: { id: c, tipo: "curso" }, userId })
+        .then(
+          () => ({ code: "ok", message: "" }),
+          (e: unknown) =>
+            e instanceof TRPCError
+              ? { code: e.code, message: e.message }
+              : { code: "não é TRPCError", message: String(e) }
+        );
+      const paradas = await esperasNoBanco(db, 1, ['insert into "liberacao"']);
+      await outro.query("commit");
+
+      expect({ liberando: await liberando, paradas }).toEqual({
+        liberando: {
+          code: "NOT_FOUND",
+          message: "Este curso não existe mais.",
+        },
+        paradas: ["transactionid"],
+      });
+      expect(await liberacoesDe(userId)).toEqual([]);
+    } finally {
+      // Sem o commit, a transação aberta morre com a conexão em vez de voltar ao pool.
+      outro.release(true);
+    }
+  });
+
   test("o admin libera para si mesmo pela API e revoga", async () => {
     const dono = await aluno();
     const t = await trilhaCom();

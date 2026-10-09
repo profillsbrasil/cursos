@@ -103,6 +103,11 @@ async function liberacoesAtivas(
   }));
 }
 
+const FK_DO_ALVO = new Set([
+  "liberacao_curso_id_curso_id_fkey",
+  "liberacao_trilha_id_trilha_id_fkey",
+]);
+
 /**
  * Admin libera trilha ou curso. Com a trava do aluno, uma troca concorrente
  * espera, lê a liberação nova e devolve "já tem" sem debitar. Liberar o que já
@@ -159,9 +164,10 @@ export async function liberar(
       }
     });
   } catch (erro) {
-    // A trilha foi lida antes de o DELETE de apagarTrilha comitar: liberar trava
-    // o aluno, não a trilha, e o INSERT espera a linha e para no FK.
-    if (violacaoDe(erro)?.restricao === "liberacao_trilha_id_trilha_id_fkey") {
+    // O alvo foi lido antes de o DELETE do curso ou da trilha comitar: liberar
+    // trava o aluno, não o alvo, e o INSERT espera a linha e para no FK.
+    const restricao = violacaoDe(erro)?.restricao;
+    if (restricao !== undefined && FK_DO_ALVO.has(restricao)) {
       throw sumiu(erro);
     }
     throw erro;

@@ -461,22 +461,11 @@ const SEM_CAPA: Problema = {
   mensagem: "Escolha a imagem da capa.",
 };
 
-/**
- * O arquivo escolhido vale na geração em que foi escolhido. `montagem` remonta
- * o campo depois do salvar que enviou o arquivo, e o input volta vazio.
- */
-interface CapaEscolhida {
-  arquivo: File | null;
-  geracao: number;
-  montagem: number;
-}
-
 export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
-  const [capaGuardada, guardarCapa] = useState<CapaEscolhida>({
-    arquivo: null,
-    geracao: 0,
-    montagem: 0,
-  });
+  const [capaGuardada, guardarCapa] = useState<{
+    arquivo: File | null;
+    geracao: number;
+  }>({ arquivo: null, geracao: 0 });
   const {
     base,
     descartar,
@@ -563,11 +552,10 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
               document.getElementById(ID.curso(r.campo))?.focus();
             }
           },
+          // A capa escolhida durante o salvar fica para o próximo.
           aoSalvar: () =>
             guardarCapa((atual) =>
-              atual.arquivo === enviada
-                ? { ...atual, arquivo: null, montagem: atual.montagem + 1 }
-                : atual
+              atual.arquivo === enviada ? { ...atual, arquivo: null } : atual
             ),
           sucesso: "Curso salvo.",
         }
@@ -639,8 +627,9 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
           <CampoDeCapa
             alt={rascunho.capaAlt}
             aoEscolher={escolherCapa}
+            arquivo={capa}
             atual={edicao.capa}
-            key={`${geracao}:${capaGuardada.montagem}`}
+            geracao={geracao}
             mudarAlt={mudarTexto}
           />
         </Secao>

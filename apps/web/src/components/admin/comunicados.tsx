@@ -155,7 +155,7 @@ function Formulario({
       <div className="flex flex-wrap gap-2">
         <Button
           aria-busy={enviando}
-          className={cn(BOTAO, "disabled:opacity-100")}
+          className={BOTAO}
           disabled={enviando}
           focusableWhenDisabled
           type="submit"

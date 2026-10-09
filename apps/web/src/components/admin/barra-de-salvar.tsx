@@ -1,5 +1,4 @@
 import { Button } from "@cursos/ui/components/button";
-import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { BOTAO } from "@/components/casca/botoes";
@@ -76,7 +75,7 @@ export function BarraDeSalvar({
         </div>
         <Button
           aria-busy={pendente}
-          className={cn(BOTAO, "disabled:opacity-100")}
+          className={BOTAO}
           disabled={pendente}
           focusableWhenDisabled
           type="submit"

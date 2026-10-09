@@ -103,11 +103,11 @@ describe("sincronizarComAPagina", () => {
     titulo,
     versao: versao as Versao | null,
   });
-  const sujo = { descartes: 0, limpo: false };
-  const limpo = { descartes: 0, limpo: true };
+  const sujo = { limpo: false };
+  const limpo = { limpo: true };
 
   test("a página com a versão da base não mexe no rascunho", () => {
-    const apoio = apoioEm(doc("v1"), 0);
+    const apoio = apoioEm(doc("v1"));
     const pagina = doc("v1");
     expect(sincronizarComAPagina(apoio, { ...sujo, pagina })).toEqual({
       apoio: { ...apoio, pagina },
@@ -117,7 +117,7 @@ describe("sincronizarComAPagina", () => {
 
   test("o refresh do próprio salvar não apaga o que o admin digitou depois", () => {
     const salvo = doc("v2", "Título novo");
-    const apoio = apoioSalvo(apoioEm(doc("v1"), 0), salvo);
+    const apoio = apoioSalvo(apoioEm(doc("v1")), salvo);
     const pagina = doc("v2", "Título novo");
     const r = sincronizarComAPagina(apoio, { ...sujo, pagina });
     expect(r.recomecar).toBe(false);
@@ -127,7 +127,7 @@ describe("sincronizarComAPagina", () => {
 
   test("o primeiro salvar do curso novo e a troca de URL não descartam nada", () => {
     const salvo = doc("v1");
-    const apoio = apoioSalvo(apoioEm(doc(null), 0), salvo);
+    const apoio = apoioSalvo(apoioEm(doc(null)), salvo);
     const r = sincronizarComAPagina(apoio, { ...sujo, pagina: doc("v1") });
     expect(r.recomecar).toBe(false);
     expect(r.apoio.base).toBe(salvo);
@@ -135,17 +135,17 @@ describe("sincronizarComAPagina", () => {
 
   test("a versão de fora com o rascunho limpo recomeça da página", () => {
     const pagina = doc("v3", "De outra aba");
-    const r = sincronizarComAPagina(apoioEm(doc("v1"), 0), {
+    const r = sincronizarComAPagina(apoioEm(doc("v1")), {
       ...limpo,
       pagina,
     });
-    expect(r).toEqual({ apoio: apoioEm(pagina, 0), recomecar: true });
+    expect(r).toEqual({ apoio: apoioEm(pagina), recomecar: true });
   });
 
   test("a versão de fora com o rascunho sujo fica no rascunho e avisa", () => {
     const base = doc("v1");
     const pagina = doc("v3", "De outra aba");
-    const r = sincronizarComAPagina(apoioEm(base, 0), { ...sujo, pagina });
+    const r = sincronizarComAPagina(apoioEm(base), { ...sujo, pagina });
     expect(r.recomecar).toBe(false);
     expect(r.apoio.base).toBe(base);
     expect(r.apoio.versaoDeFora).toBe(true);
@@ -153,7 +153,7 @@ describe("sincronizarComAPagina", () => {
 
   test("a página que volta à versão da base desliga o aviso", () => {
     const base = doc("v1");
-    const emConflito = sincronizarComAPagina(apoioEm(base, 0), {
+    const emConflito = sincronizarComAPagina(apoioEm(base), {
       ...sujo,
       pagina: doc("v3", "De outra aba"),
     }).apoio;
@@ -162,27 +162,6 @@ describe("sincronizarComAPagina", () => {
       apoio: { ...emConflito, pagina, versaoDeFora: false },
       recomecar: false,
     });
-  });
-
-  test("Recarregar descarta o rascunho sujo e recomeça da página", () => {
-    const pagina = doc("v3", "De outra aba");
-    const emConflito = sincronizarComAPagina(apoioEm(doc("v1"), 0), {
-      ...sujo,
-      pagina,
-    }).apoio;
-    const r = sincronizarComAPagina(emConflito, {
-      descartes: 1,
-      limpo: false,
-      pagina,
-    });
-    expect(r).toEqual({ apoio: apoioEm(pagina, 1), recomecar: true });
-    expect(
-      sincronizarComAPagina(r.apoio, {
-        descartes: 1,
-        limpo: true,
-        pagina: doc("v3", "De outra aba"),
-      }).recomecar
-    ).toBe(false);
   });
 });
 

@@ -69,17 +69,16 @@ interface ComVersao {
 export interface Apoio<D extends ComVersao> {
   /** O documento em que o rascunho se apoia; o próximo salvar manda a versão dele. */
   base: D;
-  /** Os Recarregar que este apoio já atendeu. */
-  descartes: number;
   /** O último documento que a página entregou. */
   pagina: D;
   versaoDeFora: boolean;
 }
 
-export const apoioEm = <D extends ComVersao>(
-  pagina: D,
-  descartes: number
-): Apoio<D> => ({ base: pagina, descartes, pagina, versaoDeFora: false });
+export const apoioEm = <D extends ComVersao>(pagina: D): Apoio<D> => ({
+  base: pagina,
+  pagina,
+  versaoDeFora: false,
+});
 
 export const apoioSalvo = <D extends ComVersao>(
   apoio: Apoio<D>,
@@ -93,19 +92,15 @@ export interface Sincronia<D extends ComVersao> {
 }
 
 /**
- * A página entregou um documento, ou o admin clicou Recarregar (`descartes`
- * maior que o do apoio). O refresh do próprio salvar traz a versão que já é a
- * da base; versão de fora com o rascunho sujo fica para o Recarregar, porque o
- * próximo salvar seria recusado com versao_mudou. A versão é o hash do
- * conteúdo: a página que volta à versão da base desliga o aviso.
+ * O refresh do próprio salvar traz a versão que já é a da base; versão de fora
+ * com o rascunho sujo fica para o Recarregar, porque o próximo salvar seria
+ * recusado com versao_mudou. A versão é o hash do conteúdo: a página que volta
+ * à versão da base desliga o aviso.
  */
 export function sincronizarComAPagina<D extends ComVersao>(
   apoio: Apoio<D>,
-  { descartes, limpo, pagina }: { descartes: number; limpo: boolean; pagina: D }
+  { limpo, pagina }: { limpo: boolean; pagina: D }
 ): Sincronia<D> {
-  if (descartes !== apoio.descartes) {
-    return { apoio: apoioEm(pagina, descartes), recomecar: true };
-  }
   if (pagina.versao === apoio.base.versao) {
     return {
       apoio: { ...apoio, pagina, versaoDeFora: false },
@@ -113,7 +108,7 @@ export function sincronizarComAPagina<D extends ComVersao>(
     };
   }
   if (limpo) {
-    return { apoio: apoioEm(pagina, descartes), recomecar: true };
+    return { apoio: apoioEm(pagina), recomecar: true };
   }
   return { apoio: { ...apoio, pagina, versaoDeFora: true }, recomecar: false };
 }

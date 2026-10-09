@@ -248,7 +248,7 @@ function BotaoLiberar({
     <Button
       aria-busy={enviando}
       aria-label={`Liberar ${titulo}`}
-      className={cn(BOTAO_CONTORNO, PEQUENO, "disabled:opacity-100")}
+      className={cn(BOTAO_CONTORNO, PEQUENO)}
       disabled={enviando}
       focusableWhenDisabled
       onClick={liberar}
