@@ -24,8 +24,6 @@ describe("ICONE como className de um Button sem variant", () => {
     expect(classes).toContain("hover:text-foreground");
   });
 
-  // O focusableWhenDisabled do Base UI põe data-disabled e aria-disabled, não
-  // disabled: as classes disabled: do Button não pegam o Remover de aula assistida.
   test("desligado por data-disabled: meia opacidade, sem pintar no hover, cursor de não permitido", () => {
     expect(classes).toContain("data-disabled:opacity-50");
     expect(classes).toContain("data-disabled:cursor-not-allowed");
@@ -43,8 +41,6 @@ describe("CONTORNO_DESLIGADO como className de um Button sem variant", () => {
     expect(classes).toContain("dark:hover:border-titulo");
   });
 
-  // O hover do contorno pinta a borda também com dark:, que vence a classe sem
-  // variante: o desligado repete a borda de repouso nas duas.
   test("desligado por data-disabled: meia opacidade, sem pintar no hover, cursor de não permitido", () => {
     expect(classes).toContain("data-disabled:opacity-50");
     expect(classes).toContain("data-disabled:cursor-not-allowed");

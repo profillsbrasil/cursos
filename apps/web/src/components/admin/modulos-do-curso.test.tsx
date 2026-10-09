@@ -33,8 +33,6 @@ const blocoComAulaAssistida = () => {
   );
 };
 
-// O focusableWhenDisabled põe data-disabled e aria-disabled, não disabled: as
-// classes disabled: do Button não pegam o "Remover módulo" que não pode.
 describe("Remover módulo com aula assistida", () => {
   const tag = botao(blocoComAulaAssistida(), "Remover módulo");
 

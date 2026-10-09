@@ -31,7 +31,7 @@ export const ICONE = cn(
   "data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
 );
 
-/** BOTAO_CONTORNO que não pode agir: o hover deixa a borda de repouso, também no dark:. */
+/** O dark:hover:border-titulo do BOTAO_CONTORNO vence a classe sem variante. */
 export const CONTORNO_DESLIGADO = cn(
   BOTAO_CONTORNO,
   NAO_PODE,

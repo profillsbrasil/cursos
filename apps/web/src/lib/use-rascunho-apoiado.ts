@@ -43,13 +43,13 @@ export interface EstadoApoiado<D extends Documento, R> {
 export type AcaoApoiada<D extends Documento, R, M> =
   | { tipo: "mudou"; mudanca: M }
   | { tipo: "pagina"; pagina: D; limpo: boolean }
-  /** O admin clicou Recarregar: o rascunho recomeça da última página, e o refresh traz a seguinte. */
+  /** O Recarregar recomeça da última página que chegou, e o refresh traz a seguinte. */
   | { tipo: "descartado" }
   /** O servidor gravou `enviado` como `gravado`; o que o admin editou depois fica. */
   | { tipo: "salvo"; gravado: D; enviado: R }
   /**
-   * O servidor recusou o salvar. versao_mudou liga o aviso já, antes de o
-   * refresh trazer a página; a página que chega decide se ele fica.
+   * versao_mudou liga o aviso já, antes de o refresh trazer a página; a página
+   * que chega decide se ele fica.
    */
   | { tipo: "recusado"; motivo: Motivo | null };
 
