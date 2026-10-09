@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -35,15 +35,8 @@ import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
-  PEQUENO,
 } from "./confirmacao-na-linha";
-import { SELO, Secao, Vazio } from "./partes";
-
-const CAMPO =
-  "rounded-[12px] border-muted-foreground bg-background px-3.5 text-sm md:text-sm dark:border-muted-foreground dark:bg-background";
-const SELECAO =
-  "w-full *:data-[slot=native-select]:h-11 *:data-[slot=native-select]:rounded-[12px] *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-sm";
-const ROTULO = "font-semibold text-foreground text-sm";
+import { CAMPO, ROTULO, SELECAO, SELO, Secao, Vazio } from "./partes";
 
 /** O que o formulário envia; cursoId vazio é o comunicado geral. */
 interface Rascunho {

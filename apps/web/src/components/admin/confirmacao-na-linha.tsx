@@ -11,9 +11,7 @@ import {
   useRef,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
-
-export const PEQUENO = "h-9 px-3.5 text-[13px]";
+import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 
 export function Carregando({ ativo }: { ativo: boolean }) {
   return ativo ? (

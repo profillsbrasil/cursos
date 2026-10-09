@@ -6,13 +6,20 @@ import { Glob } from "bun";
 
 import { type OpcoesDaAcao, rodarAcao } from "./use-acao";
 
-function erroDoServidor(code: string, message: string, paraAPessoa: boolean) {
+function erroDoServidor(
+  code: string,
+  message: string,
+  paraAPessoa: boolean,
+  motivo: string | null = null
+) {
   return new TRPCClientError(message, {
     result: {
-      error: { code: -32_000, data: { code, paraAPessoa }, message },
+      error: { code: -32_000, data: { code, motivo, paraAPessoa }, message },
     },
   });
 }
+
+const erroDeRede = () => TRPCClientError.from(new TypeError("Failed to fetch"));
 
 /** Roda a ação com efeitos falsos e devolve, em ordem, tudo o que ela fez. */
 async function rodar<T>(fazer: () => Promise<T>, opcoes: OpcoesDaAcao<T>) {
@@ -61,28 +68,6 @@ describe("rodarAcao", () => {
     ).toEqual(["erro:O preço mudou.", "atualizar"]);
   });
 
-  test("com aoRecusar, a recusa entrega o motivo e não recarrega a página", async () => {
-    const recusa = new TRPCClientError("Outra pessoa salvou.", {
-      result: {
-        error: {
-          code: -32_000,
-          data: { code: "CONFLICT", motivo: "versao_mudou", paraAPessoa: true },
-          message: "Outra pessoa salvou.",
-        },
-      },
-    });
-    const motivos: unknown[] = [];
-    expect(
-      await rodar(() => Promise.reject(recusa), {
-        aoRecusar: (motivo) => motivos.push(motivo),
-      })
-    ).toEqual(["erro:Outra pessoa salvou."]);
-    expect(motivos).toEqual(["versao_mudou"]);
-    expect(
-      await rodar(() => Promise.resolve("ok"), { aoRecusar: () => undefined })
-    ).toEqual(["depois:ok", "atualizar"]);
-  });
-
   test("erro sem a marca mostra o texto genérico, mesmo com código de recusa", async () => {
     const semMarca = [
       erroDoServidor("NOT_FOUND", 'No procedure found on path "x"', false),
@@ -98,6 +83,49 @@ describe("rodarAcao", () => {
         erro: "Confira o saldo.",
       })
     ).toEqual(["erro:Confira o saldo.", "atualizar"]);
+  });
+
+  test("a recusa do servidor entrega o motivo e recarrega", async () => {
+    const recusa = erroDoServidor(
+      "CONFLICT",
+      "Já existe um curso com este endereço.",
+      true,
+      "slug_repetido"
+    );
+    const motivos: unknown[] = [];
+    expect(
+      await rodar(() => Promise.reject(recusa), {
+        aoRecusar: (m) => motivos.push(m),
+      })
+    ).toEqual(["erro:Já existe um curso com este endereço.", "atualizar"]);
+    expect(motivos).toEqual(["slug_repetido"]);
+  });
+
+  test("em versao_mudou recarrega, e o Recarregar já encontra a página nova", async () => {
+    const recusa = erroDoServidor(
+      "CONFLICT",
+      "Outra pessoa salvou.",
+      true,
+      "versao_mudou"
+    );
+    const motivos: unknown[] = [];
+    expect(
+      await rodar(() => Promise.reject(recusa), {
+        aoRecusar: (m) => motivos.push(m),
+      })
+    ).toEqual(["erro:Outra pessoa salvou.", "atualizar"]);
+    expect(motivos).toEqual(["versao_mudou"]);
+  });
+
+  test("erro de rede não recarrega e chega sem motivo", async () => {
+    const motivos: unknown[] = [];
+    const feitos = await Promise.all(
+      [erroDeRede(), new Error("Failed to fetch")].map((e) =>
+        rodar(() => Promise.reject(e), { aoRecusar: (m) => motivos.push(m) })
+      )
+    );
+    expect(feitos).toEqual([[GENERICO], [GENERICO]]);
+    expect(motivos).toEqual([null, null]);
   });
 });
 

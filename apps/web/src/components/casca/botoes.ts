@@ -20,3 +20,5 @@ export const BOTAO_CONTORNO = cn(
   "focus-visible:border-muted-foreground dark:focus-visible:border-muted-foreground",
   FOCO
 );
+
+export const PEQUENO = "h-9 px-3.5 text-[13px]";

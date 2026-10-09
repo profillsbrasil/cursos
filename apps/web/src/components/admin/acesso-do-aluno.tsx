@@ -20,7 +20,7 @@ import { ArrowLeft, Check, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useCallback, useRef, useState } from "react";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -29,7 +29,6 @@ import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
-  PEQUENO,
 } from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { CABECA, CELULA, SELO, Secao, Vazio } from "./partes";

@@ -1,7 +1,8 @@
 "use client";
 
 import type { Motivo } from "@cursos/api";
-import { TRPCClientError } from "@trpc/client";
+import type { AppRouter } from "@cursos/api/routers/index";
+import { isTRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -9,10 +10,6 @@ import { toast } from "sonner";
 const ERRO_GENERICO = "Não deu para salvar. Tente de novo em instantes.";
 
 export interface OpcoesDaAcao<T> {
-  /**
-   * Com esta opção, a falha não recarrega a página: um editor guarda o rascunho e
-   * decide pelo motivo (por exemplo, oferecer "Recarregar" em versao_mudou).
-   */
   aoRecusar?: (motivo: Motivo | null) => void;
   depois?: (resultado: T) => void;
   /** Texto do toast quando o erro não traz mensagem escrita para a pessoa. */
@@ -25,15 +22,11 @@ interface Efeitos {
   toast: { error: (texto: string) => void; success: (texto: string) => void };
 }
 
-/** Só ErroParaAPessoa, no servidor, chega com essa marca (errorFormatter). */
-const paraAPessoa = (e: unknown): string | null =>
-  e instanceof TRPCClientError && e.data?.paraAPessoa === true
-    ? e.message
-    : null;
-
 /**
- * O corpo do useAcao, sem React. A página recarrega os dados do servidor no
- * fim, com sucesso ou recusa, porque a recusa costuma dizer que a tela ficou velha.
+ * Toda recusa do servidor recarrega, versao_mudou inclusive: o editor do curso
+ * guarda o rascunho sujo e só liga o aviso, e o Recarregar já encontra a
+ * página nova. O erro de rede não recarrega: router.refresh sem resposta do
+ * servidor vira navegação de página inteira, que perde o rascunho.
  */
 export async function rodarAcao<T>(
   fazer: () => Promise<T>,
@@ -49,11 +42,16 @@ export async function rodarAcao<T>(
     }
     opcoes.depois?.(r);
   } catch (e) {
-    efeitos.toast.error(paraAPessoa(e) ?? opcoes.erro ?? ERRO_GENERICO);
-    if (opcoes.aoRecusar) {
-      opcoes.aoRecusar(
-        e instanceof TRPCClientError ? (e.data?.motivo ?? null) : null
-      );
+    // Erro de rede chega sem data: o servidor não respondeu.
+    const recusa =
+      isTRPCClientError<AppRouter>(e) && e.data
+        ? { ...e.data, mensagem: e.message }
+        : null;
+    efeitos.toast.error(
+      recusa?.paraAPessoa ? recusa.mensagem : (opcoes.erro ?? ERRO_GENERICO)
+    );
+    opcoes.aoRecusar?.(recusa?.motivo ?? null);
+    if (recusa === null) {
       return;
     }
   }

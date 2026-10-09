@@ -46,6 +46,30 @@ describe("visão do catálogo", () => {
     expect(t).toContain("2 cursos, 1 publicado");
   });
 
+  test("cada curso abre o editor, e o Novo curso abre um rascunho", () => {
+    const html = renderToStaticMarkup(
+      <VisaoDoCatalogo
+        visao={{
+          cursos: [
+            {
+              aulas: 1,
+              id: "c1" as CursoId,
+              precoTroca: null,
+              status: "publicado",
+              titulo: "Operação da envasadora",
+              trilha: null,
+            },
+          ],
+          trilhas: [],
+        }}
+      />
+    );
+    expect(html).toContain(
+      'href="/admin/catalogo/cursos/c1">Operação da envasadora</a>'
+    );
+    expect(html).toContain('href="/admin/catalogo/cursos/novo"');
+  });
+
   test("catálogo vazio diz que não há trilha nem curso", () => {
     const t = texto(
       renderToStaticMarkup(

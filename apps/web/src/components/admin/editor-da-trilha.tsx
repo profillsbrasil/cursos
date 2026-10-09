@@ -38,7 +38,7 @@ import {
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -47,7 +47,6 @@ import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
-  PEQUENO,
 } from "./confirmacao-na-linha";
 import { SELO, Secao, Vazio } from "./partes";
 
