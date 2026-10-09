@@ -366,14 +366,19 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
   });
 
   test("conta por curso quem começou ou concluiu só pela trilha, e tirar o curso tira o acesso dessas pessoas", async () => {
-    const [a, b] = await criarCursos(2);
-    if (!(a && b)) {
+    const [a, b, emProducao] = await criarCursos(3);
+    if (!(a && b && emProducao)) {
       throw new Error("cursos não criados");
     }
-    const aberta = await salva(trilhaNova([a.id, b.id]));
+    await db
+      .update(curso)
+      .set({ status: "em_producao" })
+      .where(eq(curso.id, emProducao.id));
+    const aberta = await salva(trilhaNova([a.id, b.id, emProducao.id]));
     expect(aberta.uso.comecaramSoPelaTrilha).toEqual([
       { cursoId: a.id, pessoas: 0 },
       { cursoId: b.id, pessoas: 0 },
+      { cursoId: emProducao.id, pessoas: 0 },
     ]);
     await db.insert(liberacao).values([
       ...[SO_TRILHA, COM_DIRETA, COMECOU, PAROU, NO_ZERO].map((userId) => ({
@@ -409,14 +414,17 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     expect(contada?.uso.comecaramSoPelaTrilha).toEqual([
       { cursoId: a.id, pessoas: 2 },
       { cursoId: b.id, pessoas: 1 },
+      { cursoId: emProducao.id, pessoas: 0 },
     ]);
 
     // A contagem do admin e o painel do aluno são a mesma regra de "começou":
-    // conta quem vê o curso fora de nao_iniciado e bloqueado no painel, entre
-    // os que não têm liberação direta dele.
+    // conta quem vê o curso em andamento, na prova ou concluído no painel,
+    // entre os que não têm liberação direta dele. O curso em produção aparece
+    // como em_breve para todos e não conta.
+    const COMECOU_NO_PAINEL = new Set(["em_andamento", "prova", "concluido"]);
     const direta = new Set([`${COM_DIRETA}:${a.id}`]);
     const pelosPaineis = await Promise.all(
-      [a.id, b.id].map(async (cursoId) => {
+      [a.id, b.id, emProducao.id].map(async (cursoId) => {
         const contados = await Promise.all(
           ALUNOS.map(async (userId) => {
             const painel = await comoAluno(userId).meusCursos.painel();
@@ -425,8 +433,7 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
               ?.cursos.find((c) => c.id === cursoId)?.estado.tipo;
             return (
               tipo !== undefined &&
-              tipo !== "nao_iniciado" &&
-              tipo !== "bloqueado" &&
+              COMECOU_NO_PAINEL.has(tipo) &&
               !direta.has(`${userId}:${cursoId}`)
             );
           })
