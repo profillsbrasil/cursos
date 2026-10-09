@@ -28,6 +28,7 @@ import {
 import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
+import { esperas } from "./corrida-de-teste";
 import { violacaoDe } from "./erros";
 
 const URL_TESTE = urlDeTeste();
@@ -341,6 +342,30 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
       false,
       true,
     ]);
+  });
+
+  test("liberação que entra depois da conta de uso: apagarTrilha espera e recusa com TRILHA_EM_USO", async () => {
+    const t = await salva(trilhaNova([]));
+    const outro = await db.$client.connect();
+    try {
+      await outro.query("begin");
+      await outro.query(
+        "insert into liberacao (user_id, trilha_id, liberada_por, origem) values ($1, $2, 'user_admin', 'admin')",
+        [SO_TRILHA, t.documento.id]
+      );
+      const apagando = resultado(
+        admin.admin.catalogo.apagarTrilha({ id: t.documento.id })
+      );
+      const paradas = await esperas(db, 1, ['delete from "trilha"']);
+      await outro.query("commit");
+
+      expect({ apagando: await apagando, paradas }).toEqual({
+        apagando: { code: "PRECONDITION_FAILED", message: TRILHA_EM_USO },
+        paradas: ["transactionid"],
+      });
+    } finally {
+      outro.release();
+    }
   });
 
   test("trilha liberada, mesmo revogada, não se apaga; sem uso, apaga com os vínculos", async () => {
