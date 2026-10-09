@@ -1,6 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
-import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -24,6 +23,7 @@ import type {
   TrilhaId,
 } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { esperas as esperasNoBanco, seguraATabela } from "./corrida-de-teste";
 import { liberar, revogar } from "./liberacao";
 import { trocar } from "./troca";
 
@@ -142,53 +142,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       .from(liberacao)
       .where(eq(liberacao.userId, userId));
 
-  /**
-   * Segura um SHARE lock em liberacao numa transação à parte: todo INSERT em
-   * liberacao espera até soltar(). Assim cada lado da corrida para num ponto
-   * conhecido, sem mexer no código que se testa.
-   */
-  async function seguraOsInserts() {
-    let soltar: () => void = () => undefined;
-    const portao = new Promise<void>((r) => {
-      soltar = r;
-    });
-    let travou: () => void = () => undefined;
-    const travada = new Promise<void>((r) => {
-      travou = r;
-    });
-    const transacao = db.transaction(async (tx) => {
-      await tx.execute(sql`lock table liberacao in share mode`);
-      travou();
-      await portao;
-    });
-    await travada;
-    return async () => {
-      soltar();
-      await transacao;
-    };
-  }
+  const seguraOsInserts = () => seguraATabela(db, "liberacao");
 
-  /**
-   * Espera até `n` statements desta suíte pararem em lock e devolve o tipo de
-   * espera de cada um: 'advisory' é a trava do aluno, 'relation' é o INSERT ou
-   * o UPDATE parado no SHARE lock.
-   */
-  async function esperas(n: number, tentativas = 150): Promise<string[]> {
-    const { rows } = await db.execute<{ e: string }>(sql`
-      select wait_event as e from pg_stat_activity
-      where datname = current_database() and wait_event_type = 'Lock'
-        and (query like 'insert into "liberacao"%'
-          or query like 'update "liberacao"%'
-          or query like 'select pg_advisory_xact_lock%')`);
-    if (rows.length >= n) {
-      return rows.map((r) => r.e).sort();
-    }
-    if (tentativas === 0) {
-      throw new Error(`Só ${rows.length} de ${n} statements pararam em lock.`);
-    }
-    await esperar(20);
-    return esperas(n, tentativas - 1);
-  }
+  /** 'advisory' é a trava do aluno; 'relation', o INSERT ou o UPDATE parado. */
+  const esperas = (n: number) =>
+    esperasNoBanco(db, n, [
+      'insert into "liberacao"',
+      'update "liberacao"',
+      "select pg_advisory_xact_lock",
+    ]);
 
   const resultado = (r: PromiseSettledResult<unknown>) =>
     r.status === "rejected" && r.reason instanceof TRPCError
