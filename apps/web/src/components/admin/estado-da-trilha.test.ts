@@ -11,12 +11,15 @@ import {
   candidatos,
   focoDepois,
   ID_DA_TRILHA,
+  lerRascunhoDaTrilha,
   type MudancaDaTrilha,
   mesmoRascunho,
   mudarTrilha,
+  problemasNaTela,
   type RascunhoDaTrilha,
   rascunhoDaTrilha,
 } from "./estado-da-trilha";
+import { fraseDeReserva } from "./problemas";
 
 const curso = (n: number) => uuidDeExemplo(100 + n) as CursoId;
 const [A, B, C, D] = [curso(1), curso(2), curso(3), curso(4)];
@@ -177,5 +180,132 @@ describe("depois de salvar", () => {
       tipo: "salvo",
     });
     expect(depois.cursos).toEqual([A, B, C, D]);
+  });
+});
+
+describe("lerRascunhoDaTrilha: toda recusa do schema aparece", () => {
+  const SALVO = { id: TRILHA, versao: "v1" as Versao };
+  const problemas = (
+    r: RascunhoDaTrilha,
+    salvo: { id: TrilhaId; versao: Versao | null } = SALVO
+  ) => {
+    const lido = lerRascunhoDaTrilha(r, salvo);
+    if (lido.tipo !== "problemas") {
+      throw new Error("o schema aceitou o rascunho");
+    }
+    return lido.problemas;
+  };
+
+  test("o rascunho válido vira o documento com o id e a versão do apoio", () => {
+    expect(lerRascunhoDaTrilha(rascunho(), SALVO)).toEqual({
+      documento: documento(),
+      tipo: "lido",
+    });
+  });
+
+  test("campos de texto marcam o campo, com a frase do problema", () => {
+    expect(problemas(rascunho({ titulo: "   " }))).toEqual([
+      { campo: ID_DA_TRILHA.campo("titulo"), mensagem: "Preencha este campo." },
+    ]);
+    expect(problemas(rascunho({ slug: "" }))).toEqual([
+      {
+        campo: ID_DA_TRILHA.campo("slug"),
+        mensagem: "Use letras minúsculas, números e hífen, sem espaço.",
+      },
+    ]);
+    expect(problemas(rascunho({ slug: "fabrica e montagem" }))[0]?.campo).toBe(
+      ID_DA_TRILHA.campo("slug")
+    );
+    expect(
+      problemas(
+        rascunho({ descricao: "a".repeat(LIMITES_DA_TRILHA.descricao + 1) })
+      )
+    ).toEqual([
+      {
+        campo: ID_DA_TRILHA.campo("descricao"),
+        mensagem: "Use até 600 caracteres.",
+      },
+    ]);
+  });
+
+  test("lista acima do teto marca a seção dos cursos e diz quantos tirar", () => {
+    const cursos = Array.from(
+      { length: LIMITES_DA_TRILHA.cursos + 2 },
+      (_, i) => curso(10 + i)
+    );
+    expect(problemas(rascunho({ cursos }))).toEqual([
+      {
+        campo: ID_DA_TRILHA.cursos,
+        mensagem: "Uma trilha tem no máximo 100 cursos. Tire 2 para salvar.",
+      },
+    ]);
+  });
+
+  test("curso repetido diz as duas posições", () => {
+    expect(problemas(rascunho({ cursos: [A, B, A] }))).toEqual([
+      {
+        campo: ID_DA_TRILHA.cursos,
+        mensagem: "O 3º curso da lista repete o 1º. Tire um deles.",
+      },
+    ]);
+  });
+
+  test("curso com identificador fora do formato diz a posição", () => {
+    expect(
+      problemas(rascunho({ cursos: [A, "nao-e-uuid" as CursoId] }))
+    ).toEqual([
+      {
+        campo: ID_DA_TRILHA.cursos,
+        mensagem:
+          "O 2º curso da lista tem um identificador que o servidor recusa. Tire-o da trilha e salve de novo.",
+      },
+    ]);
+  });
+
+  test("recusa fora do que a tela mostra vira a frase de reserva", () => {
+    expect(
+      problemas(rascunho(), { id: "nao-e-uuid" as TrilhaId, versao: null })
+    ).toEqual([{ campo: null, mensagem: fraseDeReserva("A trilha", ["id"]) }]);
+  });
+});
+
+describe("problemasNaTela", () => {
+  const SALVO = { id: TRILHA, versao: "v1" as Versao };
+  const RECUSA = {
+    campo: ID_DA_TRILHA.campo("slug"),
+    mensagem: "Outra trilha já usa este endereço.",
+  };
+
+  test("os problemas da leitura só aparecem depois de tentar salvar", () => {
+    const r = rascunho({ titulo: "" });
+    const lido = lerRascunhoDaTrilha(r, SALVO);
+    const na = (tentou: boolean) =>
+      problemasNaTela({ lido, rascunho: r, slugRecusado: null, tentou });
+    expect(na(false)).toEqual([]);
+    expect(na(true).map((p) => p.campo)).toEqual([
+      ID_DA_TRILHA.campo("titulo"),
+    ]);
+  });
+
+  test("o endereço recusado pelo servidor fica marcado até mudar", () => {
+    const r = rascunho();
+    const lido = lerRascunhoDaTrilha(r, SALVO);
+    expect(
+      problemasNaTela({
+        lido,
+        rascunho: r,
+        slugRecusado: "operador",
+        tentou: false,
+      })
+    ).toEqual([RECUSA]);
+    const mudado = rascunho({ slug: "operador-2" });
+    expect(
+      problemasNaTela({
+        lido: lerRascunhoDaTrilha(mudado, SALVO),
+        rascunho: mudado,
+        slugRecusado: "operador",
+        tentou: false,
+      })
+    ).toEqual([]);
   });
 });

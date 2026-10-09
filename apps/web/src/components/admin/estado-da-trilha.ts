@@ -4,11 +4,20 @@
 import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import {
   type DocumentoDaTrilha,
+  documentoDaTrilha,
   LIMITES_DA_TRILHA,
 } from "@cursos/api/dominio/edicao-da-trilha";
 import type { CursoId, TrilhaId } from "@cursos/api/dominio/tipos";
-
+import type { z } from "zod";
 import { type Direcao, setaDepoisDeMover, trocado } from "@/lib/editor";
+
+import {
+  fraseDeReserva,
+  mensagemDoTexto,
+  type Problema,
+  type Problemas,
+  semRepetir,
+} from "./problemas";
 
 /** O que o admin edita. Id e versão não mudam no editor e ficam no Apoio. */
 export type RascunhoDaTrilha = Pick<
@@ -136,3 +145,96 @@ export const candidatos = (
       !r.cursos.includes(c.id) &&
       (c.trilha === null || c.trilha.id === trilhaId)
   );
+
+export type RascunhoLido =
+  | { tipo: "lido"; documento: DocumentoDaTrilha }
+  | { tipo: "problemas"; problemas: Problemas };
+
+const CAMPOS = new Set<PropertyKey>([
+  "descricao",
+  "slug",
+  "titulo",
+] satisfies CampoDaTrilha[]);
+
+/** A posição é a que a lista mostra no número redondo de cada linha. */
+function mensagemDosCursos(i: z.core.$ZodIssue, r: RascunhoDaTrilha) {
+  const [, posicao] = i.path;
+  if (typeof posicao !== "number") {
+    return i.code === "too_big"
+      ? `Uma trilha tem no máximo ${Number(i.maximum)} cursos. Tire ${r.cursos.length - Number(i.maximum)} para salvar.`
+      : fraseDeReserva("A trilha", i.path);
+  }
+  if (i.code === "custom") {
+    const id = r.cursos[posicao]?.toLowerCase();
+    const primeira = r.cursos.findIndex((c) => c.toLowerCase() === id);
+    return `O ${posicao + 1}º curso da lista repete o ${primeira + 1}º. Tire um deles.`;
+  }
+  return `O ${posicao + 1}º curso da lista tem um identificador que o servidor recusa. Tire-o da trilha e salve de novo.`;
+}
+
+/** Total: toda recusa do schema vira um problema com frase. */
+function problemaDaIssue(i: z.core.$ZodIssue, r: RascunhoDaTrilha): Problema {
+  const [raiz] = i.path;
+  if (i.path.length === 1 && raiz !== undefined && CAMPOS.has(raiz)) {
+    return {
+      campo: ID_DA_TRILHA.campo(raiz as CampoDaTrilha),
+      mensagem: mensagemDoTexto(i) ?? "Confira este campo.",
+    };
+  }
+  if (raiz === "cursos") {
+    return { campo: ID_DA_TRILHA.cursos, mensagem: mensagemDosCursos(i, r) };
+  }
+  return { campo: null, mensagem: fraseDeReserva("A trilha", i.path) };
+}
+
+export function lerRascunhoDaTrilha(
+  r: RascunhoDaTrilha,
+  salvo: Pick<DocumentoDaTrilha, "id" | "versao">
+): RascunhoLido {
+  const lido = documentoDaTrilha.safeParse({
+    ...r,
+    id: salvo.id,
+    versao: salvo.versao,
+  });
+  if (lido.success) {
+    return { documento: lido.data, tipo: "lido" };
+  }
+  const [primeiro, ...outros] = lido.error.issues.map((i) =>
+    problemaDaIssue(i, r)
+  );
+  return {
+    problemas: semRepetir([
+      primeiro ?? { campo: null, mensagem: fraseDeReserva("A trilha", []) },
+      ...outros,
+    ]),
+    tipo: "problemas",
+  };
+}
+
+/**
+ * O que a tela marca: a leitura depois de um salvar recusado na tela, e o
+ * endereço que o servidor recusou enquanto o admin não o muda.
+ */
+export function problemasNaTela({
+  lido,
+  rascunho,
+  slugRecusado,
+  tentou,
+}: {
+  lido: RascunhoLido;
+  rascunho: RascunhoDaTrilha;
+  slugRecusado: string | null;
+  tentou: boolean;
+}): Problema[] {
+  return [
+    ...(tentou && lido.tipo === "problemas" ? lido.problemas : []),
+    ...(slugRecusado === null || rascunho.slug !== slugRecusado
+      ? []
+      : [
+          {
+            campo: ID_DA_TRILHA.campo("slug"),
+            mensagem: "Outra trilha já usa este endereço.",
+          },
+        ]),
+  ];
+}
