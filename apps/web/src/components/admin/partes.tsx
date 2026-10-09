@@ -18,9 +18,9 @@ export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
 /**
- * O botão que não pode agir e diz o motivo. O focusableWhenDisabled marca
- * data-disabled, não disabled. O botão desligado só pelo envio pendente não usa
- * esta classe: ele fica com opacidade cheia e o spinner.
+ * O focusableWhenDisabled do Base UI marca data-disabled, não disabled, e as
+ * classes disabled: do Button não pegam. O botão do envio pendente fica com
+ * opacidade cheia porque nada estiliza o data-disabled dele.
  */
 const NAO_PODE = "data-disabled:cursor-not-allowed data-disabled:opacity-50";
 

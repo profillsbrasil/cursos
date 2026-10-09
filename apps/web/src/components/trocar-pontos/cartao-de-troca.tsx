@@ -153,7 +153,7 @@ function Confirmacao({
       <div className="flex flex-wrap gap-2">
         <Button
           aria-busy={enviando}
-          className={cn(BOTAO, "flex-[1_1_110px] disabled:opacity-100")}
+          className={cn(BOTAO, "flex-[1_1_110px]")}
           disabled={enviando}
           focusableWhenDisabled
           onClick={acoes.confirmar}
