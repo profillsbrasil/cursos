@@ -172,13 +172,13 @@ describe("podeApagarTrilha e trilha nova", () => {
     expect(podeApagarTrilha({ ...sem, conclusoes: 1 })).toBe(false);
   });
 
-  test("o rascunho novo usa o id recebido e não se apaga", () => {
+  test("o rascunho novo usa o id recebido, e o uso zerado deixa apagar", () => {
     const nova = edicaoDeTrilhaNova(TRILHA);
     expect(nova.documento).toMatchObject({
       cursos: [],
       id: TRILHA,
       versao: null,
     });
-    expect(nova.podeApagar).toBe(false);
+    expect(podeApagarTrilha(nova.uso)).toBe(true);
   });
 });

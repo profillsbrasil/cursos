@@ -83,11 +83,13 @@ export interface PessoasNoCurso {
 
 export interface EdicaoDaTrilha {
   documento: DocumentoDaTrilha;
-  podeApagar: boolean;
   uso: UsoDaTrilha;
 }
 
-/** Única regra de "dá para apagar a trilha". A tela e apagarTrilha usam esta. */
+/**
+ * Única regra de "dá para apagar a trilha". A tela deriva do uso que tem, e
+ * apagarTrilha reconta dentro da trava.
+ */
 export const podeApagarTrilha = (
   u: Pick<UsoDaTrilha, "conclusoes" | "liberacoes">
 ): boolean => u.liberacoes === 0 && u.conclusoes === 0;
@@ -107,7 +109,6 @@ export function edicaoDeTrilhaNova(id: TrilhaId): EdicaoDaTrilha {
       titulo: "",
       versao: null,
     },
-    podeApagar: false,
     uso: {
       alunosComATrilha: 0,
       comecaramSoPelaTrilha: [],

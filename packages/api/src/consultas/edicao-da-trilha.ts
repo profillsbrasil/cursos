@@ -149,7 +149,6 @@ export async function abrirTrilha(
   ]);
   return {
     documento,
-    podeApagar: podeApagarTrilha(contagens),
     uso: { ...contagens, comecaramSoPelaTrilha: comecaram },
   };
 }

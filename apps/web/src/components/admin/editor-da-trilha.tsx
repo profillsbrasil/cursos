@@ -4,6 +4,7 @@ import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import {
   type EdicaoDaTrilha,
   LIMITES_DA_TRILHA,
+  podeApagarTrilha,
   TRILHA_EM_USO,
 } from "@cursos/api/dominio/edicao-da-trilha";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
@@ -176,7 +177,7 @@ export function AvisoDePerda({
   );
 }
 
-function ApagarTrilha({ edicao }: { edicao: EdicaoDaTrilha }) {
+export function ApagarTrilha({ edicao }: { edicao: EdicaoDaTrilha }) {
   const router = useRouter();
   const id = useId();
   const remocao = useAcao();
@@ -209,7 +210,7 @@ function ApagarTrilha({ edicao }: { edicao: EdicaoDaTrilha }) {
       <h2 className="font-bold text-lg text-titulo tracking-tight" id={id}>
         Apagar a trilha
       </h2>
-      {edicao.podeApagar ? (
+      {podeApagarTrilha(edicao.uso) ? (
         <ConfirmacaoNaLinha
           botao={{ nome: `Confirmar: apagar ${titulo}`, rotulo: "Apagar" }}
           chave="apagar"

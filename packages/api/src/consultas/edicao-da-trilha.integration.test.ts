@@ -23,6 +23,7 @@ import { asc, eq, inArray, sql } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
   type DocumentoDaTrilha,
+  podeApagarTrilha,
   TRILHA_EM_USO,
 } from "../dominio/edicao-da-trilha";
 import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
@@ -523,7 +524,7 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     }
     const usada = await salva(trilhaNova([a.id]));
     await liberarTrilha(SO_TRILHA, usada.documento.id, true);
-    expect(usada.podeApagar).toBe(true);
+    expect(podeApagarTrilha(usada.uso)).toBe(true);
     expect(
       await resultado(
         admin.admin.catalogo.apagarTrilha({ id: usada.documento.id })
@@ -531,7 +532,7 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     ).toEqual({ code: "PRECONDITION_FAILED", message: TRILHA_EM_USO });
 
     const livre = await salva(trilhaNova([b.id]));
-    expect(livre.podeApagar).toBe(true);
+    expect(podeApagarTrilha(livre.uso)).toBe(true);
     expect(
       await admin.admin.catalogo.apagarTrilha({ id: livre.documento.id })
     ).toEqual({ apagado: true });

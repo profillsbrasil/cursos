@@ -19,9 +19,8 @@ mock.module("next/navigation", () => ({
   }),
 }));
 
-const { AvisoDePerda, EditorDaTrilha, resumoDasPerdas } = await import(
-  "./editor-da-trilha"
-);
+const { ApagarTrilha, AvisoDePerda, EditorDaTrilha, resumoDasPerdas } =
+  await import("./editor-da-trilha");
 const { CursosDaTrilha } = await import("./cursos-da-trilha");
 
 const TAG = /<[^>]+>/g;
@@ -56,7 +55,20 @@ const CURSOS = [
   curso("c2", "Envasadora", "em_producao"),
 ];
 
-const existente = (alunos: number, podeApagar: boolean): EdicaoDaTrilha => ({
+describe("apagar a trilha", () => {
+  // Depois do primeiro salvar a tela deixa de ser "nova", mas a edição ainda é
+  // a do rascunho até o refresh chegar.
+  test("a trilha recém-criada oferece apagar, sem a frase de trilha em uso", () => {
+    const t = texto(
+      renderToStaticMarkup(<ApagarTrilha edicao={edicaoDeTrilhaNova(TRILHA)} />)
+    );
+    expect(t).not.toContain(TRILHA_EM_USO);
+    expect(t).toContain("Apagar a trilha Apagar");
+  });
+});
+
+/** Com alunos, a trilha tem liberações e não se apaga. */
+const existente = (alunos: number): EdicaoDaTrilha => ({
   documento: {
     cursos: ["c1" as CursoId, "c2" as CursoId],
     descricao: "Do posto à máquina.",
@@ -65,7 +77,6 @@ const existente = (alunos: number, podeApagar: boolean): EdicaoDaTrilha => ({
     titulo: "Operador",
     versao: "v1" as Versao,
   },
-  podeApagar,
   uso: {
     alunosComATrilha: alunos,
     comecaramSoPelaTrilha: [],
@@ -89,7 +100,7 @@ describe("editor da trilha", () => {
 
   test("trilha liberada mostra os cursos em ordem e a frase da recusa de apagar", () => {
     const html = renderToStaticMarkup(
-      <EditorDaTrilha cursos={CURSOS} edicao={existente(3, false)} />
+      <EditorDaTrilha cursos={CURSOS} edicao={existente(3)} />
     );
     const t = texto(html);
     expect(t).toContain("1 1º: Segurança do posto");
@@ -110,7 +121,7 @@ describe("editor da trilha", () => {
   test("trilha sem ninguém não avisa e oferece apagar", () => {
     const t = texto(
       renderToStaticMarkup(
-        <EditorDaTrilha cursos={CURSOS} edicao={existente(0, true)} />
+        <EditorDaTrilha cursos={CURSOS} edicao={existente(0)} />
       )
     );
     expect(t).not.toContain("esta trilha liberada");
