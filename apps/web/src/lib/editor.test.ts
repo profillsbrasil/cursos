@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { Versao } from "@cursos/api/dominio/tipos";
 
 import {
@@ -116,6 +118,19 @@ describe("sincronizarComAPagina", () => {
     expect(r.apoio.versaoDeFora).toBe(true);
   });
 
+  test("a página que volta à versão da base desliga o aviso", () => {
+    const base = doc("v1");
+    const emConflito = sincronizarComAPagina(apoioEm(base, 0), {
+      ...sujo,
+      pagina: doc("v3", "De outra aba"),
+    }).apoio;
+    const pagina = doc("v1");
+    expect(sincronizarComAPagina(emConflito, { ...sujo, pagina })).toEqual({
+      apoio: { ...emConflito, pagina, versaoDeFora: false },
+      recomecar: false,
+    });
+  });
+
   test("Recarregar descarta o rascunho sujo e recomeça da página", () => {
     const pagina = doc("v3", "De outra aba");
     const emConflito = sincronizarComAPagina(apoioEm(doc("v1"), 0), {
@@ -136,4 +151,15 @@ describe("sincronizarComAPagina", () => {
       }).recomecar
     ).toBe(false);
   });
+});
+
+test("a página do curso monta o editor pela key do id, nunca da versão", () => {
+  // Key pela versão remonta o editor no refresh do salvar e apaga o que o
+  // admin digitou com o salvar pendente; o Apoio decide quando recomeçar.
+  const pagina = readFileSync(
+    join(import.meta.dir, "../app/(admin)/admin/catalogo/cursos/[id]/page.tsx"),
+    "utf8"
+  );
+  const keys = [...pagina.matchAll(/<EditorDoCurso\b[^>]*?\bkey=\{([^}]*)\}/g)];
+  expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
 });

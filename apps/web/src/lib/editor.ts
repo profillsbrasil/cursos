@@ -69,7 +69,8 @@ export interface Sincronia<D extends ComVersao> {
  * A página entregou um documento, ou o admin clicou Recarregar (`descartes`
  * maior que o do apoio). O refresh do próprio salvar traz a versão que já é a
  * da base; versão de fora com o rascunho sujo fica para o Recarregar, porque o
- * próximo salvar seria recusado com versao_mudou.
+ * próximo salvar seria recusado com versao_mudou. A versão é o hash do
+ * conteúdo: a página que volta à versão da base desliga o aviso.
  */
 export function sincronizarComAPagina<D extends ComVersao>(
   apoio: Apoio<D>,
@@ -79,7 +80,10 @@ export function sincronizarComAPagina<D extends ComVersao>(
     return { apoio: apoioEm(pagina, descartes), recomecar: true };
   }
   if (pagina.versao === apoio.base.versao) {
-    return { apoio: { ...apoio, pagina }, recomecar: false };
+    return {
+      apoio: { ...apoio, pagina, versaoDeFora: false },
+      recomecar: false,
+    };
   }
   if (limpo) {
     return { apoio: apoioEm(pagina, descartes), recomecar: true };

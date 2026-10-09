@@ -23,8 +23,10 @@ interface Efeitos {
 }
 
 /**
- * O erro de rede não recarrega: router.refresh sem resposta do servidor vira
- * navegação de página inteira, que perde o rascunho.
+ * Toda recusa do servidor recarrega, versao_mudou inclusive: o editor do curso
+ * guarda o rascunho sujo e só liga o aviso, e o Recarregar já encontra a
+ * página nova. O erro de rede não recarrega: router.refresh sem resposta do
+ * servidor vira navegação de página inteira, que perde o rascunho.
  */
 export async function rodarAcao<T>(
   fazer: () => Promise<T>,
@@ -48,9 +50,8 @@ export async function rodarAcao<T>(
     efeitos.toast.error(
       recusa?.paraAPessoa ? recusa.mensagem : (opcoes.erro ?? ERRO_GENERICO)
     );
-    const motivo = recusa?.motivo ?? null;
-    opcoes.aoRecusar?.(motivo);
-    if (recusa === null || motivo === "versao_mudou") {
+    opcoes.aoRecusar?.(recusa?.motivo ?? null);
+    if (recusa === null) {
       return;
     }
   }

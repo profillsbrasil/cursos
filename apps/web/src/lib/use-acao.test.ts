@@ -101,7 +101,7 @@ describe("rodarAcao", () => {
     expect(motivos).toEqual(["slug_repetido"]);
   });
 
-  test("em versao_mudou não recarrega: o rascunho fica na tela", async () => {
+  test("em versao_mudou recarrega, e o Recarregar já encontra a página nova", async () => {
     const recusa = erroDoServidor(
       "CONFLICT",
       "Outra pessoa salvou.",
@@ -113,7 +113,7 @@ describe("rodarAcao", () => {
       await rodar(() => Promise.reject(recusa), {
         aoRecusar: (m) => motivos.push(m),
       })
-    ).toEqual(["erro:Outra pessoa salvou."]);
+    ).toEqual(["erro:Outra pessoa salvou.", "atualizar"]);
     expect(motivos).toEqual(["versao_mudou"]);
   });
 

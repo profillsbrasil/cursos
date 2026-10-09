@@ -555,6 +555,9 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     if (s.recomecar) {
       despachar({ documento: s.apoio.base, tipo: "recomecado" });
       setCapa((atual) => ({ arquivo: null, montagem: atual.montagem + 1 }));
+      setTentou(false);
+      setRecusa(null);
+      pedir(null);
     }
   }
   useGuardaDeSaida(sujo);
