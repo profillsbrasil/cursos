@@ -216,6 +216,6 @@ export const capaDepoisDeSalvar = (
   atual: CapaEscolhida,
   enviada: File | null
 ): CapaEscolhida =>
-  atual.arquivo === enviada
+  enviada !== null && atual.arquivo === enviada
     ? { ...atual, arquivo: null, montagem: atual.montagem + 1 }
     : atual;
