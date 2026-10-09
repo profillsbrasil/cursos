@@ -98,6 +98,20 @@ describe("editor da trilha", () => {
     expect(t).not.toContain("Apagar a trilha");
   });
 
+  test("título, endereço e descrição se anunciam obrigatórios, como o schema exige", () => {
+    const html = renderToStaticMarkup(
+      <EditorDaTrilha cursos={CURSOS} edicao={edicaoDeTrilhaNova(TRILHA)} />
+    );
+    const campo = (id: string) =>
+      html.match(new RegExp(`<(input|textarea)[^>]*id="${id}"[^>]*>`))?.[0] ??
+      "";
+    expect(
+      ["trilha-titulo", "trilha-slug", "trilha-descricao"].map((id) =>
+        campo(id).includes('required=""')
+      )
+    ).toEqual([true, true, true]);
+  });
+
   test("trilha liberada mostra os cursos em ordem e a frase da recusa de apagar", () => {
     const html = renderToStaticMarkup(
       <EditorDaTrilha cursos={CURSOS} edicao={existente(3)} />

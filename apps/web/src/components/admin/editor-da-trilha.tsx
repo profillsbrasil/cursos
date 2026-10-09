@@ -76,6 +76,7 @@ function CampoDaDescricao({
         name="descricao"
         onChange={mudarTexto}
         placeholder="O que a pessoa aprende do primeiro ao último curso."
+        required
         value={valor}
       />
       <ErroDoCampo id={id} mensagem={mensagem} />
@@ -326,9 +327,10 @@ export function EditorDaTrilha({
     [lido, novo, rascunho, salvar, setRecusa, setTentou]
   );
 
+  const erros = errosPorCampo(problemas);
   return (
     <>
-      <ErrosDoEditor value={errosPorCampo(problemas)}>
+      <ErrosDoEditor value={erros}>
         <form className="grid gap-10" noValidate onSubmit={enviar}>
           <div>
             <Link
@@ -362,6 +364,11 @@ export function EditorDaTrilha({
             </Secao>
 
             <Secao
+              descritoPor={
+                erros.has(ID_DA_TRILHA.cursos)
+                  ? `${ID_DA_TRILHA.cursos}-erro`
+                  : undefined
+              }
               id={ID_DA_TRILHA.cursos}
               resumo={plural(rascunho.cursos.length, "curso", "cursos")}
               titulo="Cursos da trilha"

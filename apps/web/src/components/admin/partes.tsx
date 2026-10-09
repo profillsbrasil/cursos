@@ -29,11 +29,14 @@ export const SELO = cn(
 /** Seção do admin: título, resumo à direita e o conteúdo num cartão. */
 export function Secao({
   children,
+  descritoPor,
   id,
   resumo,
   titulo,
 }: {
   children: ReactNode;
+  /** O id da mensagem de erro da seção, quando o erro foca o título. */
+  descritoPor?: string;
   id: string;
   resumo: string;
   titulo: string;
@@ -42,6 +45,7 @@ export function Secao({
     <section aria-labelledby={id} className="grid gap-3.5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
+          aria-describedby={descritoPor}
           className="font-bold text-titulo text-xl tracking-tight focus:outline-none"
           id={id}
           tabIndex={-1}
