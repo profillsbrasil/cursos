@@ -9,10 +9,17 @@ import {
   TableRow,
 } from "@cursos/ui/components/table";
 import { cn } from "@cursos/ui/lib/utils";
+import { Plus } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum, fmtPts, plural } from "@/lib/formato";
 
 import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
+
+const LINK_DA_LINHA =
+  "rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2";
 
 const STATUS: Record<StatusDoCurso, { classe: string; rotulo: string }> = {
   em_producao: {
@@ -81,7 +88,12 @@ function CursosDoCatalogo({ cursos }: { cursos: Visao["cursos"] }) {
         {cursos.map((c) => (
           <TableRow key={c.id}>
             <TableCell className={cn(CELULA, "font-medium text-foreground")}>
-              {c.titulo}
+              <Link
+                className={LINK_DA_LINHA}
+                href={`/admin/catalogo/cursos/${c.id}` as Route}
+              >
+                {c.titulo}
+              </Link>
             </TableCell>
             <TableCell className={CELULA}>
               <SeloDeStatus status={c.status} />
@@ -135,6 +147,15 @@ export function VisaoDoCatalogo({ visao }: { visao: Visao }) {
         titulo="Cursos"
       >
         <CursosDoCatalogo cursos={visao.cursos} />
+        <div className="border-border border-t px-5 py-4">
+          <Link
+            className={cn(BOTAO_CONTORNO, PEQUENO)}
+            href="/admin/catalogo/cursos/novo"
+          >
+            <Plus aria-hidden="true" className="size-4" />
+            Novo curso
+          </Link>
+        </div>
       </Secao>
     </div>
   );

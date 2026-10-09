@@ -58,6 +58,10 @@ export const carregarCatalogo = cache(async () =>
   (await exigirAdmin()).admin.catalogo.visao()
 );
 
+export const carregarCurso = cache(async (id: string) =>
+  (await exigirAdmin()).admin.catalogo.abrirCurso({ id })
+);
+
 export const carregarPessoas = cache(async (termo: string) =>
   (await exigirAdmin()).admin.alunos.buscar({ termo })
 );
