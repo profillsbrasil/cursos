@@ -36,6 +36,22 @@ export const LIMITES = {
   numeroDeModulo: 999,
 } as const;
 
+/** Tetos de texto, em caracteres, que o schema e os campos do editor dividem. */
+export const CARACTERES = {
+  capaAlt: 300,
+  codigo: 40,
+  destaque: 60,
+  nomeDoNivel: 60,
+  slug: 80,
+  tema: 80,
+  titulo: 120,
+  tituloDaAula: 160,
+  tituloDoModulo: 160,
+} as const;
+
+export const DURACAO_MAXIMA_SEG = 24 * 60 * 60;
+export const PRECO_MAXIMO = 1_000_000;
+
 const texto = (max: number) => z.string().trim().min(1).max(max);
 /** "" vira null: campo opcional apagado no formulário. */
 const opcional = (max: number) =>
@@ -59,10 +75,10 @@ const video = z
   );
 
 const aula = z.object({
-  duracaoSeg: z.int().positive().max(86_400),
+  duracaoSeg: z.int().positive().max(DURACAO_MAXIMA_SEG),
   /** Aula nova: o editor gera o id. A posição é o índice no módulo mais 1. */
   id: uuid.transform((id) => id as AulaId),
-  titulo: texto(160),
+  titulo: texto(CARACTERES.tituloDaAula),
   video: video.nullable(),
 });
 
@@ -72,11 +88,11 @@ const modulo = z.object({
   nivelOrdem: z.int().min(1).max(LIMITES.niveis).nullable(),
   /** O número que o aluno vê ("Módulo 3"). O seed começa em 0 ou em 1; buracos valem. */
   numero: z.int().min(0).max(LIMITES.numeroDeModulo),
-  titulo: texto(160),
+  titulo: texto(CARACTERES.tituloDoModulo),
 });
 
 const nivel = z.object({
-  nome: texto(60),
+  nome: texto(CARACTERES.nomeDoNivel),
   ordem: z.int().min(1).max(LIMITES.niveis),
 });
 
@@ -101,17 +117,17 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
  */
 export const documentoDoCurso = z
   .object({
-    capaAlt: texto(300),
-    codigo: opcional(40),
-    destaque: opcional(60),
+    capaAlt: texto(CARACTERES.capaAlt),
+    codigo: opcional(CARACTERES.codigo),
+    destaque: opcional(CARACTERES.destaque),
     id: uuid.transform((id) => id as CursoId),
     modulos: z.array(modulo).max(LIMITES.modulos),
     niveis: z.array(nivel).max(LIMITES.niveis),
-    precoTroca: z.int().positive().max(1_000_000).nullable(),
-    slug: z.string().regex(new RegExp(SLUG)).max(80),
+    precoTroca: z.int().positive().max(PRECO_MAXIMO).nullable(),
+    slug: z.string().regex(new RegExp(SLUG)).max(CARACTERES.slug),
     status: z.enum(STATUS_DO_CURSO),
-    tema: texto(80),
-    titulo: texto(120),
+    tema: texto(CARACTERES.tema),
+    titulo: texto(CARACTERES.titulo),
     /** null: o editor acha que o curso é novo. Senão, a versão que ele abriu. */
     versao: z
       .string()
