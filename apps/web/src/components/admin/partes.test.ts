@@ -23,4 +23,13 @@ describe("ICONE como className de um Button sem variant", () => {
     expect(classes).toContain("hover:bg-muted");
     expect(classes).toContain("hover:text-foreground");
   });
+
+  // O focusableWhenDisabled do Base UI põe data-disabled e aria-disabled, não
+  // disabled: as classes disabled: do Button não pegam o Remover de aula assistida.
+  test("desligado por data-disabled: meia opacidade, sem pintar no hover, cursor de não permitido", () => {
+    expect(classes).toContain("data-disabled:opacity-50");
+    expect(classes).toContain("data-disabled:cursor-not-allowed");
+    expect(classes).toContain("data-disabled:hover:bg-transparent");
+    expect(classes).toContain("data-disabled:hover:text-muted-foreground");
+  });
 });
