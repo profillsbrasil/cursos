@@ -104,6 +104,47 @@ describe("o rascunho apoiado da trilha", () => {
     expect(sujo(recarregado)).toBe(false);
   });
 
+  test("Salvar recusado por versao_mudou com o rascunho limpo: a página nova recomeça e o aviso sai", () => {
+    const recusado = passo(estadoApoiadoEm(REGRAS_DA_TRILHA, doc()), {
+      motivo: "versao_mudou",
+      tipo: "recusado",
+    });
+    expect(recusado.apoio.versaoDeFora).toBe(true);
+    const depois = passo(
+      recusado,
+      pagina(doc({ titulo: "De outra aba", versao: V2 }), true)
+    );
+    expect(depois.geracao).toBe(1);
+    expect(depois.rascunho.titulo).toBe("De outra aba");
+    expect(depois.apoio.versaoDeFora).toBe(false);
+  });
+
+  test("Salvar recusado por versao_mudou com o rascunho sujo: o aviso fica até o Recarregar", () => {
+    const nova = doc({ titulo: "De outra aba", versao: V2 });
+    const emConflito = passo(
+      estadoApoiadoEm(REGRAS_DA_TRILHA, doc()),
+      digitar("X"),
+      { motivo: "versao_mudou", tipo: "recusado" },
+      pagina(nova, false)
+    );
+    expect(emConflito.apoio.versaoDeFora).toBe(true);
+    expect(emConflito.rascunho.titulo).toBe("X");
+    expect(emConflito.geracao).toBe(0);
+
+    const recarregado = passo(emConflito, pagina(nova, false, 1));
+    expect(recarregado.apoio.versaoDeFora).toBe(false);
+    expect(recarregado.rascunho.titulo).toBe("De outra aba");
+  });
+
+  test("recusa por outro motivo não liga o aviso", () => {
+    const depois = passo(
+      estadoApoiadoEm(REGRAS_DA_TRILHA, doc()),
+      { motivo: "slug_repetido", tipo: "recusado" },
+      { motivo: null, tipo: "recusado" }
+    );
+    expect(depois.apoio.versaoDeFora).toBe(false);
+  });
+
   test("a trilha nova salva e troca de URL sem recomeçar", () => {
     const nova = doc({ cursos: [], titulo: "", versao: null });
     const inicio = estadoApoiadoEm(REGRAS_DA_TRILHA, nova);
@@ -189,5 +230,27 @@ describe("o rascunho apoiado do curso", () => {
     expect(
       REGRAS_DO_CURSO.mesmo(depois.rascunho, REGRAS_DO_CURSO.deDocumento(outro))
     ).toBe(true);
+  });
+
+  test("Salvar sem mudança recusado por versao_mudou: a versão nova recomeça o editor e o aviso sai", () => {
+    const outro = {
+      ...documentoDeExemplo(),
+      titulo: "De outra aba",
+      versao: V3,
+    };
+    const recusado = passo(
+      estadoApoiadoEm(REGRAS_DO_CURSO, documentoDeExemplo()),
+      { motivo: "versao_mudou", tipo: "recusado" }
+    );
+    expect(recusado.apoio.versaoDeFora).toBe(true);
+    const depois = passo(recusado, {
+      descartes: 0,
+      limpo: true,
+      pagina: outro,
+      tipo: "pagina",
+    });
+    expect(depois.geracao).toBe(1);
+    expect(depois.rascunho.titulo).toBe("De outra aba");
+    expect(depois.apoio.versaoDeFora).toBe(false);
   });
 });
