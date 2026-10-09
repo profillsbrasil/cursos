@@ -17,7 +17,9 @@ export const AVISO =
 
 export const ICONE = cn(
   "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
-  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0"
+  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0",
+  // focusableWhenDisabled marca data-disabled, não disabled: o desligado que recebe foco.
+  "data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
 );
 
 /** Selo em pílula das tabelas do admin; a cor vem de quem chama. */
