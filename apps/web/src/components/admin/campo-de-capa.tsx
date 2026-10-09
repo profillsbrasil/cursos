@@ -89,6 +89,27 @@ interface Escolhida {
   url: string;
 }
 
+export interface EstadoDaCapa {
+  erro: string | null;
+  escolhida: Escolhida | null;
+  geracao: number;
+}
+
+/**
+ * O campo zera sem remontar, porque o texto alternativo mora nele e perderia
+ * o foco. Ele zera no recomeço do editor e quando o editor deixa de guardar o
+ * arquivo que o campo mostra, como depois do salvar que o enviou.
+ */
+export const capaNoCampo = (
+  e: EstadoDaCapa,
+  arquivo: File | null,
+  geracao: number
+): EstadoDaCapa =>
+  e.geracao !== geracao ||
+  (e.escolhida !== null && e.escolhida.arquivo !== arquivo)
+    ? { erro: null, escolhida: null, geracao }
+    : e;
+
 const MOLDURA =
   "relative grid aspect-video w-full place-items-center overflow-hidden rounded-[14px] bg-background ring-1 ring-border";
 
@@ -134,27 +155,40 @@ function Previa({
 export function CampoDeCapa({
   alt,
   aoEscolher,
+  arquivo: guardado,
   atual,
+  geracao,
   mudarAlt,
 }: {
   alt: string;
   aoEscolher: (arquivo: File | null) => void;
+  /** O arquivo que o editor guarda para enviar no próximo salvar. */
+  arquivo: File | null;
   atual: Capa | null;
+  geracao: number;
   mudarAlt: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   const id = useId();
-  const [escolhida, setEscolhida] = useState<Escolhida | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+  const [estado, guardar] = useState<EstadoDaCapa>({
+    erro: null,
+    escolhida: null,
+    geracao,
+  });
+  const ajustado = capaNoCampo(estado, guardado, geracao);
+  if (ajustado !== estado) {
+    guardar(ajustado);
+  }
+  const { erro, escolhida } = ajustado;
   const input = useRef<HTMLInputElement>(null);
 
-  useEffect(
-    () => () => {
-      if (escolhida) {
-        URL.revokeObjectURL(escolhida.url);
-      }
-    },
-    [escolhida]
-  );
+  useEffect(() => {
+    if (escolhida) {
+      return () => URL.revokeObjectURL(escolhida.url);
+    }
+    if (input.current) {
+      input.current.value = "";
+    }
+  }, [escolhida]);
 
   const escolher = useCallback(
     async (e: ChangeEvent<HTMLInputElement>) => {
@@ -166,30 +200,28 @@ export function CampoDeCapa({
       const r = await conferir(arquivo);
       if ("erro" in r) {
         campo.value = "";
-        setErro(r.erro);
-        setEscolhida(null);
+        guardar({ erro: r.erro, escolhida: null, geracao });
         aoEscolher(null);
         return;
       }
-      setErro(null);
-      setEscolhida({
-        arquivo,
-        medida: r.medida,
-        url: URL.createObjectURL(arquivo),
+      guardar({
+        erro: null,
+        escolhida: {
+          arquivo,
+          medida: r.medida,
+          url: URL.createObjectURL(arquivo),
+        },
+        geracao,
       });
       aoEscolher(arquivo);
     },
-    [aoEscolher]
+    [aoEscolher, geracao]
   );
 
   const desfazer = useCallback(() => {
-    if (input.current) {
-      input.current.value = "";
-    }
-    setEscolhida(null);
-    setErro(null);
+    guardar({ erro: null, escolhida: null, geracao });
     aoEscolher(null);
-  }, [aoEscolher]);
+  }, [aoEscolher, geracao]);
 
   const medida = escolhida?.medida ?? atual;
   const arquivo = ID.curso("capa");
