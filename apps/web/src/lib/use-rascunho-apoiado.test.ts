@@ -46,12 +46,12 @@ describe("o rascunho apoiado da trilha", () => {
     mudanca: { mudanca: { titulo }, tipo: "campos" },
     tipo: "mudou",
   });
-  const pagina = (p: Doc, limpo: boolean, descartes = 0): Acao => ({
-    descartes,
+  const pagina = (p: Doc, limpo: boolean): Acao => ({
     limpo,
     pagina: p,
     tipo: "pagina",
   });
+  const recarregar: Acao = { tipo: "descartado" };
   const sujo = (e: EstadoApoiado<Doc, R>) => rascunhoSujo(REGRAS_DA_TRILHA, e);
 
   test("o rascunho normalizado pelo servidor deixa de estar sujo", () => {
@@ -97,11 +97,17 @@ describe("o rascunho apoiado da trilha", () => {
     expect(emConflito.rascunho.titulo).toBe("X");
     expect(emConflito.geracao).toBe(0);
 
-    const recarregado = passo(emConflito, pagina(nova, false, 1));
+    const recarregado = passo(emConflito, recarregar);
     expect(recarregado.rascunho.titulo).toBe("De outra aba");
     expect(recarregado.apoio.versaoDeFora).toBe(false);
     expect(recarregado.geracao).toBe(1);
     expect(sujo(recarregado)).toBe(false);
+
+    const doRefresh = passo(
+      recarregado,
+      pagina(doc({ titulo: "De outra aba", versao: V3 }), true)
+    );
+    expect(doRefresh.geracao).toBe(1);
   });
 
   test("Salvar recusado por versao_mudou com o rascunho limpo: a página nova recomeça e o aviso sai", () => {
@@ -131,7 +137,7 @@ describe("o rascunho apoiado da trilha", () => {
     expect(emConflito.rascunho.titulo).toBe("X");
     expect(emConflito.geracao).toBe(0);
 
-    const recarregado = passo(emConflito, pagina(nova, false, 1));
+    const recarregado = passo(emConflito, recarregar);
     expect(recarregado.apoio.versaoDeFora).toBe(false);
     expect(recarregado.rascunho.titulo).toBe("De outra aba");
   });
@@ -237,12 +243,7 @@ describe("o rascunho apoiado do curso", () => {
     };
     const depois = passo(
       estadoApoiadoEm(REGRAS_DO_CURSO, documentoDeExemplo()),
-      {
-        descartes: 0,
-        limpo: true,
-        pagina: outro,
-        tipo: "pagina",
-      }
+      { limpo: true, pagina: outro, tipo: "pagina" }
     );
     expect(depois.geracao).toBe(1);
     expect(
@@ -262,7 +263,6 @@ describe("o rascunho apoiado do curso", () => {
     );
     expect(recusado.apoio.versaoDeFora).toBe(true);
     const depois = passo(recusado, {
-      descartes: 0,
       limpo: true,
       pagina: outro,
       tipo: "pagina",
