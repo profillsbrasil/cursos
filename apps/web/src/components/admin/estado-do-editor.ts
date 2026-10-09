@@ -8,6 +8,7 @@ import {
   type AulaDoRascunho,
   lerNumeroDoModulo,
   type ModuloDoRascunho,
+  mesmoRascunho,
   type RascunhoDoCurso,
   rascunhoDoCurso,
 } from "./rascunho-do-curso";
@@ -46,8 +47,15 @@ export type Mudanca =
   | { tipo: "aula_movida"; id: AulaId; direcao: Direcao }
   | { tipo: "aula_para_modulo"; id: AulaId; moduloId: ModuloId }
   | { tipo: "aula_removida"; id: AulaId }
-  /** O servidor aceitou: o rascunho vira o documento como o servidor o guarda. */
-  | { tipo: "salvo"; documento: DocumentoDoCurso };
+  /**
+   * O servidor aceitou `enviado`: o rascunho vira o documento como o servidor o
+   * guarda, se o admin não editou nada enquanto o salvar estava pendente.
+   */
+  | {
+      tipo: "salvo";
+      documento: DocumentoDoCurso;
+      enviado: RascunhoDoCurso;
+    };
 
 /** O próximo número de nível; o componente calcula e manda em nivel_novo. */
 export const proximaOrdem = (niveis: RascunhoDoCurso["niveis"]) =>
@@ -223,7 +231,7 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
         : r;
     }
     case "salvo":
-      return rascunhoDoCurso(m.documento);
+      return mesmoRascunho(r, m.enviado) ? rascunhoDoCurso(m.documento) : r;
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);

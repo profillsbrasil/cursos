@@ -524,9 +524,15 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     edicao.documento,
     rascunhoDoCurso
   );
-  const [capa, setCapa] = useState<File | null>(null);
-  /** Remonta a capa depois de salvar, para a prévia sair junto com o arquivo. */
-  const [salvamentos, setSalvamentos] = useState(0);
+  /** A montagem muda depois de salvar, para a prévia sair junto com o arquivo. */
+  const [capa, setCapa] = useState<{ arquivo: File | null; montagem: number }>({
+    arquivo: null,
+    montagem: 0,
+  });
+  const escolherCapa = useCallback(
+    (arquivo: File | null) => setCapa((atual) => ({ ...atual, arquivo })),
+    []
+  );
   /** Depois de um salvar recusado na tela, os problemas acompanham a digitação. */
   const [tentou, setTentou] = useState(false);
   const [recusa, setRecusa] = useState<Recusa | null>(null);
@@ -537,11 +543,11 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
   );
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
   const sujo =
-    capa !== null ||
+    capa.arquivo !== null ||
     !mesmoRascunho(rascunhoDoCurso(edicao.documento), rascunho);
   useGuardaDeSaida(sujo);
 
-  const semCapa = novo && capa === null ? [SEM_CAPA] : [];
+  const semCapa = novo && capa.arquivo === null ? [SEM_CAPA] : [];
   const lido = lerRascunho(rascunho);
   const problemas = [
     ...(tentou && lido.tipo === "problemas" ? lido.problemas : []),
@@ -575,10 +581,11 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
       }
       setTentou(false);
       setRecusa(null);
+      const enviada = capa.arquivo;
       salvar(
         () =>
           trpcClient.admin.catalogo.salvarCurso.mutate(
-            formularioDoCurso(lido.documento, capa)
+            formularioDoCurso(lido.documento, enviada)
           ),
         {
           aoRecusar: (motivo) => {
@@ -590,16 +597,24 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
           },
           // O servidor pode ter normalizado sem mudar a versão (nada_mudou): o
           // editor não remonta, e o rascunho precisa virar o que foi gravado.
+          // O que o admin mudou com o salvar pendente fica no rascunho.
           aoSalvar: () => {
-            despachar({ documento: lido.documento, tipo: "salvo" });
-            setCapa(null);
-            setSalvamentos((n) => n + 1);
+            despachar({
+              documento: lido.documento,
+              enviado: rascunho,
+              tipo: "salvo",
+            });
+            setCapa((atual) =>
+              atual.arquivo === enviada
+                ? { arquivo: null, montagem: atual.montagem + 1 }
+                : atual
+            );
           },
           sucesso: "Curso salvo.",
         }
       );
     },
-    [capa, lido, rascunho, salvar, semCapa]
+    [capa.arquivo, lido, rascunho, salvar, semCapa]
   );
 
   const adicionarModulo = useCallback(() => {
@@ -659,14 +674,14 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
 
         <Secao
           id="capa"
-          resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
+          resumo={novo && !capa.arquivo ? "Obrigatória" : "JPG, PNG ou WebP"}
           titulo="Capa"
         >
           <CampoDeCapa
             alt={rascunho.capaAlt}
-            aoEscolher={setCapa}
+            aoEscolher={escolherCapa}
             atual={edicao.capa}
-            key={salvamentos}
+            key={capa.montagem}
             mudarAlt={mudarTexto}
           />
         </Secao>

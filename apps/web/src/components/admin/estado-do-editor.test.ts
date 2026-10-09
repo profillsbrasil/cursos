@@ -388,8 +388,34 @@ describe("depois de salvar", () => {
     if (lido.tipo !== "lido") {
       throw new Error("o rascunho devia ler");
     }
-    const salvo = mudar(r, { documento: lido.documento, tipo: "salvo" });
+    const salvo = mudar(r, {
+      documento: lido.documento,
+      enviado: r,
+      tipo: "salvo",
+    });
     expect(mesmoRascunho(base, salvo)).toBe(true);
+  });
+
+  test("o que o admin digitou com o salvar pendente fica", () => {
+    const enviado = mudar(exemplo(), {
+      mudanca: { titulo: "Curso   " },
+      tipo: "campos",
+    });
+    const lido = lerRascunho(enviado);
+    if (lido.tipo !== "lido") {
+      throw new Error("o rascunho devia ler");
+    }
+    const digitado = mudar(enviado, {
+      mudanca: { tema: "Outro tema" },
+      tipo: "campos",
+    });
+    const salvo = mudar(digitado, {
+      documento: lido.documento,
+      enviado,
+      tipo: "salvo",
+    });
+    expect(salvo.tema).toBe("Outro tema");
+    expect(salvo.titulo).toBe("Curso   ");
   });
 });
 
