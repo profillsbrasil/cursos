@@ -376,7 +376,7 @@ describe("linha riscada e Desfazer", () => {
     expect(linhas(r)).toEqual([`1:${A}`, `2:${B}`, `3:${C}`, `4:${D}`]);
   });
 
-  test("acrescentar pela busca um curso tirado tira a linha riscada", () => {
+  test("acrescentar pela busca um curso riscado o devolve ao lugar dele, como o Desfazer", () => {
     const r = de(
       { id: B, tipo: "curso_tirado" },
       { id: B, tipo: "curso_acrescentado" }
@@ -384,7 +384,8 @@ describe("linha riscada e Desfazer", () => {
     expect(r.lista.filter((c) => c.id === B)).toEqual([
       { id: B, tirado: false },
     ]);
-    expect(linhas(r)).toEqual([`1:${A}`, `2:${C}`, `3:${D}`, `4:${B}`]);
+    expect(linhas(r)).toEqual([`1:${A}`, `2:${B}`, `3:${C}`, `4:${D}`]);
+    expect(mesmoRascunho(r, rascunho({ cursos: SALVO }))).toBe(true);
   });
 });
 

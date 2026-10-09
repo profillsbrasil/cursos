@@ -136,15 +136,12 @@ export function mudarTrilha(
     case "campos":
       return { ...r, ...m.mudanca };
     case "curso_acrescentado":
-      return cursosDoRascunho(r).includes(m.id) || !cabeMaisUm(r)
-        ? r
-        : {
-            ...r,
-            lista: [
-              ...r.lista.filter((c) => c.id !== m.id),
-              { id: m.id, tirado: false },
-            ],
-          };
+      if (cursosDoRascunho(r).includes(m.id) || !cabeMaisUm(r)) {
+        return r;
+      }
+      return r.lista.some((c) => c.id === m.id)
+        ? marcado(r, m.id, false)
+        : { ...r, lista: [...r.lista, { id: m.id, tirado: false }] };
     case "curso_movido": {
       const lista = movida(r.lista, m.id, m.direcao);
       return lista ? { ...r, lista } : r;
