@@ -440,7 +440,10 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       await outro.query("commit");
 
       expect({ liberando: await liberando, paradas }).toEqual({
-        liberando: { code: "NOT_FOUND", message: "Este curso não existe mais." },
+        liberando: {
+          code: "NOT_FOUND",
+          message: "Este curso não existe mais.",
+        },
         paradas: ["transactionid"],
       });
       expect(await liberacoesDe(userId)).toEqual([]);
