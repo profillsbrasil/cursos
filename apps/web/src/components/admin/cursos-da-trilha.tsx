@@ -14,7 +14,13 @@ import {
 } from "@cursos/ui/components/combobox";
 import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, ChevronUp, Minus, Undo2 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
@@ -23,6 +29,7 @@ import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import {
   cabeMaisUm,
   candidatos,
+  enterSeguraOFormulario,
   ID_DA_TRILHA,
   linhasDaLista,
   type MotivoDaBusca,
@@ -231,6 +238,22 @@ export function CursosDaTrilha({
     },
     [mudar]
   );
+  // Só o onKeyDown lê: guardar em ref não redesenha a lista a cada seta.
+  const lista = useRef({ aberto: false, destacado: null as number | null });
+  const abrir = useCallback((aberto: boolean) => {
+    lista.current.aberto = aberto;
+  }, []);
+  const destacar = useCallback(
+    (c: CursoNaVisao | undefined, { index }: { index: number }) => {
+      lista.current.destacado = c ? index : null;
+    },
+    []
+  );
+  const segurarEnter = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+    if (enterSeguraOFormulario({ ...lista.current, key: e.key })) {
+      e.preventDefault();
+    }
+  }, []);
   const cabe = cabeMaisUm(rascunho);
   const linhas = linhasDaLista(rascunho, salvo);
   const ajuda = `${ID_DA_TRILHA.acrescentar}-ajuda`;
@@ -284,6 +307,8 @@ export function CursosDaTrilha({
           items={candidatos(catalogo, rascunho, trilhaId)}
           itemToStringLabel={tituloDoCurso}
           onInputValueChange={buscar}
+          onItemHighlighted={destacar}
+          onOpenChange={abrir}
           onValueChange={acrescentar}
           value={null}
         >
@@ -291,6 +316,7 @@ export function CursosDaTrilha({
             aria-describedby={ajuda}
             className="h-11 w-full rounded-[12px] border-muted-foreground bg-background pl-1 *:data-[slot=input-group-control]:text-sm dark:border-muted-foreground dark:bg-background"
             id={ID_DA_TRILHA.acrescentar}
+            onKeyDown={segurarEnter}
             placeholder="Buscar pelo nome"
           />
           <ComboboxContent>

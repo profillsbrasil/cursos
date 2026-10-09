@@ -293,6 +293,22 @@ export type MotivoDaBusca = Parameters<
 export const textoDaBusca = (texto: string, motivo: MotivoDaBusca) =>
   motivo === "item-press" ? "" : texto;
 
+/**
+ * O Enter na busca que o editor segura. O Base UI 1.8 só trata o Enter com a
+ * lista aberta e um curso destacado; nos outros casos ele deixa o Enter seguir
+ * ("Allow form submission when no item is highlighted"), e o browser enviaria
+ * o formulário da trilha, que salva na hora.
+ */
+export const enterSeguraOFormulario = ({
+  aberto,
+  destacado,
+  key,
+}: {
+  aberto: boolean;
+  destacado: number | null;
+  key: string;
+}) => key === "Enter" && !(aberto && destacado !== null);
+
 export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDaTrilha }
   | { tipo: "problemas"; problemas: Problemas };

@@ -9,6 +9,7 @@ import type { CursoId, TrilhaId, Versao } from "@cursos/api/dominio/tipos";
 
 import {
   candidatos,
+  enterSeguraOFormulario,
   focoDepois,
   ID_DA_TRILHA,
   lerRascunhoDaTrilha,
@@ -95,6 +96,26 @@ describe("textoDaBusca", () => {
   test("o que o admin digita ou apaga fica", () => {
     expect(textoDaBusca("envas", "input-change")).toBe("envas");
     expect(textoDaBusca("", "input-clear")).toBe("");
+  });
+});
+
+describe("enterSeguraOFormulario", () => {
+  const enter = (aberto: boolean, destacado: number | null, key = "Enter") =>
+    enterSeguraOFormulario({ aberto, destacado, key });
+
+  test("Enter com a lista fechada ou sem curso destacado não salva a trilha", () => {
+    expect(enter(false, null)).toBe(true);
+    expect(enter(true, null)).toBe(true);
+    expect(enter(false, 2)).toBe(true);
+  });
+
+  test("Enter com um curso destacado fica com o Base UI, que escolhe o curso", () => {
+    expect(enter(true, 0)).toBe(false);
+  });
+
+  test("outras teclas seguem", () => {
+    expect(enter(false, null, "ArrowDown")).toBe(false);
+    expect(enter(true, null, "a")).toBe(false);
   });
 });
 
