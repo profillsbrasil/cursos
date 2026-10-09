@@ -5,20 +5,22 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { AulaId, ModuloId, Versao } from "@cursos/api/dominio/tipos";
+import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
 import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
+import { recusaNaTela } from "./problemas";
 import {
   ID,
   lerNumeroDoModulo,
   lerPreco,
-  lerRascunho,
-  mesmoRascunho,
-  problemasDaRecusa,
+  lerRascunho as lerRascunhoSalvo,
   type RascunhoDoCurso,
   rascunhoDoCurso,
   recusaDoMotivo,
 } from "./rascunho-do-curso";
+
+const lerRascunho = (r: RascunhoDoCurso) =>
+  lerRascunhoSalvo(r, { versao: null });
 
 const { A1, A2, A3, M1, M2 } = EDICAO;
 const M3 = uuidDeExemplo(13) as ModuloId;
@@ -355,85 +357,23 @@ describe("recusa de valor repetido", () => {
       mudanca: { codigo: "NR-12", slug: "nr-12" },
       tipo: "campos",
     });
-    expect(problemasDaRecusa(recusaDoMotivo("slug_repetido", r), r)).toEqual([
+    const marcado = (recusa: ReturnType<typeof recusaDoMotivo>, em = r) =>
+      recusaNaTela(recusa, em, ID.curso);
+    expect(marcado(recusaDoMotivo("slug_repetido", r))).toEqual([
       {
         campo: ID.curso("slug"),
         mensagem: "Outro curso já usa este endereço.",
       },
     ]);
-    expect(problemasDaRecusa(recusaDoMotivo("codigo_repetido", r), r)).toEqual([
+    expect(marcado(recusaDoMotivo("codigo_repetido", r))).toEqual([
       {
         campo: ID.curso("codigo"),
         mensagem: "Outro curso já usa este código.",
       },
     ]);
     const outro = mudar(r, { mudanca: { slug: "nr-12-b" }, tipo: "campos" });
-    expect(
-      problemasDaRecusa(recusaDoMotivo("slug_repetido", r), outro)
-    ).toEqual([]);
+    expect(marcado(recusaDoMotivo("slug_repetido", r), outro)).toEqual([]);
     expect(recusaDoMotivo("versao_mudou", r)).toBe(null);
-  });
-});
-
-describe("depois de salvar", () => {
-  const V2 = "v2" as Versao;
-
-  const gravado = (r: RascunhoDoCurso) => {
-    const lido = lerRascunho(r);
-    if (lido.tipo !== "lido") {
-      throw new Error("o rascunho devia ler");
-    }
-    return { ...lido.documento, versao: V2 };
-  };
-
-  test("o rascunho normalizado pelo servidor deixa de estar sujo", () => {
-    const base = exemplo();
-    const r = mudar(base, {
-      mudanca: { titulo: "Curso   " },
-      tipo: "campos",
-    });
-    expect(mesmoRascunho(base, r)).toBe(false);
-    const documento = gravado(r);
-    const salvo = mudar(r, { documento, enviado: r, tipo: "salvo" });
-    expect(mesmoRascunho(rascunhoDoCurso(documento), salvo)).toBe(true);
-    expect(salvo.titulo).toBe("Curso");
-  });
-
-  test("o que o admin digitou com o salvar pendente fica, na versão nova", () => {
-    const enviado = mudar(exemplo(), {
-      mudanca: { titulo: "Curso   " },
-      tipo: "campos",
-    });
-    const digitado = mudar(enviado, {
-      mudanca: { tema: "Outro tema" },
-      tipo: "campos",
-    });
-    const salvo = mudar(digitado, {
-      documento: gravado(enviado),
-      enviado,
-      tipo: "salvo",
-    });
-    expect(salvo.tema).toBe("Outro tema");
-    expect(salvo.titulo).toBe("Curso   ");
-    expect(salvo.versao).toBe(V2);
-  });
-
-  test("recomeçar troca o rascunho inteiro pelo documento", () => {
-    const outro = {
-      ...documentoDeExemplo(),
-      titulo: "De outra aba",
-      versao: V2,
-    };
-    const sujo = mudar(exemplo(), {
-      mudanca: { tema: "Outro tema" },
-      tipo: "campos",
-    });
-    expect(
-      mesmoRascunho(
-        mudar(sujo, { documento: outro, tipo: "recomecado" }),
-        rascunhoDoCurso(outro)
-      )
-    ).toBe(true);
   });
 });
 

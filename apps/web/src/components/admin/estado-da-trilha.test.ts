@@ -12,13 +12,12 @@ import {
   focoDepois,
   ID_DA_TRILHA,
   lerRascunhoDaTrilha,
-  type MudancaDaTrilha,
-  mesmoRascunho,
   mudarTrilha,
   perdas,
   problemasNaTela,
   type RascunhoDaTrilha,
   rascunhoDaTrilha,
+  recusaDaTrilha,
   textoDaBusca,
 } from "./estado-da-trilha";
 import { fraseDeReserva } from "./problemas";
@@ -105,9 +104,6 @@ const rascunho = (o: Partial<RascunhoDaTrilha> = {}) => ({
   ...rascunhoDaTrilha(documento()),
   ...o,
 });
-
-const aplicar = (r: RascunhoDaTrilha, ...mudancas: MudancaDaTrilha[]) =>
-  mudancas.reduce(mudarTrilha, r);
 
 describe("mover pelo id", () => {
   test("subir e descer trocam o curso com o vizinho", () => {
@@ -225,30 +221,6 @@ describe("focoDepois", () => {
   });
 });
 
-describe("depois de salvar", () => {
-  test("o rascunho normalizado pelo servidor deixa de estar sujo", () => {
-    const enviado = rascunho({ titulo: "Operador " });
-    const gravado = documento({ titulo: "Operador", versao: "v2" as Versao });
-    const depois = mudarTrilha(enviado, {
-      documento: gravado,
-      enviado,
-      tipo: "salvo",
-    });
-    expect(mesmoRascunho(depois, rascunhoDaTrilha(gravado))).toBe(true);
-  });
-
-  test("o que o admin mudou com o salvar pendente fica", () => {
-    const enviado = rascunho();
-    const editado = aplicar(enviado, { id: D, tipo: "curso_acrescentado" });
-    const depois = mudarTrilha(editado, {
-      documento: documento({ versao: "v2" as Versao }),
-      enviado,
-      tipo: "salvo",
-    });
-    expect(depois.cursos).toEqual([A, B, C, D]);
-  });
-});
-
 describe("lerRascunhoDaTrilha: toda recusa do schema aparece", () => {
   const SALVO = { id: TRILHA, versao: "v1" as Versao };
   const problemas = (
@@ -346,7 +318,7 @@ describe("problemasNaTela", () => {
     const r = rascunho({ titulo: "" });
     const lido = lerRascunhoDaTrilha(r, SALVO);
     const na = (tentou: boolean) =>
-      problemasNaTela({ lido, rascunho: r, slugRecusado: null, tentou });
+      problemasNaTela({ lido, rascunho: r, recusa: null, tentou });
     expect(na(false)).toEqual([]);
     expect(na(true).map((p) => p.campo)).toEqual([
       ID_DA_TRILHA.campo("titulo"),
@@ -356,22 +328,19 @@ describe("problemasNaTela", () => {
   test("o endereço recusado pelo servidor fica marcado até mudar", () => {
     const r = rascunho();
     const lido = lerRascunhoDaTrilha(r, SALVO);
+    const recusa = recusaDaTrilha("slug_repetido", r);
     expect(
-      problemasNaTela({
-        lido,
-        rascunho: r,
-        slugRecusado: "operador",
-        tentou: false,
-      })
+      problemasNaTela({ lido, rascunho: r, recusa, tentou: false })
     ).toEqual([RECUSA]);
     const mudado = rascunho({ slug: "operador-2" });
     expect(
       problemasNaTela({
         lido: lerRascunhoDaTrilha(mudado, SALVO),
         rascunho: mudado,
-        slugRecusado: "operador",
+        recusa,
         tentou: false,
       })
     ).toEqual([]);
+    expect(recusaDaTrilha("versao_mudou", r)).toBeNull();
   });
 });

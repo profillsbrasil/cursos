@@ -1,6 +1,7 @@
 // O rascunho da trilha e as regras da lista de cursos, sem React: a tela só
 // despacha a mudança e desenha.
 
+import type { Motivo } from "@cursos/api";
 import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import {
   type DocumentoDaTrilha,
@@ -13,12 +14,15 @@ import type { Combobox } from "@cursos/ui/components/combobox";
 import type { ComponentProps } from "react";
 import type { z } from "zod";
 import { type Direcao, setaDepoisDeMover, trocado } from "@/lib/editor";
+import type { RegrasDoRascunho } from "@/lib/use-rascunho-apoiado";
 
 import {
   fraseDeReserva,
   mensagemDoTexto,
   type Problema,
   type Problemas,
+  type Recusa,
+  recusaNaTela,
   semRepetir,
 } from "./problemas";
 
@@ -36,13 +40,7 @@ export type MudancaDaTrilha =
     }
   | { tipo: "curso_acrescentado"; id: CursoId }
   | { tipo: "curso_movido"; id: CursoId; direcao: Direcao }
-  | { tipo: "curso_tirado"; id: CursoId }
-  /**
-   * O servidor gravou `enviado` como `documento`. O que o admin editou com o
-   * salvar pendente fica.
-   */
-  | { tipo: "salvo"; documento: DocumentoDaTrilha; enviado: RascunhoDaTrilha }
-  | { tipo: "recomecado"; documento: DocumentoDaTrilha };
+  | { tipo: "curso_tirado"; id: CursoId };
 
 export const rascunhoDaTrilha = (d: DocumentoDaTrilha): RascunhoDaTrilha => ({
   cursos: d.cursos,
@@ -80,16 +78,18 @@ export function mudarTrilha(
       return r.cursos.includes(m.id)
         ? { ...r, cursos: r.cursos.filter((c) => c !== m.id) }
         : r;
-    case "salvo":
-      return mesmoRascunho(r, m.enviado) ? rascunhoDaTrilha(m.documento) : r;
-    case "recomecado":
-      return rascunhoDaTrilha(m.documento);
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);
     }
   }
 }
+
+export const REGRAS_DA_TRILHA: RegrasDoRascunho<
+  DocumentoDaTrilha,
+  RascunhoDaTrilha,
+  MudancaDaTrilha
+> = { deDocumento: rascunhoDaTrilha, mesmo: mesmoRascunho, mudar: mudarTrilha };
 
 /** Ids estáveis: o erro, o foco e o teste acham o elemento sem useId. */
 export const ID_DA_TRILHA = {
@@ -262,6 +262,20 @@ export function lerRascunhoDaTrilha(
   };
 }
 
+export type RecusaDaTrilha = Recusa<"slug">;
+
+export const recusaDaTrilha = (
+  motivo: Motivo | null,
+  r: RascunhoDaTrilha
+): RecusaDaTrilha | null =>
+  motivo === "slug_repetido"
+    ? {
+        campo: "slug",
+        mensagem: "Outra trilha já usa este endereço.",
+        valor: r.slug,
+      }
+    : null;
+
 /**
  * O que a tela marca: a leitura depois de um salvar recusado na tela, e o
  * endereço que o servidor recusou enquanto o admin não o muda.
@@ -269,23 +283,16 @@ export function lerRascunhoDaTrilha(
 export function problemasNaTela({
   lido,
   rascunho,
-  slugRecusado,
+  recusa,
   tentou,
 }: {
   lido: RascunhoLido;
   rascunho: RascunhoDaTrilha;
-  slugRecusado: string | null;
+  recusa: RecusaDaTrilha | null;
   tentou: boolean;
 }): Problema[] {
   return [
     ...(tentou && lido.tipo === "problemas" ? lido.problemas : []),
-    ...(slugRecusado === null || rascunho.slug !== slugRecusado
-      ? []
-      : [
-          {
-            campo: ID_DA_TRILHA.campo("slug"),
-            mensagem: "Outra trilha já usa este endereço.",
-          },
-        ]),
+    ...recusaNaTela(recusa, rascunho, ID_DA_TRILHA.campo),
   ];
 }

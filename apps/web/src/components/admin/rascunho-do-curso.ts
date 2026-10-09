@@ -22,6 +22,7 @@ import {
   naoVazia,
   type Problema,
   type Problemas,
+  type Recusa,
   semRepetir,
 } from "./problemas";
 
@@ -40,9 +41,10 @@ export interface ModuloDoRascunho {
   titulo: string;
 }
 
+/** O que o admin edita. A versão não muda no editor e fica no Apoio. */
 export type RascunhoDoCurso = Omit<
   DocumentoDoCurso,
-  "modulos" | "precoTroca"
+  "modulos" | "precoTroca" | "versao"
 > & {
   modulos: ModuloDoRascunho[];
   precoTroca: string | null;
@@ -75,7 +77,6 @@ export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
     status: d.status,
     tema: d.tema,
     titulo: d.titulo,
-    versao: d.versao,
   };
 }
 
@@ -101,7 +102,6 @@ function emOrdem(r: RascunhoDoCurso) {
     r.status,
     r.tema,
     r.titulo,
-    r.versao,
   ];
 }
 
@@ -173,37 +173,27 @@ export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDoCurso }
   | { tipo: "problemas"; problemas: Problemas };
 
-export interface Recusa {
-  campo: "codigo" | "slug";
-  valor: string;
-}
+export type RecusaDoCurso = Recusa<"codigo" | "slug">;
 
 export function recusaDoMotivo(
   motivo: Motivo | null,
   r: RascunhoDoCurso
-): Recusa | null {
+): RecusaDoCurso | null {
   if (motivo === "slug_repetido") {
-    return { campo: "slug", valor: r.slug };
+    return {
+      campo: "slug",
+      mensagem: "Outro curso já usa este endereço.",
+      valor: r.slug,
+    };
   }
   if (motivo === "codigo_repetido") {
-    return { campo: "codigo", valor: r.codigo ?? "" };
+    return {
+      campo: "codigo",
+      mensagem: "Outro curso já usa este código.",
+      valor: r.codigo ?? "",
+    };
   }
   return null;
-}
-
-const JA_USADO = {
-  codigo: "Outro curso já usa este código.",
-  slug: "Outro curso já usa este endereço.",
-} as const;
-
-export function problemasDaRecusa(
-  recusa: Recusa | null,
-  r: RascunhoDoCurso
-): Problema[] {
-  if (recusa === null || (r[recusa.campo] ?? "") !== recusa.valor) {
-    return [];
-  }
-  return [{ campo: ID.curso(recusa.campo), mensagem: JA_USADO[recusa.campo] }];
 }
 
 export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
@@ -285,7 +275,10 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   return fraseDeReserva("O curso", i.path);
 }
 
-export function lerRascunho(r: RascunhoDoCurso): RascunhoLido {
+export function lerRascunho(
+  r: RascunhoDoCurso,
+  salvo: Pick<DocumentoDoCurso, "versao">
+): RascunhoLido {
   const problemas: Problema[] = [];
   const ler = <T>(leitura: Leitura<T>, campo: string, substituto: T): T => {
     if ("valor" in leitura) {
@@ -317,6 +310,7 @@ export function lerRascunho(r: RascunhoDoCurso): RascunhoLido {
       r.precoTroca === null
         ? null
         : ler(lerPreco(r.precoTroca), ID.curso("precoTroca"), 1),
+    versao: salvo.versao,
   };
   const lido = documentoDoCurso.safeParse(documento);
   if (!lido.success) {

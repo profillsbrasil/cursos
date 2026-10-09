@@ -55,6 +55,25 @@ export const naoVazia = (
   problemas: readonly Problema[]
 ): problemas is Problemas => problemas.length > 0;
 
+/** O servidor recusou o valor de um campo, como o endereço que outro já usa. */
+export interface Recusa<C extends string> {
+  campo: C;
+  mensagem: string;
+  valor: string;
+}
+
+/** A recusa marca o campo enquanto o valor dele é o que o servidor recusou. */
+export function recusaNaTela<C extends string>(
+  recusa: Recusa<C> | null,
+  valores: Readonly<Record<C, string | null>>,
+  idDe: (campo: C) => string
+): Problema[] {
+  if (recusa === null || (valores[recusa.campo] ?? "") !== recusa.valor) {
+    return [];
+  }
+  return [{ campo: idDe(recusa.campo), mensagem: recusa.mensagem }];
+}
+
 /** O mapa que o ErrosDoEditor recebe: id do campo para a mensagem. */
 export const errosPorCampo = (
   problemas: readonly Problema[]

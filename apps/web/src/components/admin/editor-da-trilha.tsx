@@ -18,24 +18,13 @@ import {
   type FormEvent,
   useCallback,
   useId,
-  useReducer,
   useState,
 } from "react";
 
-import {
-  apoioEm,
-  apoioSalvo,
-  focarDepois,
-  focarOPrimeiro,
-  sincronizarComAPagina,
-} from "@/lib/editor";
+import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
-import { useGuardaDeSaida } from "@/lib/use-guarda-de-saida";
-import {
-  useSalvarDocumento,
-  useTituloComFoco,
-} from "@/lib/use-salvar-documento";
+import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
 import { trpcClient } from "@/utils/trpc";
 
 import { BarraDeSalvar } from "./barra-de-salvar";
@@ -49,13 +38,13 @@ import {
   ID_DA_TRILHA,
   lerRascunhoDaTrilha,
   type MudancaDaTrilha,
-  mesmoRascunho,
-  mudarTrilha,
   type Perda,
   perdas,
   problemasNaTela,
   type RascunhoDaTrilha,
-  rascunhoDaTrilha,
+  REGRAS_DA_TRILHA,
+  type RecusaDaTrilha,
+  recusaDaTrilha,
 } from "./estado-da-trilha";
 import { AVISO, CAMPO, ROTULO, Secao } from "./partes";
 import { errosPorCampo } from "./problemas";
@@ -244,39 +233,31 @@ export function EditorDaTrilha({
   cursos: readonly CursoNaVisao[];
   edicao: EdicaoDaTrilha;
 }) {
-  const [apoio, setApoio] = useState(() => apoioEm(edicao.documento, 0));
-  const novo = apoio.base.versao === null;
-  const { descartes, pendente, recarregar, salvar, versaoMudou } =
-    useSalvarDocumento({
-      caminho: `/admin/catalogo/trilhas/${edicao.documento.id}` as Route,
-      novo,
-    });
-  const titulo = useTituloComFoco<HTMLHeadingElement>();
-  const [rascunho, despachar] = useReducer(
-    mudarTrilha,
-    edicao.documento,
-    rascunhoDaTrilha
+  const {
+    base,
+    descartar,
+    geracao,
+    mudar: despachar,
+    novo,
+    pendente,
+    rascunho,
+    salvar,
+    sujo,
+    titulo,
+    versaoMudou,
+  } = useRascunhoApoiado({
+    caminho: `/admin/catalogo/trilhas/${edicao.documento.id}` as Route,
+    pagina: edicao.documento,
+    regras: REGRAS_DA_TRILHA,
+  });
+  const [tentou, setTentou] = useDaGeracao<boolean>(geracao, false);
+  const [recusa, setRecusa] = useDaGeracao<RecusaDaTrilha | null>(
+    geracao,
+    null
   );
-  const [tentou, setTentou] = useState(false);
-  const [slugRecusado, setSlugRecusado] = useState<string | null>(null);
-  const sujo = !mesmoRascunho(rascunhoDaTrilha(apoio.base), rascunho);
-  if (edicao.documento !== apoio.pagina || descartes !== apoio.descartes) {
-    const s = sincronizarComAPagina(apoio, {
-      descartes,
-      limpo: !sujo,
-      pagina: edicao.documento,
-    });
-    setApoio(s.apoio);
-    if (s.recomecar) {
-      despachar({ documento: s.apoio.base, tipo: "recomecado" });
-      setTentou(false);
-      setSlugRecusado(null);
-    }
-  }
-  useGuardaDeSaida(sujo);
 
-  const lido = lerRascunhoDaTrilha(rascunho, apoio.base);
-  const problemas = problemasNaTela({ lido, rascunho, slugRecusado, tentou });
+  const lido = lerRascunhoDaTrilha(rascunho, base);
+  const problemas = problemasNaTela({ lido, rascunho, recusa, tentou });
 
   const mudar = useCallback(
     (m: MudancaDaTrilha) => {
@@ -286,7 +267,7 @@ export function EditorDaTrilha({
         focarDepois(alvo);
       }
     },
-    [rascunho]
+    [despachar, rascunho]
   );
 
   const mudarTexto = useCallback<MudarTexto>(
@@ -295,7 +276,7 @@ export function EditorDaTrilha({
         mudanca: { [e.target.name as CampoDaTrilha]: e.target.value },
         tipo: "campos",
       }),
-    []
+    [despachar]
   );
 
   const enviar = useCallback(
@@ -309,34 +290,25 @@ export function EditorDaTrilha({
         return;
       }
       setTentou(false);
-      setSlugRecusado(null);
+      setRecusa(null);
       const enviado = rascunho;
       salvar(
+        lido.documento,
         () => trpcClient.admin.catalogo.salvarTrilha.mutate(lido.documento),
         {
           aoRecusar: (motivo) => {
-            if (motivo === "slug_repetido") {
-              setSlugRecusado(enviado.slug);
-              focarDepois(ID_DA_TRILHA.campo("slug"));
+            const r = recusaDaTrilha(motivo, enviado);
+            setRecusa(r);
+            if (r) {
+              focarDepois(ID_DA_TRILHA.campo(r.campo));
             }
-          },
-          aoSalvar: ({ versao }) => {
-            const gravado = { ...lido.documento, versao };
-            setApoio((atual) => apoioSalvo(atual, gravado));
-            despachar({ documento: gravado, enviado, tipo: "salvo" });
           },
           sucesso: novo ? "Trilha criada." : "Trilha salva.",
         }
       );
     },
-    [lido, novo, rascunho, salvar]
+    [lido, novo, rascunho, salvar, setRecusa, setTentou]
   );
-
-  // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
-  const descartar = useCallback(() => {
-    recarregar();
-    titulo.current?.focus({ preventScroll: true });
-  }, [recarregar, titulo]);
 
   return (
     <>
@@ -356,7 +328,7 @@ export function EditorDaTrilha({
                 ref={titulo}
                 tabIndex={-1}
               >
-                {novo ? "Nova trilha" : apoio.base.titulo}
+                {novo ? "Nova trilha" : base.titulo}
               </h1>
               <p className="text-muted-foreground">
                 O curso seguinte abre quando o anterior é concluído
@@ -382,7 +354,7 @@ export function EditorDaTrilha({
                 catalogo={cursos}
                 mudar={mudar}
                 rascunho={rascunho}
-                trilhaId={apoio.base.id}
+                trilhaId={base.id}
               />
             </Secao>
           </div>
@@ -394,14 +366,14 @@ export function EditorDaTrilha({
             problemas={problemas}
             recarregar={descartar}
             sujo={sujo}
-            versaoMudou={versaoMudou || apoio.versaoDeFora}
+            versaoMudou={versaoMudou}
           >
             <AvisoDePerda
               alunos={edicao.uso.alunosComATrilha}
               perdas={perdas({
                 catalogo: cursos,
                 rascunho,
-                salvo: apoio.base.cursos,
+                salvo: base.cursos,
                 uso: edicao.uso,
               })}
               sujo={sujo}
