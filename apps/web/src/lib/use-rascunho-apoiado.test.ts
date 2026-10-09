@@ -144,6 +144,27 @@ describe("o rascunho apoiado da trilha", () => {
     expect(recarregado.rascunho.titulo).toBe("De outra aba");
   });
 
+  test("o aviso de versão fica durante o salvar seguinte e só sai com salvo, página da base ou Recarregar", () => {
+    const avisado = passo(
+      estadoApoiadoEm(REGRAS_DA_TRILHA, doc()),
+      digitar("X"),
+      { motivo: "versao_mudou", tipo: "recusado" }
+    );
+    const durante = passo(avisado, digitar("XY"), {
+      motivo: "slug_repetido",
+      tipo: "recusado",
+    });
+    expect(durante.apoio.versaoDeFora).toBe(true);
+    const salvo = passo(durante, {
+      enviado: durante.rascunho,
+      gravado: doc({ titulo: "XY", versao: V2 }),
+      tipo: "salvo",
+    });
+    expect(salvo.apoio.versaoDeFora).toBe(false);
+    expect(passo(durante, pagina(doc(), false)).apoio.versaoDeFora).toBe(false);
+    expect(passo(durante, recarregar).apoio.versaoDeFora).toBe(false);
+  });
+
   test("recusa por outro motivo não liga o aviso", () => {
     const depois = passo(
       estadoApoiadoEm(REGRAS_DA_TRILHA, doc()),
