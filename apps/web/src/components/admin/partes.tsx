@@ -1,5 +1,4 @@
 import { badgeVariants } from "@cursos/ui/components/badge";
-import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
@@ -18,10 +17,12 @@ export const ROTULO = "font-semibold text-foreground text-sm";
 export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
-/** Botão redondo só com ícone (subir, descer, remover). */
+/**
+ * Botão redondo só com ícone (subir, descer, remover). Vai como className de um
+ * Button sem variant, que aplica a default (bg-primary): cada cor dela é trocada aqui.
+ */
 export const ICONE = cn(
-  buttonVariants({ size: "icon", variant: "ghost" }),
-  "size-10 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
+  "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
   "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0"
 );
 
