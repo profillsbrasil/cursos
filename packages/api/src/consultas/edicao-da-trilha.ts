@@ -14,6 +14,7 @@ import {
   type DocumentoDaTrilha,
   type EdicaoDaTrilha,
   podeApagarTrilha,
+  TRILHA_EM_USO,
   type UsoDaTrilha,
 } from "../dominio/edicao-da-trilha";
 import {
@@ -29,17 +30,11 @@ import type { Executor, Transacao } from "./comum";
 import { violacaoDe } from "./erros";
 import { comTrava } from "./trava";
 
-export const TRILHA_EM_USO =
-  "Esta trilha já foi liberada para alguém, mesmo que depois revogada, ou já foi concluída, e por isso não se apaga. Para tirá-la de uso, tire os cursos dela.";
-
-/**
- * A trilha como o editor abre: documento (com versão) e uso. null quando o id não
- * existe. Dois statements em série, porque dentro da transação eles dividem um client.
- */
-export async function abrirTrilha(
+/** O documento como está no banco, com a versão. null: o id não existe. */
+async function lerDocumento(
   exec: Executor,
   id: TrilhaId
-): Promise<EdicaoDaTrilha | null> {
+): Promise<DocumentoDaTrilha | null> {
   const linha = await exec.query.trilha.findFirst({
     columns: { descricao: true, id: true, slug: true, titulo: true },
     where: { id },
@@ -50,19 +45,6 @@ export async function abrirTrilha(
   if (!linha) {
     return null;
   }
-  const {
-    rows: [contagens],
-  } = await exec.execute<{ [K in keyof UsoDaTrilha]: number }>(sql`
-    select
-      (select count(distinct ${liberacao.userId})::int from ${liberacao}
-        where ${liberacao.trilhaId} = ${id} and ${liberacao.revogadaEm} is null) as "alunosComATrilha",
-      (select count(*)::int from ${pontoLancamento} where ${pontoLancamento.trilhaId} = ${id}) as conclusoes,
-      (select count(*)::int from ${liberacao} where ${liberacao.trilhaId} = ${id}) as liberacoes`);
-  const uso: UsoDaTrilha = {
-    alunosComATrilha: contagens?.alunosComATrilha ?? 0,
-    conclusoes: contagens?.conclusoes ?? 0,
-    liberacoes: contagens?.liberacoes ?? 0,
-  };
   const semVersao: DocumentoDaTrilha = {
     cursos: linha.cursos.map((c) => c.cursoId as CursoId),
     descricao: linha.descricao,
@@ -71,11 +53,40 @@ export async function abrirTrilha(
     titulo: linha.titulo,
     versao: null,
   };
+  return { ...semVersao, versao: versaoDaTrilha(semVersao) };
+}
+
+/** As contagens de uso, num statement. */
+async function contarUso(exec: Executor, id: TrilhaId): Promise<UsoDaTrilha> {
+  const {
+    rows: [contagens],
+  } = await exec.execute<{ [K in keyof UsoDaTrilha]: number }>(sql`
+    select
+      (select count(distinct ${liberacao.userId})::int from ${liberacao}
+        where ${liberacao.trilhaId} = ${id} and ${liberacao.revogadaEm} is null) as "alunosComATrilha",
+      (select count(*)::int from ${pontoLancamento} where ${pontoLancamento.trilhaId} = ${id}) as conclusoes,
+      (select count(*)::int from ${liberacao} where ${liberacao.trilhaId} = ${id}) as liberacoes`);
   return {
-    documento: { ...semVersao, versao: versaoDaTrilha(semVersao) },
-    podeApagar: podeApagarTrilha(uso),
-    uso,
+    alunosComATrilha: contagens?.alunosComATrilha ?? 0,
+    conclusoes: contagens?.conclusoes ?? 0,
+    liberacoes: contagens?.liberacoes ?? 0,
   };
+}
+
+/**
+ * A trilha como o editor abre: documento (com versão) e uso. null quando o id não
+ * existe. Statements em série, porque dentro da transação eles dividem um client.
+ */
+export async function abrirTrilha(
+  exec: Executor,
+  id: TrilhaId
+): Promise<EdicaoDaTrilha | null> {
+  const documento = await lerDocumento(exec, id);
+  if (!documento) {
+    return null;
+  }
+  const uso = await contarUso(exec, id);
+  return { documento, podeApagar: podeApagarTrilha(uso), uso };
 }
 
 /** Os cursos da lista que existem, cada um com a trilha em que está hoje. */
@@ -160,7 +171,7 @@ export function salvarTrilha(
   documento: DocumentoDaTrilha
 ): Promise<TrilhaSalva> {
   return comTrava(db, `trilha:${documento.id}`, async (tx) => {
-    const atual = await abrirTrilha(tx, documento.id);
+    const atual = await lerDocumento(tx, documento.id);
     const plano = planejarTrilha(
       atual,
       documento,
@@ -212,8 +223,8 @@ async function gravarTrilha(
 }
 
 /**
- * admin.catalogo.apagarTrilha. trilha_curso cai em cascade. Id que não existe:
- * { apagado: false }, sem erro.
+ * admin.catalogo.apagarTrilha. trilha_curso cai em cascade. Id que não existe
+ * conta uso zero e o DELETE não acha linha: { apagado: false }, sem erro.
  */
 export async function apagarTrilha(
   db: Database,
@@ -221,18 +232,17 @@ export async function apagarTrilha(
 ): Promise<{ apagado: boolean }> {
   try {
     return await comTrava(db, `trilha:${id}`, async (tx) => {
-      const atual = await abrirTrilha(tx, id);
-      if (!atual) {
-        return { apagado: false };
-      }
-      if (!atual.podeApagar) {
+      if (!podeApagarTrilha(await contarUso(tx, id))) {
         throw new ErroParaAPessoa({
           code: "PRECONDITION_FAILED",
           message: TRILHA_EM_USO,
         });
       }
-      await tx.delete(trilha).where(eq(trilha.id, id));
-      return { apagado: true };
+      const apagadas = await tx
+        .delete(trilha)
+        .where(eq(trilha.id, id))
+        .returning({ id: trilha.id });
+      return { apagado: apagadas.length > 0 };
     });
   } catch (erro) {
     // Liberar trava o aluno, não a trilha: a liberação que entra depois da conta

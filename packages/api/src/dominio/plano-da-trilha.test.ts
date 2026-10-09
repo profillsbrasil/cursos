@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 import {
   type DocumentoDaTrilha,
   documentoDaTrilha,
-  type EdicaoDaTrilha,
   edicaoDeTrilhaNova,
   podeApagarTrilha,
 } from "./edicao-da-trilha";
@@ -33,7 +32,7 @@ const CURSOS = new Map<CursoId, CursoDaLista>([
   [C, cursoDaLista(C, "Montagem", null)],
 ]);
 
-/** O documento como abrirTrilha devolve: com a versão do que está gravado. */
+/** O documento como lerDocumento devolve: com a versão do que está gravado. */
 function documento(cursos: CursoId[] = [A, B]): DocumentoDaTrilha {
   const d: DocumentoDaTrilha = {
     cursos,
@@ -45,12 +44,6 @@ function documento(cursos: CursoId[] = [A, B]): DocumentoDaTrilha {
   };
   return { ...d, versao: versaoDaTrilha(d) };
 }
-
-const edicao = (doc: DocumentoDaTrilha): EdicaoDaTrilha => ({
-  documento: doc,
-  podeApagar: false,
-  uso: { alunosComATrilha: 2, conclusoes: 0, liberacoes: 2 },
-});
 
 describe("documentoDaTrilha", () => {
   test("põe os ids em minúscula e recusa curso repetido", () => {
@@ -112,16 +105,17 @@ describe("planejarTrilha", () => {
   test("reenvio igual, mesmo com versão velha ou nula, é nada_mudou", () => {
     const atual = documento();
     for (const versao of [atual.versao, null, "velha" as Versao]) {
-      expect(
-        planejarTrilha(edicao(atual), { ...atual, versao }, CURSOS)
-      ).toEqual({ tipo: "nada_mudou", versao: atual.versao as Versao });
+      expect(planejarTrilha(atual, { ...atual, versao }, CURSOS)).toEqual({
+        tipo: "nada_mudou",
+        versao: atual.versao as Versao,
+      });
     }
   });
 
   test("versão diferente da gravada recusa com versao_mudou", () => {
     const atual = documento();
     const desejado = { ...documento([B, A]), versao: "velha" as Versao };
-    expect(planejarTrilha(edicao(atual), desejado, CURSOS)).toEqual({
+    expect(planejarTrilha(atual, desejado, CURSOS)).toEqual({
       recusa: { tipo: "versao_mudou" },
       tipo: "recusa",
     });
@@ -131,7 +125,7 @@ describe("planejarTrilha", () => {
     const atual = documento([A, B]);
     for (const cursos of [[A, C, B], [B, A], [A]]) {
       const desejado = { ...atual, cursos };
-      expect(planejarTrilha(edicao(atual), desejado, CURSOS)).toEqual({
+      expect(planejarTrilha(atual, desejado, CURSOS)).toEqual({
         criar: false,
         documento: desejado,
         tipo: "gravar",
@@ -146,23 +140,23 @@ describe("planejarTrilha", () => {
       C,
       cursoDaLista(C, "Montagem", { id: OUTRA, titulo: "Comercial" })
     );
-    expect(
-      planejarTrilha(edicao(atual), { ...atual, cursos: [A, C] }, cursos)
-    ).toEqual({
-      recusa: {
-        curso: "Montagem",
-        tipo: "curso_em_outra_trilha",
-        trilha: "Comercial",
-      },
-      tipo: "recusa",
-    });
+    expect(planejarTrilha(atual, { ...atual, cursos: [A, C] }, cursos)).toEqual(
+      {
+        recusa: {
+          curso: "Montagem",
+          tipo: "curso_em_outra_trilha",
+          trilha: "Comercial",
+        },
+        tipo: "recusa",
+      }
+    );
   });
 
   test("curso que não existe recusa com o id", () => {
     const atual = documento([A]);
     const sumido = uuidDeExemplo(99) as CursoId;
     expect(
-      planejarTrilha(edicao(atual), { ...atual, cursos: [A, sumido] }, CURSOS)
+      planejarTrilha(atual, { ...atual, cursos: [A, sumido] }, CURSOS)
     ).toEqual({
       recusa: { id: sumido, tipo: "curso_desconhecido" },
       tipo: "recusa",

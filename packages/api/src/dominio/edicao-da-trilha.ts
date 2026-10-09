@@ -13,6 +13,10 @@ import type { CursoId, TrilhaId, Versao } from "./tipos";
 
 export const CURSOS_POR_TRILHA = 100;
 
+/** A recusa de apagarTrilha, e a frase que o editor mostra antes de tentar. */
+export const TRILHA_EM_USO =
+  "Esta trilha já foi liberada para alguém, mesmo que depois revogada, ou já foi concluída, e por isso não se apaga. Para tirá-la de uso, tire os cursos dela.";
+
 const texto = (max: number) => z.string().trim().min(1).max(max);
 
 /** O Postgres devolve uuid em minúscula; o mesmo id em outra caixa seria outra linha. */

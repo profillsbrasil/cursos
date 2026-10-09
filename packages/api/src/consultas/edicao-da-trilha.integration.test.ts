@@ -20,11 +20,13 @@ import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import type { DocumentoDaTrilha } from "../dominio/edicao-da-trilha";
+import {
+  type DocumentoDaTrilha,
+  TRILHA_EM_USO,
+} from "../dominio/edicao-da-trilha";
 import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
-import { TRILHA_EM_USO } from "./edicao-da-trilha";
 import { violacaoDe } from "./erros";
 
 const URL_TESTE = urlDeTeste();

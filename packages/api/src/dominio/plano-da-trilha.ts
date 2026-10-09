@@ -2,7 +2,7 @@
 // arquivo (versao.ts usa node:crypto). O único escritor do plano é gravarTrilha, em
 // consultas/edicao-da-trilha.ts.
 
-import type { DocumentoDaTrilha, EdicaoDaTrilha } from "./edicao-da-trilha";
+import type { DocumentoDaTrilha } from "./edicao-da-trilha";
 import type { CursoId, TrilhaId, Versao } from "./tipos";
 import { versaoDe } from "./versao";
 
@@ -24,7 +24,7 @@ export type RecusaDaTrilha =
   | { tipo: "curso_desconhecido"; id: CursoId }
   | { tipo: "curso_em_outra_trilha"; curso: string; trilha: string };
 
-/** `versao` é a do estado depois do salvamento, a que abrirTrilha vai ler. */
+/** `versao` é a do estado depois do salvamento, a que lerDocumento vai ler. */
 export type PlanoDaTrilha =
   | { tipo: "nada_mudou"; versao: Versao }
   | { tipo: "recusa"; recusa: RecusaDaTrilha }
@@ -41,13 +41,15 @@ const recusa = (r: RecusaDaTrilha): PlanoDaTrilha => ({
 });
 
 /**
- * `atual` é o que abrirTrilha leu com a trilha travada; `cursos`, os cursos da
- * lista desejada lidos na mesma transação. Tirar curso da trilha é permitido: quem
- * só o alcançava pela trilha perde o acesso na hora, e a tela avisa antes. Pela
- * regra "começou abre", inserir e reordenar não trancam curso começado de ninguém.
+ * `atual` é o documento que lerDocumento leu com a trilha travada (null: a trilha
+ * não existe); só a versão dele decide, e o uso nunca chega aqui. `cursos`, os
+ * cursos da lista desejada lidos na mesma transação. Tirar curso da trilha é
+ * permitido: quem só o alcançava pela trilha perde o acesso na hora, e a tela
+ * avisa antes. Pela regra "começou abre", inserir e reordenar não trancam curso
+ * começado de ninguém.
  */
 export function planejarTrilha(
-  atual: EdicaoDaTrilha | null,
+  atual: DocumentoDaTrilha | null,
   desejado: DocumentoDaTrilha,
   cursos: ReadonlyMap<CursoId, CursoDaLista>
 ): PlanoDaTrilha {
@@ -59,10 +61,10 @@ export function planejarTrilha(
   } else {
     // Antes da versão: duplo clique e reenvio depois de resposta perdida, inclusive
     // da criação, são sucesso.
-    if (versao === atual.documento.versao) {
+    if (versao === atual.versao) {
       return { tipo: "nada_mudou", versao };
     }
-    if (desejado.versao !== atual.documento.versao) {
+    if (desejado.versao !== atual.versao) {
       return recusa({ tipo: "versao_mudou" });
     }
   }
