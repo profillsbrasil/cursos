@@ -18,8 +18,20 @@ import {
   problemasNaTela,
   type RascunhoDaTrilha,
   rascunhoDaTrilha,
+  textoDaBusca,
 } from "./estado-da-trilha";
 import { fraseDeReserva } from "./problemas";
+
+describe("textoDaBusca", () => {
+  test("escolher um curso da lista limpa a busca, em vez de guardar o título", () => {
+    expect(textoDaBusca("Envasadora volumétrica", "item-press")).toBe("");
+  });
+
+  test("o que o admin digita ou apaga fica", () => {
+    expect(textoDaBusca("envas", "input-change")).toBe("envas");
+    expect(textoDaBusca("", "input-clear")).toBe("");
+  });
+});
 
 const curso = (n: number) => uuidDeExemplo(100 + n) as CursoId;
 const [A, B, C, D] = [curso(1), curso(2), curso(3), curso(4)];

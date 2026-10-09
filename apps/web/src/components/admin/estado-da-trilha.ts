@@ -8,6 +8,8 @@ import {
   LIMITES_DA_TRILHA,
 } from "@cursos/api/dominio/edicao-da-trilha";
 import type { CursoId, TrilhaId } from "@cursos/api/dominio/tipos";
+import type { Combobox } from "@cursos/ui/components/combobox";
+import type { ComponentProps } from "react";
 import type { z } from "zod";
 import { type Direcao, setaDepoisDeMover, trocado } from "@/lib/editor";
 
@@ -145,6 +147,19 @@ export const candidatos = (
       !r.cursos.includes(c.id) &&
       (c.trilha === null || c.trilha.id === trilhaId)
   );
+
+export type MotivoDaBusca = Parameters<
+  NonNullable<ComponentProps<typeof Combobox>["onInputValueChange"]>
+>[1]["reason"];
+
+/**
+ * O texto que o campo de busca do combobox guarda. Depois do onValueChange, o
+ * Base UI escreve no campo o rótulo do curso escolhido, com o motivo
+ * "item-press"; a busca volta vazia para o próximo curso. O motivo vem do
+ * union do Base UI: se ele renomear "item-press", isto deixa de compilar.
+ */
+export const textoDaBusca = (texto: string, motivo: MotivoDaBusca) =>
+  motivo === "item-press" ? "" : texto;
 
 export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDaTrilha }
