@@ -263,8 +263,10 @@ export function salvarTrilha(
  *
  * Apagar e reinserir é seguro porque nada referencia trilha_curso, e o unique não
  * deferrable trilha_curso_posicao_unica nunca vê duas linhas na mesma posição: no
- * passo 3 a trilha está vazia. Curso de outra trilha bate em trilha_curso_pkey; o
- * planejador já recusou antes, e o adminProcedure traduz a corrida.
+ * passo 3 a trilha está vazia. Curso de outra trilha não chega aqui pelo app: as
+ * travas curso:<id> de salvarTrilha serializam duas trilhas que disputam um
+ * curso, e o planejador da segunda já recusa. trilha_curso_pkey é a rede para
+ * quem escreve fora do app.
  */
 async function gravarTrilha(
   tx: Transacao,
