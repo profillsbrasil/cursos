@@ -23,7 +23,11 @@ import type {
   TrilhaId,
 } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
-import { esperas as esperasNoBanco, seguraATabela } from "./corrida-de-teste";
+import {
+  esperas as esperasNoBanco,
+  seguraATabela,
+  urlDaCorrida,
+} from "./corrida-de-teste";
 import { liberar, revogar } from "./liberacao";
 import { trocar } from "./troca";
 
@@ -40,7 +44,7 @@ const pessoa = (userId: string): Pessoa => ({
 });
 
 describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
-  const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+  const db = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE ?? "") });
   const alunos: string[] = [];
   const cursos: string[] = [];
   const trilhas: string[] = [];

@@ -29,7 +29,7 @@ import {
 import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
-import { esperas, seguraATabela } from "./corrida-de-teste";
+import { esperas, seguraATabela, urlDaCorrida } from "./corrida-de-teste";
 import { abrirTrilha } from "./edicao-da-trilha";
 import { violacaoDe } from "./erros";
 
@@ -59,7 +59,7 @@ const resultado = (p: Promise<unknown>) =>
   );
 
 describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
-  const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+  const db = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE ?? "") });
   const admin = createCaller(
     contextoDeTeste({ db, papel: "admin", userId: "user_admin" })
   );
