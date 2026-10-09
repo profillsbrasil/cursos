@@ -25,7 +25,7 @@ import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import type { Mudanca } from "./estado-do-editor";
-import { ICONE, ROTULO, SELECAO } from "./partes";
+import { CONTORNO_DESLIGADO, ICONE, ROTULO, SELECAO } from "./partes";
 import {
   type AulaDoRascunho,
   ID,
@@ -405,7 +405,7 @@ export function BlocoDoModulo({
             <>
               <Button
                 aria-describedby={`modulo-${id}-uso`}
-                className={cn(BOTAO_CONTORNO, PEQUENO, "ml-1")}
+                className={cn(CONTORNO_DESLIGADO, PEQUENO, "ml-1")}
                 disabled
                 focusableWhenDisabled
               >
