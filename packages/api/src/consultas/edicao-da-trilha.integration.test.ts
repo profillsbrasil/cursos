@@ -18,7 +18,7 @@ import {
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
@@ -28,7 +28,7 @@ import {
 import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
-import { esperas } from "./corrida-de-teste";
+import { esperas, seguraATabela } from "./corrida-de-teste";
 import { violacaoDe } from "./erros";
 
 const URL_TESTE = urlDeTeste();
@@ -234,6 +234,87 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     });
     expect(await admin.admin.catalogo.abrirTrilha({ id: outra.id })).toBeNull();
     expect(await posicoes(dona.documento.id)).toEqual([[a.id, 1]]);
+  });
+
+  test("o salvar trava curso:<id> dos cursos atuais e desejados, em ordem de id", async () => {
+    const tres = await criarCursos(3);
+    const [a, b, c] = tres.map((x) => x.id).sort();
+    if (!(a && b && c)) {
+      throw new Error("cursos não criados");
+    }
+    const aberta = await salva(trilhaNova([a]));
+    const tentaTravar = async (id: string) => {
+      const { rows } = await db.execute<{ ok: boolean }>(
+        sql`select pg_try_advisory_xact_lock(hashtextextended(${`curso:${id}`}, 0)) as ok`
+      );
+      return rows[0]?.ok;
+    };
+    const outro = await db.$client.connect();
+    try {
+      await outro.query("begin");
+      await outro.query(
+        "select pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [`curso:${b}`]
+      );
+      const salvando = resultado(
+        admin.admin.catalogo.salvarTrilha({
+          ...aberta.documento,
+          cursos: [c as CursoId, b as CursoId],
+        })
+      );
+      const paradas = await esperas(db, 1, [
+        "select pg_advisory_xact_lock",
+      ]).catch((e: unknown) => String(e));
+      const sonda = { a: await tentaTravar(a), c: await tentaTravar(c) };
+      await outro.query("commit");
+
+      expect({ paradas, salvando: await salvando, sonda }).toEqual({
+        paradas: ["advisory"],
+        salvando: { code: "ok", message: "" },
+        sonda: { a: false, c: true },
+      });
+    } finally {
+      outro.release();
+    }
+  });
+
+  test("duas trilhas novas com os mesmos cursos ao mesmo tempo: a segunda espera e recusa com o nome da primeira", async () => {
+    const [x, y] = await criarCursos(2);
+    if (!(x && y)) {
+      throw new Error("cursos não criados");
+    }
+    const primeira = trilhaNova([x.id, y.id]);
+    const segunda = trilhaNova([y.id, x.id]);
+    const soltar = await seguraATabela(db, "trilha_curso");
+    const parou = (n: number) =>
+      esperas(db, n, [
+        'delete from "trilha_curso"',
+        "select pg_advisory_xact_lock",
+      ]);
+    const r1 = resultado(admin.admin.catalogo.salvarTrilha(primeira));
+    await parou(1);
+    const r2 = resultado(admin.admin.catalogo.salvarTrilha(segunda));
+    const paradas = await parou(2).catch((e: unknown) => String(e));
+    await soltar();
+    const [rPrimeira, rSegunda] = await Promise.all([r1, r2]);
+
+    expect({
+      paradas,
+      posicoes: await posicoes(primeira.id),
+      primeira: rPrimeira,
+      segunda: rSegunda,
+    }).toEqual({
+      paradas: ["advisory", "relation"],
+      posicoes: [
+        [x.id, 1],
+        [y.id, 2],
+      ],
+      primeira: { code: "ok", message: "" },
+      segunda: {
+        code: "CONFLICT",
+        message: `O curso "${y.titulo}" já está na trilha "${primeira.titulo}". Tire-o de lá antes de pôr nesta.`,
+      },
+    });
   });
 
   test("curso que não existe é recusado sem gravar nada", async () => {

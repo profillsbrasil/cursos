@@ -29,7 +29,7 @@ import type { CursoId, TrilhaId, Versao } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import type { Executor, Transacao } from "./comum";
 import { violacaoDe } from "./erros";
-import { comTrava } from "./trava";
+import { comTrava, travarCursos } from "./trava";
 
 /** O documento como está no banco, com a versão. null: o id não existe. */
 async function lerDocumento(
@@ -213,9 +213,11 @@ export interface TrilhaSalva {
 
 /**
  * admin.catalogo.salvarTrilha. A trava trilha:<id> serializa dois salvamentos da
- * mesma trilha, inclusive a criação repetida. Não pega trava de aluno: a troca
- * que comitou antes continua valendo, porque o aluno trocou quando o curso não
- * estava na trilha.
+ * mesma trilha, inclusive a criação repetida. Depois dela, curso:<id> dos cursos
+ * de hoje e dos desejados: duas trilhas com um curso em comum se serializam, e a
+ * segunda decide com a lista que a primeira gravou. Não pega trava de aluno: a
+ * troca que comitou antes continua valendo, porque o aluno trocou quando o curso
+ * não estava na trilha.
  */
 export function salvarTrilha(
   db: Database,
@@ -223,6 +225,7 @@ export function salvarTrilha(
 ): Promise<TrilhaSalva> {
   return comTrava(db, `trilha:${documento.id}`, async (tx) => {
     const atual = await lerDocumento(tx, documento.id);
+    await travarCursos(tx, [...(atual?.cursos ?? []), ...documento.cursos]);
     const plano = planejarTrilha(
       atual,
       documento,
