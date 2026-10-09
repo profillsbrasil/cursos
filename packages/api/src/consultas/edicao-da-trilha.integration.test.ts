@@ -397,6 +397,7 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     await db.insert(aulaAssistida).values([
       { aulaId: a.primeiraAula, userId: SO_TRILHA },
       { aulaId: a.primeiraAula, userId: COM_DIRETA },
+      { aulaId: emProducao.primeiraAula, userId: SO_TRILHA },
     ]);
     await db.insert(certificado).values({
       codigo: `TESTE-${S}-17`,
@@ -414,23 +415,23 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
     expect(contada?.uso.comecaramSoPelaTrilha).toEqual([
       { cursoId: a.id, pessoas: 2 },
       { cursoId: b.id, pessoas: 1 },
-      { cursoId: emProducao.id, pessoas: 0 },
+      { cursoId: emProducao.id, pessoas: 1 },
     ]);
 
-    // A contagem do admin e o painel do aluno são a mesma regra de "começou":
-    // conta quem vê o curso em andamento, na prova ou concluído no painel,
-    // entre os que não têm liberação direta dele. O curso em produção aparece
-    // como em_breve para todos e não conta.
+    const tipoNoPainel = async (userId: string, cursoId: CursoId) =>
+      (await comoAluno(userId).meusCursos.painel()).trilhas
+        .find((t) => t.id === aberta.documento.id)
+        ?.cursos.find((c) => c.id === cursoId)?.estado.tipo;
+
+    // Para curso publicado, a conta do admin é a regra de "começou" do painel:
+    // em andamento, na prova ou concluído, sem liberação direta do curso.
     const COMECOU_NO_PAINEL = new Set(["em_andamento", "prova", "concluido"]);
     const direta = new Set([`${COM_DIRETA}:${a.id}`]);
     const pelosPaineis = await Promise.all(
-      [a.id, b.id, emProducao.id].map(async (cursoId) => {
+      [a.id, b.id].map(async (cursoId) => {
         const contados = await Promise.all(
           ALUNOS.map(async (userId) => {
-            const painel = await comoAluno(userId).meusCursos.painel();
-            const tipo = painel.trilhas
-              .find((t) => t.id === aberta.documento.id)
-              ?.cursos.find((c) => c.id === cursoId)?.estado.tipo;
+            const tipo = await tipoNoPainel(userId, cursoId);
             return (
               tipo !== undefined &&
               COMECOU_NO_PAINEL.has(tipo) &&
@@ -441,9 +442,12 @@ describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
         return { cursoId, pessoas: contados.filter(Boolean).length };
       })
     );
-    expect(pelosPaineis).toEqual([
-      ...(contada?.uso.comecaramSoPelaTrilha ?? []),
-    ]);
+    expect(pelosPaineis).toEqual(
+      contada?.uso.comecaramSoPelaTrilha.slice(0, 2) ?? []
+    );
+    // O curso em produção esconde o progresso no painel (em_breve), mas quem
+    // o começou também perde o acesso, então o aviso do admin conta essa pessoa.
+    expect(await tipoNoPainel(SO_TRILHA, emProducao.id)).toBe("em_breve");
 
     const entra = async (userId: string) =>
       (await comoAluno(userId).aula.entrada({ slug: a.slug })) !== null;
