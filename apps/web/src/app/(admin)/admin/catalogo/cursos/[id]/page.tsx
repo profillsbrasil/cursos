@@ -2,14 +2,12 @@ import { edicaoDeCursoNovo } from "@cursos/api/dominio/edicao-do-curso";
 import type { CursoId } from "@cursos/api/dominio/tipos";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { z } from "zod";
 
 import { EditorDoCurso } from "@/components/admin/editor-do-curso";
+import { abrirOuRascunho } from "@/lib/abrir-ou-rascunho";
 import { carregarCurso } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Admin" };
-
-const UUID = z.uuid();
 
 /**
  * ?novo=1 é o rascunho que catalogo/cursos/novo abriu com este id. Sem ele, um id
@@ -20,16 +18,16 @@ export default async function Curso({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ novo?: string }>;
+  searchParams: Promise<{ novo?: string | string[] }>;
 }) {
-  const { id } = await params;
-  if (!UUID.safeParse(id).success) {
-    notFound();
-  }
-  const salvo = await carregarCurso(id);
-  const novo = (await searchParams).novo === "1";
-  const edicao =
-    salvo ?? (novo ? edicaoDeCursoNovo(id.toLowerCase() as CursoId) : null);
+  const [{ id }, { novo }] = await Promise.all([params, searchParams]);
+  const edicao = await abrirOuRascunho(
+    { id, novo },
+    {
+      carregar: carregarCurso,
+      rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
+    }
+  );
   if (!edicao) {
     notFound();
   }

@@ -14,6 +14,10 @@ export const SELECAO =
   "w-full *:data-[slot=native-select]:h-11 *:data-[slot=native-select]:rounded-[12px] *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-sm";
 export const ROTULO = "font-semibold text-foreground text-sm";
 
+/** Aviso em amarelo com ícone à esquerda (link que quebra, versão que mudou). */
+export const AVISO =
+  "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
+
 /** Botão redondo só com ícone (subir, descer, remover). */
 export const ICONE = cn(
   buttonVariants({ size: "icon", variant: "ghost" }),
