@@ -1,13 +1,31 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { ITENS_DO_ADMIN } from "../admin/menu";
 import { ITENS_DO_ALUNO } from "../aluno/menu";
 import {
+  COOKIE_DA_SIDEBAR,
   indiceAtivo,
   LARGURAS_DA_SIDEBAR,
   type MovimentoDaPilula,
   movimentoDaPilula,
 } from "./nav";
+
+const SIDEBAR_DO_UI = join(
+  import.meta.dir,
+  "../../../../../packages/ui/src/components/sidebar.tsx"
+);
+const NOME_DO_COOKIE = /const SIDEBAR_COOKIE_NAME = "([^"]+)"/;
+
+describe("cookie da sidebar", () => {
+  // O shadcn add pode regenerar o sidebar.tsx com outro nome: a casca passaria a
+  // abrir sempre e esqueceria o modo recolhido, sem erro nenhum.
+  test("a casca lê o cookie que o SidebarProvider do packages/ui grava", () => {
+    const gravado = readFileSync(SIDEBAR_DO_UI, "utf8").match(NOME_DO_COOKIE);
+    expect(gravado?.[1]).toBe(COOKIE_DA_SIDEBAR);
+  });
+});
 
 describe("largura recolhida", () => {
   // O sidebar-container tem border-r dentro da largura (border-box): sem somar o

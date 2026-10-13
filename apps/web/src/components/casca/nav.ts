@@ -46,6 +46,9 @@ export function indiceAtivo(
   return null;
 }
 
+/** O cookie que o SidebarProvider grava; o nome é constante interna do packages/ui, e nav.test.ts confere os dois. */
+export const COOKIE_DA_SIDEBAR = "sidebar_state";
+
 /** Da borda da sidebar ao conteúdo, nos dois modos; casca.tsx aplica no cabeçalho, na lista e no rodapé. */
 export const RECUO = 14;
 /** O quadrado recolhido: o item, o botão do cabeçalho, o Continuar e o cartão de conta. */

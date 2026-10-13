@@ -12,12 +12,14 @@ import { carregarResumo, paraACasca } from "@/server/api";
 
 import { CabecalhoDaCasca, TopoDoCelular } from "./cabecalho-da-casca";
 import { CartaoDeConta, type Placar } from "./cartao-de-conta";
-import { type ItemDoMenu, type LinkDaArea, RECUO } from "./nav";
+import {
+  COOKIE_DA_SIDEBAR,
+  type ItemDoMenu,
+  type LinkDaArea,
+  RECUO,
+} from "./nav";
 import { NavPrincipal } from "./nav-principal";
 import { ProvedorDaCasca } from "./provedor-da-casca";
-
-/** O cookie que o SidebarProvider grava; o nome é constante interna do packages/ui. */
-const COOKIE_DA_SIDEBAR = "sidebar_state";
 
 const placarDe = ({ saldo, sequenciaDias }: Placar): Placar => ({
   saldo,
