@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
-import { caminhoDaAula } from "@/lib/rotas";
+import { hrefDaRetomada } from "@/lib/rotas";
 import { BarraProgresso } from "./barra-progresso";
 
 const CARTAO =
@@ -92,10 +92,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
     );
   }
   const onde = retomada.trilha?.titulo ?? retomada.curso.titulo;
-  const href =
-    retomada.tipo === "prova"
-      ? (`/cursos/${retomada.curso.slug}` as const)
-      : caminhoDaAula(retomada.curso.slug, retomada.aula.id);
+  const href = hrefDaRetomada(retomada);
   return (
     <section
       aria-labelledby="banner-titulo"

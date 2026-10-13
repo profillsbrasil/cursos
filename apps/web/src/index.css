@@ -1,1 +1,25 @@
 @import "@cursos/ui/globals.css";
+
+@theme {
+  /* Ease-out forte para UI (skill animate): a largura da sidebar e a pílula. */
+  --ease-forte: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* A largura da sidebar muda na hora por padrão: Ctrl+B, cookie, qualquer caminho
+   futuro. Só o botão da casca (useAlternarNavegacao) liga data-animando no wrapper.
+   CSS sem @layer vence os utilitários do Tailwind sem tocar no sidebar.tsx do
+   packages/ui, que o `shadcn add` regenera; os data-slot são a API estável dele.
+   A regra que anima mora dentro do media: com movimento reduzido ela não existe, e
+   a largura muda na hora mesmo com data-animando. */
+[data-slot="sidebar-wrapper"]
+:is([data-slot="sidebar-gap"], [data-slot="sidebar-container"]) {
+  transition-duration: 0s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-slot="sidebar-wrapper"][data-animando]
+    :is([data-slot="sidebar-gap"], [data-slot="sidebar-container"]) {
+    transition-timing-function: var(--ease-forte);
+    transition-duration: 200ms;
+  }
+}

@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { BuscaEmBreve, Chips, TopoDoAluno } from "@/components/aluno/topo";
+import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { caminhoDaAula } from "@/lib/rotas";
-import { carregarEntrada, carregarResumo } from "@/server/api";
+import { carregarEntrada } from "@/server/api";
 
-export const metadata: Metadata = { title: "Curso · Profills School" };
+export const metadata: Metadata = { title: "Curso" };
 
 export default async function Curso({
   params,
@@ -14,10 +14,7 @@ export default async function Curso({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [entrada, resumo] = await Promise.all([
-    carregarEntrada(slug),
-    carregarResumo(),
-  ]);
+  const entrada = await carregarEntrada(slug);
   if (!entrada) {
     notFound();
   }
@@ -26,10 +23,7 @@ export default async function Curso({
   }
   return (
     <>
-      <TopoDoAluno
-        chips={<Chips resumo={resumo} />}
-        esquerda={<BuscaEmBreve />}
-      />
+      <TopoDoAluno esquerda={<BuscaEmBreve />} />
       <div className="grid gap-3">
         <h1 className="font-bold text-3xl text-titulo tracking-tight">
           {entrada.tipo === "prova"

@@ -130,7 +130,13 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       pararDeGravar();
       document.removeEventListener("visibilitychange", aoEsconder);
       window.removeEventListener("pagehide", aoSair);
-      s.encerrar();
+      // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
+      // página nova e o layout junto, com o "Continuar" do rodapé em dia.
+      s.encerrar().then(({ gravouSemRefresh }) => {
+        if (gravouSemRefresh) {
+          startTransition(() => router.refresh());
+        }
+      });
       aviso.encerrar();
     };
   }, [aviso, inicial, router]);

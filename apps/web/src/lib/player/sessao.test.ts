@@ -194,7 +194,11 @@ function servidorFalso(relogio: Relogio) {
 
 function montar(
   inicioSeg = 0,
-  { preferencias = PREFERENCIAS_PADRAO, pronto = true } = {}
+  {
+    conquistaLanca = false,
+    preferencias = PREFERENCIAS_PADRAO,
+    pronto = true,
+  } = {}
 ) {
   const relogio = relogioFalso();
   const video = playerFalso(relogio);
@@ -209,7 +213,12 @@ function montar(
     },
     {
       agendar: relogio.agendar,
-      aoConquistar: (c) => conquistas.push(c),
+      aoConquistar: (c) => {
+        conquistas.push(c);
+        if (conquistaLanca) {
+          throw new Error("aoConquistar lançou");
+        }
+      },
       criarPlayer: (o) => video.criar(o),
       enviar: (p) => servidor.enviar(p),
       relogio: relogio.agora,
@@ -510,6 +519,97 @@ describe("encerrar com a rede caída", () => {
     await relogio.flush();
     expect(servidor.coberturaSeg()).toBeGreaterThanOrEqual(540);
     expect(conquistas).toHaveLength(1);
+  });
+});
+
+// A casca pede router.refresh() na saída do player quando gravouSemRefresh é true:
+// é o que mantém fresco o "Continuar" do rodapé.
+describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
+  test("sem envio aceito, nada ficou velho", async () => {
+    const { relogio, servidor, sessao } = montar(120);
+    await relogio.avancar(5000);
+    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(servidor.pedidos).toHaveLength(0);
+  });
+
+  test("um envio periódico aceito e nada novo no fim: velho, sem enviar de novo", async () => {
+    const { relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(16_000);
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(1000);
+    expect(servidor.pedidos).toHaveLength(2);
+    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: true });
+    expect(servidor.pedidos).toHaveLength(2);
+  });
+
+  test("o envio de saída aceito resolve só depois de a resposta chegar", async () => {
+    const { relogio, servidor, sessao } = montar();
+    const responder = servidor.enviar.bind(servidor);
+    const segurados: Pedido[] = [];
+    let liberar: () => void = () => undefined;
+    servidor.enviar = (p) => {
+      segurados.push(p);
+      return new Promise((resolver) => {
+        liberar = () => resolver(responder(p));
+      });
+    };
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(8000);
+    let fim: unknown = "pendente";
+    sessao.encerrar().then((f) => {
+      fim = f;
+    });
+    await relogio.flush();
+    expect(segurados).toHaveLength(1);
+    expect(fim).toBe("pendente");
+    liberar();
+    await relogio.flush();
+    expect(fim).toEqual({ gravouSemRefresh: true });
+  });
+
+  test("o envio de saída que traz a conquista já pediu o refresh", async () => {
+    const { conquistas, relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(530_000);
+    servidor.falhar({ tipo: "rede" });
+    await relogio.avancar(11_000);
+    servidor.falhar(null);
+    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(conquistas).toHaveLength(1);
+  });
+
+  test("aoConquistar que lança no envio de saída não faz o fim rejeitar", async () => {
+    const { conquistas, relogio, servidor, sessao } = montar(0, {
+      conquistaLanca: true,
+    });
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(530_000);
+    servidor.falhar({ tipo: "rede" });
+    await relogio.avancar(11_000);
+    servidor.falhar(null);
+    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(conquistas).toHaveLength(1);
+  });
+
+  test("a rede cai no envio de saída depois de um envio aceito: velho", async () => {
+    const { relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(16_000);
+    servidor.falhar({ tipo: "rede" });
+    await relogio.avancar(2000);
+    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: true });
+    expect(servidor.pedidos).toHaveLength(2);
+  });
+
+  test("encerrar duas vezes devolve a mesma Promise e envia uma vez", async () => {
+    const { relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(8000);
+    const primeira = sessao.encerrar();
+    expect(sessao.encerrar()).toBe(primeira);
+    expect(await primeira).toEqual({ gravouSemRefresh: true });
+    expect(servidor.pedidos).toHaveLength(1);
   });
 });
 

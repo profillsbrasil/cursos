@@ -1,6 +1,6 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-import { ChipsCarregando, TopoDoAluno } from "@/components/aluno/topo";
+import { TopoDoAluno } from "@/components/aluno/topo";
 
 const PULSO = "bg-card motion-reduce:animate-none";
 
@@ -8,7 +8,6 @@ export default function CarregandoAula() {
   return (
     <>
       <TopoDoAluno
-        chips={<ChipsCarregando />}
         esquerda={<Skeleton className={`${PULSO} h-5 w-64 rounded-md`} />}
       />
       <div

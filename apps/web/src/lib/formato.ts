@@ -9,6 +9,16 @@ const DATA = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
+const ESPACOS = /\s+/;
+
+/** "Ana Souza" vira "AS"; e-mail ou userId vira a primeira letra. */
+export function iniciais(nome: string) {
+  const partes = nome.trim().split(ESPACOS);
+  const primeira = partes[0]?.[0] ?? "?";
+  const ultima = partes.length > 1 ? (partes.at(-1)?.[0] ?? "") : "";
+  return `${primeira}${ultima}`.toUpperCase();
+}
+
 /** "1 aula", "3 aulas". */
 export const plural = (n: number, um: string, varios: string) =>
   `${NUMERO.format(n)} ${n === 1 ? um : varios}`;

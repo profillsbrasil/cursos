@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { PRODUTO } from "@/lib/marca";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     background_color: "#1A1D22",
@@ -18,8 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
     ],
-    name: "Profills School",
-    short_name: "Profills School",
+    name: PRODUTO,
+    short_name: PRODUTO,
     start_url: "/",
     theme_color: "#1A1D22",
   };

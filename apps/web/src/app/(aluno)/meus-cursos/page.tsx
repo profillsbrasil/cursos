@@ -1,11 +1,11 @@
 import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
-import { BuscaEmBreve, Chips, TopoDoAluno } from "@/components/aluno/topo";
+import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { ConteudoMeusCursos } from "@/components/meus-cursos/conteudo";
 import { carregarPainel, carregarResumo } from "@/server/api";
 
-export const metadata: Metadata = { title: "Meus cursos · Profills School" };
+export const metadata: Metadata = { title: "Meus cursos" };
 
 export default async function MeusCursos() {
   const [painel, resumo] = await Promise.all([
@@ -19,10 +19,7 @@ export default async function MeusCursos() {
     usuario?.primaryEmailAddress?.emailAddress ?? usuario?.fullName ?? null;
   return (
     <>
-      <TopoDoAluno
-        chips={<Chips resumo={resumo} />}
-        esquerda={<BuscaEmBreve />}
-      />
+      <TopoDoAluno esquerda={<BuscaEmBreve />} />
       <ConteudoMeusCursos conta={conta} painel={painel} resumo={resumo} />
     </>
   );

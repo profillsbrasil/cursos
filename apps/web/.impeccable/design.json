@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T00:00:00-03:00",
+  "title": "Design System: Profills Cursos",
+  "extensions": {
+    "colorMeta": {
+      "sol": {
+        "role": "primary",
+        "displayName": "Sol, amarelo damasco",
+        "canonical": "#ffcc01",
+        "tonalRamp": [
+          "#3d3000",
+          "#5c4900",
+          "#856a00",
+          "#b08c00",
+          "#d9ad00",
+          "#ffcc01",
+          "#ffe066",
+          "#fff3c2"
+        ]
+      },
+      "sol-hover": {
+        "role": "primary",
+        "displayName": "Sol sob o cursor",
+        "canonical": "#ffd633"
+      },
+      "ceu": {
+        "role": "secondary",
+        "displayName": "Céu, azul-rei pálido",
+        "canonical": "#aad2ea",
+        "tonalRamp": [
+          "#13303f",
+          "#1f4a61",
+          "#2e6584",
+          "#4a84a6",
+          "#73a7c8",
+          "#aad2ea",
+          "#cde4f2",
+          "#ecf5fa"
+        ]
+      },
+      "canela": {
+        "role": "tertiary",
+        "displayName": "Canela",
+        "canonical": "#e5977a",
+        "tonalRamp": [
+          "#3d1d11",
+          "#5e2d1b",
+          "#80412a",
+          "#a65a3e",
+          "#cc785a",
+          "#e5977a",
+          "#f0bca8",
+          "#f9e2d9"
+        ]
+      },
+      "erro": {
+        "role": "error",
+        "displayName": "Salmão de erro",
+        "canonical": "#ff8f86"
+      },
+      "sobre-cor": {
+        "role": "neutral",
+        "displayName": "Grafite sobre a cor",
+        "canonical": "#22262b"
+      },
+      "titulo": {
+        "role": "neutral",
+        "displayName": "Branco de título",
+        "canonical": "#f4f5f7"
+      },
+      "texto": {
+        "role": "neutral",
+        "displayName": "Texto",
+        "canonical": "#e9ecef"
+      },
+      "texto-apagado": {
+        "role": "neutral",
+        "displayName": "Texto apagado",
+        "canonical": "#a8acb0"
+      },
+      "fundo": {
+        "role": "neutral",
+        "displayName": "Fundo grafite",
+        "canonical": "#1a1d22",
+        "tonalRamp": [
+          "#1a1d22",
+          "#22262b",
+          "#282d33",
+          "#2f343a",
+          "#33383e",
+          "#3a3f45",
+          "#40454a",
+          "#4d5257"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Grafite da sidebar",
+        "canonical": "#282d33"
+      },
+      "sidebar-realce": {
+        "role": "neutral",
+        "displayName": "Realce da sidebar",
+        "canonical": "#2f343a"
+      },
+      "cartao": {
+        "role": "neutral",
+        "displayName": "Cartão",
+        "canonical": "#33383e"
+      },
+      "popover": {
+        "role": "neutral",
+        "displayName": "Popover",
+        "canonical": "#3a3f45"
+      },
+      "borda": {
+        "role": "neutral",
+        "displayName": "Borda",
+        "canonical": "#40454a"
+      },
+      "trilho": {
+        "role": "neutral",
+        "displayName": "Trilho",
+        "canonical": "#4d5257"
+      },
+      "contorno-de-campo": {
+        "role": "neutral",
+        "displayName": "Contorno de campo (token input)",
+        "canonical": "#7a7e83"
+      },
+      "cinza-grafico": {
+        "role": "neutral",
+        "displayName": "Cinza do gráfico e da barra de rolagem",
+        "canonical": "#61656a"
+      },
+      "pagina-do-livro": {
+        "role": "brand",
+        "displayName": "Página do livro (só na marca)",
+        "canonical": "#F4F5F7"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Título do banner de retomada; segundo verso em Sol."
+      },
+      "title-page": {
+        "displayName": "Título de página",
+        "purpose": "O h1 das páginas, em titulo; 24 px nas telas de erro e de não encontrado."
+      },
+      "title-section": {
+        "displayName": "Título de seção",
+        "purpose": "O h2 das seções do admin."
+      },
+      "body": {
+        "displayName": "Corpo",
+        "purpose": "Texto corrido, células e campos."
+      },
+      "label": {
+        "displayName": "Rótulo",
+        "purpose": "Botões, nomes de menu, rótulos de campo."
+      },
+      "caption": {
+        "displayName": "Legenda",
+        "purpose": "Selos, números do cartão de conta, cabeçalho de tabela."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Carregada pelo layout; uso raro."
+      }
+    },
+    "shadows": [
+      {
+        "name": "brilho-do-botao",
+        "value": "0 6px 18px rgb(255 204 1 / 0.28)",
+        "purpose": "Botão principal sob o cursor."
+      },
+      {
+        "name": "brilho-do-saldo",
+        "value": "0 10px 30px rgb(255 204 1 / 0.25)",
+        "purpose": "Círculo amarelo do saldo em Trocar pontos."
+      },
+      {
+        "name": "flutuante",
+        "value": "0 10px 30px rgb(0 0 0 / 0.45)",
+        "purpose": "Barra de salvar presa ao pé dos editores."
+      },
+      {
+        "name": "menu",
+        "value": "0 20px 25px -5px rgb(0 0 0 / 0.45), 0 8px 10px -6px rgb(0 0 0 / 0.45)",
+        "purpose": "Menu do cartão de conta."
+      },
+      {
+        "name": "anel-de-conquista",
+        "value": "0 0 0 3px rgb(255 204 1 / 0.35)",
+        "purpose": "Cartão de conta quando o player registra pontos."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-forte",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Largura da sidebar e deslize da pílula ativa."
+      },
+      {
+        "name": "pilula-ativa",
+        "value": "180ms ease-forte, transform translateY",
+        "purpose": "A pílula amarela desliza entre itens; salta com movimento reduzido."
+      },
+      {
+        "name": "largura-da-sidebar",
+        "value": "200ms ease-forte",
+        "purpose": "Só pelo clique no botão de recolher; Ctrl+B, cookie e movimento reduzido mudam na hora."
+      },
+      {
+        "name": "estado",
+        "value": "150ms ease-out",
+        "purpose": "Cor e fundo de hover em itens, botões de ícone e cartões."
+      }
+    ],
+    "breakpoints": [
+      { "name": "gaveta", "value": "768px" },
+      { "name": "banner-uma-coluna", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Pílula amarela, uma por contexto.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 3l14 9-14 9z\"/></svg>Continuar aula</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: none; border-radius: 9999px; background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-btn-primary:hover { background: #ffd633; box-shadow: 0 6px 18px rgb(255 204 1 / 0.28); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 3px; }"
+    },
+    {
+      "name": "Botão em contorno",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Ação secundária ao lado do botão principal.",
+      "html": "<button class=\"ds-btn-outline\">Ver extrato</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 9999px; background: transparent; color: var(--foreground, #e9ecef); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn-outline:hover { border-color: var(--titulo, #f4f5f7); } .ds-btn-outline:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 3px; }"
+    },
+    {
+      "name": "Campo",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo de texto dos formulários do admin.",
+      "html": "<label class=\"ds-field\"><span>Título do curso</span><input class=\"ds-input\" value=\"Operação da envasadora\"></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font: 600 14px Geist, ui-sans-serif, sans-serif; color: var(--foreground, #e9ecef); } .ds-input { height: 44px; padding: 0 14px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 12px; background: var(--background, #1a1d22); color: var(--foreground, #e9ecef); font: 400 14px Geist, ui-sans-serif, sans-serif; } .ds-input:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 2px; }"
+    },
+    {
+      "name": "Navegação da sidebar",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Itens de 40 px com a pílula amarela atrás do ativo.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-ativo\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 10l9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z\"/></svg>Meus cursos</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>Trocar pontos</a><span class=\"ds-nav-item ds-nav-breve\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/></svg>Certificados<small>Em breve</small></span></nav>",
+      "css": ".ds-nav { display: grid; gap: 4px; width: 212px; padding: 6px 14px; background: var(--sidebar, #282d33); } .ds-nav-item { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 11px; border-radius: 10px; color: var(--sidebar-foreground, #e9ecef); font: 500 14px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: color 150ms ease-out, background-color 150ms ease-out; } .ds-nav-item svg { color: var(--muted-foreground, #a8acb0); } .ds-nav-item:hover { background: var(--sidebar-accent, #2f343a); color: var(--titulo, #f4f5f7); } .ds-nav-item:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 2px; } .ds-nav-ativo, .ds-nav-ativo:hover { background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font-weight: 600; } .ds-nav-ativo svg { color: var(--sobre-cor, #22262b); } .ds-nav-breve, .ds-nav-breve:hover { background: transparent; color: var(--muted-foreground, #a8acb0); cursor: default; } .ds-nav-breve small { margin-left: auto; font-size: 12px; font-weight: 400; }"
+    },
+    {
+      "name": "Selos de estado",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Estado do curso em pílula de 24 px.",
+      "html": "<div class=\"ds-selos\"><span class=\"ds-selo ds-selo-concluido\">Concluído</span><span class=\"ds-selo ds-selo-andamento\">Em andamento</span><span class=\"ds-selo ds-selo-prova\">Falta a prova</span><span class=\"ds-selo ds-selo-bloqueado\">Bloqueado</span></div>",
+      "css": ".ds-selos { display: flex; flex-wrap: wrap; gap: 8px; } .ds-selo { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-concluido { background: var(--ceu, #aad2ea); color: var(--sobre-cor, #22262b); } .ds-selo-andamento { background: rgb(255 204 1 / 0.14); color: var(--sol, #ffcc01); } .ds-selo-prova { background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); } .ds-selo-bloqueado { background: transparent; color: var(--muted-foreground, #a8acb0); box-shadow: inset 0 0 0 1px var(--muted-foreground, #a8acb0); }"
+    },
+    {
+      "name": "Cartão",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Cartão de conteúdo: tom de cartão e anel de 1 px, sem sombra.",
+      "html": "<section class=\"ds-card\"><h2>Tudo em dia</h2><p>Você não tem aula pendente nos cursos liberados.</p><div class=\"ds-barra\"><span style=\"width:62%\"></span></div></section>",
+      "css": ".ds-card { display: grid; gap: 12px; max-width: 520px; padding: clamp(22px, 3.4vw, 36px); border-radius: 20px; background: var(--card, #33383e); color: var(--card-foreground, #e9ecef); box-shadow: 0 0 0 1px var(--border, #40454a); font: 400 14px Geist, ui-sans-serif, sans-serif; } .ds-card h2 { margin: 0; color: var(--titulo, #f4f5f7); font-size: clamp(24px, 2.6vw, 32px); font-weight: 700; line-height: 1.15; letter-spacing: -0.025em; } .ds-card p { margin: 0; color: var(--muted-foreground, #a8acb0); } .ds-barra { height: 10px; overflow: hidden; border-radius: 9999px; background: var(--trilho, #4d5257); } .ds-barra span { display: block; height: 100%; border-radius: 9999px; background: var(--sol, #ffcc01); }"
+    },
+    {
+      "name": "Cartão de conta",
+      "kind": "custom",
+      "refersTo": "sidebar",
+      "description": "Rodapé da sidebar: avatar, nome, saldo e sequência; abre o menu da conta.",
+      "html": "<button class=\"ds-conta\"><span class=\"ds-avatar\">OC</span><span class=\"ds-conta-texto\"><b>Othavio Castro</b><span><em>★ 1.240</em> · 5 dias</span></span></button>",
+      "css": ".ds-conta { display: flex; align-items: center; gap: 10px; width: 212px; padding: 8px; border: 1px solid var(--sidebar-border, #40454a); border-radius: 22px; background: var(--sidebar, #282d33); text-align: left; cursor: pointer; transition: border-color 150ms ease-out, background-color 150ms ease-out; } .ds-conta:hover { border-color: var(--trilho, #4d5257); background: var(--sidebar-accent, #2f343a); } .ds-conta:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 2px; } .ds-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); font: 700 13px Geist, ui-sans-serif, sans-serif; } .ds-conta-texto { display: grid; gap: 2px; font: 400 12px Geist, ui-sans-serif, sans-serif; color: var(--muted-foreground, #a8acb0); } .ds-conta-texto b { color: var(--titulo, #f4f5f7); font-size: 14px; font-weight: 600; } .ds-conta-texto em { font-style: normal; font-weight: 600; color: var(--sol, #ffcc01); }"
+    },
+    {
+      "name": "Dica",
+      "kind": "custom",
+      "refersTo": "tooltip",
+      "description": "Tooltip claro sobre a sidebar escura.",
+      "html": "<span class=\"ds-dica\">Recolher <span>Ctrl B</span></span>",
+      "css": ".ds-dica { display: inline-flex; gap: 6px; padding: 6px 10px; border-radius: 7px; background: var(--titulo, #f4f5f7); color: var(--sobre-cor, #22262b); font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-dica span { font-weight: 400; opacity: 0.7; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A sala de estudo com a luz acesa",
+    "overview": "Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da pessoa: o link em que ela está, o botão que ela deve apertar, quanto do curso já fez. O fundo é cinza grafite em quatro degraus (fundo, sidebar, cartão, popover), sem preto puro, e o texto é quase branco. Sobre isso entram as três cores da combinação nº 213 de Sanzo Wada: Sol (amarelo damasco), Céu (azul-claro) e Canela. O tom é amigável e alegre sem perder a seriedade técnica de quem fabrica as máquinas que os cursos ensinam.\n\nA densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal sob o cursor e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player e o anel do dia na semana.\n\nA marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo. A marca é imagem raster e nunca se redesenha em CSS. O favicon é só a pena.",
+    "keyCharacteristics": [
+      "Tema único, escuro, sem alternância de tema (`color-scheme: dark` fixo).",
+      "Sol é a cor de ação e de \"você está aqui\"; Céu é foco, informação e conclusão; Canela é calor secundário (sequência, prova, avatar).",
+      "Vermelho só para erro e alerta.",
+      "Cantos generosos e pílulas; nenhum canto vivo em superfície interativa.",
+      "Movimento curto, com ease-out forte, e sempre desligado com movimento reduzido."
+    ],
+    "rules": [
+      {
+        "name": "The Light Marks the Place Rule",
+        "body": "Sol aparece onde a pessoa está ou deve agir: o link ativo, o botão principal, o progresso, o saldo. Cada tela tem um botão principal amarelo por contexto; o resto é contorno.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Is Only Error Rule",
+        "body": "Vermelho e o salmão `erro` servem só a erro e alerta. Novidade, destaque, progresso e \"em breve\" usam Sol ou Céu.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dark Text On Color Rule",
+        "body": "Sobre Sol, Céu ou Canela cheios, o texto é `sobre-cor`, nunca branco. Sobre fundo escuro, cor de Wada pode ser texto (Sol, Céu) porque passa de 4,5:1.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Todo número que muda ou se compara (pontos, dias, porcentagem, contagem de tabela) usa `tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Shouting Rule",
+        "body": "Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat At Rest Rule",
+        "body": "Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do usar Sol para o botão principal e para o link ativo, com texto `sobre-cor`.",
+      "Do dar foco visível a todo controle com contorno sólido de 2 px em Céu.",
+      "Do separar superfícies pelo degrau de tom e pelo anel de 1 px em `borda`.",
+      "Do usar raio de 20 px em cartões e pílula em botões, selos e barras.",
+      "Do desligar toda transição e animação com `prefers-reduced-motion`, e não animar o que a pessoa dispara pelo teclado (Ctrl+B).",
+      "Do usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface.",
+      "Do usar a marca pelos arquivos de `public/marca/` e o nome por `lib/marca.ts`."
+    ],
+    "donts": [
+      "Don't usar vermelho ou `erro` para destaque, novidade ou progresso.",
+      "Don't pôr texto branco sobre Sol, Céu ou Canela cheios.",
+      "Don't criar tema claro nem alternância de tema.",
+      "Don't pôr sombra em cartão em repouso.",
+      "Don't redesenhar a pena ou o livro em CSS ou SVG, nem usar o livro no favicon.",
+      "Don't pôr pontos ou sequência fora do cartão de conta na casca, nem ocupar o canto direito do topo com peça da casca.",
+      "Don't usar caixa alta ou linha acima de título fora do selo da área."
+    ]
+  }
+}
