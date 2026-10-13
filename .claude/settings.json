@@ -11,6 +11,18 @@
         ],
         "matcher": "Write|Edit"
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/nuvem/preparar.sh\"",
+            "timeout": 600,
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume"
+      }
     ]
   }
 }
