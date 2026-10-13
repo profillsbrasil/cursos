@@ -40,7 +40,8 @@ function textos(r: Retomada) {
     case "prova":
       return {
         chamada: "Falta a prova",
-        chamadaAqui: "Você está na prova",
+        // A página do curso ainda diz que a prova não existe: "Você está na prova" mentiria.
+        chamadaAqui: "Falta só a prova",
         pct: r.progresso.pct,
         titulo: r.curso.titulo,
       };

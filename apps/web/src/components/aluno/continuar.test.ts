@@ -78,7 +78,7 @@ describe("continuarDe", () => {
   test("prova: título do curso e link para a página do curso", () => {
     expect<unknown>(continuarDe(prova)).toEqual({
       chamada: "Falta a prova",
-      chamadaAqui: "Você está na prova",
+      chamadaAqui: "Falta só a prova",
       href: NO_CURSO,
       pct: 100,
       rotulo: "Falta a prova: Comercial, 100% do curso",
