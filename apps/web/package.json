@@ -25,6 +25,7 @@
     "@varlock/nextjs-integration": "1.2.3",
     "babel-plugin-react-compiler": "^1.0.0",
     "lucide-react": "catalog:",
+    "motion": "13.4.4",
     "next": "^16.3.4",
     "next-themes": "catalog:",
     "react": "catalog:",
