@@ -2,7 +2,20 @@ import { describe, expect, test } from "bun:test";
 
 import { ITENS_DO_ADMIN } from "../admin/menu";
 import { ITENS_DO_ALUNO } from "../aluno/menu";
-import { indiceAtivo, type MovimentoDaPilula, movimentoDaPilula } from "./nav";
+import {
+  indiceAtivo,
+  LARGURAS_DA_SIDEBAR,
+  type MovimentoDaPilula,
+  movimentoDaPilula,
+} from "./nav";
+
+describe("largura recolhida", () => {
+  // O sidebar-container tem border-r dentro da largura (border-box): sem somar o
+  // 1 px, o recuo da direita cai para 13 px e o quadrado de 40 px não cabe.
+  test("14 px de recuo, 40 px de conteúdo, 14 px de recuo e 1 px de borda", () => {
+    expect(LARGURAS_DA_SIDEBAR["--sidebar-width-icon"]).toBe("69px");
+  });
+});
 
 describe("indiceAtivo", () => {
   test("caminho exato marca page", () => {

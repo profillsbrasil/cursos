@@ -46,7 +46,19 @@ export function indiceAtivo(
   return null;
 }
 
-const ALTURA_DO_ITEM = 40;
+/** Da borda da sidebar ao conteúdo, nos dois modos; casca.tsx aplica no cabeçalho, na lista e no rodapé. */
+export const RECUO = 14;
+/** O quadrado recolhido: o item, o botão do cabeçalho, o Continuar e o cartão de conta. */
+const LADO = 40;
+/** O border-r do sidebar-container, que fica dentro da largura (border-box). */
+const BORDA = 1;
+
+export const LARGURAS_DA_SIDEBAR = {
+  "--sidebar-width": "15.5rem",
+  "--sidebar-width-icon": `${RECUO + LADO + RECUO + BORDA}px`,
+};
+
+const ALTURA_DO_ITEM = LADO;
 const VAO_DO_ITEM = 4;
 const PASSO = ALTURA_DO_ITEM + VAO_DO_ITEM;
 

@@ -13,14 +13,10 @@ import {
   useState,
 } from "react";
 
+import { LARGURAS_DA_SIDEBAR } from "./nav";
+
 /** A transição de largura de index.css dura 200 ms; a folga cobre o último quadro. */
 const PRAZO_DA_ANIMACAO_MS = 260;
-
-const LARGURAS = {
-  "--sidebar-width": "15.5rem",
-  // 68 px: o conteúdo recolhido tem 40 px, com 14 px de cada lado.
-  "--sidebar-width-icon": "4.25rem",
-} as CSSProperties;
 
 const Animar = createContext<((desde: number) => void) | null>(null);
 
@@ -53,7 +49,7 @@ export function ProvedorDaCasca({
     <SidebarProvider
       data-animando={animandoDesde === null ? undefined : ""}
       defaultOpen={aberta}
-      style={LARGURAS}
+      style={LARGURAS_DA_SIDEBAR as CSSProperties}
     >
       <FecharGavetaAoNavegar />
       <Animar value={setAnimandoDesde}>{children}</Animar>

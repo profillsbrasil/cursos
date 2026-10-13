@@ -12,7 +12,7 @@ import { carregarResumo, paraACasca } from "@/server/api";
 
 import { CabecalhoDaCasca, TopoDoCelular } from "./cabecalho-da-casca";
 import { CartaoDeConta, type Placar } from "./cartao-de-conta";
-import type { ItemDoMenu, LinkDaArea } from "./nav";
+import { type ItemDoMenu, type LinkDaArea, RECUO } from "./nav";
 import { NavPrincipal } from "./nav-principal";
 import { ProvedorDaCasca } from "./provedor-da-casca";
 
@@ -55,13 +55,16 @@ export async function Casca({
   return (
     <ProvedorDaCasca aberta={aberta}>
       <Sidebar collapsible="icon" variant="sidebar">
-        <SidebarHeader className="h-[68px] shrink-0 flex-row items-center gap-2.5 py-0 pr-3 pl-3.5">
+        <SidebarHeader
+          className="h-[68px] shrink-0 flex-row items-center gap-2.5 py-0 pr-3"
+          style={{ paddingLeft: RECUO }}
+        >
           <CabecalhoDaCasca selo={selo} />
         </SidebarHeader>
-        <SidebarContent className="px-3.5 py-1.5">
+        <SidebarContent className="py-1.5" style={{ paddingInline: RECUO }}>
           <NavPrincipal itens={itens} rotulo={rotulo} />
         </SidebarContent>
-        <SidebarFooter className="gap-2 p-3.5">
+        <SidebarFooter className="gap-2" style={{ padding: RECUO }}>
           {rodape}
           <CartaoDeConta outraArea={outraArea} placar={placar} />
         </SidebarFooter>
