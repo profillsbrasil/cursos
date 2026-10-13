@@ -1,4 +1,4 @@
-/** Quanto tempo o aviso "Aula assistida" e o anel do chip de pontos ficam à vista (protótipo). */
+/** Quanto tempo o aviso "Aula assistida" e o anel do cartão de conta ficam à vista (protótipo). */
 export const AVISO_MS = 5200;
 export const ANEL_MS = 1400;
 
@@ -46,5 +46,5 @@ export function criarSinal(agendar: Agendar, ms: number) {
 
 export type Sinal = ReturnType<typeof criarSinal>;
 
-/** O chip de pontos do topo acende quando a conquista chega, em qualquer tela que o mostre. */
+/** O cartão de conta da sidebar acende quando a conquista chega. */
 export const anelDosPontos = criarSinal(agendarNoNavegador, ANEL_MS);

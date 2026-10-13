@@ -1,26 +1,20 @@
-import { SidebarInset, SidebarProvider } from "@cursos/ui/components/sidebar";
-import { cookies } from "next/headers";
-import type { CSSProperties } from "react";
-
-import { AppSidebar } from "@/components/aluno/app-sidebar";
+import { AREA_DO_ADMIN, ITENS_DO_ALUNO } from "@/components/aluno/menu";
+import { Casca } from "@/components/casca/casca";
+import { souAdmin } from "@/server/api";
 
 // Conteúdo em largura total: nenhum ancestral do conteúdo tem max-width, container ou mx-auto.
 export default async function LayoutDoAluno({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const cookieStore = await cookies();
-  const aberta = cookieStore.get("sidebar_state")?.value !== "false";
+  // await: auth.protect() redireciona aqui, antes de a casca pedir qualquer dado.
+  const admin = await souAdmin();
   return (
-    <SidebarProvider
-      defaultOpen={aberta}
-      style={{ "--sidebar-width": "15.5rem" } as CSSProperties}
+    <Casca
+      itens={ITENS_DO_ALUNO}
+      outraArea={admin ? AREA_DO_ADMIN : null}
+      rotulo="Navegação principal"
     >
-      <AppSidebar />
-      <SidebarInset>
-        <div className="min-w-0 px-[clamp(1rem,4vw,3rem)] pt-8 pb-16">
-          {children}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+      {children}
+    </Casca>
   );
 }

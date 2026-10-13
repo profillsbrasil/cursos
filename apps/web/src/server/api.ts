@@ -3,7 +3,7 @@ import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { contextoDe, ehAdmin } from "@cursos/api/context";
 import { createCaller } from "@cursos/api/routers/index";
-import { notFound } from "next/navigation";
+import { notFound, unstable_rethrow } from "next/navigation";
 import { cache } from "react";
 
 import { servicos } from "@/services";
@@ -31,7 +31,7 @@ export const exigirAdmin = cache(async () => {
   return createCaller(ctx);
 });
 
-/** Para a sidebar do aluno mostrar o link da área do admin. */
+/** Para o menu da conta do aluno mostrar o link da área do admin. */
 export const souAdmin = cache(async () => ehAdmin((await contexto()).auth));
 
 export const carregarPainel = cache(async () =>
@@ -41,6 +41,24 @@ export const carregarPainel = cache(async () =>
 export const carregarResumo = cache(async () =>
   (await caller()).aluno.resumo()
 );
+
+/**
+ * Dado acessório da casca (o placar do cartão de conta, o Continuar do aluno). A
+ * casca mora no layout, e um erro de layout troca a casca inteira pela tela de erro
+ * da raiz. Assim a falha tira só a peça: o erro vai ao log do servidor e a Promise
+ * resolve null, enquanto a página, que lê o próprio dado, mostra o erro dela dentro
+ * da casca. redirect e notFound passam por unstable_rethrow.
+ */
+export function paraACasca<T>(
+  peca: "continuar" | "placar",
+  carregar: Promise<T>
+): Promise<T | null> {
+  return carregar.catch((erro: unknown) => {
+    unstable_rethrow(erro);
+    console.error(`casca: ${peca} não carregou`, erro);
+    return null;
+  });
+}
 
 export const carregarAula = cache(async (slug: string, aulaId: string) =>
   (await caller()).aula.abrir({ aulaId, slug })

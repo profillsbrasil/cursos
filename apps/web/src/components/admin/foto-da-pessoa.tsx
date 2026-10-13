@@ -4,15 +4,7 @@ import {
   AvatarImage,
 } from "@cursos/ui/components/avatar";
 
-const ESPACOS = /\s+/;
-
-/** "Ana Souza" vira "AS"; e-mail ou userId vira a primeira letra. */
-function iniciais(nome: string) {
-  const partes = nome.trim().split(ESPACOS);
-  const primeira = partes[0]?.[0] ?? "?";
-  const ultima = partes.length > 1 ? (partes.at(-1)?.[0] ?? "") : "";
-  return `${primeira}${ultima}`.toUpperCase();
-}
+import { iniciais } from "@/lib/formato";
 
 export function FotoDaPessoa({
   foto,
