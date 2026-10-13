@@ -194,7 +194,11 @@ function servidorFalso(relogio: Relogio) {
 
 function montar(
   inicioSeg = 0,
-  { preferencias = PREFERENCIAS_PADRAO, pronto = true } = {}
+  {
+    conquistaLanca = false,
+    preferencias = PREFERENCIAS_PADRAO,
+    pronto = true,
+  } = {}
 ) {
   const relogio = relogioFalso();
   const video = playerFalso(relogio);
@@ -209,7 +213,12 @@ function montar(
     },
     {
       agendar: relogio.agendar,
-      aoConquistar: (c) => conquistas.push(c),
+      aoConquistar: (c) => {
+        conquistas.push(c);
+        if (conquistaLanca) {
+          throw new Error("aoConquistar lançou");
+        }
+      },
       criarPlayer: (o) => video.criar(o),
       enviar: (p) => servidor.enviar(p),
       relogio: relogio.agora,
@@ -561,6 +570,19 @@ describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
 
   test("o envio de saída que traz a conquista já pediu o refresh", async () => {
     const { conquistas, relogio, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(530_000);
+    servidor.falhar({ tipo: "rede" });
+    await relogio.avancar(11_000);
+    servidor.falhar(null);
+    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(conquistas).toHaveLength(1);
+  });
+
+  test("aoConquistar que lança no envio de saída não faz o fim rejeitar", async () => {
+    const { conquistas, relogio, servidor, sessao } = montar(0, {
+      conquistaLanca: true,
+    });
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(530_000);
     servidor.falhar({ tipo: "rede" });

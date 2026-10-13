@@ -515,7 +515,7 @@ export function criarSessaoDeEstudo(
       pararAmostra?.();
       pararEnvio?.();
       player.destruir();
-      fim = Promise.all(emVoo).then(() => ({ gravouSemRefresh }));
+      fim = Promise.allSettled(emVoo).then(() => ({ gravouSemRefresh }));
       return fim;
     },
     estado: () => foto,
