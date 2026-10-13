@@ -74,6 +74,8 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
 
 function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);
+  // Em /trocar-pontos o caminho não muda, e só este clique fecha a gaveta.
+  const { fecharNoCelular } = useAlternarNavegacao();
   if (!p) {
     return null;
   }
@@ -82,6 +84,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
       <div className="grid grid-cols-2 gap-1.5 p-1">
         <DropdownMenuItem
           className={PLACA}
+          onClick={fecharNoCelular}
           render={<Link href="/trocar-pontos" />}
         >
           Saldo
@@ -91,6 +94,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           className={PLACA}
+          onClick={fecharNoCelular}
           render={<Link href="/trocar-pontos" />}
         >
           Sequência

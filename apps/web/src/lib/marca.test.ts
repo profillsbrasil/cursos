@@ -6,9 +6,9 @@ import { Glob } from "bun";
 import { PRODUTO } from "./marca";
 
 const SRC = join(import.meta.dir, "..");
-// Profills e School separados só por espaço, quebra de linha ou tag: "High School"
-// numa copy de curso não é o nome antigo.
-const NOME_ANTIGO = /\bProfills(?:\s|<[^>]*>)*School\b/;
+// Profills e School separados só por espaço, quebra de linha, tag ou o {" "} do JSX:
+// "High School" numa copy de curso não é o nome antigo.
+const NOME_ANTIGO = /\bProfills(?:\s|<[^>]*>|\{"\s*"\})*School\b/;
 const arquivos = () =>
   [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
     (a) => !(a.endsWith(".test.ts") || a.endsWith(".test.tsx"))
