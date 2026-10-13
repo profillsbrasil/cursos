@@ -6,7 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import Providers from "@/components/providers";
 import PwaRegistration from "@/components/pwa-registration";
-import { PRODUTO } from "@/lib/marca";
+import { TITULO_DA_RAIZ } from "@/lib/marca";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   description:
     "Cursos da Profills Brasil sobre máquinas, envase, vendas e rotinas.",
-  title: { default: PRODUTO, template: `%s · ${PRODUTO}` },
+  title: TITULO_DA_RAIZ,
 };
 
 export const viewport: Viewport = {

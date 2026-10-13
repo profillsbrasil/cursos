@@ -5,6 +5,18 @@
  */
 export const PRODUTO = "Profills Cursos";
 
+/**
+ * O formato do título de toda página. Um layout com `title` em texto zera o template
+ * para as páginas abaixo dele, então o layout que tem título próprio repete este.
+ */
+export const TEMPLATE_DO_TITULO = `%s · ${PRODUTO}`;
+
+/** O título do layout raiz: o nome sozinho na página sem título. */
+export const TITULO_DA_RAIZ = {
+  default: PRODUTO,
+  template: TEMPLATE_DO_TITULO,
+};
+
 /** Imagem raster com a medida intrínseca, para o next/image não pular o layout. */
 export interface ImagemDaMarca {
   altura: number;

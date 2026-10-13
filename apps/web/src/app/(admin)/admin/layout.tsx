@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 
 import { ITENS_DO_ADMIN, VER_COMO_ALUNO } from "@/components/admin/menu";
 import { Casca } from "@/components/casca/casca";
-import { PRODUTO } from "@/lib/marca";
+import { TEMPLATE_DO_TITULO } from "@/lib/marca";
 import { exigirAdmin } from "@/server/api";
 
-// Um title em texto aqui cortaria o template da raiz para as páginas do admin.
 export const metadata: Metadata = {
-  title: { default: "Admin", template: `%s · ${PRODUTO}` },
+  title: { default: "Admin", template: TEMPLATE_DO_TITULO },
 };
 
 // proxy.ts não tem regra por caminho: a porta é exigirAdmin aqui e em cada carregador,
