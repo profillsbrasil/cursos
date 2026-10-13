@@ -65,21 +65,19 @@ export interface MovimentoDaPilula {
 }
 
 /**
- * Para onde a pílula vai e como. Desliza entre dois itens; salta quando não havia
- * item antes (ela acabou de aparecer) e com movimento reduzido. null: nenhum item
- * ativo, e a pílula não é desenhada.
+ * Para onde a pílula vai e como. Desliza entre dois itens e salta com movimento
+ * reduzido. Quando ela acabou de aparecer, o initial={false} do motion.li já a põe
+ * no lugar sem animar. null: nenhum item ativo, e a pílula não é desenhada.
  */
 export function movimentoDaPilula(
-  anterior: number | null,
   atual: number | null,
   reduzir: boolean
 ): MovimentoDaPilula | null {
   if (atual === null) {
     return null;
   }
-  const salta = anterior === null || reduzir;
   return {
     transform: `translateY(${atual * PASSO}px)`,
-    transicao: { duration: salta ? 0 : DESLIZE_S, ease: CURVA_FORTE },
+    transicao: { duration: reduzir ? 0 : DESLIZE_S, ease: CURVA_FORTE },
   };
 }

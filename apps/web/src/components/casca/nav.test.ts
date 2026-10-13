@@ -39,27 +39,20 @@ const CURVA: MovimentoDaPilula["transicao"]["ease"] = [0.23, 1, 0.32, 1];
 
 describe("movimentoDaPilula", () => {
   test("de um item a outro, desliza 180 ms até o passo do novo índice", () => {
-    expect(movimentoDaPilula(1, 2, false)).toEqual({
+    expect(movimentoDaPilula(2, false)).toEqual({
       transform: "translateY(88px)",
       transicao: { duration: 0.18, ease: CURVA },
     });
   });
 
-  test("sem item antes, salta para o lugar", () => {
-    expect(movimentoDaPilula(null, 1, false)).toEqual({
-      transform: "translateY(44px)",
-      transicao: { duration: 0, ease: CURVA },
-    });
-  });
-
   test("com movimento reduzido, salta", () => {
-    expect(movimentoDaPilula(2, 0, true)).toEqual({
+    expect(movimentoDaPilula(0, true)).toEqual({
       transform: "translateY(0px)",
       transicao: { duration: 0, ease: CURVA },
     });
   });
 
   test("sem item ativo, sem pílula", () => {
-    expect(movimentoDaPilula(1, null, false)).toBeNull();
+    expect(movimentoDaPilula(null, false)).toBeNull();
   });
 });

@@ -9,7 +9,6 @@ import { cn } from "@cursos/ui/lib/utils";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 import { DICA, DICA_SECUNDARIA, FOCO } from "./estilo";
 import {
@@ -37,20 +36,6 @@ const ITEM_ATIVO =
 const ITEM_EM_BREVE =
   "cursor-default text-muted-foreground hover:bg-transparent hover:text-muted-foreground active:bg-transparent active:text-muted-foreground aria-disabled:pointer-events-auto aria-disabled:opacity-100 hover:[&_svg]:text-muted-foreground";
 
-/**
- * O índice anterior fica guardado do render em que o caminho mudou, para a pílula
- * saber se desliza (havia item antes) ou salta (ela acabou de aparecer).
- */
-function useIndiceAnterior(atual: number | null) {
-  const [ultimo, setUltimo] = useState(atual);
-  const [anterior, setAnterior] = useState<number | null>(null);
-  if (ultimo !== atual) {
-    setAnterior(ultimo);
-    setUltimo(atual);
-  }
-  return anterior;
-}
-
 export function NavPrincipal({
   itens,
   rotulo,
@@ -59,10 +44,8 @@ export function NavPrincipal({
   rotulo: string;
 }) {
   const ativo = indiceAtivo(usePathname(), itens);
-  const atual = ativo?.indice ?? null;
-  const anterior = useIndiceAnterior(atual);
   const reduzir = useReducedMotion() ?? false;
-  const movimento = movimentoDaPilula(anterior, atual, reduzir);
+  const movimento = movimentoDaPilula(ativo?.indice ?? null, reduzir);
   const { fecharNoCelular } = useAlternarNavegacao();
   return (
     <nav aria-label={rotulo} style={GEOMETRIA_DA_LISTA}>
