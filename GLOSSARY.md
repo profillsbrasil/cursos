@@ -46,4 +46,6 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Comunicado | Aviso publicado pelo admin, geral ou de um curso. |
 | Estado do curso | Um de seis valores calculados no servidor: `em_breve`, `bloqueado`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. |
 | Curso da vez | Primeiro curso de uma trilha que abre e não está concluído. |
-| Retomada | A aula e o segundo para onde o banner leva: continuar, começar ou fazer a prova. |
+| Retomada | A aula e o segundo para onde o banner de "Meus cursos" e o cartão "Continuar" da sidebar levam: continuar, começar ou fazer a prova. Os dois leem a mesma retomada, e sem retomada o cartão não aparece. |
+| Placar | Saldo e sequência do aluno no cartão de conta da sidebar. É o único lugar da tela que os mostra fora de "Trocar pontos", da semana de "Meus cursos" e do aviso de conquista do player. |
+| Casca | A moldura de navegação comum ao aluno e ao admin: a sidebar, que recolhe para ícones, a gaveta do celular e o rodapé com o cartão de conta. Cada área passa só os itens, o selo e o link para a outra área. |

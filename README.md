@@ -1,4 +1,6 @@
-# cursos
+# Profills Cursos
+
+A plataforma de cursos da Profills Brasil (repositório `cursos`). O mapa do código e as regras de trabalho estão em `CLAUDE.md`. O produto está em `apps/web/PRODUCT.md`, o sistema visual em `apps/web/DESIGN.md`, a marca em `docs/marca/README.md` e o vocabulário do domínio em `GLOSSARY.md`.
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, Self, TRPC, and more.
 
@@ -12,6 +14,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **Drizzle** - TypeScript-first ORM
 - **PostgreSQL** - Database engine
 - **Authentication** - Clerk
+- **Motion** - Animation the CSS can't do alone (the sliding pill of the active sidebar item)
 - **PWA** - Progressive Web App support
 - **Turborepo** - Optimized monorepo build system
 
@@ -127,7 +130,6 @@ cursos/
 - `bun run db:generate`: Generate database client/types
 - `bun run db:migrate`: Run database migrations
 - `bun run db:studio`: Open database studio UI
-- `cd apps/web && bun run generate-pwa-assets`: Generate PWA assets
 - `bun run deploy:setup`: Link this repo to a Vercel project (first-time setup)
 - `bun run dev:vercel`: Run the Vercel Services dev environment locally
 - `bun run env:preview`: Sync local env files to the Vercel preview environment

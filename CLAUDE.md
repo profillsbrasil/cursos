@@ -59,6 +59,8 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 - `scripts/sync-vercel-env.ts`: atrás de `bun run env:preview` e `env:production`.
 - `vercel.json`: serviço `web` com raiz em `apps/web` e install na raiz do monorepo.
 - `AGENTS.md` e `apps/web/AGENTS.md`: blocos que o turbo e o `next dev` reescrevem sozinhos. Commite as mudanças deles junto com o trabalho.
+- `apps/web/PRODUCT.md`: o produto, o público e as decisões do dono. `apps/web/DESIGN.md` (com o sidecar `apps/web/.impeccable/design.json`): o sistema visual tirado do código, com tokens, tipografia, formas, a casca e as regras de movimento. UI nova segue o `DESIGN.md`; mudança que o contradiz atualiza o arquivo no mesmo PR.
+- `docs/marca/`: o que é cada arquivo da marca, de onde veio, e o que falta (o SVG). O logo oficial da Profills fica ali como referência, fora do `public/`.
 
 ## Env (varlock)
 
