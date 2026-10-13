@@ -4,47 +4,220 @@
   "title": "Design System: Profills Cursos",
   "extensions": {
     "colorMeta": {
-      "sol": { "role": "primary", "displayName": "Sol, amarelo damasco", "canonical": "#ffcc01", "tonalRamp": ["#3d3000", "#5c4900", "#856a00", "#b08c00", "#d9ad00", "#ffcc01", "#ffe066", "#fff3c2"] },
-      "sol-hover": { "role": "primary", "displayName": "Sol sob o cursor", "canonical": "#ffd633" },
-      "ceu": { "role": "secondary", "displayName": "Céu, azul-rei pálido", "canonical": "#aad2ea", "tonalRamp": ["#13303f", "#1f4a61", "#2e6584", "#4a84a6", "#73a7c8", "#aad2ea", "#cde4f2", "#ecf5fa"] },
-      "canela": { "role": "tertiary", "displayName": "Canela", "canonical": "#e5977a", "tonalRamp": ["#3d1d11", "#5e2d1b", "#80412a", "#a65a3e", "#cc785a", "#e5977a", "#f0bca8", "#f9e2d9"] },
-      "erro": { "role": "error", "displayName": "Salmão de erro", "canonical": "#ff8f86" },
-      "sobre-cor": { "role": "neutral", "displayName": "Grafite sobre a cor", "canonical": "#22262b" },
-      "titulo": { "role": "neutral", "displayName": "Branco de título", "canonical": "#f4f5f7" },
-      "texto": { "role": "neutral", "displayName": "Texto", "canonical": "#e9ecef" },
-      "texto-apagado": { "role": "neutral", "displayName": "Texto apagado", "canonical": "#a8acb0" },
-      "fundo": { "role": "neutral", "displayName": "Fundo grafite", "canonical": "#1a1d22", "tonalRamp": ["#1a1d22", "#22262b", "#282d33", "#2f343a", "#33383e", "#3a3f45", "#40454a", "#4d5257"] },
-      "sidebar": { "role": "neutral", "displayName": "Grafite da sidebar", "canonical": "#282d33" },
-      "sidebar-realce": { "role": "neutral", "displayName": "Realce da sidebar", "canonical": "#2f343a" },
-      "cartao": { "role": "neutral", "displayName": "Cartão", "canonical": "#33383e" },
-      "popover": { "role": "neutral", "displayName": "Popover", "canonical": "#3a3f45" },
-      "borda": { "role": "neutral", "displayName": "Borda", "canonical": "#40454a" },
-      "trilho": { "role": "neutral", "displayName": "Trilho", "canonical": "#4d5257" },
-      "contorno-de-campo": { "role": "neutral", "displayName": "Contorno de campo (token input)", "canonical": "#7a7e83" },
-      "cinza-grafico": { "role": "neutral", "displayName": "Cinza do gráfico e da barra de rolagem", "canonical": "#61656a" },
-      "pagina-do-livro": { "role": "brand", "displayName": "Página do livro (só na marca)", "canonical": "#F4F5F7" }
+      "sol": {
+        "role": "primary",
+        "displayName": "Sol, amarelo damasco",
+        "canonical": "#ffcc01",
+        "tonalRamp": [
+          "#3d3000",
+          "#5c4900",
+          "#856a00",
+          "#b08c00",
+          "#d9ad00",
+          "#ffcc01",
+          "#ffe066",
+          "#fff3c2"
+        ]
+      },
+      "sol-hover": {
+        "role": "primary",
+        "displayName": "Sol sob o cursor",
+        "canonical": "#ffd633"
+      },
+      "ceu": {
+        "role": "secondary",
+        "displayName": "Céu, azul-rei pálido",
+        "canonical": "#aad2ea",
+        "tonalRamp": [
+          "#13303f",
+          "#1f4a61",
+          "#2e6584",
+          "#4a84a6",
+          "#73a7c8",
+          "#aad2ea",
+          "#cde4f2",
+          "#ecf5fa"
+        ]
+      },
+      "canela": {
+        "role": "tertiary",
+        "displayName": "Canela",
+        "canonical": "#e5977a",
+        "tonalRamp": [
+          "#3d1d11",
+          "#5e2d1b",
+          "#80412a",
+          "#a65a3e",
+          "#cc785a",
+          "#e5977a",
+          "#f0bca8",
+          "#f9e2d9"
+        ]
+      },
+      "erro": {
+        "role": "error",
+        "displayName": "Salmão de erro",
+        "canonical": "#ff8f86"
+      },
+      "sobre-cor": {
+        "role": "neutral",
+        "displayName": "Grafite sobre a cor",
+        "canonical": "#22262b"
+      },
+      "titulo": {
+        "role": "neutral",
+        "displayName": "Branco de título",
+        "canonical": "#f4f5f7"
+      },
+      "texto": {
+        "role": "neutral",
+        "displayName": "Texto",
+        "canonical": "#e9ecef"
+      },
+      "texto-apagado": {
+        "role": "neutral",
+        "displayName": "Texto apagado",
+        "canonical": "#a8acb0"
+      },
+      "fundo": {
+        "role": "neutral",
+        "displayName": "Fundo grafite",
+        "canonical": "#1a1d22",
+        "tonalRamp": [
+          "#1a1d22",
+          "#22262b",
+          "#282d33",
+          "#2f343a",
+          "#33383e",
+          "#3a3f45",
+          "#40454a",
+          "#4d5257"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Grafite da sidebar",
+        "canonical": "#282d33"
+      },
+      "sidebar-realce": {
+        "role": "neutral",
+        "displayName": "Realce da sidebar",
+        "canonical": "#2f343a"
+      },
+      "cartao": {
+        "role": "neutral",
+        "displayName": "Cartão",
+        "canonical": "#33383e"
+      },
+      "popover": {
+        "role": "neutral",
+        "displayName": "Popover",
+        "canonical": "#3a3f45"
+      },
+      "borda": {
+        "role": "neutral",
+        "displayName": "Borda",
+        "canonical": "#40454a"
+      },
+      "trilho": {
+        "role": "neutral",
+        "displayName": "Trilho",
+        "canonical": "#4d5257"
+      },
+      "contorno-de-campo": {
+        "role": "neutral",
+        "displayName": "Contorno de campo (token input)",
+        "canonical": "#7a7e83"
+      },
+      "cinza-grafico": {
+        "role": "neutral",
+        "displayName": "Cinza do gráfico e da barra de rolagem",
+        "canonical": "#61656a"
+      },
+      "pagina-do-livro": {
+        "role": "brand",
+        "displayName": "Página do livro (só na marca)",
+        "canonical": "#F4F5F7"
+      }
     },
     "typographyMeta": {
-      "headline": { "displayName": "Headline", "purpose": "Título do banner de retomada; segundo verso em Sol." },
-      "title-page": { "displayName": "Título de página", "purpose": "O h1 das páginas, em titulo; 24 px nas telas de erro e de não encontrado." },
-      "title-section": { "displayName": "Título de seção", "purpose": "O h2 das seções do admin." },
-      "body": { "displayName": "Corpo", "purpose": "Texto corrido, células e campos." },
-      "label": { "displayName": "Rótulo", "purpose": "Botões, nomes de menu, rótulos de campo." },
-      "caption": { "displayName": "Legenda", "purpose": "Selos, números do cartão de conta, cabeçalho de tabela." },
-      "mono": { "displayName": "Mono", "purpose": "Carregada pelo layout; uso raro." }
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Título do banner de retomada; segundo verso em Sol."
+      },
+      "title-page": {
+        "displayName": "Título de página",
+        "purpose": "O h1 das páginas, em titulo; 24 px nas telas de erro e de não encontrado."
+      },
+      "title-section": {
+        "displayName": "Título de seção",
+        "purpose": "O h2 das seções do admin."
+      },
+      "body": {
+        "displayName": "Corpo",
+        "purpose": "Texto corrido, células e campos."
+      },
+      "label": {
+        "displayName": "Rótulo",
+        "purpose": "Botões, nomes de menu, rótulos de campo."
+      },
+      "caption": {
+        "displayName": "Legenda",
+        "purpose": "Selos, números do cartão de conta, cabeçalho de tabela."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Carregada pelo layout; uso raro."
+      }
     },
     "shadows": [
-      { "name": "brilho-do-botao", "value": "0 6px 18px rgb(255 204 1 / 0.28)", "purpose": "Botão principal sob o cursor." },
-      { "name": "brilho-do-saldo", "value": "0 10px 30px rgb(255 204 1 / 0.25)", "purpose": "Círculo amarelo do saldo em Trocar pontos." },
-      { "name": "flutuante", "value": "0 10px 30px rgb(0 0 0 / 0.45)", "purpose": "Barra de salvar presa ao pé dos editores." },
-      { "name": "menu", "value": "0 20px 25px -5px rgb(0 0 0 / 0.45), 0 8px 10px -6px rgb(0 0 0 / 0.45)", "purpose": "Menu do cartão de conta." },
-      { "name": "anel-de-conquista", "value": "0 0 0 3px rgb(255 204 1 / 0.35)", "purpose": "Cartão de conta quando o player registra pontos." }
+      {
+        "name": "brilho-do-botao",
+        "value": "0 6px 18px rgb(255 204 1 / 0.28)",
+        "purpose": "Botão principal sob o cursor."
+      },
+      {
+        "name": "brilho-do-saldo",
+        "value": "0 10px 30px rgb(255 204 1 / 0.25)",
+        "purpose": "Círculo amarelo do saldo em Trocar pontos."
+      },
+      {
+        "name": "flutuante",
+        "value": "0 10px 30px rgb(0 0 0 / 0.45)",
+        "purpose": "Barra de salvar presa ao pé dos editores."
+      },
+      {
+        "name": "menu",
+        "value": "0 20px 25px -5px rgb(0 0 0 / 0.45), 0 8px 10px -6px rgb(0 0 0 / 0.45)",
+        "purpose": "Menu do cartão de conta."
+      },
+      {
+        "name": "anel-de-conquista",
+        "value": "0 0 0 3px rgb(255 204 1 / 0.35)",
+        "purpose": "Cartão de conta quando o player registra pontos."
+      }
     ],
     "motion": [
-      { "name": "ease-forte", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Largura da sidebar e deslize da pílula ativa." },
-      { "name": "pilula-ativa", "value": "180ms ease-forte, transform translateY", "purpose": "A pílula amarela desliza entre itens; salta com movimento reduzido." },
-      { "name": "largura-da-sidebar", "value": "200ms ease-forte", "purpose": "Só pelo clique no botão de recolher; Ctrl+B, cookie e movimento reduzido mudam na hora." },
-      { "name": "estado", "value": "150ms ease-out", "purpose": "Cor e fundo de hover em itens, botões de ícone e cartões." }
+      {
+        "name": "ease-forte",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Largura da sidebar e deslize da pílula ativa."
+      },
+      {
+        "name": "pilula-ativa",
+        "value": "180ms ease-forte, transform translateY",
+        "purpose": "A pílula amarela desliza entre itens; salta com movimento reduzido."
+      },
+      {
+        "name": "largura-da-sidebar",
+        "value": "200ms ease-forte",
+        "purpose": "Só pelo clique no botão de recolher; Ctrl+B, cookie e movimento reduzido mudam na hora."
+      },
+      {
+        "name": "estado",
+        "value": "150ms ease-out",
+        "purpose": "Cor e fundo de hover em itens, botões de ícone e cartões."
+      }
     ],
     "breakpoints": [
       { "name": "gaveta", "value": "768px" },
@@ -128,12 +301,36 @@
       "Movimento curto, com ease-out forte, e sempre desligado com movimento reduzido."
     ],
     "rules": [
-      { "name": "The Light Marks the Place Rule", "body": "Sol aparece onde a pessoa está ou deve agir: o link ativo, o botão principal, o progresso, o saldo. Cada tela tem um botão principal amarelo por contexto; o resto é contorno.", "section": "colors" },
-      { "name": "The Red Is Only Error Rule", "body": "Vermelho e o salmão `erro` servem só a erro e alerta. Novidade, destaque, progresso e \"em breve\" usam Sol ou Céu.", "section": "colors" },
-      { "name": "The Dark Text On Color Rule", "body": "Sobre Sol, Céu ou Canela cheios, o texto é `sobre-cor`, nunca branco. Sobre fundo escuro, cor de Wada pode ser texto (Sol, Céu) porque passa de 4,5:1.", "section": "colors" },
-      { "name": "The Tabular Numbers Rule", "body": "Todo número que muda ou se compara (pontos, dias, porcentagem, contagem de tabela) usa `tabular-nums`.", "section": "typography" },
-      { "name": "The No Shouting Rule", "body": "Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.", "section": "typography" },
-      { "name": "The Flat At Rest Rule", "body": "Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.", "section": "elevation" }
+      {
+        "name": "The Light Marks the Place Rule",
+        "body": "Sol aparece onde a pessoa está ou deve agir: o link ativo, o botão principal, o progresso, o saldo. Cada tela tem um botão principal amarelo por contexto; o resto é contorno.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Is Only Error Rule",
+        "body": "Vermelho e o salmão `erro` servem só a erro e alerta. Novidade, destaque, progresso e \"em breve\" usam Sol ou Céu.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dark Text On Color Rule",
+        "body": "Sobre Sol, Céu ou Canela cheios, o texto é `sobre-cor`, nunca branco. Sobre fundo escuro, cor de Wada pode ser texto (Sol, Céu) porque passa de 4,5:1.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Todo número que muda ou se compara (pontos, dias, porcentagem, contagem de tabela) usa `tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Shouting Rule",
+        "body": "Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat At Rest Rule",
+        "body": "Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do usar Sol para o botão principal e para o link ativo, com texto `sobre-cor`.",
