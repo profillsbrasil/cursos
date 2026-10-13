@@ -109,10 +109,20 @@ export interface EntradaDaSessao {
   preferencias: Preferencias;
 }
 
+/**
+ * Como a sessão termina, visto do layout. `gravouSemRefresh`: o servidor aceitou um
+ * envio desta sessão depois do último refresh que ela mesma pediu (o da conquista),
+ * então a retomada que o layout mostra está velha.
+ */
+export interface FimDaSessao {
+  gravouSemRefresh: boolean;
+}
+
 export interface SessaoDeEstudo {
   assinar: (ouvinte: () => void) => () => void;
   comandar: (c: Comando) => void;
-  encerrar: () => void;
+  /** Resolve depois que os envios em voo e o de saída assentam. Chamar de novo devolve a mesma Promise. */
+  encerrar: () => Promise<FimDaSessao>;
   estado: () => EstadoDaSessao;
   salvarAgora: () => void;
 }
@@ -180,6 +190,9 @@ export function criarSessaoDeEstudo(
   let posicaoConfirmada = posicaoDe(entrada.inicioSeg);
   let pediuNaMeta = false;
   let encerrada = false;
+  let fim: Promise<FimDaSessao> | null = null;
+  let gravouSemRefresh = false;
+  const emVoo = new Set<Promise<void>>();
   let falhasSeguidas = 0;
   let pararAmostra: (() => void) | null = null;
   let pararEnvio: (() => void) | null = null;
@@ -252,7 +265,15 @@ export function criarSessaoDeEstudo(
   const temNovidade = () =>
     pendentes.length > 0 || posicaoDe(tempoSeg) !== posicaoConfirmada;
 
+  // Com conquista, aoConquistar já pede o refresh que traz a retomada nova.
+  const anotarGravacao = (r: RespostaDoEnvio) => {
+    if (r.tipo === "ok") {
+      gravouSemRefresh = !r.registro.conquista;
+    }
+  };
+
   function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
+    anotarGravacao(r);
     if (encerrada) {
       if (r.tipo === "ok" && r.registro.conquista) {
         deps.aoConquistar(r.registro.conquista);
@@ -313,10 +334,14 @@ export function criarSessaoDeEstudo(
     };
     envio = { falhasSeguidas, tipo: "enviando" };
     avisar();
-    deps.enviar(pedido).then(
-      (r) => aposResposta(r, pedido),
-      () => aposResposta({ tipo: "rede" }, pedido)
-    );
+    const voo = deps
+      .enviar(pedido)
+      .then(
+        (r) => aposResposta(r, pedido),
+        () => aposResposta({ tipo: "rede" }, pedido)
+      )
+      .finally(() => emVoo.delete(voo));
+    emVoo.add(voo);
   }
 
   function cruzouAMeta() {
@@ -479,8 +504,8 @@ export function criarSessaoDeEstudo(
     },
     comandar,
     encerrar() {
-      if (encerrada) {
-        return;
+      if (fim) {
+        return fim;
       }
       if (reproducao.tipo === "tocando") {
         fecharTrecho();
@@ -490,6 +515,8 @@ export function criarSessaoDeEstudo(
       pararAmostra?.();
       pararEnvio?.();
       player.destruir();
+      fim = Promise.all(emVoo).then(() => ({ gravouSemRefresh }));
+      return fim;
     },
     estado: () => foto,
     salvarAgora,
