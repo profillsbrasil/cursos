@@ -5,7 +5,7 @@ import { CursosParaTrocar } from "@/components/trocar-pontos/cursos-para-trocar"
 import { SaldoDeTroca } from "@/components/trocar-pontos/saldo-de-troca";
 import { carregarPainelDeTroca, carregarResumo } from "@/server/api";
 
-export const metadata: Metadata = { title: "Trocar pontos · Profills School" };
+export const metadata: Metadata = { title: "Trocar pontos" };
 
 export default async function TrocarPontos() {
   const [painel, resumo] = await Promise.all([

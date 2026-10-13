@@ -6,7 +6,7 @@ import { BuscaEmBreve, Chips, TopoDoAluno } from "@/components/aluno/topo";
 import { caminhoDaAula } from "@/lib/rotas";
 import { carregarEntrada, carregarResumo } from "@/server/api";
 
-export const metadata: Metadata = { title: "Curso · Profills School" };
+export const metadata: Metadata = { title: "Curso" };
 
 export default async function Curso({
   params,

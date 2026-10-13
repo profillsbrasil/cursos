@@ -1,18 +1,22 @@
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { LOCKUP, PRODUTO } from "@/lib/marca";
 
 /** Cabeçalho das duas sidebars. `selo` diz em que área a pessoa está. */
 export function MarcaDaSidebar({ selo }: { selo?: ReactNode }) {
   return (
-    <p className="flex items-center gap-2.5 font-bold text-base text-titulo tracking-tight">
-      <span
-        aria-hidden="true"
-        className="grid size-8 place-items-center rounded-[10px] bg-sol font-extrabold text-sobre-cor"
-      >
-        P
-      </span>
-      Profills <span className="font-medium text-muted-foreground">School</span>
+    <p className="flex items-center gap-2.5">
+      <Image
+        alt={PRODUTO}
+        className="h-10 w-auto"
+        height={LOCKUP.altura}
+        preload
+        src={LOCKUP.src}
+        width={LOCKUP.largura}
+      />
       {selo}
     </p>
   );

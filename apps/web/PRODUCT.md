@@ -69,7 +69,6 @@ Decisões abertas:
 - Se o certificado tem valor formal (carga horária, validação externa) ou é só comprovante interno.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
 - A nota mínima e o limite de tentativas da prova.
-- Se a plataforma se chama "Profills School", como no protótipo anterior e na página do site, ou outro nome.
 - Os níveis e as medalhas exatos (o protótipo anterior tinha os níveis Vendedor, Consultor e Especialista e 8 medalhas).
 - Se ponto vence e se existe teto diário de pontos vindos de vídeo.
 - Os perfis de acesso exatos além de aluno e admin. Os termos trilha, liberação e admin ainda precisam entrar num `GLOSSARY.md`, que não existe.
@@ -77,6 +76,7 @@ Decisões abertas:
 ## Brand Commitments
 
 - Nome: Profills Brasil. A plataforma de cursos é uma superfície da mesma marca do site institucional.
+- A plataforma se chama Profills Cursos, decisão do dono que substitui o "Profills School" do protótipo anterior. O nome mora em `apps/web/src/lib/marca.ts`, e o lockup e o ícone ficam em `apps/web/public/marca/`.
 - Tom pedido pelo dono para esta plataforma: amigável e alegre, sem perder a seriedade técnica da marca.
 - Paleta escolhida pelo dono: a combinação nº 213, "Sol e céu", do *A Dictionary of Color Combinations*, vol. 1 (Sanzo Wada). As cores são Apricot Yellow, Pale King's Blue e Vinaceous Cinnamon, sobre base cinza escura. O protótipo da decisão está em https://claude.ai/artifact/JJqhNfeSVoUhUA3vMCU5xH.
 

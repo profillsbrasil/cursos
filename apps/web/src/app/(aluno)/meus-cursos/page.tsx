@@ -5,7 +5,7 @@ import { BuscaEmBreve, Chips, TopoDoAluno } from "@/components/aluno/topo";
 import { ConteudoMeusCursos } from "@/components/meus-cursos/conteudo";
 import { carregarPainel, carregarResumo } from "@/server/api";
 
-export const metadata: Metadata = { title: "Meus cursos · Profills School" };
+export const metadata: Metadata = { title: "Meus cursos" };
 
 export default async function MeusCursos() {
   const [painel, resumo] = await Promise.all([

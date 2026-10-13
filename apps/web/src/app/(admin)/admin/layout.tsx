@@ -10,7 +10,7 @@ import type { CSSProperties } from "react";
 import { SidebarDoAdmin } from "@/components/admin/sidebar-do-admin";
 import { exigirAdmin } from "@/server/api";
 
-export const metadata: Metadata = { title: "Admin · Profills School" };
+export const metadata: Metadata = { title: "Admin" };
 
 // proxy.ts não tem regra por caminho: a porta é exigirAdmin aqui e em cada carregador,
 // mais o adminProcedure em cada procedimento.

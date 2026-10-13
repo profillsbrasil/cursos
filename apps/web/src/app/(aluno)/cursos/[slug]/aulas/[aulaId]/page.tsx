@@ -21,9 +21,7 @@ async function aulaDaUrl(params: Props["params"]) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dados = await aulaDaUrl(params);
   return {
-    title: dados
-      ? `${dados.aula.titulo} · ${dados.curso.titulo}`
-      : "Aula · Profills School",
+    title: dados ? `${dados.aula.titulo} · ${dados.curso.titulo}` : "Aula",
   };
 }
 
