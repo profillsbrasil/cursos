@@ -21,19 +21,27 @@ const BOTAO_DE_ICONE = cn(
   FOCO
 );
 
+// Recolhido, o botão tem 40 px, como os itens, e mostra o ícone da marca.
+const ALTERNAR_RECOLHIDA =
+  "group/alternar relative size-10 rounded-[10px] text-titulo focus-visible:bg-sidebar-accent [@media(hover:none)]:bg-sidebar-accent";
+
+const SOME_COM_HOVER =
+  "transition-opacity duration-150 ease-out motion-reduce:transition-none";
+
 function Atalho() {
   return <span className={DICA_SECUNDARIA}>Ctrl B</span>;
 }
 
 /**
- * Aberta: o lockup, o selo da área e o botão de recolher. Recolhida: um botão de
- * 40 px com o ícone da marca, que vira "Abrir" com hover ou foco (sempre, em tela
- * sem hover). No celular: o lockup e o botão de fechar a gaveta. As duas formas
- * do computador saem no HTML, e o modo da sidebar esconde uma delas por CSS.
+ * Aberta: o lockup, o selo da área e o botão de recolher. Recolhida: o mesmo botão,
+ * com 40 px e o ícone da marca, que vira "Abrir" com hover ou foco (sempre, em tela
+ * sem hover). É um botão só nos dois modos: ele nunca some, então quem alterna pelo
+ * teclado fica com o foco nele. No celular: o lockup e o botão de fechar a gaveta.
  */
 export function CabecalhoDaCasca({ selo }: { selo?: string }) {
   const { alternar, fecharNoCelular, noCelular, recolhida } =
     useAlternarNavegacao();
+  const acao = recolhida ? "Abrir" : "Recolher";
   return (
     <>
       {/* O selo da área ocupa o vão à direita de CURSOS, na segunda linha do lockup:
@@ -67,56 +75,49 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
           <TooltipTrigger
             render={
               <button
-                aria-expanded={true}
-                aria-label="Recolher navegação"
+                aria-expanded={!recolhida}
+                aria-label={`${acao} navegação`}
                 className={cn(
                   BOTAO_DE_ICONE,
-                  "ml-auto group-data-[collapsible=icon]:hidden"
+                  recolhida ? ALTERNAR_RECOLHIDA : "ml-auto"
                 )}
                 onClick={alternar}
                 type="button"
               />
             }
           >
-            <PanelLeftClose aria-hidden="true" />
+            {recolhida ? (
+              <>
+                <Image
+                  alt=""
+                  className={cn(
+                    "size-10 group-hover/alternar:opacity-0 group-focus-visible/alternar:opacity-0 [@media(hover:none)]:opacity-0",
+                    SOME_COM_HOVER
+                  )}
+                  height={ICONE.altura}
+                  src={ICONE.src}
+                  width={ICONE.largura}
+                />
+                <PanelLeftOpen
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute opacity-0 group-hover/alternar:opacity-100 group-focus-visible/alternar:opacity-100 [@media(hover:none)]:opacity-100",
+                    SOME_COM_HOVER
+                  )}
+                />
+              </>
+            ) : (
+              <PanelLeftClose aria-hidden="true" />
+            )}
           </TooltipTrigger>
-          <TooltipContent className={DICA} hidden={recolhida} side="bottom">
-            Recolher <Atalho />
+          <TooltipContent
+            className={DICA}
+            side={recolhida ? "right" : "bottom"}
+          >
+            {acao} <Atalho />
           </TooltipContent>
         </Tooltip>
       )}
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <button
-              aria-expanded={false}
-              aria-label="Abrir navegação"
-              className={cn(
-                "group/abrir relative hidden size-10 shrink-0 place-items-center rounded-[10px] text-titulo group-data-[collapsible=icon]:grid",
-                "transition-colors duration-150 ease-out hover:bg-sidebar-accent focus-visible:bg-sidebar-accent motion-reduce:transition-none [@media(hover:none)]:bg-sidebar-accent",
-                FOCO
-              )}
-              onClick={alternar}
-              type="button"
-            />
-          }
-        >
-          <Image
-            alt=""
-            className="size-10 transition-opacity duration-150 ease-out group-hover/abrir:opacity-0 group-focus-visible/abrir:opacity-0 motion-reduce:transition-none [@media(hover:none)]:opacity-0"
-            height={ICONE.altura}
-            src={ICONE.src}
-            width={ICONE.largura}
-          />
-          <PanelLeftOpen
-            aria-hidden="true"
-            className="absolute size-[18px] opacity-0 transition-opacity duration-150 ease-out group-hover/abrir:opacity-100 group-focus-visible/abrir:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-100"
-          />
-        </TooltipTrigger>
-        <TooltipContent className={DICA} hidden={!recolhida} side="right">
-          Abrir <Atalho />
-        </TooltipContent>
-      </Tooltip>
     </>
   );
 }
