@@ -119,12 +119,14 @@ export function CartaoDeConta({
 }) {
   const { isLoaded, user } = useUser();
   const { openUserProfile, signOut } = useClerk();
-  const abrirMinhaConta = useCallback(
-    () => openUserProfile(),
-    [openUserProfile]
-  );
+  const { fecharNoCelular, recolhida } = useAlternarNavegacao();
+  // O modal do Clerk vai para o body, fora da armadilha de foco da gaveta modal:
+  // com ela aberta, os campos dele perderiam o foco.
+  const abrirMinhaConta = useCallback(() => {
+    fecharNoCelular();
+    openUserProfile();
+  }, [fecharNoCelular, openUserProfile]);
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
-  const { recolhida } = useAlternarNavegacao();
   const aceso = useSyncExternalStore(
     anelDosPontos.assinar,
     anelDosPontos.aceso,

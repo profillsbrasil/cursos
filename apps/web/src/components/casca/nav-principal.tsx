@@ -92,6 +92,8 @@ export function NavPrincipal({
               <SidebarMenuButton
                 aria-current={ariaCurrent}
                 className={cn(ITEM, ariaCurrent && ITEM_ATIVO)}
+                // A troca de caminho já fecha a gaveta; o toque no item da página
+                // atual não troca o caminho e fecha por aqui.
                 onClick={fecharNoCelular}
                 render={<Link href={item.href} />}
                 tooltip={{ children: item.nome, className: DICA }}

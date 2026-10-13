@@ -1,6 +1,7 @@
 "use client";
 
 import { SidebarProvider, useSidebar } from "@cursos/ui/components/sidebar";
+import { usePathname } from "next/navigation";
 import {
   type CSSProperties,
   createContext,
@@ -8,6 +9,7 @@ import {
   use,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -53,9 +55,28 @@ export function ProvedorDaCasca({
       defaultOpen={aberta}
       style={LARGURAS}
     >
+      <FecharGavetaAoNavegar />
       <Animar value={setAnimandoDesde}>{children}</Animar>
     </SidebarProvider>
   );
+}
+
+/**
+ * A gaveta do celular fecha quando o caminho muda, venha o link de onde vier: menu,
+ * Continuar, placar. O SidebarProvider fica no layout e sobrevive à navegação dentro
+ * da área, e o Sheet do packages/ui não escuta rota.
+ */
+function FecharGavetaAoNavegar() {
+  const caminho = usePathname();
+  const { setOpenMobile } = useSidebar();
+  const visto = useRef(caminho);
+  useEffect(() => {
+    if (visto.current !== caminho) {
+      visto.current = caminho;
+      setOpenMobile(false);
+    }
+  }, [caminho, setOpenMobile]);
+  return null;
 }
 
 /**
