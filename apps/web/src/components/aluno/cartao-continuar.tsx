@@ -40,33 +40,41 @@ function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
   );
 }
 
-function ConteudoDoCartao({ aqui, c }: { aqui: boolean; c: Continuar }) {
+type Linhas = Pick<Continuar, "pct" | "tipo" | "titulo"> & { chamada: string };
+
+/**
+ * O miolo do cartão. O trilho da barra existe sempre: em "comecar" (pct null) ele
+ * fica invisível e guarda o lugar, então o cartão mede o mesmo nos dois casos, e o
+ * esqueleto, que desenha este mesmo miolo invisível, também.
+ */
+function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
   return (
     <>
       <span className="flex items-center gap-2.5">
         <span className={cn(BOTAO_REDONDO, "size-8 [&_svg]:size-3.5")}>
-          <Icone tipo={c.tipo} />
+          <Icone tipo={tipo} />
         </span>
         <span className="grid min-w-0 leading-tight">
           <b className="truncate font-semibold text-[13px] text-titulo">
-            {c.titulo}
+            {titulo}
           </b>
-          <span className="text-muted-foreground text-xs">
-            {aqui ? c.chamadaAqui : c.chamada}
-          </span>
+          <span className="text-muted-foreground text-xs">{chamada}</span>
         </span>
       </span>
-      {c.pct === null ? null : (
-        <span
-          aria-hidden="true"
-          className="h-1 overflow-hidden rounded-full bg-trilho"
-        >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "h-1 overflow-hidden rounded-full bg-trilho",
+          pct === null && "invisible"
+        )}
+      >
+        {pct === null ? null : (
           <span
             className="block h-full rounded-full bg-sol"
-            style={{ width: `${c.pct}%` }}
+            style={{ width: `${pct}%` }}
           />
-        </span>
-      )}
+        )}
+      </span>
     </>
   );
 }
@@ -80,11 +88,19 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
   }
   const aqui = estaAqui(c, caminho);
   const dica = aqui ? c.chamadaAqui : c.chamada;
+  const conteudo = (
+    <ConteudoDoCartao
+      chamada={dica}
+      pct={c.pct}
+      tipo={c.tipo}
+      titulo={c.titulo}
+    />
+  );
   return (
     <>
       {aqui ? (
         <div aria-current="page" className={CARTAO}>
-          <ConteudoDoCartao aqui c={c} />
+          {conteudo}
         </div>
       ) : (
         <Link
@@ -92,7 +108,7 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
           className={cn(CARTAO, "hover:bg-muted")}
           href={c.href}
         >
-          <ConteudoDoCartao aqui={false} c={c} />
+          {conteudo}
         </Link>
       )}
       <Tooltip>
@@ -121,12 +137,23 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
   );
 }
 
+// A altura vem do mesmo miolo do cartão, desenhado invisível, e não de um número:
+// o rodapé não pula quando o cartão chega. Recolhida, vira o círculo de 40 px.
 function Esqueleto() {
   return (
     <div
       aria-hidden="true"
-      className="h-[66px] animate-pulse rounded-[14px] bg-sidebar-accent group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full motion-reduce:animate-none"
-    />
+      className="grid animate-pulse gap-2 rounded-[14px] bg-sidebar-accent p-3 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 motion-reduce:animate-none"
+    >
+      <span className="invisible contents group-data-[collapsible=icon]:hidden">
+        <ConteudoDoCartao
+          chamada={" "}
+          pct={null}
+          tipo="continuar"
+          titulo={" "}
+        />
+      </span>
+    </div>
   );
 }
 
