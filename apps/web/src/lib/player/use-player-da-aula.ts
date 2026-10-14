@@ -19,6 +19,7 @@ import {
   criarSessaoComPreferencias,
   PREFERENCIAS_PADRAO,
 } from "./preferencias";
+import { criarRefreshDaSaida } from "./refresh-da-saida";
 import {
   type EstadoDaSessao,
   estadoInicial,
@@ -102,19 +103,23 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     if (!elemento) {
       return;
     }
+    const saida = criarRefreshDaSaida({
+      aoConquistar: (c) => {
+        setConquista(c);
+        aviso.acender();
+        anelDosPontos.acender();
+      },
+      enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
+      pedirRefresh: () => startTransition(() => router.refresh()),
+    });
     const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(inicial, {
       agendar: (fn, ms) => {
         const id = window.setTimeout(fn, ms);
         return () => window.clearTimeout(id);
       },
-      aoConquistar: (c) => {
-        setConquista(c);
-        aviso.acender();
-        anelDosPontos.acender();
-        startTransition(() => router.refresh());
-      },
+      aoConquistar: saida.aoConquistar,
       criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
-      enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
+      enviar: saida.enviar,
       relogio: () => performance.now(),
     });
     setSessao(s);
@@ -132,11 +137,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       window.removeEventListener("pagehide", aoSair);
       // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
       // página nova e o layout junto, com o "Continuar" do rodapé em dia.
-      s.encerrar().then(({ gravouSemRefresh }) => {
-        if (gravouSemRefresh) {
-          startTransition(() => router.refresh());
-        }
-      });
+      s.encerrar().then(saida.aoEncerrar);
       aviso.encerrar();
     };
   }, [aviso, inicial, router]);

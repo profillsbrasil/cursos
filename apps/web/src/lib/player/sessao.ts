@@ -110,18 +110,15 @@ export interface EntradaDaSessao {
 }
 
 /**
- * Como a sessão termina, visto do layout. `gravouSemRefresh`: o servidor aceitou um
- * envio desta sessão depois do último refresh que ela mesma pediu (o da conquista),
- * então a retomada que o layout mostra está velha.
+ * Como `encerrar()` termina: os envios em voo e o de saída assentaram, ou passou
+ * `TETO_DA_SAIDA_MS` antes disso.
  */
-export interface FimDaSessao {
-  gravouSemRefresh: boolean;
-}
+export type FimDaSessao = "assentou" | "passou_do_teto";
 
 export interface SessaoDeEstudo {
   assinar: (ouvinte: () => void) => () => void;
   comandar: (c: Comando) => void;
-  /** Resolve depois que os envios em voo e o de saída assentam. Chamar de novo devolve a mesma Promise. */
+  /** Resolve quando os envios em voo e o de saída assentam, ou no teto. Chamar de novo devolve a mesma Promise. */
   encerrar: () => Promise<FimDaSessao>;
   estado: () => EstadoDaSessao;
   salvarAgora: () => void;
@@ -130,6 +127,7 @@ export interface SessaoDeEstudo {
 export const AMOSTRA_MS = 250;
 export const ENVIO_MS = 15_000;
 export const POSICAO_PARADA_MS = 1500;
+export const TETO_DA_SAIDA_MS = 5000;
 const NOVA_TENTATIVA_MS = 2000;
 const NOVA_TENTATIVA_MAX_MS = 60_000;
 const DIFERENCA_DE_DURACAO_SEG = 2;
@@ -191,7 +189,6 @@ export function criarSessaoDeEstudo(
   let pediuNaMeta = false;
   let encerrada = false;
   let fim: Promise<FimDaSessao> | null = null;
-  let gravouSemRefresh = false;
   const emVoo = new Set<Promise<void>>();
   let falhasSeguidas = 0;
   let pararAmostra: (() => void) | null = null;
@@ -265,13 +262,6 @@ export function criarSessaoDeEstudo(
   const temNovidade = () =>
     pendentes.length > 0 || posicaoDe(tempoSeg) !== posicaoConfirmada;
 
-  // Com conquista, aoConquistar já pede o refresh que traz a retomada nova.
-  const anotarGravacao = (r: RespostaDoEnvio) => {
-    if (r.tipo === "ok") {
-      gravouSemRefresh = !r.registro.conquista;
-    }
-  };
-
   // Erro de quem ouve a conquista não para o envio nem rejeita o voo.
   function avisarConquista(c: Conquista) {
     try {
@@ -282,7 +272,6 @@ export function criarSessaoDeEstudo(
   }
 
   function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
-    anotarGravacao(r);
     if (encerrada) {
       if (r.tipo === "ok" && r.registro.conquista) {
         avisarConquista(r.registro.conquista);
@@ -524,7 +513,18 @@ export function criarSessaoDeEstudo(
       pararAmostra?.();
       pararEnvio?.();
       player.destruir();
-      fim = Promise.allSettled(emVoo).then(() => ({ gravouSemRefresh }));
+      let pararTeto: () => void = () => undefined;
+      const teto = new Promise<FimDaSessao>((resolver) => {
+        pararTeto = deps.agendar(
+          () => resolver("passou_do_teto"),
+          TETO_DA_SAIDA_MS
+        );
+      });
+      const assentou = Promise.allSettled(emVoo).then((): FimDaSessao => {
+        pararTeto();
+        return "assentou";
+      });
+      fim = Promise.race([assentou, teto]);
       return fim;
     },
     estado: () => foto,
