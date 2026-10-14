@@ -19,6 +19,7 @@ import {
   criarSessaoComPreferencias,
   PREFERENCIAS_PADRAO,
 } from "./preferencias";
+import { ligarRefreshDaSaida } from "./refresh-da-saida";
 import {
   type EstadoDaSessao,
   estadoInicial,
@@ -102,7 +103,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     if (!elemento) {
       return;
     }
-    const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(inicial, {
+    const ligacao = ligarRefreshDaSaida({
       agendar: (fn, ms) => {
         const id = window.setTimeout(fn, ms);
         return () => window.clearTimeout(id);
@@ -111,12 +112,16 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
         setConquista(c);
         aviso.acender();
         anelDosPontos.acender();
-        startTransition(() => router.refresh());
       },
       criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
       enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
+      pedirRefresh: () => startTransition(() => router.refresh()),
       relogio: () => performance.now(),
     });
+    const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(
+      inicial,
+      ligacao.sessao
+    );
     setSessao(s);
     const aoEsconder = () => {
       if (document.visibilityState === "hidden") {
@@ -132,11 +137,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       window.removeEventListener("pagehide", aoSair);
       // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
       // página nova e o layout junto, com o "Continuar" do rodapé em dia.
-      s.encerrar().then(({ gravouSemRefresh }) => {
-        if (gravouSemRefresh) {
-          startTransition(() => router.refresh());
-        }
-      });
+      s.encerrar().then(ligacao.aoEncerrar);
       aviso.encerrar();
     };
   }, [aviso, inicial, router]);

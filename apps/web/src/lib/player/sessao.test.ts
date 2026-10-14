@@ -15,12 +15,14 @@ import {
 } from "@cursos/api/dominio/trechos";
 
 import { PREFERENCIAS_PADRAO } from "./preferencias";
+import { criarRefreshDaSaida } from "./refresh-da-saida";
 import {
   criarSessaoDeEstudo,
   ENVIO_MS,
   type EstadoReproducao,
   motivoParadoDe,
   type RespostaDoEnvio,
+  TETO_DA_SAIDA_MS,
   transicao,
 } from "./sessao";
 import type { EventoDoVideo, OpcoesDoPlayer, PlayerDeVideo } from "./video";
@@ -205,6 +207,20 @@ function montar(
   const video = playerFalso(relogio);
   const servidor = servidorFalso(relogio);
   const conquistas: Conquista[] = [];
+  let refreshes = 0;
+  // Ligado como no player: a regra do refresh roda com a ordem real das respostas.
+  const saida = criarRefreshDaSaida({
+    aoConquistar: (c) => {
+      conquistas.push(c);
+      if (conquistaLanca) {
+        throw new Error("aoConquistar lançou");
+      }
+    },
+    enviar: (p) => servidor.enviar(p),
+    pedirRefresh: () => {
+      refreshes += 1;
+    },
+  });
   const sessao = criarSessaoDeEstudo(
     {
       duracaoSeg: DURACAO,
@@ -214,14 +230,9 @@ function montar(
     },
     {
       agendar: relogio.agendar,
-      aoConquistar: (c) => {
-        conquistas.push(c);
-        if (conquistaLanca) {
-          throw new Error("aoConquistar lançou");
-        }
-      },
+      aoConquistar: saida.aoConquistar,
       criarPlayer: (o) => video.criar(o),
-      enviar: (p) => servidor.enviar(p),
+      enviar: saida.enviar,
       relogio: relogio.agora,
     }
   );
@@ -230,7 +241,21 @@ function montar(
   if (pronto) {
     ficarPronto();
   }
-  return { conquistas, ficarPronto, relogio, servidor, sessao, video };
+  async function sair() {
+    const fim = await sessao.encerrar();
+    saida.aoEncerrar(fim);
+    return fim;
+  }
+  return {
+    conquistas,
+    ficarPronto,
+    refreshes: () => refreshes,
+    relogio,
+    sair,
+    servidor,
+    sessao,
+    video,
+  };
 }
 
 const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
@@ -539,29 +564,31 @@ describe("encerrar com a rede caída", () => {
   });
 });
 
-// A casca pede router.refresh() na saída do player quando gravouSemRefresh é true:
-// é o que mantém fresco o "Continuar" do rodapé.
-describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
-  test("sem envio aceito, nada ficou velho", async () => {
-    const { relogio, servidor, sessao } = montar(120);
+// O refresh na saída mantém fresco o "Continuar" do rodapé. A regra mora em
+// refresh-da-saida.ts; aqui ela roda ligada à sessão, com a ordem real das respostas.
+describe("a saída pede refresh só quando a retomada do layout ficou velha", () => {
+  test("sem envio aceito, a saída não pede refresh", async () => {
+    const { refreshes, relogio, sair, servidor } = montar(120);
     await relogio.avancar(5000);
-    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(await sair()).toBe("assentou");
+    expect(refreshes()).toBe(0);
     expect(servidor.pedidos).toHaveLength(0);
   });
 
-  test("um envio periódico aceito e nada novo no fim: velho, sem enviar de novo", async () => {
-    const { relogio, servidor, sessao } = montar();
+  test("um envio periódico aceito e nada novo no fim: um refresh, sem enviar de novo", async () => {
+    const { refreshes, relogio, sair, servidor, sessao } = montar();
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(16_000);
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(1000);
     expect(servidor.pedidos).toHaveLength(2);
-    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: true });
+    expect(await sair()).toBe("assentou");
+    expect(refreshes()).toBe(1);
     expect(servidor.pedidos).toHaveLength(2);
   });
 
-  test("o envio de saída aceito resolve só depois de a resposta chegar", async () => {
-    const { relogio, servidor, sessao } = montar();
+  test("o envio de saída aceito: o fim assenta só depois de a resposta chegar", async () => {
+    const { refreshes, relogio, sair, servidor, sessao } = montar();
     const responder = servidor.enviar.bind(servidor);
     const segurados: Pedido[] = [];
     let liberar: () => void = () => undefined;
@@ -574,52 +601,75 @@ describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(8000);
     let fim: unknown = "pendente";
-    sessao.encerrar().then((f) => {
+    sair().then((f) => {
       fim = f;
     });
     await relogio.flush();
     expect(segurados).toHaveLength(1);
     expect(fim).toBe("pendente");
+    expect(refreshes()).toBe(0);
     liberar();
     await relogio.flush();
-    expect(fim).toEqual({ gravouSemRefresh: true });
+    expect(fim).toBe("assentou");
+    expect(refreshes()).toBe(1);
   });
 
-  test("o envio de saída que traz a conquista já pediu o refresh", async () => {
-    const { conquistas, relogio, servidor, sessao } = montar();
+  test("o envio de saída que traz a conquista: o refresh é o da conquista", async () => {
+    const { conquistas, refreshes, relogio, sair, servidor, sessao } = montar();
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(530_000);
     servidor.falhar({ tipo: "rede" });
     await relogio.avancar(11_000);
     servidor.falhar(null);
-    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(await sair()).toBe("assentou");
     expect(conquistas).toHaveLength(1);
+    expect(refreshes()).toBe(1);
   });
 
-  test("aoConquistar que lança no envio de saída não faz o fim rejeitar", async () => {
+  test("aoConquistar que lança no envio de saída: o fim assenta e o refresh sai", async () => {
     const erro = spyOn(console, "error").mockImplementation(() => undefined);
-    const { conquistas, relogio, servidor, sessao } = montar(0, {
-      conquistaLanca: true,
-    });
+    const { conquistas, refreshes, relogio, sair, servidor, sessao } = montar(
+      0,
+      { conquistaLanca: true }
+    );
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(530_000);
     servidor.falhar({ tipo: "rede" });
     await relogio.avancar(11_000);
     servidor.falhar(null);
-    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
+    expect(await sair()).toBe("assentou");
     expect(conquistas).toHaveLength(1);
+    expect(refreshes()).toBe(1);
     expect(erro).toHaveBeenCalledTimes(1);
     erro.mockRestore();
   });
 
-  test("a rede cai no envio de saída depois de um envio aceito: velho", async () => {
-    const { relogio, servidor, sessao } = montar();
+  test("a rede cai no envio de saída depois de um envio aceito: um refresh", async () => {
+    const { refreshes, relogio, sair, servidor, sessao } = montar();
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(16_000);
     servidor.falhar({ tipo: "rede" });
     await relogio.avancar(2000);
-    expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: true });
+    expect(await sair()).toBe("assentou");
+    expect(refreshes()).toBe(1);
     expect(servidor.pedidos).toHaveLength(2);
+  });
+
+  test("envio de saída que não volta: o fim sai pelo teto, sem refresh", async () => {
+    const { refreshes, relogio, sair, servidor, sessao } = montar();
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(16_000);
+    expect(servidor.pedidos).toHaveLength(1);
+    servidor.enviar = () => new Promise(() => undefined);
+    let fim: unknown = "pendente";
+    sair().then((f) => {
+      fim = f;
+    });
+    await relogio.avancar(TETO_DA_SAIDA_MS - 1);
+    expect(fim).toBe("pendente");
+    await relogio.avancar(1);
+    expect(fim).toBe("passou_do_teto");
+    expect(refreshes()).toBe(0);
   });
 
   test("encerrar duas vezes devolve a mesma Promise e envia uma vez", async () => {
@@ -628,7 +678,7 @@ describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
     await relogio.avancar(8000);
     const primeira = sessao.encerrar();
     expect(sessao.encerrar()).toBe(primeira);
-    expect(await primeira).toEqual({ gravouSemRefresh: true });
+    expect(await primeira).toBe("assentou");
     expect(servidor.pedidos).toHaveLength(1);
   });
 });
