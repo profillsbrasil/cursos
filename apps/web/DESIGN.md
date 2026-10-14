@@ -147,7 +147,7 @@ Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da p
 
 A densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal sob o cursor e com o foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player e o anel do dia na semana.
 
-A marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo. A marca é imagem raster e nunca se redesenha em CSS. O favicon é só a pena.
+A marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo, na Orbitron em contorno. A marca são os SVG de `public/marca/`, traçados sobre o desenho aprovado, e nunca se redesenha em CSS. O favicon é só a pena.
 
 **Key Characteristics:**
 - Tema único, escuro, sem alternância de tema (`color-scheme: dark` fixo).
@@ -307,7 +307,7 @@ Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na 
 - **Don't** pôr texto branco sobre Sol, Céu ou Canela cheios.
 - **Don't** criar tema claro nem alternância de tema.
 - **Don't** pôr sombra em cartão em repouso.
-- **Don't** redesenhar a pena ou o livro em CSS ou SVG, nem usar o livro no favicon.
+- **Don't** redesenhar a pena ou o livro em CSS ou em SVG à mão no componente, nem usar o livro no favicon.
 - **Don't** pôr pontos ou sequência fora do cartão de conta na casca, nem ocupar o canto direito do topo com peça da casca.
 - **Don't** usar caixa alta ou linha acima de título fora do selo da área.
 - **Don't** escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`. Os dois `foco.test.ts` acusam a volta.

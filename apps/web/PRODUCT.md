@@ -77,7 +77,7 @@ Decisões abertas:
 
 - Nome: Profills Brasil. A plataforma de cursos é uma superfície da mesma marca do site institucional.
 - A plataforma se chama Profills Cursos, decisão do dono que substitui o "Profills School" do protótipo anterior. O nome mora em `apps/web/src/lib/marca.ts`, e o lockup e o ícone ficam em `apps/web/public/marca/`.
-- Marca, escolhida pelo dono: a pena facetada nas cores oficiais da Profills (azul, vermelho e cinza), grande e centrada sobre um livro de capa dura no amarelo do app (#FFCC01) com páginas brancas (#F4F5F7). Ao lado, "PROFILLS" claro e "CURSOS" no amarelo. O favicon é só a pena. Origem, arquivos e o que falta (SVG) estão em `docs/marca/README.md`.
+- Marca, escolhida pelo dono: a pena facetada nas cores oficiais da Profills (azul, vermelho e cinza), grande e centrada sobre um livro de capa dura no amarelo do app (#FFCC01) com páginas brancas (#F4F5F7). Ao lado, "PROFILLS" claro e "CURSOS" no amarelo, na Orbitron. O favicon é só a pena. Origem, arquivos e a licença da fonte estão em `docs/marca/README.md`.
 - Tom pedido pelo dono para esta plataforma: amigável e alegre, sem perder a seriedade técnica da marca.
 - Paleta escolhida pelo dono: a combinação nº 213, "Sol e céu", do *A Dictionary of Color Combinations*, vol. 1 (Sanzo Wada). As cores são Apricot Yellow, Pale King's Blue e Vinaceous Cinnamon, sobre base cinza escura. O protótipo da decisão está em https://claude.ai/artifact/JJqhNfeSVoUhUA3vMCU5xH.
 
