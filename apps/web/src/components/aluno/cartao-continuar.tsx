@@ -18,17 +18,22 @@ import { type Continuar, estaAqui } from "./continuar";
 
 // Um elemento só nos dois modos, como o SidebarMenuButton: aberto, o cartão;
 // recolhida, ele encolhe para o botão redondo de 40 px em Sol, preso à esquerda como
-// os itens. O group-data vence as classes do cartão pela especificidade.
+// os itens. O group-data vence as classes do cartão pela especificidade. O elemento
+// não tem transição: a troca de modo (Ctrl+B inclusive) muda a cor na hora.
 const CARTAO = cn(
-  "grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground",
-  "transition-[color,background-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
+  "relative isolate grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground",
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-sobre-cor"
 );
 
 // O hover também é o foco de teclado (#30). Aberto, o fundo vira popover; recolhida,
-// o redondo clareia e brilha como o botão amarelo.
-const COM_LINK =
-  "hover:bg-muted group-data-[collapsible=icon]:hover:bg-sol-hover group-data-[collapsible=icon]:hover:shadow-brilho";
+// o redondo clareia e brilha como o botão amarelo. A cor do hover mora numa camada
+// (::before) atrás do miolo, e só a opacidade dela transiciona: o hover entra e sai
+// em 150 ms, e a troca de modo, que só troca a cor da camada, não anima.
+const COM_LINK = cn(
+  "before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:bg-muted before:opacity-0",
+  "before:transition-opacity before:duration-150 before:ease-out hover:before:opacity-100 motion-reduce:before:transition-none",
+  "group-data-[collapsible=icon]:before:bg-sol-hover group-data-[collapsible=icon]:before:shadow-brilho"
+);
 
 // Recolhida, a linha e o redondo de 32 px saem da caixa (contents), e o ícone fica
 // sozinho no centro do redondo de 40 px.
@@ -127,7 +132,7 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
 
 // O espaço sem quebra (U+00A0) dá altura às linhas de texto invisíveis; um espaço
 // comum sozinho colapsa, e a linha mediria 0 px.
-const LINHA_VAZIA = " ";
+const LINHA_VAZIA = "\u00a0";
 
 // A altura vem do mesmo miolo do cartão, desenhado invisível, e não de um número:
 // o rodapé não pula quando o cartão chega. Recolhida, vira o círculo de 40 px.

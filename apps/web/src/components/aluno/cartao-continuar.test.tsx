@@ -1,12 +1,21 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import type { Route } from "next";
-import { PathnameContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
 
-import { CartaoContinuar } from "./cartao-continuar";
 import type { Continuar } from "./continuar";
+
+// Fora do App Router o usePathname não tem de onde ler; o teste diz o caminho, e o
+// resto do módulo fica o de verdade.
+let caminhoAtual = "/";
+const navegacao = await import("next/navigation");
+mock.module("next/navigation", () => ({
+  ...navegacao,
+  usePathname: () => caminhoAtual,
+}));
+
+const { CartaoContinuar } = await import("./cartao-continuar");
 
 const AULA = "/cursos/comercial/aulas/a1" as Route;
 
@@ -29,19 +38,20 @@ function cumprida<T>(valor: T): Promise<T> {
 }
 
 function html(caminho: string, aberta: boolean) {
+  caminhoAtual = caminho;
   return renderToStaticMarkup(
-    <PathnameContext value={caminho}>
-      <ProvedorDaCasca aberta={aberta}>
-        <CartaoContinuar cartao={cumprida(CONTINUAR)} />
-      </ProvedorDaCasca>
-    </PathnameContext>
+    <ProvedorDaCasca aberta={aberta}>
+      <CartaoContinuar cartao={cumprida(CONTINUAR)} />
+    </ProvedorDaCasca>
   );
 }
 
 const vezes = (texto: string, trecho: string) => texto.split(trecho).length - 1;
 
-// Antes, o cartão aberto e o botão solto da recolhida eram dois elementos, e o
-// leitor de tela achava dois links iguais. Agora o mesmo elemento encolhe.
+// Antes, o cartão da aberta e o redondo da recolhida eram dois elementos no HTML, e
+// o CSS escondia um deles em cada modo. O teste conta no markup do servidor, que
+// inclui o que o CSS esconde: o link, o rótulo e o aria-current aparecem uma vez,
+// porque o mesmo elemento encolhe.
 describe("o Continuar é um elemento só", () => {
   for (const aberta of [true, false]) {
     const modo = aberta ? "aberta" : "recolhida";
@@ -59,6 +69,42 @@ describe("o Continuar é um elemento só", () => {
       expect(vezes(h, "<a ")).toBe(0);
       expect(vezes(h, 'aria-current="page"')).toBe(1);
       expect(vezes(h, CONTINUAR.chamadaAqui)).toBe(1);
+    });
+  }
+});
+
+const TAG_DO_CONTINUAR = /<(?:a|div)\b[^>]*data-slot="tooltip-trigger"[^>]*>/;
+const CLASSE = /\bclass="([^"]*)"/;
+
+const classesDoContinuar = (h: string) => {
+  const tag = TAG_DO_CONTINUAR.exec(h)?.[0] ?? "";
+  const classes = CLASSE.exec(tag)?.[1];
+  if (!classes) {
+    throw new Error("sem o Continuar no HTML");
+  }
+  return classes.split(" ");
+};
+
+// O fundo e a cor do Continuar mudam com o modo. Uma transição no próprio elemento
+// anima essa troca, e o Ctrl+B não anima (DESIGN.md). Só a camada do hover
+// (::before) transiciona, e só a opacidade dela.
+describe("a troca de modo não anima o Continuar", () => {
+  for (const [caso, caminho] of [
+    ["com link", "/meus-cursos"],
+    ["no destino", AULA],
+  ] as const) {
+    test(`${caso}: nenhuma transição fora do ::before`, () => {
+      const transicoes = classesDoContinuar(html(caminho, true)).filter((c) =>
+        c.includes("transition")
+      );
+      expect(
+        transicoes.filter(
+          (c) => !(c.startsWith("before:") || c.includes(":before:"))
+        )
+      ).toEqual([]);
+      if (caso === "com link") {
+        expect(transicoes).toContain("before:transition-opacity");
+      }
     });
   }
 });
