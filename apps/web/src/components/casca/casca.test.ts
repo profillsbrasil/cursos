@@ -43,3 +43,17 @@ describe("a pílula anda no clique", () => {
     expect(rotas.filter((href) => !comLoading.has(href))).toEqual([]);
   });
 });
+
+const ler = (caminho: string) => readFileSync(join(SRC, caminho), "utf8");
+const IMPORT_DO_BOTAO =
+  /import\s*\{[^}]*\bBOTAO\b[^}]*\}\s*from\s*"@\/components\/casca\/botoes"/;
+
+describe("os desvios da #30 não voltam", () => {
+  // O botão do banner é o botão principal da casca: clareia e brilha sob o cursor.
+  // Uma cópia local com buttonVariants() escurecia e perdia o brilho.
+  test("o banner usa o BOTAO da casca", () => {
+    const banner = ler("components/meus-cursos/banner-continuar.tsx");
+    expect(banner).toMatch(IMPORT_DO_BOTAO);
+    expect(banner).not.toContain("buttonVariants");
+  });
+});

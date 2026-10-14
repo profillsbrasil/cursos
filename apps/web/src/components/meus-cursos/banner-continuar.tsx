@@ -1,21 +1,18 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
 import type { Capa as CapaDoCurso } from "@cursos/api/dominio/tipos";
-import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { Award, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { BOTAO } from "@/components/casca/botoes";
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
 import { hrefDaRetomada } from "@/lib/rotas";
 import { BarraProgresso } from "./barra-progresso";
 
 const CARTAO =
   "overflow-hidden rounded-[20px] bg-card text-card-foreground ring-1 ring-border";
-const BOTAO = cn(
-  buttonVariants(),
-  "h-11 gap-2 self-start rounded-full px-5 font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 max-[760px]:self-stretch"
-);
+const BOTAO_DO_BANNER = cn(BOTAO, "self-start max-[760px]:self-stretch");
 
 function Capa({ capa }: { capa: CapaDoCurso }) {
   return (
@@ -159,7 +156,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             <Progresso {...retomada.progresso} titulo={retomada.curso.titulo} />
           </>
         )}
-        <Link className={cn(BOTAO, "mt-1")} href={href}>
+        <Link className={cn(BOTAO_DO_BANNER, "mt-1")} href={href}>
           <Play aria-hidden="true" className="fill-current" />
           {
             {
