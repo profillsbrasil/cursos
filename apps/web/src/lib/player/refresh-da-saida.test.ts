@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import type { Conquista, Pedido } from "@cursos/api/dominio/registro";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 
-import { criarRefreshDaSaida } from "./refresh-da-saida";
-import type { RespostaDoEnvio } from "./sessao";
+import { criarRefreshDaSaida, ligarRefreshDaSaida } from "./refresh-da-saida";
+import type { DependenciasDaSessao, RespostaDoEnvio } from "./sessao";
 
 const CONQUISTA: Conquista = {
   bonusSequencia: null,
@@ -89,5 +89,58 @@ describe("refresh da saída", () => {
     await expect(saida.enviar(PEDIDO)).rejects.toThrow("sem resposta");
     saida.aoEncerrar("assentou");
     expect(refreshes()).toBe(0);
+  });
+});
+
+// A montagem do hook: a sessão recebe o `aoConquistar` e o `enviar` do módulo, não
+// os crus. Com os crus, a conquista não pede refresh e a saída não marca o envio.
+describe("ligarRefreshDaSaida", () => {
+  function montar(resposta: RespostaDoEnvio) {
+    const conquistas: Conquista[] = [];
+    let refreshes = 0;
+    const agendar: DependenciasDaSessao["agendar"] = () => () => undefined;
+    const criarPlayer = (() => {
+      throw new Error("sem player");
+    }) as DependenciasDaSessao["criarPlayer"];
+    const relogio = () => 0;
+    const ligacao = ligarRefreshDaSaida({
+      agendar,
+      aoConquistar: (c) => conquistas.push(c),
+      criarPlayer,
+      enviar: () => Promise.resolve(resposta),
+      pedirRefresh: () => {
+        refreshes += 1;
+      },
+      relogio,
+    });
+    return {
+      conquistas,
+      ligacao,
+      originais: { agendar, criarPlayer, relogio },
+      refreshes: () => refreshes,
+    };
+  }
+
+  test("a conquista que a sessão avisa pede refresh e chega à tela", () => {
+    const { conquistas, ligacao, refreshes } = montar(aceito(null));
+    ligacao.sessao.aoConquistar(CONQUISTA);
+    expect(conquistas).toEqual([CONQUISTA]);
+    expect(refreshes()).toBe(1);
+  });
+
+  test("o envio aceito pela sessão faz a saída pedir refresh", async () => {
+    const { ligacao, refreshes } = montar(aceito(null));
+    const r = await ligacao.sessao.enviar(PEDIDO);
+    expect(r.tipo).toBe("ok");
+    ligacao.aoEncerrar("assentou");
+    expect(refreshes()).toBe(1);
+  });
+
+  test("o resto das dependências passa como veio", () => {
+    const { ligacao, originais } = montar(aceito(null));
+    expect(ligacao.sessao.agendar).toBe(originais.agendar);
+    expect(ligacao.sessao.criarPlayer).toBe(originais.criarPlayer);
+    expect(ligacao.sessao.relogio).toBe(originais.relogio);
+    expect("pedirRefresh" in ligacao.sessao).toBe(false);
   });
 });

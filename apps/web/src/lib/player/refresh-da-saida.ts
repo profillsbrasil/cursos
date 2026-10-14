@@ -39,3 +39,27 @@ export function criarRefreshDaSaida(
       }),
   };
 }
+
+/**
+ * A montagem que o hook usa: as dependências da sessão com o `aoConquistar` e o
+ * `enviar` trocados pelos do módulo, e o `aoEncerrar` para o fim da sessão. O resto
+ * passa como veio.
+ */
+export function ligarRefreshDaSaida(
+  deps: DependenciasDaSessao & { pedirRefresh: () => void }
+): { aoEncerrar: RefreshDaSaida["aoEncerrar"]; sessao: DependenciasDaSessao } {
+  const { pedirRefresh, ...daSessao } = deps;
+  const saida = criarRefreshDaSaida({
+    aoConquistar: daSessao.aoConquistar,
+    enviar: daSessao.enviar,
+    pedirRefresh,
+  });
+  return {
+    aoEncerrar: saida.aoEncerrar,
+    sessao: {
+      ...daSessao,
+      aoConquistar: saida.aoConquistar,
+      enviar: saida.enviar,
+    },
+  };
+}

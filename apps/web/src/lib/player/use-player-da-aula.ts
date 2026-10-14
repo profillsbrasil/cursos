@@ -19,7 +19,7 @@ import {
   criarSessaoComPreferencias,
   PREFERENCIAS_PADRAO,
 } from "./preferencias";
-import { criarRefreshDaSaida } from "./refresh-da-saida";
+import { ligarRefreshDaSaida } from "./refresh-da-saida";
 import {
   type EstadoDaSessao,
   estadoInicial,
@@ -103,25 +103,25 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     if (!elemento) {
       return;
     }
-    const saida = criarRefreshDaSaida({
+    const ligacao = ligarRefreshDaSaida({
+      agendar: (fn, ms) => {
+        const id = window.setTimeout(fn, ms);
+        return () => window.clearTimeout(id);
+      },
       aoConquistar: (c) => {
         setConquista(c);
         aviso.acender();
         anelDosPontos.acender();
       },
+      criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
       enviar: (pedido) => enviarRegistro(inicial.aulaId, pedido),
       pedirRefresh: () => startTransition(() => router.refresh()),
-    });
-    const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(inicial, {
-      agendar: (fn, ms) => {
-        const id = window.setTimeout(fn, ms);
-        return () => window.clearTimeout(id);
-      },
-      aoConquistar: saida.aoConquistar,
-      criarPlayer: (o) => criarPlayerDeVideo(inicial.video, elemento, o),
-      enviar: saida.enviar,
       relogio: () => performance.now(),
     });
+    const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(
+      inicial,
+      ligacao.sessao
+    );
     setSessao(s);
     const aoEsconder = () => {
       if (document.visibilityState === "hidden") {
@@ -137,7 +137,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       window.removeEventListener("pagehide", aoSair);
       // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
       // página nova e o layout junto, com o "Continuar" do rodapé em dia.
-      s.encerrar().then(saida.aoEncerrar);
+      s.encerrar().then(ligacao.aoEncerrar);
       aviso.encerrar();
     };
   }, [aviso, inicial, router]);
