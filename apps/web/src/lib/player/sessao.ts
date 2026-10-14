@@ -272,11 +272,20 @@ export function criarSessaoDeEstudo(
     }
   };
 
+  // Erro de quem ouve a conquista não para o envio nem rejeita o voo.
+  function avisarConquista(c: Conquista) {
+    try {
+      deps.aoConquistar(c);
+    } catch (e) {
+      console.error("aoConquistar lançou", e);
+    }
+  }
+
   function aposResposta(r: RespostaDoEnvio, pedido: Pedido) {
     anotarGravacao(r);
     if (encerrada) {
       if (r.tipo === "ok" && r.registro.conquista) {
-        deps.aoConquistar(r.registro.conquista);
+        avisarConquista(r.registro.conquista);
       }
       return;
     }
@@ -304,7 +313,7 @@ export function criarSessaoDeEstudo(
     pendentes = subtrair(pendentes, servidor);
     assistida = assistida || r.registro.assistida;
     if (r.registro.conquista) {
-      deps.aoConquistar(r.registro.conquista);
+      avisarConquista(r.registro.conquista);
     }
     const resta = temNovidade();
     envio = resta ? { tipo: "pendente" } : { tipo: "em_dia" };
