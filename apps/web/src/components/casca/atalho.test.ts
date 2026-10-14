@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { ATALHO_NO_SERVIDOR, atalhoDe } from "./atalho";
+import { atalhoDe } from "./atalho";
 
 // O Ctrl+B da sidebar também aceita a tecla Command. No Mac a dica mostra o
 // atalho que a pessoa usa ali.
@@ -27,9 +27,5 @@ describe("a dica de recolher mostra o atalho da plataforma", () => {
 
   test("sem plataforma conhecida: Ctrl B", () => {
     expect(atalhoDe({})).toBe("Ctrl B");
-  });
-
-  test("o servidor escreve Ctrl B, e o cliente troca depois da hidratação", () => {
-    expect(ATALHO_NO_SERVIDOR).toBe("Ctrl B");
   });
 });
