@@ -77,27 +77,90 @@ describe("os desvios da #30 não voltam", () => {
   });
 });
 
-const IMPORTA_MOTION = /import\s*\{([^}]*)\}\s*from\s*"motion\/react"/g;
-const CLASSE_IMPORTANTE = /(?:^|\s)!?[\w:[\]()=&>*_/.-]+!(?=\s|"|$)/m;
+// O que vem entre o import e o from de "motion/react" ou "motion/react-client", em
+// qualquer forma: nomes, alias ou namespace.
+const IMPORTA_MOTION =
+  /import\s+([^;"'`]*?)\s*from\s*["']motion\/react(?:-client)?["']/g;
+const NOMES_IMPORTADOS = /\{([^}]*)\}/;
+const ALIAS = /\s+as\s+/;
+const IMPORT_DE_TIPO = /^type\s+/;
+const TEXTO = /"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`/g;
+const ESPACOS = /\s+/;
+const TESTE = /\.test\.tsx?$/;
+// O ! do Tailwind no fim (size-8!), no começo (!size-8) ou depois da variante
+// (hover:!bg-sol), procurado só dentro de texto, para não pegar o !x do código.
+const CLASSE_IMPORTANTE = /^!\S|:!\S|\S!$/;
+
+// O motion importado: pelo nome, mesmo com alias, ou pelo namespace inteiro (*).
+const motionsImportados = (codigo: string) =>
+  [...codigo.matchAll(IMPORTA_MOTION)].flatMap(([, clausula = ""]) => {
+    const nomes = (NOMES_IMPORTADOS.exec(clausula)?.[1] ?? "")
+      .split(",")
+      .map((n) => n.trim().replace(IMPORT_DE_TIPO, "").split(ALIAS)[0]);
+    return [...nomes, ...(clausula.includes("*") ? ["*"] : [])].filter(
+      (n) => n === "motion" || n === "*"
+    );
+  });
+
+const classesImportantes = (codigo: string) =>
+  [...codigo.matchAll(TEXTO)]
+    .flatMap(([, a = "", b = "", c = ""]) => `${a} ${b} ${c}`.split(ESPACOS))
+    .filter((classe) => CLASSE_IMPORTANTE.test(classe));
 
 describe("a navegação fica leve e sem disputa de classes (#29)", () => {
   // O motion.* puxa o Motion inteiro para toda página logada; o m.* dentro do
   // LazyMotion carrega só as animações de domAnimation.
   test("o app importa do Motion só o m, o LazyMotion e o que não é componente", () => {
-    const nomes = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].flatMap((a) =>
-      [...ler(a).matchAll(IMPORTA_MOTION)].flatMap(([, lista = ""]) =>
-        lista.split(",").map((n) => n.trim())
-      )
+    // Os testes ficam de fora: este mesmo arquivo cita os imports que acusa.
+    const arquivos = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
+      (a) => !TESTE.test(a)
     );
-    expect(nomes.length).toBeGreaterThan(0);
-    expect(nomes.filter((n) => n === "motion")).toEqual([]);
+    expect(
+      arquivos.some((a) => [...ler(a).matchAll(IMPORTA_MOTION)].length > 0)
+    ).toBeTrue();
+    expect(arquivos.flatMap((a) => motionsImportados(ler(a)))).toEqual([]);
   });
 
   // Com um ! contra outro, o item só saía certo se a classe dele viesse depois da
   // do SidebarMenuButton; as classes da navegação agora não anulam nenhuma.
   test("nenhuma classe da navegação usa !", () => {
-    expect(ler("components/casca/nav-principal.tsx")).not.toMatch(
-      CLASSE_IMPORTANTE
-    );
+    expect(
+      classesImportantes(ler("components/casca/nav-principal.tsx"))
+    ).toEqual([]);
+  });
+
+  // As duas guardas acima só valem se reconhecem cada forma de escrever a mesma coisa.
+  test.each([
+    'import { m, motion } from "motion/react";',
+    'import { motion as M } from "motion/react";',
+    'import * as M from "motion/react";',
+    'import { motion } from "motion/react-client";',
+  ])("acusa o motion em %s", (codigo) => {
+    expect(motionsImportados(codigo)).not.toEqual([]);
+  });
+
+  test("não acusa o m e o LazyMotion", () => {
+    expect(
+      motionsImportados(
+        'import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";'
+      )
+    ).toEqual([]);
+  });
+
+  test.each([
+    'className="size-8!"',
+    'className="!size-8"',
+    'className="flex hover:!bg-sol"',
+    'className="hover:bg-sol! p-2"',
+  ])("acusa o ! em %s", (codigo) => {
+    expect(classesImportantes(codigo)).not.toEqual([]);
+  });
+
+  test("não acusa a negação do código", () => {
+    expect(
+      classesImportantes(
+        '<TooltipContent className={DICA} hidden={!recolhida} side="right">'
+      )
+    ).toEqual([]);
   });
 });
