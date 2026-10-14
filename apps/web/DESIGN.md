@@ -244,7 +244,7 @@ Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, bo
 ### Buttons
 Cheios e redondos, com o peso no amarelo.
 - **Shape:** pílula (raio cheio), 44 px de altura, 18 px de padding lateral, 600 em 14 px, vão de 8 px para ícone.
-- **Primary:** Sol com texto `sobre-cor`.
+- **Primary:** Sol com texto `sobre-cor`. É o `BOTAO` de `casca/botoes.ts`, também no banner de Meus cursos, que só acrescenta a largura cheia abaixo de 760 px.
 - **Hover / Focus:** clareia para `sol-hover` e ganha o brilho amarelo. Foco é um contorno sólido de 2 px em Céu com afastamento de 3 px; o anel padrão do shadcn é zerado.
 - **Outline:** fundo transparente, borda em `texto-apagado`, texto `texto`; sob o cursor a borda vira `titulo`.
 - **Small:** 36 px de altura, 14 px de padding, 13 px.
@@ -269,14 +269,14 @@ Cheios e redondos, com o peso no amarelo.
 
 ### Navigation
 - **Itens:** 40 px de altura, raio de 10 px, ícone de 18 px a 11 px da borda, 500 em 14 px. Sob o cursor, fundo `sidebar-realce` e texto `titulo` em 150 ms.
-- **Ativo:** uma pílula amarela inteira atrás do item, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com Motion em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar.
+- **Ativo:** uma pílula amarela inteira atrás do item, pintada pelo token `sidebar-primary`, que é o Sol, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com Motion em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar.
 - **Em breve:** texto e ícone apagados, "Em breve" em 12 px à direita, sem link.
 - **Recolher:** o botão no cabeçalho alterna entre 15,5rem e 69 px. Pelo clique a largura anima em 200 ms com a mesma curva; Ctrl+B e o cookie mudam a largura na hora, e com movimento reduzido nada anima. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
 - **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%. No Mac, a dica do atalho mostra "⌘ B": o servidor escreve "Ctrl B", e o cliente troca depois da hidratação.
 - **Celular:** gaveta, com o botão de fechar no cabeçalho e a faixa de topo de 56 px no conteúdo.
 
 ### Cartão de conta
-O rodapé das duas áreas. Avatar de 36 px (iniciais em Canela), nome em 600 e 14 px, e abaixo o saldo em Sol com estrela e a sequência com chama em Canela, em 12 px. Borda de 1 px em `borda`, raio de 22 px, padding de 8 px; sob o cursor ou com o menu aberto, borda `trilho` e fundo `sidebar-realce`. Recolhido, vira um círculo de 40 px só com o avatar. O menu abre para cima (para a direita quando recolhido) em `cartao` com raio de 22 px: duas placas (Saldo e Sequência, que levam a Trocar pontos), Minha conta, o link da outra área e Sair.
+O rodapé das duas áreas. Avatar de 36 px (iniciais em Canela), nome em 600 e 14 px, e abaixo o saldo em Sol com estrela e a sequência com chama em Canela, em 12 px. Borda de 1 px em `borda`, raio de 22 px, padding de 8 px; sob o cursor ou com o menu aberto, borda `trilho` e fundo `sidebar-realce`. Recolhido, vira um círculo de 40 px só com o avatar. O menu abre para cima (para a direita quando recolhido) em `popover`, como os outros menus, com raio de 22 px: duas placas (Saldo e Sequência, que levam a Trocar pontos), Minha conta, o link da outra área e Sair.
 
 ### Cartão Continuar
 Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, padding de 12 px: o botão redondo de 32 px em Sol (play, ou o troféu na prova), o título da aula em 600 e 13 px, a chamada em 12 px e uma barra de progresso de 4 px. Recolhido, vira o botão redondo de 40 px com dica à direita. Na página para onde aponta, mostra "Assistindo agora" ("Falta só a prova" na prova) e perde o link.
