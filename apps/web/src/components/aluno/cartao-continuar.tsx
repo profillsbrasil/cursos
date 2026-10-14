@@ -16,26 +16,27 @@ import { useModoDaCasca } from "@/components/casca/provedor-da-casca";
 
 import { type Continuar, estaAqui } from "./continuar";
 
-// O hover dos dois links também é o foco de teclado (#30).
+// Um elemento só nos dois modos, como o SidebarMenuButton: aberto, o cartão;
+// recolhida, ele encolhe para o botão redondo de 40 px em Sol, preso à esquerda como
+// os itens. O group-data vence as classes do cartão pela especificidade.
 const CARTAO = cn(
-  "grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground group-data-[collapsible=icon]:hidden",
-  "transition-colors duration-150 ease-out motion-reduce:transition-none"
+  "grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground",
+  "transition-[color,background-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
+  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-sobre-cor"
 );
 
-const BOTAO_REDONDO =
-  "grid shrink-0 place-items-center rounded-full bg-sol text-sobre-cor [&_svg]:fill-current";
+// O hover também é o foco de teclado (#30). Aberto, o fundo vira popover; recolhida,
+// o redondo clareia e brilha como o botão amarelo.
+const COM_LINK =
+  "hover:bg-muted group-data-[collapsible=icon]:hover:bg-sol-hover group-data-[collapsible=icon]:hover:shadow-brilho";
 
-// Recolhida, o cartão vira o botão redondo de 40 px, preso à esquerda como os itens.
-const SOLTO = cn(
-  BOTAO_REDONDO,
-  "hidden size-10 group-data-[collapsible=icon]:grid [&_svg]:size-4"
-);
+// Recolhida, a linha e o redondo de 32 px saem da caixa (contents), e o ícone fica
+// sozinho no centro do redondo de 40 px.
+const LINHA =
+  "flex items-center gap-2.5 group-data-[collapsible=icon]:contents";
 
-// O redondo com link clareia e brilha como o botão amarelo.
-const SOLTO_COM_LINK = cn(
-  SOLTO,
-  "transition-[background-color,box-shadow] duration-150 ease-out hover:bg-sol-hover hover:shadow-brilho motion-reduce:transition-none"
-);
+const REDONDO =
+  "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:[&_svg]:size-4";
 
 function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
   return tipo === "prova" ? (
@@ -50,16 +51,17 @@ type Linhas = Pick<Continuar, "pct" | "tipo" | "titulo"> & { chamada: string };
 /**
  * O miolo do cartão. O trilho da barra existe sempre: em "comecar" (pct null) ele
  * fica invisível e guarda o lugar, então o cartão mede o mesmo nos dois casos, e o
- * esqueleto, que desenha este mesmo miolo invisível, também.
+ * esqueleto, que desenha este mesmo miolo invisível, também. Recolhida, o título e a
+ * chamada ficam só para o leitor de tela, e a barra some.
  */
 function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
   return (
     <>
-      <span className="flex items-center gap-2.5">
-        <span className={cn(BOTAO_REDONDO, "size-8 [&_svg]:size-3.5")}>
+      <span className={LINHA}>
+        <span className={REDONDO}>
           <Icone tipo={tipo} />
         </span>
-        <span className="grid min-w-0 leading-tight">
+        <span className="grid min-w-0 leading-tight group-data-[collapsible=icon]:sr-only">
           <b className="truncate font-semibold text-[13px] text-titulo">
             {titulo}
           </b>
@@ -69,7 +71,7 @@ function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
       <span
         aria-hidden="true"
         className={cn(
-          "h-1 overflow-hidden rounded-full bg-trilho",
+          "h-1 overflow-hidden rounded-full bg-trilho group-data-[collapsible=icon]:hidden",
           pct === null && "invisible"
         )}
       >
@@ -92,63 +94,40 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
     return null;
   }
   const aqui = estaAqui(c, caminho);
-  const dica = aqui ? c.chamadaAqui : c.chamada;
-  const conteudo = (
-    <ConteudoDoCartao
-      chamada={dica}
-      pct={c.pct}
-      tipo={c.tipo}
-      titulo={c.titulo}
-    />
-  );
+  const chamada = aqui ? c.chamadaAqui : c.chamada;
   return (
-    <>
-      {aqui ? (
-        <div aria-current="page" className={CARTAO}>
-          {conteudo}
-        </div>
-      ) : (
-        <Link
-          aria-label={c.rotulo}
-          className={cn(CARTAO, "hover:bg-muted")}
-          href={c.href}
-        >
-          {conteudo}
-        </Link>
-      )}
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            aqui ? (
-              <div aria-current="page" className={SOLTO} />
-            ) : (
-              <Link
-                aria-label={c.rotulo}
-                className={SOLTO_COM_LINK}
-                href={c.href}
-              />
-            )
-          }
-        >
-          <Icone tipo={c.tipo} />
-          {aqui ? (
-            <span className="sr-only">
-              {c.chamadaAqui}: {c.titulo}
-            </span>
-          ) : null}
-        </TooltipTrigger>
-        <TooltipContent className={DICA} hidden={!recolhida} side="right">
-          {dica}
-          <span className={DICA_SECUNDARIA}>{c.titulo}</span>
-        </TooltipContent>
-      </Tooltip>
-    </>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          aqui ? (
+            <div aria-current="page" className={CARTAO} />
+          ) : (
+            <Link
+              aria-label={c.rotulo}
+              className={cn(CARTAO, COM_LINK)}
+              href={c.href}
+            />
+          )
+        }
+      >
+        <ConteudoDoCartao
+          chamada={chamada}
+          pct={c.pct}
+          tipo={c.tipo}
+          titulo={c.titulo}
+        />
+      </TooltipTrigger>
+      <TooltipContent className={DICA} hidden={!recolhida} side="right">
+        {chamada}
+        <span className={DICA_SECUNDARIA}>{c.titulo}</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
 // O espaço sem quebra (U+00A0) dá altura às linhas de texto invisíveis; um espaço
 // comum sozinho colapsa, e a linha mediria 0 px.
-const LINHA_VAZIA = "\u00a0";
+const LINHA_VAZIA = " ";
 
 // A altura vem do mesmo miolo do cartão, desenhado invisível, e não de um número:
 // o rodapé não pula quando o cartão chega. Recolhida, vira o círculo de 40 px.
