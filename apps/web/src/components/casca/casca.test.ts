@@ -68,4 +68,11 @@ describe("os desvios da #30 não voltam", () => {
     const css = readFileSync(GLOBALS, "utf8");
     expect(valorDoToken(css, "sidebar-primary")).toBe(valorDoToken(css, "sol"));
   });
+
+  // O menu da conta abre em popover, como todo menu do shadcn, não em cartão.
+  test("o menu do cartão de conta não usa bg-card", () => {
+    expect(ler("components/casca/cartao-de-conta.tsx")).not.toContain(
+      "bg-card"
+    );
+  });
 });

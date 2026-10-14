@@ -170,7 +170,7 @@ export function CartaoDeConta({
       <DropdownMenuContent
         align={recolhida ? "end" : "start"}
         className={cn(
-          "grid gap-0.5 rounded-2xl bg-card p-1.5 shadow-black/45 shadow-xl ring-border",
+          "grid gap-0.5 rounded-2xl bg-popover p-1.5 shadow-black/45 shadow-xl ring-border",
           recolhida && "w-58"
         )}
         side={recolhida ? "right" : "top"}
