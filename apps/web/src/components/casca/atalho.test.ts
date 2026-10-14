@@ -22,9 +22,7 @@ describe("a dica de recolher mostra o atalho da plataforma", () => {
 
   test("Linux e Windows: Ctrl B", () => {
     expect(atalhoDe({ platform: "Linux x86_64" })).toBe("Ctrl B");
-    expect(atalhoDe({ userAgentData: { platform: "Windows" } })).toBe(
-      "Ctrl B"
-    );
+    expect(atalhoDe({ userAgentData: { platform: "Windows" } })).toBe("Ctrl B");
   });
 
   test("sem plataforma conhecida: Ctrl B", () => {
