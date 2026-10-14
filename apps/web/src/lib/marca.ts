@@ -17,23 +17,26 @@ export const TITULO_DA_RAIZ = {
   template: TEMPLATE_DO_TITULO,
 };
 
-/** Imagem raster com a medida intrínseca, para o next/image não pular o layout. */
+/**
+ * SVG da marca com a medida do `viewBox`, para o next/image não pular o layout.
+ * O next/image serve `.svg` sem otimizar, como o arquivo está em `public/marca/`.
+ */
 export interface ImagemDaMarca {
   altura: number;
   largura: number;
-  src: `/marca/${string}.png`;
+  src: `/marca/${string}.svg`;
 }
 
 /** Pena, livro e PROFILLS / CURSOS: a sidebar aberta. */
 export const LOCKUP: ImagemDaMarca = {
   altura: 120,
   largura: 424,
-  src: "/marca/profills-cursos.png",
+  src: "/marca/profills-cursos.svg",
 };
 
 /** Pena e livro: a sidebar recolhida e o topo do celular. */
 export const ICONE: ImagemDaMarca = {
   altura: 216,
   largura: 216,
-  src: "/marca/profills-cursos-icone.png",
+  src: "/marca/profills-cursos-icone.svg",
 };
