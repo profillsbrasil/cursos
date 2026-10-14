@@ -1,0 +1,2 @@
+CREATE INDEX "liberacao_por_trilha" ON "liberacao" ("trilha_id") WHERE "trilha_id" is not null;--> statement-breakpoint
+CREATE INDEX "ponto_lancamento_por_trilha" ON "ponto_lancamento" ("trilha_id") WHERE "trilha_id" is not null;
