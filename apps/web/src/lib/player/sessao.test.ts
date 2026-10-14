@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import {
   aplicarRegistro,
   type Conquista,
@@ -17,6 +17,7 @@ import {
 import { PREFERENCIAS_PADRAO } from "./preferencias";
 import {
   criarSessaoDeEstudo,
+  ENVIO_MS,
   type EstadoReproducao,
   motivoParadoDe,
   type RespostaDoEnvio,
@@ -354,6 +355,22 @@ describe("sessão de estudo", () => {
     sessao.salvarAgora();
     sessao.salvarAgora();
     expect(servidor.pedidos).toHaveLength(2);
+  });
+
+  test("aoConquistar que lança no meio da sessão não para o envio", async () => {
+    const erro = spyOn(console, "error").mockImplementation(() => undefined);
+    const { conquistas, relogio, servidor, sessao } = montar(0, {
+      conquistaLanca: true,
+    });
+    sessao.comandar({ tipo: "alternar" });
+    await relogio.avancar(541_000);
+    expect(conquistas).toHaveLength(1);
+    const antes = servidor.pedidos.length;
+    await relogio.avancar(ENVIO_MS);
+    expect(servidor.pedidos).toHaveLength(antes + 1);
+    expect(sessao.estado().envio.tipo).not.toBe("enviando");
+    expect(erro).toHaveBeenCalledTimes(1);
+    erro.mockRestore();
   });
 
   test("encerrar fecha o trecho, envia e não agenda mais nada", async () => {
