@@ -67,7 +67,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
           width={LOCKUP.largura}
         />
         {selo ? (
-          <span className="absolute top-[19px] left-[115px] rounded-full bg-ceu/14 px-1.5 py-[3px] font-semibold text-[10px] text-ceu uppercase leading-none tracking-wide">
+          <span className="absolute top-[19px] left-[124px] rounded-full bg-ceu/14 px-1.5 py-[3px] font-semibold text-[10px] text-ceu uppercase leading-none tracking-wide">
             {selo}
           </span>
         ) : null}
