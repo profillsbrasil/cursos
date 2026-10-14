@@ -60,5 +60,10 @@ export const liberacao = tabela(
     index("liberacao_ativa_por_pessoa")
       .on(t.userId)
       .where(sql`${t.revogadaEm} is null`),
+    // abrirTrilha conta liberações por trilha, revogadas inclusive, e o DELETE de
+    // trilha checa a FK por aqui. Os índices acima começam por user_id.
+    index("liberacao_por_trilha")
+      .on(t.trilhaId)
+      .where(sql`${t.trilhaId} is not null`),
   ]
 );

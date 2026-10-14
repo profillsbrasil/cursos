@@ -71,5 +71,10 @@ export const pontoLancamento = tabela(
       name: "ponto_liberacao_fk",
     }).onDelete("restrict"),
     index("ponto_lancamento_por_data").on(t.userId, t.criadoEm),
+    // abrirTrilha conta conclusões por trilha e o DELETE de trilha checa a FK por
+    // aqui; ponto_trilha_uma_vez começa por user_id e obriga a ler o índice inteiro.
+    index("ponto_lancamento_por_trilha")
+      .on(t.trilhaId)
+      .where(sql`${t.trilhaId} is not null`),
   ]
 );
