@@ -145,9 +145,13 @@ const erroSemVideo = () =>
  * cota_video antes de o Postgres desistir (55P03, que o router devolve como
  * TOO_MANY_REQUESTS). O envio de saída sai milissegundos depois de outro
  * (visibilitychange, depois pagehide) e o player não o repete, então ele precisa
- * caber aqui esperando um ou dois envios em voo terminarem. Cada um segura a
- * linha por 8 a 10 idas ao banco: dois cabem em 3 s enquanto a ida e volta entre
- * o servidor e o banco ficar abaixo de 150 ms.
+ * esperar um ou dois envios em voo terminarem. O lock_timeout vale para cada
+ * tentativa de trava, não para a soma: atrás de dois em voo, ele espera a trava
+ * de tupla (que o segundo segura enquanto espera o primeiro) e depois a
+ * transação do segundo, cada espera com 3 s próprios. Então ele passa enquanto
+ * cada envio em voo segurar a linha por menos de 3 s. Cada um segura a linha por
+ * 8 a 10 idas ao banco: cabe enquanto a ida e volta entre o servidor e o banco
+ * ficar abaixo de 300 ms.
  */
 export const ESPERA_PELA_COTA_MS = 3000;
 
