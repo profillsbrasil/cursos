@@ -23,3 +23,59 @@
     transition-duration: 200ms;
   }
 }
+
+/* Nenhum contorno de foco (#30), por decisão do dono, também no alto contraste do
+   Windows. O foco de teclado é o hover de cada controle (a variante hover: do
+   globals.css). Fora de camada, a regra vence todo outline-* dos componentes e o
+   contorno padrão do navegador. */
+:focus-visible {
+  outline: none;
+}
+
+/* O campo não tem hover para copiar: focado, ou sob o cursor, ele ganha a borda Céu
+   (#30). Os data-slot são a API estável do shadcn; data-campo marca a moldura de
+   campo montada no app. O campo com erro (aria-invalid) fica vermelho, e o desligado
+   fica como está. */
+:is(
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="native-select"],
+  [data-slot="select-trigger"],
+  [data-slot="input-group"],
+  [data-slot="combobox-chips"],
+  [data-slot="switch"],
+  [data-slot="checkbox"],
+  [data-slot="radio-group-item"],
+  [data-campo]
+):is(:focus-visible, :has(:focus-visible)):not(
+  [aria-invalid="true"],
+  :has([aria-invalid="true"]),
+  :disabled,
+  :has(:disabled),
+  [data-disabled]
+) {
+  border-color: var(--ceu);
+}
+
+@media (hover: hover) {
+  :is(
+    [data-slot="input"],
+    [data-slot="textarea"],
+    [data-slot="native-select"],
+    [data-slot="select-trigger"],
+    [data-slot="input-group"],
+    [data-slot="combobox-chips"],
+    [data-slot="switch"],
+    [data-slot="checkbox"],
+    [data-slot="radio-group-item"],
+    [data-campo]
+  ):hover:not(
+    [aria-invalid="true"],
+    :has([aria-invalid="true"]),
+    :disabled,
+    :has(:disabled),
+    [data-disabled]
+  ) {
+    border-color: var(--ceu);
+  }
+}
