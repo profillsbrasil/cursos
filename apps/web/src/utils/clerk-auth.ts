@@ -1,3 +1,5 @@
+import type { SessionResource } from "@clerk/nextjs/types";
+
 type ClerkTokenGetter = () => Promise<string | null>;
 
 let clerkTokenGetter: ClerkTokenGetter | null = null;
@@ -10,13 +12,21 @@ export async function getClerkAuthToken() {
   return (await clerkTokenGetter?.()) ?? null;
 }
 
-/** A parte do `window.Clerk` (o clerk-js) que esta leitura usa. */
-interface ClerkNoNavegador {
+type TokenDoClerk = NonNullable<SessionResource["lastActiveToken"]>;
+
+/**
+ * A parte do `window.Clerk` (o clerk-js) que esta leitura usa, recortada dos tipos
+ * do Clerk: um upgrade que renomeie ou mude um destes campos quebra o check-types.
+ */
+export interface ClerkNoNavegador {
   session?: {
-    lastActiveToken: {
-      getRawString: () => string;
-      jwt?: { claims: { exp: number } };
-    } | null;
+    lastActiveToken:
+      | (Pick<TokenDoClerk, "getRawString"> & {
+          jwt?: {
+            claims: Pick<NonNullable<TokenDoClerk["jwt"]>["claims"], "exp">;
+          };
+        })
+      | null;
   } | null;
 }
 

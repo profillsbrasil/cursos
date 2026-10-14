@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
-import { setClerkAuthTokenGetter } from "./clerk-auth";
+import { type ClerkNoNavegador, setClerkAuthTokenGetter } from "./clerk-auth";
 import { trpcClient } from "./trpc";
 
 // O pagehide dá ao envio de saída só as microtarefas da tarefa dele: a próxima
@@ -25,11 +25,12 @@ let pedidos: Pedido[] = [];
 /** O window.Clerk que o clerk-js monta, só com o último token da sessão. */
 function clerkComUltimoToken(raw: string, venceEmSeg: number) {
   const exp = Math.floor(Date.now() / 1000) + venceEmSeg;
-  Reflect.set(globalThis, "Clerk", {
+  const clerk: ClerkNoNavegador = {
     session: {
       lastActiveToken: { getRawString: () => raw, jwt: { claims: { exp } } },
     },
-  });
+  };
+  Reflect.set(globalThis, "Clerk", clerk);
 }
 
 /** O getToken do Clerk quando o cache já soltou o token e a renovação depende da rede. */
