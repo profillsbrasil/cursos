@@ -89,10 +89,7 @@ export function CartaoTrilha({ trilha }: { trilha: TrilhaVM }) {
   }
   return (
     <Link
-      className={cn(
-        CARTAO,
-        "transition-shadow hover:ring-ceu focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
-      )}
+      className={cn(CARTAO, "transition-shadow hover:ring-ceu")}
       href={`/cursos/${trilha.daVez.slug}`}
     >
       {conteudo}

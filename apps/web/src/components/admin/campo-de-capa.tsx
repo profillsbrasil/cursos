@@ -246,12 +246,10 @@ export function CampoDeCapa({
         <Field data-invalid={mensagemDaImagem ? true : undefined}>
           <p className={ROTULO}>Imagem</p>
           <div className="flex flex-wrap items-center gap-2">
+            {/* O input de arquivo fica escondido dentro do label. A variante hover:
+                acende o label também quando o input tem o foco de teclado (#30). */}
             <label
-              className={cn(
-                BOTAO_CONTORNO,
-                PEQUENO,
-                "cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-ceu has-focus-visible:outline-solid has-focus-visible:outline-offset-3"
-              )}
+              className={cn(BOTAO_CONTORNO, PEQUENO, "cursor-pointer")}
               htmlFor={arquivo}
             >
               <ImageUp aria-hidden="true" className="size-4" />

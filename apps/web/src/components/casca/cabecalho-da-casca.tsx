@@ -13,19 +13,19 @@ import { useSyncExternalStore } from "react";
 import { ICONE, LOCKUP, PRODUTO } from "@/lib/marca";
 
 import { ATALHO_NO_SERVIDOR, atalhoDe } from "./atalho";
-import { DICA, DICA_SECUNDARIA, FOCO } from "./estilo";
+import { DICA, DICA_SECUNDARIA } from "./estilo";
 import { useAlternarNavegacao } from "./provedor-da-casca";
 
+// O hover vale também no foco de teclado (#30): o fundo acende nos dois.
 const BOTAO_DE_ICONE = cn(
   "grid size-8 shrink-0 place-items-center rounded-[9px] text-muted-foreground",
   "transition-[color,background-color] duration-150 ease-out hover:bg-sidebar-accent hover:text-titulo motion-reduce:transition-none",
-  "[&_svg]:size-[18px]",
-  FOCO
+  "[&_svg]:size-[18px]"
 );
 
 // Recolhido, o botão tem 40 px, como os itens, e mostra o ícone da marca.
 const ALTERNAR_RECOLHIDA =
-  "group/alternar relative size-10 rounded-[10px] text-titulo focus-visible:bg-sidebar-accent [@media(hover:none)]:bg-sidebar-accent";
+  "group/alternar relative size-10 rounded-[10px] text-titulo hover:bg-sidebar-accent [@media(hover:none)]:bg-sidebar-accent";
 
 const SOME_COM_HOVER =
   "transition-opacity duration-150 ease-out motion-reduce:transition-none";
@@ -102,7 +102,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
                 <Image
                   alt=""
                   className={cn(
-                    "size-10 group-hover/alternar:opacity-0 group-focus-visible/alternar:opacity-0 [@media(hover:none)]:opacity-0",
+                    "size-10 group-hover/alternar:opacity-0 [@media(hover:none)]:opacity-0",
                     SOME_COM_HOVER
                   )}
                   height={ICONE.altura}
@@ -112,7 +112,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
                 <PanelLeftOpen
                   aria-hidden="true"
                   className={cn(
-                    "absolute opacity-0 group-hover/alternar:opacity-100 group-focus-visible/alternar:opacity-100 [@media(hover:none)]:opacity-100",
+                    "absolute opacity-0 group-hover/alternar:opacity-100 [@media(hover:none)]:opacity-100",
                     SOME_COM_HOVER
                   )}
                 />

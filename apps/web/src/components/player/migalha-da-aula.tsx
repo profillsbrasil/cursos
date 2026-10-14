@@ -10,8 +10,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 
-const LINK =
-  "text-ceu underline-offset-4 hover:text-ceu hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2";
+const LINK = "text-ceu underline-offset-4 hover:text-ceu hover:underline";
 
 export function MigalhaDaAula({ dados }: { dados: AulaNoPlayer }) {
   return (

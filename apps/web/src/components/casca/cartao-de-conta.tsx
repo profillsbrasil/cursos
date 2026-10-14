@@ -22,7 +22,6 @@ import { Suspense, use, useCallback, useSyncExternalStore } from "react";
 import { fmtPts, iniciais, plural } from "@/lib/formato";
 import { anelDosPontos } from "@/lib/player/sinal";
 
-import { FOCO } from "./estilo";
 import type { LinkDaArea } from "./nav";
 import { useAlternarNavegacao } from "./provedor-da-casca";
 
@@ -35,8 +34,7 @@ const GATILHO = cn(
   "flex w-full items-center gap-2.5 rounded-2xl border border-sidebar-border bg-sidebar p-2 text-left",
   "transition-[border-color,background-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
   "hover:border-trilho hover:bg-sidebar-accent data-popup-open:border-trilho data-popup-open:bg-sidebar-accent",
-  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px",
-  FOCO
+  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px"
 );
 
 // O anel acende quando a conquista chega no player (anelDosPontos).
