@@ -54,9 +54,8 @@ const resultado = (p: Promise<unknown>) =>
   );
 
 describe.skipIf(URL_TESTE === null)("edição da trilha", () => {
-  // O Bun roda o corpo do describe pulado, e urlDaCorrida("") lança.
   const db = createDb({
-    DATABASE_URL: URL_TESTE === null ? "" : urlDaCorrida(URL_TESTE),
+    DATABASE_URL: urlDaCorrida(URL_TESTE),
   });
   const admin = createCaller(
     contextoDeTeste({ db, papel: "admin", userId: "user_admin" })
