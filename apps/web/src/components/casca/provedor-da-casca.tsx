@@ -75,18 +75,28 @@ function FecharGavetaAoNavegar() {
   return null;
 }
 
+/** O modo da casca: a gaveta do celular, ou a sidebar recolhida no computador. */
+export function useModoDaCasca() {
+  const { isMobile, state } = useSidebar();
+  return {
+    noCelular: isMobile,
+    recolhida: state === "collapsed" && !isMobile,
+  };
+}
+
 /**
  * O único jeito de alternar a navegação com animação: o botão do cabeçalho e o do
  * topo do celular. As duas atualizações caem no mesmo lote do clique, então o
- * atributo e a largura nova chegam no mesmo commit.
+ * atributo e a largura nova chegam no mesmo commit. Fora do ProvedorDaCasca, o hook
+ * lança já na renderização, e não no primeiro clique.
  */
 export function useAlternarNavegacao() {
   const animar = use(Animar);
-  const { isMobile, setOpenMobile, state, toggleSidebar } = useSidebar();
+  if (!animar) {
+    throw new Error("useAlternarNavegacao fora do ProvedorDaCasca.");
+  }
+  const { setOpenMobile, toggleSidebar } = useSidebar();
   const alternar = useCallback(() => {
-    if (!animar) {
-      throw new Error("useAlternarNavegacao fora do ProvedorDaCasca.");
-    }
     animar(performance.now());
     toggleSidebar();
   }, [animar, toggleSidebar]);
@@ -94,10 +104,5 @@ export function useAlternarNavegacao() {
     () => setOpenMobile(false),
     [setOpenMobile]
   );
-  return {
-    alternar,
-    fecharNoCelular,
-    noCelular: isMobile,
-    recolhida: state === "collapsed" && !isMobile,
-  };
+  return { alternar, fecharNoCelular };
 }

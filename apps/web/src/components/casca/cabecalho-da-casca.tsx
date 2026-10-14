@@ -14,7 +14,7 @@ import { ICONE, LOCKUP, PRODUTO } from "@/lib/marca";
 
 import { ATALHO_NO_SERVIDOR, atalhoDe } from "./atalho";
 import { DICA, DICA_SECUNDARIA } from "./estilo";
-import { useAlternarNavegacao } from "./provedor-da-casca";
+import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 
 // O hover vale também no foco de teclado (#30): o fundo acende nos dois.
 const BOTAO_DE_ICONE = cn(
@@ -50,8 +50,8 @@ function Atalho() {
  * teclado fica com o foco nele. No celular: o lockup e o botão de fechar a gaveta.
  */
 export function CabecalhoDaCasca({ selo }: { selo?: string }) {
-  const { alternar, fecharNoCelular, noCelular, recolhida } =
-    useAlternarNavegacao();
+  const { alternar, fecharNoCelular } = useAlternarNavegacao();
+  const { noCelular, recolhida } = useModoDaCasca();
   const acao = recolhida ? "Abrir" : "Recolher";
   return (
     <>

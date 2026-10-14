@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation";
 import { Suspense, use } from "react";
 
 import { DICA, DICA_SECUNDARIA } from "@/components/casca/estilo";
-import { useAlternarNavegacao } from "@/components/casca/provedor-da-casca";
+import { useModoDaCasca } from "@/components/casca/provedor-da-casca";
 
 import { type Continuar, estaAqui } from "./continuar";
 
@@ -86,7 +86,7 @@ function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
 
 function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
   const caminho = usePathname();
-  const { recolhida } = useAlternarNavegacao();
+  const { recolhida } = useModoDaCasca();
   const c = use(cartao);
   if (!c) {
     return null;
