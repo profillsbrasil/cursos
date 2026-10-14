@@ -272,7 +272,7 @@ Cheios e redondos, com o peso no amarelo.
 - **Ativo:** uma pílula amarela inteira atrás do item, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com Motion em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar.
 - **Em breve:** texto e ícone apagados, "Em breve" em 12 px à direita, sem link.
 - **Recolher:** o botão no cabeçalho alterna entre 15,5rem e 69 px. Pelo clique a largura anima em 200 ms com a mesma curva; Ctrl+B e o cookie mudam a largura na hora, e com movimento reduzido nada anima. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
-- **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%.
+- **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%. No Mac, a dica do atalho mostra "⌘ B": o servidor escreve "Ctrl B", e o cliente troca depois da hidratação.
 - **Celular:** gaveta, com o botão de fechar no cabeçalho e a faixa de topo de 56 px no conteúdo.
 
 ### Cartão de conta

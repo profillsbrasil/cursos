@@ -8,9 +8,11 @@ import {
 import { cn } from "@cursos/ui/lib/utils";
 import { Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
 
 import { ICONE, LOCKUP, PRODUTO } from "@/lib/marca";
 
+import { ATALHO_NO_SERVIDOR, atalhoDe } from "./atalho";
 import { DICA, DICA_SECUNDARIA, FOCO } from "./estilo";
 import { useAlternarNavegacao } from "./provedor-da-casca";
 
@@ -28,8 +30,17 @@ const ALTERNAR_RECOLHIDA =
 const SOME_COM_HOVER =
   "transition-opacity duration-150 ease-out motion-reduce:transition-none";
 
+const semInscricao = () => () => undefined;
+
+// O servidor e a hidratação escrevem Ctrl B; o cliente troca para ⌘ B no Mac logo
+// depois, sem divergir do HTML do servidor.
 function Atalho() {
-  return <span className={DICA_SECUNDARIA}>Ctrl B</span>;
+  const atalho = useSyncExternalStore(
+    semInscricao,
+    () => atalhoDe(navigator),
+    () => ATALHO_NO_SERVIDOR
+  );
+  return <span className={DICA_SECUNDARIA}>{atalho}</span>;
 }
 
 /**
