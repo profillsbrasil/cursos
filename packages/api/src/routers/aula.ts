@@ -4,7 +4,7 @@ import { z } from "zod";
 import { carregarAula, carregarEntrada, registrar } from "../consultas/aula";
 import { TRECHOS_POR_ENVIO } from "../dominio/regras";
 import type { AulaId } from "../dominio/tipos";
-import { protectedProcedure, router, traduzErroDoBanco } from "../index";
+import { protectedProcedure, protegidoComTraducao, router } from "../index";
 
 const FORMATO_DO_SLUG = new RegExp(SLUG);
 const UUID = z.uuid();
@@ -35,8 +35,7 @@ export const aulaRouter = router({
         : null
     ),
   // A tradução leva o lock_timeout de registrar a TOO_MANY_REQUESTS.
-  registrar: protectedProcedure
-    .use(traduzErroDoBanco)
+  registrar: protegidoComTraducao
     .input(entradaRegistro)
     .mutation(async ({ ctx, input }) => {
       const r = await registrar(

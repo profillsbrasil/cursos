@@ -79,7 +79,8 @@ export const traduzErroDoBanco = t.middleware(async ({ next }) => {
   return resultado;
 });
 
-const protegidoComTraducao = protectedProcedure.use(traduzErroDoBanco);
+// O protegido com a tradução: a base do admin e do aula.registrar.
+export const protegidoComTraducao = protectedProcedure.use(traduzErroDoBanco);
 
 /**
  * Segunda porta do admin; a primeira é exigirAdmin em apps/web/src/server/api.ts.
