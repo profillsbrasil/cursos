@@ -10,7 +10,10 @@ import { esperas, urlDaCorrida } from "./corrida-de-teste";
 const URL_TESTE = urlDeTeste();
 
 describe.skipIf(URL_TESTE === null)("esperas", () => {
-  const meu = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE ?? "") });
+  // O Bun roda o corpo do describe pulado, e urlDaCorrida("") lança.
+  const meu = createDb({
+    DATABASE_URL: URL_TESTE === null ? "" : urlDaCorrida(URL_TESTE),
+  });
   const deFora = createDb({ DATABASE_URL: URL_TESTE ?? "" });
 
   afterAll(async () => {

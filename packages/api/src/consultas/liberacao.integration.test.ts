@@ -44,7 +44,10 @@ const pessoa = (userId: string): Pessoa => ({
 });
 
 describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
-  const db = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE ?? "") });
+  // O Bun roda o corpo do describe pulado, e urlDaCorrida("") lança.
+  const db = createDb({
+    DATABASE_URL: URL_TESTE === null ? "" : urlDaCorrida(URL_TESTE),
+  });
   const alunos: string[] = [];
   const cursos: string[] = [];
   const trilhas: string[] = [];
