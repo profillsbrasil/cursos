@@ -54,7 +54,7 @@ export function NavPrincipal({
           <motion.li
             animate={{ transform: movimento.transform }}
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 left-0 h-(--altura-do-item) w-full rounded-[10px] bg-sol group-data-[collapsible=icon]:w-(--altura-do-item)"
+            className="pointer-events-none absolute top-0 left-0 h-(--altura-do-item) w-full rounded-[10px] bg-sidebar-primary group-data-[collapsible=icon]:w-(--altura-do-item)"
             initial={false}
             transition={movimento.transicao}
           />

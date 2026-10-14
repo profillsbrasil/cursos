@@ -45,8 +45,11 @@ describe("a pílula anda no clique", () => {
 });
 
 const ler = (caminho: string) => readFileSync(join(SRC, caminho), "utf8");
+const GLOBALS = join(SRC, "../../../packages/ui/src/styles/globals.css");
 const IMPORT_DO_BOTAO =
   /import\s*\{[^}]*\bBOTAO\b[^}]*\}\s*from\s*"@\/components\/casca\/botoes"/;
+const valorDoToken = (css: string, nome: string) =>
+  new RegExp(`--${nome}:\\s*([^;]+);`).exec(css)?.[1]?.trim();
 
 describe("os desvios da #30 não voltam", () => {
   // O botão do banner é o botão principal da casca: clareia e brilha sob o cursor.
@@ -55,5 +58,14 @@ describe("os desvios da #30 não voltam", () => {
     const banner = ler("components/meus-cursos/banner-continuar.tsx");
     expect(banner).toMatch(IMPORT_DO_BOTAO);
     expect(banner).not.toContain("buttonVariants");
+  });
+
+  // A pílula do item ativo lê o token da sidebar, e o token é o Sol.
+  test("a pílula usa sidebar-primary, e sidebar-primary é o Sol", () => {
+    expect(ler("components/casca/nav-principal.tsx")).toContain(
+      "bg-sidebar-primary"
+    );
+    const css = readFileSync(GLOBALS, "utf8");
+    expect(valorDoToken(css, "sidebar-primary")).toBe(valorDoToken(css, "sol"));
   });
 });
