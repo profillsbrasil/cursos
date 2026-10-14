@@ -10,7 +10,10 @@ import {
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { toast } from "sonner";
 
-import { getClerkAuthToken } from "@/utils/clerk-auth";
+import {
+  getClerkAuthToken,
+  getClerkAuthTokenSemEspera,
+} from "@/utils/clerk-auth";
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -27,18 +30,22 @@ export const queryClient = new QueryClient({
   }),
 });
 
+const comToken = (token: string | null): Record<string, string> =>
+  token ? { Authorization: `Bearer ${token}` } : {};
+
 async function headers(): Promise<Record<string, string>> {
   if (typeof window !== "undefined") {
-    const token = await getClerkAuthToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return comToken(await getClerkAuthToken());
   }
 
   const { auth } = await import("@clerk/nextjs/server");
   const clerkAuth = await auth();
-  const token = await clerkAuth.getToken();
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return comToken(await clerkAuth.getToken());
 }
+
+// O registro só sai do browser, e também no pagehide, que não espera a rede.
+const headersDoRegistro = async () =>
+  comToken(await getClerkAuthTokenSemEspera());
 
 const URL_API = "/api/trpc";
 
@@ -57,7 +64,7 @@ export const trpcClient = createTRPCClient<AppRouter>({
       }),
       true: httpLink({
         fetch: (url, init) => fetch(url, { ...init, keepalive: true }),
-        headers,
+        headers: headersDoRegistro,
         url: URL_API,
       }),
     }),
