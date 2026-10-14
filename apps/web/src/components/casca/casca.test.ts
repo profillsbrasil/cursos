@@ -76,3 +76,28 @@ describe("os desvios da #30 não voltam", () => {
     );
   });
 });
+
+const IMPORTA_MOTION = /import\s*\{([^}]*)\}\s*from\s*"motion\/react"/g;
+const CLASSE_IMPORTANTE = /(?:^|\s)!?[\w:[\]()=&>*_/.-]+!(?=\s|"|$)/m;
+
+describe("a navegação fica leve e sem disputa de classes (#29)", () => {
+  // O motion.* puxa o Motion inteiro para toda página logada; o m.* dentro do
+  // LazyMotion carrega só as animações de domAnimation.
+  test("o app importa do Motion só o m, o LazyMotion e o que não é componente", () => {
+    const nomes = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].flatMap((a) =>
+      [...ler(a).matchAll(IMPORTA_MOTION)].flatMap(([, lista = ""]) =>
+        lista.split(",").map((n) => n.trim())
+      )
+    );
+    expect(nomes.length).toBeGreaterThan(0);
+    expect(nomes.filter((n) => n === "motion")).toEqual([]);
+  });
+
+  // Com um ! contra outro, o item só saía certo se a classe dele viesse depois da
+  // do SidebarMenuButton; as classes da navegação agora não anulam nenhuma.
+  test("nenhuma classe da navegação usa !", () => {
+    expect(ler("components/casca/nav-principal.tsx")).not.toMatch(
+      CLASSE_IMPORTANTE
+    );
+  });
+});
