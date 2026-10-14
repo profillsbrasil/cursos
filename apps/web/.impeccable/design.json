@@ -231,7 +231,7 @@
       "refersTo": "button-primary",
       "description": "Pílula amarela, uma por contexto.",
       "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 3l14 9-14 9z\"/></svg>Continuar aula</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: none; border-radius: 9999px; background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-btn-primary:hover { background: #ffd633; box-shadow: 0 6px 18px rgb(255 204 1 / 0.28); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 3px; }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: none; border-radius: 9999px; background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { background: #ffd633; box-shadow: 0 6px 18px rgb(255 204 1 / 0.28); outline: none; }"
     },
     {
       "name": "Botão em contorno",
@@ -239,7 +239,7 @@
       "refersTo": "button-outline",
       "description": "Ação secundária ao lado do botão principal.",
       "html": "<button class=\"ds-btn-outline\">Ver extrato</button>",
-      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 9999px; background: transparent; color: var(--foreground, #e9ecef); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn-outline:hover { border-color: var(--titulo, #f4f5f7); } .ds-btn-outline:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 3px; }"
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 9999px; background: transparent; color: var(--foreground, #e9ecef); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn-outline:hover, .ds-btn-outline:focus-visible { border-color: var(--titulo, #f4f5f7); outline: none; }"
     },
     {
       "name": "Campo",
@@ -247,7 +247,7 @@
       "refersTo": "input",
       "description": "Campo de texto dos formulários do admin.",
       "html": "<label class=\"ds-field\"><span>Título do curso</span><input class=\"ds-input\" value=\"Operação da envasadora\"></label>",
-      "css": ".ds-field { display: grid; gap: 6px; font: 600 14px Geist, ui-sans-serif, sans-serif; color: var(--foreground, #e9ecef); } .ds-input { height: 44px; padding: 0 14px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 12px; background: var(--background, #1a1d22); color: var(--foreground, #e9ecef); font: 400 14px Geist, ui-sans-serif, sans-serif; } .ds-input:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 2px; }"
+      "css": ".ds-field { display: grid; gap: 6px; font: 600 14px Geist, ui-sans-serif, sans-serif; color: var(--foreground, #e9ecef); } .ds-input { height: 44px; padding: 0 14px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 12px; background: var(--background, #1a1d22); color: var(--foreground, #e9ecef); font: 400 14px Geist, ui-sans-serif, sans-serif; } .ds-input:hover, .ds-input:focus-visible { border-color: var(--ceu, #aad2ea); outline: none; }"
     },
     {
       "name": "Navegação da sidebar",
@@ -255,7 +255,7 @@
       "refersTo": "nav-item",
       "description": "Itens de 40 px com a pílula amarela atrás do ativo.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-ativo\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 10l9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z\"/></svg>Meus cursos</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>Trocar pontos</a><span class=\"ds-nav-item ds-nav-breve\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/></svg>Certificados<small>Em breve</small></span></nav>",
-      "css": ".ds-nav { display: grid; gap: 4px; width: 212px; padding: 6px 14px; background: var(--sidebar, #282d33); } .ds-nav-item { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 11px; border-radius: 10px; color: var(--sidebar-foreground, #e9ecef); font: 500 14px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: color 150ms ease-out, background-color 150ms ease-out; } .ds-nav-item svg { color: var(--muted-foreground, #a8acb0); } .ds-nav-item:hover { background: var(--sidebar-accent, #2f343a); color: var(--titulo, #f4f5f7); } .ds-nav-item:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 2px; } .ds-nav-ativo, .ds-nav-ativo:hover { background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font-weight: 600; } .ds-nav-ativo svg { color: var(--sobre-cor, #22262b); } .ds-nav-breve, .ds-nav-breve:hover { background: transparent; color: var(--muted-foreground, #a8acb0); cursor: default; } .ds-nav-breve small { margin-left: auto; font-size: 12px; font-weight: 400; }"
+      "css": ".ds-nav { display: grid; gap: 4px; width: 212px; padding: 6px 14px; background: var(--sidebar, #282d33); } .ds-nav-item { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 11px; border-radius: 10px; color: var(--sidebar-foreground, #e9ecef); font: 500 14px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: color 150ms ease-out, background-color 150ms ease-out; } .ds-nav-item svg { color: var(--muted-foreground, #a8acb0); } .ds-nav-item:hover, .ds-nav-item:focus-visible { background: var(--sidebar-accent, #2f343a); color: var(--titulo, #f4f5f7); outline: none; } .ds-nav-ativo, .ds-nav-ativo:hover { background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font-weight: 600; } .ds-nav-ativo svg { color: var(--sobre-cor, #22262b); } .ds-nav-breve, .ds-nav-breve:hover { background: transparent; color: var(--muted-foreground, #a8acb0); cursor: default; } .ds-nav-breve small { margin-left: auto; font-size: 12px; font-weight: 400; }"
     },
     {
       "name": "Selos de estado",
@@ -279,7 +279,7 @@
       "refersTo": "sidebar",
       "description": "Rodapé da sidebar: avatar, nome, saldo e sequência; abre o menu da conta.",
       "html": "<button class=\"ds-conta\"><span class=\"ds-avatar\">OC</span><span class=\"ds-conta-texto\"><b>Othavio Castro</b><span><em>★ 1.240</em> · 5 dias</span></span></button>",
-      "css": ".ds-conta { display: flex; align-items: center; gap: 10px; width: 212px; padding: 8px; border: 1px solid var(--sidebar-border, #40454a); border-radius: 22px; background: var(--sidebar, #282d33); text-align: left; cursor: pointer; transition: border-color 150ms ease-out, background-color 150ms ease-out; } .ds-conta:hover { border-color: var(--trilho, #4d5257); background: var(--sidebar-accent, #2f343a); } .ds-conta:focus-visible { outline: 2px solid var(--ceu, #aad2ea); outline-offset: 2px; } .ds-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); font: 700 13px Geist, ui-sans-serif, sans-serif; } .ds-conta-texto { display: grid; gap: 2px; font: 400 12px Geist, ui-sans-serif, sans-serif; color: var(--muted-foreground, #a8acb0); } .ds-conta-texto b { color: var(--titulo, #f4f5f7); font-size: 14px; font-weight: 600; } .ds-conta-texto em { font-style: normal; font-weight: 600; color: var(--sol, #ffcc01); }"
+      "css": ".ds-conta { display: flex; align-items: center; gap: 10px; width: 212px; padding: 8px; border: 1px solid var(--sidebar-border, #40454a); border-radius: 22px; background: var(--sidebar, #282d33); text-align: left; cursor: pointer; transition: border-color 150ms ease-out, background-color 150ms ease-out; } .ds-conta:hover, .ds-conta:focus-visible { border-color: var(--trilho, #4d5257); background: var(--sidebar-accent, #2f343a); outline: none; } .ds-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); font: 700 13px Geist, ui-sans-serif, sans-serif; } .ds-conta-texto { display: grid; gap: 2px; font: 400 12px Geist, ui-sans-serif, sans-serif; color: var(--muted-foreground, #a8acb0); } .ds-conta-texto b { color: var(--titulo, #f4f5f7); font-size: 14px; font-weight: 600; } .ds-conta-texto em { font-style: normal; font-weight: 600; color: var(--sol, #ffcc01); }"
     },
     {
       "name": "Dica",
@@ -292,10 +292,11 @@
   ],
   "narrative": {
     "northStar": "A sala de estudo com a luz acesa",
-    "overview": "Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da pessoa: o link em que ela está, o botão que ela deve apertar, quanto do curso já fez. O fundo é cinza grafite em quatro degraus (fundo, sidebar, cartão, popover), sem preto puro, e o texto é quase branco. Sobre isso entram as três cores da combinação nº 213 de Sanzo Wada: Sol (amarelo damasco), Céu (azul-claro) e Canela. O tom é amigável e alegre sem perder a seriedade técnica de quem fabrica as máquinas que os cursos ensinam.\n\nA densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal sob o cursor e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player e o anel do dia na semana.\n\nA marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo. A marca é imagem raster e nunca se redesenha em CSS. O favicon é só a pena.",
+    "overview": "Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da pessoa: o link em que ela está, o botão que ela deve apertar, quanto do curso já fez. O fundo é cinza grafite em quatro degraus (fundo, sidebar, cartão, popover), sem preto puro, e o texto é quase branco. Sobre isso entram as três cores da combinação nº 213 de Sanzo Wada: Sol (amarelo damasco), Céu (azul-claro) e Canela. O tom é amigável e alegre sem perder a seriedade técnica de quem fabrica as máquinas que os cursos ensinam.\n\nA densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal sob o cursor e com o foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player e o anel do dia na semana.\n\nA marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo. A marca é imagem raster e nunca se redesenha em CSS. O favicon é só a pena.",
     "keyCharacteristics": [
       "Tema único, escuro, sem alternância de tema (`color-scheme: dark` fixo).",
-      "Sol é a cor de ação e de \"você está aqui\"; Céu é foco, informação e conclusão; Canela é calor secundário (sequência, prova, avatar).",
+      "Sol é a cor de ação e de \"você está aqui\"; Céu é a borda do campo focado, informação e conclusão; Canela é calor secundário (sequência, prova, avatar).",
+      "O foco de teclado é o hover de cada controle. Nada desenha contorno nem anel de foco.",
       "Vermelho só para erro e alerta.",
       "Cantos generosos e pílulas; nenhum canto vivo em superfície interativa.",
       "Movimento curto, com ease-out forte, e sempre desligado com movimento reduzido."
@@ -330,11 +331,16 @@
         "name": "The Flat At Rest Rule",
         "body": "Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.",
         "section": "elevation"
+      },
+      {
+        "name": "The Focus Is The Hover Rule",
+        "body": "O foco de teclado é o hover de cada controle: o botão amarelo clareia e brilha, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o cartão troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows.",
+        "section": "colors"
       }
     ],
     "dos": [
       "Do usar Sol para o botão principal e para o link ativo, com texto `sobre-cor`.",
-      "Do dar foco visível a todo controle com contorno sólido de 2 px em Céu.",
+      "Do dar um hover a todo controle, porque o foco de teclado é o hover. Campo e controle sem hover ganham a borda Céu pelo `data-slot`, e moldura própria leva `data-campo`.",
       "Do separar superfícies pelo degrau de tom e pelo anel de 1 px em `borda`.",
       "Do usar raio de 20 px em cartões e pílula em botões, selos e barras.",
       "Do desligar toda transição e animação com `prefers-reduced-motion`, e não animar o que a pessoa dispara pelo teclado (Ctrl+B).",
@@ -348,7 +354,8 @@
       "Don't pôr sombra em cartão em repouso.",
       "Don't redesenhar a pena ou o livro em CSS ou SVG, nem usar o livro no favicon.",
       "Don't pôr pontos ou sequência fora do cartão de conta na casca, nem ocupar o canto direito do topo com peça da casca.",
-      "Don't usar caixa alta ou linha acima de título fora do selo da área."
+      "Don't usar caixa alta ou linha acima de título fora do selo da área.",
+      "Don't escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`."
     ]
   }
 }
