@@ -23,7 +23,7 @@ import { fmtPts, iniciais, plural } from "@/lib/formato";
 import { anelDosPontos } from "@/lib/player/sinal";
 
 import type { LinkDaArea } from "./nav";
-import { useAlternarNavegacao } from "./provedor-da-casca";
+import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 
 /** O que o cartão mostra do resumo, derivado do tipo do domínio. */
 export type Placar = Pick<ResumoAluno, "saldo" | "sequenciaDias">;
@@ -121,7 +121,8 @@ export function CartaoDeConta({
 }) {
   const { isLoaded, user } = useUser();
   const { openUserProfile, signOut } = useClerk();
-  const { fecharNoCelular, recolhida } = useAlternarNavegacao();
+  const { fecharNoCelular } = useAlternarNavegacao();
+  const { recolhida } = useModoDaCasca();
   // O modal do Clerk vai para o body, fora da armadilha de foco da gaveta modal:
   // com ela aberta, os campos dele perderiam o foco.
   const abrirMinhaConta = useCallback(() => {
