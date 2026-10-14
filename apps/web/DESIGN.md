@@ -270,7 +270,7 @@ Cheios e redondos, com o peso no amarelo.
 
 ### Navigation
 - **Itens:** 40 px de altura, raio de 10 px, ícone de 18 px a 11 px da borda, 500 em 14 px. Sob o cursor e com o foco de teclado, fundo `sidebar-realce` e texto e ícone `titulo` em 150 ms.
-- **Ativo:** uma pílula amarela inteira atrás do item, pintada pelo token `sidebar-primary`, que é o Sol, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com Motion em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar.
+- **Ativo:** uma pílula amarela inteira atrás do item, pintada pelo token `sidebar-primary`, que é o Sol, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com o `m.li` do Motion, dentro de um `LazyMotion` com `domAnimation`, em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar.
 - **Em breve:** texto e ícone apagados, "Em breve" em 12 px à direita, sem link.
 - **Recolher:** o botão no cabeçalho alterna entre 15,5rem e 69 px. Pelo clique a largura anima em 200 ms com a mesma curva; Ctrl+B e o cookie mudam a largura na hora, e com movimento reduzido nada anima. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
 - **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%. No Mac, a dica do atalho mostra "⌘ B": o servidor escreve "Ctrl B", e o cliente troca depois da hidratação.
@@ -289,7 +289,7 @@ Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na 
 **The Focus Is The Hover Rule.** O foco de teclado é o hover de cada controle: o botão amarelo clareia e brilha, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o cartão de curso e de trilha troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows (`forced-colors`), por decisão do dono.
 - **Mecanismo:** a variante `hover:` do `globals.css` também casa com `:focus-visible` e com o label ou o polegar do slider que envolve o input focado; a variante `focus-visible:` não casa com nada, e `--ring` e `--sidebar-ring` são transparentes. O `index.css` apaga o contorno de todo `:focus-visible`.
 - **Polegar:** a barra de posição e o volume do player crescem o polegar para 1,25 no foco e sob o cursor.
-- **Sem sinal hoje:** o item ativo e os itens "Em breve" da navegação neutralizam o próprio hover, então o foco neles não muda nada. O botão em contorno do player (Anterior, e a Próxima sem destaque) também não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
+- **Sem sinal hoje:** o item ativo e os itens "Em breve" da navegação não têm hover, então o foco neles não muda nada. O botão em contorno do player (Anterior, e a Próxima sem destaque) também não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
 
 ## Do's and Don'ts
 
