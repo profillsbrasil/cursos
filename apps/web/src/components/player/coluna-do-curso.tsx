@@ -54,11 +54,12 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
           key={m.numero}
           open={m.atual}
         >
-          <summary className="grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+          {/* Sob o cursor e com o foco de teclado, fundo branco a 8% e título claro (#44). */}
+          <summary className="group/modulo grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] hover:bg-white/8 [&::-webkit-details-marker]:hidden">
             <span className="w-[26px] text-center font-mono text-muted-foreground text-xs tabular-nums">
               {m.numero}
             </span>
-            <span className="font-semibold text-foreground text-sm group-open:text-titulo">
+            <span className="font-semibold text-foreground text-sm group-open:text-titulo group-hover/modulo:text-titulo">
               {m.titulo}
             </span>
             <span

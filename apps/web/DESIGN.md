@@ -125,6 +125,15 @@ components:
   nav-item-active:
     backgroundColor: "{colors.sol}"
     textColor: "{colors.sobre-cor}"
+  nav-item-active-hover:
+    backgroundColor: "{colors.sol-hover}"
+    textColor: "{colors.sobre-cor}"
+  nav-item-soon:
+    backgroundColor: "transparent"
+    textColor: "{colors.texto-apagado}"
+  nav-item-soon-hover:
+    backgroundColor: "transparent"
+    textColor: "{colors.texto}"
   tooltip:
     backgroundColor: "{colors.titulo}"
     textColor: "{colors.sobre-cor}"
@@ -145,7 +154,7 @@ components:
 
 Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da pessoa: o link em que ela está, o botão que ela deve apertar, quanto do curso já fez. O fundo é cinza grafite em quatro degraus (fundo, sidebar, cartão, popover), sem preto puro, e o texto é quase branco. Sobre isso entram as três cores da combinação nº 213 de Sanzo Wada: Sol (amarelo damasco), Céu (azul-claro) e Canela. O tom é amigável e alegre sem perder a seriedade técnica de quem fabrica as máquinas que os cursos ensinam.
 
-A densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal sob o cursor e com o foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player e o anel do dia na semana.
+A densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal e da pílula do link ativo sob o cursor e com o foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player e o anel do dia na semana.
 
 A marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo, na Orbitron em contorno. A marca são os SVG de `public/marca/`, traçados sobre o desenho aprovado, e nunca se redesenha em CSS. O favicon é só a pena.
 
@@ -162,10 +171,10 @@ A marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um
 Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo de área.
 
 ### Primary
-- **Sol, amarelo damasco** (`sol`): o botão principal, a pílula do link ativo, o preenchimento das barras de progresso, o botão redondo de play, o saldo de pontos e o segundo verso dos títulos de retomada. Sob o cursor e com o foco de teclado, o botão clareia para `sol-hover`. Texto sobre Sol é sempre `sobre-cor`.
+- **Sol, amarelo damasco** (`sol`): o botão principal, a pílula do link ativo, o preenchimento das barras de progresso, o botão redondo de play, o saldo de pontos e o segundo verso dos títulos de retomada. Sob o cursor e com o foco de teclado, o botão e a pílula do link ativo clareiam para `sol-hover`. Texto sobre Sol é sempre `sobre-cor`.
 
 ### Secondary
-- **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px dos cartões de curso e de trilha sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em breve" em contorno, o selo da área ("Admin") ao lado da marca e ícones informativos como o do próximo nível.
+- **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px dos cartões de curso e de trilha sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em breve" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
 
 ### Tertiary
 - **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar.
@@ -179,7 +188,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Borda** (`borda`): bordas e o anel de 1 px dos cartões; também a borda da sidebar.
 - **Trilho** (`trilho`): o fundo vazio das barras de progresso e a borda do cartão de conta sob o cursor.
 - **Contorno de campo** (`contorno-de-campo`): o token `input` do shadcn. Os campos do admin usam `texto-apagado` como borda, para passar de 3:1.
-- **Título** (`titulo`): títulos, o texto sob o cursor no menu e o fundo da dica (tooltip).
+- **Título** (`titulo`): títulos, o texto sob o cursor e com o foco no menu, no módulo da coluna do player e no nome da linha da busca de pessoas, e o fundo da dica (tooltip).
 - **Texto** (`texto`): o texto corrido.
 - **Texto apagado** (`texto-apagado`): texto secundário, ícones em repouso, borda do botão em contorno e dos campos.
 - **Sobre a cor** (`sobre-cor`): o texto escuro sobre Sol, Céu, Canela e sobre a dica clara.
@@ -227,7 +236,7 @@ O conteúdo tem padding lateral fluido (clamp de 1 a 3rem), 32 px no topo e 64 p
 O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clareiam em degraus, e cada cartão leva um anel de 1 px em `borda`. Sombra existe para o que flutua sobre o conteúdo, como resposta do botão principal ao cursor e ao foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player (`0 2px 6px rgb(0 0 0 / 0.5)`) e o anel duplo do dia na semana.
 
 ### Shadow Vocabulary
-- **Brilho do botão** (`box-shadow: 0 6px 18px rgb(255 204 1 / 0.28)`, o token `shadow-brilho`): o botão amarelo sob o cursor e com o foco de teclado.
+- **Brilho do botão** (`box-shadow: 0 6px 18px rgb(255 204 1 / 0.28)`, o token `shadow-brilho`): o botão amarelo e a pílula do link ativo sob o cursor e com o foco de teclado.
 - **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos.
 - **Flutuante** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.45)`): a barra de salvar presa ao pé dos editores, com `backdrop-blur`.
 - **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta.
@@ -270,8 +279,8 @@ Cheios e redondos, com o peso no amarelo.
 
 ### Navigation
 - **Itens:** 40 px de altura, raio de 10 px, ícone de 18 px a 11 px da borda, 500 em 14 px. Sob o cursor e com o foco de teclado, fundo `sidebar-realce` e texto e ícone `titulo` em 150 ms.
-- **Ativo:** uma pílula amarela inteira atrás do item, pintada pelo token `sidebar-primary`, que é o Sol, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com o `m.li` do Motion, dentro de um `LazyMotion` com `domAnimation`, em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar.
-- **Em breve:** texto e ícone apagados, "Em breve" em 12 px à direita, sem link.
+- **Ativo:** uma pílula amarela inteira atrás do item, pintada pelo token `sidebar-primary`, que é o Sol, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com o `m.li` do Motion, dentro de um `LazyMotion` com `domAnimation`, em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar. Sob o cursor e com o foco de teclado no link ativo, a pílula clareia para `sol-hover` e ganha o brilho do botão amarelo em 150 ms; a pílula é irmã do link, e a variante `ativo-aceso` do `index.css` lê o estado dele. O Motion só escreve o `transform`, então o deslize não muda.
+- **Em breve:** texto e ícone apagados, "Em breve" em 12 px à direita, sem link. Sob o cursor e com o foco de teclado, o nome e o ícone clareiam para `texto`, sem fundo; o "Em breve" fica apagado.
 - **Recolher:** o botão no cabeçalho alterna entre 15,5rem e 69 px. Pelo clique a largura anima em 200 ms com a mesma curva; Ctrl+B e o cookie mudam a largura na hora, e com movimento reduzido nada anima. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
 - **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%. No Mac, a dica do atalho mostra "⌘ B": o servidor escreve "Ctrl B", e o cliente troca depois da hidratação.
 - **Celular:** gaveta, com o botão de fechar no cabeçalho e a faixa de topo de 56 px no conteúdo.
@@ -286,10 +295,13 @@ Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, 
 Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar.
 
 ### Foco de teclado
-**The Focus Is The Hover Rule.** O foco de teclado é o hover de cada controle: o botão amarelo clareia e brilha, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o cartão de curso e de trilha troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows (`forced-colors`), por decisão do dono.
+**The Focus Is The Hover Rule.** O foco de teclado é o hover de cada controle: o botão amarelo e a pílula do link ativo clareiam e brilham, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o item "Em breve" clareia o nome e o ícone, o cartão de curso e de trilha troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows (`forced-colors`), por decisão do dono.
 - **Mecanismo:** a variante `hover:` do `globals.css` também casa com `:focus-visible` e com o label ou o polegar do slider que envolve o input focado; a variante `focus-visible:` não casa com nada, e `--ring` e `--sidebar-ring` são transparentes. O `index.css` apaga o contorno de todo `:focus-visible`.
 - **Polegar:** a barra de posição e o volume do player crescem o polegar para 1,25 no foco e sob o cursor.
-- **Sem sinal hoje:** o item ativo e os itens "Em breve" da navegação não têm hover, então o foco neles não muda nada. O botão em contorno do player (Anterior, e a Próxima sem destaque) também não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
+- **Navegação:** o link ativo acende a pílula amarela, e o "Em breve" clareia o nome e o ícone (ver Navigation).
+- **Módulo da coluna do player:** o `summary` ganha fundo branco a 8% e o título clareia para `titulo`.
+- **Linha da busca de pessoas:** o fundo `muted` a 40%, o nome em `titulo` e a seta em Céu.
+- **Sem sinal hoje:** o botão em contorno do player (Anterior, e a Próxima sem destaque) não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
 
 ## Do's and Don'ts
 
