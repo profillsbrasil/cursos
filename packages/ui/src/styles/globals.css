@@ -6,6 +6,31 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Foco de teclado é o hover (#30). Todo hover:, group-hover: e peer-hover: do sistema
+   também casa com :focus-visible, e com a peça que envolve um input escondido com o
+   foco: o label do botão de enviar capa e o polegar do slider, cujo input de range o
+   Base UI põe dentro dele. O :where tira o peso dessas peças: o ramo do foco tem a
+   mesma especificidade do :hover. O ramo do foco fica fora do media, então o teclado
+   de um tablet também acende. */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &:is(
+    :focus-visible,
+    :where(label, [data-slot="slider-thumb"]):has(:focus-visible)
+  ) {
+    @slot;
+  }
+}
+
+/* focus-visible: não pinta nada (#30). O anel e o contorno do shadcn ficam no código
+   que o `shadcn add` gera, mas nunca casam; o estado de foco se escreve com hover:.
+   O foco.test.ts ao lado compila este arquivo e acusa a volta do anel. */
+@custom-variant focus-visible (&:not(*));
+
 :root {
   /* Sol e céu (Wada nº 213) sobre base cinza escura. Um tema só, escuro. */
   --background: #1a1d22;
@@ -25,7 +50,10 @@
   --destructive: #ff8f86;
   --border: #40454a;
   --input: #7a7e83;
-  --ring: #aad2ea;
+  /* Sem anel de foco (#30). O que ainda usa o token fora da variante focus-visible
+     (has-[…:focus-visible], focus-within:, o anel do polegar do slider) desenha
+     transparente. */
+  --ring: transparent;
   --chart-1: #ffcc01;
   --chart-2: #aad2ea;
   --chart-3: #e5977a;
@@ -39,10 +67,12 @@
   --sidebar-accent: #2f343a;
   --sidebar-accent-foreground: #f4f5f7;
   --sidebar-border: #40454a;
-  --sidebar-ring: #aad2ea;
+  --sidebar-ring: transparent;
 
   /* Tokens próprios da plataforma */
   --sol: #ffcc01;
+  /* O botão amarelo sob o cursor e com o foco de teclado clareia para o sol-hover. */
+  --sol-hover: #ffd633;
   --ceu: #aad2ea;
   --canela: #e5977a;
   --sobre-cor: #22262b;
@@ -56,6 +86,10 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-sol: var(--sol);
+  --color-sol-hover: var(--sol-hover);
+  /* O brilho do botão amarelo. O valor fica literal: um --shadow-brilho: var(--shadow-brilho)
+     aqui seria uma referência circular. */
+  --shadow-brilho: 0 6px 18px rgb(255 204 1 / 0.28);
   --color-ceu: var(--ceu);
   --color-canela: var(--canela);
   --color-sobre-cor: var(--sobre-cor);

@@ -36,7 +36,7 @@ export function ListaDePessoas({
           {pessoas.map((p) => (
             <li key={p.userId}>
               <Link
-                className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:-outline-offset-2"
+                className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/40"
                 href={`/admin/alunos/${p.userId}`}
               >
                 <FotoDaPessoa foto={p.foto} nome={p.nome} />

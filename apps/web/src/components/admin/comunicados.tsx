@@ -306,7 +306,7 @@ function ItemDoComunicado({
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="grid min-w-0 gap-1.5">
           <h3
-            className="font-semibold text-foreground leading-snug focus:outline-none"
+            className="font-semibold text-foreground leading-snug"
             ref={focarSeVoltou(voltou)}
             tabIndex={-1}
           >

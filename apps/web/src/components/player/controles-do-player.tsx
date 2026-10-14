@@ -22,7 +22,7 @@ import type { EstadoDaSessao } from "@/lib/player/sessao";
 import type { ComandoDoTeclado } from "@/lib/player/teclado";
 
 const ICONE =
-  "relative size-[38px] rounded-[10px] text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 dark:hover:bg-accent [&_svg:not([class*='size-'])]:size-[18px]";
+  "relative size-[38px] rounded-[10px] text-foreground hover:bg-accent dark:hover:bg-accent [&_svg:not([class*='size-'])]:size-[18px]";
 
 function Dez() {
   return (
@@ -158,7 +158,7 @@ export function ControlesDoPlayer({
         <span className="mr-1.5 w-[84px] shrink-0">
           <Slider
             aria-labelledby={idVolume}
-            className="py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:focus-visible:outline-2 [&_[data-slot=slider-thumb]]:focus-visible:outline-ceu [&_[data-slot=slider-thumb]]:focus-visible:outline-solid [&_[data-slot=slider-thumb]]:focus-visible:outline-offset-2 [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
+            className="py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:transition-transform [&_[data-slot=slider-thumb]]:duration-150 [&_[data-slot=slider-thumb]]:ease-out [&_[data-slot=slider-thumb]]:hover:scale-125 [&_[data-slot=slider-thumb]]:motion-reduce:transition-none [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
             max={100}
             min={0}
             onValueChange={definirVolume}

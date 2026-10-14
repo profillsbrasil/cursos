@@ -292,7 +292,7 @@ export function CartaoDeTroca({
       <div className="flex flex-1 flex-col gap-1.5 px-1.5 pt-3.5">
         <span className="text-[13px] text-muted-foreground">{curso.tema}</span>
         <h3
-          className="font-semibold text-[17px] text-titulo leading-[1.3] focus:outline-none"
+          className="font-semibold text-[17px] text-titulo leading-[1.3]"
           id={tituloId}
           ref={titulo}
           tabIndex={-1}

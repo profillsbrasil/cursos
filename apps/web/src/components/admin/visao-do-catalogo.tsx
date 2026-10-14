@@ -18,8 +18,7 @@ import { fmtNum, fmtPts, plural } from "@/lib/formato";
 
 import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
 
-const LINK_DA_LINHA =
-  "rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2";
+const LINK_DA_LINHA = "rounded-sm underline-offset-4 hover:underline";
 
 const STATUS: Record<StatusDoCurso, { classe: string; rotulo: string }> = {
   em_producao: {
@@ -55,7 +54,7 @@ function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {
           <TableRow key={t.id}>
             <TableCell className={cn(CELULA, "font-medium text-foreground")}>
               <Link
-                className="underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-titulo focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
+                className="underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-titulo"
                 href={`/admin/catalogo/trilhas/${t.id}` as Route}
               >
                 {t.titulo}

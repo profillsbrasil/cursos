@@ -326,7 +326,7 @@ export function EditorDaTrilha({
         <form className="grid gap-10" noValidate onSubmit={enviar}>
           <div>
             <Link
-              className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
+              className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
               href="/admin/catalogo"
             >
               <ArrowLeft aria-hidden="true" className="size-4" />
@@ -334,7 +334,7 @@ export function EditorDaTrilha({
             </Link>
             <header className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
               <h1
-                className="min-w-0 break-words font-bold text-3xl text-titulo tracking-tight focus:outline-none"
+                className="min-w-0 break-words font-bold text-3xl text-titulo tracking-tight"
                 ref={titulo}
                 tabIndex={-1}
               >

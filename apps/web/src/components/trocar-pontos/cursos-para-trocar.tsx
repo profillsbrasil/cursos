@@ -57,7 +57,7 @@ export function CursosParaTrocar({
             <Check aria-hidden="true" className="size-5" strokeWidth={2.4} />
             <span className="flex-[1_1_200px]">{aviso}</span>
             <Link
-              className="inline-flex min-h-10 items-center px-1 font-bold underline underline-offset-3 focus-visible:outline-2 focus-visible:outline-sobre-cor focus-visible:outline-solid focus-visible:outline-offset-2"
+              className="inline-flex min-h-10 items-center rounded-md px-1 font-bold underline underline-offset-3 transition-colors duration-150 ease-out hover:bg-sobre-cor/10 motion-reduce:transition-none"
               href="/meus-cursos"
             >
               Ver em Meus cursos

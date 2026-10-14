@@ -10,7 +10,7 @@ import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { DICA, DICA_SECUNDARIA, FOCO } from "./estilo";
+import { DICA, DICA_SECUNDARIA } from "./estilo";
 import {
   GEOMETRIA_DA_LISTA,
   type ItemDoMenu,
@@ -26,8 +26,7 @@ const ITEM = cn(
   "transition-[color,background-color] duration-150 ease-out motion-reduce:transition-none",
   "hover:bg-sidebar-accent hover:text-titulo active:bg-sidebar-accent active:text-titulo",
   "[&_svg]:size-[18px] [&_svg]:text-muted-foreground [&_svg]:transition-colors [&_svg]:duration-150 hover:[&_svg]:text-titulo",
-  "group-data-[collapsible=icon]:size-(--altura-do-item)! group-data-[collapsible=icon]:p-[11px]!",
-  FOCO
+  "group-data-[collapsible=icon]:size-(--altura-do-item)! group-data-[collapsible=icon]:p-[11px]!"
 );
 
 const ITEM_ATIVO =

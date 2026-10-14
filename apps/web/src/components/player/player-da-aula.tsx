@@ -67,7 +67,7 @@ export function PlayerDaAula({
     <div className="grid min-w-0 gap-5">
       <section
         aria-label="Player da aula"
-        className="overflow-hidden rounded-[20px] border border-border bg-background outline-none [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
+        className="overflow-hidden rounded-[20px] border border-border bg-background [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
         ref={p.refContainer}
         tabIndex={-1}
       >

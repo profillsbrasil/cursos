@@ -1,7 +1,7 @@
-import { buttonVariants } from "@cursos/ui/components/button";
-import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+
+import { BOTAO } from "@/components/casca/botoes";
 
 // Corpo dos not-found.tsx do app: diz o que faltou e leva de volta a Meus cursos.
 export function TelaNaoEncontrada({
@@ -17,13 +17,7 @@ export function TelaNaoEncontrada({
         {titulo}
       </h1>
       <p className="text-muted-foreground">{texto}</p>
-      <Link
-        className={cn(
-          buttonVariants(),
-          "h-11 gap-2 rounded-full px-5 font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
-        )}
-        href="/meus-cursos"
-      >
+      <Link className={BOTAO} href="/meus-cursos">
         <ArrowLeft aria-hidden="true" />
         Voltar para Meus cursos
       </Link>

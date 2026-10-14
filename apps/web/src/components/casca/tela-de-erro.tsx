@@ -1,9 +1,9 @@
 "use client";
 
-import { buttonVariants } from "@cursos/ui/components/button";
-import { cn } from "@cursos/ui/lib/utils";
 import { RotateCcw } from "lucide-react";
 import { useEffect } from "react";
+
+import { BOTAO } from "./botoes";
 
 // Corpo dos error.tsx do app: diz o que falhou e oferece tentar de novo.
 export function TelaDeErro({
@@ -29,14 +29,7 @@ export function TelaDeErro({
         {titulo}
       </h1>
       <p className="text-muted-foreground">{texto}</p>
-      <button
-        className={cn(
-          buttonVariants(),
-          "h-11 gap-2 rounded-full px-5 font-semibold text-sm focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
-        )}
-        onClick={retry}
-        type="button"
-      >
+      <button className={BOTAO} onClick={retry} type="button">
         <RotateCcw aria-hidden="true" />
         Tentar de novo
       </button>

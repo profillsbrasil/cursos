@@ -11,15 +11,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, use } from "react";
 
-import { DICA, DICA_SECUNDARIA, FOCO } from "@/components/casca/estilo";
+import { DICA, DICA_SECUNDARIA } from "@/components/casca/estilo";
 import { useAlternarNavegacao } from "@/components/casca/provedor-da-casca";
 
 import { type Continuar, estaAqui } from "./continuar";
 
+// O hover dos dois links também é o foco de teclado (#30).
 const CARTAO = cn(
   "grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground group-data-[collapsible=icon]:hidden",
-  "transition-colors duration-150 ease-out motion-reduce:transition-none",
-  FOCO
+  "transition-colors duration-150 ease-out motion-reduce:transition-none"
 );
 
 const BOTAO_REDONDO =
@@ -28,8 +28,13 @@ const BOTAO_REDONDO =
 // Recolhida, o cartão vira o botão redondo de 40 px, preso à esquerda como os itens.
 const SOLTO = cn(
   BOTAO_REDONDO,
-  "hidden size-10 group-data-[collapsible=icon]:grid [&_svg]:size-4",
-  FOCO
+  "hidden size-10 group-data-[collapsible=icon]:grid [&_svg]:size-4"
+);
+
+// O redondo com link clareia e brilha como o botão amarelo.
+const SOLTO_COM_LINK = cn(
+  SOLTO,
+  "transition-[background-color,box-shadow] duration-150 ease-out hover:bg-sol-hover hover:shadow-brilho motion-reduce:transition-none"
 );
 
 function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
@@ -117,7 +122,11 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
             aqui ? (
               <div aria-current="page" className={SOLTO} />
             ) : (
-              <Link aria-label={c.rotulo} className={SOLTO} href={c.href} />
+              <Link
+                aria-label={c.rotulo}
+                className={SOLTO_COM_LINK}
+                href={c.href}
+              />
             )
           }
         >

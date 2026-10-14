@@ -124,13 +124,8 @@ export function CapaCurso({
     );
   }
   return (
-    <Link
-      className={cn(
-        base,
-        "group focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-4"
-      )}
-      href={`/cursos/${curso.slug}`}
-    >
+    // O foco de teclado acende o cartão como o cursor: anel Céu, capa e título (#30).
+    <Link className={cn(base, "group")} href={`/cursos/${curso.slug}`}>
       {conteudo}
     </Link>
   );

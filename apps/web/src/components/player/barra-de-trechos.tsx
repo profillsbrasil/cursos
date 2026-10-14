@@ -64,7 +64,7 @@ export function BarraDeTrechos({
       aria-valuemin={0}
       aria-valuenow={Math.floor(cabeca)}
       aria-valuetext={`${mmss(cabeca)} de ${mmss(duracaoSeg)}`}
-      className="relative flex h-[22px] cursor-pointer touch-none items-center rounded-md focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-4"
+      className="group relative flex h-[22px] cursor-pointer touch-none items-center rounded-md"
       onPointerCancel={cancelar}
       onPointerDown={comecar}
       onPointerMove={mover}
@@ -89,8 +89,9 @@ export function BarraDeTrechos({
         style={{ left: `${PCT_AULA_ASSISTIDA}%` }}
         title="90% da aula"
       />
+      {/* O polegar cresce sob o cursor e com o foco de teclado (#30), como o do volume. */}
       <span
-        className="pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full bg-titulo shadow-[0_2px_6px_rgb(0_0_0/0.5)]"
+        className="pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full bg-titulo shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-transform duration-150 ease-out group-hover:scale-125 motion-reduce:transition-none"
         style={{ left: pct(cabeca, duracaoSeg) }}
       />
     </div>

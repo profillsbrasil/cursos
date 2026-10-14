@@ -102,7 +102,11 @@ function CampoDoSlug({
       <FieldLabel className={ROTULO} htmlFor={id}>
         Endereço
       </FieldLabel>
-      <div className="flex min-w-0 items-center rounded-[12px] border border-muted-foreground bg-background has-aria-invalid:border-destructive has-focus-visible:outline-2 has-focus-visible:outline-ceu has-focus-visible:outline-solid has-focus-visible:outline-offset-2">
+      {/* data-campo: a moldura ganha a borda Céu do campo pela regra do index.css. */}
+      <div
+        className="flex min-w-0 items-center rounded-[12px] border border-muted-foreground bg-background has-aria-invalid:border-destructive"
+        data-campo
+      >
         <span
           aria-hidden="true"
           className="shrink-0 pl-3.5 text-muted-foreground text-sm"
@@ -113,7 +117,7 @@ function CampoDoSlug({
           {...aria}
           autoCapitalize="none"
           autoComplete="off"
-          className="h-11 min-w-0 border-0 bg-transparent pl-0.5 text-sm focus-visible:ring-0 aria-invalid:ring-0 md:text-sm dark:bg-transparent dark:aria-invalid:ring-0"
+          className="h-11 min-w-0 border-0 bg-transparent pl-0.5 text-sm aria-invalid:ring-0 md:text-sm dark:bg-transparent dark:aria-invalid:ring-0"
           id={id}
           maxLength={CARACTERES.slug}
           name="slug"
@@ -584,7 +588,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
       >
         <div>
           <Link
-            className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
+            className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/admin/catalogo"
           >
             <ArrowLeft aria-hidden="true" className="size-4" />
@@ -592,7 +596,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
           </Link>
           <header className="grid gap-1.5">
             <h1
-              className="text-balance font-bold text-3xl text-titulo tracking-tight focus:outline-none"
+              className="text-balance font-bold text-3xl text-titulo tracking-tight"
               ref={titulo}
               tabIndex={-1}
             >

@@ -1,13 +1,11 @@
 import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 
-const FOCO =
-  "focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-3";
-
+// O foco de teclado acende o botão como o cursor: a variante hover: do globals.css
+// também casa com o foco (#30). Nenhum botão desenha contorno.
 export const BOTAO = cn(
   buttonVariants(),
-  "h-11 gap-2 rounded-full px-[18px] font-semibold text-sm hover:bg-[#ffd633] hover:shadow-[0_6px_18px_rgb(255_204_1/0.28)] focus-visible:border-transparent",
-  FOCO
+  "h-11 gap-2 rounded-full px-[18px] font-semibold text-sm hover:bg-sol-hover hover:shadow-brilho"
 );
 
 // A outline traz dark:border-input, dark:bg-input/30 e dark:hover:bg-input/50, que vencem
@@ -16,9 +14,7 @@ export const BOTAO_CONTORNO = cn(
   buttonVariants({ variant: "outline" }),
   "h-11 gap-2 rounded-full px-[18px] font-semibold text-foreground text-sm",
   "border-muted-foreground bg-transparent hover:border-titulo hover:bg-transparent",
-  "dark:border-muted-foreground dark:bg-transparent dark:hover:border-titulo dark:hover:bg-transparent",
-  "focus-visible:border-muted-foreground dark:focus-visible:border-muted-foreground",
-  FOCO
+  "dark:border-muted-foreground dark:bg-transparent dark:hover:border-titulo dark:hover:bg-transparent"
 );
 
 export const PEQUENO = "h-9 px-3.5 text-[13px]";

@@ -225,7 +225,7 @@ function useLiberar(
 function Liberado({ selo }: { selo: (el: HTMLSpanElement | null) => void }) {
   return (
     <span
-      className={cn(SELO, "gap-1 bg-ceu/14 text-ceu focus:outline-none")}
+      className={cn(SELO, "gap-1 bg-ceu/14 text-ceu")}
       ref={selo}
       tabIndex={-1}
     >
@@ -393,7 +393,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
   return (
     <>
       <Link
-        className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2"
+        className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         href="/admin/alunos"
       >
         <ArrowLeft aria-hidden="true" className="size-4" />

@@ -61,6 +61,7 @@ const PARES: [string, string | Rgb, number][] = [
   ["primary-foreground", "primary", TEXTO],
   ["sidebar-primary-foreground", "sidebar-primary", TEXTO],
   ["sobre-cor", "sol", TEXTO],
+  ["sobre-cor", "sol-hover", TEXTO],
   ["sobre-cor", "ceu", TEXTO],
   ["sobre-cor", "canela", TEXTO],
   ["sol", "card", TEXTO],
@@ -72,8 +73,6 @@ const PARES: [string, string | Rgb, number][] = [
   ["sol", "trilho", PECA],
   ["muted-foreground", "card", PECA],
   ["input", "background", PECA],
-  ["ring", "background", PECA],
-  ["ring", "card", PECA],
 ];
 
 describe("contraste dos tokens", () => {

@@ -54,7 +54,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
           key={m.numero}
           open={m.atual}
         >
-          <summary className="grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] hover:bg-white/[0.03] focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:-outline-offset-2 [&::-webkit-details-marker]:hidden">
+          <summary className="grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
             <span className="w-[26px] text-center font-mono text-muted-foreground text-xs tabular-nums">
               {m.numero}
             </span>
@@ -79,7 +79,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
                 <Link
                   aria-current={a.atual ? "page" : undefined}
                   className={cn(
-                    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground text-sm hover:bg-white/[0.04] focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:-outline-offset-2",
+                    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground text-sm hover:bg-white/[0.04]",
                     a.atual && "bg-sol/[0.08] font-semibold text-titulo"
                   )}
                   href={caminhoDaAula(slug, a.id)}

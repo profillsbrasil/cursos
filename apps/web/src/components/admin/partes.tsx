@@ -21,12 +21,15 @@ export const AVISO =
  * O focusableWhenDisabled do Base UI marca data-disabled, não disabled, e as
  * classes disabled: do Button não pegam. O botão do envio pendente fica com
  * opacidade cheia porque nada estiliza o data-disabled dele.
+ *
+ * O desligado segura o foco de teclado e neutraliza o próprio hover, então sobe de
+ * 50% para 80% no foco e sob o cursor (#30): sem isso, ficaria sem sinal de foco.
  */
-const NAO_PODE = "data-disabled:cursor-not-allowed data-disabled:opacity-50";
+const NAO_PODE =
+  "data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:opacity-80";
 
 export const ICONE = cn(
   "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
-  "focus-visible:outline-2 focus-visible:outline-ceu focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:ring-0",
   NAO_PODE,
   "data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
 );
@@ -63,7 +66,7 @@ export function Secao({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
           aria-describedby={descritoPor}
-          className="font-bold text-titulo text-xl tracking-tight focus:outline-none"
+          className="font-bold text-titulo text-xl tracking-tight"
           id={id}
           tabIndex={-1}
         >
