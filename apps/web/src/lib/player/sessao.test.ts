@@ -597,6 +597,7 @@ describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
   });
 
   test("aoConquistar que lança no envio de saída não faz o fim rejeitar", async () => {
+    const erro = spyOn(console, "error").mockImplementation(() => undefined);
     const { conquistas, relogio, servidor, sessao } = montar(0, {
       conquistaLanca: true,
     });
@@ -607,6 +608,8 @@ describe("o fim da sessão diz se a retomada do layout ficou velha", () => {
     servidor.falhar(null);
     expect(await sessao.encerrar()).toEqual({ gravouSemRefresh: false });
     expect(conquistas).toHaveLength(1);
+    expect(erro).toHaveBeenCalledTimes(1);
+    erro.mockRestore();
   });
 
   test("a rede cai no envio de saída depois de um envio aceito: velho", async () => {
