@@ -1,4 +1,5 @@
-// Violação de restrição do Postgres vira ErroParaAPessoa com mensagem para o admin.
+// Erro do Postgres que vira ErroParaAPessoa: a violação de restrição, com mensagem
+// para o admin, e o lock_timeout, com TOO_MANY_REQUESTS.
 // erros.integration.test.ts amarra a tabela ao banco nos dois sentidos: toda chave
 // daqui existe lá, e toda restrição que uma escrita do admin pode violar está aqui
 // ou em SEM_MENSAGEM_PROPRIA.
@@ -9,9 +10,18 @@ import type { Motivo } from "../index";
 
 const CODIGOS = new Set(["23503", "23505", "23514"]);
 
+/** lock_not_available: o lock_timeout da transação venceu esperando uma trava. */
+const ESPERA_VENCIDA = "55P03";
+
 export interface Violacao {
   codigo: string;
   restricao: string;
+}
+
+interface NoDaCadeia {
+  cause?: unknown;
+  code?: unknown;
+  constraint?: unknown;
 }
 
 /**
@@ -19,25 +29,40 @@ export interface Violacao {
  * DrizzleQueryError, depois o erro do pg), sem instanceof: o erro pode vir de
  * outra cópia do drizzle-orm.
  */
-export function violacaoDe(erro: unknown): Violacao | null {
+function naCadeia<T>(erro: unknown, ler: (no: NoDaCadeia) => T | null) {
   let atual: unknown = erro;
   for (let i = 0; atual && i < 5; i += 1) {
-    const { code, constraint, cause } = atual as {
-      cause?: unknown;
-      code?: unknown;
-      constraint?: unknown;
-    };
-    if (
-      typeof code === "string" &&
-      CODIGOS.has(code) &&
-      typeof constraint === "string"
-    ) {
-      return { codigo: code, restricao: constraint };
+    const achado = ler(atual as NoDaCadeia);
+    if (achado !== null) {
+      return achado;
     }
-    atual = cause;
+    atual = (atual as NoDaCadeia).cause;
   }
   return null;
 }
+
+export function violacaoDe(erro: unknown): Violacao | null {
+  return naCadeia(erro, ({ code, constraint }) =>
+    typeof code === "string" &&
+    CODIGOS.has(code) &&
+    typeof constraint === "string"
+      ? { codigo: code, restricao: constraint }
+      : null
+  );
+}
+
+const esperaVencida = (erro: unknown) =>
+  naCadeia(erro, ({ code }) => (code === ESPERA_VENCIDA ? true : null)) ??
+  false;
+
+/**
+ * A recusa do lock_timeout. TOO_MANY_REQUESTS não para o player: ele trata como
+ * falha de rede e manda de novo (motivoParadoDe em apps/web).
+ */
+export const ESPERA_ESGOTADA = {
+  code: "TOO_MANY_REQUESTS",
+  message: "Outro pedido seu ainda está em andamento. Tente de novo.",
+} as const satisfies MensagemDoBanco;
 
 export const CURSO_EM_USO =
   "Este curso já tem aluno (aula assistida, certificado ou liberação) ou está numa trilha. Para tirá-lo do ar, mude o status para Em produção.";
@@ -78,9 +103,9 @@ export const MENSAGEM_DA_RESTRICAO = {
     message: "Já existe uma trilha com este endereço.",
     motivo: "slug_repetido",
   },
-} as const satisfies Record<string, MensagemDaRestricao>;
+} as const satisfies Record<string, MensagemDoBanco>;
 
-interface MensagemDaRestricao {
+interface MensagemDoBanco {
   code: TRPC_ERROR_CODE_KEY;
   message: string;
   motivo?: Motivo;
@@ -141,11 +166,14 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * A frase da violação conhecida, que index.ts lança como ErroParaAPessoa. Qualquer
- * outro erro devolve null e sobe como está (INTERNAL_SERVER_ERROR, texto genérico
- * na tela).
+ * A frase do lock_timeout ou da violação conhecida, que index.ts lança como
+ * ErroParaAPessoa. Qualquer outro erro devolve null e sobe como está
+ * (INTERNAL_SERVER_ERROR, texto genérico na tela).
  */
-export function mensagemDoBanco(erro: unknown): MensagemDaRestricao | null {
+export function mensagemDoBanco(erro: unknown): MensagemDoBanco | null {
+  if (esperaVencida(erro)) {
+    return ESPERA_ESGOTADA;
+  }
   const v = violacaoDe(erro);
   if (!(v && Object.hasOwn(MENSAGEM_DA_RESTRICAO, v.restricao))) {
     return null;
