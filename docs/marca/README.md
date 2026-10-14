@@ -32,7 +32,7 @@ O primeiro desenho saiu do Grok (Imagine), a partir do logo oficial, em PNG. O v
 - A pena do favicon foi redesenhada em formas exatas sobre o `icon.png` antigo: 5 facetas, o contorno e o bico. A caixa dela é igual à do PNG.
 - O texto do lockup é a Orbitron convertida em contorno, com o kerning da fonte: "PROFILLS" no peso 800 e "CURSOS" no peso 900, com versal de 30 e de 26 unidades. O espaçamento entre letras estica "PROFILLS" de x 162 a x 422, e "CURSOS" recebe o mesmo espaçamento em em. O S final de PROFILLS fica 2 unidades antes da borda direita.
 - O ícone entra no lockup em 2/3 do tamanho, subido 11,5 unidades, no lugar do ícone do PNG antigo.
-- O `favicon.ico`, o `apple-icon.png` e os dois ícones do PWA são rendidos dos SVG pelo `rsvg-convert` e montados pelo `magick`, com a mesma margem dos PNG anteriores.
+- O `favicon.ico`, o `apple-icon.png` e os dois ícones do PWA saem dos SVG por `bash docs/marca/rasters.sh apps/web`, rodado da raiz do repo. O script usa o `rsvg-convert` e o `magick`, mantém a margem dos PNG anteriores e gera os mesmos bytes a cada execução. Quem mudar `icon.svg` ou `profills-cursos-icone.svg` roda o script de novo.
 
 ## Orbitron e a licença
 
