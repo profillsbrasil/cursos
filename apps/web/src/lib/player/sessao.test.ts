@@ -690,6 +690,10 @@ describe("motivoParadoDe", () => {
     expect(motivoParadoDe("BAD_REQUEST")).toBe("envio_recusado");
     expect(motivoParadoDe("INTERNAL_SERVER_ERROR")).toBeUndefined();
   });
+
+  test("TOO_MANY_REQUESTS, o lock_timeout do registrar, tenta de novo", () => {
+    expect(motivoParadoDe("TOO_MANY_REQUESTS")).toBeUndefined();
+  });
 });
 
 describe("transicao", () => {

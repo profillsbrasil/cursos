@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
 import type { Database } from "@cursos/db";
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 
 /**
  * A URL do banco de teste com um application_name só desta execução. esperas()
@@ -20,9 +20,30 @@ export function urlDaCorrida(url: string): string {
  * Segura um SHARE lock na tabela numa transação à parte: todo INSERT, UPDATE e
  * DELETE nela espera até soltar().
  */
-export async function seguraATabela(
+export function seguraATabela(
   db: Database,
   tabela: "liberacao" | "trilha_curso"
+): Promise<() => Promise<void>> {
+  return seguraNumaTransacao(db, sql.raw(`lock table ${tabela} in share mode`));
+}
+
+/**
+ * Trava a linha do aluno em cota_video numa transação à parte, como faz um
+ * registrar em voo: outro registrar do mesmo aluno espera até soltar().
+ */
+export function seguraACota(
+  db: Database,
+  userId: string
+): Promise<() => Promise<void>> {
+  return seguraNumaTransacao(
+    db,
+    sql`select 1 from cota_video where user_id = ${userId} for update`
+  );
+}
+
+async function seguraNumaTransacao(
+  db: Database,
+  trava: SQL
 ): Promise<() => Promise<void>> {
   let soltar: () => void = () => undefined;
   const portao = new Promise<void>((r) => {
@@ -33,7 +54,7 @@ export async function seguraATabela(
     travou = r;
   });
   const transacao = db.transaction(async (tx) => {
-    await tx.execute(sql.raw(`lock table ${tabela} in share mode`));
+    await tx.execute(trava);
     travou();
     await portao;
   });

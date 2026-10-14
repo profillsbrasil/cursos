@@ -6,7 +6,7 @@ import {
   pontoLancamento,
   posicaoAula,
 } from "@cursos/db/schema/index";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   type AulaNoPlayer,
   aulaPorId,
@@ -141,6 +141,17 @@ const erroSemVideo = () =>
   });
 
 /**
+ * O lock_timeout do registrar: quanto ele espera pela linha do aluno em
+ * cota_video antes de o Postgres desistir (55P03, que o router devolve como
+ * TOO_MANY_REQUESTS). O envio de saída sai milissegundos depois de outro
+ * (visibilitychange, depois pagehide) e o player não o repete, então ele precisa
+ * caber aqui esperando um ou dois envios em voo terminarem. Cada um segura a
+ * linha por 8 a 10 idas ao banco: dois cabem em 3 s enquanto a ida e volta entre
+ * o servidor e o banco ficar abaixo de 150 ms.
+ */
+export const ESPERA_PELA_COTA_MS = 3000;
+
+/**
  * Uma transação: trava a cota do aluno, relê o acesso, aplica o registro, grava
  * posição, trechos e cota e, só na virada, a aula assistida e os lançamentos.
  * Qualquer erro desfaz tudo; reenviar o mesmo pedido dá o mesmo resultado.
@@ -153,6 +164,10 @@ export function registrar(
   agora: Date
 ): Promise<Registro> {
   return db.transaction(async (tx) => {
+    // set_config(..., true) é o SET LOCAL: vale só até o fim desta transação.
+    await tx.execute(
+      sql`select set_config('lock_timeout', ${`${ESPERA_PELA_COTA_MS}ms`}, true)`
+    );
     // O DO UPDATE trava a linha do aluno até o fim da transação.
     const [cota] = await tx
       .insert(cotaVideo)

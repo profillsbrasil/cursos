@@ -63,9 +63,11 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 
 /**
  * Violação de restrição com frase em consultas/erros.ts vira ErroParaAPessoa.
- * A regra pura recusa antes; isto cobre a corrida que escapa dela.
+ * A regra pura recusa antes; isto cobre a corrida que escapa dela. O
+ * lock_timeout (55P03) vira TOO_MANY_REQUESTS: é por ele que aula.registrar,
+ * fora do admin, também passa por aqui.
  */
-const traduzErroDoBanco = t.middleware(async ({ next }) => {
+export const traduzErroDoBanco = t.middleware(async ({ next }) => {
   const resultado = await next();
   if (resultado.ok) {
     return resultado;

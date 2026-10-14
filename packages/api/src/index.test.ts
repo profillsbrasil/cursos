@@ -5,12 +5,14 @@ import { TRPCError } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Glob } from "bun";
 
+import { ESPERA_ESGOTADA } from "./consultas/erros";
 import { contextoDeTeste } from "./contexto-de-teste";
 import {
   adminProcedure,
   ErroParaAPessoa,
   publicProcedure,
   router,
+  traduzErroDoBanco,
 } from "./index";
 
 const NEW_TRPC_ERROR = /new TRPCError\(/;
@@ -22,6 +24,14 @@ const violou = (restricao: string) =>
     constraint: restricao,
   });
 
+/** O lock_timeout do Postgres, embrulhado como o drizzle embrulha. */
+const esgotou = () =>
+  new Error('Failed query: insert into "cota_video"', {
+    cause: Object.assign(new Error("canceling statement due to lock timeout"), {
+      code: "55P03",
+    }),
+  });
+
 const rotas = router({
   codigoRepetido: adminProcedure.query(() => {
     throw violou("curso_codigo_key");
@@ -31,6 +41,9 @@ const rotas = router({
       code: "CONFLICT",
       message: 'Failed query: insert into "liberacao"',
     });
+  }),
+  esperaEsgotada: publicProcedure.use(traduzErroDoBanco).query(() => {
+    throw esgotou();
   }),
   liberacaoRepetida: adminProcedure.query(() => {
     throw violou("liberacao_curso_ativa_unica");
@@ -149,6 +162,15 @@ describe("errorFormatter leva o motivo, que o editor lê sem ler o texto", () =>
     expect(await erroDe("liberacaoRepetida")).toEqual({
       code: "CONFLICT",
       message: "A pessoa já tem este curso liberado.",
+      motivo: null,
+      paraAPessoa: true,
+    });
+  });
+
+  test("lock_timeout (55P03) chega como TOO_MANY_REQUESTS, que o player tenta de novo", async () => {
+    expect(await erroDe("esperaEsgotada")).toEqual({
+      code: "TOO_MANY_REQUESTS",
+      message: ESPERA_ESGOTADA.message,
       motivo: null,
       paraAPessoa: true,
     });

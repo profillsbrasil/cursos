@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -19,8 +20,15 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { AulaId, StatusDoCurso } from "../dominio/tipos";
 import type { Trecho } from "../dominio/trechos";
+import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
-import { carregarAula, carregarEntrada, registrar } from "./aula";
+import {
+  carregarAula,
+  carregarEntrada,
+  ESPERA_PELA_COTA_MS,
+  registrar,
+} from "./aula";
+import { esperas, seguraACota, urlDaCorrida } from "./corrida-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
@@ -68,6 +76,8 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       },
     }
   );
+  // O registrar das corridas roda neste db: esperas() conta só as conexões dele.
+  const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE ?? "") });
   const cursos: string[] = [];
   const trilhas: string[] = [];
 
@@ -163,6 +173,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db.delete(trilha).where(inArray(trilha.id, trilhas));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
+    await dbDaCorrida.$client.end();
   });
 
   test("sem login, abrir e registrar lançam UNAUTHORIZED", async () => {
@@ -337,6 +348,82 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(posicao?.trechos).toEqual([t(0, 150)]);
   });
 
+  describe("espera pela cota do aluno", () => {
+    const naCorrida = (userId: string) =>
+      createCaller(contextoDeTeste({ db: dbDaCorrida, userId }));
+    const recusa = (e: unknown) =>
+      e instanceof ErroParaAPessoa
+        ? e.code
+        : `não é ErroParaAPessoa: ${codigo(e)}`;
+    const PARADO_NA_COTA = ['insert into "cota_video"'];
+
+    async function alunoComCota() {
+      const { aluno, c } = await cursoLiberado();
+      const aulaId = c.aulas[0] ?? "";
+      const caller = naCorrida(aluno);
+      await caller.aula.registrar({
+        aulaId,
+        posicaoSeg: 10,
+        trechos: [t(0, 10)],
+      });
+      const enviar = (s: number) =>
+        caller.aula
+          .registrar({ aulaId, posicaoSeg: s, trechos: [t(s - 10, s)] })
+          .then(() => "passou", recusa);
+      return { aluno, enviar };
+    }
+
+    test("com a cota presa além da espera, recusa TOO_MANY_REQUESTS sem esperar a trava soltar", async () => {
+      const { aluno, enviar } = await alunoComCota();
+      const PRESA_MS = ESPERA_PELA_COTA_MS + 3000;
+      const soltar = await seguraACota(db, aluno);
+      const solta = esperar(PRESA_MS).then(soltar);
+      const inicio = performance.now();
+      const [resposta, paradas] = await Promise.all([
+        enviar(20).then((r) => ({ ms: performance.now() - inicio, r })),
+        esperas(dbDaCorrida, 1, PARADO_NA_COTA),
+      ]);
+      await solta;
+      const [posicao] = await db
+        .select({ seg: posicaoAula.posicaoSeg })
+        .from(posicaoAula)
+        .where(eq(posicaoAula.userId, aluno));
+      expect({
+        antesDeSoltar: resposta.ms < PRESA_MS - 1000,
+        depoisDaEspera: resposta.ms >= ESPERA_PELA_COTA_MS - 50,
+        paradas,
+        posicao,
+        resposta: resposta.r,
+      }).toEqual({
+        antesDeSoltar: true,
+        depoisDaEspera: true,
+        paradas: ["transactionid"],
+        posicao: { seg: 10 },
+        resposta: "TOO_MANY_REQUESTS",
+      });
+    }, 15_000);
+
+    test("dois registrar ao mesmo tempo passam os dois", async () => {
+      const { enviar } = await alunoComCota();
+      expect(await Promise.all([enviar(20), enviar(30)])).toEqual([
+        "passou",
+        "passou",
+      ]);
+    });
+
+    test("o envio que espera outro em voo por metade da espera passa", async () => {
+      const { aluno, enviar } = await alunoComCota();
+      const soltar = await seguraACota(db, aluno);
+      const [resposta] = await Promise.all([
+        enviar(20),
+        esperas(dbDaCorrida, 1, PARADO_NA_COTA)
+          .then(() => esperar(ESPERA_PELA_COTA_MS / 2))
+          .then(soltar),
+      ]);
+      expect(resposta).toBe("passou");
+    }, 15_000);
+  });
+
   test("seis dias úteis antes e a aula numa quarta lançam o bônus uma vez", async () => {
     const { aluno, c } = await cursoLiberado(8);
     const dias = [
@@ -491,7 +578,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(avisosDoPg).toEqual([]);
   });
 
-  test("contagem de statements: abrir 4, envio comum 7 e com conquista 9, mais begin e commit", async () => {
+  test("contagem de statements: abrir 4, envio comum 8 e com conquista 10 (o lock_timeout é um deles), mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
     const abrir = await contar(() => carregarAula(db, aluno, c.slug, aulaId));
@@ -503,6 +590,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       abrir: abrir.n,
       comConquista: comConquista.n,
       comum: comum.n,
-    }).toEqual({ abrir: 4, comConquista: 2 + 9, comum: 2 + 7 });
+    }).toEqual({ abrir: 4, comConquista: 2 + 10, comum: 2 + 8 });
   });
 });
