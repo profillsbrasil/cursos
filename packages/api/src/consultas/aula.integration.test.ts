@@ -77,7 +77,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     }
   );
   // O registrar das corridas roda neste db: esperas() conta só as conexões dele.
-  const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE ?? "") });
+  const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE) });
   const cursos: string[] = [];
   const trilhas: string[] = [];
 

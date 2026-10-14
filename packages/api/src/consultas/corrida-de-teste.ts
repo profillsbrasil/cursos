@@ -6,8 +6,12 @@ import { type SQL, sql } from "drizzle-orm";
 /**
  * A URL do banco de teste com um application_name só desta execução. esperas()
  * conta só as conexões com o mesmo nome: as do db que o teste criou com ela.
+ * Sem banco de teste devolve vazio: o Bun roda o corpo do describe pulado.
  */
-export function urlDaCorrida(url: string): string {
+export function urlDaCorrida(url: string | null): string {
+  if (!url) {
+    return "";
+  }
   const u = new URL(url);
   u.searchParams.set(
     "application_name",
