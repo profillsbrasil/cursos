@@ -37,13 +37,13 @@ export default async function Curso({
         </p>
         <div className="flex flex-wrap gap-4">
           <Link
-            className="text-ceu underline underline-offset-4"
+            className="text-ceu underline underline-offset-4 hover:text-titulo"
             href={caminhoDaAula(slug, entrada.primeira)}
           >
             Rever aulas
           </Link>
           <Link
-            className="text-ceu underline underline-offset-4"
+            className="text-ceu underline underline-offset-4 hover:text-titulo"
             href="/meus-cursos"
           >
             Voltar para Meus cursos

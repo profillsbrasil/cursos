@@ -10,7 +10,7 @@ import { caminhoDaAula } from "@/lib/rotas";
 const BOTAO =
   "h-11 gap-2 rounded-full border-[1.5px] px-[18px] font-semibold text-sm";
 const SECUNDARIO =
-  "border-chart-5 bg-transparent text-foreground hover:border-foreground hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent";
+  "border-chart-5 bg-transparent text-foreground hover:border-foreground hover:bg-transparent dark:border-chart-5 dark:bg-transparent dark:hover:border-foreground dark:hover:bg-transparent";
 // O html tem .dark fixo: sem os dark: o outline mantém dark:bg-input/30 por especificidade.
 // Sob o cursor e com o foco de teclado, clareia e brilha como o botão amarelo da casca;
 // o texto fica sobre-cor, contra o hover:text-foreground da variante outline.
