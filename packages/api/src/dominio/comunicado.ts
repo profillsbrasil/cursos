@@ -29,8 +29,8 @@ export interface ComunicadoNaTela {
   curso: CursoDoComunicado | null;
   id: ComunicadoId;
   publicadoEm: string;
-  /** O nome do Clerk, ou o userId quando o Clerk não conhece mais a pessoa. */
-  publicadoPor: string;
+  /** O nome do Clerk; null quando o Clerk não conhece a pessoa. */
+  publicadoPor: string | null;
   texto: string;
   titulo: string;
 }
@@ -54,7 +54,7 @@ export function montarComunicados(
       curso: c.curso,
       id: c.id,
       publicadoEm: c.publicadoEm.toISOString(),
-      publicadoPor: nomes.get(c.publicadoPor) ?? c.publicadoPor,
+      publicadoPor: nomes.get(c.publicadoPor) ?? null,
       texto: c.texto,
       titulo: c.titulo,
     })),
