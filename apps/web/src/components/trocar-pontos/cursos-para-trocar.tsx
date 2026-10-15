@@ -16,33 +16,40 @@ type CursoId = Cartao["curso"]["id"];
 
 const AVISO = "Curso liberado. Ele já está em Meus cursos.";
 
+const NENHUM_CURSO_NOVO = "Nenhum curso novo para trocar agora";
+
 /**
- * Sem curso trocável a culpa não é de quem estuda: a frase diz que os pontos
- * ficam guardados, nunca que faltam pontos.
+ * Sem curso trocável na vitrine, a culpa não é de quem estuda: a frase nunca diz
+ * que faltam pontos. Ela também fala só do lado do aluno, porque a vitrine vazia
+ * pode ter curso trocável que ele já alcança pela trilha, e não promete prazo nem
+ * que ponto não vence (decisão aberta do dono no PRODUCT.md).
  */
-function subtitulo(cartoes: readonly Cartao[], temCursoTrocavel: boolean) {
+function subtitulo(
+  cartoes: readonly Cartao[],
+  temCursoTrocavelNaVitrine: boolean
+) {
   const podeTrocar = cartoes.filter((c) => c.tipo === "pode_trocar").length;
   if (podeTrocar > 0) {
     return `Seu saldo já cobre ${podeTrocar} ${podeTrocar === 1 ? "curso" : "cursos"}`;
   }
-  if (temCursoTrocavel) {
+  if (temCursoTrocavelNaVitrine) {
     return "Continue estudando para juntar pontos";
   }
   return cartoes.length === 0
-    ? "Seus pontos ficam guardados"
-    : "Seus pontos ficam guardados até o próximo curso abrir para troca";
+    ? "Seus pontos continuam no saldo"
+    : NENHUM_CURSO_NOVO;
 }
 
 export function CursosParaTrocar({
   cartoes,
   extrato,
   hoje,
-  temCursoTrocavel,
+  temCursoTrocavelNaVitrine,
 }: {
   cartoes: readonly Cartao[];
   extrato: readonly ItemDoExtrato[];
   hoje: string;
-  temCursoTrocavel: boolean;
+  temCursoTrocavelNaVitrine: boolean;
 }) {
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -85,13 +92,12 @@ export function CursosParaTrocar({
       </div>
       <Secao
         id="cursos-para-trocar"
-        subtitulo={subtitulo(cartoes, temCursoTrocavel)}
+        subtitulo={subtitulo(cartoes, temCursoTrocavelNaVitrine)}
         titulo="Cursos para trocar"
       >
         {cartoes.length === 0 ? (
           <p className="max-w-[60ch] text-muted-foreground">
-            A Profills ainda não abriu cursos para troca. Quando abrir, eles
-            aparecem aqui.
+            {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
           </p>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-5">

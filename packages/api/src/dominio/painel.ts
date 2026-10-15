@@ -29,7 +29,6 @@ import {
   type TrilhaId,
   type VideoProvedor,
 } from "./tipos";
-import { type CursoDaTroca, temCursoTrocavel } from "./troca";
 import { videoDaAula } from "./video";
 
 // ---------- entrada: as linhas cruas das consultas (seção 4.3 do desenho) ----------
@@ -90,8 +89,6 @@ export interface LinhasPainel {
 export interface LinhasResumo {
   dias: readonly { dia: string }[];
   pontos: { saldo: number; entradasDaSemana: number };
-  /** A vitrine de Trocar pontos, da mesma consulta que monta a tela. */
-  vitrine: readonly CursoDaTroca[];
 }
 
 // ---------- saída: o view model da tela ----------
@@ -193,8 +190,6 @@ export interface ResumoAluno {
   pontosSemana: number;
   saldo: number;
   sequenciaDias: number;
-  /** A mesma regra de Trocar pontos; false esconde o botão de Sua semana. */
-  temCursoTrocavel: boolean;
 }
 
 // ---------- montagem ----------
@@ -405,6 +400,5 @@ export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
     pontosSemana: linhas.pontos.entradasDaSemana,
     saldo: linhas.pontos.saldo,
     sequenciaDias,
-    temCursoTrocavel: temCursoTrocavel(linhas.vitrine),
   };
 }

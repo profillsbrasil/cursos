@@ -72,6 +72,11 @@ export const carregarPainelDeTroca = cache(async () =>
   (await caller()).troca.painel()
 );
 
+/** Só Meus cursos: o botão de Sua semana. Trocar pontos lê o fato do painel. */
+export const carregarTemCursoTrocavelNaVitrine = cache(async () =>
+  (await caller()).troca.temCursoTrocavelNaVitrine()
+);
+
 export const carregarCatalogo = cache(async () =>
   (await exigirAdmin()).admin.catalogo.visao()
 );

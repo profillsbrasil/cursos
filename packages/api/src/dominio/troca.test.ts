@@ -9,6 +9,7 @@ import {
   montarPainelDeTroca,
   paraCursoDaTroca,
   situacao,
+  temCursoTrocavelNaVitrine,
 } from "./troca";
 
 const HOJE = "2026-10-07" as DiaISO;
@@ -268,9 +269,10 @@ describe("montarPainelDeTroca", () => {
     montarPainelDeTroca(
       { cursos, extrato: [], pontos: { entradasDaSemana: 0, saldo: 0 } },
       HOJE
-    ).temCursoTrocavel;
+    ).temCursoTrocavelNaVitrine;
 
-  test("sem curso à venda para o aluno, nenhum curso trocável", () => {
+  test("curso trocável que o aluno já alcança não conta, nem os de fora", () => {
+    expect(temCursoTrocavelNaVitrine([])).toBe(false);
     expect(temCurso([])).toBe(false);
     expect(
       temCurso([

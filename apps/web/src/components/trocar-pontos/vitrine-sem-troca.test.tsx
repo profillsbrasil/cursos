@@ -32,32 +32,48 @@ const curso = {
   titulo: "Curso de envase",
 } as CartaoDeTroca["curso"];
 
-const vitrine = (cartoes: CartaoDeTroca[], temCursoTrocavel: boolean) =>
+const vitrine = (
+  cartoes: CartaoDeTroca[],
+  temCursoTrocavelNaVitrine: boolean
+) =>
   texto(
     renderToStaticMarkup(
       <CursosParaTrocar
         cartoes={cartoes}
         extrato={[]}
         hoje="2026-10-14"
-        temCursoTrocavel={temCursoTrocavel}
+        temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
       />
     )
   );
 
-describe("a vitrine sem curso trocável não culpa quem estuda", () => {
-  test("vazia: os pontos ficam guardados e a Profills ainda não abriu cursos", () => {
+// A vitrine vazia também acontece quando existe curso trocável que o aluno já
+// alcança pela trilha. A frase fala do lado do aluno, e nenhuma promete prazo
+// ou que ponto não vence (decisão aberta do dono no PRODUCT.md).
+const PROMESSAS = [
+  "guardados",
+  "Profills ainda não abriu",
+  "Continue estudando",
+];
+
+describe("a vitrine sem curso trocável não culpa quem estuda nem promete", () => {
+  test("vazia: nenhum curso novo, e os pontos continuam no saldo", () => {
     const t = vitrine([], false);
-    expect(t).toContain("Seus pontos ficam guardados");
-    expect(t).toContain("A Profills ainda não abriu cursos para troca.");
-    expect(t).not.toContain("Continue estudando");
+    expect(t).toContain("Seus pontos continuam no saldo");
+    expect(t).toContain(
+      "Nenhum curso novo para trocar agora. Quando houver, ele aparece aqui."
+    );
+    for (const p of PROMESSAS) {
+      expect(t).not.toContain(p);
+    }
   });
 
-  test("só com curso já trocado: os pontos esperam o próximo curso", () => {
+  test("só com curso já trocado: nenhum curso novo para trocar", () => {
     const t = vitrine([{ curso, pago: 300, tipo: "trocado" }], false);
-    expect(t).toContain(
-      "Seus pontos ficam guardados até o próximo curso abrir para troca"
-    );
-    expect(t).not.toContain("Continue estudando");
+    expect(t).toContain("Nenhum curso novo para trocar agora");
+    for (const p of PROMESSAS) {
+      expect(t).not.toContain(p);
+    }
   });
 
   test("com curso trocável que falta pontos, a frase de antes fica", () => {
@@ -78,13 +94,13 @@ describe("a vitrine sem curso trocável não culpa quem estuda", () => {
   });
 });
 
-const saldo = (temCursoTrocavel: boolean) =>
+const saldo = (temCursoTrocavelNaVitrine: boolean) =>
   renderToStaticMarkup(
     <SaldoDeTroca
       comoGanhar={[]}
       pontosSemana={0}
       saldo={610}
-      temCursoTrocavel={temCursoTrocavel}
+      temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
     />
   );
 
@@ -116,11 +132,15 @@ const RESUMO: ResumoAluno = {
   pontosSemana: 0,
   saldo: 610,
   sequenciaDias: 0,
-  temCursoTrocavel: false,
 };
 
-const semana = (temCursoTrocavel: boolean) =>
-  renderToStaticMarkup(<SuaSemana resumo={{ ...RESUMO, temCursoTrocavel }} />);
+const semana = (temCursoTrocavelNaVitrine: boolean) =>
+  renderToStaticMarkup(
+    <SuaSemana
+      resumo={RESUMO}
+      temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+    />
+  );
 
 describe("Sua semana só leva a Trocar pontos quando há curso trocável", () => {
   test("sem curso trocável, o botão some", () => {

@@ -98,10 +98,12 @@ export function ConteudoMeusCursos({
   conta,
   painel,
   resumo,
+  temCursoTrocavelNaVitrine,
 }: {
   conta: string | null;
   painel: PainelMeusCursos;
   resumo: ResumoAluno;
+  temCursoTrocavelNaVitrine: boolean;
 }) {
   if (painel.trilhas.length === 0 && painel.soltos.length === 0) {
     return (
@@ -119,7 +121,10 @@ export function ConteudoMeusCursos({
       <div className="grid gap-10 max-[760px]:gap-8">
         <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
           <BannerContinuar retomada={painel.retomada} />
-          <SuaSemana resumo={resumo} />
+          <SuaSemana
+            resumo={resumo}
+            temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+          />
         </div>
         {painel.trilhas.length > 0 && (
           <Secao
