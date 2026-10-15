@@ -3,9 +3,10 @@
 // é compilado pelo Tailwind com as classes que saem dele. O teste lê só as regras
 // que casam com o foco de teclado e confere o sinal que o dono escolheu. A pílula
 // acende por um irmão (:has e ~), que só um browser de verdade avalia: a navegação
-// abre no Chromium headless, com o cursor e o foco forçados no link.
+// abre no Chromium headless, com o cursor e o foco forçados no link. Sem Chromium
+// na máquina, só a suíte da pílula pula.
 
-import { afterAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -251,11 +252,38 @@ async function enderecoDoDevTools(saida: ReadableStream<Uint8Array>) {
   throw new Error(`o Chromium não abriu o DevTools:\n${lido}`);
 }
 
+/** O que o afterAll desfaz, na ordem inversa: vale também se o setup cair no meio. */
+const limpezas: (() => unknown)[] = [];
+
+const TETO_DO_WEBSOCKET_MS = 5000;
+
+function abrirWebSocket(url: string) {
+  const ws = new WebSocket(url);
+  limpezas.push(() => ws.close());
+  return new Promise<WebSocket>((pronto, falhou) => {
+    const teto = setTimeout(
+      () =>
+        falhou(
+          new Error(
+            `o WebSocket do DevTools não abriu em ${TETO_DO_WEBSOCKET_MS} ms`
+          )
+        ),
+      TETO_DO_WEBSOCKET_MS
+    );
+    ws.addEventListener("open", () => {
+      clearTimeout(teto);
+      pronto(ws);
+    });
+    ws.addEventListener("error", () => {
+      clearTimeout(teto);
+      falhou(new Error(`o WebSocket do DevTools falhou em ${url}`));
+    });
+  });
+}
+
 async function abrirChromium() {
-  if (!existsSync(CHROMIUM)) {
-    throw new Error(`sem Chromium em ${CHROMIUM}; aponte CHROMIUM para ele`);
-  }
   const perfil = mkdtempSync(join(tmpdir(), "sinal-do-foco-"));
+  limpezas.push(() => rmSync(perfil, { force: true, recursive: true }));
   const processo = spawn(
     [
       CHROMIUM,
@@ -269,6 +297,10 @@ async function abrirChromium() {
     ],
     { stderr: "pipe", stdout: "ignore" }
   );
+  limpezas.push(async () => {
+    processo.kill();
+    await processo.exited;
+  });
   const navegador = new URL(await enderecoDoDevTools(processo.stderr));
   const alvos = (await (
     await fetch(`http://${navegador.host}/json/list`)
@@ -277,8 +309,7 @@ async function abrirChromium() {
   if (!pagina) {
     throw new Error("o Chromium abriu sem página");
   }
-  const ws = new WebSocket(pagina.webSocketDebuggerUrl);
-  await new Promise((pronto) => ws.addEventListener("open", pronto));
+  const ws = await abrirWebSocket(pagina.webSocketDebuggerUrl);
   const pendentes = new Map<number, (r: Resposta) => void>();
   ws.addEventListener("message", (m) => {
     const resposta = JSON.parse(String(m.data)) as Resposta;
@@ -288,7 +319,7 @@ async function abrirChromium() {
     }
   });
   let proximo = 0;
-  function enviar(method: string, params: Record<string, unknown> = {}) {
+  return (method: string, params: Record<string, unknown> = {}) => {
     proximo += 1;
     const id = proximo;
     return new Promise<Record<string, unknown>>((resolve, reject) => {
@@ -299,46 +330,27 @@ async function abrirChromium() {
       );
       ws.send(JSON.stringify({ id, method, params }));
     });
-  }
-  return {
-    enviar,
-    fechar() {
-      ws.close();
-      processo.kill();
-      rmSync(perfil, { force: true, recursive: true });
-    },
   };
 }
 
-const chromium = await abrirChromium();
-afterAll(() => chromium.fechar());
+// Preenchidos pelo beforeAll da suíte do Chromium; sem Chromium, a suíte pula.
+let enviar: Awaited<ReturnType<typeof abrirChromium>>;
+let raiz: number;
+let temCursor: boolean;
+let solHover: string;
+let repouso: { fundo: string; sombra: string };
 
 async function avaliar<T>(expressao: string) {
-  const { result } = (await chromium.enviar("Runtime.evaluate", {
+  const { result } = (await enviar("Runtime.evaluate", {
     expression: expressao,
     returnByValue: true,
   })) as { result: { value: T } };
   return result.value;
 }
 
-// Sem transição (motion-reduce:transition-none): a cor lida é a final.
-await chromium.enviar("Emulation.setEmulatedMedia", {
-  features: [{ name: "prefers-reduced-motion", value: "reduce" }],
-});
-await avaliar(
-  `document.open(); document.write(${JSON.stringify(
-    `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body>${nav}<div id="sonda" style="background-color: var(--sol-hover)"></div></body></html>`
-  )}); document.close();`
-);
-await chromium.enviar("DOM.enable");
-await chromium.enviar("CSS.enable");
-const { root } = (await chromium.enviar("DOM.getDocument")) as {
-  root: { nodeId: number };
-};
-
 async function noDe(seletor: string) {
-  const { nodeId } = (await chromium.enviar("DOM.querySelector", {
-    nodeId: root.nodeId,
+  const { nodeId } = (await enviar("DOM.querySelector", {
+    nodeId: raiz,
     selector: seletor,
   })) as { nodeId: number };
   expect(nodeId).toBeGreaterThan(0);
@@ -356,12 +368,12 @@ const lerPilula = () =>
 /** A cor e a sombra da pílula com o cursor ou o foco forçado num link. */
 async function pilulaCom(link: string, estado: "hover" | "focus-visible") {
   const nodeId = await noDe(link);
-  await chromium.enviar("CSS.forcePseudoState", {
+  await enviar("CSS.forcePseudoState", {
     forcedPseudoClasses: [estado],
     nodeId,
   });
   const pilula = await lerPilula();
-  await chromium.enviar("CSS.forcePseudoState", {
+  await enviar("CSS.forcePseudoState", {
     forcedPseudoClasses: [],
     nodeId,
   });
@@ -369,52 +381,85 @@ async function pilulaCom(link: string, estado: "hover" | "focus-visible") {
 }
 
 const BRILHO = "rgba(255, 204, 1, 0.28)";
-const temCursor = await avaliar<boolean>(
-  "matchMedia('(hover: hover)').matches"
-);
-const solHover = await avaliar<string>(
-  "getComputedStyle(document.getElementById('sonda')).backgroundColor"
-);
-const repouso = await lerPilula();
 
 describe("o foco de teclado aparece nos quatro controles da #44", () => {
-  describe("a pílula do link ativo acende para sol-hover, com o brilho do botão amarelo", () => {
-    test("o HTML tem um link ativo e uma pílula", () => {
-      const daNav = elementos(nav);
-      unico(
-        daNav.filter((e) => e.atributos["aria-current"] === "page"),
-        "link ativo"
-      );
-      unico(
-        daNav.filter(
-          (e) =>
-            e.atributos["aria-hidden"] === "true" &&
-            e.classes.includes("bg-sidebar-primary")
-        ),
-        "pílula"
-      );
-    });
+  describe.skipIf(!existsSync(CHROMIUM))(
+    "a pílula do link ativo acende para sol-hover, com o brilho do botão amarelo",
+    () => {
+      beforeAll(async () => {
+        enviar = await abrirChromium();
+        // Sem transição (motion-reduce:transition-none): a cor lida é a final.
+        await enviar("Emulation.setEmulatedMedia", {
+          features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+        });
+        await avaliar(
+          `document.open(); document.write(${JSON.stringify(
+            `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body>${nav}<div id="sonda" style="background-color: var(--sol-hover)"></div></body></html>`
+          )}); document.close();`
+        );
+        await enviar("DOM.enable");
+        await enviar("CSS.enable");
+        const { root } = (await enviar("DOM.getDocument")) as {
+          root: { nodeId: number };
+        };
+        raiz = root.nodeId;
+        temCursor = await avaliar<boolean>(
+          "matchMedia('(hover: hover)').matches"
+        );
+        solHover = await avaliar<string>(
+          "getComputedStyle(document.getElementById('sonda')).backgroundColor"
+        );
+        repouso = await lerPilula();
+      }, 20_000);
 
-    test("em repouso, a pílula fica no amarelo de sempre, sem brilho", () => {
-      // O ramo do cursor mora num @media (hover: hover): sem cursor, ele não vale.
-      expect(temCursor).toBe(true);
-      expect(solHover).toStartWith("rgb");
-      expect(repouso.fundo).not.toBe(solHover);
-      expect(repouso.sombra).not.toContain(BRILHO);
-    });
-
-    for (const estado of ["focus-visible", "hover"] as const) {
-      test(`com ${estado} no link ativo, a pílula acende`, async () => {
-        const aceso = await pilulaCom(LINK_ATIVO, estado);
-        expect(aceso.fundo).toBe(solHover);
-        expect(aceso.sombra).toContain(BRILHO);
+      // Uma limpeza por vez: o perfil só sai depois que o processo terminou.
+      afterAll(async () => {
+        await limpezas
+          .splice(0)
+          .reverse()
+          .reduce<Promise<unknown>>(
+            (anterior, limpar) => anterior.then(limpar),
+            Promise.resolve()
+          );
       });
 
-      test(`com ${estado} em outro link, a pílula não acende`, async () => {
-        expect(await pilulaCom(OUTRO_LINK, estado)).toEqual(repouso);
+      test("o HTML tem um link ativo e uma pílula", () => {
+        const daNav = elementos(nav);
+        unico(
+          daNav.filter((e) => e.atributos["aria-current"] === "page"),
+          "link ativo"
+        );
+        unico(
+          daNav.filter(
+            (e) =>
+              e.atributos["aria-hidden"] === "true" &&
+              e.classes.includes("bg-sidebar-primary")
+          ),
+          "pílula"
+        );
       });
+
+      test("em repouso, a pílula fica no amarelo de sempre, sem brilho", () => {
+        // O ramo do cursor mora num @media (hover: hover): sem cursor, ele não vale.
+        expect(temCursor).toBe(true);
+        expect(solHover).toStartWith("rgb");
+        expect(repouso.fundo).not.toBe(solHover);
+        expect(repouso.sombra).not.toContain(BRILHO);
+      });
+
+      for (const estado of ["focus-visible", "hover"] as const) {
+        test(`com ${estado} no link ativo, a pílula acende`, async () => {
+          const aceso = await pilulaCom(LINK_ATIVO, estado);
+          expect(aceso.fundo).toBe(solHover);
+          expect(aceso.sombra).toContain(BRILHO);
+        });
+
+        test(`com ${estado} em outro link, a pílula não acende`, async () => {
+          expect(await pilulaCom(OUTRO_LINK, estado)).toEqual(repouso);
+        });
+      }
     }
-  });
+  );
 
   test('"Em breve" clareia o nome e o ícone para foreground, sem fundo', () => {
     const emBreve = elementos(nav).filter(
