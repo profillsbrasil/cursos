@@ -6,6 +6,7 @@ import type { RegrasDoRascunho } from "@/lib/use-rascunho-apoiado";
 
 import {
   type AulaDoRascunho,
+  ID,
   lerNumeroDoModulo,
   type ModuloDoRascunho,
   mesmoRascunho,
@@ -201,3 +202,91 @@ export const REGRAS_DO_CURSO: RegrasDoRascunho<
   RascunhoDoCurso,
   Mudanca
 > = { deDocumento: rascunhoDoCurso, mesmo: mesmoRascunho, mudar };
+
+/**
+ * Os módulos que o admin deixou abertos no editor; fechado é o padrão. Fica
+ * fora do rascunho, então não entra no sujo nem no documento salvo.
+ */
+export type Abertos = ReadonlySet<ModuloId>;
+
+export const NENHUM_ABERTO: Abertos = new Set();
+
+export type AcaoNosBlocos =
+  | { tipo: "aberto"; id: ModuloId }
+  | { tipo: "fechado"; id: ModuloId }
+  /** O Salvar recusado pelo schema abre os módulos com campo marcado. */
+  | { tipo: "erros_mostrados"; ids: readonly ModuloId[] }
+  | { tipo: "mudou"; mudanca: Mudanca };
+
+/** Os campos com erro na tela, pelo id do input. */
+export type Marcados = Pick<ReadonlySet<string>, "has">;
+
+/** Como o bloco aparece. O erro nunca fica num bloco fechado. */
+export type Bloco =
+  | { tipo: "fechado" }
+  | { tipo: "aberto" }
+  | { tipo: "com_erro"; campos: number };
+
+const comAberto = (abertos: Abertos, id: ModuloId): Abertos =>
+  abertos.has(id) ? abertos : new Set([...abertos, id]);
+
+const semAberto = (abertos: Abertos, id: ModuloId): Abertos =>
+  abertos.has(id) ? new Set([...abertos].filter((x) => x !== id)) : abertos;
+
+/** O foco vai para dentro do módulo novo e do destino da aula movida. */
+function abertosDepoisDe(abertos: Abertos, m: Mudanca): Abertos {
+  switch (m.tipo) {
+    case "modulo_novo":
+      return comAberto(abertos, m.id);
+    case "aula_para_modulo":
+      return comAberto(abertos, m.moduloId);
+    case "modulo_removido":
+      return semAberto(abertos, m.id);
+    default:
+      return abertos;
+  }
+}
+
+export function blocosAbertos(abertos: Abertos, a: AcaoNosBlocos): Abertos {
+  switch (a.tipo) {
+    case "aberto":
+      return comAberto(abertos, a.id);
+    case "fechado":
+      return semAberto(abertos, a.id);
+    case "erros_mostrados":
+      return a.ids.reduce(comAberto, abertos);
+    case "mudou":
+      return abertosDepoisDe(abertos, a.mudanca);
+    default: {
+      const nenhuma: never = a;
+      throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
+    }
+  }
+}
+
+const CAMPOS_DO_MODULO = ["nivel", "numero", "titulo"] as const;
+const CAMPOS_DA_AULA = ["duracao", "titulo", "video"] as const;
+
+const camposComErro = (m: ModuloDoRascunho, marcados: Marcados) =>
+  [
+    ...CAMPOS_DO_MODULO.map((c) => ID.modulo(m.id, c)),
+    ...m.aulas.flatMap((a) => CAMPOS_DA_AULA.map((c) => ID.aula(a.id, c))),
+  ].filter((id) => marcados.has(id)).length;
+
+export const modulosComErro = (
+  r: RascunhoDoCurso,
+  marcados: Marcados
+): ModuloId[] =>
+  r.modulos.flatMap((m) => (camposComErro(m, marcados) > 0 ? [m.id] : []));
+
+export function blocoDoModulo(
+  m: ModuloDoRascunho,
+  abertos: Abertos,
+  marcados: Marcados
+): Bloco {
+  const campos = camposComErro(m, marcados);
+  if (campos > 0) {
+    return { campos, tipo: "com_erro" };
+  }
+  return abertos.has(m.id) ? { tipo: "aberto" } : { tipo: "fechado" };
+}

@@ -7,7 +7,17 @@ import {
 } from "@cursos/api/dominio/exemplo";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 
-import { type Mudanca, mudar, proximaOrdem } from "./estado-do-editor";
+import {
+  type Abertos,
+  type AcaoNosBlocos,
+  blocoDoModulo,
+  blocosAbertos,
+  type Mudanca,
+  modulosComErro,
+  mudar,
+  NENHUM_ABERTO,
+  proximaOrdem,
+} from "./estado-do-editor";
 import { recusaNaTela } from "./problemas";
 import {
   ID,
@@ -422,4 +432,101 @@ test("o rascunho editado vira um documento que passa no schema do servidor", () 
     [2, "Módulo um", [["Aula 3", 300, null]]],
   ]);
   expect(servidor.data?.precoTroca).toBe(300);
+});
+
+describe("blocos dos módulos", () => {
+  const SEM_ERRO = new Map<string, string>();
+
+  const com = (abertos: Abertos, ...acoes: AcaoNosBlocos[]) =>
+    acoes.reduce(blocosAbertos, abertos);
+
+  const estados = (r: RascunhoDoCurso, abertos: Abertos, erros = SEM_ERRO) =>
+    r.modulos.map((m) => blocoDoModulo(m, abertos, erros).tipo);
+
+  test("todo módulo começa fechado", () => {
+    expect(estados(exemplo(), NENHUM_ABERTO)).toEqual(["fechado", "fechado"]);
+  });
+
+  test("o cabeçalho e o índice abrem e fecham só o módulo pedido", () => {
+    const abertos = com(
+      NENHUM_ABERTO,
+      { id: M1, tipo: "aberto" },
+      { id: M2, tipo: "aberto" },
+      { id: M1, tipo: "fechado" }
+    );
+    expect(estados(exemplo(), abertos)).toEqual(["fechado", "aberto"]);
+  });
+
+  test("o módulo novo já vem aberto, porque o foco vai para o título dele", () => {
+    const mudanca: Mudanca = { id: M3, tipo: "modulo_novo" };
+    const abertos = com(NENHUM_ABERTO, { mudanca, tipo: "mudou" });
+    expect(estados(mudar(exemplo(), mudanca), abertos)).toEqual([
+      "fechado",
+      "fechado",
+      "aberto",
+    ]);
+  });
+
+  test("mover uma aula para um módulo fechado abre o destino, e a origem continua aberta", () => {
+    const mudanca: Mudanca = { id: A1, moduloId: M2, tipo: "aula_para_modulo" };
+    const abertos = com(
+      NENHUM_ABERTO,
+      { id: M1, tipo: "aberto" },
+      { mudanca, tipo: "mudou" }
+    );
+    expect(estados(mudar(exemplo(), mudanca), abertos)).toEqual([
+      "aberto",
+      "aberto",
+    ]);
+  });
+
+  test("mudança dentro de um módulo não abre nem fecha nenhum bloco", () => {
+    const abertos = com(NENHUM_ABERTO, { id: M1, tipo: "aberto" });
+    const mudancas: Mudanca[] = [
+      { id: A3, mudanca: { titulo: "Nova" }, tipo: "aula_editada" },
+      { direcao: "abaixo", id: A1, tipo: "aula_movida" },
+      { direcao: "abaixo", id: M1, tipo: "modulo_movido" },
+      { tipo: "modulos_ordenados" },
+      { id: A4, moduloId: M1, tipo: "aula_nova" },
+      { id: A2, tipo: "aula_removida" },
+    ];
+    for (const mudanca of mudancas) {
+      expect(blocosAbertos(abertos, { mudanca, tipo: "mudou" })).toBe(abertos);
+    }
+  });
+
+  test("o módulo removido sai da lista de abertos", () => {
+    const abertos = com(
+      NENHUM_ABERTO,
+      { id: M1, tipo: "aberto" },
+      { mudanca: { id: M1, tipo: "modulo_removido" }, tipo: "mudou" }
+    );
+    expect(abertos.size).toBe(0);
+  });
+
+  test("o módulo com campo marcado fica aberto mesmo fechado pelo admin, e conta os campos", () => {
+    const erros = new Map([
+      [ID.aula(A3, "duracao"), "Escreva a duração em mm:ss, como 12:30."],
+      [ID.modulo(M2, "titulo"), "Preencha este campo."],
+      [ID.curso("titulo"), "Preencha este campo."],
+    ]);
+    const abertos = com(
+      NENHUM_ABERTO,
+      { id: M2, tipo: "aberto" },
+      { id: M2, tipo: "fechado" }
+    );
+    expect(
+      exemplo().modulos.map((m) => blocoDoModulo(m, abertos, erros))
+    ).toEqual([{ tipo: "fechado" }, { campos: 2, tipo: "com_erro" }]);
+  });
+
+  test("o Salvar com erro abre os módulos marcados, e eles ficam abertos depois da correção", () => {
+    const r = exemplo();
+    const erros = new Map([[ID.aula(A3, "video"), "Cole um link do YouTube."]]);
+    const ids = modulosComErro(r, erros);
+    expect(ids).toEqual([M2]);
+    const abertos = com(NENHUM_ABERTO, { ids, tipo: "erros_mostrados" });
+    expect(estados(r, abertos, erros)).toEqual(["fechado", "com_erro"]);
+    expect(estados(r, abertos)).toEqual(["fechado", "aberto"]);
+  });
 });

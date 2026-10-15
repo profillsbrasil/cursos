@@ -10,6 +10,7 @@ import {
   setaDepoisDeMover,
   sincronizarComAPagina,
   trocado,
+  vizinhoQueFica,
 } from "./editor";
 
 describe("trocado", () => {
@@ -40,6 +41,18 @@ describe("setaDepoisDeMover", () => {
   test("na borda, a seta clicada desliga e o foco vai para a outra", () => {
     expect(setaDepoisDeMover("acima", true)).toBe("abaixo");
     expect(setaDepoisDeMover("abaixo", true)).toBe("acima");
+  });
+});
+
+describe("vizinhoQueFica", () => {
+  test("o foco vai para o item que toma o lugar do removido; no fim, para o anterior", () => {
+    expect(vizinhoQueFica(["a", "b", "c"], 0)).toBe("b");
+    expect(vizinhoQueFica(["a", "b", "c"], 1)).toBe("c");
+    expect(vizinhoQueFica(["a", "b", "c"], 2)).toBe("b");
+  });
+
+  test("o item sozinho não deixa vizinho", () => {
+    expect(vizinhoQueFica(["a"], 0)).toBeNull();
   });
 });
 
