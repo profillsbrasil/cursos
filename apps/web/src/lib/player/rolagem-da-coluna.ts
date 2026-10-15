@@ -27,3 +27,44 @@ export function rolagemDaColuna({
   const centro = topoDaAula + alturaDaAula / 2 - alturaVisivel / 2;
   return Math.round(Math.min(Math.max(centro, 0), maximo));
 }
+
+/**
+ * Rola só a coluna, sem animação, até a aula atual ficar no meio dela. Roda
+ * também como script no HTML do servidor, logo depois da coluna, para ela
+ * pintar já centrada na carga direta. Por isso o corpo não lê nada de fora
+ * dele: a conta chega por `calcular`, e o padrão de `quadros` é literal. No
+ * streaming do `loading.tsx` a coluna chega escondida, e a espera vai quadro a
+ * quadro (300, uns 5 s a 60 Hz) até o React revelá-la: o
+ * `requestAnimationFrame` roda antes da pintura do quadro em que ela aparece.
+ */
+export function centrarAAulaAtual(
+  coluna: HTMLElement,
+  calcular: (medidas: MedidasDaColuna) => number | null,
+  quadros = 300
+): void {
+  if (coluna.getClientRects().length === 0) {
+    if (quadros > 0) {
+      requestAnimationFrame(() =>
+        centrarAAulaAtual(coluna, calcular, quadros - 1)
+      );
+    }
+    return;
+  }
+  const aula = coluna.querySelector<HTMLElement>('[aria-current="page"]');
+  if (!aula) {
+    return;
+  }
+  const top = calcular({
+    alturaDaAula: aula.offsetHeight,
+    alturaDoConteudo: coluna.scrollHeight,
+    alturaVisivel: coluna.clientHeight,
+    topoDaAula:
+      aula.getBoundingClientRect().top -
+      coluna.getBoundingClientRect().top -
+      coluna.clientTop +
+      coluna.scrollTop,
+  });
+  if (top !== null) {
+    coluna.scrollTo({ behavior: "instant", top });
+  }
+}
