@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { EditorDoCurso } from "@/components/admin/editor-do-curso";
 import { abrirOuRascunho } from "@/lib/abrir-ou-rascunho";
-import { carregarCurso } from "@/server/api";
+import { carregarCategorias, carregarCurso } from "@/server/api";
 
 export const metadata: Metadata = { title: "Curso · Admin" };
 
@@ -17,15 +17,24 @@ export default async function Curso({
   searchParams: Promise<{ novo?: string | string[] }>;
 }) {
   const [{ id }, { novo }] = await Promise.all([params, searchParams]);
-  const edicao = await abrirOuRascunho(
-    { id, novo },
-    {
-      carregar: carregarCurso,
-      rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
-    }
-  );
+  const [edicao, categorias] = await Promise.all([
+    abrirOuRascunho(
+      { id, novo },
+      {
+        carregar: carregarCurso,
+        rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
+      }
+    ),
+    carregarCategorias(),
+  ]);
   if (!edicao) {
     notFound();
   }
-  return <EditorDoCurso edicao={edicao} key={edicao.documento.id} />;
+  return (
+    <EditorDoCurso
+      categorias={categorias}
+      edicao={edicao}
+      key={edicao.documento.id}
+    />
+  );
 }

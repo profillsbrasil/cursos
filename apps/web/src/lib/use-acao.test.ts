@@ -88,17 +88,17 @@ describe("rodarAcao", () => {
   test("a recusa do servidor entrega o motivo e recarrega", async () => {
     const recusa = erroDoServidor(
       "CONFLICT",
-      "Já existe um curso com este endereço.",
+      "Já existe um curso com este código.",
       true,
-      "slug_repetido"
+      "codigo_repetido"
     );
     const motivos: unknown[] = [];
     expect(
       await rodar(() => Promise.reject(recusa), {
         aoRecusar: (m) => motivos.push(m),
       })
-    ).toEqual(["erro:Já existe um curso com este endereço.", "atualizar"]);
-    expect(motivos).toEqual(["slug_repetido"]);
+    ).toEqual(["erro:Já existe um curso com este código.", "atualizar"]);
+    expect(motivos).toEqual(["codigo_repetido"]);
   });
 
   test("em versao_mudou recarrega, e o Recarregar já encontra a página nova", async () => {

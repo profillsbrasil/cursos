@@ -151,7 +151,7 @@ const linha = (
   capaAltura: 720,
   capaLargura: 1280,
   capaUrl: "/capas/bpf.jpg",
-  categoria: "Processo de envase",
+  categoria: { nome: "Processo de envase" },
   id: "c-1",
   liberacoes: [],
   modulos: [

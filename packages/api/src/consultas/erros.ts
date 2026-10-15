@@ -72,15 +72,14 @@ export const CURSO_EM_USO =
  * um tem um sentido só, então a frase vale para qualquer procedimento.
  */
 export const MENSAGEM_DA_RESTRICAO = {
+  categoria_nome_unico: {
+    code: "CONFLICT",
+    message: "Já existe uma categoria com este nome.",
+  },
   curso_codigo_key: {
     code: "CONFLICT",
     message: "Já existe um curso com este código.",
     motivo: "codigo_repetido",
-  },
-  curso_slug_key: {
-    code: "CONFLICT",
-    message: "Já existe um curso com este endereço.",
-    motivo: "slug_repetido",
   },
   liberacao_curso_ativa_unica: {
     code: "CONFLICT",
@@ -107,6 +106,9 @@ interface MensagemDoBanco {
  * Uma FK tem um nome só para os dois sentidos: apagar o pai que tem filho e
  * inserir o filho de um pai que sumiu. Por isso nenhuma FK tem frase aqui: quem
  * apaga traduz a própria corrida (apagarCurso devolve CURSO_EM_USO).
+ *
+ * curso_slug_key fica aqui porque o servidor escolhe o slug livre com a trava da
+ * raiz dele (salvarCurso): duas criações não chegam ao mesmo endereço.
  */
 export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "aula_assistida_aula_id_aula_id_fkey",
@@ -118,15 +120,19 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "aula_posicao_unica",
   "aula_video_completo",
   "aula_video_formato",
+  "categoria_nome_formato",
+  "categoria_pkey",
   "certificado_curso_id_curso_id_fkey",
   "comunicado_curso_id_curso_id_fkey",
   "comunicado_pkey",
   "curso_capa_alt_preenchido",
   "curso_capa_dimensoes_positivas",
+  "curso_categoria_id_categoria_id_fkey",
   "curso_descricao_tamanho",
   "curso_pkey",
   "curso_preco_troca_positivo",
   "curso_slug_formato",
+  "curso_slug_key",
   "curso_topicos_validos",
   "liberacao_curso_id_curso_id_fkey",
   "liberacao_do_aluno",

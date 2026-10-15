@@ -58,7 +58,7 @@ const linkDoVideo = (v: AulaDoDocumento["video"]) =>
 export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
   return {
     capaAlt: d.capaAlt,
-    categoria: d.categoria,
+    categoriaId: d.categoriaId,
     codigo: d.codigo,
     descricao: d.descricao,
     destaque: d.destaque,
@@ -78,7 +78,6 @@ export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
     })),
     niveis: d.niveis.map((n) => ({ nome: n.nome, ordem: n.ordem })),
     precoTroca: d.precoTroca === null ? null : String(d.precoTroca),
-    slug: d.slug,
     status: d.status,
     titulo: d.titulo,
     topicos: [...d.topicos],
@@ -91,7 +90,7 @@ export const mesmoRascunho = (a: RascunhoDoCurso, b: RascunhoDoCurso) =>
 function emOrdem(r: RascunhoDoCurso) {
   return [
     r.capaAlt,
-    r.categoria,
+    r.categoriaId,
     r.codigo,
     r.descricao,
     r.destaque,
@@ -105,7 +104,6 @@ function emOrdem(r: RascunhoDoCurso) {
     ]),
     r.niveis.map((n) => [n.ordem, n.nome]),
     r.precoTroca,
-    r.slug,
     r.status,
     r.titulo,
     r.topicos,
@@ -160,11 +158,10 @@ export const lerPreco = lerInteiro(
 
 type CampoDoCursoComId =
   | "capaAlt"
-  | "categoria"
+  | "categoriaId"
   | "codigo"
   | "destaque"
   | "precoTroca"
-  | "slug"
   | "titulo";
 
 export const ID = {
@@ -180,19 +177,12 @@ export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDoCurso }
   | { tipo: "problemas"; problemas: Problemas };
 
-export type RecusaDoCurso = Recusa<"codigo" | "slug">;
+export type RecusaDoCurso = Recusa<"codigo">;
 
 export function recusaDoMotivo(
   motivo: Motivo | null,
   r: RascunhoDoCurso
 ): RecusaDoCurso | null {
-  if (motivo === "slug_repetido") {
-    return {
-      campo: "slug",
-      mensagem: "Outro curso já usa este endereço.",
-      valor: r.slug,
-    };
-  }
   if (motivo === "codigo_repetido") {
     return {
       campo: "codigo",
@@ -211,11 +201,10 @@ export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
 
 const CAMPOS_DO_CURSO = new Set<string>([
   "capaAlt",
-  "categoria",
+  "categoriaId",
   "codigo",
   "destaque",
   "precoTroca",
-  "slug",
   "titulo",
 ] satisfies CampoDoCursoComId[]);
 

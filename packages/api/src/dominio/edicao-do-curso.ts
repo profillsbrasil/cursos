@@ -4,24 +4,19 @@
 // plano-do-curso.ts.
 
 // formatos.ts, não comum.ts: este módulo vai para o bundle do browser.
-import {
-  ID_DO_YOUTUBE,
-  SLUG,
-  STATUS_DO_CURSO,
-} from "@cursos/db/schema/formatos";
+import { ID_DO_YOUTUBE, STATUS_DO_CURSO } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
 import type {
   AulaId,
   Capa,
+  CategoriaId,
   CursoId,
   ModuloId,
   Versao,
   VideoDaAula,
   VideoId,
 } from "./tipos";
-
-export const FORMATO_DO_SLUG = SLUG;
 
 /**
  * Tetos do documento. gravarCurso deriva deles o deslocamento que regrava números
@@ -36,7 +31,10 @@ export const LIMITES = {
   topicos: 10,
 } as const;
 
-/** descricao, descricaoDaAula e topico se repetem nos checks do banco. */
+/**
+ * categoria (o nome da Categoria), descricao, descricaoDaAula e topico se repetem
+ * nos checks do banco. slug é o teto do endereço que o servidor gera.
+ */
 export const CARACTERES = {
   capaAlt: 300,
   categoria: 80,
@@ -124,7 +122,8 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
 export const documentoDoCurso = z
   .object({
     capaAlt: texto(CARACTERES.capaAlt),
-    categoria: texto(CARACTERES.categoria),
+    /** Uma categoria de admin.categorias.lista; o servidor recusa a que sumiu. */
+    categoriaId: uuid.transform((id) => id as CategoriaId),
     codigo: opcional(CARACTERES.codigo),
     descricao: livre(CARACTERES.descricao),
     destaque: opcional(CARACTERES.destaque),
@@ -132,7 +131,6 @@ export const documentoDoCurso = z
     modulos: z.array(modulo).max(LIMITES.modulos),
     niveis: z.array(nivel).max(LIMITES.niveis),
     precoTroca: z.int().positive().max(PRECO_MAXIMO).nullable(),
-    slug: z.string().regex(new RegExp(SLUG)).max(CARACTERES.slug),
     status: z.enum(STATUS_DO_CURSO),
     titulo: texto(CARACTERES.titulo),
     /** "O que você vai aprender", na ordem em que o aluno lê. */
@@ -241,6 +239,11 @@ export interface EdicaoDoCurso {
   capa: Capa | null;
   documento: DocumentoDoCurso;
   podeApagar: boolean;
+  /**
+   * O endereço que o servidor escolheu no primeiro salvamento, a partir do título,
+   * e que não muda depois. null no curso novo.
+   */
+  slug: string | null;
   uso: UsoDoCurso;
 }
 
@@ -256,6 +259,9 @@ export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   u.liberacoes === 0 &&
   Object.values(u.assistidasPorAula).every((n) => n === 0);
 
+/** O curso novo ainda sem categoria escolhida; o schema recusa o id vazio. */
+const SEM_CATEGORIA = "" as CategoriaId;
+
 /**
  * O rascunho de um curso que ainda não existe. O id vem de quem chama e não pode
  * mudar enquanto o rascunho vive: a trava curso:<id> e o reenvio sem duplicar
@@ -266,7 +272,7 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
     capa: null,
     documento: {
       capaAlt: "",
-      categoria: "",
+      categoriaId: SEM_CATEGORIA,
       codigo: null,
       descricao: "",
       destaque: null,
@@ -274,13 +280,13 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
       modulos: [],
       niveis: [],
       precoTroca: null,
-      slug: "",
       status: "em_producao",
       titulo: "",
       topicos: [],
       versao: null,
     },
     podeApagar: false,
+    slug: null,
     uso: SEM_USO,
   };
 }

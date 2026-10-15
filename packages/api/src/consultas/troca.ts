@@ -31,7 +31,6 @@ export async function linhasDosCursos(
   const linhas = await exec.query.curso.findMany({
     columns: {
       ...COLUNAS_DA_CAPA,
-      categoria: true,
       id: true,
       precoTroca: true,
       slug: true,
@@ -48,6 +47,7 @@ export async function linhasDosCursos(
           }
         : { id: filtro.cursoId },
     with: {
+      categoria: { columns: { nome: true } },
       liberacoes: {
         columns: { origem: true },
         where: ativas,

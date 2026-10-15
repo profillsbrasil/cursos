@@ -5,7 +5,7 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
+import type { AulaId, CategoriaId, ModuloId } from "@cursos/api/dominio/tipos";
 
 import {
   type Abertos,
@@ -59,11 +59,11 @@ const problemas = (r: RascunhoDoCurso) => {
 describe("campos do curso", () => {
   test("muda só os campos pedidos", () => {
     const r = aplicar(exemplo(), {
-      mudanca: { precoTroca: "300", slug: "nr-12" },
+      mudanca: { codigo: "NR-12", precoTroca: "300" },
       tipo: "campos",
     });
     expect(r.precoTroca).toBe("300");
-    expect(r.slug).toBe("nr-12");
+    expect(r.codigo).toBe("NR-12");
     expect(r.titulo).toBe("Curso");
     expect(ordem(r)).toEqual(ordem(exemplo()));
   });
@@ -313,13 +313,13 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
   test("texto só com espaços marca o campo dele", () => {
     const r = aplicar(
       exemplo(),
-      { mudanca: { categoria: "  ", titulo: "   " }, tipo: "campos" },
+      { mudanca: { capaAlt: "  ", titulo: "   " }, tipo: "campos" },
       { id: A3, mudanca: { titulo: " " }, tipo: "aula_editada" },
       { id: M1, mudanca: { titulo: "\t" }, tipo: "modulo_editado" },
       { nome: "  ", ordem: 2, tipo: "nivel_renomeado" }
     );
     expect(problemas(r)).toEqual([
-      { campo: ID.curso("categoria"), mensagem: "Preencha este campo." },
+      { campo: ID.curso("capaAlt"), mensagem: "Preencha este campo." },
       { campo: ID.modulo(M1, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.aula(A3, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.nivel(2), mensagem: "Preencha este campo." },
@@ -327,13 +327,13 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
     ]);
   });
 
-  test("endereço fora do formato marca o endereço", () => {
-    const r = mudar(exemplo(), { mudanca: { slug: "NR 12" }, tipo: "campos" });
+  test("curso sem categoria marca o select da categoria", () => {
+    const r = mudar(exemplo(), {
+      mudanca: { categoriaId: "" as CategoriaId },
+      tipo: "campos",
+    });
     expect(problemas(r)).toEqual([
-      {
-        campo: ID.curso("slug"),
-        mensagem: "Use letras minúsculas, números e hífen, sem espaço.",
-      },
+      { campo: ID.curso("categoriaId"), mensagem: "Escolha a categoria." },
     ]);
   });
 
@@ -374,27 +374,21 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
 });
 
 describe("recusa de valor repetido", () => {
-  test("slug_repetido e codigo_repetido marcam o campo até o valor mudar", () => {
+  test("codigo_repetido marca o campo até o valor mudar", () => {
     const r = mudar(exemplo(), {
-      mudanca: { codigo: "NR-12", slug: "nr-12" },
+      mudanca: { codigo: "NR-12" },
       tipo: "campos",
     });
     const marcado = (recusa: ReturnType<typeof recusaDoMotivo>, em = r) =>
       recusaNaTela(recusa, em, ID.curso);
-    expect(marcado(recusaDoMotivo("slug_repetido", r))).toEqual([
-      {
-        campo: ID.curso("slug"),
-        mensagem: "Outro curso já usa este endereço.",
-      },
-    ]);
     expect(marcado(recusaDoMotivo("codigo_repetido", r))).toEqual([
       {
         campo: ID.curso("codigo"),
         mensagem: "Outro curso já usa este código.",
       },
     ]);
-    const outro = mudar(r, { mudanca: { slug: "nr-12-b" }, tipo: "campos" });
-    expect(marcado(recusaDoMotivo("slug_repetido", r), outro)).toEqual([]);
+    const outro = mudar(r, { mudanca: { codigo: "NR-13" }, tipo: "campos" });
+    expect(marcado(recusaDoMotivo("codigo_repetido", r), outro)).toEqual([]);
     expect(recusaDoMotivo("versao_mudou", r)).toBe(null);
   });
 });
@@ -702,15 +696,18 @@ describe("nenhum erro fica num bloco fechado", () => {
   });
 
   test("recusa do servidor: marca o campo do curso, fora dos blocos, sem abrir nenhum", () => {
-    const r = mudar(exemplo(), { mudanca: { slug: "nr-12" }, tipo: "campos" });
+    const r = mudar(exemplo(), {
+      mudanca: { codigo: "NR-12" },
+      tipo: "campos",
+    });
     const recusa = recusaNaTela(
-      recusaDoMotivo("slug_repetido", r),
+      recusaDoMotivo("codigo_repetido", r),
       r,
       ID.curso
     );
     const t = tela(r, { recusa });
-    expect(t.erros.get(ID.curso("slug"))).toBe(
-      "Outro curso já usa este endereço."
+    expect(t.erros.get(ID.curso("codigo"))).toBe(
+      "Outro curso já usa este código."
     );
     expect(t.abertos).toBe(NENHUM_ABERTO);
     expect(t.blocos).toEqual([{ tipo: "fechado" }, { tipo: "fechado" }]);

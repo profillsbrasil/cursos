@@ -17,7 +17,7 @@ function linha(): CursoLinha {
   }
   return {
     ...base,
-    categoria: "Processo de envase",
+    categoria: { nome: "Processo de envase" },
     descricao: "Como envasar líquidos.",
     modulos: [
       {

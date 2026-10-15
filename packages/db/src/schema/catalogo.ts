@@ -13,6 +13,23 @@ import {
 import { cursoStatus, momento, tabela, videoProvedor } from "./comum";
 import { SLUG } from "./formatos";
 
+export const categoria = tabela(
+  "categoria",
+  {
+    criadaEm: momento(),
+    id: uuid().primaryKey().defaultRandom(),
+    nome: text().notNull(),
+  },
+  (t) => [
+    unique("categoria_nome_unico").on(t.nome),
+    // O teto repete CARACTERES.categoria de edicao-do-curso.ts.
+    check(
+      "categoria_nome_formato",
+      sql`${t.nome} = trim(${t.nome}) and char_length(${t.nome}) between 1 and 80`
+    ),
+  ]
+);
+
 export const curso = tabela(
   "curso",
   {
@@ -21,7 +38,9 @@ export const curso = tabela(
     capaAltura: smallint().notNull(),
     capaLargura: smallint().notNull(),
     capaUrl: text().notNull(),
-    categoria: text().notNull(),
+    categoriaId: uuid()
+      .notNull()
+      .references(() => categoria.id, { onDelete: "restrict" }),
     codigo: text().unique(), // ex.: POP-COM-001
     criadoEm: momento(),
     descricao: text().notNull().default(""),

@@ -90,6 +90,10 @@ export const carregarCurso = cache(async (id: string) =>
   (await exigirAdmin()).admin.catalogo.abrirCurso({ id })
 );
 
+export const carregarCategorias = cache(async () =>
+  (await exigirAdmin()).admin.categorias.lista()
+);
+
 export const carregarPessoas = cache(async (termo: string) =>
   (await exigirAdmin()).admin.alunos.buscar({ termo })
 );

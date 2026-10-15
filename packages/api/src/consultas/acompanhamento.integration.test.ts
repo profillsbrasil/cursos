@@ -20,6 +20,7 @@ import { diaLocal } from "../dominio/sequencia";
 import type { DiaISO, EstadoCurso, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { linhasDaBusca } from "./acompanhamento";
+import { categoriaDeTeste } from "./categoria-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -68,6 +69,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
 
   beforeAll(async () => {
     const chaves = ["a", "b", "c", "d"] as const;
+    const categoriaId = await categoriaDeTeste(db);
     const novos = await db
       .insert(curso)
       .values(
@@ -76,7 +78,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           capaAltura: 720,
           capaLargura: 1280,
           capaUrl: "/capas/teste.jpg",
-          categoria: "teste",
+          categoriaId,
           slug: `teste-${S}-${chave}`,
           status:
             chave === "c" ? ("em_producao" as const) : ("publicado" as const),
@@ -174,7 +176,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
-        categoria: "teste",
+        categoriaId,
         slug: `teste-${S}-e`,
         status: "publicado",
         titulo: `Curso ${S} e`,

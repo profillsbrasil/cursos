@@ -15,6 +15,7 @@ import type { DocumentoDoCurso } from "./edicao-do-curso";
 import type { CursoLinha, LinhasPainel } from "./painel";
 import {
   type AulaId,
+  type CategoriaId,
   type CursoCatalogo,
   type CursoId,
   capaDe,
@@ -33,6 +34,7 @@ export const EDICAO = {
   A1: uuidDeExemplo(21) as AulaId,
   A2: uuidDeExemplo(22) as AulaId,
   A3: uuidDeExemplo(23) as AulaId,
+  CATEGORIA: uuidDeExemplo(31) as CategoriaId,
   CURSO: uuidDeExemplo(1) as CursoId,
   M1: uuidDeExemplo(11) as ModuloId,
   M2: uuidDeExemplo(12) as ModuloId,
@@ -52,7 +54,7 @@ export function documentoDeExemplo(
 ): DocumentoDoCurso {
   return {
     capaAlt: "Capa",
-    categoria: "teste",
+    categoriaId: EDICAO.CATEGORIA,
     codigo: null,
     descricao: "",
     destaque: null,
@@ -81,7 +83,6 @@ export function documentoDeExemplo(
       { nome: "Avançado", ordem: 2 },
     ],
     precoTroca: null,
-    slug: "curso-teste",
     status: "publicado",
     titulo: "Curso",
     topicos: [],
@@ -111,7 +112,7 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: `/capas/${chave}.jpg`,
-    categoria: "Categoria",
+    categoria: { nome: "Categoria" },
     codigo: null,
     descricao: "",
     destaque: null,
@@ -143,7 +144,7 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   const l = cursoLinha(chave, o);
   return {
     capa: capaDe(l),
-    categoria: l.categoria,
+    categoria: l.categoria.nome,
     descricao: l.descricao,
     extra: null,
     id: l.id as CursoId,
@@ -204,7 +205,7 @@ function linhaDoSeed(chave: string): CursoLinha {
     capaAltura: c.capaAltura,
     capaLargura: c.capaLargura,
     capaUrl: c.capaUrl,
-    categoria: c.categoria,
+    categoria: { nome: c.categoria },
     codigo: c.codigo,
     descricao: c.descricao,
     destaque: c.destaque,

@@ -57,9 +57,6 @@ const rotas = router({
   quebrou: publicProcedure.query(() => {
     throw new Error("connection terminated");
   }),
-  slugRepetido: adminProcedure.query(() => {
-    throw violou("curso_slug_key");
-  }),
   versaoMudou: publicProcedure.query(() => {
     throw new ErroParaAPessoa({
       code: "CONFLICT",
@@ -132,21 +129,13 @@ describe("errorFormatter marca a mensagem escrita para a pessoa", () => {
 });
 
 describe("errorFormatter leva o motivo, que o editor lê sem ler o texto", () => {
-  test("versao_mudou, slug e código repetidos chegam com motivos distintos e a mensagem para a pessoa", async () => {
-    const r = await Promise.all(
-      ["versaoMudou", "slugRepetido", "codigoRepetido"].map(erroDe)
-    );
+  test("versao_mudou e código repetido chegam com motivos distintos e a mensagem para a pessoa", async () => {
+    const r = await Promise.all(["versaoMudou", "codigoRepetido"].map(erroDe));
     expect(r).toEqual([
       {
         code: "CONFLICT",
         message: "Outra pessoa salvou este curso.",
         motivo: "versao_mudou",
-        paraAPessoa: true,
-      },
-      {
-        code: "CONFLICT",
-        message: "Já existe um curso com este endereço.",
-        motivo: "slug_repetido",
         paraAPessoa: true,
       },
       {

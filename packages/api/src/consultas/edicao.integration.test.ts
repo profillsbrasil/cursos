@@ -2,7 +2,7 @@
 // Roda só com TEST_DATABASE_URL em host local. Cada teste cria o próprio curso com
 // sufixo aleatório, e o afterAll apaga tudo.
 
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
@@ -28,10 +28,11 @@ import {
   LIMITES,
   type ModuloDoDocumento,
 } from "../dominio/edicao-do-curso";
-import type { AulaId, CursoId, ModuloId } from "../dominio/tipos";
+import type { AulaId, CategoriaId, CursoId, ModuloId } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
+import { categoriaDeTeste } from "./categoria-de-teste";
 import { CURSO_EM_USO, violacaoDe } from "./erros";
 
 const URL_TESTE = urlDeTeste();
@@ -115,6 +116,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     titulo,
   });
 
+  let categoriaId: CategoriaId;
+  beforeAll(async () => {
+    categoriaId = await categoriaDeTeste(db);
+  });
+
   function documentoNovo(
     modulosDoCurso: ModuloDoDocumento[] = []
   ): DocumentoDoCurso {
@@ -122,7 +128,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     cursos.push(id);
     return {
       capaAlt: "Capa de teste",
-      categoria: "teste",
+      categoriaId,
       codigo: null,
       descricao: "",
       destaque: null,
@@ -130,7 +136,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       modulos: modulosDoCurso,
       niveis: [],
       precoTroca: null,
-      slug: `teste-${S}-${cursos.length}`,
       status: "em_producao",
       titulo: `Curso ${S} ${cursos.length}`,
       topicos: [],
@@ -346,7 +351,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);
     expect(
       await resultado(
-        salvar({ ...documento, categoria: "outro tema", versao: salvo.versao })
+        salvar({ ...documento, descricao: "Outra", versao: salvo.versao })
       )
     ).toEqual(OK);
   });
@@ -517,7 +522,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const codigos = await Promise.all([
       resultado(salvar({ ...documento, titulo: `${documento.titulo} um` })),
-      resultado(salvar({ ...documento, categoria: "dois" })),
+      resultado(salvar({ ...documento, descricao: "dois" })),
     ]);
     expect(codigos.map((r) => r.code).sort()).toEqual(["CONFLICT", "ok"]);
   });
@@ -607,24 +612,72 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const salvo = await salvar(primeiro);
     expect(await resultado(salvar(primeiro))).toEqual(OK);
 
-    const velho = { ...documento, categoria: "outro tema" };
+    const velho = { ...documento, descricao: "Outra" };
     expect((await resultado(salvar(velho))).code).toBe("CONFLICT");
     expect(await motivoDe(salvar(velho))).toBe("versao_mudou");
     expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);
   });
 
-  test("slug repetido dá CONFLICT com mensagem", async () => {
-    const um = await cursoSalvo();
-    const { documento } = await cursoSalvo();
-    expect(
-      await resultado(salvar({ ...documento, slug: um.documento.slug }))
-    ).toEqual({
-      code: "CONFLICT",
-      message: "Já existe um curso com este endereço.",
+  test("o endereço sai do título no primeiro salvamento e não muda com o título", async () => {
+    const documento = {
+      ...documentoNovo(),
+      titulo: `Ação: Reação ${S} — Módulo Único!`,
+    };
+    const salvo = await salvarComCapa(documento);
+    expect(salvo.slug).toBe(`acao-reacao-${S}-modulo-unico`);
+
+    const renomeado = await salvar({
+      ...documento,
+      titulo: "Outro título",
+      versao: salvo.versao,
+    });
+    expect([renomeado.slug, (await abrir(documento.id)).slug]).toEqual([
+      `acao-reacao-${S}-modulo-unico`,
+      `acao-reacao-${S}-modulo-unico`,
+    ]);
+  });
+
+  test("título que já é endereço de outro curso ganha -2 e -3, também em paralelo", async () => {
+    const titulo = `Profills School Comercial ${S}`;
+    const primeiro = await salvarComCapa({ ...documentoNovo(), titulo });
+    const paralelos = await Promise.all([
+      salvarComCapa({ ...documentoNovo(), titulo }),
+      salvarComCapa({ ...documentoNovo(), titulo }),
+    ]);
+    expect([primeiro.slug, ...paralelos.map((s) => s.slug).sort()]).toEqual([
+      `profills-school-comercial-${S}`,
+      `profills-school-comercial-${S}-2`,
+      `profills-school-comercial-${S}-3`,
+    ]);
+  });
+
+  test("título que termina como o sufixo de outro disputa a mesma trava e não colide", async () => {
+    const base = `Envase ${S}`;
+    await salvarComCapa({ ...documentoNovo(), titulo: base });
+    const paralelos = await Promise.all([
+      salvarComCapa({ ...documentoNovo(), titulo: base }),
+      salvarComCapa({ ...documentoNovo(), titulo: `${base} 2` }),
+    ]);
+    // Quem pega a trava primeiro decide qual dos dois sai com sufixo.
+    expect([
+      [`envase-${S}-2`, `envase-${S}-2-2`],
+      [`envase-${S}-2`, `envase-${S}-3`],
+    ]).toContainEqual(paralelos.map((s) => s.slug).sort());
+  });
+
+  test("categoria que não existe é recusada com frase e nada é gravado", async () => {
+    const documento = {
+      ...documentoNovo(),
+      categoriaId: randomUUID() as CategoriaId,
+    };
+    expect(await resultado(salvarComCapa(documento))).toEqual({
+      code: "NOT_FOUND",
+      message:
+        "A categoria escolhida não existe mais. Escolha outra e salve de novo.",
     });
     expect(
-      await motivoDe(salvar({ ...documento, slug: um.documento.slug }))
-    ).toBe("slug_repetido");
+      await admin.admin.catalogo.abrirCurso({ id: documento.id })
+    ).toBeNull();
   });
 
   test("curso com liberação não se apaga; curso sem uso se apaga", async () => {

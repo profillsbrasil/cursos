@@ -7,9 +7,17 @@ import type { Transacao } from "./comum";
  * `ponto:<userId>` trava o aluno: todo débito de pontos e toda escrita de liberação.
  * O crédito de aula.registrar não trava: ele só soma e não deixa o saldo negativo.
  * `curso:<id>` serializa a edição e o apagamento pelo admin. salvarCurso e
- * apagarCurso pegam só a `curso:<id>` deles.
+ * apagarCurso pegam só a `curso:<id>` deles, e a criação pega também a
+ * `slug:<raiz>` (raizDoSlug) antes de escolher o endereço livre.
  */
-type ChaveDeTrava = `ponto:${string}` | `curso:${string}`;
+type ChaveDeTrava = `ponto:${string}` | `curso:${string}` | `slug:${string}`;
+
+/** A mesma trava de comTrava, numa transação que já segura outra. */
+export async function travarTambem(tx: Transacao, chave: ChaveDeTrava) {
+  await tx.execute(
+    sql`select pg_advisory_xact_lock(hashtextextended(${chave}, 0))`
+  );
+}
 
 /**
  * Transação com pg_advisory_xact_lock na chave, solta no commit ou no rollback.
@@ -21,9 +29,7 @@ export function comTrava<T>(
   fn: (tx: Transacao) => Promise<T>
 ): Promise<T> {
   return db.transaction(async (tx) => {
-    await tx.execute(
-      sql`select pg_advisory_xact_lock(hashtextextended(${chave}, 0))`
-    );
+    await travarTambem(tx, chave);
     return fn(tx);
   });
 }

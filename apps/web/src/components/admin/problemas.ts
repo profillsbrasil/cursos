@@ -19,8 +19,9 @@ export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
   if (i.code === "too_big" && i.origin === "string") {
     return `Use até ${fmtNum(Number(i.maximum))} caracteres.`;
   }
-  if (i.code === "invalid_format" && i.path.at(-1) === "slug") {
-    return "Use letras minúsculas, números e hífen, sem espaço.";
+  // O curso novo começa com o id vazio, que o z.uuid() recusa.
+  if (i.code === "invalid_format" && i.path.at(-1) === "categoriaId") {
+    return "Escolha a categoria.";
   }
   return null;
 }

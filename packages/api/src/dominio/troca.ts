@@ -34,7 +34,7 @@ export interface CursoDaTroca {
 }
 
 export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
-  categoria: string;
+  categoria: { nome: string };
   id: string;
   liberacoes: readonly {
     origem: OrigemDaLiberacao;
@@ -71,7 +71,7 @@ export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
     acesso: acessoDe(linha),
     aulas: aulas.length,
     capa: capaDe(linha),
-    categoria: linha.categoria,
+    categoria: linha.categoria.nome,
     duracaoSeg: aulas.reduce((s, a) => s + a.duracaoSeg, 0),
     id: linha.id as CursoId,
     precoTroca: linha.precoTroca,

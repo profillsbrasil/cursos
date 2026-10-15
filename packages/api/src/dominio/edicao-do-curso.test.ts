@@ -168,9 +168,21 @@ describe("documentoDoCurso", () => {
     ]);
   });
 
-  test("o documento do curso novo não passa sem título, slug, categoria e alt", () => {
-    const novo = edicaoDeCursoNovo(CURSO).documento;
-    expect(documentoDoCurso.safeParse(novo).success).toBe(false);
+  test("o documento do curso novo não passa sem alt, categoria e título", () => {
+    const lido = documentoDoCurso.safeParse(edicaoDeCursoNovo(CURSO).documento);
+    expect(lido.error?.issues.map((i) => i.path.join("."))).toEqual([
+      "capaAlt",
+      "categoriaId",
+      "titulo",
+    ]);
+  });
+
+  test("a categoria em maiúscula chega em minúscula, como o Postgres devolve", () => {
+    const lido = documentoDoCurso.parse({
+      ...documento(),
+      categoriaId: EDICAO.CATEGORIA.toUpperCase(),
+    });
+    expect(lido.categoriaId).toBe(EDICAO.CATEGORIA);
   });
 });
 

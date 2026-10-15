@@ -9,7 +9,6 @@ import { COLUNAS_DA_CAPA } from "./comum";
 export const COM_CONTEUDO = {
   columns: {
     ...COLUNAS_DA_CAPA,
-    categoria: true,
     codigo: true,
     descricao: true,
     destaque: true,
@@ -20,6 +19,7 @@ export const COM_CONTEUDO = {
     topicos: true,
   },
   with: {
+    categoria: { columns: { nome: true } },
     modulos: {
       columns: { nivelOrdem: true, numero: true, titulo: true },
       orderBy: { numero: "asc" },

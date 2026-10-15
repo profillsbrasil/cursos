@@ -34,7 +34,7 @@ import { videoDaAula } from "./video";
 // ---------- entrada: as linhas cruas das consultas (seção 4.3 do desenho) ----------
 
 export interface CursoLinha extends LinhaDaCapa {
-  categoria: string;
+  categoria: { nome: string };
   codigo: string | null;
   descricao: string;
   destaque: string | null;
@@ -190,7 +190,7 @@ export interface ResumoAluno {
 export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
     capa: capaDe(linha),
-    categoria: linha.categoria,
+    categoria: linha.categoria.nome,
     descricao: linha.descricao,
     extra: linha.codigo ?? linha.destaque,
     id: linha.id as CursoId,
