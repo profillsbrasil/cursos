@@ -1,15 +1,8 @@
 import type { TrilhaVM } from "@cursos/api/dominio/painel";
 import { Check, Clock, Play } from "lucide-react";
 
-import { fmtMin, plural } from "@/lib/formato";
-
 import { BarraProgresso } from "./barra-progresso";
-import {
-  CapaCurso,
-  etiquetaDeDuracao,
-  GRADE_CAPAS,
-  SIZES_DA_GRADE,
-} from "./capa-curso";
+import { CapaCurso, GRADE_CAPAS, SIZES_DA_GRADE } from "./capa-curso";
 import { Secao } from "./secao";
 import { SeloEstado } from "./selo-estado";
 
@@ -93,38 +86,16 @@ export function Trilha({ trilha }: { trilha: TrilhaVM }) {
         <ResumoDaTrilha trilha={trilha} />
         {/* biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista". */}
         <ol className={GRADE_CAPAS} role="list">
-          {trilha.cursos.map((c) => {
-            const m = c.primeiroModulo;
-            if (c.estado.tipo === "em_breve") {
-              return (
-                <li key={c.id}>
-                  <CapaCurso
-                    curso={c}
-                    etiqueta={{ tipo: "em_producao" }}
-                    meta={m?.titulo ?? c.tema}
-                    ordem={c.posicao}
-                    sizes={SIZES_DA_GRADE}
-                  />
-                </li>
-              );
-            }
-            const comece = c.posicao === 1 && c.estado.tipo === "nao_iniciado";
-            return (
-              <li key={c.id}>
-                <CapaCurso
-                  curso={c}
-                  etiqueta={comece ? { tipo: "comece" } : etiquetaDeDuracao(c)}
-                  meta={
-                    m
-                      ? `${m.titulo} · ${plural(m.aulas, "aula", "aulas")} · ${fmtMin(m.duracaoSeg)}`
-                      : c.tema
-                  }
-                  ordem={c.posicao}
-                  sizes={SIZES_DA_GRADE}
-                />
-              </li>
-            );
-          })}
+          {trilha.cursos.map((c) => (
+            <li key={c.id}>
+              <CapaCurso
+                comece={c.posicao === 1 && c.estado.tipo === "nao_iniciado"}
+                curso={c}
+                ordem={c.posicao}
+                sizes={SIZES_DA_GRADE}
+              />
+            </li>
+          ))}
         </ol>
       </div>
     </Secao>

@@ -53,11 +53,15 @@ const itensNumerados = (html: string) =>
 const legivel = (html: string) =>
   texto(html.replace(/<(\w+)[^>]*aria-hidden="true"[^>]*>.*?<\/\1>/g, " "));
 
+/** O HTML de dentro da seção, pelo id do título. */
+const secaoDe = (html: string, id: string) =>
+  html.match(
+    new RegExp(`<section aria-labelledby="${id}">(.*?)</section>`)
+  )?.[1] ?? "";
+
 /** O HTML de dentro da seção da trilha, pelo slug. */
 const secaoDaTrilha = (html: string, slug: string) =>
-  html.match(
-    new RegExp(`<section aria-labelledby="trilha-${slug}">(.*?)</section>`)
-  )?.[1] ?? "";
+  secaoDe(html, `trilha-${slug}`);
 
 const hrefs = (html: string) =>
   [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
@@ -128,12 +132,44 @@ describe("Meus cursos com o caso do protótipo", () => {
     }
   });
 
+  test("a linha sob a capa descreve o curso inteiro, igual na trilha e nos cursos rápidos", () => {
+    const [comercial, fabrica] = itensNumerados(html);
+    const [seguranca, envasadora] = fabrica ?? [];
+    expect(comercial?.[0]).toContain("Vendas e negócios · 46 de 90 aulas");
+    expect(comercial?.[0]).toContain("Agora: módulo 8, Pilar Urgência");
+    expect(comercial?.[0]).not.toContain("Autoavaliação comercial");
+    expect(comercial?.[0]).not.toContain("21 min");
+
+    expect(seguranca).toContain("Fábrica e montagem · 3 aulas · 32 min");
+    expect(seguranca).not.toContain("Segurança da máquina");
+    expect(seguranca).not.toContain("Agora:");
+    // Em produção, o conteúdo ainda não fechou: a linha diz só o tema.
+    expect(envasadora).toContain("Fábrica e montagem");
+    expect(envasadora).not.toContain("aulas");
+    expect(envasadora).not.toContain("Envasadora ·");
+
+    const rapidos = texto(secaoDe(html, "cursos-rapidos"));
+    expect(rapidos).toContain("Vendas e negócios · POP-COM-001 · 3 de 9 aulas");
+    expect(rapidos).toContain(
+      "Produtos e aplicações · Regra 5x4 · 3 aulas · 32 min"
+    );
+    expect(rapidos).toContain(
+      "Vendas e negócios · 30 afirmações · 6 competências · 2 de 2 aulas"
+    );
+  });
+
+  test("a etiqueta da capa não repete as aulas e a duração da linha", () => {
+    expect(html).not.toContain("15 h 51 min");
+    expect(html).not.toContain("1 h 35 min");
+  });
+
   test("a trilha de um curso não repete o curso no resumo", () => {
     // A descrição da trilha também cita o curso; a conta começa depois dela.
     const comercial = texto(secaoDaTrilha(html, "formacao-comercial"))
       .split("em 16 módulos e três níveis.")
       .at(-1);
-    expect(comercial).not.toContain("Agora:");
+    const resumo = comercial?.split("1 Profills School Comercial")[0];
+    expect(resumo).not.toContain("Agora:");
     expect(comercial?.split("Profills School Comercial").length).toBe(2);
   });
 });
