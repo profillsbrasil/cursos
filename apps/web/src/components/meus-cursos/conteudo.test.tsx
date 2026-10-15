@@ -55,7 +55,12 @@ const hrefs = (html: string) =>
 
 const render = (painel: ReturnType<typeof montarPainel>) =>
   renderToStaticMarkup(
-    <ConteudoMeusCursos conta={null} painel={painel} resumo={RESUMO} />
+    <ConteudoMeusCursos
+      conta={null}
+      painel={painel}
+      resumo={RESUMO}
+      temCursoTrocavelNaVitrine={false}
+    />
   );
 
 describe("Meus cursos com o caso do protótipo", () => {

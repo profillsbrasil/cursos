@@ -231,19 +231,21 @@ A sidebar tem três faixas: o cabeçalho de 68 px (lockup, selo da área, botão
 
 O conteúdo tem padding lateral fluido (clamp de 1 a 3rem), 32 px no topo e 64 px no pé. Seções se separam por 14 px entre título e cartão. Abaixo de 768 px a sidebar vira gaveta, e o conteúdo ganha uma faixa de topo de 56 px com o botão de menu e o ícone da marca de 30 px. O banner de retomada passa a uma coluna em 760 px, com a capa em cima.
 
+A página da aula lê de cima para baixo: a migalha, o título da aula com a linha do módulo ("Módulo 8 · Pilar Urgência · aula 4 de 8 · 11 min"), o vídeo com os controles e, abaixo deles, Anterior à esquerda e Próxima aula à direita, a 16 px de cada vizinho. O título fica acima do vídeo para ser a primeira coisa que a pessoa lê, numa janela de 710 px de altura inclusive. Anterior e Próxima ficam depois dos controles porque a Próxima acende em Sol quando a aula fica assistida, logo abaixo da linha de status que avisa a conquista, e porque o Tab chega ao player antes de sair da aula. O custo: numa janela de 710 px de altura e 1440 px de largura, o card do player termina em 697 px e Anterior e Próxima começam em 713 px, então a pessoa rola para chegar à Próxima. Num curso de uma aula só não há Anterior nem Próxima, e a navegação some sem deixar vão. Acima de 1080 px a coluna do curso fica à direita, com o topo alinhado ao do título.
+
 ## Elevation & Depth
 
 O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clareiam em degraus, e cada cartão leva um anel de 1 px em `borda`. Sombra existe para o que flutua sobre o conteúdo, como resposta do botão principal ao cursor e ao foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player (`0 2px 6px rgb(0 0 0 / 0.5)`) e o anel duplo do dia na semana.
 
 ### Shadow Vocabulary
 - **Brilho do botão** (`box-shadow: 0 6px 18px rgb(255 204 1 / 0.28)`, o token `shadow-brilho`): o botão amarelo e a pílula do link ativo sob o cursor e com o foco de teclado.
-- **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos.
+- **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos, junto com o gradiente radial em Sol a 16% no canto do cartão. Os dois só aparecem quando a vitrine da pessoa tem curso trocável, um que ela ainda não alcança; sem ele, o saldo fica plano, porque não há para onde chamar.
 - **Flutuante** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.45)`): a barra de salvar presa ao pé dos editores, com `backdrop-blur`.
 - **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta.
 - **Anel de conquista** (anel de 3 px em Sol a 35%): o cartão de conta quando o player registra pontos.
 
 ### Named Rules
-**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.
+**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos, e só enquanto a vitrine tem curso trocável.
 
 ## Shapes
 

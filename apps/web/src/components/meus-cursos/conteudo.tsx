@@ -49,10 +49,12 @@ export function ConteudoMeusCursos({
   conta,
   painel: doServidor,
   resumo,
+  temCursoTrocavelNaVitrine,
 }: {
   conta: string | null;
   painel: PainelMeusCursos;
   resumo: ResumoAluno;
+  temCursoTrocavelNaVitrine: boolean;
 }) {
   // A trilha sem curso saiu de uso: o admin tira os cursos dela para isso, porque
   // a trilha liberada não se apaga. Ela não aparece nem conta no cabeçalho.
@@ -76,7 +78,10 @@ export function ConteudoMeusCursos({
       <div className="grid gap-10 max-[760px]:gap-8">
         <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
           <BannerContinuar retomada={painel.retomada} />
-          <SuaSemana resumo={resumo} />
+          <SuaSemana
+            resumo={resumo}
+            temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+          />
         </div>
         {painel.trilhas.map((t) => (
           <Trilha key={t.id} trilha={t} />

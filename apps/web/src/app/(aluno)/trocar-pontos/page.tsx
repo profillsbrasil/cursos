@@ -25,11 +25,13 @@ export default async function TrocarPontos() {
           comoGanhar={painel.comoGanhar}
           pontosSemana={painel.pontosSemana}
           saldo={painel.saldo}
+          temCursoTrocavelNaVitrine={painel.temCursoTrocavelNaVitrine}
         />
         <CursosParaTrocar
           cartoes={painel.cartoes}
           extrato={painel.extrato}
           hoje={painel.hoje}
+          temCursoTrocavelNaVitrine={painel.temCursoTrocavelNaVitrine}
         />
       </div>
     </>

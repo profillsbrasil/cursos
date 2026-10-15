@@ -9,6 +9,7 @@ import {
   montarPainelDeTroca,
   paraCursoDaTroca,
   situacao,
+  temCursoTrocavelNaVitrine,
 } from "./troca";
 
 const HOJE = "2026-10-07" as DiaISO;
@@ -260,5 +261,32 @@ describe("montarPainelDeTroca", () => {
       pontosSemana: 40,
       saldo: 410,
     });
+  });
+
+  // O fato que apaga o brilho do saldo e muda a frase da vitrine. O saldo não
+  // entra: curso que falta pontos também aceita troca.
+  const temCurso = (cursos: CursoDaTroca[]) =>
+    montarPainelDeTroca(
+      { cursos, extrato: [], pontos: { entradasDaSemana: 0, saldo: 0 } },
+      HOJE
+    ).temCursoTrocavelNaVitrine;
+
+  test("curso trocável que o aluno já alcança não conta, nem os de fora", () => {
+    expect(temCursoTrocavelNaVitrine([])).toBe(false);
+    expect(temCurso([])).toBe(false);
+    expect(
+      temCurso([
+        curso({ precoTroca: null }),
+        curso({ status: "em_producao" }),
+        curso({ aulas: 0 }),
+        curso({ acesso: { tipo: "liberado" } }),
+        curso({ acesso: { tipo: "na_trilha" } }),
+        curso({ acesso: TROCADO }),
+      ])
+    ).toBe(false);
+  });
+
+  test("um curso à venda basta, mesmo sem saldo para ele", () => {
+    expect(temCurso([curso({ acesso: TROCADO }), curso()])).toBe(true);
   });
 });
