@@ -74,6 +74,7 @@ O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arqu
 
 - O `DATABASE_URL` do `.env` aponta para o projeto **cloud** do Supabase (`lsatugtpqwiylnfutolg`, org profillsbrasil, `sa-east-1`), pelo pooler de transação na porta 6543. É decisão do dono: o dev usa o banco real. Trate `db:push` e `db:migrate` como escrita em produção e confirme antes.
 - `drizzle-kit` contra o cloud usa o mesmo host na porta 5432 (session pooler).
+- A main e todos os worktrees usam esse mesmo banco, então migração que quebra o código antigo (como a `catalogo_sem_trilha`, ADR 0001) espera a ordem: o PR entra na main, os outros worktrees juntam a main, e só então o dono aplica a migração no cloud e zera o banco, no mesmo momento. Aplicar antes quebra a main e os worktrees abertos.
 - O app conecta como `postgres`, que tem `BYPASSRLS`. O projeto cloud tem o event trigger `ensure_rls`, que liga RLS em toda tabela nova do `public`, e a Data API não expõe tabelas novas. RLS só protege acesso via `anon`/`authenticated`; a autorização do app mora nos procedures do tRPC.
 - O Supabase local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
 - `bun run db:push` (e `db:generate`, `db:migrate`) da raiz é task interativa do turbo e falha num shell sem TTY. Num agente, rode `bunx drizzle-kit <comando>` dentro de `packages/db`.

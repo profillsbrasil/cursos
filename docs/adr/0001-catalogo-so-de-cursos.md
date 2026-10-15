@@ -35,4 +35,13 @@ Fica para os próximos PRs:
 1. Descrição, tópicos e categoria do curso, e descrição da aula.
 2. A página do curso para o aluno, no estilo da Udemy.
 3. O questionário por aula, a regra nova de conclusão e a emissão do certificado.
-4. Zerar o banco cloud, com o OK do dono, depois das migrações aplicadas.
+
+## Ordem de aplicação no banco cloud
+
+A main e todos os worktrees usam o mesmo banco cloud. Aplicar a migração antes da hora quebra a main e os worktrees que ainda leem trilha. A ordem é esta:
+
+1. O PR entra na main.
+2. Os outros worktrees juntam a main.
+3. O dono aplica a migração no cloud e zera o banco no mesmo momento.
+
+A migração não tem guarda nem opt-in, porque os dados são de teste.
