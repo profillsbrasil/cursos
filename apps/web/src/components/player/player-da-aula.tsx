@@ -8,7 +8,7 @@ import type { EstadoDaSessao } from "@/lib/player/sessao";
 import { usePlayerDaAula } from "@/lib/player/use-player-da-aula";
 
 import { BarraDeTrechos } from "./barra-de-trechos";
-import { CabecalhoDaAula } from "./cabecalho-da-aula";
+import { CabecalhoDaAula, NavegacaoEntreAulas } from "./cabecalho-da-aula";
 import { ControlesDoPlayer } from "./controles-do-player";
 import { StatusDoPlayer } from "./status-do-player";
 
@@ -64,7 +64,8 @@ export function PlayerDaAula({
     video,
   });
   return (
-    <div className="grid min-w-0 gap-5">
+    <div className="grid min-w-0 gap-4">
+      <CabecalhoDaAula dados={dados} />
       <section
         aria-label="Player da aula"
         className="overflow-hidden rounded-[20px] border border-border bg-background [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
@@ -108,7 +109,7 @@ export function PlayerDaAula({
           />
         </div>
       </section>
-      <CabecalhoDaAula dados={dados} destacarProxima={p.estado.assistida} />
+      <NavegacaoEntreAulas dados={dados} destacarProxima={p.estado.assistida} />
     </div>
   );
 }

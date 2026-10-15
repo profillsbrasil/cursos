@@ -12,8 +12,8 @@ const ENTRADA =
 
 /**
  * A linha de atalhos, o aviso da conquista e a falha de envio dividem a mesma célula
- * do grid: o aviso aparece no lugar dos atalhos, dentro do card, sem empurrar o
- * cabeçalho da aula e sem tocar no iframe.
+ * do grid: o aviso aparece no lugar dos atalhos, dentro do card, sem empurrar
+ * Anterior e Próxima, que ficam abaixo do card, e sem tocar no iframe.
  */
 export function StatusDoPlayer({
   atalhos,
