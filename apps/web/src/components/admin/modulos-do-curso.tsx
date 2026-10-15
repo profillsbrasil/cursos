@@ -339,7 +339,10 @@ function NivelDoModulo({
 }) {
   const { aria, mensagem } = useErroDoCampo(id);
   return (
-    <Field className="gap-1.5" data-invalid={mensagem ? true : undefined}>
+    <Field
+      className="@2xl:col-span-1 @md:col-span-2 gap-1.5"
+      data-invalid={mensagem ? true : undefined}
+    >
       <FieldLabel className={ROTULO} htmlFor={id}>
         Nível
       </FieldLabel>
@@ -536,7 +539,7 @@ export function BlocoDoModulo({
   return (
     <section
       aria-label={nome}
-      className="scroll-mt-20 border-border border-t first:border-t-0"
+      className="border-border border-t first:border-t-0"
       id={ALVO.bloco(id)}
     >
       <CabecaDoBloco
@@ -547,8 +550,10 @@ export function BlocoDoModulo({
         niveis={niveis}
       />
       {bloco.tipo === "fechado" ? null : (
-        <div id={ALVO.conteudo(id)}>
-          <div className="grid gap-3 bg-muted/30 px-5 pt-1 pb-4 md:grid-cols-[6rem_minmax(0,1fr)_16rem] md:items-start">
+        // A largura do bloco, e não a da janela, decide a grade: em 768 px com a
+        // sidebar aberta, o nível de 16rem na mesma linha deixava o título com 42 px.
+        <div className="@container" id={ALVO.conteudo(id)}>
+          <div className="grid @2xl:grid-cols-[6rem_minmax(0,1fr)_16rem] @md:grid-cols-[6rem_minmax(0,1fr)] @md:items-start gap-3 bg-muted/30 px-5 pt-1 pb-4">
             <CampoLido
               aoMudar={mudarNumero}
               aoSair={ordenar}
@@ -579,7 +584,7 @@ export function BlocoDoModulo({
               niveis={niveis}
               valor={modulo.nivelOrdem}
             />
-            <div className="flex flex-wrap items-center gap-1 md:col-span-3">
+            <div className="col-span-full flex flex-wrap items-center gap-1">
               <Button
                 aria-label={`Subir o ${nome}`}
                 className={ICONE}
@@ -745,6 +750,29 @@ function LinkDoIndice({
   );
 }
 
+/**
+ * O salto do índice e o foco do teclado param abaixo do índice preso. A altura
+ * dele muda: a fila quebra em duas linhas entre 768 e 1040 px de janela. Sem
+ * nada de fora da função, porque o teste a roda no Chromium pelo texto dela.
+ */
+export function reservarOTopo(nav: HTMLElement | null) {
+  if (!nav) {
+    return;
+  }
+  const folga = 12;
+  const raiz = document.documentElement;
+  const medir = () => {
+    const topo = Number.parseFloat(getComputedStyle(nav).top) || 0;
+    raiz.style.scrollPaddingTop = `${topo + nav.offsetHeight + folga}px`;
+  };
+  const observador = new ResizeObserver(medir);
+  observador.observe(nav);
+  return () => {
+    observador.disconnect();
+    raiz.style.removeProperty("scroll-padding-top");
+  };
+}
+
 /** Preso ao topo da seção: leva ao módulo e o abre. */
 function IndiceDosModulos({
   blocos,
@@ -757,6 +785,7 @@ function IndiceDosModulos({
     <nav
       aria-label="Índice dos módulos"
       className="sticky top-3 z-10 flex items-center gap-3 rounded-[20px] bg-card/95 py-2 pr-2 pl-4 ring-1 ring-border backdrop-blur-sm"
+      ref={reservarOTopo}
     >
       <span
         aria-hidden="true"
@@ -765,7 +794,8 @@ function IndiceDosModulos({
         Ir para
       </span>
       <ol
-        className="flex min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] md:flex-wrap max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)]"
+        // O pr-10 do celular é a faixa da máscara: no fim da rolagem, o último número sai dela.
+        className="flex min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] max-md:pr-10 md:flex-wrap max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)]"
         // biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"
       >
