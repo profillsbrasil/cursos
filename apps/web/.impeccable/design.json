@@ -151,7 +151,15 @@
       },
       "title-section": {
         "displayName": "Título de seção",
-        "purpose": "O h2 das seções do admin."
+        "purpose": "O h2 das seções do aluno, 24 px sobre os 18 px do título de cartão (razão 1,33). O admin ainda usa 20 px e passa a 24 px no próximo ajuste dele."
+      },
+      "title-card": {
+        "displayName": "Título de cartão",
+        "purpose": "O h3 do cartão de curso e do cartão de troca; em 700, com a mesma entrelinha de 1,3, o título de Sua semana e do painel vazio, os números de Sua semana e o preço da troca."
+      },
+      "title-block": {
+        "displayName": "Título de bloco",
+        "purpose": "O título da coluna do curso e do aviso de comunicado, os valores das placas do menu da conta e \"Seu saldo\" em 400."
       },
       "body": {
         "displayName": "Corpo",
@@ -163,11 +171,11 @@
       },
       "caption": {
         "displayName": "Legenda",
-        "purpose": "Selos, números do cartão de conta, cabeçalho de tabela."
+        "purpose": "Selos, números do cartão de conta, rótulos das placas do menu da conta, cabeçalho de tabela."
       },
       "mono": {
         "displayName": "Mono",
-        "purpose": "Carregada pelo layout; uso raro."
+        "purpose": "Carregada pelo layout; uso raro: os pontos da linha de status do player, em 600 e 16 px."
       }
     },
     "shadows": [

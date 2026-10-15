@@ -99,7 +99,7 @@ export function CapaCurso({
   const titulo = (
     <h3
       className={cn(
-        "font-semibold text-[17px] text-titulo transition-colors",
+        "font-semibold text-lg text-titulo leading-[1.3] transition-colors",
         !fechado && "group-hover:text-sol"
       )}
     >

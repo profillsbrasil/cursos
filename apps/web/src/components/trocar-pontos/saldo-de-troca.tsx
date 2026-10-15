@@ -47,7 +47,7 @@ export function SaldoDeTroca({
           <Star className="size-9 fill-current" strokeWidth={1.4} />
         </span>
         <div className="min-w-0 flex-[1_1_220px]">
-          <span className="text-[15px] text-muted-foreground" id="saldo-titulo">
+          <span className="text-base text-muted-foreground" id="saldo-titulo">
             Seu saldo
           </span>
           <strong className="block font-extrabold text-[clamp(44px,7vw,64px)] text-titulo tabular-nums leading-[1.05] tracking-[-0.035em]">
