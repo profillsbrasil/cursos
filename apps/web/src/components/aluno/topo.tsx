@@ -34,7 +34,7 @@ export function BuscaEmBreve() {
         <Search aria-hidden="true" className="text-muted-foreground" />
       </InputGroupAddon>
       <InputGroupInput
-        aria-label="Buscar aula, máquina ou tema (em breve)"
+        aria-label="Buscar aula, máquina ou categoria (em breve)"
         className="text-sm placeholder:text-muted-foreground disabled:opacity-100"
         disabled
         placeholder="Busca em breve"
