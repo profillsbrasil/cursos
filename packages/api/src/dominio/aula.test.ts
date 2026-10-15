@@ -154,6 +154,29 @@ describe("montarAulaNoPlayer", () => {
     expect(aula).toMatchObject({ numeroNoModulo: 2, totalNoModulo: 3 });
   });
 
+  test("a aula leva a descrição que o admin escreveu, e a sem descrição leva vazio", () => {
+    const comDescricao: CursoLinha = {
+      ...c,
+      modulos: c.modulos.map((m, i) => ({
+        ...m,
+        aulas: m.aulas.map((a, j) =>
+          i === 1 && j === 0 ? { ...a, descricao: "Troca do bico." } : a
+        ),
+      })),
+    };
+    const e = montarCursoAberto(
+      linhas(comAcesso(comDescricao, { liberado: true }))
+    );
+    const descricao = (id: string) => {
+      const aula = e && aulaPorId(e, id);
+      return e && aula ? montarAulaNoPlayer(e, aula).aula.descricao : null;
+    };
+    expect([
+      descricao(idAula("c", 1, 1)),
+      descricao(idAula("c", 1, 2)),
+    ]).toEqual(["Troca do bico.", ""]);
+  });
+
   test("aula de outro curso não está no curso aberto", () => {
     expect(aulaPorId(aberto, idAula("outro", 0, 1))).toBeNull();
   });

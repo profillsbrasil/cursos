@@ -552,6 +552,70 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(await carregarAula(db, aluno, c.slug, cursos[0] ?? "")).toBeNull();
   });
 
+  test("a página do curso abre para quem aula.entrada abre, e para mais ninguém", async () => {
+    const aluno = novoAluno();
+    const caller = comoAluno(aluno);
+    const semLiberacao = await criarCurso(1);
+    const breve = await criarCurso(1, { status: "em_producao" });
+    await liberarCurso(aluno, breve.id);
+    const liberado = await criarCurso(2);
+    await liberarCurso(aluno, liberado.id);
+    const revogado = await criarCurso(1);
+    await liberarCurso(aluno, revogado.id);
+    await db
+      .update(liberacao)
+      .set({ revogadaEm: new Date(), revogadaPor: "user_admin" })
+      .where(
+        and(eq(liberacao.userId, aluno), eq(liberacao.cursoId, revogado.id))
+      );
+    await db
+      .update(curso)
+      .set({ descricao: "Curso de teste.", topicos: ["Primeiro tópico"] })
+      .where(eq(curso.id, liberado.id));
+
+    const slugs = [
+      semLiberacao.slug,
+      breve.slug,
+      liberado.slug,
+      revogado.slug,
+      "nao-existe",
+      "Fora do Formato",
+    ];
+    const abre = await emSerie(slugs, async (slug) => [
+      (await caller.aula.entrada({ slug })) !== null,
+      (await caller.curso.pagina({ slug })) !== null,
+    ]);
+    expect(abre).toEqual([
+      [false, false],
+      [false, false],
+      [true, true],
+      [false, false],
+      [false, false],
+      [false, false],
+    ]);
+
+    const pagina = await caller.curso.pagina({ slug: liberado.slug });
+    expect({
+      acao: pagina?.acao,
+      descricao: pagina?.descricao,
+      modulos: pagina?.modulos.map((m) => [m.numero, m.aulas.length]),
+      topicos: pagina?.topicos,
+    }).toEqual({
+      acao: {
+        aulaId: liberado.aulas[0] as AulaId,
+        href: `/cursos/${liberado.slug}/aulas/${liberado.aulas[0]}`,
+        onde: { aula: 1, modulo: { numero: 0, titulo: "Módulo" } },
+        tipo: "comecar",
+      },
+      descricao: "Curso de teste.",
+      modulos: [[0, 2]],
+      topicos: ["Primeiro tópico"],
+    });
+    expect(
+      await comoAluno(null).curso.pagina({ slug: liberado.slug }).catch(codigo)
+    ).toBe("UNAUTHORIZED");
+  });
+
   test("o registro lê o curso em série dentro da transação", async () => {
     const { aluno, c } = await cursoLiberado();
     await terco(aluno, c.aulas[0] as AulaId, 0, 0);

@@ -100,6 +100,8 @@ export interface VizinhaDaAula {
 export interface AulaNoPlayer {
   anterior: VizinhaDaAula | null;
   aula: {
+    /** "" quando o admin não escreveu. O player ainda não mostra. */
+    descricao: string;
     duracaoSeg: number;
     id: AulaId;
     modulo: { numero: number; titulo: string };
@@ -157,6 +159,7 @@ export function montarAulaNoPlayer(
   return {
     anterior: vizinha(ordem[i - 1]),
     aula: {
+      descricao: aula.descricao,
       duracaoSeg: aula.duracaoSeg,
       id: aula.id,
       modulo: { numero: modulo.numero, titulo: modulo.titulo },

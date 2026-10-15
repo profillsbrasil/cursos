@@ -18,6 +18,10 @@ import {
   montarCursoAberto,
 } from "../dominio/aula";
 import {
+  montarPaginaDoCurso,
+  type PaginaDoCurso,
+} from "../dominio/pagina-do-curso";
+import {
   aplicarRegistro,
   conquistaDe,
   lancamentosDaAssistida,
@@ -114,6 +118,18 @@ export async function carregarEntrada(
     await linhasDoCurso(db, userId, { slug }, { serial: false })
   );
   return aberto && entradaDoCurso(aberto);
+}
+
+/** curso.pagina: null para quem aula.entrada também devolve null. */
+export async function carregarPaginaDoCurso(
+  db: Database,
+  userId: string,
+  slug: string
+): Promise<PaginaDoCurso | null> {
+  const aberto = montarCursoAberto(
+    await linhasDoCurso(db, userId, { slug }, { serial: false })
+  );
+  return aberto && montarPaginaDoCurso(aberto);
 }
 
 const erroSemAcesso = () =>
