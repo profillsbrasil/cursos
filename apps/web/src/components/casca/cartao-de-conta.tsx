@@ -61,11 +61,14 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
         <span className="sr-only">, saldo de </span>
         {fmtPts(p.saldo)}
       </span>
-      <span className="inline-flex items-center gap-1">
-        <Flame aria-hidden="true" className="size-3 text-canela" />
-        <span className="sr-only">, sequência de </span>
-        {plural(p.sequenciaDias, "dia", "dias")}
-      </span>
+      {/* Zero não é conquista: sem sequência, a chama e o número somem. */}
+      {p.sequenciaDias > 0 ? (
+        <span className="inline-flex items-center gap-1">
+          <Flame aria-hidden="true" className="size-3 text-canela" />
+          <span className="sr-only">, sequência de </span>
+          {plural(p.sequenciaDias, "dia", "dias")}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -79,7 +82,9 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
   }
   return (
     <>
-      <div className="grid grid-cols-2 gap-1.5 p-1">
+      <div
+        className={cn("grid gap-1.5 p-1", p.sequenciaDias > 0 && "grid-cols-2")}
+      >
         <DropdownMenuItem
           className={PLACA}
           onClick={fecharNoCelular}
@@ -90,16 +95,19 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
             {fmtPts(p.saldo)}
           </b>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className={PLACA}
-          onClick={fecharNoCelular}
-          render={<Link href="/trocar-pontos" />}
-        >
-          Sequência
-          <b className="font-semibold text-base text-titulo tabular-nums">
-            {plural(p.sequenciaDias, "dia", "dias")}
-          </b>
-        </DropdownMenuItem>
+        {/* Sem sequência, a placa do saldo ocupa a linha inteira. */}
+        {p.sequenciaDias > 0 ? (
+          <DropdownMenuItem
+            className={PLACA}
+            onClick={fecharNoCelular}
+            render={<Link href="/trocar-pontos" />}
+          >
+            Sequência
+            <b className="font-semibold text-base text-titulo tabular-nums">
+              {plural(p.sequenciaDias, "dia", "dias")}
+            </b>
+          </DropdownMenuItem>
+        ) : null}
       </div>
       <DropdownMenuSeparator className="mx-0 my-1" />
     </>

@@ -200,6 +200,56 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(resumo).not.toContain("Agora:");
     expect(comercial?.split("Profills School Comercial").length).toBe(2);
   });
+
+  test("a trilha de um curso conta aulas no resumo, com a mesma barra, e a capa fica na grade", () => {
+    const secao = secaoDaTrilha(html, "formacao-comercial");
+    // O resumo fica entre a descrição da trilha e a lista das capas.
+    const resumo = texto(secao.split("<ol")[0] ?? "")
+      .split("em 16 módulos e três níveis.")
+      .at(-1)
+      ?.trim();
+    expect(resumo).toBe("46 de 90 aulas 51% das aulas");
+    expect(secao).toContain(
+      'aria-label="Aulas assistidas na trilha Formação comercial"'
+    );
+    expect(secao).toContain('aria-valuenow="51"');
+    const [comercial] = itensNumerados(html);
+    expect(comercial).toHaveLength(1);
+  });
+
+  test("a trilha de vários cursos continua contando cursos", () => {
+    const fabrica = texto(secaoDaTrilha(html, "fabrica-montagem"));
+    expect(fabrica).toContain("0 de 3 cursos");
+    expect(fabrica).not.toContain("de 3 aulas");
+  });
+});
+
+describe("Meus cursos com trilha de um curso em produção", () => {
+  const curso = cursoLinha("p", { aulas: [2], status: "em_producao" });
+  const html = render(
+    montar({
+      ...SEM_LIBERACAO,
+      liberacoes: [
+        {
+          curso: null,
+          liberadaEm: new Date("2026-08-01T00:00:00Z"),
+          trilha: {
+            cursos: [{ curso, posicao: 1 }],
+            descricao: "Descrição",
+            id: "t",
+            slug: "t",
+            titulo: "Trilha t",
+          },
+        },
+      ],
+    })
+  );
+
+  test("sem aula aberta, o resumo conta o curso, nunca 0 de 0 aulas", () => {
+    const resumo = texto(secaoDaTrilha(html, "t"));
+    expect(resumo).toContain("0 de 1 curso");
+    expect(resumo).not.toContain("0 de 0");
+  });
 });
 
 describe("Meus cursos com trilha de vários cursos e o da vez em andamento", () => {

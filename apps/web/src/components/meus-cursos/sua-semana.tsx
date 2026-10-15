@@ -1,7 +1,7 @@
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
 import type { StatusDia } from "@cursos/api/dominio/sequencia";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check, Flame, Gift, Star } from "lucide-react";
+import { Check, Flame, Gift, Play, Star } from "lucide-react";
 import Link from "next/link";
 
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
@@ -16,16 +16,15 @@ const DESCRICAO: Record<StatusDia, string> = {
   nao_estudou: "não estudou",
 };
 
-// Marcador de cada dia. O anel céu de fora marca hoje.
+// Marcador de cada dia. Hoje se marca pela sigla "Hoje" e, pendente, pela borda
+// em titulo; feito, é o disco Sol dos outros dias estudados.
 const MARCA: Record<StatusDia, string> = {
   estudou: "bg-sol text-sobre-cor",
   fim_de_semana:
     "border-[1.5px] border-muted-foreground border-dashed bg-popover after:h-0.5 after:w-2 after:rounded-full after:bg-muted-foreground",
   futuro: "ring-1 ring-muted-foreground ring-inset",
-  hoje_estudou:
-    "bg-sol text-sobre-cor shadow-[0_0_0_2px_var(--card),0_0_0_4px_var(--ceu)]",
-  hoje_pendente:
-    "shadow-[inset_0_0_0_2px_var(--muted-foreground),0_0_0_2px_var(--card),0_0_0_4px_var(--ceu)]",
+  hoje_estudou: "bg-sol text-sobre-cor",
+  hoje_pendente: "ring-2 ring-titulo ring-inset",
   nao_estudou: "ring-2 ring-muted-foreground ring-inset",
 };
 
@@ -41,6 +40,7 @@ export function SuaSemana({
   resumo: ResumoAluno;
   temCursoTrocavelNaVitrine: boolean;
 }) {
+  const semSequencia = resumo.sequenciaDias === 0;
   return (
     <aside
       aria-labelledby="semana-titulo"
@@ -53,10 +53,13 @@ export function SuaSemana({
         >
           Sua semana
         </h2>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-canela px-3 py-1 font-semibold text-[13px] text-sobre-cor tabular-nums">
-          <Flame aria-hidden="true" className="size-[15px]" />
-          {plural(resumo.sequenciaDias, "dia seguido", "dias seguidos")}
-        </span>
+        {/* Zero não é conquista: sem sequência, a pílula some e a chamada vem abaixo dos dias. */}
+        {semSequencia ? null : (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-canela px-3 py-1 font-semibold text-[13px] text-sobre-cor tabular-nums">
+            <Flame aria-hidden="true" className="size-[15px]" />
+            {plural(resumo.sequenciaDias, "dia seguido", "dias seguidos")}
+          </span>
+        )}
       </div>
       <ul className="grid grid-cols-7 gap-1.5">
         {resumo.dias.map((d) => (
@@ -67,7 +70,9 @@ export function SuaSemana({
             )}
             key={d.dia}
           >
-            <span aria-hidden="true">{d.sigla}</span>
+            <span aria-hidden="true">
+              {ehHoje(d.status) ? "Hoje" : d.sigla}
+            </span>
             <span
               aria-label={`${d.nome}: ${DESCRICAO[d.status]}`}
               className={cn(
@@ -87,6 +92,15 @@ export function SuaSemana({
           </li>
         ))}
       </ul>
+      {semSequencia ? (
+        <p className="flex items-center gap-2 font-medium text-foreground text-sm">
+          <Play
+            aria-hidden="true"
+            className="size-[15px] flex-none fill-current text-ceu"
+          />
+          Assista uma aula hoje para começar
+        </p>
+      ) : null}
       <p className="-mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
         <i
           aria-hidden="true"
