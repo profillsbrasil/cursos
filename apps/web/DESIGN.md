@@ -187,7 +187,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px das capas de curso sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em produção" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
 
 ### Tertiary
-- **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar.
+- **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar. A chama só marca a sequência; os pontos da semana em Trocar pontos usam a seta de subida (`TrendingUp`), no selo Sol.
 
 ### Neutral
 - **Fundo grafite** (`fundo`): o fundo da página e o fundo dos campos de formulário.

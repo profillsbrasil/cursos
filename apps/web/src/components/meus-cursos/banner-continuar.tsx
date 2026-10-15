@@ -120,7 +120,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             <p>
               {onde} · Módulo {retomada.modulo.numero}.{" "}
               {faltam(minutos(retomada.aula.faltaSeg))}{" "}
-              <b className="font-semibold text-titulo">
+              <b className="whitespace-nowrap font-semibold text-titulo">
                 {fmtMin(retomada.aula.faltaSeg)}
               </b>{" "}
               desta aula.

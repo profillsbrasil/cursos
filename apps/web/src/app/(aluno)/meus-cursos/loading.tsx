@@ -19,7 +19,7 @@ export default function Carregando() {
           <Skeleton className={`${PULSO} h-[360px] rounded-[20px]`} />
         </div>
         <div>
-          <Skeleton className={`${PULSO} mb-4 h-7 w-52 rounded-lg`} />
+          <Skeleton className={`${PULSO} mb-3.5 h-7 w-52 rounded-lg`} />
           <div className="grid gap-5">
             <Skeleton
               className={`${PULSO} h-[116px] rounded-lg`}
