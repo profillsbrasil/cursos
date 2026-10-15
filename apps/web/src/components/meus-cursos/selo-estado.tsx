@@ -54,7 +54,7 @@ function aparencia(estado: EstadoCurso): Aparencia {
       return {
         classe: "bg-transparent text-ceu ring-1 ring-ceu ring-inset",
         icone: Clock,
-        rotulo: "Em breve",
+        rotulo: "Em produção",
       };
     default:
       return estado satisfies never;
