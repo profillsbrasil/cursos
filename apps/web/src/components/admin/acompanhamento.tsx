@@ -8,6 +8,7 @@ import type {
   SituacaoNoCurso,
 } from "@cursos/api/dominio/acompanhamento";
 import type { Progresso } from "@cursos/api/dominio/curso";
+import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   BookOpen,
@@ -20,7 +21,7 @@ import {
   Play,
 } from "lucide-react";
 
-import { diaCurto, fmtNum, noDia, plural } from "@/lib/formato";
+import { diaCurto, diaEmSaoPaulo, fmtNum, noDia, plural } from "@/lib/formato";
 
 import { SELO } from "./partes";
 
@@ -206,15 +207,34 @@ export function fraseDoCurso(c: CursoAcompanhado, hoje: string): Frase {
   }
 }
 
+/**
+ * O rodapé do item da liberação: quando chegou e, na revogada, quando saiu. No
+ * formato curto, o mesmo do "Concluído em" da frase logo acima.
+ */
+export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
+  const curta = (iso: string) => diaCurto(diaEmSaoPaulo(iso), hoje);
+  const quando = curta(l.liberadaEm);
+  const chegou =
+    l.origem === "troca"
+      ? `Trocado por pontos em ${quando}`
+      : `Liberada em ${quando}`;
+  return l.acao.tipo === "revogada"
+    ? `${chegou} · revogada em ${curta(l.acao.em)}`
+    : chegou;
+}
+
+// "Módulo" fica em maiúscula também no meio da frase, como em Meus cursos.
 const minuscula = (texto: string) =>
-  `${texto.charAt(0).toLowerCase()}${texto.slice(1)}`;
+  texto.startsWith("Módulo")
+    ? texto
+    : `${texto.charAt(0).toLowerCase()}${texto.slice(1)}`;
 
 /** A linha de um curso dentro da trilha: o estado e o detalhe numa frase curta. */
 export function fraseNaTrilha(c: CursoAcompanhado, hoje: string): string {
   const s = c.situacao;
   switch (s.tipo) {
     case "estudando":
-      return `Estudando · módulo ${s.onde.modulo}, aula ${s.onde.aula} · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
+      return `Estudando · Módulo ${s.onde.modulo}, aula ${s.onde.aula} · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
     case "falta_prova":
       return `Falta a prova · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
     case "bloqueado":

@@ -38,11 +38,19 @@ function idDoLink(url: URL): string | null {
   return CAMINHO_COM_ID.exec(url.pathname)?.[1] ?? null;
 }
 
+const COM_ESQUEMA = /^[a-z][a-z\d+.-]*:/i;
+
+/**
+ * Como o campo de vídeo do editor mostra o vídeo salvo: curto, para o id caber na
+ * largura do campo. videoDoTexto lê esta forma de volta.
+ */
+export const linkCurtoDoVideo = (video: VideoDaAula) => `youtu.be/${video.id}`;
+
 /**
  * O que o admin cola no campo de vídeo: o id puro ou um link do YouTube (watch?v=,
- * youtu.be, embed, shorts). null quando não é um vídeo que o check
- * aula_video_formato aceite. Roda no editor para mostrar o erro no campo; o zod do
- * documento confere o id de novo no servidor.
+ * youtu.be, embed, shorts), com ou sem o https://. null quando não é um vídeo que
+ * o check aula_video_formato aceite. Roda no editor para mostrar o erro no campo;
+ * o zod do documento confere o id de novo no servidor.
  */
 export function videoDoTexto(texto: string): VideoDaAula | null {
   const s = texto.trim();
@@ -51,7 +59,7 @@ export function videoDoTexto(texto: string): VideoDaAula | null {
   }
   let url: URL;
   try {
-    url = new URL(s);
+    url = new URL(COM_ESQUEMA.test(s) ? s : `https://${s}`);
   } catch {
     return null;
   }

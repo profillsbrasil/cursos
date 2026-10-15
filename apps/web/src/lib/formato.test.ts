@@ -1,6 +1,38 @@
 import { describe, expect, test } from "bun:test";
 
-import { duracaoDoTexto, fmtPtsComSinal, mmss, quando } from "./formato";
+import {
+  diaCurto,
+  diaEmSaoPaulo,
+  duracaoDoTexto,
+  fmtData,
+  fmtPtsComSinal,
+  mmss,
+  quando,
+} from "./formato";
+
+describe("os dois formatos de data", () => {
+  const hoje = "2026-10-15";
+
+  test("o curto é o mesmo vindo de um dia ou de um instante", () => {
+    expect(diaCurto("2026-10-07", hoje)).toBe("7 de out.");
+    expect(diaCurto(diaEmSaoPaulo("2026-10-07T15:00:00.000Z"), hoje)).toBe(
+      "7 de out."
+    );
+    expect(diaCurto("2026-05-02", hoje)).toBe("2 de mai.");
+  });
+
+  test("o curto de outro ano leva o ano", () => {
+    expect(diaCurto("2025-09-21", hoje)).toBe("21 de set. de 2025");
+  });
+
+  test("o longo escreve o mês inteiro e o ano", () => {
+    expect(fmtData("2026-08-20T15:00:00.000Z")).toBe("20 de agosto de 2026");
+  });
+
+  test("o instante cai no dia de São Paulo", () => {
+    expect(diaEmSaoPaulo("2026-10-08T02:00:00.000Z")).toBe("2026-10-07");
+  });
+});
 
 describe("duracaoDoTexto", () => {
   test("mm:ss e h:mm:ss viram segundos", () => {
@@ -57,8 +89,8 @@ describe("quando", () => {
   });
 
   test("7 dias ou mais, dia e mês; outro ano leva o ano", () => {
-    expect(quando("2026-09-30", hoje)).toBe("30 set");
-    expect(quando("2025-12-31", hoje)).toBe("31 dez 2025");
+    expect(quando("2026-09-30", hoje)).toBe("30 de set.");
+    expect(quando("2025-12-31", hoje)).toBe("31 de dez. de 2025");
   });
 
   test("a virada de mês e o horário de verão não mudam a conta", () => {

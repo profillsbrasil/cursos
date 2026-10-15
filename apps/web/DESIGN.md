@@ -67,8 +67,26 @@ typography:
     lineHeight: 1.33
   mono:
     fontFamily: "Geist Mono, ui-monospace, monospace"
-    fontSize: "0.875rem"
+    fontSize: "1rem"
+    fontWeight: 600
+  mono-player:
+    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontSize: "0.8125rem"
     fontWeight: 400
+  mono-coluna:
+    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontSize: "0.75rem"
+    fontWeight: 400
+  tecla:
+    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontSize: "0.6875rem"
+    fontWeight: 400
+  selo-da-area:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.625rem"
+    fontWeight: 600
+    lineHeight: 1
+    letterSpacing: "0.025em"
 rounded:
   dica: "7px"
   item: "10px"
@@ -216,7 +234,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 
 **Display Font:** Geist (com ui-sans-serif, system-ui)
 **Body Font:** Geist (com ui-sans-serif, system-ui)
-**Label/Mono Font:** Geist Mono (com ui-monospace), carregada mas rara
+**Label/Mono Font:** Geist Mono (com ui-monospace), a voz dos números do player e só dele
 
 **Character:** Uma família só, geométrica e neutra, que deixa a cor falar. A hierarquia vem de peso (400, 500, 600, 700) e de tamanho, com o espaçamento levemente negativo nos títulos.
 
@@ -225,8 +243,10 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Title page** (700, 30 px, letra apertada): o `h1` das páginas, sempre em `titulo`. As telas de erro e de não encontrado usam 24 px, e o título da aula vai de 22 a 30 px.
 - **Title section** (700, 24 px, 1,33, letra apertada): o `h2` das seções do aluno (as trilhas e os cursos rápidos de Meus cursos, Cursos para trocar e Extrato recente) e do admin (a `Secao` de `admin/partes.tsx`), com o resumo em 14 px à direita. Seção e cartão formam um par fixo: 24 px sobre os 18 px do Title card, razão de 1,33, e 30 px do Title page sobre os 24 px, razão de 1,25. O tamanho sozinho separa os três níveis, sem depender do peso. A Headline do banner de retomada fica fora dessa conta: abaixo de cerca de 920 px de largura o clamp dela para no piso de 24 px e empata com a seção, e o que a separa é o cartão do banner, a entrelinha de 1,15 e o segundo verso em Sol.
 - **Title card** (600, 18 px, 1,3): o `h3` do cartão de curso em Meus cursos e do cartão de troca. No mesmo degrau, em 700 e com a mesma entrelinha de 1,3, ficam o título do cartão Sua semana e o do painel vazio, os números de Sua semana e o preço do cartão de troca.
-- **Title block** (600, 16 px): o título da coluna do curso no player, o do aviso de comunicado, o do módulo no editor do curso e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
-- **Mono** (Geist Mono): os pontos da linha de status do player ("+10 pts"), em 600 e 16 px.
+- **Title block** (600, 16 px): o título da coluna do curso no player, o do aviso de comunicado, o do módulo no editor do curso, o de cada liberação na tela de acesso do admin e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
+- **Mono** (Geist Mono): a voz dos números do player. Os pontos da linha de status ("+10 pts") em 600 e 16 px; o tempo ("03:42 / 10:34", o atual em 500) e a velocidade ("1,25×", em 600), em 13 px nos controles; na coluna do curso, em 12 px, o número e a contagem ("3/8") do módulo, o número da aula no círculo (600) e a duração de cada aula ("11 min"). O que se compara leva `tabular-nums`. Fora do player, número é Geist com `tabular-nums`.
+- **Tecla** (Geist Mono, 400, 11 px): a tecla dos atalhos escritos sob a barra do player ("espaço", setas, j, l, f), com borda de 1 px e 2 px embaixo. Fica um degrau abaixo da frase de 12 px que a cerca, para a tecla com borda caber na linha sem aumentar a entrelinha.
+- **Selo da área** (600, 10 px, caixa alta, letra a 0,025em): "Admin" ao lado da marca. É o único texto legível abaixo de 11 px (o "10" de 7 px do ícone de voltar 10 s é parte do glifo) e o único em caixa alta.
 - **Body** (400, 14 px): texto corrido, células de tabela, campos. Parágrafos longos limitados a 60ch.
 - **Label** (600, 13 a 14 px): botões, nomes no menu, rótulos de campo.
 - **Caption** (400 ou 600, 12 px): selos de estado, números do cartão de conta, rótulos das placas Saldo e Sequência no menu da conta, "Em breve" no menu, cabeçalho de tabela.
@@ -235,6 +255,8 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 **The Tabular Numbers Rule.** Todo número que muda ou se compara (pontos, dias, porcentagem, contagem de tabela) usa `tabular-nums`.
 
 **The No Shouting Rule.** Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.
+
+**The Two Dates Rule.** Data tem dois formatos, os dois de `lib/formato.ts`: o curto, "7 de out." ("21 de set. de 2025" fora do ano de hoje), nas linhas e frases; e o longo, "20 de agosto de 2026", no texto corrido do comunicado e na lista de comunicados do admin. Um instante entra no curto pelo dia de São Paulo, então a faixa do comunicado de 28 de dezembro, vista em janeiro, diz "28 de dez. de 2025". Datas diferentes no mesmo item usam o mesmo formato: na tela de acesso, "Concluído em 17 de set." e "Liberada em 20 de ago.". A exceção é a faixa do comunicado, que mostra o curto fechada e, aberta, repete a mesma data no longo dentro do texto ("Publicado em 2 de outubro de 2026.").
 
 ## Layout
 
@@ -291,6 +313,7 @@ Cheios e redondos, com o peso no amarelo.
 - **Dias de Sua semana:** sete círculos de 34 px com a sigla em 12 px 600 acima. Estudado é o disco Sol com o check; não estudado, borda de 2 px em `texto-apagado`; futuro, 1 px; fim de semana, tracejado sobre `popover`. Hoje se marca sem anel nem sombra: a sigla vira "Hoje" em `titulo`, o pendente é o círculo com borda de 2 px em `titulo` e o feito é o disco Sol dos outros dias. O rótulo de cada círculo diz o dia e o estado ("Quinta: hoje, ainda sem aula").
 - **Trilha em Meus cursos:** um bloco por trilha, com o título uma vez (o `h2` da seção, com a descrição à direita), o resumo (progresso, cursos concluídos e a linha "Agora:") num cartão de largura cheia e as capas da trilha logo abaixo, numeradas na ordem. O resumo não é link: a capa do curso da vez já é, e cada curso tem uma parada de teclado só. Na trilha de um curso só, a linha "Agora:" sai, porque repetiria a única capa, e o resumo conta as aulas do curso ("46 de 90 aulas", o número em `titulo` 600) no lugar de "0 de 1 curso", com a mesma barra; a capa continua na grade, do tamanho das outras trilhas. Se o curso ainda não tem aula aberta (em produção), o resumo volta a contar o curso. O curso que ainda não abre diz "Abre depois de" e o curso anterior. A trilha sem curso não aparece. Os cursos rápidos vêm depois de todas as trilhas.
 - **Comunicado em Meus cursos:** o mais recente que a pessoa pode ver. Com menos de 14 dias corridos de publicado, no dia de São Paulo, ele é uma faixa de 44 px acima das trilhas. Em duas colunas (1181 px ou mais) ela fica 20 px abaixo do banner e de Sua semana, na largura dos dois; em uma coluna ela vem 20 px abaixo do banner e antes de Sua semana, para aparecer mais cedo. Ela tem fundo `cartao` com anel de 1 px em `borda`, raio de 14 px, o megafone em Céu, o título num `h2` em `titulo` 600 de 14 px cortado numa linha e a data curta ("2 de out.") em `texto-apagado`. A faixa é um `details`: o resumo clareia para branco a 8% sob o cursor e com o foco, e aberto ele quebra o título inteiro e mostra o texto com a data longa. Com 14 dias ou mais, o comunicado vira o cartão de 20 px depois dos cursos rápidos, com o círculo Céu do megafone e o título no degrau Title block.
+- **Capa sob o cursor:** na capa que abre o curso, sob o cursor e com o foco de teclado, o anel de 1 px vira Céu e a imagem cresce 3% dentro da moldura, em 200 ms com `ease-forte`; com movimento reduzido, ela cresce sem transição. A capa fechada (bloqueada ou em breve) fica apagada e não cresce.
 - **Grade de capas em Meus cursos:** colunas de 250 px ou mais, no máximo 3 (`GRADE_CAPAS`), também no esqueleto da página, com a coluna vazia preservada, então uma capa sozinha mede o mesmo que uma de três.
 - **Linha sob a capa em Meus cursos:** descreve o curso inteiro, igual na trilha e nos cursos rápidos, em 13 px `texto-apagado` com o selo de estado ao lado: o tema, o código ou o destaque do admin, e "46 de 90 aulas" com aula assistida ou "3 aulas · 32 min" sem. O tamanho e o "·" entre as partes levam espaços que não quebram, então a linha quebra dentro de uma parte, nunca no meio do tamanho nem com um "·" sozinho na ponta. O curso em produção mostra o tema e o código ou o destaque, sem o tamanho. O curso em andamento dividido em níveis ganha uma segunda linha, "Agora: Módulo 8, Pilar Urgência", com "Módulo" maiúsculo como na linha "Agora:" do resumo da trilha e o módulo em `foreground` 600. A etiqueta sobre a imagem segue o protótipo aprovado: "Em produção" no curso em produção, "Comece por aqui" no primeiro curso da trilha não iniciado e, nos outros, as aulas e a duração do curso inteiro ("90 aulas · 15 h 51 min"), em `foreground` sobre `fundo`.
 
@@ -316,11 +339,16 @@ Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, 
 ### Barra de progresso
 Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar e no acompanhamento do admin. No admin, o texto ao lado ("46 de 90 aulas") carrega o número, e a barra fica `aria-hidden`.
 
+### Tabelas do admin
+- **Link na linha:** o nome que abre o item (o curso e a trilha no catálogo) fica em 500 e `texto`, sublinhado em repouso a 4 px do texto, com a decoração em `texto-apagado`; sob o cursor e com o foco de teclado, a decoração clareia para `titulo`. O título da trilha e o do curso usam o mesmo `LINK_DA_LINHA`, porque o título é a única entrada para o editor e precisa mostrar que é link antes do cursor.
+- **Em produção no admin:** no catálogo, no editor da trilha e no acompanhamento, "Em produção" é o mesmo selo, em contorno Céu com o relógio (`seloDoCurso("em_producao")`). No catálogo, "Publicado" é Céu a 14% com texto Céu.
+
 ### Acompanhamento do admin
-Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px com os números ("5 liberações · 2 de 5 cursos concluídos · último estudo ontem") e o selo à direita, antes da seta; em container abaixo de 36rem o selo desce para baixo da frase. Na tela de acesso, as liberações são uma lista no cartão da seção: título em 600 e 15 px, tipo em 12 px e o selo numa linha; a frase de 14 px com o "quando" apagado; a barra de 4 px até 32,5rem, com a coluna do número de 5,5rem no mínimo, para as barras da lista terminarem no mesmo ponto; e o rodapé de 12 px com a data ("Liberada em", ou "Trocado por pontos em" na troca). A trilha com mais de um curso troca a barra por uma lista ordenada em `fundo`, raio de 14 px e anel de 1 px, com o número num círculo de 22 px (Céu cheio no concluído, Sol no curso da vez, `popover` nos outros). Revogar fica à direita; em container abaixo de 36rem, desce para o pé do item. As revogadas ficam num `details` fechado no fim do cartão. Em Liberar trilha e Liberar curso, o botão ou o selo "Liberado" fica na coluna da direita em lista de 32rem ou mais, também quando os selos da linha quebram; mais estreita, a linha quebra como texto. "Em produção" ali é o mesmo selo da lista de liberações, em contorno Céu com o relógio.
+Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px com os números ("5 liberações · 2 de 5 cursos concluídos · último estudo ontem") e o selo à direita, antes da seta; em container abaixo de 36rem o selo desce para baixo da frase. Na tela de acesso, as liberações são uma lista no cartão da seção: título no degrau Title block (600 e 16 px), tipo em 12 px e o selo numa linha; a frase de 14 px com o "quando" apagado; a barra de 4 px até 32,5rem, com a coluna do número de 5,5rem no mínimo, para as barras da lista terminarem no mesmo ponto; e o rodapé de 12 px com a data curta ("Liberada em 20 de ago.", ou "Trocado por pontos em" na troca), no mesmo formato do "Concluído em" da frase. A trilha com mais de um curso troca a barra por uma lista ordenada em `fundo`, raio de 14 px e anel de 1 px, com o número num círculo de 22 px (Céu cheio no concluído, Sol no curso da vez, `popover` nos outros). Revogar fica à direita; em container abaixo de 36rem, desce para o pé do item. As revogadas ficam num `details` fechado no fim do cartão. Em Liberar trilha e Liberar curso, o botão ou o selo "Liberado" fica na coluna da direita em lista de 32rem ou mais, também quando os selos da linha quebram; mais estreita, a linha quebra como texto. "Em produção" ali é o mesmo selo da lista de liberações, em contorno Céu com o relógio.
 
 ### Editor do curso
-Um curso real tem 16 módulos e 90 aulas, então cada módulo é um bloco recolhido por padrão, e só abre o que o admin abriu, o módulo novo, o destino de uma aula movida e o módulo com campo marcado.
+Um curso real tem 16 módulos e 90 aulas, então cada módulo é um bloco recolhido por padrão, e só abre o que o admin abriu, o módulo novo, o destino de uma aula movida e o módulo com campo marcado. O curso de um módulo só abre com ele aberto: fechado, ele custaria um clique sem esconder nada.
+- **Barra de salvar:** presa ao pé, com a situação à esquerda e o Salvar à direita. Com o documento salvo e nada mudado (a capa escolhida conta como mudança), o Salvar vira o contorno desligado, focável, e "Tudo salvo." o descreve pelo `aria-describedby`. No documento novo e com alteração, ele é o botão amarelo.
 - **Cabeçalho do bloco:** a linha de resumo é o botão que abre e fecha. O número fica num círculo de 28 px, em `popover` no fechado, Sol a 14% com texto Sol no aberto e contorno de 1 px em `erro` com texto `erro` quando há campo marcado. O título vai em 600 e 16 px, quebra linha abaixo de 768 px e corta com reticências acima. Embaixo, em 12 px, aulas, duração e nível separados por "·", o selo "N aulas assistidas" em `popover` com o olho em Céu e, com erro, "N campos para corrigir" em `erro`. A seta à direita vira ao abrir, sem animação. Aberto, o cabeçalho e os campos do módulo dividem uma faixa de `muted` a 30%. Nenhum erro fica num bloco fechado: o erro de leitura que aparece quando o admin sai do campo e o do Salvar recusado abrem o bloco e marcam o número no índice. A recusa do servidor marca o endereço ou o código, que ficam fora dos blocos. Com erro na tela o bloco não fecha, e o botão fica `aria-disabled`.
 - **Campos do módulo aberto:** a largura do bloco decide a grade, não a da janela, porque a sidebar aberta tira 248 px. Com 672 px de bloco ou mais, número (96 px), título e nível (256 px) dividem a linha; de 384 a 672 px, o nível desce para a linha de baixo; abaixo de 384 px, cada campo tem a linha inteira.
 - **Índice dos módulos:** preso ao topo da seção a 12 px, entre o título e o cartão, com raio de 20 px, `cartao` a 95%, `backdrop-blur` e anel de 1 px em `borda`, sem sombra, porque fica em repouso quando a página está no topo. "Ir para" em 12 px e um círculo de 36 px por módulo, com o número e as cores do cabeçalho; o fechado vai para `trilho` sob o cursor. A dica mostra o título. Abaixo de 768 px a fila rola por dentro, com a borda direita esmaecida por máscara de 40 px e 44 px de recuo no fim, para o último número sair inteiro; acima, quebra linha. A altura do índice, uma ou duas linhas, vira o `scroll-padding-top` da página: o salto e o foco do teclado param 12 px abaixo dele. O salto não rola suave, porque vem do teclado tanto quanto do mouse.

@@ -25,6 +25,7 @@ import {
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
 
+import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import {
   cabeMaisUm,
@@ -39,14 +40,9 @@ import {
   type RascunhoDaTrilha,
   textoDaBusca,
 } from "./estado-da-trilha";
-import { ICONE, ROTULO, SELO, Vazio } from "./partes";
+import { ICONE, ROTULO, Vazio } from "./partes";
 
 type Mudar = (m: MudancaDaTrilha) => void;
-
-const EM_PRODUCAO = cn(
-  SELO,
-  "w-fit bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset"
-);
 
 const tituloDoCurso = (c: CursoNaVisao) => c.titulo;
 
@@ -104,7 +100,7 @@ function LinhaDoCurso({
           {nome}
         </span>
         {curso?.status === "em_producao" ? (
-          <span className={EM_PRODUCAO}>Em produção</span>
+          <SeloDeSituacao className="w-fit" selo={seloDoCurso("em_producao")} />
         ) : null}
       </span>
       <span className="flex items-center gap-1">

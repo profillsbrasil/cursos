@@ -10,6 +10,7 @@ import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import {
   type Abertos,
   type AcaoNosBlocos,
+  abertosAoAbrir,
   abrirOsComErro,
   blocoDoModulo,
   blocosAbertos,
@@ -446,8 +447,15 @@ describe("blocos dos módulos", () => {
   const estados = (r: RascunhoDoCurso, abertos: Abertos, erros = SEM_ERRO) =>
     r.modulos.map((m) => blocoDoModulo(m, abertos, erros).tipo);
 
-  test("todo módulo começa fechado", () => {
-    expect(estados(exemplo(), NENHUM_ABERTO)).toEqual(["fechado", "fechado"]);
+  test("com dois módulos ou mais, todo módulo começa fechado", () => {
+    const r = exemplo();
+    expect(estados(r, abertosAoAbrir(r))).toEqual(["fechado", "fechado"]);
+  });
+
+  test("o curso de um módulo só abre com ele aberto, sem custar um clique", () => {
+    const completo = exemplo();
+    const r = { ...completo, modulos: completo.modulos.slice(0, 1) };
+    expect(estados(r, abertosAoAbrir(r))).toEqual(["aberto"]);
   });
 
   test("o cabeçalho e o índice abrem e fecham só o módulo pedido", () => {

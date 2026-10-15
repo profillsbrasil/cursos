@@ -11,7 +11,7 @@ import {
   PRECO_MAXIMO,
 } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
-import { videoDoTexto } from "@cursos/api/dominio/video";
+import { linkCurtoDoVideo, videoDoTexto } from "@cursos/api/dominio/video";
 import type { z } from "zod";
 
 import { duracaoDoTexto, fmtNum, mmss } from "@/lib/formato";
@@ -51,7 +51,7 @@ export type RascunhoDoCurso = Omit<
 };
 
 const linkDoVideo = (v: AulaDoDocumento["video"]) =>
-  v ? `https://www.youtube.com/watch?v=${v.id}` : "";
+  v ? linkCurtoDoVideo(v) : "";
 
 export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
   return {

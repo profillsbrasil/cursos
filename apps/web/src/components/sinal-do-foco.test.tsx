@@ -174,6 +174,7 @@ const acesso = renderToStaticMarkup(
 const faixa = renderToStaticMarkup(
   <FaixaComunicado
     comunicado={{
+      hoje: HOJE,
       id: "comunicado-exemplo",
       lugar: "topo",
       publicadoEm: "2026-10-02T15:00:00.000Z",

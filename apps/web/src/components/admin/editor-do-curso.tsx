@@ -53,11 +53,11 @@ import {
   useErroDoCampo,
 } from "./erros-do-editor";
 import {
+  abertosAoAbrir,
   abrirOsComErro,
   blocosAbertos,
   despacharNosDois,
   type Mudanca,
-  NENHUM_ABERTO,
   problemasNaTela,
   proximaOrdem,
   REGRAS_DO_CURSO,
@@ -502,7 +502,11 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
       capaGuardada.geracao === g && capaGuardada.arquivo !== null,
   });
   // Fica entre gerações: o Recarregar não fecha o módulo em que o admin estava.
-  const [abertos, mudarBlocos] = useReducer(blocosAbertos, NENHUM_ABERTO);
+  const [abertos, mudarBlocos] = useReducer(
+    blocosAbertos,
+    rascunho,
+    abertosAoAbrir
+  );
   const despachar = useMemo(
     () => despacharNosDois(mudarRascunho, mudarBlocos),
     [mudarRascunho]

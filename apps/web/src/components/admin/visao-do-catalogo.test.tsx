@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { VisaoDoCatalogo } from "./visao-do-catalogo";
 
 const TAG = /<[^>]+>/g;
+const SELO_EM_PRODUCAO =
+  /<span class="([^"]*)"><svg[^>]*lucide-clock[^>]*>.*?<\/svg>Em produção<\/span>/;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
 const TRILHA = "t1" as TrilhaId;
@@ -99,5 +101,49 @@ describe("visão do catálogo", () => {
     for (const n of [0, 1]) {
       expect(html(n)).toContain('href="/admin/catalogo/trilhas/novo"');
     }
+  });
+
+  const comUmDeCada = () =>
+    renderToStaticMarkup(
+      <VisaoDoCatalogo
+        visao={{
+          cursos: [
+            {
+              aulas: 0,
+              id: "c2" as CursoId,
+              precoTroca: null,
+              status: "em_producao",
+              titulo: "Vendas consultivas",
+              trilha: null,
+            },
+          ],
+          trilhas: [{ alunos: 0, cursos: 1, id: TRILHA, titulo: "Operador" }],
+        }}
+      />
+    );
+
+  test("trilha e curso são o mesmo link: sublinhado em repouso, a decoração clareia sob o cursor e com o foco", () => {
+    const classes = (titulo: string) =>
+      new RegExp(`class="([^"]*)"[^>]*>${titulo}</a>`)
+        .exec(comUmDeCada())?.[1]
+        .split(" ");
+    const trilha = classes("Operador");
+    const curso = classes("Vendas consultivas");
+    expect(trilha).toEqual(curso);
+    expect(curso).toEqual(
+      expect.arrayContaining([
+        "underline",
+        "decoration-muted-foreground",
+        "underline-offset-4",
+        "hover:decoration-titulo",
+        "transition-colors",
+      ])
+    );
+  });
+
+  test("Em produção é o selo do resto do admin, em contorno Céu com o relógio", () => {
+    const selo = SELO_EM_PRODUCAO.exec(comUmDeCada())?.[1];
+    expect(selo).toContain("text-ceu");
+    expect(selo).toContain("ring-ceu");
   });
 });

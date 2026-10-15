@@ -170,7 +170,8 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
           titulo: `Curso do comunicado ${S} ${cursos.length - 1}`,
         },
         id: antigo,
-        publicadoPor: OUTRO_ADMIN,
+        // O Clerk de teste não conhece OUTRO_ADMIN: a tela fica sem autor.
+        publicadoPor: null,
       },
     ]);
     expect(lista.cursos).toContainEqual({
