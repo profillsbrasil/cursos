@@ -4,12 +4,7 @@ import { plural } from "@/lib/formato";
 
 import { AvisoComunicado, FaixaComunicado } from "./aviso-comunicado";
 import { BannerContinuar } from "./banner-continuar";
-import {
-  CapaCurso,
-  etiquetaDeDuracao,
-  GRADE_CAPAS,
-  SIZES_DA_GRADE,
-} from "./capa-curso";
+import { CapaCurso, GRADE_CAPAS, SIZES_DA_GRADE } from "./capa-curso";
 import { PainelVazio } from "./painel-vazio";
 import { Secao } from "./secao";
 import { SuaSemana } from "./sua-semana";
@@ -105,13 +100,7 @@ export function ConteudoMeusCursos({
           >
             <div className={GRADE_CAPAS}>
               {painel.soltos.map((c) => (
-                <CapaCurso
-                  curso={c}
-                  etiqueta={etiquetaDeDuracao(c)}
-                  key={c.id}
-                  meta={c.extra ? `${c.tema} · ${c.extra}` : c.tema}
-                  sizes={SIZES_DA_GRADE}
-                />
+                <CapaCurso curso={c} key={c.id} sizes={SIZES_DA_GRADE} />
               ))}
             </div>
           </Secao>

@@ -53,11 +53,15 @@ const itensNumerados = (html: string) =>
 const legivel = (html: string) =>
   texto(html.replace(/<(\w+)[^>]*aria-hidden="true"[^>]*>.*?<\/\1>/g, " "));
 
+/** O HTML de dentro da seção, pelo id do título. */
+const secaoDe = (html: string, id: string) =>
+  html.match(
+    new RegExp(`<section aria-labelledby="${id}">(.*?)</section>`)
+  )?.[1] ?? "";
+
 /** O HTML de dentro da seção da trilha, pelo slug. */
 const secaoDaTrilha = (html: string, slug: string) =>
-  html.match(
-    new RegExp(`<section aria-labelledby="trilha-${slug}">(.*?)</section>`)
-  )?.[1] ?? "";
+  secaoDe(html, `trilha-${slug}`);
 
 const hrefs = (html: string) =>
   [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
@@ -128,13 +132,122 @@ describe("Meus cursos com o caso do protótipo", () => {
     }
   });
 
+  test("a linha sob a capa descreve o curso inteiro, igual na trilha e nos cursos rápidos", () => {
+    const [comercial, fabrica] = itensNumerados(html);
+    const [seguranca, envasadora] = fabrica ?? [];
+    expect(comercial?.[0]).toContain("Vendas e negócios · 46 de 90 aulas");
+    expect(comercial?.[0]).toContain("Agora: Módulo 8, Pilar Urgência");
+    expect(comercial?.[0]).not.toContain("Autoavaliação comercial");
+    expect(comercial?.[0]).not.toContain("21 min");
+
+    expect(seguranca).toContain("Fábrica e montagem · 3 aulas · 32 min");
+    expect(seguranca).not.toContain("Segurança da máquina");
+    expect(seguranca).not.toContain("Agora:");
+    // Em produção, o conteúdo ainda não fechou: a linha não diz o tamanho.
+    expect(envasadora).toContain("Fábrica e montagem");
+    expect(envasadora).not.toContain("aulas");
+    expect(envasadora).not.toContain("Envasadora ·");
+
+    const rapidos = texto(secaoDe(html, "cursos-rapidos"));
+    expect(rapidos).toContain("Vendas e negócios · POP-COM-001 · 3 de 9 aulas");
+    expect(rapidos).toContain(
+      "Produtos e aplicações · Regra 5x4 · 3 aulas · 32 min"
+    );
+    expect(rapidos).toContain(
+      "Vendas e negócios · 30 afirmações · 6 competências · 2 de 2 aulas"
+    );
+  });
+
+  test("a capa leva a etiqueta com as aulas e a duração do curso, como no protótipo", () => {
+    const [comercial, fabrica] = itensNumerados(html);
+    const [seguranca, envasadora] = fabrica ?? [];
+    // A etiqueta vem antes do título; a linha sob a capa, depois.
+    expect(comercial?.[0]?.split("Profills School Comercial")[0]).toContain(
+      "90 aulas · 15 h 51 min"
+    );
+    const antesDaSeguranca = seguranca?.split("Segurança do posto")[0];
+    expect(antesDaSeguranca).toContain("Comece por aqui");
+    expect(antesDaSeguranca).not.toContain("aulas");
+    expect(envasadora?.split("Envasadora")[0]).toContain("Em produção");
+    const rapidos = texto(secaoDe(html, "cursos-rapidos"));
+    expect(rapidos.split("Gravação de Máquinas")[0]).toContain(
+      "3 aulas · 32 min"
+    );
+  });
+
+  test("o separador da linha nunca fica sozinho na ponta da linha", () => {
+    // Espaço que não quebra dos dois lados do "·" que junta as partes: a quebra
+    // cai dentro de uma parte, e o "·" nunca abre nem fecha uma linha.
+    const N = " ";
+    expect(html).toContain(
+      `Vendas e negócios${N}·${N}30 afirmações · 6 competências${N}·${N}2${N}de${N}2${N}aulas`
+    );
+    expect(html).toContain(`Fábrica e montagem${N}·${N}3${N}aulas`);
+  });
+
+  test("o tamanho do curso não quebra no meio quando a linha passa da largura", () => {
+    // Em 390 px, "30 afirmações · 6 competências" empurra o tamanho para a quebra.
+    expect(html).toContain("2 de 2 aulas");
+    expect(html).toContain("3 aulas · 32 min");
+  });
+
   test("a trilha de um curso não repete o curso no resumo", () => {
     // A descrição da trilha também cita o curso; a conta começa depois dela.
     const comercial = texto(secaoDaTrilha(html, "formacao-comercial"))
       .split("em 16 módulos e três níveis.")
       .at(-1);
-    expect(comercial).not.toContain("Agora:");
+    const resumo = comercial?.split("1 Profills School Comercial")[0];
+    expect(resumo).not.toContain("Agora:");
     expect(comercial?.split("Profills School Comercial").length).toBe(2);
+  });
+});
+
+describe("Meus cursos com trilha de vários cursos e o da vez em andamento", () => {
+  const base = exemploDoPrototipo();
+  const outro = cursoLinha("outro", { aulas: [2] });
+  const painel = montar({
+    ...base,
+    liberacoes: base.liberacoes.map((l) =>
+      l.trilha?.slug === "formacao-comercial"
+        ? {
+            ...l,
+            trilha: {
+              ...l.trilha,
+              cursos: [...l.trilha.cursos, { curso: outro, posicao: 2 }],
+            },
+          }
+        : l
+    ),
+  });
+  const secao = texto(secaoDaTrilha(render(painel), "formacao-comercial"));
+
+  test('o resumo e a capa escrevem "Módulo" do mesmo jeito', () => {
+    expect(secao).toContain("Agora: Profills School Comercial · Módulo 8");
+    expect(secao).toContain("Agora: Módulo 8, Pilar Urgência");
+    expect(secao).not.toContain("módulo 8");
+  });
+});
+
+describe("Meus cursos com curso em produção que tem código", () => {
+  const curso = cursoLinha("c", { aulas: [2], status: "em_producao" });
+  const html = render(
+    montar({
+      ...SEM_LIBERACAO,
+      liberacoes: [
+        {
+          curso: { ...curso, codigo: "POP-FAB-002" },
+          liberadaEm: new Date("2026-08-01T00:00:00Z"),
+          trilha: null,
+        },
+      ],
+    })
+  );
+
+  test("a linha mostra o tema e o código, sem o tamanho", () => {
+    const rapidos = texto(secaoDe(html, "cursos-rapidos"));
+    expect(rapidos).toContain("Em produção");
+    expect(rapidos).toContain("Tema · POP-FAB-002");
+    expect(rapidos).not.toContain("aulas");
   });
 });
 

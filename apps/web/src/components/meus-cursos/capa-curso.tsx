@@ -4,7 +4,7 @@ import { Clock, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { fmtHoras, plural } from "@/lib/formato";
+import { fmtHoras, fmtNum, plural } from "@/lib/formato";
 
 import { SeloEstado } from "./selo-estado";
 
@@ -13,10 +13,56 @@ export type Etiqueta =
   | { tipo: "comece" }
   | { tipo: "em_producao" };
 
-export const etiquetaDeDuracao = (c: CursoVM): Etiqueta => ({
-  texto: `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`,
-  tipo: "duracao",
-});
+const aulasEDuracao = (c: CursoVM) =>
+  `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`;
+
+/**
+ * A etiqueta sobre a imagem, como no protótipo aprovado: "Em produção" no curso em
+ * produção, "Comece por aqui" no primeiro curso da trilha não iniciado e, nos
+ * outros, as aulas e a duração do curso inteiro.
+ */
+function etiquetaDe(c: CursoVM, comece: boolean): Etiqueta {
+  if (c.estado.tipo === "em_breve") {
+    return { tipo: "em_producao" };
+  }
+  if (comece) {
+    return { tipo: "comece" };
+  }
+  return { texto: aulasEDuracao(c), tipo: "duracao" };
+}
+
+const ESPACO_QUE_NAO_QUEBRA = " ";
+
+/**
+ * A linha sob o título, igual na trilha e nos cursos rápidos: o tema, o código ou
+ * o destaque que o admin escreveu e o tamanho do curso inteiro. Com aula assistida,
+ * "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso em produção mostra o tema e o
+ * código ou destaque, sem o tamanho, porque as aulas dele ainda mudam. O tamanho e
+ * o "·" que junta as partes vão com espaços que não quebram: a linha quebra dentro
+ * de uma parte, nunca em "2 de / 2 aulas" nem com um "·" sozinho na ponta.
+ */
+export function linhaDoCurso(c: CursoVM): string {
+  const partes = [c.tema, c.extra];
+  if (c.estado.tipo !== "em_breve" && c.aulas > 0) {
+    const { feitas, total } = c.progresso;
+    const tamanho =
+      feitas > 0
+        ? `${fmtNum(feitas)} de ${plural(total, "aula", "aulas")}`
+        : aulasEDuracao(c);
+    partes.push(tamanho.replaceAll(" ", ESPACO_QUE_NAO_QUEBRA));
+  }
+  return partes
+    .filter((p) => p !== null && p !== "")
+    .join(`${ESPACO_QUE_NAO_QUEBRA}·${ESPACO_QUE_NAO_QUEBRA}`);
+}
+
+/**
+ * "Agora: Módulo 8, Pilar Urgência", só no curso em andamento dividido em níveis, a
+ * mesma regra e a mesma grafia do "Módulo N" da linha "Agora:" da trilha. No curso
+ * curto o módulo não diz nada que o título não diga.
+ */
+const moduloDeAgora = (c: CursoVM) =>
+  c.estado.tipo === "em_andamento" && c.temNiveis ? c.moduloAtual : null;
 
 const ETIQUETA =
   "absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold text-xs";
@@ -79,14 +125,13 @@ export const SIZES_DA_GRADE = sizesDaCapa(3);
 // Link quando o estado abre o curso; div aria-disabled em em_breve e bloqueado.
 export function CapaCurso({
   curso,
-  etiqueta,
-  meta,
+  comece = false,
   ordem,
   sizes,
 }: {
   curso: CursoVM;
-  etiqueta: Etiqueta;
-  meta: string;
+  /** "Comece por aqui" no lugar das aulas e da duração: o primeiro curso da trilha, não iniciado. */
+  comece?: boolean;
   /**
    * Número do curso na trilha. Fica na árvore de acessibilidade: o `ol` sem marcador
    * não tem número falado, e o leitor de tela ouve "1", "2", "3" deste círculo.
@@ -96,6 +141,7 @@ export function CapaCurso({
 }) {
   const fechado =
     curso.estado.tipo === "em_breve" || curso.estado.tipo === "bloqueado";
+  const agora = moduloDeAgora(curso);
   const titulo = (
     <h3
       className={cn(
@@ -124,7 +170,7 @@ export function CapaCurso({
           sizes={sizes}
           src={curso.capa.url}
         />
-        <TextoEtiqueta etiqueta={etiqueta} />
+        <TextoEtiqueta etiqueta={etiquetaDe(curso, comece)} />
       </div>
       {ordem === undefined ? (
         titulo
@@ -137,11 +183,19 @@ export function CapaCurso({
         </div>
       )}
       <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-muted-foreground">
-        <span>{meta}</span>
+        <span>{linhaDoCurso(curso)}</span>
         {curso.estado.tipo !== "em_breve" && (
           <SeloEstado estado={curso.estado} />
         )}
       </p>
+      {agora && (
+        <p className="text-[13px] text-muted-foreground">
+          Agora:{" "}
+          <b className="font-semibold text-foreground">
+            Módulo {agora.numero}, {agora.titulo}
+          </b>
+        </p>
+      )}
       {/* O motivo do bloqueio fica visível: a capa bloqueada não recebe foco nem tem dica no toque. */}
       {curso.estado.tipo === "bloqueado" && (
         <p className="text-[13px] text-muted-foreground">
