@@ -20,6 +20,7 @@ import type { DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
 import { filtroLiberacaoAtiva } from "./comum";
 import { linhasDoSaldo } from "./pontos";
+import { linhasDosCursos } from "./troca";
 
 // Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita
 // prepared statement nomeado. Os statements correm em paralelo no Pool do node-postgres.
@@ -130,15 +131,18 @@ export async function linhasDoResumo(
   userId: string,
   segunda: DiaISO
 ) {
-  const [dias, pontos] = await Promise.all([
+  const [dias, pontos, vitrine] = await Promise.all([
     // 6. dias com aula assistida pela primeira vez
     db
       .selectDistinct({ dia: aulaAssistida.dia })
       .from(aulaAssistida)
       .where(eq(aulaAssistida.userId, userId)),
     linhasDoSaldo(db, userId, segunda),
+    // a vitrine de Trocar pontos, para Sua semana saber se há curso trocável.
+    // Nenhum statement acima lê curso fora das liberações do aluno.
+    linhasDosCursos(db, userId, "vitrine"),
   ]);
-  return { dias, pontos };
+  return { dias, pontos, vitrine };
 }
 
 export async function carregarPainel(

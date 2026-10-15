@@ -16,14 +16,33 @@ type CursoId = Cartao["curso"]["id"];
 
 const AVISO = "Curso liberado. Ele já está em Meus cursos.";
 
+/**
+ * Sem curso trocável a culpa não é de quem estuda: a frase diz que os pontos
+ * ficam guardados, nunca que faltam pontos.
+ */
+function subtitulo(cartoes: readonly Cartao[], temCursoTrocavel: boolean) {
+  const podeTrocar = cartoes.filter((c) => c.tipo === "pode_trocar").length;
+  if (podeTrocar > 0) {
+    return `Seu saldo já cobre ${podeTrocar} ${podeTrocar === 1 ? "curso" : "cursos"}`;
+  }
+  if (temCursoTrocavel) {
+    return "Continue estudando para juntar pontos";
+  }
+  return cartoes.length === 0
+    ? "Seus pontos ficam guardados"
+    : "Seus pontos ficam guardados até o próximo curso abrir para troca";
+}
+
 export function CursosParaTrocar({
   cartoes,
   extrato,
   hoje,
+  temCursoTrocavel,
 }: {
   cartoes: readonly Cartao[];
   extrato: readonly ItemDoExtrato[];
   hoje: string;
+  temCursoTrocavel: boolean;
 }) {
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -43,7 +62,6 @@ export function CursosParaTrocar({
     setLancamentoNovoId(lancamentoId);
   }
 
-  const podeTrocar = cartoes.filter((c) => c.tipo === "pode_trocar").length;
   const sizes = sizesDaCapa(cartoes.length);
   return (
     <>
@@ -67,16 +85,13 @@ export function CursosParaTrocar({
       </div>
       <Secao
         id="cursos-para-trocar"
-        subtitulo={
-          podeTrocar > 0
-            ? `Seu saldo já cobre ${podeTrocar} ${podeTrocar === 1 ? "curso" : "cursos"}`
-            : "Continue estudando para juntar pontos"
-        }
+        subtitulo={subtitulo(cartoes, temCursoTrocavel)}
         titulo="Cursos para trocar"
       >
         {cartoes.length === 0 ? (
-          <p className="text-muted-foreground">
-            Nenhum curso aceita troca agora.
+          <p className="max-w-[60ch] text-muted-foreground">
+            A Profills ainda não abriu cursos para troca. Quando abrir, eles
+            aparecem aqui.
           </p>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-5">

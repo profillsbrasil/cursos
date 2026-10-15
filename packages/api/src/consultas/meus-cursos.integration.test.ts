@@ -24,6 +24,7 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "../routers/index";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
+import { carregarPainelDeTroca } from "./troca";
 
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
@@ -37,7 +38,9 @@ const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
 const ALUNO_REVOGADO_TRILHA = `user_teste${S}g`;
 const ALUNO_MESMO_INSTANTE = `user_teste${S}h`;
 const ALUNO_TROCA = `user_teste${S}i`;
+const ALUNO_VITRINE = `user_teste${S}j`;
 const ALUNOS = [
+  ALUNO_VITRINE,
   ALUNO_A,
   ALUNO_B,
   ALUNO_VAZIO,
@@ -430,7 +433,27 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(painel.trilhas.map((t) => String(t.id))).toEqual([um.id, dois.id]);
   });
 
-  test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
+  // O banco local tem cursos com preço do seed, então o teste não afirma o false:
+  // ele prova que Sua semana e Trocar pontos leem o fato da mesma vitrine.
+  test("resumo e Trocar pontos dizem o mesmo sobre curso trocável", async () => {
+    const t = await criarTrilha(1);
+    const [cursoId] = t.cursos;
+    await db
+      .update(curso)
+      .set({ precoTroca: 300 })
+      .where(eq(curso.id, cursoId ?? ""));
+    const fato = async () => ({
+      resumo: (await carregarResumo(db, ALUNO_VITRINE, AGORA)).temCursoTrocavel,
+      troca: (await carregarPainelDeTroca(db, ALUNO_VITRINE, AGORA))
+        .temCursoTrocavel,
+    });
+    expect(await fato()).toEqual({ resumo: true, troca: true });
+    await liberar(ALUNO_VITRINE, t.id);
+    const depois = await fato();
+    expect(depois.resumo).toBe(depois.troca);
+  });
+
+  test("painel faz 5 statements e resumo 3, com 1 e com 40 cursos", async () => {
     const grande = await criarTrilha(40);
     await liberar(ALUNO_B, grande.id);
     const contar = async (f: () => Promise<unknown>) => {
@@ -450,7 +473,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(
       painelB.trilhas.find((t) => t.id === grande.id)?.cursos
     ).toHaveLength(40);
-    expect(comUm).toEqual({ painel: 5, resumo: 2 });
-    expect(comQuarenta).toEqual({ painel: 5, resumo: 2 });
+    expect(comUm).toEqual({ painel: 5, resumo: 3 });
+    expect(comQuarenta).toEqual({ painel: 5, resumo: 3 });
   });
 });

@@ -115,6 +115,14 @@ export function situacao(c: CursoDaTroca, saldo: number): Situacao {
   }
 }
 
+/**
+ * Se algum curso da vitrine aceita troca para este aluno, com saldo ou sem. É o
+ * fato que acende o saldo de Trocar pontos e mostra o botão de Sua semana. O
+ * saldo só muda o `faltam` da situação, então o zero não muda a resposta.
+ */
+export const temCursoTrocavel = (cursos: readonly CursoDaTroca[]): boolean =>
+  cursos.some((c) => situacao(c, 0).tipo === "a_venda");
+
 type CursoNoCartao = Pick<
   CursoDaTroca,
   "aulas" | "capa" | "duracaoSeg" | "id" | "slug" | "tema" | "titulo"
@@ -176,6 +184,8 @@ export interface PainelDeTroca {
   hoje: DiaISO;
   pontosSemana: number;
   saldo: number;
+  /** false: a Profills ainda não abriu curso para troca a este aluno. */
+  temCursoTrocavel: boolean;
 }
 
 export interface LinhasDaTroca {
@@ -203,6 +213,7 @@ export function montarPainelDeTroca(
     hoje,
     pontosSemana: entradasDaSemana,
     saldo,
+    temCursoTrocavel: temCursoTrocavel(linhas.cursos),
   };
 }
 

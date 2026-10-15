@@ -7,7 +7,14 @@ import {
   idAula,
   SEM_LIBERACAO,
 } from "./exemplo";
-import { type CursoLinha, type LinhasPainel, montarPainel } from "./painel";
+import {
+  type CursoLinha,
+  type LinhasPainel,
+  montarPainel,
+  montarResumo,
+} from "./painel";
+import type { CursoId, DiaISO } from "./tipos";
+import type { CursoDaTroca } from "./troca";
 
 const em = (iso: string) => new Date(iso);
 
@@ -207,5 +214,34 @@ describe("montarPainel com regras de liberação", () => {
       soltos: [],
       trilhas: [],
     });
+  });
+});
+
+describe("montarResumo e o botão Trocar pontos de Sua semana", () => {
+  const aVenda: CursoDaTroca = {
+    acesso: { tipo: "nenhum" },
+    aulas: 3,
+    capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
+    duracaoSeg: 900,
+    id: "c-venda" as CursoId,
+    precoTroca: 800,
+    slug: "x",
+    status: "publicado",
+    tema: "Envase",
+    titulo: "Curso à venda",
+  };
+  const resumo = (vitrine: CursoDaTroca[]) =>
+    montarResumo(
+      { dias: [], pontos: { entradasDaSemana: 0, saldo: 610 }, vitrine },
+      "2026-10-14" as DiaISO
+    ).temCursoTrocavel;
+
+  test("vitrine vazia ou só com curso que o aluno já tem: sem curso trocável", () => {
+    expect(resumo([])).toBe(false);
+    expect(resumo([{ ...aVenda, acesso: { tipo: "liberado" } }])).toBe(false);
+  });
+
+  test("curso à venda que custa mais que o saldo ainda é trocável", () => {
+    expect(resumo([aVenda])).toBe(true);
   });
 });

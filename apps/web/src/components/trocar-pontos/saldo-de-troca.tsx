@@ -14,10 +14,12 @@ export function SaldoDeTroca({
   comoGanhar,
   pontosSemana,
   saldo,
+  temCursoTrocavel,
 }: {
   comoGanhar: readonly RegraDeGanho[];
   pontosSemana: number;
   saldo: number;
+  temCursoTrocavel: boolean;
 }) {
   const [aberta, setAberta] = useState(false);
   const alternar = useCallback(() => setAberta((a) => !a), []);
@@ -26,14 +28,20 @@ export function SaldoDeTroca({
       aria-labelledby="saldo-titulo"
       className="relative overflow-clip rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:clamp(20px,3.5vw,32px)]"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-[40%] -right-[10%] size-[420px] rounded-full bg-[radial-gradient(closest-side,rgb(255_204_1/0.16),transparent)]"
-      />
+      {/* O brilho chama para a troca; sem curso trocável, o saldo fica em repouso. */}
+      {temCursoTrocavel ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-[40%] -right-[10%] size-[420px] rounded-full bg-[radial-gradient(closest-side,rgb(255_204_1/0.16),transparent)]"
+        />
+      ) : null}
       <div className="relative flex flex-wrap items-center gap-x-7 gap-y-5">
         <span
           aria-hidden="true"
-          className="grid size-18 flex-none place-items-center rounded-full bg-sol text-sobre-cor shadow-[0_10px_30px_rgb(255_204_1/0.25)]"
+          className={cn(
+            "grid size-18 flex-none place-items-center rounded-full bg-sol text-sobre-cor",
+            temCursoTrocavel && "shadow-[0_10px_30px_rgb(255_204_1/0.25)]"
+          )}
         >
           <Star className="size-9 fill-current" strokeWidth={1.4} />
         </span>

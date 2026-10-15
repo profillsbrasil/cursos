@@ -103,17 +103,25 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
             {fmtPts(resumo.pontosSemana)}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3 border-border border-y px-(--pad) py-2.5">
+        <div
+          className={cn(
+            "flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5",
+            resumo.temCursoTrocavel && "border-b"
+          )}
+        >
           <dt className="text-muted-foreground text-sm">Seu saldo</dt>
           <dd className="font-bold text-lg text-sol tabular-nums">
             {fmtPts(resumo.saldo)}
           </dd>
         </div>
       </dl>
-      <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
-        <Gift aria-hidden="true" />
-        Trocar pontos
-      </Link>
+      {/* Sem curso trocável, o botão levaria a uma vitrine vazia. */}
+      {resumo.temCursoTrocavel ? (
+        <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
+          <Gift aria-hidden="true" />
+          Trocar pontos
+        </Link>
+      ) : null}
     </aside>
   );
 }
