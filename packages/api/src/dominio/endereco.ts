@@ -16,7 +16,7 @@ const SEM_LETRA = "curso";
 
 /**
  * "Profills School Comercial" vira "profills-school-comercial": minúsculas, sem
- * acento, hífen no lugar de espaço e pontuação. Sempre casa com FORMATO_DO_SLUG.
+ * acento, hífen no lugar de espaço e pontuação. Sempre casa com SLUG, de formatos.ts.
  */
 export function slugDoTitulo(titulo: string): string {
   const base = titulo
