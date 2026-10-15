@@ -1,6 +1,23 @@
 # Curso no formato Udemy: decisões e plano
 
-Registro das decisões do dono e do trabalho que falta, para retomar em outra sessão. Este arquivo vale até o trabalho fechar. Depois, ele é apagado, e o que ficar de regra vai para o `GLOSSARY.md`, a ADR e o `CLAUDE.md`.
+Este arquivo é a fonte única para retomar o trabalho numa máquina nova. Ele guarda as decisões do dono, o estado de cada entrega, o que falta, as provas e todo o material de trabalho em `arquivos/`. Vale até o trabalho fechar. Depois, ele é apagado, e o que ficar de regra vai para o `GLOSSARY.md`, a ADR e o `CLAUDE.md`.
+
+O issue de acompanhamento é o #65. Este trabalho está no PR #66 (rascunho), que depende do #64.
+
+## Como retomar
+
+Cole esta mensagem num agente aberto no clone do repo:
+
+> Retome o curso no formato Udemy em profillsbrasil/cursos. Faça `git fetch` e trabalhe na branch `feat/curso-formato-udemy` (PR #66, em rascunho, empilhado no #64). Leia, nesta ordem:
+> 1. `docs/specs/curso-formato-udemy/README.md`, inteiro;
+> 2. `gh issue view 65 --comments`;
+> 3. o `CLAUDE.md` da raiz.
+>
+> Antes de escrever código, me pergunte duas coisas:
+> 1. Se o #64 já entrou na main. Se entrou, junte a main na branch.
+> 2. Se eu aprovo o refino do editor com o questionário (`docs/specs/curso-formato-udemy/arquivos/prototipo-editor-r3.html`). Antes de perguntar, termine a verificação dele, conforme a seção "Editor" deste README, e publique o HTML como Artifact para eu ver.
+>
+> Depois, continue a página do curso e a tela de categorias pela seção "Próximos passos" deste README, sob `/impeccable` e seguindo os protótipos aprovados à risca. Para a prova no browser, crie um database próprio no Supabase local e migre-o. Depois me peça para rodar o seed com `!`, porque o classificador nega o seed ao agente.
 
 ## Decisões do dono
 
@@ -45,37 +62,43 @@ O dono pode trocar qualquer uma destas sem custo.
 - No player, o nome do curso na migalha leva à página do curso.
 - Abaixo de 1081 px, o cartão preso da página do curso sobe para baixo do cabeçalho e deixa de ser preso.
 
-## Protótipos
+## Protótipos e provas
 
-- Rodada 1: https://claude.ai/artifact/GLjpXQQ6P1Sy8pEssGGjBW
-- Rodada 2: https://claude.ai/artifact/QzSdL3osKzQ67964gpbkpd
-- A análise do raio de impacto da mudança de catálogo: https://claude.ai/artifact/PYURW5PTtVqXTWqr39dpiA
+Os protótipos estão publicados em links privados do dono:
+- rodada 1: https://claude.ai/artifact/GLjpXQQ6P1Sy8pEssGGjBW
+- rodada 2: https://claude.ai/artifact/QzSdL3osKzQ67964gpbkpd
+- análise do raio de impacto: https://claude.ai/artifact/PYURW5PTtVqXTWqr39dpiA
 
-Os links são privados do dono. As imagens das versões aprovadas estão nesta pasta:
+Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 
-| Imagem | O que mostra |
+| Arquivo | O que é |
 |---|---|
-| `prototipo-pagina-do-curso.png` | Página do curso, rodada 2, versão A |
-| `prototipo-editor-questionario.png` | Editor com o questionário, rodada 2, versão C (antes do refino) |
-| `prototipo-categorias.png` | Tela de categorias, rodada 2, versão A |
-| `prova-meus-cursos.jpg` | Meus cursos sem trilha, no app (branch do PR #64) |
+| `prototipo-pagina-do-curso.png` | Página do curso, rodada 2, versão A (aprovada) |
+| `prototipo-editor-questionario.png` | Editor com o questionário, rodada 2, versão C (aprovada, antes do refino) |
+| `prototipo-categorias.png` | Tela de categorias, rodada 2, versão A (aprovada) |
+| `prova-meus-cursos.jpg` | Meus cursos sem trilha, no app (branch do #64) |
 | `prova-meus-cursos-em-producao.jpg` | Meus cursos com um curso em produção |
 | `prova-catalogo.jpg` | Catálogo do admin com uma lista só de cursos |
 | `prova-player-fabrica.jpg` | Player de Fábrica e montagem, com os 3 módulos |
+| `arquivos/prototipos-curso.html` | Rodada 1: 4 versões da página do curso e 4 do editor |
+| `arquivos/prototipos-curso-r2.html` | Rodada 2: 4 da página, 4 do editor com questionário e 4 das categorias |
+| `arquivos/prototipo-editor-r3.html` | Refino do editor C, ainda não verificado |
+| `arquivos/fontes/r1`, `r2` e `r3` | A fonte de cada rodada (`fonte.html`), o `montar.py`, que embute as imagens, e os scripts de foto e de interação |
+| `arquivos/catalogo-sem-trilha.html` | A análise que levou à decisão de tirar a trilha |
 
 ## Entregas
 
 | Entrega | Branch | Estado |
 |---|---|---|
 | Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Pronto e revisado. Espera o merge. |
-| Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria, descrição, tópicos, descrição da aula, endereço automático, tabela de categorias, `curso.pagina` e `admin.categorias` |
+| Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria em tabela, descrição, tópicos, descrição da aula, endereço automático, `curso.pagina` e `admin.categorias` |
 | Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy` | Começou. O view model da página com os níveis está pronto (`e237bf5`). A tela ainda não. |
-| Curso no formato Udemy: editor (Vitrine, aulas, tópicos) | `feat/curso-formato-udemy` | Espera a aprovação do refino do protótipo |
+| Curso no formato Udemy: editor (Vitrine, tópicos e aulas) | `feat/curso-formato-udemy` | Espera a aprovação do refino |
 | Questionário, conclusão e certificado | PR seguinte | Não começou |
 
 ## Próximos passos da página do curso e das categorias
 
-O trabalho parou em `e237bf5`, com a árvore limpa. Falta o seguinte:
+O trabalho parou em `e237bf5`. O todo do delegado está em `arquivos/ui-pagina-e-categorias.todo.md`, e o relatório em `arquivos/relatorio-ui-pagina-e-categorias.md`. Falta o seguinte:
 
 1. **API.**
    - `admin.categorias.lista` passa a devolver os títulos dos cursos de cada categoria, em ordem pt-BR. Hoje ela devolve só a contagem, e o protótipo mostra os nomes.
@@ -90,34 +113,84 @@ O trabalho parou em `e237bf5`, com a árvore limpa. Falta o seguinte:
    - Item "Categorias" em `admin/menu.tsx`, mais `(admin)/admin/categorias/page.tsx` e `loading.tsx`.
    - `components/admin/categorias.tsx` cria, renomeia na linha, desliga o Apagar com a dica e confirma o apagar com a `ConfirmacaoNaLinha`.
    - Testes de render: categoria em uso, livre e com nome repetido.
-5. **Docs e prova.** Atualizar o `CLAUDE.md` e o `DESIGN.md`, rodar as três verificações e provar as telas no browser contra um database local com seed.
+5. **Docs e prova.** Atualizar o `CLAUDE.md` e o `DESIGN.md`, rodar as três verificações e provar as telas no browser.
 
 Desvios planejados em relação ao protótipo, que o dono pode recusar:
 - "Prova e certificado no módulo 15" vira "no fim do curso", porque o curso não diz em que módulo fica a prova.
 - Os estados de prova e de concluído do cartão não estão no protótipo e vão seguir o mesmo cartão.
 - Cada aula do índice vira link para a aula.
 
-## Editor: refino em andamento
+O brief completo desta rodada é `arquivos/brief-ui-pagina-e-categorias.md`. Os caminhos de máquina citados nos briefs e relatórios (`/home/othavio/.herdr/worktrees/...`) são da máquina antiga.
 
-Um protótipo refinado do editor com o questionário estava sendo feito pelo `/impeccable` quando o trabalho parou. Ele fica em `~/.cache/cursos-2026-10-15/prototipo-editor-r3.html`, na máquina do dono, e ainda precisa ser publicado e aprovado.
+## Editor: refino pendente
+
+O refino da versão C pelo `/impeccable` parou no meio. O arquivo `arquivos/prototipo-editor-r3.html` abre, mas teve uma screenshot só e nenhuma interação testada. O brief é `arquivos/brief-refino-editor-questionario.md`, e a fonte é `arquivos/fontes/r3/fonte.html`. Para montar o HTML, rode `montar.py`, que precisa de `comercial.jpg` e de um `seguranca.jpg` vazio ao lado. Gere o `seguranca.jpg` com `touch`, porque o git não guarda o arquivo vazio.
+
+O que o refino já mudou:
+- A lista de aulas ficou com 272 px e deixou de cortar os títulos.
+- O título da aula e o título do questionário viraram dois títulos do mesmo nível.
+- O bloco "Para passar: K de N acertos" mostra a conta da nota.
+- Cada alternativa tem a letra num círculo, que funciona como botão de marcar a certa.
+- A pergunta nova nasce sem alternativa certa.
+- Os erros de pergunta sem texto, alternativa vazia e pergunta sem certa aparecem na tela.
+- Tirar uma pergunta deixa um Desfazer no lugar.
+- A Vitrine ganhou o link "Gerenciar categorias".
+
+Falta, antes de mostrar ao dono:
+- rodar um roteiro que prova cada interação (como `fontes/r2/interacao.js`);
+- tirar as screenshots da janela, da página inteira, em 390 px e dos três estados;
+- uma rodada de correção;
+- o detector do `/impeccable`.
 
 ## Ordem no banco cloud
 
 O banco cloud é dividido entre a main e os worktrees abertos. Siga esta ordem:
 
-1. O dono faz o merge do PR #64 e depois o deste PR.
+1. O dono faz o merge do #64 e depois o do #66.
 2. Os worktrees abertos juntam a main.
 3. O dono aplica as migrações na ordem `catalogo_sem_trilha`, `formato_udemy` e `categoria`, e zera o banco no mesmo momento.
 
 Aplicar antes quebra a main e os outros worktrees, porque eles ainda leem trilha.
+
+## Notas para o agente
+
+Estas notas viviam na memória da máquina antiga.
+
+- A migração só entra no banco cloud com o OK do dono no chat da sessão, porque o cloud é o banco real. O PR não aplica a migração. O classificador nega o `drizzle-kit migrate` contra o cloud ao agente, então o dono roda o comando com `!` dentro de `apps/web`:
+
+  `bunx varlock run -- bash -c 'export DATABASE_URL="${DATABASE_URL/:6543\//:5432/}"; cd ../../packages/db && bunx drizzle-kit migrate'`
+
+  Depois, o agente confere o resultado com `psql` dentro de `begin read only`.
+- **Seed local.** O classificador nega o seed ao agente, mesmo num database local. O dono roda com `!`:
+
+  `cd packages/db && SEED_DATABASE_URL=<url do database local> bun run src/seed/index.ts --aluno <userId do dono no Clerk dev>`
+
+  O `ln -s` do `.env` do checkout principal para `apps/web/.env` de um worktree passa sem bloqueio.
+- **Database por worktree.**
+  - Crie o database com `create database <nome>` no Supabase local, que ouve na porta 54322.
+  - Crie também `packages/db/drizzle.wt.config.ts` apontando para ele e liste o arquivo em `.git/info/exclude`.
+  - Migre com `env -u DATABASE_URL bunx drizzle-kit migrate --config drizzle.wt.config.ts`.
+  - Rode os testes com `TEST_DATABASE_URL` apontando para esse database.
+- **Servidor fora da porta 3001.** Rode `DATABASE_URL=<database local> CORS_ORIGIN=http://localhost:<porta> next dev --port <porta>`. Sem o `CORS_ORIGIN`, o Clerk recusa o token. O cookie do Clerk vale para qualquer porta de localhost.
+- Toda interface nova sai em 4 protótipos lado a lado para o dono escolher, e o aprovado se segue à risca.
+- Não proponha de novo:
+  - anel ou contorno de foco;
+  - tirar os itens "Em breve" do menu do aluno;
+  - botão de legenda no player, ou qualquer elemento por cima do iframe do YouTube.
 
 ## Pendências pequenas
 
 - No seed, o curso "Limpeza CIP e troca de formato" tem a categoria "Fábrica e montagem", que é também o título de outro curso.
 - `apps/web/DESIGN.md` ainda fala em "pé dos editores".
 - Na busca do admin, a frase de quem nunca abriu um curso não conta os cursos em produção.
+- As críticas anteriores do `/impeccable` sobre o app inteiro estão em `arquivos/critica-impeccable/`, com `shape-admin.md`. As pendências que o dono não fechou são:
+  - o trilho da barra de progresso, a 1,5:1;
+  - a largura do extrato e de Sua semana;
+  - os três selos em Céu na linha de liberar;
+  - os pontos no cartão de conta do admin;
+  - a tela Trocar pontos, que não tem saída.
 
 ## Como verificar
 
-- `bun run check-types`, `bun x ultracite check` e `bun run test`, este com `TEST_DATABASE_URL` apontando para um database do Supabase local.
-- O seed local precisa ser rodado pelo dono com `!`, porque o classificador o nega ao agente.
+- `bun run check-types`, `bun x ultracite check` e `bun run test`. O último roda com `TEST_DATABASE_URL` apontando para um database do Supabase local.
+- Antes de commitar, os três precisam estar verdes. Cole a saída real no relatório.

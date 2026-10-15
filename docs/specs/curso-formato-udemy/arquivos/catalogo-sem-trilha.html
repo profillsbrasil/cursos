@@ -1,0 +1,222 @@
+<title>Catálogo sem curso solto</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: uma coluna de leitura, tabelas largas com rolagem própria, decisões em blocos destacados */
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --fg: #1d1c18;
+  --muted: #625f55;
+  --line: #dedad0;
+  --accent: #b88400;
+  --accent-soft: #fbf1d4;
+  --sky: #2f6f9f;
+  --bad: #a3392b;
+  --good: #2d7a4b;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141412; --surface: #1c1b18; --fg: #ecebe6; --muted: #a8a59a; --line: #34322c;
+    --accent: #f2c230; --accent-soft: #2e2810; --sky: #7db7e3; --bad: #ef8a7a; --good: #7fcf9b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141412; --surface: #1c1b18; --fg: #ecebe6; --muted: #a8a59a; --line: #34322c;
+  --accent: #f2c230; --accent-soft: #2e2810; --sky: #7db7e3; --bad: #ef8a7a; --good: #7fcf9b;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+}
+main { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.08rem; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lead { font-size: 1.15rem; }
+code { font-family: var(--mono); font-size: 0.86em; background: var(--accent-soft); padding: 0.05em 0.35em; border-radius: 4px; }
+ul, ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
+.tese { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 18px 20px; border-radius: 0 8px 8px 0; display: flex; flex-direction: column; gap: 10px; }
+.tese p { max-width: none; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--display); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.02em; color: var(--muted); background: var(--bg); white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.num { text-align: right; white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--mono); font-size: 0.72rem; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.some { color: var(--bad); }
+.muda { color: var(--accent); }
+.fica { color: var(--good); }
+.duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.arvore { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.arvore pre { margin: 0; font-family: var(--mono); font-size: 0.82rem; line-height: 1.55; overflow-x: auto; color: var(--fg); }
+.arvore .rot { color: var(--muted); }
+.decisao { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.decisao .rec { color: var(--good); font-weight: 600; }
+.passos { counter-reset: p; list-style: none; padding: 0; gap: 14px; max-width: none; }
+.passos li { counter-increment: p; display: grid; grid-template-columns: 2.2rem 1fr; gap: 10px; }
+.passos li::before { content: counter(p); font-family: var(--display); font-weight: 800; font-size: 1.1rem; color: var(--accent); }
+.passos li > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.nota { color: var(--muted); font-size: 0.9rem; }
+a { color: var(--sky); }
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <span class="eyebrow">profillsbrasil/cursos · investigação · 15 out. 2026</span>
+    <h1>Catálogo sem curso solto</h1>
+    <p class="lead">O que muda quando a plataforma deixa de ter cursos soltos e trilhas de cursos, e passa a ter só um tipo de coisa: um curso no formato Udemy, com banner, descrição, tópicos, categoria e uma sequência de aulas com vídeo, descrição e questionário.</p>
+  </header>
+
+  <section>
+    <div class="tese">
+      <h2>A conclusão principal</h2>
+      <p>A "trilha nova" que você descreveu já existe no código com outro nome. Ela é a tabela <code>curso</code>. Hoje o curso já tem capa (o banner), título, <code>tema</code> (a categoria), módulos e aulas com vídeo. O que sobra por cima dele é a <code>trilha</code> atual, que só guarda título, descrição e uma lista ordenada de cursos.</p>
+      <p>Então a mudança barata é apagar a camada de trilha e enriquecer o curso. Fazer o contrário, pendurar aulas direto na tabela <code>trilha</code>, obrigaria a reescrever o editor, o player, a capa, o progresso e a troca de pontos, que hoje funcionam por curso.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">Modelo</span>
+    <h2>Hoje e depois</h2>
+    <div class="duas">
+      <div class="arvore">
+        <h3>Hoje</h3>
+<pre><span class="rot">Trilha</span>  título, descrição
+ └ <span class="rot">Curso</span>  capa, tema, status, preço de troca
+    └ <span class="rot">Nível</span> (só o Comercial)
+       └ <span class="rot">Módulo</span>
+          └ <span class="rot">Aula</span>  vídeo, duração
+<span class="rot">Curso solto</span>  (fora de trilha)
+ └ Módulo └ Aula</pre>
+      </div>
+      <div class="arvore">
+        <h3>Proposto</h3>
+<pre><span class="rot">Curso</span>  banner, título, descrição,
+        tópicos, categoria, status,
+        preço de troca
+ └ <span class="rot">Módulo</span>  (seção, como na Udemy)
+    └ <span class="rot">Aula</span>  vídeo, duração, descrição
+       └ <span class="rot">Questionário</span>  (novo)</pre>
+      </div>
+    </div>
+    <p>Um vídeo em mais de um curso já é impossível hoje. A aula pertence a um módulo, e o módulo a um curso. No caso raro de repetir um vídeo, o admin cadastra a aula de novo com o mesmo link do YouTube, e cada curso guarda o próprio progresso.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Banco cloud, consultado só com SELECT numa transação read-only</span>
+    <h2>O que existe no banco hoje</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Trilha</th><th>Posição</th><th>Curso</th><th>Status</th><th class="num">Módulos</th><th class="num">Aulas</th></tr></thead>
+      <tbody>
+        <tr><td>Formação comercial</td><td>1</td><td>Profills School Comercial</td><td>publicado</td><td class="num">16</td><td class="num">90</td></tr>
+        <tr><td>Fábrica e montagem</td><td>1</td><td>Segurança do posto</td><td>publicado</td><td class="num">1</td><td class="num">3</td></tr>
+        <tr><td>Fábrica e montagem</td><td>2</td><td>Envasadora: conhecendo a máquina</td><td>em produção</td><td class="num">1</td><td class="num">2</td></tr>
+        <tr><td>Fábrica e montagem</td><td>3</td><td>Montagem pneumática</td><td>em produção</td><td class="num">1</td><td class="num">2</td></tr>
+        <tr><td>(solto)</td><td></td><td>Gravação de Máquinas</td><td>publicado</td><td class="num">1</td><td class="num">3</td></tr>
+        <tr><td>(solto)</td><td></td><td>Nova Rotina de Fechamento</td><td>publicado</td><td class="num">1</td><td class="num">9</td></tr>
+        <tr><td>(solto)</td><td></td><td>Autoavaliação Comercial</td><td>publicado</td><td class="num">1</td><td class="num">2</td></tr>
+      </tbody>
+    </table></div>
+    <p>Os fatos ligados a esse catálogo são poucos:</p>
+    <ul>
+      <li>6 liberações ativas, todas de origem <code>admin</code>, para 2 pessoas. 3 são de trilha e 3 são de curso solto.</li>
+      <li>Nenhuma troca de pontos foi feita.</li>
+      <li>51 aulas assistidas e 1 posição salva, todas de uma pessoa só.</li>
+      <li>1 certificado (Autoavaliação Comercial) e 52 lançamentos de pontos: 51 de aula assistida e 1 de curso concluído. Nenhum lançamento de trilha concluída.</li>
+      <li>1 comunicado, geral. Nenhum comunicado aponta para um curso.</li>
+    </ul>
+    <p>Esses dados são só de teste, e o banco vai ser zerado (decisão do dono, 15 out.). Então a mudança de schema não precisa migrar nada disso.</p>
+    <p class="nota">Nenhum código do app insere certificado: só o seed e os testes fazem isso (<code>packages/db/src/seed/index.ts:380</code>). Não sei de onde veio o certificado da Autoavaliação.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Raio de impacto</span>
+    <h2>O que some, o que muda e o que fica</h2>
+    <p>A palavra "trilha" aparece em 66 arquivos fora de teste e em 35 arquivos de teste (contagem por <code>rg -il</code> em <code>apps/web/src</code>, <code>packages/api/src</code> e <code>packages/db/src</code>). A maior parte do impacto é código que some.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Camada</th><th>Peça</th><th>Destino</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>Banco</td><td><code>trilha</code>, <code>trilha_curso</code></td><td><span class="pill some">some</span></td><td>A trilha deixa de existir.</td></tr>
+        <tr><td>Banco</td><td><code>liberacao.trilha_id</code>, check de alvo único, índice de trilha ativa</td><td><span class="pill some">some</span></td><td>A liberação passa a ter só um alvo, o curso.</td></tr>
+        <tr><td>Banco</td><td><code>ponto_lancamento.trilha_id</code>, motivo <code>trilha_concluida</code></td><td><span class="pill some">some</span></td><td>Zero lançamentos usam o motivo. Tirar valor de enum no Postgres exige recriar o tipo.</td></tr>
+        <tr><td>Banco</td><td><code>curso</code></td><td><span class="pill muda">muda</span></td><td>Ganha descrição e tópicos. <code>tema</code> vira categoria.</td></tr>
+        <tr><td>Banco</td><td><code>aula</code></td><td><span class="pill muda">muda</span></td><td>Ganha descrição. O questionário entra em tabelas novas.</td></tr>
+        <tr><td>Banco</td><td><code>nivel</code>, <code>modulo</code>, estudo, certificado, troca, comunicado</td><td><span class="pill fica">fica</span></td><td>Tudo já aponta para curso ou aula.</td></tr>
+        <tr><td>Domínio</td><td><code>estadosDaTrilha</code>, estado <code>bloqueado</code>, <code>Antecessor</code>, <code>alcance().soltos</code>, <code>trilhaVM</code>, curso da vez</td><td><span class="pill some">some</span></td><td>Sem trilha não há corrente de cursos nem "Abre depois de".</td></tr>
+        <tr><td>Domínio</td><td><code>edicao-da-trilha.ts</code>, <code>plano-da-trilha.ts</code></td><td><span class="pill some">some</span></td><td>O documento da trilha deixa de existir.</td></tr>
+        <tr><td>Domínio</td><td><code>liberacao.ts</code>, <code>acompanhamento.ts</code></td><td><span class="pill muda">muda</span></td><td>Saem <code>trocadosNaTrilha</code>, <code>trocadosVistos</code>, <code>acompanharTrilha</code> e a situação na trilha.</td></tr>
+        <tr><td>Domínio</td><td>retomada, progresso, níveis, troca, pontos, sequência, registro da aula</td><td><span class="pill fica">fica</span></td><td>Já funcionam por curso ou por aula. A retomada só perde "trilhas antes dos soltos".</td></tr>
+        <tr><td>Aluno</td><td>Seção de trilhas e "Cursos rápidos" em Meus cursos</td><td><span class="pill muda">muda</span></td><td>Vira uma lista só de cursos.</td></tr>
+        <tr><td>Aluno</td><td>Página do curso no estilo Udemy</td><td><span class="pill muda">nova</span></td><td>Hoje <code>/cursos/[slug]</code> só mostra o fim do curso. Ela passa a mostrar banner, descrição, tópicos e a lista de aulas.</td></tr>
+        <tr><td>Aluno</td><td>Player, URL <code>/cursos/&lt;slug&gt;/aulas/&lt;aulaId&gt;</code>, Continuar, Trocar pontos</td><td><span class="pill fica">fica</span></td><td>Já são por curso e por aula.</td></tr>
+        <tr><td>Admin</td><td>Editor da trilha e rotas <code>catalogo/trilhas/**</code></td><td><span class="pill some">some</span></td><td>Sem trilha, nada a editar.</td></tr>
+        <tr><td>Admin</td><td>Editor do curso</td><td><span class="pill muda">muda</span></td><td>Vira o editor único. Ganha descrição, tópicos, categoria, descrição da aula e, depois, o questionário.</td></tr>
+        <tr><td>Admin</td><td>Catálogo, acesso do aluno, busca</td><td><span class="pill muda">muda</span></td><td>Uma lista só, e liberar passa a ser só de curso.</td></tr>
+        <tr><td>Docs</td><td><code>GLOSSARY.md</code>, <code>CLAUDE.md</code>, <code>PRODUCT.md</code></td><td><span class="pill muda">muda</span></td><td>Somem Trilha, Curso solto, Curso da vez e Situação na trilha.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <span class="eyebrow">Decisões do dono, 15 out. 2026</span>
+    <h2>O que já está decidido</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Pergunta</th><th>Decisão</th></tr></thead>
+      <tbody>
+        <tr><td>Nome da coisa única do catálogo</td><td><strong>Curso.</strong> Tabela, rotas <code>/cursos/...</code>, "Meus cursos" e editor ficam com o nome. A palavra "trilha" sai do produto.</td></tr>
+        <tr><td>Seções dentro do curso</td><td><strong>Manter os módulos como seções.</strong> O player e o editor continuam agrupando por módulo.</td></tr>
+        <tr><td>Dados atuais</td><td><strong>São só de teste, e o banco vai ser zerado.</strong> Fábrica e montagem pode virar um curso só, mas o dono vai cadastrar os cursos novos do zero. Nenhuma migração de dados.</td></tr>
+        <tr><td>Quando o curso está concluído</td><td><strong>Todas as aulas assistidas e todos os questionários respondidos.</strong> Aí sai o certificado.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Assumi duas coisas que você pode trocar sem custo. A categoria é o <code>tema</code> de hoje, texto livre, com sugestão das categorias já usadas; ela só vira tabela própria se você quiser filtrar por categoria. Os tópicos são uma lista de frases curtas, o "O que você vai aprender" da Udemy.</p>
+
+    <div class="decisao">
+      <h3>Ainda aberto: a regra do questionário</h3>
+      <p>"Respondido" precisa de definição antes do PR do questionário. Basta responder, mesmo errando? Ou precisa acertar uma nota mínima, e a pessoa pode tentar de novo? O <code>PRODUCT.md:41</code> já prevê 5 pontos por acerto na primeira tentativa, então a tentativa precisa ser gravada de qualquer forma. A prova final do glossário e os 50 pontos por prova aprovada deixam de existir nesse modelo, salvo se você quiser mantê-los.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">Plano</span>
+    <h2>Ordem de entrega</h2>
+    <p>A ordem tira a trilha antes de construir o curso novo, então cada PR começa de uma base menor. Cada passo termina num estado que roda e pode ser testado.</p>
+    <ol class="passos">
+      <li><div><h3>Glossário e decisão registrada</h3><p>Atualizar o <code>GLOSSARY.md</code> e criar a primeira ADR em <code>docs/adr/</code>, que ainda não existe. Só docs.</p></div></li>
+      <li><div><h3>Tirar a trilha do código e do banco</h3><p>Domínio, consultas, routers, telas do aluno e do admin, os testes que travam a regra sequencial, o seed e uma migração que apaga <code>trilha</code>, <code>trilha_curso</code>, as colunas <code>trilha_id</code> e o motivo <code>trilha_concluida</code>. Como os dados são de teste, código e schema saem juntos num PR só. É o PR maior, mas quase todo ele é remoção.</p></div></li>
+      <li><div><h3>Curso no formato Udemy</h3><p>Descrição, tópicos e categoria no curso, descrição na aula, campos novos no editor e a página do curso para o aluno.</p></div></li>
+      <li><div><h3>Questionário e conclusão</h3><p>Tabelas de pergunta, alternativa e tentativa, o editor de questionário por aula, a tela no player, os pontos de acerto, a nova regra de concluído (aulas assistidas e questionários respondidos) e a emissão do certificado, que hoje nenhum código faz. Depende da regra do questionário, ainda aberta.</p></div></li>
+      <li><div><h3>Zerar o banco cloud</h3><p>Escrita destrutiva no banco real. Roda só com o seu OK, na hora que você escolher, depois das migrações aplicadas.</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="eyebrow">Armadilhas</span>
+    <h2>O que pode dar errado</h2>
+    <ul>
+      <li><code>erros.integration.test.ts</code> confere a lista de restrições contra o banco nos dois sentidos. Toda restrição apagada ou renomeada precisa sair da lista no mesmo PR.</li>
+      <li><code>migracao.integration.test.ts</code> aplica cada migração sobre linhas plantadas antes dela. A migração que apaga a trilha precisa do seu caso nesse teste, e roda antes no Supabase local.</li>
+      <li>O <code>DATABASE_URL</code> do dev aponta para o banco cloud. Aplicar a migração e zerar o banco são escritas nele, e só rodam com o seu OK.</li>
+      <li>Tirar um valor do enum <code>motivo_ponto</code> exige recriar o tipo, e o check <code>ponto_lancamento_referencia</code> cita esse valor. Os dois mudam juntos na mesma migração.</li>
+      <li>Hoje nenhum código emite certificado. O PR do questionário é o primeiro a gravar em <code>certificado</code>, e o <code>comentário</code> em <code>packages/db/src/schema/estudo.ts</code> que promete <code>prova_tentativa_id</code> perde o sentido.</li>
+    </ul>
+  </section>
+
+  <section>
+    <span class="eyebrow">Fontes</span>
+    <p class="nota">Três leituras do código em paralelo (banco e escritores, domínio e API, telas), resumidas em <code>~/.cache/cursos-2026-10-15/explorer-*.md</code>, e consultas SELECT no banco cloud. Worktree <code>ajustes-admin</code>, commit <code>6d18291</code>.</p>
+  </section>
+</main>
