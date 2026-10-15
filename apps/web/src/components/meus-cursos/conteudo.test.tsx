@@ -90,13 +90,12 @@ describe("Meus cursos com o caso do protótipo", () => {
     ]);
   });
 
-  test("cada curso é um link só, para a página dele", () => {
+  test("cada curso é um link só, para a página dele, e o curso em produção não abre", () => {
     const links = hrefs(secaoDe(html, "cursos"));
     expect(links).toEqual([
       "/cursos/comercial",
       "/cursos/nova-rotina",
       "/cursos/fabrica-montagem",
-      "/cursos/gravacao",
       "/cursos/autoavaliacao",
     ]);
   });
@@ -110,18 +109,17 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(novaRotina).toContain(
       "Vendas e negócios · POP-COM-001 · 3 de 9 aulas"
     );
-    expect(fabrica).toContain("Fábrica e montagem · 7 aulas · 1 h 14 min");
+    expect(fabrica).toContain("Produção e montagem · 7 aulas · 1 h 14 min");
     expect(fabrica).not.toContain("Agora:");
-    expect(gravacao).toContain(
-      "Produtos e aplicações · Regra 5x4 · 3 aulas · 32 min"
-    );
+    expect(gravacao).toContain("Produtos e aplicações · Regra 5x4");
+    expect(gravacao).not.toContain("aulas");
     expect(autoavaliacao).toContain(
       "Vendas e negócios · 30 afirmações · 6 competências · 2 de 2 aulas"
     );
   });
 
   test("a capa leva a etiqueta com as aulas e a duração do curso, como no protótipo", () => {
-    const [comercial, , fabrica, gravacao] = capas(html);
+    const [comercial, novaRotina, fabrica, gravacao] = capas(html);
     // A etiqueta vem antes do título; a linha sob a capa, depois.
     expect(comercial?.split("Profills School Comercial")[0]).toContain(
       "90 aulas · 15 h 51 min"
@@ -129,9 +127,10 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(fabrica?.split("Fábrica e montagem")[0]).toContain(
       "7 aulas · 1 h 14 min"
     );
-    expect(gravacao?.split("Gravação de Máquinas")[0]).toContain(
-      "3 aulas · 32 min"
+    expect(novaRotina?.split("Nova Rotina de Fechamento")[0]).toContain(
+      "9 aulas · 1 h 35 min"
     );
+    expect(gravacao?.split("Gravação de Máquinas")[0]).toContain("Em produção");
     expect(html).not.toContain("Comece por aqui");
   });
 
@@ -142,14 +141,14 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(html).toContain(
       `Vendas e negócios${N}·${N}30 afirmações · 6 competências${N}·${N}2${N}de${N}2${N}aulas`
     );
-    expect(html).toContain(`Fábrica e montagem${N}·${N}7${N}aulas`);
+    expect(html).toContain(`Produção e montagem${N}·${N}7${N}aulas`);
   });
 
   test("o tamanho do curso não quebra no meio quando a linha passa da largura", () => {
     // Em 390 px, "30 afirmações · 6 competências" empurra o tamanho para a quebra.
     const N = NBSP;
     expect(html).toContain(`2${N}de${N}2${N}aulas`);
-    expect(html).toContain(`3${N}aulas${N}·${N}32${N}min`);
+    expect(html).toContain(`7${N}aulas${N}·${N}1${N}h${N}14${N}min`);
   });
 });
 

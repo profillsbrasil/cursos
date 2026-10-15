@@ -28,7 +28,7 @@ describe("montarPainel com o caso do protótipo", () => {
       ["comercial", "em_andamento"],
       ["nova-rotina", "em_andamento"],
       ["fabrica-montagem", "nao_iniciado"],
-      ["gravacao", "nao_iniciado"],
+      ["gravacao", "em_breve"],
       ["autoavaliacao", "concluido"],
     ]);
   });

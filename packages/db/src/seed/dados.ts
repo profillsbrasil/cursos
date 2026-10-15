@@ -150,7 +150,7 @@ export const CURSOS: CursoSeed[] = [
     ],
     niveis: [],
     status: "publicado",
-    tema: "Fábrica e montagem",
+    tema: "Produção e montagem",
     titulo: "Fábrica e montagem",
   },
   {
@@ -193,7 +193,7 @@ export const CURSOS: CursoSeed[] = [
       "Máquina rodando",
     ]),
     niveis: [],
-    status: "publicado",
+    status: "em_producao",
     tema: "Produtos e aplicações",
     titulo: "Gravação de Máquinas",
   },

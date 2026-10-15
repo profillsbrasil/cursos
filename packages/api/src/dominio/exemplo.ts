@@ -224,7 +224,7 @@ const em = (iso: string) => new Date(iso);
 export function exemploDoPrototipo(): LinhasPainel {
   const liberacoes = LIBERADOS_A.map((chave, i) => ({
     curso: linhaDoSeed(chave),
-    liberadaEm: em(`2026-08-0${i + 1}T12:00:00Z`),
+    liberadaEm: new Date(Date.UTC(2026, 7, 1 + i, 12)),
   }));
   const assistidas = PROGRESSO_A.flatMap((p) => {
     const linha = linhaDoSeed(p.curso);
