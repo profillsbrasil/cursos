@@ -4,10 +4,13 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 
 | Termo | Definição |
 |---|---|
-| Curso | A única coisa do catálogo: módulos, aulas, prova e certificado. Existe uma vez no catálogo, e um curso não depende de outro para abrir (ver `docs/adr/0001-catalogo-so-de-cursos.md`). |
+| Curso | A única coisa do catálogo, no formato da Udemy: capa, título, categoria, descrição, tópicos, módulos, aulas, prova e certificado. Existe uma vez no catálogo, e um curso não depende de outro para abrir (ver `docs/adr/0001-catalogo-so-de-cursos.md`). A descrição é texto livre de até 2000 caracteres e pode ficar vazia. |
+| Categoria | Texto livre de até 80 caracteres que o admin dá ao curso, como "Processo de envase". Aparece na linha sob a capa em "Meus cursos" e no cartão de "Trocar pontos". Não é lista fechada. Antes se chamava tema. |
+| Tópico | Uma linha do "O que você vai aprender" do curso. O curso tem até 10, de até 120 caracteres cada, em ordem, e nenhum vazio. |
+| Página do curso | O que o aluno vê de um curso antes de entrar numa aula: capa, título, categoria, descrição, tópicos, estado, progresso, a ação principal e as aulas por módulo, cada uma com a descrição e se foi assistida. A ação é começar, continuar (na aula e no segundo da retomada), fazer a prova ou rever o curso concluído. Abre só para quem tem liberação ativa do curso, pela mesma regra da aula. |
 | Módulo | Grupo numerado de aulas dentro de um curso. O aluno vê o número ("Módulo 3"). Os cursos de exemplo começam em 0 ou em 1, e o admin escolhe o número. |
-| Aula | Vídeo com duração em segundos, numa posição dentro de um módulo. A aula mantém o id quando o admin a muda de lugar ou de módulo, e com ele a aula assistida e a posição dos alunos. |
-| Documento do curso | O curso inteiro como o admin edita: campos, capa, níveis, módulos e aulas. O admin salva o documento de uma vez, e o servidor grava o estado final. |
+| Aula | Vídeo com duração em segundos e uma descrição opcional de até 2000 caracteres, numa posição dentro de um módulo. A aula mantém o id quando o admin a muda de lugar ou de módulo, e com ele a aula assistida e a posição dos alunos. |
+| Documento do curso | O curso inteiro como o admin edita: campos (a categoria, a descrição e os tópicos entre eles), capa, níveis, módulos e aulas. O admin salva o documento de uma vez, e o servidor grava o estado final. |
 | Rascunho | Documento do curso no editor, antes de salvar. Os campos lidos (duração, vídeo, número do módulo e preço) ficam no texto que o admin digitou até o salvar convertê-los. O documento novo é rascunho até o primeiro salvamento, com o id já na URL, e o aluno não vê nada dele. O rascunho só some quando o admin pede "Recarregar" ou sai da página. |
 | Versão | Impressão do conteúdo de um documento do admin, derivada dele e não guardada. No curso, a capa entra no conteúdo. Salvar com a versão velha dá conflito; reenviar o que já está gravado é sucesso. |
 | Capa | Imagem do curso, JPG, PNG ou WebP, com até 4 MB e pelo menos 640 px de largura. Fica no bucket `capas` com o nome igual ao hash dos bytes. |
