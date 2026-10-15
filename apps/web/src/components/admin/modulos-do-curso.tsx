@@ -421,7 +421,7 @@ function CabecaDoBloco({
         >
           {numeroNaTela(modulo)}
         </span>
-        <span className="min-w-0 text-pretty font-semibold text-[15px] text-foreground group-hover/bloco:text-titulo md:truncate">
+        <span className="min-w-0 text-pretty font-semibold text-base text-foreground group-hover/bloco:text-titulo md:truncate">
           <span className="sr-only">Módulo {modulo.numero}: </span>
           {titulo || (
             <span className="font-normal text-muted-foreground">
