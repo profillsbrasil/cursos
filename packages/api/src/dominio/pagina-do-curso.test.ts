@@ -83,6 +83,7 @@ describe("montarPaginaDoCurso", () => {
               titulo: "Aula 2 de envase",
             },
           ],
+          nivel: null,
           numero: 1,
           titulo: "Módulo 1 de envase",
         },
@@ -96,6 +97,7 @@ describe("montarPaginaDoCurso", () => {
               titulo: "Aula 1 de envase",
             },
           ],
+          nivel: null,
           numero: 2,
           titulo: "Módulo 2 de envase",
         },
@@ -103,6 +105,52 @@ describe("montarPaginaDoCurso", () => {
       progresso: { feitas: 1, pct: 33, total: 3 },
       titulo: "Curso envase",
       topicos: ["Ligar a máquina", "Dosar o volume"],
+    });
+  });
+
+  test("sem níveis, a lista de níveis é vazia e não há próximo nível", () => {
+    const p = pagina();
+    expect([p?.niveis, p?.proximoNivel]).toEqual([[], null]);
+  });
+
+  test("com níveis, cada módulo leva o dele e o próximo é o primeiro ainda por terminar", () => {
+    const base = linha();
+    const [m1, m2] = base.modulos;
+    if (!(m1 && m2)) {
+      throw new Error("o exemplo tem dois módulos");
+    }
+    const aberto = montarCursoAberto({
+      assistidas: [A1, A2].map(assistida),
+      certificados: [],
+      curso: {
+        ...base,
+        liberacoes: [{ id: "lib" }],
+        modulos: [
+          { ...m1, nivelOrdem: 1 },
+          { ...m2, nivelOrdem: 2 },
+        ],
+        niveis: [
+          { nome: "Operador", ordem: 1 },
+          { nome: "Técnico", ordem: 2 },
+        ],
+      },
+      posicoes: [],
+    });
+    const p = aberto && montarPaginaDoCurso(aberto);
+    expect({
+      modulos: p?.modulos.map((m) => [m.numero, m.nivel]),
+      niveis: p?.niveis,
+      proximoNivel: p?.proximoNivel,
+    }).toEqual({
+      modulos: [
+        [1, { nome: "Operador", ordem: 1 }],
+        [2, { nome: "Técnico", ordem: 2 }],
+      ],
+      niveis: [
+        { nome: "Operador", ordem: 1 },
+        { nome: "Técnico", ordem: 2 },
+      ],
+      proximoNivel: { nome: "Técnico", ordem: 2 },
     });
   });
 

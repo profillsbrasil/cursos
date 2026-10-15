@@ -3,10 +3,10 @@
 // regra de quem vê é a de montarCursoAberto, a mesma do player e de aula.entrada.
 
 import type { CursoAberto } from "./aula";
-import { type EstadoQueAbre, type Progresso, progresso } from "./curso";
+import { type EstadoQueAbre, niveis, type Progresso, progresso } from "./curso";
 import { aulaDeRetomada, type OndeNoCurso, ondeNoCurso } from "./retomada";
 import { caminhoDaAula, caminhoDoCurso } from "./rotas";
-import type { AulaId, Capa } from "./tipos";
+import type { AulaId, Capa, NivelCatalogo } from "./tipos";
 
 export interface AulaDaPagina {
   assistida: boolean;
@@ -19,6 +19,8 @@ export interface AulaDaPagina {
 
 export interface ModuloDaPagina {
   aulas: readonly AulaDaPagina[];
+  /** null no módulo fora de nível, e em todo módulo do curso sem níveis. */
+  nivel: NivelCatalogo | null;
   numero: number;
   titulo: string;
 }
@@ -49,7 +51,11 @@ export interface PaginaDoCurso {
   estado: EstadoQueAbre;
   /** Em ordem de número, aulas em ordem de posição. */
   modulos: readonly ModuloDaPagina[];
+  /** Em ordem; vazio no curso sem níveis. */
+  niveis: readonly NivelCatalogo[];
   progresso: Progresso;
+  /** O primeiro nível com aula que a pessoa ainda não terminou; null sem níveis ou com todos obtidos. */
+  proximoNivel: NivelCatalogo | null;
   slug: string;
   titulo: string;
   /** "O que você vai aprender", em ordem. */
@@ -100,6 +106,8 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
 export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
   const { curso } = c;
   const { assistidas } = c.historico;
+  const nivelPorOrdem = new Map(curso.niveis.map((n) => [n.ordem, n]));
+  const { proximo } = niveis(curso, assistidas);
   return {
     acao: acaoDe(c),
     capa: curso.capa,
@@ -114,10 +122,16 @@ export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
         id: a.id,
         titulo: a.titulo,
       })),
+      nivel:
+        m.nivelOrdem === null
+          ? null
+          : (nivelPorOrdem.get(m.nivelOrdem) ?? null),
       numero: m.numero,
       titulo: m.titulo,
     })),
+    niveis: curso.niveis,
     progresso: progresso(curso, assistidas),
+    proximoNivel: proximo && { nome: proximo.nome, ordem: proximo.ordem },
     slug: curso.slug,
     titulo: curso.titulo,
     topicos: curso.topicos,
