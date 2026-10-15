@@ -46,6 +46,10 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Comunicado | Aviso publicado pelo admin, geral ou de um curso. |
 | Estado do curso | Um de seis valores calculados no servidor: `em_breve`, `bloqueado`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. |
 | Curso da vez | Primeiro curso de uma trilha que abre e não está concluído. |
+| Último estudo | O dia mais recente, em São Paulo, em que a pessoa assistiu a uma aula, salvou uma posição acima de 0 s ou recebeu um certificado. Entrar no app não conta. |
+| Situação no curso | O estado do curso na palavra do admin: Nunca abriu (o "Não iniciado" do aluno), Estudando, Falta a prova, Concluído, Bloqueado e Em produção (o "Em breve" do aluno). Quem parou de estudar não ganha situação própria: o admin lê o dia do último estudo. Evite "Parado". |
+| Acompanhamento | O estudo de uma pessoa no alvo de uma liberação, como o admin lê: o progresso, a situação de cada curso e, na trilha, o curso da vez. A liberação revogada mostra o estudo que ficou. |
+| Situação da pessoa | O resumo da pessoa na busca do admin, decidido nesta ordem: Sem liberação (nenhuma ativa), Nunca abriu (nenhum estudo nos cursos que ela alcança), Concluiu tudo (todo curso que ela alcança e que não está em produção tem certificado) e Estudando. |
 | Retomada | A aula e o segundo para onde o banner de "Meus cursos" e o cartão "Continuar" da sidebar levam: continuar, começar ou fazer a prova. Os dois leem a mesma retomada, e sem retomada o cartão não aparece. |
 | Placar | Saldo e sequência do aluno no cartão de conta da sidebar. É o único lugar da tela que os mostra fora de "Trocar pontos", da semana de "Meus cursos" e do aviso de conquista do player. |
 | Casca | A moldura de navegação comum ao aluno e ao admin: a sidebar, que recolhe para ícones, a gaveta do celular e o rodapé com o cartão de conta. Cada área passa só os itens, o selo e o link para a outra área. |
