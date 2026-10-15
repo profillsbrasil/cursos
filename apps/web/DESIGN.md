@@ -271,7 +271,7 @@ Cheios e redondos, com o peso no amarelo.
 - **Shape:** pílula (raio cheio), 44 px de altura, 18 px de padding lateral, 600 em 14 px, vão de 8 px para ícone.
 - **Primary:** Sol com texto `sobre-cor`. É o `BOTAO` de `casca/botoes.ts`, também no banner de Meus cursos, que só acrescenta a largura cheia abaixo de 760 px.
 - **Hover / Focus:** sob o cursor e com o foco de teclado, clareia para `sol-hover` e ganha o brilho amarelo (`bg-sol-hover`, `shadow-brilho`). É o mesmo estado: nenhum botão desenha contorno ou anel de foco. Os três botões amarelos (o `BOTAO`, o Continuar redondo da sidebar recolhida e a Próxima aula em destaque no player) seguem a regra.
-- **Outline:** fundo transparente, borda em `texto-apagado`, texto `texto`; sob o cursor e com o foco a borda vira `titulo`.
+- **Outline:** fundo transparente, borda em `texto-apagado`, texto `texto`; sob o cursor e com o foco a borda vira `titulo`. É o `BOTAO_CONTORNO`: a borda passa de 3:1 contra o fundo, o que um cinza mais escuro, como o `cinza-grafico`, não faz.
 - **Small:** 36 px de altura, 14 px de padding, 13 px.
 - **Ícone:** círculo de 40 px (36 px a partir de 768 px), transparente, ícone em `texto-apagado`, fundo `popover` sob o cursor e com o foco.
 - **Desligado:** opacidade 50% e cursor proibido, também no estado `data-disabled` do Base UI. O botão com `focusableWhenDisabled` segura o foco e sobe a 80% no foco e sob o cursor, porque o hover dele é neutralizado.
@@ -324,7 +324,7 @@ Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px 
 - **Módulo da coluna do player:** o `summary` ganha fundo branco a 8% e o título clareia para `titulo`.
 - **Linha da busca de pessoas:** o fundo `muted` a 40%, o nome em `titulo` e a seta em Céu.
 - **Revogadas da tela de acesso:** o `summary` ganha fundo branco a 8% e o texto clareia para `titulo`, como o módulo da coluna do player.
-- **Sem sinal hoje:** o botão em contorno do player (Anterior, e a Próxima sem destaque) não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
+- **Anterior e Próxima do player:** são o `BOTAO_CONTORNO` e, com a aula assistida, o `BOTAO` de `casca/botoes.ts`, então seguem o Outline e o Primary.
 
 ## Do's and Don'ts
 
