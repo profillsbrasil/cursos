@@ -62,9 +62,6 @@ import {
 import {
   type AulaDoRascunho,
   ID,
-  lerDuracao,
-  lerNumeroDoModulo,
-  lerVideo,
   type ModuloDoRascunho,
   type RascunhoDoCurso,
   segundosDas,
@@ -252,7 +249,6 @@ function LinhaDaAula({
         <CampoLido
           aoMudar={mudarDuracao}
           id={ID.aula(id, "duracao")}
-          ler={lerDuracao}
           placeholder="12:30"
           required
           rotulo={
@@ -266,7 +262,6 @@ function LinhaDaAula({
         <CampoLido
           aoMudar={mudarVideo}
           id={ID.aula(id, "video")}
-          ler={lerVideo}
           placeholder="Link ou id do YouTube"
           rotulo={
             <>
@@ -559,7 +554,6 @@ export function BlocoDoModulo({
               aoSair={ordenar}
               id={ID.modulo(id, "numero")}
               inputMode="numeric"
-              ler={lerNumeroDoModulo}
               required
               rotulo={
                 <>

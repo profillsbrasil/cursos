@@ -2,9 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ErrosDoEditor } from "./erros-do-editor";
 import { type Bloco, NENHUM_ABERTO } from "./estado-do-editor";
 import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
-import { rascunhoDoCurso } from "./rascunho-do-curso";
+import { ID, rascunhoDoCurso } from "./rascunho-do-curso";
 
 const BOTAO = /<button[^>]*>[\s\S]*?<\/button>/g;
 
@@ -138,5 +139,46 @@ describe("lista de módulos fechados", () => {
       expect(html).toContain(`href="#modulo-${id}"`);
       expect(html).toContain(`id="modulo-${id}"`);
     }
+  });
+});
+
+describe("erro num módulo que o admin não abriu", () => {
+  const erros = new Map([
+    [ID.aula(EDICAO.A3, "duracao"), "Escreva a duração em mm:ss, como 12:30."],
+  ]);
+  const html = renderToStaticMarkup(
+    <ErrosDoEditor value={erros}>
+      <ModulosDoCurso
+        abertos={NENHUM_ABERTO}
+        assistidasPorAula={{}}
+        despachar={nada}
+        linhaAberta={LINHA_FECHADA}
+        marcados={erros}
+        mudarBlocos={nada}
+        rascunho={rascunhoDoCurso(documentoDeExemplo())}
+      />
+    </ErrosDoEditor>
+  );
+  const link = (id: string) =>
+    html.match(new RegExp(`<a[^>]*href="#modulo-${id}"[^>]*>.*?</a>`))?.[0] ??
+    "";
+
+  test("o bloco abre e mostra o campo com a mensagem", () => {
+    expect(tagDoId(html, `modulo-${EDICAO.M2}-cabeca`)).toContain(
+      'aria-expanded="true"'
+    );
+    expect(tagDoId(html, `modulo-${EDICAO.M1}-cabeca`)).toContain(
+      'aria-expanded="false"'
+    );
+    expect(tagDoId(html, `aula-${EDICAO.A3}-duracao`)).toContain(
+      'aria-invalid="true"'
+    );
+    expect(html).toContain("Escreva a duração em mm:ss, como 12:30.");
+  });
+
+  test("o índice marca o módulo com erro, e só ele", () => {
+    expect(link(EDICAO.M2)).toContain("ring-destructive");
+    expect(link(EDICAO.M2)).toContain("1 campo para corrigir");
+    expect(link(EDICAO.M1)).not.toContain("ring-destructive");
   });
 });

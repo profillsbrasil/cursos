@@ -13,12 +13,11 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   useCallback,
-  useState,
+  useContext,
 } from "react";
 
-import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
+import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { CAMPO, ROTULO } from "./partes";
-import type { Leitura } from "./rascunho-do-curso";
 
 export function CampoDeTexto({
   ajuda,
@@ -60,11 +59,15 @@ export function CampoDeTexto({
   );
 }
 
-export function CampoLido<T>({
+/**
+ * Campo de texto que o editor lê (duração, vídeo, número, preço). O erro de
+ * leitura aparece quando o admin sai do campo: o editor guarda quem saiu e
+ * marca o campo pelo ErrosDoEditor, como o Salvar.
+ */
+export function CampoLido({
   aoMudar,
   aoSair,
   id,
-  ler,
   rotulo,
   rotuloClasse,
   texto,
@@ -73,7 +76,6 @@ export function CampoLido<T>({
   aoMudar: (texto: string) => void;
   aoSair?: () => void;
   id: string;
-  ler: (texto: string) => Leitura<T>;
   rotulo: ReactNode;
   rotuloClasse?: string;
   texto: string;
@@ -81,11 +83,8 @@ export function CampoLido<T>({
   InputHTMLAttributes<HTMLInputElement>,
   "defaultValue" | "id" | "onBlur" | "onChange" | "value"
 >) {
-  const [tocado, setTocado] = useState(false);
-  const doSalvar = useErroDoCampo(id);
-  const lido = ler(texto);
-  const mensagem =
-    doSalvar.mensagem ?? (tocado && "erro" in lido ? lido.erro : null);
+  const saiuDoCampo = useContext(SaiuDoCampo);
+  const { mensagem } = useErroDoCampo(id);
 
   const mudar = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => aoMudar(e.target.value),
@@ -93,7 +92,7 @@ export function CampoLido<T>({
   );
   const sair = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
-      setTocado(true);
+      saiuDoCampo(id);
       if (aoSair) {
         const proximo = e.relatedTarget;
         aoSair();
@@ -103,7 +102,7 @@ export function CampoLido<T>({
         }
       }
     },
-    [aoSair]
+    [aoSair, id, saiuDoCampo]
   );
 
   return (

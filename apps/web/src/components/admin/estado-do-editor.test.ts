@@ -10,15 +10,18 @@ import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import {
   type Abertos,
   type AcaoNosBlocos,
+  abrirOsComErro,
   blocoDoModulo,
   blocosAbertos,
+  despacharNosDois,
   type Mudanca,
   modulosComErro,
   mudar,
   NENHUM_ABERTO,
+  problemasNaTela,
   proximaOrdem,
 } from "./estado-do-editor";
-import { recusaNaTela } from "./problemas";
+import { errosPorCampo, recusaNaTela } from "./problemas";
 import {
   ID,
   lerNumeroDoModulo,
@@ -528,5 +531,132 @@ describe("blocos dos módulos", () => {
     const abertos = com(NENHUM_ABERTO, { ids, tipo: "erros_mostrados" });
     expect(estados(r, abertos, erros)).toEqual(["fechado", "com_erro"]);
     expect(estados(r, abertos)).toEqual(["fechado", "aberto"]);
+  });
+
+  test("o editor passa toda mudança ao rascunho e aos blocos", () => {
+    let r = exemplo();
+    let abertos = NENHUM_ABERTO;
+    const despachar = despacharNosDois(
+      (m) => {
+        r = mudar(r, m);
+      },
+      (a) => {
+        abertos = blocosAbertos(abertos, a);
+      }
+    );
+    despachar({ id: M3, tipo: "modulo_novo" });
+    despachar({ id: A1, moduloId: M2, tipo: "aula_para_modulo" });
+    expect(r.modulos.map((m) => m.id)).toEqual([M1, M2, M3]);
+    expect(estados(r, abertos)).toEqual(["fechado", "aberto", "aberto"]);
+  });
+});
+
+// O que o editor faz a cada render: escolhe o que marcar, abre os blocos com
+// erro e desenha cada bloco. O índice desenha o mesmo Bloco.
+describe("nenhum erro fica num bloco fechado", () => {
+  const tela = (
+    r: RascunhoDoCurso,
+    {
+      abertos = NENHUM_ABERTO,
+      recusa = [],
+      tentou = false,
+      tocados = new Set<string>(),
+    }: {
+      abertos?: Abertos;
+      recusa?: ReturnType<typeof recusaNaTela>;
+      tentou?: boolean;
+      tocados?: ReadonlySet<string>;
+    } = {}
+  ) => {
+    const erros = errosPorCampo(
+      problemasNaTela({ achados: problemas(r), recusa, tentou, tocados })
+    );
+    const abrir = abrirOsComErro(abertos, r, erros);
+    const depois = abrir ? blocosAbertos(abertos, abrir) : abertos;
+    return {
+      abertos: depois,
+      blocos: r.modulos.map((m) => blocoDoModulo(m, depois, erros)),
+      erros,
+    };
+  };
+
+  const duracao = ID.aula(A3, "duracao");
+
+  test("leitura: o campo que o admin deixou com erro abre e prende o bloco, que fica aberto depois da correção", () => {
+    const r = mudar(exemplo(), {
+      id: A3,
+      mudanca: { duracao: "abc" },
+      tipo: "aula_editada",
+    });
+    // Antes de sair do campo, nada marca.
+    expect(tela(r).blocos).toEqual([{ tipo: "fechado" }, { tipo: "fechado" }]);
+
+    const tocados = new Set([duracao]);
+    const comErro = tela(r, { tocados });
+    expect(comErro.erros.get(duracao)).toBe(
+      "Escreva a duração em mm:ss, como 12:30."
+    );
+    expect(comErro.blocos).toEqual([
+      { tipo: "fechado" },
+      { campos: 1, tipo: "com_erro" },
+    ]);
+
+    // Fechar pelo cabeçalho não tira o erro da tela.
+    const fechado = blocosAbertos(comErro.abertos, { id: M2, tipo: "fechado" });
+    expect(tela(r, { abertos: fechado, tocados }).blocos[1]).toEqual({
+      campos: 1,
+      tipo: "com_erro",
+    });
+
+    const corrigido = mudar(r, {
+      id: A3,
+      mudanca: { duracao: "5:00" },
+      tipo: "aula_editada",
+    });
+    expect(
+      tela(corrigido, { abertos: comErro.abertos, tocados }).blocos
+    ).toEqual([{ tipo: "fechado" }, { tipo: "aberto" }]);
+  });
+
+  test("leitura: depois do Salvar recusado, o erro de um módulo fechado abre o bloco", () => {
+    const r = mudar(exemplo(), {
+      id: A3,
+      mudanca: { video: "não é vídeo" },
+      tipo: "aula_editada",
+    });
+    const t = tela(r, { tentou: true });
+    expect(t.abertos.has(M2)).toBe(true);
+    expect(t.blocos[1]).toEqual({ campos: 1, tipo: "com_erro" });
+  });
+
+  test("schema: o título vazio de um módulo fechado aparece no Salvar e abre o bloco", () => {
+    const r = mudar(exemplo(), {
+      id: M2,
+      mudanca: { titulo: "" },
+      tipo: "modulo_editado",
+    });
+    expect(tela(r).blocos[1]).toEqual({ tipo: "fechado" });
+    const t = tela(r, { tentou: true });
+    expect(t.erros.get(ID.modulo(M2, "titulo"))).toBe("Preencha este campo.");
+    expect(t.abertos.has(M2)).toBe(true);
+    expect(t.blocos).toEqual([
+      { tipo: "fechado" },
+      { campos: 1, tipo: "com_erro" },
+    ]);
+  });
+
+  test("recusa do servidor: marca o campo do curso, fora dos blocos, sem abrir nenhum", () => {
+    const r = mudar(exemplo(), { mudanca: { slug: "nr-12" }, tipo: "campos" });
+    const recusa = recusaNaTela(
+      recusaDoMotivo("slug_repetido", r),
+      r,
+      ID.curso
+    );
+    const t = tela(r, { recusa });
+    expect(t.erros.get(ID.curso("slug"))).toBe(
+      "Outro curso já usa este endereço."
+    );
+    expect(t.abertos).toBe(NENHUM_ABERTO);
+    expect(t.blocos).toEqual([{ tipo: "fechado" }, { tipo: "fechado" }]);
   });
 });

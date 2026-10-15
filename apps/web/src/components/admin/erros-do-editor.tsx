@@ -7,6 +7,13 @@ export const ErrosDoEditor = createContext<ReadonlyMap<string, string>>(
   new Map()
 );
 
+/**
+ * O campo lido avisa o editor quando o admin sai dele. A marca mora no
+ * editor, e não no campo, para o erro sobreviver quando o bloco fecha e o
+ * campo desmonta.
+ */
+export const SaiuDoCampo = createContext<(id: string) => void>(() => undefined);
+
 export function useErroDoCampo(id: string, descricao?: string) {
   const mensagem = useContext(ErrosDoEditor).get(id) ?? null;
   const descritos = [descricao, mensagem ? `${id}-erro` : null].filter(Boolean);

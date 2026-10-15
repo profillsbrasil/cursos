@@ -4,6 +4,7 @@ import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import { type Direcao, trocado } from "@/lib/editor";
 import type { RegrasDoRascunho } from "@/lib/use-rascunho-apoiado";
 
+import type { Problema } from "./problemas";
 import {
   type AulaDoRascunho,
   ID,
@@ -289,4 +290,52 @@ export function blocoDoModulo(
     return { campos, tipo: "com_erro" };
   }
   return abertos.has(m.id) ? { tipo: "aberto" } : { tipo: "fechado" };
+}
+
+/**
+ * Os módulos com erro na tela que ainda não estão entre os abertos. O editor
+ * despacha a ação no render em que o erro aparece, e o bloco continua aberto
+ * depois da correção. null: nada a abrir.
+ */
+export function abrirOsComErro(
+  abertos: Abertos,
+  r: RascunhoDoCurso,
+  marcados: Marcados
+): AcaoNosBlocos | null {
+  const ids = modulosComErro(r, marcados).filter((id) => !abertos.has(id));
+  return ids.length > 0 ? { ids, tipo: "erros_mostrados" } : null;
+}
+
+/** Toda mudança do rascunho passa também pelos blocos: o módulo novo e o destino da aula movida abrem. */
+export const despacharNosDois =
+  (
+    mudarRascunho: (m: Mudanca) => void,
+    mudarBlocos: (a: AcaoNosBlocos) => void
+  ) =>
+  (mudanca: Mudanca) => {
+    mudarRascunho(mudanca);
+    mudarBlocos({ mudanca, tipo: "mudou" });
+  };
+
+/**
+ * O que a tela marca. Antes do Salvar, só o erro dos campos que o admin já
+ * deixou (`tocados`), como o "abc" na duração; depois do Salvar recusado,
+ * tudo o que o Salvar recusaria (`achados`). A recusa do servidor aparece
+ * sempre, enquanto o valor recusado continua no campo.
+ */
+export function problemasNaTela({
+  achados,
+  recusa,
+  tentou,
+  tocados,
+}: {
+  achados: readonly Problema[];
+  recusa: readonly Problema[];
+  tentou: boolean;
+  tocados: ReadonlySet<string>;
+}): Problema[] {
+  const vistos = tentou
+    ? achados
+    : achados.filter((p) => p.campo !== null && tocados.has(p.campo));
+  return [...vistos, ...recusa];
 }
