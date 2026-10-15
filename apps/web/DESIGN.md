@@ -187,7 +187,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px das capas de curso sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em produção" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
 
 ### Tertiary
-- **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar.
+- **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar. A chama só marca a sequência; os pontos da semana em Trocar pontos usam a seta de subida (`TrendingUp`), no selo Sol.
 
 ### Neutral
 - **Fundo grafite** (`fundo`): o fundo da página e o fundo dos campos de formulário.
@@ -270,14 +270,14 @@ Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, bo
 Cheios e redondos, com o peso no amarelo.
 - **Shape:** pílula (raio cheio), 44 px de altura, 18 px de padding lateral, 600 em 14 px, vão de 8 px para ícone.
 - **Primary:** Sol com texto `sobre-cor`. É o `BOTAO` de `casca/botoes.ts`, também no banner de Meus cursos, que só acrescenta a largura cheia abaixo de 760 px.
-- **Hover / Focus:** sob o cursor e com o foco de teclado, clareia para `sol-hover` e ganha o brilho amarelo (`bg-sol-hover`, `shadow-brilho`). É o mesmo estado: nenhum botão desenha contorno ou anel de foco. Os três botões amarelos (o `BOTAO`, o Continuar redondo da sidebar recolhida e a Próxima aula em destaque no player) seguem a regra.
-- **Outline:** fundo transparente, borda em `texto-apagado`, texto `texto`; sob o cursor e com o foco a borda vira `titulo`.
+- **Hover / Focus:** sob o cursor e com o foco de teclado, clareia para `sol-hover` e ganha o brilho amarelo (`bg-sol-hover`, `shadow-brilho`). É o mesmo estado: nenhum botão desenha contorno ou anel de foco. Os dois botões amarelos (o `BOTAO`, que a Próxima aula em destaque no player também usa, e o Continuar redondo da sidebar recolhida) seguem a regra.
+- **Outline:** fundo transparente, borda em `texto-apagado`, texto `texto`; sob o cursor e com o foco a borda vira `titulo`. É o `BOTAO_CONTORNO`: a borda passa de 3:1 contra o fundo, o que um cinza mais escuro, como o `cinza-grafico`, não faz.
 - **Small:** 36 px de altura, 14 px de padding, 13 px.
 - **Ícone:** círculo de 40 px (36 px a partir de 768 px), transparente, ícone em `texto-apagado`, fundo `popover` sob o cursor e com o foco.
 - **Desligado:** opacidade 50% e cursor proibido, também no estado `data-disabled` do Base UI. O botão com `focusableWhenDisabled` segura o foco e sobe a 80% no foco e sob o cursor, porque o hover dele é neutralizado.
 
 ### Chips
-- **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 14 px. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em produção em contorno de 1 px (`texto-apagado` e Céu). O aluno vê "Em produção" no curso que o admin pôs em produção e no curso publicado ainda sem aula; "Em breve" é só do menu e de "Como ganhar pontos".
+- **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 12 px (o `Badge` fixa o tamanho com `size-3!`) a 6 px do texto. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em produção em contorno de 1 px (`texto-apagado` e Céu). O aluno vê "Em produção" no curso que o admin pôs em produção e no curso publicado ainda sem aula; "Em breve" é só do menu e de "Como ganhar pontos".
 - **Selos do admin:** a mesma pílula, com a palavra do admin. Estudando em Sol a 14%, Nunca abriu em `popover`, Concluído, Concluída e Concluiu tudo em Céu cheio, Em produção e Aguardando produção em contorno Céu, Bloqueado e Sem liberação em contorno `texto-apagado`. Quem parou de estudar não ganha selo nem cor: a frase mostra o dia do último estudo. Nenhum selo é vermelho.
 - **Número na trilha:** círculo de 24 px em `popover`, 600 em 12 px, à esquerda do título da capa. O `ol` não desenha marcador, então o número fica na árvore de acessibilidade e é ele que o leitor de tela lê; o `ol` leva `role="list"`, porque o WebKit tira o papel de lista de quem não tem marcador.
 - **Selo da área:** Céu a 14% com texto Céu, 10 px em caixa alta, encaixado à direita de CURSOS no lockup.
@@ -314,7 +314,7 @@ Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, 
 Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar e no acompanhamento do admin. No admin, o texto ao lado ("46 de 90 aulas") carrega o número, e a barra fica `aria-hidden`.
 
 ### Acompanhamento do admin
-Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px com os números ("5 liberações · 2 de 5 cursos concluídos · último estudo ontem") e o selo à direita, antes da seta; em container abaixo de 36rem o selo desce para baixo da frase. Na tela de acesso, as liberações são uma lista no cartão da seção: título em 600 e 15 px, tipo em 12 px e o selo numa linha; a frase de 14 px com o "quando" apagado; a barra de 4 px até 32,5rem; e o rodapé de 12 px com a data ("Liberada em", ou "Trocado por pontos em" na troca). A trilha com mais de um curso troca a barra por uma lista ordenada em `fundo`, raio de 14 px e anel de 1 px, com o número num círculo de 22 px (Céu cheio no concluído, Sol no curso da vez, `popover` nos outros). Revogar fica à direita; em container abaixo de 36rem, desce para o pé do item. As revogadas ficam num `details` fechado no fim do cartão.
+Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px com os números ("5 liberações · 2 de 5 cursos concluídos · último estudo ontem") e o selo à direita, antes da seta; em container abaixo de 36rem o selo desce para baixo da frase. Na tela de acesso, as liberações são uma lista no cartão da seção: título em 600 e 15 px, tipo em 12 px e o selo numa linha; a frase de 14 px com o "quando" apagado; a barra de 4 px até 32,5rem, com a coluna do número de 5,5rem no mínimo, para as barras da lista terminarem no mesmo ponto; e o rodapé de 12 px com a data ("Liberada em", ou "Trocado por pontos em" na troca). A trilha com mais de um curso troca a barra por uma lista ordenada em `fundo`, raio de 14 px e anel de 1 px, com o número num círculo de 22 px (Céu cheio no concluído, Sol no curso da vez, `popover` nos outros). Revogar fica à direita; em container abaixo de 36rem, desce para o pé do item. As revogadas ficam num `details` fechado no fim do cartão. Em Liberar trilha e Liberar curso, o botão ou o selo "Liberado" fica na coluna da direita em lista de 32rem ou mais, também quando os selos da linha quebram; mais estreita, a linha quebra como texto. "Em produção" ali é o mesmo selo da lista de liberações, em contorno Céu com o relógio.
 
 ### Foco de teclado
 **The Focus Is The Hover Rule.** O foco de teclado é o hover de cada controle: o botão amarelo e a pílula do link ativo clareiam e brilham, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o item "Em breve" clareia o nome e o ícone, o cartão de curso e de trilha troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows (`forced-colors`), por decisão do dono.
@@ -324,7 +324,7 @@ Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px 
 - **Módulo da coluna do player:** o `summary` ganha fundo branco a 8% e o título clareia para `titulo`.
 - **Linha da busca de pessoas:** o fundo `muted` a 40%, o nome em `titulo` e a seta em Céu.
 - **Revogadas da tela de acesso:** o `summary` ganha fundo branco a 8% e o texto clareia para `titulo`, como o módulo da coluna do player.
-- **Sem sinal hoje:** o botão em contorno do player (Anterior, e a Próxima sem destaque) não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
+- **Anterior e Próxima do player:** são o `BOTAO_CONTORNO` e, com a aula assistida, o `BOTAO` de `casca/botoes.ts`, então seguem o Outline e o Primary.
 
 ## Do's and Don'ts
 

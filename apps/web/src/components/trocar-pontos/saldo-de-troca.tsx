@@ -2,7 +2,7 @@
 
 import type { RegraDeGanho } from "@cursos/api/dominio/pontos";
 import { cn } from "@cursos/ui/lib/utils";
-import { ChevronDown, Flame, Star } from "lucide-react";
+import { ChevronDown, Star, TrendingUp } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
@@ -57,7 +57,8 @@ export function SaldoDeTroca({
             </small>
           </strong>
           <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-sol/14 px-3 py-1 font-semibold text-sm text-sol tabular-nums">
-            <Flame aria-hidden="true" className="size-[15px]" />
+            {/* A chama é da sequência de dias (cartão de conta, Sua semana); pontos ganhos sobem. */}
+            <TrendingUp aria-hidden="true" className="size-[15px]" />
             {`+${fmtPts(pontosSemana)} nesta semana`}
           </span>
         </div>

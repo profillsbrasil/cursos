@@ -1,21 +1,11 @@
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { fmtMin } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
-
-const BOTAO =
-  "h-11 gap-2 rounded-full border-[1.5px] px-[18px] font-semibold text-sm";
-const SECUNDARIO =
-  "border-chart-5 bg-transparent text-foreground hover:border-foreground hover:bg-transparent dark:border-chart-5 dark:bg-transparent dark:hover:border-foreground dark:hover:bg-transparent";
-// O html tem .dark fixo: sem os dark: o outline mantém dark:bg-input/30 por especificidade.
-// Sob o cursor e com o foco de teclado, clareia e brilha como o botão amarelo da casca;
-// o texto fica sobre-cor, contra o hover:text-foreground da variante outline.
-const DESTAQUE =
-  "border-sol bg-sol text-sobre-cor hover:border-sol-hover hover:bg-sol-hover hover:text-sobre-cor hover:shadow-brilho dark:border-sol dark:bg-sol dark:hover:border-sol-hover dark:hover:bg-sol-hover";
 
 // O esqueleto de loading.tsx desenha as duas linhas com estas mesmas classes, então
 // a altura dele bate com a do cabeçalho em toda largura.
@@ -43,7 +33,8 @@ export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
  * fica assistida, logo abaixo da linha de status que avisa a conquista. Anterior fica à
  * esquerda e Próxima à direita, também quando a outra não existe. Num curso de uma aula
  * só não há nada para navegar: sem a `nav`, o grid não ganha um vão vazio e o leitor de
- * tela não anuncia um landmark sem links.
+ * tela não anuncia um landmark sem links. Os dois são os botões da casca: em contorno, a
+ * borda em texto-apagado passa de 3:1 contra o fundo e clareia para titulo no foco.
  */
 export function NavegacaoEntreAulas({
   dados,
@@ -63,11 +54,7 @@ export function NavegacaoEntreAulas({
     >
       {anterior ? (
         <Link
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            BOTAO,
-            SECUNDARIO
-          )}
+          className={BOTAO_CONTORNO}
           href={caminhoDaAula(curso.slug, anterior.id)}
           title={anterior.titulo}
         >
@@ -77,12 +64,7 @@ export function NavegacaoEntreAulas({
       ) : null}
       {proxima ? (
         <Link
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            BOTAO,
-            "ml-auto",
-            destacarProxima ? DESTAQUE : SECUNDARIO
-          )}
+          className={cn(destacarProxima ? BOTAO : BOTAO_CONTORNO, "ml-auto")}
           href={caminhoDaAula(curso.slug, proxima.id)}
           title={proxima.titulo}
         >

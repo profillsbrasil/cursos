@@ -45,7 +45,11 @@ export function SeloDeSituacao({
   );
 }
 
-/** A barra de 4 px do cartão Continuar; o texto ao lado carrega o número. */
+/**
+ * A barra de 4 px das liberações; o texto ao lado carrega o número. A coluna do
+ * texto tem piso de 5,5rem ("46 de 90 aulas" cabe), então as barras de uma lista
+ * terminam no mesmo ponto em vez de encolher com o número.
+ */
 export function BarraDeAulas({
   className,
   progresso: { feitas, pct, total },
@@ -56,7 +60,7 @@ export function BarraDeAulas({
   return (
     <span
       className={cn(
-        "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-muted-foreground text-xs tabular-nums",
+        "grid grid-cols-[minmax(0,1fr)_minmax(5.5rem,auto)] items-center gap-3 text-muted-foreground text-xs tabular-nums",
         className
       )}
     >
