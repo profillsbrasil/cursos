@@ -84,6 +84,12 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(html).not.toContain("Cursos rápidos");
   });
 
+  test("a seção dos cursos não repete o cabeçalho da página", () => {
+    expect(texto(html).match(/liberados para você/gi)).toEqual([
+      "liberados para você",
+    ]);
+  });
+
   test("cada curso é um link só, para a página dele", () => {
     const links = hrefs(secaoDe(html, "cursos"));
     expect(links).toEqual([

@@ -119,7 +119,7 @@ const pessoas = renderToStaticMarkup(
           nome: "Ana Exemplo",
           situacao: {
             desde: HOJE,
-            numeros: { concluidos: 0, cursos: 1, liberacoes: 1 },
+            numeros: { concluidos: 0, cursos: 1, emProducao: 0 },
             tipo: "nunca_abriu",
           },
           userId: "user_exemplo",

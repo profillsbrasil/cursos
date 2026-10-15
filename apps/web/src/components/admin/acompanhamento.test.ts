@@ -40,28 +40,41 @@ describe("fraseDaPessoa", () => {
     expect(
       fraseDaPessoa(
         {
-          numeros: { concluidos: 2, cursos: 5, liberacoes: 5 },
+          numeros: { concluidos: 2, cursos: 5, emProducao: 0 },
+          tipo: "estudando",
+          ultimoEstudo: dia("2026-09-21"),
+        },
+        HOJE
+      )
+    ).toBe("2 de 5 cursos concluídos · último estudo em 21 de set.");
+  });
+
+  test("com curso em produção, a frase diz quantos estão em produção", () => {
+    expect(
+      fraseDaPessoa(
+        {
+          numeros: { concluidos: 1, cursos: 3, emProducao: 2 },
           tipo: "estudando",
           ultimoEstudo: dia("2026-09-21"),
         },
         HOJE
       )
     ).toBe(
-      "5 liberações · 2 de 5 cursos concluídos · último estudo em 21 de set."
+      "1 de 3 cursos concluídos · 2 em produção · último estudo em 21 de set."
     );
   });
 
-  test("nunca abriu diz desde quando tem liberação", () => {
+  test("nunca abriu diz desde quando tem acesso", () => {
     expect(
       fraseDaPessoa(
         {
           desde: dia("2026-10-02"),
-          numeros: { concluidos: 0, cursos: 1, liberacoes: 1 },
+          numeros: { concluidos: 0, cursos: 1, emProducao: 0 },
           tipo: "nunca_abriu",
         },
         HOJE
       )
-    ).toBe("1 liberação desde 2 de out. · nenhuma aula aberta");
+    ).toBe("Com acesso desde 2 de out. · nenhuma aula aberta");
   });
 
   test("sem liberação: nunca recebeu, uma revogada ou várias", () => {
@@ -89,7 +102,7 @@ describe("fraseDaPessoa", () => {
           ultimaRevogacao: null,
         }),
         seloDaPessoa({
-          numeros: { concluidos: 1, cursos: 1, liberacoes: 1 },
+          numeros: { concluidos: 1, cursos: 1, emProducao: 0 },
           tipo: "concluiu_tudo",
           ultimoEstudo: dia(HOJE),
         }),

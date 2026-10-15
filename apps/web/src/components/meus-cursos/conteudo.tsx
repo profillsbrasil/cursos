@@ -68,7 +68,7 @@ export function ConteudoMeusCursos({
             temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
           />
         </div>
-        <Secao id="cursos" subtitulo="Liberados para você" titulo="Cursos">
+        <Secao id="cursos" titulo="Cursos">
           <div className={GRADE_CAPAS}>
             {painel.cursos.map((c) => (
               <CapaCurso curso={c} key={c.id} />

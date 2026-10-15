@@ -250,7 +250,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       [
         ESTUDA,
         {
-          numeros: { concluidos: 1, cursos: 3, liberacoes: 4 },
+          numeros: { concluidos: 1, cursos: 3, emProducao: 1 },
           tipo: "estudando",
           ultimoEstudo: "2026-10-12" as DiaISO,
         },
@@ -259,7 +259,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         NUNCA,
         {
           desde: "2026-10-01" as DiaISO,
-          numeros: { concluidos: 0, cursos: 2, liberacoes: 3 },
+          numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
           tipo: "nunca_abriu",
         },
       ],
@@ -275,7 +275,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       [
         DIRETO,
         {
-          numeros: { concluidos: 0, cursos: 2, liberacoes: 3 },
+          numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
           tipo: "estudando",
           ultimoEstudo: "2026-10-06" as DiaISO,
         },

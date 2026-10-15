@@ -222,7 +222,7 @@ describe("montarBusca", () => {
     ).toEqual({
       desde: "2026-09-30" as DiaISO,
       // z está em produção e fica fora da conta de cursos.
-      numeros: { concluidos: 0, cursos: 2, liberacoes: 3 },
+      numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
       tipo: "nunca_abriu",
     });
   });
@@ -256,7 +256,7 @@ describe("montarBusca", () => {
         ],
       })
     ).toEqual({
-      numeros: { concluidos: 1, cursos: 3, liberacoes: 3 },
+      numeros: { concluidos: 1, cursos: 3, emProducao: 0 },
       tipo: "estudando",
       ultimoEstudo: "2026-10-13" as DiaISO,
     });
@@ -278,7 +278,7 @@ describe("montarBusca", () => {
         ],
       })
     ).toEqual({
-      numeros: { concluidos: 2, cursos: 2, liberacoes: 3 },
+      numeros: { concluidos: 2, cursos: 2, emProducao: 1 },
       tipo: "concluiu_tudo",
       ultimoEstudo: "2026-09-10" as DiaISO,
     });

@@ -189,7 +189,7 @@ export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
     : chegou;
 }
 
-/** A linha de números da busca: "5 liberações · 2 de 5 cursos concluídos · último estudo ontem". */
+/** A linha de números da busca: "2 de 4 cursos concluídos · 1 em produção · último estudo ontem". */
 export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
   switch (r.tipo) {
     case "sem_liberacao":
@@ -200,17 +200,19 @@ export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
         ? `1 liberação revogada ${noDia(r.ultimaRevogacao, hoje)}`
         : `${fmtNum(r.revogadas)} liberações revogadas, a última ${noDia(r.ultimaRevogacao, hoje)}`;
     case "nunca_abriu":
-      return `${plural(r.numeros.liberacoes, "liberação", "liberações")} desde ${diaCurto(r.desde, hoje)} · nenhuma aula aberta`;
+      return `Com acesso desde ${diaCurto(r.desde, hoje)} · nenhuma aula aberta`;
     case "estudando":
     case "concluiu_tudo": {
-      const { concluidos, cursos, liberacoes } = r.numeros;
+      const { concluidos, cursos, emProducao } = r.numeros;
       return [
-        plural(liberacoes, "liberação", "liberações"),
         cursos === 0
           ? "nenhum curso publicado"
           : `${fmtNum(concluidos)} de ${plural(cursos, "curso concluído", "cursos concluídos")}`,
+        emProducao === 0 ? null : `${fmtNum(emProducao)} em produção`,
         ultimoEstudo(r.ultimoEstudo, hoje),
-      ].join(" · ");
+      ]
+        .filter((parte) => parte !== null)
+        .join(" · ");
     }
     default:
       return r satisfies never;

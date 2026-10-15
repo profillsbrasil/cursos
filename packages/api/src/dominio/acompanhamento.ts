@@ -60,8 +60,8 @@ export interface NumerosDaPessoa {
   concluidos: number;
   /** Cursos que a pessoa alcança e que não estão em produção; os concluídos entram. */
   cursos: number;
-  /** Liberações ativas. */
-  liberacoes: number;
+  /** Cursos liberados que o aluno vê como "Em produção", fora de `cursos`. */
+  emProducao: number;
 }
 
 /**
@@ -266,7 +266,7 @@ export function situacaoDaPessoa(
   const numeros: NumerosDaPessoa = {
     concluidos: contaveis.filter((x) => x.estado.tipo === "concluido").length,
     cursos: contaveis.length,
-    liberacoes: ativas.length,
+    emProducao: naTela.length - contaveis.length,
   };
   const ultimo = maisRecente(naTela.map((x) => ultimoEstudo(x.curso, e)));
   if (!ultimo) {

@@ -6,7 +6,7 @@ export function Secao({
 }: {
   children: React.ReactNode;
   id: string;
-  subtitulo: string;
+  subtitulo?: string;
   titulo: string;
 }) {
   return (
@@ -16,7 +16,9 @@ export function Secao({
         <h2 className="font-bold text-2xl text-titulo tracking-tight" id={id}>
           {titulo}
         </h2>
-        <p className="text-muted-foreground text-sm">{subtitulo}</p>
+        {subtitulo ? (
+          <p className="text-muted-foreground text-sm">{subtitulo}</p>
+        ) : null}
       </div>
       {children}
     </section>
