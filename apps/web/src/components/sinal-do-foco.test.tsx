@@ -141,7 +141,6 @@ const liberacao = (
   acompanhamento: {
     progresso: { feitas: 0, pct: 0, total: 2 },
     situacao: { tipo: "nunca_abriu" },
-    titulo,
   },
   curso: { id: id as CursoId, titulo },
   id: id as LiberacaoId,

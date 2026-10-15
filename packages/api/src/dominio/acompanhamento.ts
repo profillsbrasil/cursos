@@ -54,7 +54,6 @@ export type SituacaoNoCurso =
 export interface Acompanhamento {
   progresso: Progresso;
   situacao: SituacaoNoCurso;
-  titulo: string;
 }
 
 export interface NumerosDaPessoa {
@@ -183,7 +182,6 @@ export function acompanharCurso(
   return {
     progresso: progresso(curso, e.historico.assistidas),
     situacao: situacaoNoCurso(curso, estadoDoCurso(curso, e.historico), e),
-    titulo: curso.titulo,
   };
 }
 

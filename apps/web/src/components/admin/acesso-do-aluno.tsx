@@ -10,7 +10,7 @@ import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft, Check, ChevronRight, TriangleAlert } from "lucide-react";
 import Link from "next/link";
-import { type ReactNode, useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
@@ -279,48 +279,26 @@ function BotaoLiberar({
   );
 }
 
-function LinhaParaLiberar({
-  acao,
-  selos,
-  titulo,
-}: {
-  acao: ReactNode;
-  selos?: ReactNode;
-  titulo: string;
-}) {
-  // Em lista de 32rem ou mais, o botão fica na coluna da direita mesmo quando os
-  // selos quebram linha. Mais estreita, a linha quebra como texto: um selo longo
-  // não cabe ao lado do botão. A confirmação aberta ocupa a largura toda.
+function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
+  const { id, titulo } = c.curso;
+  const { enviando, liberar, selo } = useLiberar(para, id, titulo);
+  // Em lista de 32rem ou mais, o botão fica na coluna da direita mesmo quando o
+  // selo quebra linha. Mais estreita, a linha quebra como texto: um selo longo
+  // não cabe ao lado do botão.
   return (
     <li className="flex @lg:grid @lg:grid-cols-[minmax(0,1fr)_auto] flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5">
       <span className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
         <span className="font-medium text-foreground">{titulo}</span>
-        {selos}
-      </span>
-      {acao}
-    </li>
-  );
-}
-
-function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
-  const { id, titulo } = c.curso;
-  const { enviando, liberar, selo } = useLiberar(para, id, titulo);
-  return (
-    <LinhaParaLiberar
-      acao={
-        c.liberado ? (
-          <Liberado selo={selo} />
-        ) : (
-          <BotaoLiberar enviando={enviando} liberar={liberar} titulo={titulo} />
-        )
-      }
-      selos={
-        c.emProducao ? (
+        {c.emProducao ? (
           <SeloDeSituacao selo={seloDoCurso("em_producao")} />
-        ) : null
-      }
-      titulo={titulo}
-    />
+        ) : null}
+      </span>
+      {c.liberado ? (
+        <Liberado selo={selo} />
+      ) : (
+        <BotaoLiberar enviando={enviando} liberar={liberar} titulo={titulo} />
+      )}
+    </li>
   );
 }
 

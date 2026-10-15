@@ -21,14 +21,11 @@ export function urlDaCorrida(url: string | null): string {
 }
 
 /**
- * Segura um SHARE lock na tabela numa transação à parte: todo INSERT, UPDATE e
- * DELETE nela espera até soltar().
+ * Segura um SHARE lock em liberacao numa transação à parte: todo INSERT, UPDATE
+ * e DELETE nela espera até soltar().
  */
-export function seguraATabela(
-  db: Database,
-  tabela: "liberacao"
-): Promise<() => Promise<void>> {
-  return seguraNumaTransacao(db, sql.raw(`lock table ${tabela} in share mode`));
+export function seguraATabela(db: Database): Promise<() => Promise<void>> {
+  return seguraNumaTransacao(db, sql`lock table liberacao in share mode`);
 }
 
 /**

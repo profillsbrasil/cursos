@@ -151,7 +151,6 @@ describe("montarAcesso", () => {
     expect(doC1?.acompanhamento).toEqual({
       progresso: { feitas: 0, pct: 0, total: 1 },
       situacao: { tipo: "nunca_abriu" },
-      titulo: "BPF",
     });
     expect(doC2?.acompanhamento).toEqual({
       progresso: { feitas: 1, pct: 20, total: 5 },
@@ -160,7 +159,6 @@ describe("montarAcesso", () => {
         tipo: "estudando",
         ultimoEstudo: "2026-09-21" as DiaISO,
       },
-      titulo: "APPCC",
     });
   });
 });

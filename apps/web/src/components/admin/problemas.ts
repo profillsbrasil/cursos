@@ -25,11 +25,8 @@ export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
   return null;
 }
 
-export const fraseDeReserva = (
-  oQue: "O curso",
-  caminho: readonly PropertyKey[]
-) =>
-  `${oQue} tem um valor que o servidor recusa (${caminho.map(String).join(".") || "documento"}). Recarregue a página e tente de novo.`;
+export const fraseDeReserva = (caminho: readonly PropertyKey[]) =>
+  `O curso tem um valor que o servidor recusa (${caminho.map(String).join(".") || "documento"}). Recarregue a página e tente de novo.`;
 
 export function semRepetir([primeiro, ...resto]: Problemas): Problemas {
   const chave = (p: Problema) => p.campo ?? `frase:${p.mensagem}`;

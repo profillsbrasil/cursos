@@ -693,7 +693,6 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
 
           <BarraDeSalvar
             novo={novo}
-            oQue="este curso"
             pendente={pendente}
             problemas={problemas}
             recarregar={descartar}

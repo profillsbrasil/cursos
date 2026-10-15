@@ -329,7 +329,10 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           painelDe(userId),
         ]);
         // Os títulos levam o sufixo do teste, então identificam o curso.
-        const doAdmin = (acesso?.liberacoes ?? []).map((l) => l.acompanhamento);
+        const doAdmin = (acesso?.liberacoes ?? []).map((l) => ({
+          ...l.acompanhamento,
+          titulo: l.curso.titulo,
+        }));
         const vistos: unknown[] = doAdmin.map((c) => [
           c.titulo,
           c.situacao.tipo,
@@ -371,7 +374,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           progresso: { feitas: 0, pct: 0, total: 2 },
           situacao: { tipo: "nunca_abriu" },
-          titulo: `Curso ${S} d`,
         },
       ],
     ]);
@@ -388,9 +390,9 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         if (r?.tipo !== "continuar") {
           return { esperado: "retomada continuar", userId, visto: r?.tipo };
         }
-        const doAdmin = (acesso?.liberacoes ?? [])
-          .map((l) => l.acompanhamento)
-          .find((c) => c.titulo === r.curso.titulo);
+        const doAdmin = acesso?.liberacoes.find(
+          (l) => l.curso.titulo === r.curso.titulo
+        )?.acompanhamento;
         return {
           esperado: { aula: r.aula.numeroNoModulo, modulo: r.modulo.numero },
           userId,

@@ -17,7 +17,6 @@ const barra = (props: Partial<ComponentProps<typeof BarraDeSalvar>> = {}) =>
     renderToStaticMarkup(
       <BarraDeSalvar
         novo={false}
-        oQue="este curso"
         pendente={false}
         problemas={[]}
         recarregar={nada}
@@ -56,7 +55,6 @@ describe("BarraDeSalvar", () => {
     const html = renderToStaticMarkup(
       <BarraDeSalvar
         novo={false}
-        oQue="este curso"
         pendente={false}
         problemas={[]}
         recarregar={nada}

@@ -17,14 +17,12 @@ const HOJE = "2026-10-14";
 const dia = (d: string) => d as DiaISO;
 
 const curso = (
-  titulo: string,
   situacao: Acompanhamento["situacao"],
   feitas = 0,
   total = 2
 ): Acompanhamento => ({
   progresso: { feitas, pct: Math.floor((feitas * 100) / total), total },
   situacao,
-  titulo,
 });
 
 describe("noDia", () => {
@@ -102,7 +100,7 @@ describe("fraseDaPessoa", () => {
 
 describe("fraseDoCurso", () => {
   test("curso estudando: módulo e aula, e o último estudo à parte", () => {
-    const a = curso("Nova Rotina", {
+    const a = curso({
       onde: { aula: 1, modulo: 2 },
       tipo: "estudando",
       ultimoEstudo: dia("2026-09-21"),
@@ -118,7 +116,6 @@ describe("fraseDoCurso", () => {
 
   test("curso na prova conta as aulas vistas", () => {
     const a = curso(
-      "Autoavaliação",
       { tipo: "falta_prova", ultimoEstudo: dia("2026-09-30") },
       2,
       2
@@ -131,13 +128,12 @@ describe("fraseDoCurso", () => {
 
   test("curso em produção e nunca aberto", () => {
     expect(
-      [
-        curso("A", { tipo: "em_producao" }),
-        curso("B", { tipo: "nunca_abriu" }),
-      ].map((c) => [
-        fraseDoCurso(c, HOJE).texto,
-        seloDoCurso(c.situacao.tipo).rotulo,
-      ])
+      [curso({ tipo: "em_producao" }), curso({ tipo: "nunca_abriu" })].map(
+        (c) => [
+          fraseDoCurso(c, HOJE).texto,
+          seloDoCurso(c.situacao.tipo).rotulo,
+        ]
+      )
     ).toEqual([
       ["Em produção. A pessoa ainda não vê o curso", "Em produção"],
       ["Nenhuma aula aberta", "Nunca abriu"],
@@ -146,7 +142,7 @@ describe("fraseDoCurso", () => {
 });
 
 describe("as datas do item da liberação", () => {
-  const concluido = curso("Segurança", {
+  const concluido = curso({
     em: dia("2026-09-17"),
     tipo: "concluido",
   });

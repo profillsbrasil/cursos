@@ -107,10 +107,10 @@ export const GRADE_CAPAS =
   "grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(250px,(100%_-_36px)/3)),1fr))] gap-x-[18px] gap-y-[22px]";
 
 /** sizes de toda capa da GRADE_CAPAS: com no máximo 3 colunas, a conta é a de 3 capas. */
-export const SIZES_DA_GRADE = sizesDaCapa(3);
+const SIZES_DA_GRADE = sizesDaCapa(3);
 
 // Link quando o estado abre o curso; div aria-disabled em em_breve.
-export function CapaCurso({ curso, sizes }: { curso: CursoVM; sizes: string }) {
+export function CapaCurso({ curso }: { curso: CursoVM }) {
   const fechado = curso.estado.tipo === "em_breve";
   const agora = moduloDeAgora(curso);
   const conteudo = (
@@ -128,7 +128,7 @@ export function CapaCurso({ curso, sizes }: { curso: CursoVM; sizes: string }) {
             fechado ? "opacity-55 saturate-[.6]" : "group-hover:scale-[1.03]"
           )}
           fill
-          sizes={sizes}
+          sizes={SIZES_DA_GRADE}
           src={curso.capa.url}
         />
         <TextoEtiqueta etiqueta={etiquetaDe(curso)} />

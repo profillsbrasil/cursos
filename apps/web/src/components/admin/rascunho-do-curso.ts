@@ -272,7 +272,7 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   if (temCampo) {
     return "Confira este campo.";
   }
-  return fraseDeReserva("O curso", i.path);
+  return fraseDeReserva(i.path);
 }
 
 export function lerRascunho(
@@ -327,7 +327,7 @@ export function lerRascunho(
   }
   if (!lido.success) {
     return {
-      problemas: [{ campo: null, mensagem: fraseDeReserva("O curso", []) }],
+      problemas: [{ campo: null, mensagem: fraseDeReserva([]) }],
       tipo: "problemas",
     };
   }

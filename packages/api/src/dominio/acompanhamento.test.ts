@@ -40,7 +40,6 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
     expect(acompanharCurso(A, estudoDe(linhas({})))).toEqual({
       progresso: { feitas: 0, pct: 0, total: 3 },
       situacao: { tipo: "nunca_abriu" },
-      titulo: "Curso a",
     });
   });
 
@@ -80,7 +79,6 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         tipo: "estudando",
         ultimoEstudo: "2026-10-13" as DiaISO,
       },
-      titulo: "Curso a",
     });
   });
 

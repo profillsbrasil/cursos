@@ -8,11 +8,9 @@ import { AVISO } from "./partes";
 
 export function AvisoDeVersaoMudou({
   className,
-  oQue,
   recarregar,
 }: {
   className?: string;
-  oQue: string;
   recarregar: () => void;
 }) {
   return (
@@ -23,7 +21,7 @@ export function AvisoDeVersaoMudou({
       />
       <div className="grid gap-3">
         <p>
-          Outra pessoa salvou {oQue} depois que você abriu. O que você mudou
+          Outra pessoa salvou este curso depois que você abriu. O que você mudou
           continua aqui. Recarregar traz a versão nova e descarta as suas
           mudanças.
         </p>

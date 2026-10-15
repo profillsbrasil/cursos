@@ -117,7 +117,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       .from(liberacao)
       .where(eq(liberacao.userId, userId));
 
-  const seguraOsInserts = () => seguraATabela(db, "liberacao");
+  const seguraOsInserts = () => seguraATabela(db);
 
   /** 'advisory' é a trava do aluno; 'relation', o INSERT ou o UPDATE parado. */
   const esperas = (n: number) =>

@@ -80,23 +80,21 @@ export function VisaoDoCatalogo({ visao }: { visao: Visao }) {
     (c) => c.status === "publicado"
   ).length;
   return (
-    <div className="grid gap-10">
-      <Secao
-        id="cursos"
-        resumo={`${plural(visao.cursos.length, "curso", "cursos")}, ${plural(publicados, "publicado", "publicados")}`}
-        titulo="Cursos"
-      >
-        <CursosDoCatalogo cursos={visao.cursos} />
-        <div className="border-border border-t px-5 py-4">
-          <Link
-            className={cn(BOTAO_CONTORNO, PEQUENO)}
-            href="/admin/catalogo/cursos/novo"
-          >
-            <Plus aria-hidden="true" className="size-4" />
-            Novo curso
-          </Link>
-        </div>
-      </Secao>
-    </div>
+    <Secao
+      id="cursos"
+      resumo={`${plural(visao.cursos.length, "curso", "cursos")}, ${plural(publicados, "publicado", "publicados")}`}
+      titulo="Cursos"
+    >
+      <CursosDoCatalogo cursos={visao.cursos} />
+      <div className="border-border border-t px-5 py-4">
+        <Link
+          className={cn(BOTAO_CONTORNO, PEQUENO)}
+          href="/admin/catalogo/cursos/novo"
+        >
+          <Plus aria-hidden="true" className="size-4" />
+          Novo curso
+        </Link>
+      </div>
+    </Secao>
   );
 }
