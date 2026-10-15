@@ -12,7 +12,7 @@ export default function Carregando() {
       <Skeleton className={`${PULSO} h-11 w-full rounded-full`} />
       <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
         {["a", "b", "c", "d", "e"].map((linha) => (
-          <Skeleton className={`${PULSO} h-[68px] rounded-none`} key={linha} />
+          <Skeleton className={`${PULSO} h-[88px] rounded-none`} key={linha} />
         ))}
       </div>
     </div>

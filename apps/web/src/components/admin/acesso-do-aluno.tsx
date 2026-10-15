@@ -7,39 +7,34 @@ import type {
   TrilhaParaLiberar,
 } from "@cursos/api/dominio/liberacao";
 import { Button } from "@cursos/ui/components/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@cursos/ui/components/table";
 import { cn } from "@cursos/ui/lib/utils";
-import { ArrowLeft, Check, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useCallback, useRef, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { fmtData, plural } from "@/lib/formato";
+import { fmtData, fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
+import {
+  BarraDeAulas,
+  fraseDaLiberacao,
+  fraseNaTrilha,
+  SeloDeSituacao,
+  seloDaLiberacao,
+} from "./acompanhamento";
 import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";
-import { CABECA, CELULA, SELO, Secao, Vazio } from "./partes";
+import { SELO, Secao, Vazio } from "./partes";
 
 const TIPO = { curso: "Curso", trilha: "Trilha" } as const;
 const CONTORNO_NEUTRO =
   "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset";
-const ORIGEM = {
-  admin: { classe: CONTORNO_NEUTRO, rotulo: "Admin" },
-  troca: { classe: "bg-sol/14 text-sol", rotulo: "Troca" },
-} as const;
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
 
@@ -94,17 +89,19 @@ function AcaoDaLiberacao({
   const { acao } = l;
   switch (acao.tipo) {
     case "fixa_por_troca":
-      return <span>Troca, não se revoga</span>;
-    case "revogada":
       return (
-        <span className="tabular-nums">Revogada em {fmtData(acao.em)}</span>
+        <span className="text-muted-foreground text-sm">
+          Troca, não se revoga
+        </span>
       );
+    case "revogada":
+      return null;
     case "revogar":
       return (
         <ConfirmacaoNaLinha
           botao={{ nome: `Confirmar: revogar ${titulo}`, rotulo: "Revogar" }}
           chave={`revogar:${l.id}`}
-          className="flex flex-wrap items-center justify-end gap-2"
+          className="flex flex-wrap items-center @xl:justify-end gap-2"
           confirmar={revogar}
           enviando={pendente}
           gatilho={{ nome: `Revogar ${titulo}`, rotulo: "Revogar" }}
@@ -117,10 +114,138 @@ function AcaoDaLiberacao({
   }
 }
 
+/** Os cursos da trilha em ordem: Céu no concluído, Sol no curso da vez. */
+function CursosDaTrilha({
+  acompanhamento: a,
+  hoje,
+}: {
+  acompanhamento: Extract<
+    LiberacaoNaTela["acompanhamento"],
+    { tipo: "trilha" }
+  >;
+  hoje: string;
+}) {
+  return (
+    <ol className="@container mt-2 max-w-[38.75rem] divide-y divide-border rounded-[14px] bg-background ring-1 ring-border">
+      {a.cursos.map((c) => (
+        <li
+          className="grid @md:grid-cols-[1.375rem_minmax(0,1fr)_auto] grid-cols-[1.375rem_minmax(0,1fr)] items-center gap-x-2.5 gap-y-0.5 px-3 py-2.5"
+          key={c.posicao}
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "@md:row-span-1 row-span-2 grid size-[22px] place-items-center self-start @md:self-center rounded-full font-semibold text-xs tabular-nums",
+              c.situacao.tipo === "concluido" && "bg-ceu text-sobre-cor",
+              c.situacao.tipo !== "concluido" &&
+                (c.posicao === a.daVez
+                  ? "bg-sol text-sobre-cor"
+                  : "bg-popover text-foreground")
+            )}
+          >
+            {c.posicao}
+          </span>
+          <span className="grid min-w-0">
+            <span className="font-medium text-foreground text-sm">
+              {c.titulo}
+            </span>
+            <span className="text-muted-foreground text-xs">
+              {fraseNaTrilha(c, hoje)}
+            </span>
+          </span>
+          {c.situacao.tipo === "em_producao" ? null : (
+            <span className="@md:col-start-3 col-start-2 @md:text-right text-muted-foreground text-xs tabular-nums">
+              {fmtNum(c.progresso.feitas)} de{" "}
+              {plural(c.progresso.total, "aula", "aulas")}
+            </span>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Rodape({ l }: { l: LiberacaoNaTela }) {
+  const quando = fmtData(l.liberadaEm);
+  let texto =
+    l.origem === "troca"
+      ? `Trocado por pontos em ${quando}`
+      : `Liberada em ${quando}`;
+  if (l.acao.tipo === "revogada") {
+    texto += ` · revogada em ${fmtData(l.acao.em)}`;
+  }
+  return (
+    <p className="mt-1.5 text-muted-foreground text-xs tabular-nums">{texto}</p>
+  );
+}
+
+/**
+ * Uma liberação: título, tipo e selo; a frase do estudo; a barra (ou os cursos da
+ * trilha); a data. Revogar fica à direita e, em container estreito, desce para o pé.
+ */
+function ItemDaLiberacao({
+  hoje,
+  l,
+  linhaAberta,
+}: {
+  hoje: string;
+  l: LiberacaoNaTela;
+  linhaAberta: LinhaAberta;
+}) {
+  const a = l.acompanhamento;
+  const revogada = l.acao.tipo === "revogada";
+  const frase = fraseDaLiberacao(a, hoje);
+  const comCursos = a.tipo === "trilha" && a.cursos.length > 1 && !revogada;
+  return (
+    <li className="grid @xl:grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 @xl:px-5 px-4 py-4">
+      <div className="grid min-w-0 content-start gap-1">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <h3
+            className={cn(
+              "font-semibold text-[15px]",
+              revogada ? "text-muted-foreground" : "text-titulo"
+            )}
+          >
+            {l.alvo.titulo}
+          </h3>
+          <span className="text-muted-foreground text-xs">
+            {TIPO[l.alvo.tipo]}
+          </span>
+          {revogada ? null : <SeloDeSituacao selo={seloDaLiberacao(a)} />}
+        </div>
+        {revogada ? null : (
+          <p className="text-foreground text-sm">
+            {frase.texto}
+            {frase.quando ? (
+              <span className="text-muted-foreground"> · {frase.quando}</span>
+            ) : null}
+          </p>
+        )}
+        {comCursos ? (
+          <CursosDaTrilha acompanhamento={a} hoje={hoje} />
+        ) : (
+          <BarraDeAulas
+            className="mt-1.5 max-w-[32.5rem]"
+            progresso={a.tipo === "curso" ? a.curso.progresso : a.aulas}
+          />
+        )}
+        <Rodape l={l} />
+      </div>
+      {revogada ? null : (
+        <div className="@xl:justify-self-end">
+          <AcaoDaLiberacao l={l} linhaAberta={linhaAberta} />
+        </div>
+      )}
+    </li>
+  );
+}
+
 function Liberacoes({
+  hoje,
   liberacoes,
   linhaAberta,
 }: {
+  hoje: string;
   liberacoes: readonly LiberacaoNaTela[];
   linhaAberta: LinhaAberta;
 }) {
@@ -131,56 +256,35 @@ function Liberacoes({
       </Vazio>
     );
   }
+  const ativas = liberacoes.filter((l) => l.acao.tipo !== "revogada");
+  const revogadas = liberacoes.filter((l) => l.acao.tipo === "revogada");
+  const item = (l: LiberacaoNaTela) => (
+    <ItemDaLiberacao hoje={hoje} key={l.id} l={l} linhaAberta={linhaAberta} />
+  );
   return (
-    <Table className="min-w-[640px]">
-      <TableHeader>
-        <TableRow className="hover:bg-transparent">
-          <TableHead className={CABECA}>Acesso</TableHead>
-          <TableHead className={CABECA}>Origem</TableHead>
-          <TableHead className={CABECA}>Liberada em</TableHead>
-          <TableHead className={cn(CABECA, "text-right")}>
-            <span className="sr-only">Ação</span>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {liberacoes.map((l) => {
-          const revogada = l.acao.tipo === "revogada";
-          return (
-            <TableRow className="text-muted-foreground" key={l.id}>
-              <TableCell className={CELULA}>
-                <span
-                  className={cn(
-                    "block font-medium",
-                    !revogada && "text-foreground"
-                  )}
-                >
-                  {l.alvo.titulo}
-                </span>
-                <span className="text-xs">{TIPO[l.alvo.tipo]}</span>
-              </TableCell>
-              <TableCell className={CELULA}>
-                <span className={cn(SELO, ORIGEM[l.origem].classe)}>
-                  {ORIGEM[l.origem].rotulo}
-                </span>
-              </TableCell>
-              <TableCell
-                className={cn(
-                  CELULA,
-                  "tabular-nums",
-                  !revogada && "text-foreground"
-                )}
-              >
-                {fmtData(l.liberadaEm)}
-              </TableCell>
-              <TableCell className={cn(CELULA, "text-right")}>
-                <AcaoDaLiberacao l={l} linhaAberta={linhaAberta} />
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+    <div className="@container">
+      {ativas.length === 0 ? (
+        <Vazio>Nenhuma liberação ativa.</Vazio>
+      ) : (
+        <ul className="divide-y divide-border">{ativas.map(item)}</ul>
+      )}
+      {revogadas.length === 0 ? null : (
+        // As revogadas ficam recolhidas no fim. Sob o cursor e com o foco, o
+        // summary ganha o fundo branco a 8% e o texto em titulo, como o módulo do player.
+        <details className="group/revogadas border-border border-t">
+          <summary className="flex cursor-pointer list-none items-center gap-2 @xl:px-5 px-4 py-3.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-white/8 hover:text-titulo motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+            <ChevronRight
+              aria-hidden="true"
+              className="size-4 transition-transform group-open/revogadas:rotate-90 motion-reduce:transition-none"
+            />
+            {plural(revogadas.length, "revogada", "revogadas")}
+          </summary>
+          <ul className="divide-y divide-border border-border border-t">
+            {revogadas.map(item)}
+          </ul>
+        </details>
+      )}
+    </div>
   );
 }
 
@@ -427,6 +531,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
           titulo="Liberações"
         >
           <Liberacoes
+            hoje={acesso.hoje}
             liberacoes={acesso.liberacoes}
             linhaAberta={linhaAberta}
           />
