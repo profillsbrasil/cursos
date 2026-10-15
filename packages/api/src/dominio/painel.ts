@@ -1,7 +1,12 @@
-import { alcance, type Progresso, progresso } from "./curso";
+import {
+  type CursoNaTela,
+  estadoDoCurso,
+  type Progresso,
+  progresso,
+} from "./curso";
 import { atividadeDe, historicoDe } from "./historico";
 import { PONTOS } from "./regras";
-import { type CursoNaTela, ondeNoCurso, retomada } from "./retomada";
+import { ondeNoCurso, retomada } from "./retomada";
 import {
   type DiaDaSemana,
   diaLocal,
@@ -247,11 +252,13 @@ export function montarPainel(
   const atividade = atividadeDe(linhas);
   const liberados = linhas.liberacoes.map(({ curso }) => paraCatalogo(curso));
   // O sort é estável, então o empate fica na ordem da liberação.
-  const telas: CursoNaTela[] = alcance(liberados, h).sort(
-    (a, b) =>
-      ORDEM_DOS_CURSOS.indexOf(a.estado.tipo) -
-      ORDEM_DOS_CURSOS.indexOf(b.estado.tipo)
-  );
+  const telas: CursoNaTela[] = liberados
+    .map((curso) => ({ curso, estado: estadoDoCurso(curso, h) }))
+    .sort(
+      (a, b) =>
+        ORDEM_DOS_CURSOS.indexOf(a.estado.tipo) -
+        ORDEM_DOS_CURSOS.indexOf(b.estado.tipo)
+    );
   const acessiveis = new Set<string>(telas.map((x) => x.curso.id));
   const comunicado = linhas.comunicados.find(
     (c) => c.cursoId === null || acessiveis.has(c.cursoId)

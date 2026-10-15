@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
+import type { CursoNaTela } from "./curso";
 import { cursoCat, historico, idAula } from "./exemplo";
-import { aulaDeRetomada, type CursoNaTela, retomada } from "./retomada";
+import { aulaDeRetomada, retomada } from "./retomada";
 import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 
 const andamento = (_c: CursoCatalogo, proxima: string): EstadoCurso => ({

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { alcance, estadoDoCurso, niveis, progresso } from "./curso";
+import { estadoDoCurso, niveis, progresso } from "./curso";
 import { cursoCat, historico, idAula } from "./exemplo";
 import { historicoDe } from "./historico";
 import type { AulaId } from "./tipos";
@@ -62,28 +62,6 @@ describe("estadoDoCurso", () => {
       primeiraAula: idAula("c", 0, 1) as AulaId,
       tipo: "nao_iniciado",
     });
-  });
-});
-
-describe("alcance", () => {
-  const a = cursoCat("a", { aulas: [2] });
-  const b = cursoCat("b", { aulas: [2] });
-
-  test("os cursos liberados na ordem em que chegaram, cada um com o próprio estado", () => {
-    const h = historico({ assistidas: [idAula("b", 0, 1)] });
-    expect(
-      alcance([b, a], h).map((x) => [x.curso.slug, x.estado.tipo])
-    ).toEqual([
-      ["b", "em_andamento"],
-      ["a", "nao_iniciado"],
-    ]);
-  });
-
-  test("curso liberado duas vezes aparece uma vez, no lugar da primeira", () => {
-    expect(alcance([a, b, a], historico({})).map((x) => x.curso.slug)).toEqual([
-      "a",
-      "b",
-    ]);
   });
 });
 

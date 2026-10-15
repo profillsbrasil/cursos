@@ -57,6 +57,10 @@ export const podeAbrir = (e: EstadoCurso): e is EstadoQueAbre =>
 export const numeroDaAula = (indiceNoModulo: number): number =>
   indiceNoModulo + 1;
 
+/**
+ * A regra única do estado de um curso liberado. Meus cursos, a busca e o
+ * acompanhamento do admin leem o estado daqui.
+ */
 export function estadoDoCurso(curso: CursoComAulas, h: Historico): EstadoCurso {
   const cert = h.certificados.get(curso.id);
   if (cert) {
@@ -80,27 +84,9 @@ export function estadoDoCurso(curso: CursoComAulas, h: Historico): EstadoCurso {
     : { primeiraAula: primeira.id, tipo: "nao_iniciado" };
 }
 
-export interface CursoAlcancado<C extends CursoComAulas> {
+export interface CursoNaTela<C extends CursoComAulas = CursoCatalogo> {
   curso: C;
   estado: EstadoCurso;
-}
-
-/**
- * Os cursos que a pessoa alcança, os liberados, na ordem em que chegaram e sem
- * repetir, com o estado de cada um. Meus cursos, a busca e a tela de acesso do
- * admin leem o alcance daqui.
- */
-export function alcance<C extends CursoComAulas>(
-  liberados: readonly C[],
-  h: Historico
-): CursoAlcancado<C>[] {
-  const vistos = new Map<CursoId, CursoAlcancado<C>>();
-  for (const curso of liberados) {
-    if (!vistos.has(curso.id)) {
-      vistos.set(curso.id, { curso, estado: estadoDoCurso(curso, h) });
-    }
-  }
-  return [...vistos.values()];
 }
 
 export function niveis(

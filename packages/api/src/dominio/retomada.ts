@@ -1,11 +1,6 @@
-import { niveis, numeroDaAula, progresso } from "./curso";
+import { type CursoNaTela, niveis, numeroDaAula, progresso } from "./curso";
 import type { Retomada } from "./painel";
 import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
-
-export interface CursoNaTela {
-  curso: CursoCatalogo;
-  estado: EstadoCurso;
-}
 
 export interface EntradaRetomada {
   /** Momento ISO da última atividade por aula: assistida ou posição salva. */

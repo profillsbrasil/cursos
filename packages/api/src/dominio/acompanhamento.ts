@@ -1,11 +1,10 @@
 // O que o admin vê do estudo de cada pessoa: o acompanhamento de cada liberação,
-// na tela de acesso, e a situação da pessoa, na busca. O alcance, o estado, o
-// progresso e a aula do Continuar saem das regras de Meus cursos (alcance,
-// estadoDoCurso, progresso, atividadeDe, ondeNoCurso): nada aqui decide de novo
-// se um curso abre, se foi começado ou se foi concluído.
+// na tela de acesso, e a situação da pessoa, na busca. O estado, o progresso e a
+// aula do Continuar saem das regras de Meus cursos (estadoDoCurso, a regra única
+// do estado, progresso, atividadeDe, ondeNoCurso): nada aqui decide de novo se um
+// curso abre, se foi começado ou se foi concluído.
 
 import {
-  alcance,
   type CursoComAulas,
   estadoDoCurso,
   type Progresso,
@@ -262,17 +261,16 @@ export function situacaoDaPessoa(
     };
   }
   const e = estudoDe(p);
-  const alcancados = alcance(
-    ativas.map((l) => curso(l.cursoId)),
-    e.historico
-  );
-  const contaveis = alcancados.filter((x) => x.estado.tipo !== "em_breve");
+  const naTela = ativas
+    .map((l) => curso(l.cursoId))
+    .map((c) => ({ curso: c, estado: estadoDoCurso(c, e.historico) }));
+  const contaveis = naTela.filter((x) => x.estado.tipo !== "em_breve");
   const numeros: NumerosDaPessoa = {
     concluidos: contaveis.filter((x) => x.estado.tipo === "concluido").length,
     cursos: contaveis.length,
     liberacoes: ativas.length,
   };
-  const ultimo = maisRecente(alcancados.map((x) => ultimoEstudo(x.curso, e)));
+  const ultimo = maisRecente(naTela.map((x) => ultimoEstudo(x.curso, e)));
   if (!ultimo) {
     return {
       desde: diaLocal(maisAntiga(ativas.map((l) => l.liberadaEm))),

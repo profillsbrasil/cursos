@@ -88,23 +88,6 @@ describe("montarPainel com o caso do protótipo", () => {
 
 describe("montarPainel com regras de liberação", () => {
   const a = cursoLinha("a", { aulas: [2] });
-  const b = cursoLinha("b", { aulas: [2] });
-
-  test("curso liberado duas vezes aparece uma vez", () => {
-    const painel = montar(
-      linhas({
-        liberacoes: [
-          { curso: a, liberadaEm: em("2026-08-01T00:00:00Z") },
-          { curso: b, liberadaEm: em("2026-08-02T00:00:00Z") },
-          { curso: a, liberadaEm: em("2026-08-03T00:00:00Z") },
-        ],
-      })
-    );
-    expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
-      ["a", "nao_iniciado"],
-      ["b", "nao_iniciado"],
-    ]);
-  });
 
   test("o módulo da capa é o da aula para onde o Continuar leva, não o primeiro com aula pendente", () => {
     // Módulo 0 com 2 aulas e módulo 1 com 1: a pessoa viu a aula 1 do módulo 0 e
