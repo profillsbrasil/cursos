@@ -5,6 +5,21 @@
   --ease-forte: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* A pílula do item ativo acende com o cursor ou o foco de teclado no link ativo
+   (#44). Ela é o primeiro li da lista e o link mora num li depois dela, então o
+   hover: do globals.css, que olha o próprio elemento, não chega: o estado vem do
+   irmão. Os dois ramos copiam os do hover: (o cursor só em tela com hover). */
+@custom-variant ativo-aceso {
+  @media (hover: hover) {
+    &:has(~ li > [aria-current]:hover) {
+      @slot;
+    }
+  }
+  &:has(~ li > [aria-current]:focus-visible) {
+    @slot;
+  }
+}
+
 /* A largura da sidebar muda na hora por padrão: Ctrl+B, cookie, qualquer caminho
    futuro. Só o botão da casca (useAlternarNavegacao) liga data-animando no wrapper.
    CSS sem @layer vence os utilitários do Tailwind sem tocar no sidebar.tsx do

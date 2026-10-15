@@ -34,12 +34,13 @@ const ITEM = cn(
 
 type EstadoDoItem = "link" | "ativo" | "em_breve";
 
-// Só o link tem hover. O ativo fica sobre a pílula amarela, e o "Em breve" não leva a
-// lugar nenhum; os dois não mudam sob o cursor.
+// Sob o cursor e com o foco de teclado (#44): o link ganha fundo; o ativo não muda,
+// porque a pílula amarela atrás dele acende sozinha (ativo-aceso, no index.css); o
+// "Em breve" não leva a lugar nenhum, e só o nome e o ícone clareiam, sem fundo.
 const POR_ESTADO: Record<EstadoDoItem, string> = {
   ativo: "font-semibold text-sobre-cor [&_svg]:text-sobre-cor",
   em_breve:
-    "cursor-default font-medium text-muted-foreground [&_svg]:text-muted-foreground",
+    "cursor-default font-medium text-muted-foreground hover:text-foreground [&_svg]:text-muted-foreground hover:[&_svg]:text-foreground",
   link: "font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-titulo active:bg-sidebar-accent active:text-titulo [&_svg]:text-muted-foreground hover:[&_svg]:text-titulo",
 };
 
@@ -89,7 +90,9 @@ export function NavPrincipal({
             <m.li
               animate={{ transform: movimento.transform }}
               aria-hidden="true"
-              className="pointer-events-none absolute top-0 left-0 h-(--altura-do-item) w-full rounded-[10px] bg-sidebar-primary group-data-[collapsible=icon]:w-(--altura-do-item)"
+              // O Motion escreve só o transform; a cor e o brilho do link ativo sob o
+              // cursor e com o foco vêm do CSS, como no botão amarelo.
+              className="pointer-events-none absolute top-0 left-0 h-(--altura-do-item) w-full rounded-[10px] ativo-aceso:bg-sol-hover bg-sidebar-primary ativo-aceso:shadow-brilho transition-[background-color,box-shadow] duration-150 ease-out group-data-[collapsible=icon]:w-(--altura-do-item) motion-reduce:transition-none"
               initial={false}
               transition={movimento.transicao}
             />

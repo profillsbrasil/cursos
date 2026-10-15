@@ -35,13 +35,14 @@ export function ListaDePessoas({
         <ul className="divide-y divide-border">
           {pessoas.map((p) => (
             <li key={p.userId}>
+              {/* Sob o cursor e com o foco de teclado: o fundo, o nome em titulo e a seta em Céu (#44). */}
               <Link
-                className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/40"
+                className="group/pessoa flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/40"
                 href={`/admin/alunos/${p.userId}`}
               >
                 <FotoDaPessoa foto={p.foto} nome={p.nome} />
                 <span className="grid min-w-0 flex-1 gap-0.5">
-                  <span className="truncate font-medium text-foreground">
+                  <span className="truncate font-medium text-foreground transition-colors group-hover/pessoa:text-titulo">
                     {p.nome}
                   </span>
                   <span className="truncate text-muted-foreground text-sm">
@@ -50,7 +51,7 @@ export function ListaDePessoas({
                 </span>
                 <ChevronRight
                   aria-hidden="true"
-                  className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+                  className="size-4 shrink-0 text-muted-foreground transition-[color,translate] group-hover/pessoa:translate-x-0.5 group-hover/pessoa:text-ceu motion-reduce:transition-none"
                 />
               </Link>
             </li>
