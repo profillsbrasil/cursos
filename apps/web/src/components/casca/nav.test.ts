@@ -28,10 +28,10 @@ describe("cookie da sidebar", () => {
 });
 
 describe("largura recolhida", () => {
-  // O sidebar-container tem border-r dentro da largura (border-box): sem somar o
-  // 1 px, o recuo da direita cai para 13 px e o quadrado de 40 px não cabe.
-  test("14 px de recuo, 40 px de conteúdo, 14 px de recuo e 1 px de borda", () => {
-    expect(LARGURAS_DA_SIDEBAR["--sidebar-width-icon"]).toBe("69px");
+  // A Moldura tira o border-r do sidebar-container (moldura.medida.test.tsx mede
+  // no Chromium): a largura recolhida é só o quadrado e os dois recuos.
+  test("14 px de recuo, 40 px de conteúdo e 14 px de recuo", () => {
+    expect(LARGURAS_DA_SIDEBAR["--sidebar-width-icon"]).toBe("68px");
   });
 });
 
