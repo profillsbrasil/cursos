@@ -1,7 +1,5 @@
 import type { TrilhaVM } from "@cursos/api/dominio/painel";
-import { cn } from "@cursos/ui/lib/utils";
 import { Check, Clock, Play } from "lucide-react";
-import Link from "next/link";
 
 import { fmtMin, plural } from "@/lib/formato";
 
@@ -51,11 +49,12 @@ function LinhaDaVez({ trilha }: { trilha: TrilhaVM }) {
   );
 }
 
-// O resumo é link para o curso da vez; sem curso da vez, não é link. Sem aria-label:
-// o leitor lê o conteúdo (progresso, "Agora:" e o selo com o estado real).
+// O resumo não é link: a capa do curso da vez, logo abaixo, já é. Na trilha de um
+// curso só, a linha "Agora:" repetiria o título e o selo da única capa, e sai.
 function ResumoDaTrilha({ trilha }: { trilha: TrilhaVM }) {
-  const conteudo = (
-    <>
+  const repeteACapa = trilha.daVez !== null && trilha.cursos.length === 1;
+  return (
+    <div className={CARTAO}>
       <div className="grid gap-2">
         <p className="flex justify-between gap-2 text-[13px] text-muted-foreground tabular-nums">
           <span>
@@ -71,22 +70,13 @@ function ResumoDaTrilha({ trilha }: { trilha: TrilhaVM }) {
           rotulo={`Aulas assistidas na trilha ${trilha.titulo}`}
         />
       </div>
-      {/* Divisória de borda a borda: margem negativa igual ao padding do cartão. */}
-      <p className="-mx-(--pad) flex flex-wrap items-center gap-2 border-border border-t px-(--pad) pt-3 text-[13px] text-muted-foreground">
-        <LinhaDaVez trilha={trilha} />
-      </p>
-    </>
-  );
-  if (!trilha.daVez) {
-    return <div className={CARTAO}>{conteudo}</div>;
-  }
-  return (
-    <Link
-      className={cn(CARTAO, "transition-shadow hover:ring-ceu")}
-      href={`/cursos/${trilha.daVez.slug}`}
-    >
-      {conteudo}
-    </Link>
+      {repeteACapa ? null : (
+        // Divisória de borda a borda: margem negativa igual ao padding do cartão.
+        <p className="-mx-(--pad) flex flex-wrap items-center gap-2 border-border border-t px-(--pad) pt-3 text-[13px] text-muted-foreground">
+          <LinhaDaVez trilha={trilha} />
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -101,7 +91,8 @@ export function Trilha({ trilha }: { trilha: TrilhaVM }) {
     >
       <div className="grid gap-5">
         <ResumoDaTrilha trilha={trilha} />
-        <ol className={GRADE_CAPAS}>
+        {/* biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista". */}
+        <ol className={GRADE_CAPAS} role="list">
           {trilha.cursos.map((c) => {
             const m = c.primeiroModulo;
             if (c.estado.tipo === "em_breve") {

@@ -40,6 +40,19 @@ const itensNumerados = (html: string) =>
     )
   );
 
+/** O texto que o leitor de tela lê: sem o que tem aria-hidden="true". */
+const legivel = (html: string) =>
+  texto(html.replace(/<(\w+)[^>]*aria-hidden="true"[^>]*>.*?<\/\1>/g, " "));
+
+/** O HTML de dentro da seção da trilha, pelo slug. */
+const secaoDaTrilha = (html: string, slug: string) =>
+  html.match(
+    new RegExp(`<section aria-labelledby="trilha-${slug}">(.*?)</section>`)
+  )?.[1] ?? "";
+
+const hrefs = (html: string) =>
+  [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+
 const render = (painel: ReturnType<typeof montarPainel>) =>
   renderToStaticMarkup(
     <ConteudoMeusCursos conta={null} painel={painel} resumo={RESUMO} />
@@ -79,6 +92,77 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(html).not.toContain("Em breve");
     expect(html).not.toContain("· em produção");
     expect(html.split("Em produção").length - 1).toBe(2);
+  });
+
+  test("o leitor de tela ouve a lista e o número de cada capa", () => {
+    const listas = [...html.matchAll(/<ol([^>]*)>(.*?)<\/ol>/g)];
+    expect(listas).toHaveLength(2);
+    for (const [, atributos] of listas) {
+      // O WebKit tira o papel de lista do `ol` com list-style: none sem role="list".
+      expect(atributos).toContain('role="list"');
+    }
+    const fabrica = legivel(listas[1]?.[2] ?? "");
+    expect(fabrica).toContain("1 Segurança do posto");
+    expect(fabrica).toContain("2 Envasadora: conhecendo a máquina");
+    expect(fabrica).toContain("3 Montagem pneumática");
+  });
+
+  test("cada curso da trilha é um link só", () => {
+    for (const slug of ["formacao-comercial", "fabrica-montagem"]) {
+      const links = hrefs(secaoDaTrilha(html, slug));
+      expect(links.length).toBeGreaterThan(0);
+      expect(new Set(links).size).toBe(links.length);
+    }
+  });
+
+  test("a trilha de um curso não repete o curso no resumo", () => {
+    // A descrição da trilha também cita o curso; a conta começa depois dela.
+    const comercial = texto(secaoDaTrilha(html, "formacao-comercial"))
+      .split("em 16 módulos e três níveis.")
+      .at(-1);
+    expect(comercial).not.toContain("Agora:");
+    expect(comercial?.split("Profills School Comercial").length).toBe(2);
+  });
+});
+
+describe("Meus cursos com trilha sem curso", () => {
+  const a = cursoLinha("a", { aulas: [2] });
+  const trilha = (
+    slug: string,
+    cursos: { curso: typeof a; posicao: number }[]
+  ) => ({
+    curso: null,
+    liberadaEm: new Date("2026-08-01T00:00:00Z"),
+    trilha: {
+      cursos,
+      descricao: "Descrição",
+      id: slug,
+      slug,
+      titulo: `Trilha ${slug}`,
+    },
+  });
+
+  test("a trilha esvaziada pelo admin some da tela e da contagem", () => {
+    const html = render(
+      montarPainel({
+        ...SEM_LIBERACAO,
+        liberacoes: [
+          trilha("vazia", []),
+          trilha("cheia", [{ curso: a, posicao: 1 }]),
+        ],
+      })
+    );
+    expect(html).not.toContain("Trilha vazia");
+    expect(html).toContain("Trilha cheia");
+    expect(texto(html)).toContain("1 trilha liberada para você");
+  });
+
+  test("só com trilha vazia, a tela é a do painel vazio", () => {
+    const html = render(
+      montarPainel({ ...SEM_LIBERACAO, liberacoes: [trilha("vazia", [])] })
+    );
+    expect(html).not.toContain("Trilha vazia");
+    expect(html).not.toContain("liberada para você");
   });
 });
 

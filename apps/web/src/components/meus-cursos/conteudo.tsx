@@ -47,13 +47,19 @@ function Cabecalho({ painel }: { painel: PainelMeusCursos }) {
 // curso solto é a exceção.
 export function ConteudoMeusCursos({
   conta,
-  painel,
+  painel: doServidor,
   resumo,
 }: {
   conta: string | null;
   painel: PainelMeusCursos;
   resumo: ResumoAluno;
 }) {
+  // A trilha sem curso saiu de uso: o admin tira os cursos dela para isso, porque
+  // a trilha liberada não se apaga. Ela não aparece nem conta no cabeçalho.
+  const painel = {
+    ...doServidor,
+    trilhas: doServidor.trilhas.filter((t) => t.cursos.length > 0),
+  };
   if (painel.trilhas.length === 0 && painel.soltos.length === 0) {
     return (
       <>

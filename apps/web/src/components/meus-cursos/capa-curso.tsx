@@ -87,7 +87,10 @@ export function CapaCurso({
   curso: CursoVM;
   etiqueta: Etiqueta;
   meta: string;
-  /** Número do curso na trilha. A lista numerada (`ol`) já diz a ordem ao leitor de tela. */
+  /**
+   * Número do curso na trilha. Fica na árvore de acessibilidade: o `ol` sem marcador
+   * não tem número falado, e o leitor de tela ouve "1", "2", "3" deste círculo.
+   */
   ordem?: number;
   sizes: string;
 }) {
@@ -127,10 +130,7 @@ export function CapaCurso({
         titulo
       ) : (
         <div className="flex items-start gap-2.5">
-          <span
-            aria-hidden="true"
-            className="mt-px inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-popover font-semibold text-foreground text-xs tabular-nums"
-          >
+          <span className="mt-px inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-popover font-semibold text-foreground text-xs tabular-nums">
             {ordem}
           </span>
           {titulo}

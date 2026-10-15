@@ -44,7 +44,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Sequência | Dias úteis seguidos com pelo menos uma aula assistida pela primeira vez. Sábado e domingo não contam nem quebram. |
 | Medalha | Conquista individual por critério. Ainda não existe no código. |
 | Comunicado | Aviso publicado pelo admin, geral ou de um curso. |
-| Estado do curso | Um de seis valores calculados no servidor: `em_breve`, `bloqueado`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. O aluno lê `em_breve` como "Em produção", o mesmo termo do admin, e `bloqueado` como "Abre depois de" e o curso anterior da trilha. |
+| Estado do curso | Um de seis valores calculados no servidor: `em_breve`, `bloqueado`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. O aluno lê `em_breve` como "Em produção". O termo é o do admin, mas o alcance é maior: `em_breve` vale para o curso com status `em_producao` e para o curso publicado ainda sem aula, que o admin vê como publicado. O aluno lê `bloqueado` como "Abre depois de" e o curso anterior da trilha. |
 | Curso da vez | Primeiro curso de uma trilha que abre e não está concluído. |
 | Retomada | A aula e o segundo para onde o banner de "Meus cursos" e o cartão "Continuar" da sidebar levam: continuar, começar ou fazer a prova. Os dois leem a mesma retomada, e sem retomada o cartão não aparece. |
 | Placar | Saldo e sequência do aluno no cartão de conta da sidebar. É o único lugar da tela que os mostra fora de "Trocar pontos", da semana de "Meus cursos" e do aviso de conquista do player. |

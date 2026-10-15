@@ -174,7 +174,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Sol, amarelo damasco** (`sol`): o botão principal, a pílula do link ativo, o preenchimento das barras de progresso, o botão redondo de play, o saldo de pontos e o segundo verso dos títulos de retomada. Sob o cursor e com o foco de teclado, o botão e a pílula do link ativo clareiam para `sol-hover`. Texto sobre Sol é sempre `sobre-cor`.
 
 ### Secondary
-- **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px dos cartões de curso e de trilha sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em produção" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
+- **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px das capas de curso sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em produção" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
 
 ### Tertiary
 - **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar.
@@ -262,8 +262,8 @@ Cheios e redondos, com o peso no amarelo.
 - **Desligado:** opacidade 50% e cursor proibido, também no estado `data-disabled` do Base UI. O botão com `focusableWhenDisabled` segura o foco e sobe a 80% no foco e sob o cursor, porque o hover dele é neutralizado.
 
 ### Chips
-- **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 14 px. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em produção em contorno de 1 px (`texto-apagado` e Céu). O curso que o admin pôs em produção diz "Em produção" para o aluno também; "Em breve" é só do menu e de "Como ganhar pontos".
-- **Número na trilha:** círculo de 24 px em `popover`, 600 em 12 px, à esquerda do título da capa. A lista é um `ol`, então o número fica fora da árvore de acessibilidade.
+- **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 14 px. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em produção em contorno de 1 px (`texto-apagado` e Céu). O aluno vê "Em produção" no curso que o admin pôs em produção e no curso publicado ainda sem aula; "Em breve" é só do menu e de "Como ganhar pontos".
+- **Número na trilha:** círculo de 24 px em `popover`, 600 em 12 px, à esquerda do título da capa. O `ol` não desenha marcador, então o número fica na árvore de acessibilidade e é ele que o leitor de tela lê; o `ol` leva `role="list"`, porque o WebKit tira o papel de lista de quem não tem marcador.
 - **Selo da área:** Céu a 14% com texto Céu, 10 px em caixa alta, encaixado à direita de CURSOS no lockup.
 
 ### Cards / Containers
@@ -272,8 +272,8 @@ Cheios e redondos, com o peso no amarelo.
 - **Shadow Strategy:** nenhuma em repouso (ver Elevation & Depth).
 - **Internal Padding:** fluido, clamp de 22 a 36 px nos cartões grandes; 12 a 20 px em cartões de grade e tabela.
 - **Aviso:** Sol a 10% com anel de Sol a 40%, raio de 14 px, padding de 14 px.
-- **Trilha em Meus cursos:** um bloco por trilha, com o título uma vez (o `h2` da seção, com a descrição à direita), o resumo (progresso, cursos concluídos e a linha "Agora:") num cartão de largura cheia e as capas da trilha logo abaixo, numeradas na ordem. O curso que ainda não abre diz "Abre depois de" e o curso anterior. Os cursos rápidos vêm depois de todas as trilhas.
-- **Grade de capas:** colunas de 250 px ou mais, no máximo 3, com a coluna vazia preservada, então uma capa sozinha mede o mesmo que uma de três.
+- **Trilha em Meus cursos:** um bloco por trilha, com o título uma vez (o `h2` da seção, com a descrição à direita), o resumo (progresso, cursos concluídos e a linha "Agora:") num cartão de largura cheia e as capas da trilha logo abaixo, numeradas na ordem. O resumo não é link: a capa do curso da vez já é, e cada curso tem uma parada de teclado só. Na trilha de um curso só, a linha "Agora:" sai, porque repetiria a única capa. O curso que ainda não abre diz "Abre depois de" e o curso anterior. A trilha sem curso não aparece. Os cursos rápidos vêm depois de todas as trilhas.
+- **Grade de capas em Meus cursos:** colunas de 250 px ou mais, no máximo 3 (`GRADE_CAPAS`), também no esqueleto da página, com a coluna vazia preservada, então uma capa sozinha mede o mesmo que uma de três.
 
 ### Inputs / Fields
 - **Style:** 44 px, fundo `fundo`, borda de 1 px em `texto-apagado`, raio de 12 px, padding lateral de 14 px, texto de 14 px.
