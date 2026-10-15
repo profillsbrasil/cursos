@@ -41,6 +41,10 @@ export function SuaSemana({
   temCursoTrocavelNaVitrine: boolean;
 }) {
   const semSequencia = resumo.sequenciaDias === 0;
+  // A chamada só aparece com um dia útil pendente hoje: no fim de semana a aula
+  // não conta para a sequência, e a frase prometeria o que a regra não cumpre.
+  const chamarParaHoje =
+    semSequencia && resumo.dias.some((d) => d.status === "hoje_pendente");
   return (
     <aside
       aria-labelledby="semana-titulo"
@@ -92,7 +96,7 @@ export function SuaSemana({
           </li>
         ))}
       </ul>
-      {semSequencia ? (
+      {chamarParaHoje ? (
         <p className="flex items-center gap-2 font-medium text-foreground text-sm">
           <Play
             aria-hidden="true"
