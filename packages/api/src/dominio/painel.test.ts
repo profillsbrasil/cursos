@@ -65,11 +65,8 @@ describe("montarPainel com o caso do protótipo", () => {
       "em_breve",
     ]);
     expect(fabrica?.aulas).toEqual({ feitas: 0, pct: 0, total: 3 });
-    expect(fabrica?.cursos[0]?.primeiroModulo).toEqual({
-      aulas: 3,
-      duracaoSeg: 1902,
-      titulo: "Segurança da máquina",
-    });
+    // O tamanho do curso inteiro, que a linha sob a capa mostra.
+    expect(fabrica?.cursos[0]).toMatchObject({ aulas: 3, duracaoSeg: 1902 });
     expect(fabrica?.situacao).toBe("em_curso");
   });
 

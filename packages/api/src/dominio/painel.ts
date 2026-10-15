@@ -109,8 +109,6 @@ export interface CursoVM {
    * admin lê; null quando o curso não abre aula ou espera a prova.
    */
   moduloAtual: { numero: number; titulo: string } | null;
-  /** Primeiro módulo do curso, para a etiqueta "Segurança da máquina · 3 aulas · 25 min". */
-  primeiroModulo: { aulas: number; duracaoSeg: number; titulo: string } | null;
   progresso: Progresso;
   slug: string;
   tema: string;
@@ -269,7 +267,6 @@ function cursoVM(
   atividade: ReadonlyMap<AulaId, string>
 ): CursoVM {
   const aulas = c.modulos.flatMap((m) => m.aulas);
-  const [primeiro] = c.modulos;
   return {
     aulas: aulas.length,
     capa: c.capa,
@@ -278,13 +275,6 @@ function cursoVM(
     extra: c.extra,
     id: c.id,
     moduloAtual: ondeNoCurso(c, estado, h, atividade)?.modulo ?? null,
-    primeiroModulo: primeiro
-      ? {
-          aulas: primeiro.aulas.length,
-          duracaoSeg: somaSeg(primeiro.aulas),
-          titulo: primeiro.titulo,
-        }
-      : null,
     progresso: progresso(c, h.assistidas),
     slug: c.slug,
     tema: c.tema,
