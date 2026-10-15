@@ -49,20 +49,20 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
 
 /** A origem decide, como no check liberacao_troca_nao_revoga; o lançamento só dá o id e o valor. */
 function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
-  const [direta] = linha.liberacoes;
-  if (direta?.origem === "troca") {
-    if (!direta.trocaLancamento) {
+  const [ativa] = linha.liberacoes;
+  if (ativa?.origem === "troca") {
+    if (!ativa.trocaLancamento) {
       throw new Error(
         `Liberação de troca do curso ${linha.id} sem lançamento de troca.`
       );
     }
     return {
-      lancamentoId: direta.trocaLancamento.id,
-      pago: -direta.trocaLancamento.pontos,
+      lancamentoId: ativa.trocaLancamento.id,
+      pago: -ativa.trocaLancamento.pontos,
       tipo: "trocado",
     };
   }
-  return direta ? { tipo: "liberado" } : { tipo: "nenhum" };
+  return ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
 }
 
 export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {

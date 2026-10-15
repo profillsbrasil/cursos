@@ -29,12 +29,10 @@ export const pontoLancamento = tabela(
     userId: text().notNull(),
   },
   (t) => [
-    // ::text: o migrador roda tudo numa transação, e o literal 'troca', que entrou no enum
-    // por ADD VALUE, daria "unsafe use of new value".
     check(
       "ponto_lancamento_referencia",
       sql`num_nonnulls(${t.aulaId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}) = 1
-          and case ${t.motivo}::text
+          and case ${t.motivo}
             when 'aula_assistida' then ${t.aulaId} is not null
             when 'curso_concluido' then ${t.cursoId} is not null
             when 'sequencia_7_dias' then ${t.diaMarco} is not null
@@ -44,7 +42,7 @@ export const pontoLancamento = tabela(
     ),
     check(
       "ponto_lancamento_sinal",
-      sql`case ${t.motivo}::text when 'troca' then ${t.pontos} < 0 else ${t.pontos} > 0 end`
+      sql`case ${t.motivo} when 'troca' then ${t.pontos} < 0 else ${t.pontos} > 0 end`
     ),
     // NULL é distinto de NULL: cada unique só morde o motivo que preenche a coluna
     unique("ponto_aula_uma_vez").on(t.userId, t.aulaId),

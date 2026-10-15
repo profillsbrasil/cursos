@@ -27,7 +27,8 @@ Saem a trilha, a tabela `trilha_curso`, o curso solto, os "Cursos rápidos", a r
 - O alcance de uma pessoa é a lista dos cursos liberados a ela. Nenhum curso espera outro para abrir.
 - A troca recusa o curso que a pessoa já tem liberado, pelo admin ou por troca.
 - O acompanhamento do admin é sempre de um curso. A situação na trilha deixa de existir.
-- Comunicado, certificado, níveis, progresso, retomada, sequência e troca não mudam: já eram por curso ou por aula.
+- Comunicado, certificado, níveis, progresso, sequência e troca não mudam: já eram por curso ou por aula.
+- A retomada não leva mais a trilha. Sem curso em andamento nem em prova, o Continuar vai para o primeiro curso não iniciado na ordem da tela, não mais para o primeiro de uma trilha antes dos soltos.
 
 Fica para os próximos PRs:
 

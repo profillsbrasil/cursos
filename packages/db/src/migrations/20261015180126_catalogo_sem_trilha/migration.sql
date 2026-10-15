@@ -25,9 +25,9 @@ ALTER TABLE "liberacao" ALTER COLUMN "curso_id" SET NOT NULL;--> statement-break
 DROP INDEX "liberacao_curso_ativa_unica";--> statement-breakpoint
 CREATE UNIQUE INDEX "liberacao_curso_ativa_unica" ON "liberacao" ("user_id","curso_id") WHERE "revogada_em" is null;--> statement-breakpoint
 ALTER TABLE "liberacao" DROP CONSTRAINT "liberacao_troca_pelo_aluno", ADD CONSTRAINT "liberacao_troca_pelo_aluno" CHECK ("origem"::text <> 'troca' or "liberada_por" = "user_id");--> statement-breakpoint
-ALTER TABLE "ponto_lancamento" ADD CONSTRAINT "ponto_lancamento_sinal" CHECK (case "motivo"::text when 'troca' then "pontos" < 0 else "pontos" > 0 end);--> statement-breakpoint
+ALTER TABLE "ponto_lancamento" ADD CONSTRAINT "ponto_lancamento_sinal" CHECK (case "motivo" when 'troca' then "pontos" < 0 else "pontos" > 0 end);--> statement-breakpoint
 ALTER TABLE "ponto_lancamento" ADD CONSTRAINT "ponto_lancamento_referencia" CHECK (num_nonnulls("aula_id", "curso_id", "dia_marco", "liberacao_id") = 1
-          and case "motivo"::text
+          and case "motivo"
             when 'aula_assistida' then "aula_id" is not null
             when 'curso_concluido' then "curso_id" is not null
             when 'sequencia_7_dias' then "dia_marco" is not null

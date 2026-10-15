@@ -210,8 +210,8 @@ describe("paraCursoDaTroca", () => {
   });
 
   test("liberação do admin dá liberado", () => {
-    const direta = { origem: "admin", trocaLancamento: null } as const;
-    expect(paraCursoDaTroca(linha({ liberacoes: [direta] })).acesso.tipo).toBe(
+    const doAdmin = { origem: "admin", trocaLancamento: null } as const;
+    expect(paraCursoDaTroca(linha({ liberacoes: [doAdmin] })).acesso.tipo).toBe(
       "liberado"
     );
   });

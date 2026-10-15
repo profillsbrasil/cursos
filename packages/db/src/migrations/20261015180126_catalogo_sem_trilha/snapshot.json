@@ -1582,14 +1582,14 @@
       "table": "posicao_aula"
     },
     {
-      "value": "num_nonnulls(\"aula_id\", \"curso_id\", \"dia_marco\", \"liberacao_id\") = 1\n          and case \"motivo\"::text\n            when 'aula_assistida' then \"aula_id\" is not null\n            when 'curso_concluido' then \"curso_id\" is not null\n            when 'sequencia_7_dias' then \"dia_marco\" is not null\n            when 'troca' then \"liberacao_id\" is not null\n            else false\n          end",
+      "value": "num_nonnulls(\"aula_id\", \"curso_id\", \"dia_marco\", \"liberacao_id\") = 1\n          and case \"motivo\"\n            when 'aula_assistida' then \"aula_id\" is not null\n            when 'curso_concluido' then \"curso_id\" is not null\n            when 'sequencia_7_dias' then \"dia_marco\" is not null\n            when 'troca' then \"liberacao_id\" is not null\n            else false\n          end",
       "name": "ponto_lancamento_referencia",
       "entityType": "checks",
       "schema": "public",
       "table": "ponto_lancamento"
     },
     {
-      "value": "case \"motivo\"::text when 'troca' then \"pontos\" < 0 else \"pontos\" > 0 end",
+      "value": "case \"motivo\" when 'troca' then \"pontos\" < 0 else \"pontos\" > 0 end",
       "name": "ponto_lancamento_sinal",
       "entityType": "checks",
       "schema": "public",
