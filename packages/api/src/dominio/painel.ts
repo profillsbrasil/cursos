@@ -57,6 +57,14 @@ export interface CursoLinha extends LinhaDaCapa {
   titulo: string;
 }
 
+export interface TrilhaLinha {
+  cursos: readonly { curso: CursoLinha; posicao: number }[];
+  descricao: string;
+  id: string;
+  slug: string;
+  titulo: string;
+}
+
 export interface LinhasPainel {
   assistidas: readonly { assistidaEm: Date; aulaId: string }[];
   certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
@@ -71,13 +79,7 @@ export interface LinhasPainel {
   liberacoes: readonly {
     curso: CursoLinha | null;
     liberadaEm: Date;
-    trilha: {
-      cursos: { curso: CursoLinha; posicao: number }[];
-      descricao: string;
-      id: string;
-      slug: string;
-      titulo: string;
-    } | null;
+    trilha: TrilhaLinha | null;
   }[];
   posicoes: readonly {
     atualizadaEm: Date;
@@ -268,6 +270,19 @@ function cursoVM(c: CursoCatalogo, estado: EstadoCurso, h: Historico): CursoVM {
   };
 }
 
+/** Borda: a trilha com os cursos em ordem de posição. */
+export function paraTrilha(trilha: TrilhaLinha): TrilhaCatalogo {
+  return {
+    cursos: [...trilha.cursos]
+      .sort((a, b) => a.posicao - b.posicao)
+      .map((x) => paraCatalogo(x.curso)),
+    descricao: trilha.descricao,
+    id: trilha.id as TrilhaId,
+    slug: trilha.slug,
+    titulo: trilha.titulo,
+  };
+}
+
 /** Trilhas liberadas, na ordem da liberação, sem repetir. */
 function trilhasLiberadas(l: LinhasPainel): TrilhaCatalogo[] {
   const vistas = new Set<string>();
@@ -275,21 +290,14 @@ function trilhasLiberadas(l: LinhasPainel): TrilhaCatalogo[] {
   for (const { trilha } of l.liberacoes) {
     if (trilha && !vistas.has(trilha.id)) {
       vistas.add(trilha.id);
-      trilhas.push({
-        cursos: [...trilha.cursos]
-          .sort((a, b) => a.posicao - b.posicao)
-          .map((x) => paraCatalogo(x.curso)),
-        descricao: trilha.descricao,
-        id: trilha.id as TrilhaId,
-        slug: trilha.slug,
-        titulo: trilha.titulo,
-      });
+      trilhas.push(paraTrilha(trilha));
     }
   }
   return trilhas;
 }
 
-function trilhaVM(
+/** A trilha como Meus cursos mostra; o acompanhamento do admin lê a mesma. */
+export function trilhaVM(
   t: TrilhaCatalogo,
   h: Historico,
   liberadosDireto: ReadonlySet<CursoId>

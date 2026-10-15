@@ -5,8 +5,19 @@ import type {
   CursoId,
   EstadoCurso,
   Historico,
-  TrilhaCatalogo,
 } from "./tipos";
+
+/**
+ * O que estado e progresso leem de um curso. O CursoCatalogo serve, e a busca
+ * do admin, que não lê capa nem título de aula, também.
+ */
+export interface CursoComAulas {
+  id: CursoId;
+  /** Em ordem de número, aulas em ordem de posição. */
+  modulos: readonly { aulas: readonly { id: AulaId }[] }[];
+  status: CursoCatalogo["status"];
+  titulo: string;
+}
 
 export interface Progresso {
   feitas: number;
@@ -22,10 +33,10 @@ export interface FaixaNivel {
   total: number;
 }
 
-const aulasDe = (c: CursoCatalogo) => c.modulos.flatMap((m) => m.aulas);
+const aulasDe = (c: CursoComAulas) => c.modulos.flatMap((m) => m.aulas);
 
 export function progresso(
-  curso: CursoCatalogo,
+  curso: CursoComAulas,
   assistidas: ReadonlySet<AulaId>
 ): Progresso {
   const aulas = aulasDe(curso);
@@ -51,7 +62,7 @@ export const numeroDaAula = (indiceNoModulo: number): number =>
   indiceNoModulo + 1;
 
 export function estadoDoCurso(
-  curso: CursoCatalogo,
+  curso: CursoComAulas,
   h: Historico,
   antes: Antecessor
 ): EstadoCurso {
@@ -84,7 +95,7 @@ export function estadoDoCurso(
 
 // Regra sequencial: dobra a lista em ordem e passa o antecessor adiante.
 export function estadosDaTrilha(
-  trilha: TrilhaCatalogo,
+  trilha: { cursos: readonly CursoComAulas[] },
   h: Historico,
   liberadosDireto: ReadonlySet<CursoId>
 ): EstadoCurso[] {

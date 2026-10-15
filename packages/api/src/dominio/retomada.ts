@@ -24,7 +24,8 @@ const cursoRef = (c: CursoCatalogo) => ({
   titulo: c.titulo,
 });
 
-function localizar(curso: CursoCatalogo, aulaId: AulaId) {
+/** O módulo e o número da aula dentro dele, como o aluno vê ("Módulo 8, aula 4"). */
+export function localizar(curso: CursoCatalogo, aulaId: AulaId) {
   for (const modulo of curso.modulos) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
     const aula = modulo.aulas[i];

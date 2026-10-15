@@ -19,7 +19,6 @@ import type {
   DiaISO,
   Historico,
   ModuloCatalogo,
-  TrilhaId,
   VideoDaAula,
 } from "./tipos";
 import { canonizar, type Trecho, type Trechos } from "./trechos";
@@ -86,13 +85,7 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
       .sort((a, b) => a.posicao - b.posicao)
       .map((x) => paraCatalogo(x.curso));
     const estados = estadosDaTrilha(
-      {
-        cursos,
-        descricao: trilhaLinha.descricao,
-        id: trilhaLinha.id as TrilhaId,
-        slug: trilhaLinha.slug,
-        titulo: trilhaLinha.titulo,
-      },
+      { cursos },
       historico,
       new Set<CursoId>(direto ? [curso.id] : [])
     );
