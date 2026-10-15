@@ -231,6 +231,8 @@ A sidebar tem três faixas: o cabeçalho de 68 px (lockup, selo da área, botão
 
 O conteúdo tem padding lateral fluido (clamp de 1 a 3rem), 32 px no topo e 64 px no pé. Seções se separam por 14 px entre título e cartão. Abaixo de 768 px a sidebar vira gaveta, e o conteúdo ganha uma faixa de topo de 56 px com o botão de menu e o ícone da marca de 30 px. O banner de retomada passa a uma coluna em 760 px, com a capa em cima.
 
+A página da aula lê de cima para baixo: a migalha, o título da aula com a linha do módulo ("Módulo 8 · Pilar Urgência · aula 4 de 8 · 11 min"), o vídeo com os controles e, abaixo deles, Anterior à esquerda e Próxima aula à direita, a 16 px de cada vizinho. O título fica acima do vídeo para ser a primeira coisa que a pessoa lê, numa janela de 710 px de altura inclusive. Anterior e Próxima ficam depois dos controles porque a Próxima acende em Sol quando a aula fica assistida, logo abaixo da linha de status que avisa a conquista, e porque o Tab chega ao player antes de sair da aula. Acima de 1080 px a coluna do curso fica à direita, com o topo alinhado ao do título.
+
 ## Elevation & Depth
 
 O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clareiam em degraus, e cada cartão leva um anel de 1 px em `borda`. Sombra existe para o que flutua sobre o conteúdo, como resposta do botão principal ao cursor e ao foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player (`0 2px 6px rgb(0 0 0 / 0.5)`) e o anel duplo do dia na semana.
