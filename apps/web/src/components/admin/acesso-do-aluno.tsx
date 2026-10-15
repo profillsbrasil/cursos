@@ -23,6 +23,7 @@ import {
   fraseNaTrilha,
   SeloDeSituacao,
   seloDaLiberacao,
+  seloDoCurso,
 } from "./acompanhamento";
 import {
   Carregando,
@@ -33,8 +34,6 @@ import { FotoDaPessoa } from "./foto-da-pessoa";
 import { SELO, Secao, Vazio } from "./partes";
 
 const TIPO = { curso: "Curso", trilha: "Trilha" } as const;
-const CONTORNO_NEUTRO =
-  "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset";
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
 
@@ -329,11 +328,11 @@ function useLiberar(
 function Liberado({ selo }: { selo: (el: HTMLSpanElement | null) => void }) {
   return (
     <span
-      className={cn(SELO, "gap-1 bg-ceu/14 text-ceu")}
+      className={cn(SELO, "gap-1.5 bg-ceu/14 text-ceu")}
       ref={selo}
       tabIndex={-1}
     >
-      <Check aria-hidden="true" className="size-3.5" strokeWidth={2.4} />
+      <Check aria-hidden="true" strokeWidth={2.4} />
       Liberado
     </span>
   );
@@ -372,8 +371,11 @@ function LinhaParaLiberar({
   selos?: ReactNode;
   titulo: string;
 }) {
+  // Em lista de 32rem ou mais, o botão fica na coluna da direita mesmo quando os
+  // selos quebram linha. Mais estreita, a linha quebra como texto: um selo longo
+  // não cabe ao lado do botão. A confirmação aberta ocupa a largura toda.
   return (
-    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5">
+    <li className="flex @lg:grid @lg:grid-cols-[minmax(0,1fr)_auto] flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5">
       <span className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
         <span className="font-medium text-foreground">{titulo}</span>
         {selos}
@@ -417,7 +419,7 @@ function LinhaDaTrilha({
       <ConfirmacaoNaLinha
         botao={{ rotulo: "Liberar mesmo assim" }}
         chave={`liberar:${id}`}
-        className="grid basis-full gap-3"
+        className="col-span-full grid basis-full gap-3"
         confirmar={liberar}
         enviando={enviando}
         gatilho={{ nome: `Liberar ${titulo}`, rotulo: "Liberar" }}
@@ -461,7 +463,7 @@ function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
       selos={
         <>
           {c.emProducao ? (
-            <span className={cn(SELO, CONTORNO_NEUTRO)}>Em produção</span>
+            <SeloDeSituacao selo={seloDoCurso("em_producao")} />
           ) : null}
           {c.pelaTrilha ? (
             <span
@@ -546,7 +548,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
               {acesso.trilhas.length === 0 ? (
                 <Vazio>Nenhuma trilha no catálogo.</Vazio>
               ) : (
-                <ul className="divide-y divide-border">
+                <ul className="@container divide-y divide-border">
                   {acesso.trilhas.map((t) => (
                     <LinhaDaTrilha
                       key={t.alvo.id}
@@ -566,7 +568,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
               {acesso.cursos.length === 0 ? (
                 <Vazio>Nenhum curso no catálogo.</Vazio>
               ) : (
-                <ul className="divide-y divide-border">
+                <ul className="@container divide-y divide-border">
                   {acesso.cursos.map((c) => (
                     <LinhaDoCurso c={c} key={c.alvo.id} para={para} />
                   ))}
