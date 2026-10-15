@@ -29,8 +29,8 @@ export interface ComunicadoNaTela {
   curso: CursoDoComunicado | null;
   id: ComunicadoId;
   publicadoEm: string;
-  /** O nome do Clerk, ou o userId quando o Clerk não conhece mais a pessoa. */
-  publicadoPor: string;
+  /** O nome do Clerk; null quando o Clerk não conhece a pessoa. */
+  publicadoPor: string | null;
   texto: string;
   titulo: string;
 }
@@ -46,15 +46,18 @@ export function montarComunicados(
   linhas: LinhasDosComunicados,
   autores: readonly (Pessoa | null)[]
 ): ComunicadosDoAdmin {
+  // Sem nome, usuário nem e-mail no Clerk, `nome` é o próprio userId: fica sem autor.
   const nomes = new Map(
-    autores.flatMap((p) => (p ? [[p.userId, p.nome] as const] : []))
+    autores.flatMap((p) =>
+      p && p.nome !== p.userId ? [[p.userId, p.nome] as const] : []
+    )
   );
   return {
     comunicados: linhas.comunicados.map((c) => ({
       curso: c.curso,
       id: c.id,
       publicadoEm: c.publicadoEm.toISOString(),
-      publicadoPor: nomes.get(c.publicadoPor) ?? c.publicadoPor,
+      publicadoPor: nomes.get(c.publicadoPor) ?? null,
       texto: c.texto,
       titulo: c.titulo,
     })),

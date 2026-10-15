@@ -15,6 +15,9 @@ describe("videoDoTexto", () => {
     `https://youtu.be/${ID}?si=abc`,
     `https://www.youtube.com/embed/${ID}`,
     `https://www.youtube.com/shorts/${ID}`,
+    `youtu.be/${ID}`,
+    `www.youtube.com/watch?v=${ID}`,
+    `youtube.com/shorts/${ID}`,
     `http://www.youtube.com/watch?feature=share&v=${ID}`,
   ])("aceita %s", (texto) => {
     expect(videoDoTexto(texto)).toEqual({
@@ -36,6 +39,8 @@ describe("videoDoTexto", () => {
     "https://www.youtube.com/watch",
     `https://www.youtube.com/playlist?list=${ID}`,
     `javascript:${ID}`,
+    `youtu.be.evil.com/${ID}`,
+    `evil.com/watch?v=${ID}`,
   ])("recusa %s", (texto) => {
     expect(videoDoTexto(texto)).toBeNull();
   });

@@ -328,7 +328,8 @@ function ItemDoComunicado({
               </span>
             )}
             <span className="tabular-nums">
-              {fmtData(c.publicadoEm)}, por {c.publicadoPor}
+              {fmtData(c.publicadoEm)}
+              {c.publicadoPor === null ? null : `, por ${c.publicadoPor}`}
             </span>
           </p>
         </div>

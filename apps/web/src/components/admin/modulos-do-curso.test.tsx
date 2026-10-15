@@ -1,11 +1,25 @@
 import { describe, expect, test } from "bun:test";
+import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
+import type { Versao, VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import {
+  apoiado,
+  type EstadoApoiado,
+  estadoApoiadoEm,
+  rascunhoSujo,
+} from "@/lib/use-rascunho-apoiado";
+
 import { ErrosDoEditor } from "./erros-do-editor";
-import { type Bloco, NENHUM_ABERTO } from "./estado-do-editor";
+import { type Bloco, NENHUM_ABERTO, REGRAS_DO_CURSO } from "./estado-do-editor";
 import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
-import { ID, rascunhoDoCurso } from "./rascunho-do-curso";
+import {
+  ID,
+  lerRascunho,
+  type RascunhoDoCurso,
+  rascunhoDoCurso,
+} from "./rascunho-do-curso";
 
 const BOTAO = /<button[^>]*>[\s\S]*?<\/button>/g;
 
@@ -85,6 +99,78 @@ describe("bloco aberto", () => {
     expect(remover).toContain('aria-disabled="true"');
     expect(remover).toContain(`aria-describedby="aula-${EDICAO.A1}-uso"`);
     expect(remover).toContain('type="button"');
+  });
+});
+
+describe("campo de vídeo da aula salva", () => {
+  const documento = documentoDeExemplo();
+  const [primeira, ...resto] = documento.modulos[0].aulas;
+  documento.modulos[0].aulas = [
+    {
+      ...primeira,
+      video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" },
+    },
+    ...resto,
+  ];
+  const rascunho = rascunhoDoCurso(documento);
+  const html = renderToStaticMarkup(
+    <BlocoDoModulo
+      assistidasPorAula={{}}
+      bloco={{ tipo: "aberto" }}
+      despachar={nada}
+      indice={0}
+      linhaAberta={LINHA_FECHADA}
+      modulo={rascunho.modulos[0]}
+      modulos={rascunho.modulos}
+      mudarBlocos={nada}
+      niveis={rascunho.niveis}
+    />
+  );
+
+  test("o campo mostra o link curto", () => {
+    expect(tagDoId(html, `aula-${EDICAO.A1}-video`)).toContain(
+      'value="youtu.be/aqz-KE-bpKQ"'
+    );
+  });
+
+  test("o link curto volta ao mesmo vídeo no documento", () => {
+    const lido = lerRascunho(rascunho, { versao: null });
+    expect(
+      lido.tipo === "lido" ? lido.documento.modulos[0].aulas[0].video : null
+    ).toEqual({ id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" });
+  });
+
+  test("o link longo colado e salvo volta ao campo curto, sem deixar o editor sujo", () => {
+    const sujo = (e: EstadoApoiado<DocumentoDoCurso, RascunhoDoCurso>) =>
+      rascunhoSujo(REGRAS_DO_CURSO, e);
+    const inicio = estadoApoiadoEm(
+      REGRAS_DO_CURSO,
+      documentoDeExemplo("v1" as Versao)
+    );
+    const colado = apoiado(REGRAS_DO_CURSO, inicio, {
+      mudanca: {
+        id: EDICAO.A1,
+        mudanca: { video: "https://www.youtube.com/watch?v=aqz-KE-bpKQ" },
+        tipo: "aula_editada",
+      },
+      tipo: "mudou",
+    });
+    const lido = lerRascunho(colado.rascunho, { versao: "v1" as Versao });
+    if (lido.tipo !== "lido") {
+      throw new Error("o rascunho colado não leu");
+    }
+    const salvo = apoiado(REGRAS_DO_CURSO, colado, {
+      enviado: colado.rascunho,
+      gravado: { ...lido.documento, versao: "v2" as Versao },
+      tipo: "salvo",
+    });
+
+    expect(sujo(inicio)).toBe(false);
+    expect(sujo(colado)).toBe(true);
+    expect(salvo.rascunho.modulos[0]?.aulas[0]?.video).toBe(
+      "youtu.be/aqz-KE-bpKQ"
+    );
+    expect(sujo(salvo)).toBe(false);
   });
 });
 
