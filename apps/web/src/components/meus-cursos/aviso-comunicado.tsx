@@ -7,10 +7,11 @@ import { fmtData, fmtDiaCurto } from "@/lib/formato";
 // Sua semana e as trilhas. O texto abre por baixo, no `details`, sem JavaScript.
 export function FaixaComunicado({ comunicado }: { comunicado: ComunicadoVM }) {
   return (
-    <details className="group rounded-[14px] bg-card text-card-foreground ring-1 ring-border">
+    <details className="group min-w-0 rounded-[14px] bg-card text-card-foreground ring-1 ring-border">
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-[14px] px-4 py-2.5 transition-colors duration-150 hover:bg-white/8 group-open:rounded-b-none motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
         <Megaphone aria-hidden="true" className="size-4 shrink-0 text-ceu" />
-        <span className="min-w-0 flex-1 truncate font-semibold text-sm text-titulo">
+        {/* Fechada, o título corta em uma linha; aberta, ele quebra e aparece inteiro. */}
+        <span className="min-w-0 flex-1 truncate font-semibold text-sm text-titulo group-open:whitespace-normal">
           <span className="sr-only">Comunicado: </span>
           {comunicado.titulo}
         </span>
