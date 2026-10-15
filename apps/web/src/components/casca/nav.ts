@@ -53,12 +53,11 @@ export const COOKIE_DA_SIDEBAR = "sidebar_state";
 export const RECUO = 14;
 /** O quadrado recolhido: o item, o botão do cabeçalho, o Continuar e o cartão de conta. */
 const LADO = 40;
-/** O border-r do sidebar-container, que fica dentro da largura (border-box). */
-const BORDA = 1;
 
+/** Sem borda no sidebar-container (a Moldura de index.css a tira): a largura recolhida é só recuo, lado e recuo. */
 export const LARGURAS_DA_SIDEBAR = {
   "--sidebar-width": "15.5rem",
-  "--sidebar-width-icon": `${RECUO + LADO + RECUO + BORDA}px`,
+  "--sidebar-width-icon": `${RECUO + LADO + RECUO}px`,
 };
 
 const ALTURA_DO_ITEM = LADO;

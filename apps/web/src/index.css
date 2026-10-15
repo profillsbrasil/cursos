@@ -39,6 +39,69 @@
   }
 }
 
+/* A Moldura, do md (768 px, onde a sidebar deixa de ser gaveta) para cima: a
+   sidebar é a moldura da janela, sem borda, e o conteúdo é um painel arredondado
+   por cima dela. Sem borda, a largura recolhida é a de LARGURAS_DA_SIDEBAR (nav.ts).
+   A página rola pelo documento, não pelo painel: o Next.js rola a janela ao
+   navegar, e a coluna do player e o scroll-padding-top do editor contam com isso.
+   Para a moldura parecer parada, o ::before do painel a desenha fixa por cima: um
+   retângulo vazado com o raio do painel, cuja sombra de 100vmax pinta tudo o que
+   fica fora dele na cor da sidebar, e o clip-path corta essa sombra na borda da
+   sidebar, menos 1 px para o anel. O z-index 20 passa dos sticky (z-10) e do
+   sidebar-container (z-10), e fica abaixo de menu, dica, popover e diálogo (z-50)
+   e do toast. */
+:root {
+  --moldura: 10px;
+  --raio-do-painel: 24px;
+}
+
+@media (width >= 48rem) {
+  [data-slot="sidebar-wrapper"] {
+    background-color: var(--sidebar);
+  }
+
+  [data-slot="sidebar-container"] {
+    border-width: 0;
+  }
+
+  [data-slot="sidebar-inset"] {
+    min-height: calc(100svh - 2 * var(--moldura));
+    margin: var(--moldura) var(--moldura) var(--moldura) 0;
+    border-radius: var(--raio-do-painel);
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 10px 30px rgb(0 0 0 / 0.35);
+  }
+
+  [data-slot="sidebar-inset"]::before {
+    position: fixed;
+    inset: var(--moldura) var(--moldura) var(--moldura) var(--sidebar-width);
+    z-index: 20;
+    pointer-events: none;
+    content: "";
+    border-radius: var(--raio-do-painel);
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 10px 30px rgb(0 0 0 / 0.35),
+      0 0 0 100vmax var(--sidebar);
+    clip-path: inset(-100vmax -100vmax -100vmax -1px);
+  }
+
+  [data-slot="sidebar"][data-collapsible="icon"]
+    ~ [data-slot="sidebar-inset"]::before {
+    left: var(--sidebar-width-icon);
+  }
+}
+
+/* A moldura fixa anda junto com a largura da sidebar: na hora por padrão, e com a
+   mesma transição dela só quando data-animando está ligado. */
+@media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+  [data-slot="sidebar-wrapper"][data-animando]
+    [data-slot="sidebar-inset"]::before {
+    transition: left 200ms var(--ease-forte);
+  }
+}
+
 /* Nenhum contorno de foco (#30), por decisão do dono, também no alto contraste do
    Windows. O foco de teclado é o hover de cada controle (a variante hover: do
    globals.css). Fora de camada, a regra vence todo outline-* dos componentes e o
