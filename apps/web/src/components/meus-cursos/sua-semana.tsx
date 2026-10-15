@@ -34,7 +34,13 @@ const ehHoje = (s: StatusDia) => s === "hoje_estudou" || s === "hoje_pendente";
 
 // O card expõe o padding em --pad; cada divisória volta o padding com margem
 // negativa, para a linha ir de uma borda à outra do card.
-export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
+export function SuaSemana({
+  resumo,
+  temCursoTrocavelNaVitrine,
+}: {
+  resumo: ResumoAluno;
+  temCursoTrocavelNaVitrine: boolean;
+}) {
   return (
     <aside
       aria-labelledby="semana-titulo"
@@ -42,7 +48,7 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
     >
       <div className="flex items-center justify-between gap-2.5">
         <h2
-          className="font-bold text-lg text-titulo tracking-tight"
+          className="font-bold text-lg text-titulo leading-[1.3] tracking-tight"
           id="semana-titulo"
         >
           Sua semana
@@ -99,21 +105,29 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
       <dl className="-mx-(--pad) grid">
         <div className="flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5">
           <dt className="text-muted-foreground text-sm">Pontos na semana</dt>
-          <dd className="font-bold text-lg text-titulo tabular-nums">
+          <dd className="font-bold text-lg text-titulo tabular-nums leading-[1.3]">
             {fmtPts(resumo.pontosSemana)}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3 border-border border-y px-(--pad) py-2.5">
+        <div
+          className={cn(
+            "flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5",
+            temCursoTrocavelNaVitrine && "border-b"
+          )}
+        >
           <dt className="text-muted-foreground text-sm">Seu saldo</dt>
-          <dd className="font-bold text-lg text-sol tabular-nums">
+          <dd className="font-bold text-lg text-sol tabular-nums leading-[1.3]">
             {fmtPts(resumo.saldo)}
           </dd>
         </div>
       </dl>
-      <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
-        <Gift aria-hidden="true" />
-        Trocar pontos
-      </Link>
+      {/* Sem curso trocável na vitrine, o botão levaria a uma vitrine vazia. */}
+      {temCursoTrocavelNaVitrine ? (
+        <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
+          <Gift aria-hidden="true" />
+          Trocar pontos
+        </Link>
+      ) : null}
     </aside>
   );
 }

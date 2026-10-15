@@ -1,70 +1,19 @@
-import type {
-  CursoVM,
-  PainelMeusCursos,
-  ResumoAluno,
-  TrilhaVM,
-} from "@cursos/api/dominio/painel";
+import type { PainelMeusCursos, ResumoAluno } from "@cursos/api/dominio/painel";
 
-import { fmtHoras, fmtMin, plural } from "@/lib/formato";
+import { plural } from "@/lib/formato";
 
 import { AvisoComunicado } from "./aviso-comunicado";
 import { BannerContinuar } from "./banner-continuar";
-import { CapaCurso, type Etiqueta, sizesDaCapa } from "./capa-curso";
-import { CartaoTrilha } from "./cartao-trilha";
+import {
+  CapaCurso,
+  etiquetaDeDuracao,
+  GRADE_CAPAS,
+  SIZES_DA_GRADE,
+} from "./capa-curso";
 import { PainelVazio } from "./painel-vazio";
 import { Secao } from "./secao";
 import { SuaSemana } from "./sua-semana";
-
-const GRADE_TRILHAS =
-  "grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-4";
-const GRADE_CAPAS =
-  "grid grid-cols-[repeat(auto-fit,minmax(min(100%,250px),1fr))] gap-x-[18px] gap-y-[22px]";
-
-const duracao = (c: CursoVM): Etiqueta => ({
-  texto: `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`,
-  tipo: "duracao",
-});
-
-function CapasDaTrilha({ trilha }: { trilha: TrilhaVM }) {
-  return (
-    <Secao
-      id={`trilha-${trilha.slug}`}
-      subtitulo={trilha.descricao}
-      titulo={trilha.titulo}
-    >
-      <div className={GRADE_CAPAS} data-bloco="capas">
-        {trilha.cursos.map((c, _, todos) => {
-          const m = c.primeiroModulo;
-          const sizes = sizesDaCapa(todos.length);
-          if (c.estado.tipo === "em_breve") {
-            return (
-              <CapaCurso
-                curso={c}
-                etiqueta={{ tipo: "em_breve" }}
-                key={c.id}
-                meta={`${m?.titulo ?? c.tema} · em produção`}
-                sizes={sizes}
-              />
-            );
-          }
-          const comece = c.posicao === 1 && c.estado.tipo === "nao_iniciado";
-          const resumoModulo = m
-            ? `${m.titulo} · ${plural(m.aulas, "aula", "aulas")} · ${fmtMin(m.duracaoSeg)}`
-            : c.tema;
-          return (
-            <CapaCurso
-              curso={c}
-              etiqueta={comece ? { tipo: "comece" } : duracao(c)}
-              key={c.id}
-              meta={resumoModulo}
-              sizes={sizes}
-            />
-          );
-        })}
-      </div>
-    </Secao>
-  );
-}
+import { Trilha } from "./trilha";
 
 // Omite a parte que dá zero e concorda o participio: "1 trilha liberada para você".
 function liberados({ soltos, trilhas }: PainelMeusCursos) {
@@ -94,15 +43,25 @@ function Cabecalho({ painel }: { painel: PainelMeusCursos }) {
 }
 
 // A página inteira a partir do painel e do resumo. A busca de dados fica na page.tsx.
+// As trilhas vêm antes dos cursos rápidos: o conteúdo se organiza em trilhas, e o
+// curso solto é a exceção.
 export function ConteudoMeusCursos({
   conta,
-  painel,
+  painel: doServidor,
   resumo,
+  temCursoTrocavelNaVitrine,
 }: {
   conta: string | null;
   painel: PainelMeusCursos;
   resumo: ResumoAluno;
+  temCursoTrocavelNaVitrine: boolean;
 }) {
+  // A trilha sem curso saiu de uso: o admin tira os cursos dela para isso, porque
+  // a trilha liberada não se apaga. Ela não aparece nem conta no cabeçalho.
+  const painel = {
+    ...doServidor,
+    trilhas: doServidor.trilhas.filter((t) => t.cursos.length > 0),
+  };
   if (painel.trilhas.length === 0 && painel.soltos.length === 0) {
     return (
       <>
@@ -119,45 +78,33 @@ export function ConteudoMeusCursos({
       <div className="grid gap-10 max-[760px]:gap-8">
         <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
           <BannerContinuar retomada={painel.retomada} />
-          <SuaSemana resumo={resumo} />
+          <SuaSemana
+            resumo={resumo}
+            temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+          />
         </div>
-        {painel.trilhas.length > 0 && (
-          <Secao
-            id="minhas-trilhas"
-            subtitulo="Em ordem, sem prazo"
-            titulo="Minhas trilhas"
-          >
-            <div className={GRADE_TRILHAS} data-bloco="trilhas">
-              {painel.trilhas.map((t) => (
-                <CartaoTrilha key={t.id} trilha={t} />
-              ))}
-            </div>
-          </Secao>
-        )}
+        {painel.trilhas.map((t) => (
+          <Trilha key={t.id} trilha={t} />
+        ))}
         {painel.soltos.length > 0 && (
           <Secao
             id="cursos-rapidos"
             subtitulo="Liberados para você"
             titulo="Cursos rápidos"
           >
-            <div className={GRADE_CAPAS} data-bloco="capas">
+            <div className={GRADE_CAPAS}>
               {painel.soltos.map((c) => (
                 <CapaCurso
                   curso={c}
-                  etiqueta={duracao(c)}
+                  etiqueta={etiquetaDeDuracao(c)}
                   key={c.id}
                   meta={c.extra ? `${c.tema} · ${c.extra}` : c.tema}
-                  sizes={sizesDaCapa(painel.soltos.length)}
+                  sizes={SIZES_DA_GRADE}
                 />
               ))}
             </div>
           </Secao>
         )}
-        {painel.trilhas
-          .filter((t) => t.cursos.length >= 2)
-          .map((t) => (
-            <CapasDaTrilha key={t.id} trilha={t} />
-          ))}
         {painel.comunicado ? (
           <AvisoComunicado comunicado={painel.comunicado} />
         ) : null}

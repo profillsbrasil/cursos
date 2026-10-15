@@ -36,10 +36,20 @@ typography:
     letterSpacing: "-0.025em"
   title-section:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.25rem"
+    fontSize: "1.5rem"
     fontWeight: 700
-    lineHeight: 1.4
+    lineHeight: 1.33
     letterSpacing: "-0.025em"
+  title-card:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: 1.3
+  title-block:
+    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 600
+    lineHeight: 1.5
   body:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.875rem"
@@ -174,7 +184,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Sol, amarelo damasco** (`sol`): o botão principal, a pílula do link ativo, o preenchimento das barras de progresso, o botão redondo de play, o saldo de pontos e o segundo verso dos títulos de retomada. Sob o cursor e com o foco de teclado, o botão e a pílula do link ativo clareiam para `sol-hover`. Texto sobre Sol é sempre `sobre-cor`.
 
 ### Secondary
-- **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px dos cartões de curso e de trilha sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em breve" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
+- **Céu, azul-rei pálido** (`ceu`): a borda do campo focado ou sob o cursor, o anel de 1 px das capas de curso sob o cursor e com foco, a seleção de texto, o selo "Concluído", o selo "Em produção" em contorno, o selo da área ("Admin") ao lado da marca, a seta da linha da busca de pessoas sob o cursor e com foco, e ícones informativos como o do próximo nível.
 
 ### Tertiary
 - **Canela** (`canela`): a chama da sequência de dias, o selo "Falta a prova" e o fundo das iniciais no avatar.
@@ -213,10 +223,13 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 ### Hierarchy
 - **Headline** (700, clamp de 24 a 32 px, 1,15 com retomada e 1,25 no banner vazio): o título do banner de retomada em Meus cursos, com o segundo verso em Sol.
 - **Title page** (700, 30 px, letra apertada): o `h1` das páginas, sempre em `titulo`. As telas de erro e de não encontrado usam 24 px, e o título da aula vai de 22 a 30 px.
-- **Title section** (700, 20 px, letra apertada): o `h2` das seções do admin, com o resumo em 14 px à direita.
+- **Title section** (700, 24 px, 1,33, letra apertada): o `h2` das seções (as trilhas e os cursos rápidos de Meus cursos, Cursos para trocar e Extrato recente), com o resumo em 14 px à direita. Seção e cartão formam um par fixo: 24 px sobre os 18 px do Title card, razão de 1,33, e 30 px do Title page sobre os 24 px, razão de 1,25. O tamanho sozinho separa os três níveis, sem depender do peso. A Headline do banner de retomada fica fora dessa conta: abaixo de cerca de 920 px de largura o clamp dela para no piso de 24 px e empata com a seção, e o que a separa é o cartão do banner, a entrelinha de 1,15 e o segundo verso em Sol. O `h2` das seções do admin (`admin/partes.tsx`) ainda usa 20 px e passa a 24 px no próximo ajuste do admin.
+- **Title card** (600, 18 px, 1,3): o `h3` do cartão de curso em Meus cursos e do cartão de troca. No mesmo degrau, em 700 e com a mesma entrelinha de 1,3, ficam o título do cartão Sua semana e o do painel vazio, os números de Sua semana e o preço do cartão de troca.
+- **Title block** (600, 16 px): o título da coluna do curso no player e o do aviso de comunicado e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
+- **Mono** (Geist Mono): os pontos da linha de status do player ("+10 pts"), em 600 e 16 px.
 - **Body** (400, 14 px): texto corrido, células de tabela, campos. Parágrafos longos limitados a 60ch.
 - **Label** (600, 13 a 14 px): botões, nomes no menu, rótulos de campo.
-- **Caption** (400 ou 600, 12 px): selos de estado, números do cartão de conta, "Em breve" no menu, cabeçalho de tabela.
+- **Caption** (400 ou 600, 12 px): selos de estado, números do cartão de conta, rótulos das placas Saldo e Sequência no menu da conta, "Em breve" no menu, cabeçalho de tabela.
 
 ### Named Rules
 **The Tabular Numbers Rule.** Todo número que muda ou se compara (pontos, dias, porcentagem, contagem de tabela) usa `tabular-nums`.
@@ -231,19 +244,21 @@ A sidebar tem três faixas: o cabeçalho de 68 px (lockup, selo da área, botão
 
 O conteúdo tem padding lateral fluido (clamp de 1 a 3rem), 32 px no topo e 64 px no pé. Seções se separam por 14 px entre título e cartão. Abaixo de 768 px a sidebar vira gaveta, e o conteúdo ganha uma faixa de topo de 56 px com o botão de menu e o ícone da marca de 30 px. O banner de retomada passa a uma coluna em 760 px, com a capa em cima.
 
+A página da aula lê de cima para baixo: a migalha, o título da aula com a linha do módulo ("Módulo 8 · Pilar Urgência · aula 4 de 8 · 11 min"), o vídeo com os controles e, abaixo deles, Anterior à esquerda e Próxima aula à direita, a 16 px de cada vizinho. O título fica acima do vídeo para ser a primeira coisa que a pessoa lê, numa janela de 710 px de altura inclusive. Anterior e Próxima ficam depois dos controles porque a Próxima acende em Sol quando a aula fica assistida, logo abaixo da linha de status que avisa a conquista, e porque o Tab chega ao player antes de sair da aula. O custo: numa janela de 710 px de altura e 1440 px de largura, o card do player termina em 697 px e Anterior e Próxima começam em 713 px, então a pessoa rola para chegar à Próxima. Num curso de uma aula só não há Anterior nem Próxima, e a navegação some sem deixar vão. Acima de 1080 px a coluna do curso fica à direita, com o topo alinhado ao do título.
+
 ## Elevation & Depth
 
 O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clareiam em degraus, e cada cartão leva um anel de 1 px em `borda`. Sombra existe para o que flutua sobre o conteúdo, como resposta do botão principal ao cursor e ao foco de teclado, e em três marcas pequenas em repouso: o selo de saldo, o cursor da barra do player (`0 2px 6px rgb(0 0 0 / 0.5)`) e o anel duplo do dia na semana.
 
 ### Shadow Vocabulary
 - **Brilho do botão** (`box-shadow: 0 6px 18px rgb(255 204 1 / 0.28)`, o token `shadow-brilho`): o botão amarelo e a pílula do link ativo sob o cursor e com o foco de teclado.
-- **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos.
+- **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos, junto com o gradiente radial em Sol a 16% no canto do cartão. Os dois só aparecem quando a vitrine da pessoa tem curso trocável, um que ela ainda não alcança; sem ele, o saldo fica plano, porque não há para onde chamar.
 - **Flutuante** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.45)`): a barra de salvar presa ao pé dos editores, com `backdrop-blur`.
 - **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta.
 - **Anel de conquista** (anel de 3 px em Sol a 35%): o cartão de conta quando o player registra pontos.
 
 ### Named Rules
-**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.
+**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos, e só enquanto a vitrine tem curso trocável.
 
 ## Shapes
 
@@ -262,8 +277,9 @@ Cheios e redondos, com o peso no amarelo.
 - **Desligado:** opacidade 50% e cursor proibido, também no estado `data-disabled` do Base UI. O botão com `focusableWhenDisabled` segura o foco e sobe a 80% no foco e sob o cursor, porque o hover dele é neutralizado.
 
 ### Chips
-- **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 14 px. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em breve em contorno de 1 px (`texto-apagado` e Céu).
+- **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 14 px. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em produção em contorno de 1 px (`texto-apagado` e Céu). O aluno vê "Em produção" no curso que o admin pôs em produção e no curso publicado ainda sem aula; "Em breve" é só do menu e de "Como ganhar pontos".
 - **Selos do admin:** a mesma pílula, com a palavra do admin. Estudando em Sol a 14%, Nunca abriu em `popover`, Concluído, Concluída e Concluiu tudo em Céu cheio, Em produção e Aguardando produção em contorno Céu, Bloqueado e Sem liberação em contorno `texto-apagado`. Quem parou de estudar não ganha selo nem cor: a frase mostra o dia do último estudo. Nenhum selo é vermelho.
+- **Número na trilha:** círculo de 24 px em `popover`, 600 em 12 px, à esquerda do título da capa. O `ol` não desenha marcador, então o número fica na árvore de acessibilidade e é ele que o leitor de tela lê; o `ol` leva `role="list"`, porque o WebKit tira o papel de lista de quem não tem marcador.
 - **Selo da área:** Céu a 14% com texto Céu, 10 px em caixa alta, encaixado à direita de CURSOS no lockup.
 
 ### Cards / Containers
@@ -272,6 +288,8 @@ Cheios e redondos, com o peso no amarelo.
 - **Shadow Strategy:** nenhuma em repouso (ver Elevation & Depth).
 - **Internal Padding:** fluido, clamp de 22 a 36 px nos cartões grandes; 12 a 20 px em cartões de grade e tabela.
 - **Aviso:** Sol a 10% com anel de Sol a 40%, raio de 14 px, padding de 14 px.
+- **Trilha em Meus cursos:** um bloco por trilha, com o título uma vez (o `h2` da seção, com a descrição à direita), o resumo (progresso, cursos concluídos e a linha "Agora:") num cartão de largura cheia e as capas da trilha logo abaixo, numeradas na ordem. O resumo não é link: a capa do curso da vez já é, e cada curso tem uma parada de teclado só. Na trilha de um curso só, a linha "Agora:" sai, porque repetiria a única capa. O curso que ainda não abre diz "Abre depois de" e o curso anterior. A trilha sem curso não aparece. Os cursos rápidos vêm depois de todas as trilhas.
+- **Grade de capas em Meus cursos:** colunas de 250 px ou mais, no máximo 3 (`GRADE_CAPAS`), também no esqueleto da página, com a coluna vazia preservada, então uma capa sozinha mede o mesmo que uma de três.
 
 ### Inputs / Fields
 - **Style:** 44 px, fundo `fundo`, borda de 1 px em `texto-apagado`, raio de 12 px, padding lateral de 14 px, texto de 14 px.

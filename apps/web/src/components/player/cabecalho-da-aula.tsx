@@ -17,56 +17,79 @@ const SECUNDARIO =
 const DESTAQUE =
   "border-sol bg-sol text-sobre-cor hover:border-sol-hover hover:bg-sol-hover hover:text-sobre-cor hover:shadow-brilho dark:border-sol dark:bg-sol dark:hover:border-sol-hover dark:hover:bg-sol-hover";
 
-export function CabecalhoDaAula({
+// O esqueleto de loading.tsx desenha as duas linhas com estas mesmas classes, então
+// a altura dele bate com a do cabeçalho em toda largura.
+export const TITULO_DA_AULA =
+  "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-tight tracking-[-0.02em]";
+export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
+
+/** O título da aula e a linha do módulo, acima do vídeo: a primeira coisa que a pessoa lê na aula. */
+export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
+  const { aula } = dados;
+  return (
+    <div className="min-w-0">
+      <h1 className={TITULO_DA_AULA}>{aula.titulo}</h1>
+      <p className={LINHA_DO_MODULO}>
+        Módulo {aula.modulo.numero} · {aula.modulo.titulo} · aula{" "}
+        {aula.numeroNoModulo} de {aula.totalNoModulo} ·{" "}
+        {fmtMin(aula.duracaoSeg)}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Anterior e Próxima aula, abaixo dos controles: a Próxima acende em Sol quando a aula
+ * fica assistida, logo abaixo da linha de status que avisa a conquista. Anterior fica à
+ * esquerda e Próxima à direita, também quando a outra não existe. Num curso de uma aula
+ * só não há nada para navegar: sem a `nav`, o grid não ganha um vão vazio e o leitor de
+ * tela não anuncia um landmark sem links.
+ */
+export function NavegacaoEntreAulas({
   dados,
   destacarProxima,
 }: {
   dados: AulaNoPlayer;
   destacarProxima: boolean;
 }) {
-  const { anterior, aula, curso, proxima } = dados;
+  const { anterior, curso, proxima } = dados;
+  if (!(anterior || proxima)) {
+    return null;
+  }
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3.5">
-      <div className="min-w-0">
-        <h1 className="font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-tight tracking-[-0.02em]">
-          {aula.titulo}
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Módulo {aula.modulo.numero} · {aula.modulo.titulo} · aula{" "}
-          {aula.numeroNoModulo} de {aula.totalNoModulo} ·{" "}
-          {fmtMin(aula.duracaoSeg)}
-        </p>
-      </div>
-      <nav aria-label="Navegação entre aulas" className="flex flex-wrap gap-2">
-        {anterior ? (
-          <Link
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              BOTAO,
-              SECUNDARIO
-            )}
-            href={caminhoDaAula(curso.slug, anterior.id)}
-            title={anterior.titulo}
-          >
-            <ArrowLeft aria-hidden="true" />
-            Anterior
-          </Link>
-        ) : null}
-        {proxima ? (
-          <Link
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              BOTAO,
-              destacarProxima ? DESTAQUE : SECUNDARIO
-            )}
-            href={caminhoDaAula(curso.slug, proxima.id)}
-            title={proxima.titulo}
-          >
-            Próxima aula
-            <ArrowRight aria-hidden="true" />
-          </Link>
-        ) : null}
-      </nav>
-    </div>
+    <nav
+      aria-label="Navegação entre aulas"
+      className="flex flex-wrap justify-between gap-2"
+    >
+      {anterior ? (
+        <Link
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            BOTAO,
+            SECUNDARIO
+          )}
+          href={caminhoDaAula(curso.slug, anterior.id)}
+          title={anterior.titulo}
+        >
+          <ArrowLeft aria-hidden="true" />
+          Anterior
+        </Link>
+      ) : null}
+      {proxima ? (
+        <Link
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            BOTAO,
+            "ml-auto",
+            destacarProxima ? DESTAQUE : SECUNDARIO
+          )}
+          href={caminhoDaAula(curso.slug, proxima.id)}
+          title={proxima.titulo}
+        >
+          Próxima aula
+          <ArrowRight aria-hidden="true" />
+        </Link>
+      ) : null}
+    </nav>
   );
 }

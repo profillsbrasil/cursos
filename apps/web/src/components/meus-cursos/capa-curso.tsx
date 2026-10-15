@@ -4,12 +4,19 @@ import { Clock, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { fmtHoras, plural } from "@/lib/formato";
+
 import { SeloEstado } from "./selo-estado";
 
 export type Etiqueta =
   | { tipo: "duracao"; texto: string }
   | { tipo: "comece" }
-  | { tipo: "em_breve" };
+  | { tipo: "em_producao" };
+
+export const etiquetaDeDuracao = (c: CursoVM): Etiqueta => ({
+  texto: `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`,
+  tipo: "duracao",
+});
 
 const ETIQUETA =
   "absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold text-xs";
@@ -23,11 +30,11 @@ function TextoEtiqueta({ etiqueta }: { etiqueta: Etiqueta }) {
           Comece por aqui
         </span>
       );
-    case "em_breve":
+    case "em_producao":
       return (
         <span className={cn(ETIQUETA, "bg-background text-ceu")}>
           <Clock aria-hidden="true" className="size-[13px]" />
-          Em breve
+          Em produção
         </span>
       );
     case "duracao":
@@ -58,21 +65,47 @@ export function sizesDaCapa(n: number) {
   return `${celular}, ${umaColuna}, (max-width: 1147px) calc((100vw - 362px) / 2), calc((100vw - 380px) / 3)`;
 }
 
+/**
+ * Grade das capas de Meus cursos: colunas de 250px ou mais, no máximo 3. A coluna
+ * vazia fica (auto-fill), então a capa de uma trilha de um curso só mede o mesmo
+ * que a de uma trilha de três, em vez de esticar até a largura toda.
+ */
+export const GRADE_CAPAS =
+  "grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(250px,(100%_-_36px)/3)),1fr))] gap-x-[18px] gap-y-[22px]";
+
+/** sizes de toda capa da GRADE_CAPAS: com no máximo 3 colunas, a conta é a de 3 capas. */
+export const SIZES_DA_GRADE = sizesDaCapa(3);
+
 // Link quando o estado abre o curso; div aria-disabled em em_breve e bloqueado.
 export function CapaCurso({
   curso,
   etiqueta,
   meta,
+  ordem,
   sizes,
 }: {
   curso: CursoVM;
   etiqueta: Etiqueta;
   meta: string;
-  /** Vem de sizesDaCapa, com o número de capas da grade. */
+  /**
+   * Número do curso na trilha. Fica na árvore de acessibilidade: o `ol` sem marcador
+   * não tem número falado, e o leitor de tela ouve "1", "2", "3" deste círculo.
+   */
+  ordem?: number;
   sizes: string;
 }) {
   const fechado =
     curso.estado.tipo === "em_breve" || curso.estado.tipo === "bloqueado";
+  const titulo = (
+    <h3
+      className={cn(
+        "font-semibold text-lg text-titulo leading-[1.3] transition-colors",
+        !fechado && "group-hover:text-sol"
+      )}
+    >
+      {curso.titulo}
+    </h3>
+  );
   const conteudo = (
     <>
       <div
@@ -93,14 +126,16 @@ export function CapaCurso({
         />
         <TextoEtiqueta etiqueta={etiqueta} />
       </div>
-      <h3
-        className={cn(
-          "font-semibold text-[17px] text-titulo transition-colors",
-          !fechado && "group-hover:text-sol"
-        )}
-      >
-        {curso.titulo}
-      </h3>
+      {ordem === undefined ? (
+        titulo
+      ) : (
+        <div className="flex items-start gap-2.5">
+          <span className="mt-px inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-popover font-semibold text-foreground text-xs tabular-nums">
+            {ordem}
+          </span>
+          {titulo}
+        </div>
+      )}
       <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-muted-foreground">
         <span>{meta}</span>
         {curso.estado.tipo !== "em_breve" && (
@@ -110,7 +145,10 @@ export function CapaCurso({
       {/* O motivo do bloqueio fica visível: a capa bloqueada não recebe foco nem tem dica no toque. */}
       {curso.estado.tipo === "bloqueado" && (
         <p className="text-[13px] text-muted-foreground">
-          Abre quando você concluir {curso.estado.liberadoPor.titulo}
+          Abre depois de{" "}
+          <b className="font-semibold text-foreground">
+            {curso.estado.liberadoPor.titulo}
+          </b>
         </p>
       )}
     </>

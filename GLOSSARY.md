@@ -6,7 +6,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 |---|---|
 | Trilha | Lista ordenada de cursos. O curso seguinte só abre quando o anterior está concluído. Curso que o aluno já começou ou concluiu continua aberto quando o admin insere ou reordena cursos. Tirar um curso da trilha tira o acesso de quem só o tinha pela trilha, inclusive de quem já o começou ou concluiu. A edição da trilha conta, por curso, quantas dessas pessoas o começaram, e a conta inclui quem concluiu (tem o certificado). O editor mostra esse número para cada curso tirado antes do Salvar. |
 | Curso | Unidade com módulos, aulas, prova e certificado. Existe uma vez no catálogo e está em no máximo uma trilha. |
-| Curso solto | Curso que a pessoa recebeu por liberação direta e que não está numa trilha liberada a ela. Na tela, aparece em "Cursos rápidos". |
+| Curso solto | Curso que a pessoa recebeu por liberação direta e que não está numa trilha liberada a ela. Na tela, aparece em "Cursos rápidos", depois de todas as trilhas. |
 | Módulo | Grupo numerado de aulas dentro de um curso. O aluno vê o número ("Módulo 3"). Os cursos de exemplo começam em 0 ou em 1, e o admin escolhe o número. |
 | Aula | Vídeo com duração em segundos, numa posição dentro de um módulo. A aula mantém o id quando o admin a muda de lugar ou de módulo, e com ele a aula assistida e a posição dos alunos. |
 | Documento do curso | O curso inteiro como o admin edita: campos, capa, níveis, módulos e aulas. O admin salva o documento de uma vez, e o servidor grava o estado final. |
@@ -44,7 +44,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Sequência | Dias úteis seguidos com pelo menos uma aula assistida pela primeira vez. Sábado e domingo não contam nem quebram. |
 | Medalha | Conquista individual por critério. Ainda não existe no código. |
 | Comunicado | Aviso publicado pelo admin, geral ou de um curso. |
-| Estado do curso | Um de seis valores calculados no servidor: `em_breve`, `bloqueado`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. |
+| Estado do curso | Um de seis valores calculados no servidor: `em_breve`, `bloqueado`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. O aluno lê `em_breve` como "Em produção". O termo é o do admin, mas o alcance é maior: `em_breve` vale para o curso com status `em_producao` e para o curso publicado ainda sem aula, que o admin vê como publicado. O aluno lê `bloqueado` como "Abre depois de" e o curso anterior da trilha. |
 | Curso da vez | Primeiro curso de uma trilha que abre e não está concluído. |
 | Último estudo | O dia mais recente, em São Paulo, em que a pessoa assistiu a uma aula, salvou uma posição acima de 0 s ou recebeu um certificado. Entrar no app não conta. |
 | Situação no curso | O estado do curso na palavra do admin: Nunca abriu (o "Não iniciado" do aluno), Estudando, Falta a prova, Concluído, Bloqueado e Em produção (o "Em breve" do aluno). Quem parou de estudar não ganha situação própria: o admin lê o dia do último estudo. Evite "Parado". |
