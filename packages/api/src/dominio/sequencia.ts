@@ -46,6 +46,12 @@ export function somarDias(dia: DiaISO, n: number): DiaISO {
   return d.toISOString().slice(0, 10) as DiaISO;
 }
 
+const MS_POR_DIA = 86_400_000;
+
+/** Dias corridos de `de` até `ate`: de 01/10 a 15/10 são 14. */
+export const diasCorridos = (de: DiaISO, ate: DiaISO): number =>
+  Math.round((meioDia(ate).getTime() - meioDia(de).getTime()) / MS_POR_DIA);
+
 /** 0 = domingo. */
 const diaDaSemana = (dia: DiaISO) => meioDia(dia).getUTCDay();
 

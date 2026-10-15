@@ -9,6 +9,12 @@ const DATA = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
+const DIA_CURTO = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "short",
+  timeZone: "America/Sao_Paulo",
+});
+
 const ESPACOS = /\s+/;
 
 /** "Ana Souza" vira "AS"; e-mail ou userId vira a primeira letra. */
@@ -45,6 +51,9 @@ export function fmtHoras(seg: number) {
 
 /** "2 de outubro de 2026", no fuso de São Paulo. */
 export const fmtData = (iso: string) => DATA.format(new Date(iso));
+
+/** "2 de out.", no fuso de São Paulo, para a linha em que o ano é óbvio. */
+export const fmtDiaCurto = (iso: string) => DIA_CURTO.format(new Date(iso));
 
 /** "2.340 pts". */
 export const fmtPts = (n: number) => `${NUMERO.format(n)} pts`;

@@ -144,9 +144,9 @@ export async function linhasDoResumo(
 export async function carregarPainel(
   db: Database,
   userId: string,
-  _agora: Date
+  agora: Date
 ): Promise<PainelMeusCursos> {
-  return montarPainel(await linhasDoPainel(db, userId));
+  return montarPainel(await linhasDoPainel(db, userId), diaLocal(agora));
 }
 
 export async function carregarResumo(

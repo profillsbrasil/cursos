@@ -2,12 +2,21 @@ import { describe, expect, test } from "bun:test";
 import {
   cursoLinha,
   exemploDoPrototipo,
+  HOJE_DO_EXEMPLO,
   SEM_LIBERACAO,
 } from "@cursos/api/dominio/exemplo";
-import { montarPainel, type ResumoAluno } from "@cursos/api/dominio/painel";
+import {
+  type LinhasPainel,
+  montarPainel,
+  type ResumoAluno,
+} from "@cursos/api/dominio/painel";
+import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ConteudoMeusCursos } from "./conteudo";
+
+const montar = (l: LinhasPainel, hoje: DiaISO = HOJE_DO_EXEMPLO) =>
+  montarPainel(l, hoje);
 
 const RESUMO: ResumoAluno = {
   bonus: 30,
@@ -64,7 +73,7 @@ const render = (painel: ReturnType<typeof montarPainel>) =>
   );
 
 describe("Meus cursos com o caso do protótipo", () => {
-  const html = render(montarPainel(exemploDoPrototipo()));
+  const html = render(montar(exemploDoPrototipo()));
 
   test("cada trilha vem com as capas logo abaixo, e os cursos rápidos no fim", () => {
     expect(titulos(html, "Formação comercial")).toEqual([
@@ -78,7 +87,6 @@ describe("Meus cursos com o caso do protótipo", () => {
       "Nova Rotina de Fechamento",
       "Gravação de Máquinas",
       "Autoavaliação Comercial",
-      "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM",
     ]);
   });
 
@@ -130,6 +138,36 @@ describe("Meus cursos com o caso do protótipo", () => {
   });
 });
 
+describe("o comunicado em Meus cursos", () => {
+  // O comunicado do exemplo saiu em 2 de outubro.
+  const TITULO =
+    "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM";
+  const onde = (html: string) => ({
+    comunicado: html.indexOf(TITULO),
+    rapidos: html.indexOf("Cursos rápidos"),
+    semana: html.indexOf("Sua semana"),
+    trilha: html.indexOf('aria-labelledby="trilha-'),
+  });
+
+  test("com menos de 14 dias, é uma faixa entre Sua semana e a primeira trilha", () => {
+    const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
+    const p = onde(html);
+    expect(p.semana).toBeGreaterThan(-1);
+    expect(p.comunicado).toBeGreaterThan(p.semana);
+    expect(p.comunicado).toBeLessThan(p.trilha);
+    expect(html.split(TITULO).length - 1).toBe(1);
+    expect(texto(html)).toContain("2 de out.");
+  });
+
+  test("com 14 dias ou mais, fica no fim, depois dos cursos rápidos", () => {
+    const html = render(montar(exemploDoPrototipo(), "2026-10-16" as DiaISO));
+    const p = onde(html);
+    expect(p.comunicado).toBeGreaterThan(p.rapidos);
+    expect(html.split(TITULO).length - 1).toBe(1);
+    expect(texto(html)).toContain("Publicado em 2 de outubro de 2026.");
+  });
+});
+
 describe("Meus cursos com trilha sem curso", () => {
   const a = cursoLinha("a", { aulas: [2] });
   const trilha = (
@@ -149,7 +187,7 @@ describe("Meus cursos com trilha sem curso", () => {
 
   test("a trilha esvaziada pelo admin some da tela e da contagem", () => {
     const html = render(
-      montarPainel({
+      montar({
         ...SEM_LIBERACAO,
         liberacoes: [
           trilha("vazia", []),
@@ -164,7 +202,7 @@ describe("Meus cursos com trilha sem curso", () => {
 
   test("só com trilha vazia, a tela é a do painel vazio", () => {
     const html = render(
-      montarPainel({ ...SEM_LIBERACAO, liberacoes: [trilha("vazia", [])] })
+      montar({ ...SEM_LIBERACAO, liberacoes: [trilha("vazia", [])] })
     );
     expect(html).not.toContain("Trilha vazia");
     expect(html).not.toContain("liberada para você");
@@ -175,7 +213,7 @@ describe("Meus cursos com curso que ainda não abre", () => {
   const a = cursoLinha("a", { aulas: [2] });
   const b = cursoLinha("b", { aulas: [2] });
   const html = render(
-    montarPainel({
+    montar({
       ...SEM_LIBERACAO,
       liberacoes: [
         {
