@@ -340,7 +340,7 @@ function NivelDoModulo({
   const { aria, mensagem } = useErroDoCampo(id);
   return (
     <Field
-      className="@2xl:col-span-1 @md:col-span-2 gap-1.5"
+      className="@2xl:col-span-1 @sm:col-span-2 gap-1.5"
       data-invalid={mensagem ? true : undefined}
     >
       <FieldLabel className={ROTULO} htmlFor={id}>
@@ -553,7 +553,7 @@ export function BlocoDoModulo({
         // A largura do bloco, e não a da janela, decide a grade: em 768 px com a
         // sidebar aberta, o nível de 16rem na mesma linha deixava o título com 42 px.
         <div className="@container" id={ALVO.conteudo(id)}>
-          <div className="grid @2xl:grid-cols-[6rem_minmax(0,1fr)_16rem] @md:grid-cols-[6rem_minmax(0,1fr)] @md:items-start gap-3 bg-muted/30 px-5 pt-1 pb-4">
+          <div className="grid @2xl:grid-cols-[6rem_minmax(0,1fr)_16rem] @sm:grid-cols-[6rem_minmax(0,1fr)] @sm:items-start gap-3 bg-muted/30 px-5 pt-1 pb-4">
             <CampoLido
               aoMudar={mudarNumero}
               aoSair={ordenar}
@@ -794,8 +794,8 @@ function IndiceDosModulos({
         Ir para
       </span>
       <ol
-        // O pr-10 do celular é a faixa da máscara: no fim da rolagem, o último número sai dela.
-        className="flex min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] max-md:pr-10 md:flex-wrap max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)]"
+        // O pr-11 do celular passa da faixa de 2,5rem da máscara: no fim da rolagem, o último número sai inteiro.
+        className="flex min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] max-md:pr-11 md:flex-wrap max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)]"
         // biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"
       >

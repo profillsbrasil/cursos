@@ -135,6 +135,13 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
       expect(grade.nivelNaLinhaDoTitulo).toBe(true);
       expect(grade.titulo).toBeGreaterThan(256);
     });
+
+    // 390 px de janela, menos a moldura de 16 px de cada lado.
+    test("em 390 px, cada campo tem a linha inteira", async () => {
+      const grade = await medirGrade(390, 358);
+      expect(grade.nivelNaLinhaDoTitulo).toBe(false);
+      expect(grade.titulo).toBe(358 - 40);
+    });
   });
 
   describe("o índice de duas linhas, entre 768 e 1040 px", () => {
