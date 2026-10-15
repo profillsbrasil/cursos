@@ -137,9 +137,6 @@ migracaoComLinhas(
   "migração da origem da liberação",
   "origem_da_liberacao",
   async (c) => {
-    const trilha = await c.query<{ id: string }>(
-      "insert into trilha (slug, titulo, descricao) values ('fabrica', 'Fábrica', 'teste') returning id"
-    );
     const trocado = await inserirCurso(c, "trocado", "/capas/t.jpg");
     const proprio = await inserirCurso(c, "proprio", "/capas/p.jpg");
     const troca = await c.query<{ id: string }>(
@@ -150,10 +147,6 @@ migracaoComLinhas(
       "insert into ponto_lancamento (user_id, motivo, pontos, liberacao_id) values ($1, 'troca', -200, $2)",
       [ALUNO, troca.rows[0]?.id]
     );
-    await c.query(
-      "insert into liberacao (user_id, trilha_id, liberada_por) values ($1, $2, $3)",
-      [ALUNO, trilha.rows[0]?.id, ADMIN]
-    );
     // Admin que liberou para si mesmo: antes da origem, o banco a lia como troca.
     await c.query(
       "insert into liberacao (user_id, curso_id, liberada_por) values ($1, $2, $1)",
@@ -161,7 +154,6 @@ migracaoComLinhas(
     );
   },
   (banco) => {
-    // A liberação da trilha plantada aqui sai na migração catalogo_sem_trilha.
     test("troca com lançamento vira troca e o resto vira admin", async () => {
       const r = await banco().query(
         `select c.slug as alvo, l.origem::text as origem
@@ -235,6 +227,7 @@ migracaoComLinhas(
     };
     const naTrilha = await curso("na-trilha");
     const solto = await curso("solto");
+    const trocado = await curso("trocado");
     await c.query(
       "insert into trilha_curso (curso_id, trilha_id, posicao) values ($1, $2, 1)",
       [naTrilha, trilhaId]
@@ -251,6 +244,44 @@ migracaoComLinhas(
       "insert into ponto_lancamento (user_id, motivo, pontos, trilha_id) values ($1, 'trilha_concluida', 500, $2)",
       [ALUNO, trilhaId]
     );
+
+    const modulo = await c.query<{ id: string }>(
+      "insert into modulo (curso_id, numero, titulo) values ($1, 1, 'Início') returning id",
+      [solto]
+    );
+    const aula = await c.query<{ id: string }>(
+      "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Abertura', 300) returning id",
+      [modulo.rows[0]?.id]
+    );
+    const aulaId = aula.rows[0]?.id;
+    await c.query(
+      "insert into aula_assistida (user_id, aula_id) values ($1, $2)",
+      [ALUNO, aulaId]
+    );
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, aula_id) values ($1, 'aula_assistida', 10, $2)",
+      [ALUNO, aulaId]
+    );
+    await c.query(
+      "insert into certificado (user_id, curso_id, codigo) values ($1, $2, 'CERT-1')",
+      [ALUNO, solto]
+    );
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, curso_id) values ($1, 'curso_concluido', 100, $2)",
+      [ALUNO, solto]
+    );
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ($1, 'sequencia_7_dias', 50, '2026-10-09')",
+      [ALUNO]
+    );
+    const troca = await c.query<{ id: string }>(
+      "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $1, 'troca') returning id",
+      [ALUNO, trocado]
+    );
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, liberacao_id) values ($1, 'troca', -200, $2)",
+      [ALUNO, troca.rows[0]?.id]
+    );
   },
   (banco) => {
     test("a trilha e o que aponta para ela somem, e o curso fica", async () => {
@@ -260,13 +291,54 @@ migracaoComLinhas(
       );
       expect(tabelas.rows).toEqual([]);
       const cursos = await c.query("select slug from curso order by slug");
-      expect(cursos.rows).toEqual([{ slug: "na-trilha" }, { slug: "solto" }]);
+      expect(cursos.rows).toEqual([
+        { slug: "na-trilha" },
+        { slug: "solto" },
+        { slug: "trocado" },
+      ]);
       const liberacoes = await c.query(
-        "select c.slug from liberacao l join curso c on c.id = l.curso_id"
+        `select c.slug, l.origem::text as origem
+         from liberacao l join curso c on c.id = l.curso_id
+         order by c.slug`
       );
-      expect(liberacoes.rows).toEqual([{ slug: "solto" }]);
-      const lancamentos = await c.query("select motivo from ponto_lancamento");
-      expect(lancamentos.rows).toEqual([]);
+      expect(liberacoes.rows).toEqual([
+        { origem: "admin", slug: "solto" },
+        { origem: "troca", slug: "trocado" },
+      ]);
+    });
+
+    test("só o lançamento trilha_concluida some do livro-razão", async () => {
+      const r = await banco().query(
+        `select p.motivo::text as motivo, p.pontos, c.slug as troca
+         from ponto_lancamento p
+         left join liberacao l on l.id = p.liberacao_id
+         left join curso c on c.id = l.curso_id
+         order by motivo`
+      );
+      expect(r.rows).toEqual([
+        { motivo: "aula_assistida", pontos: 10, troca: null },
+        { motivo: "curso_concluido", pontos: 100, troca: null },
+        { motivo: "sequencia_7_dias", pontos: 50, troca: null },
+        { motivo: "troca", pontos: -200, troca: "trocado" },
+      ]);
+    });
+
+    test("os checks do lançamento continuam recusando", async () => {
+      const c = banco();
+      const sinal = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ($1, 'sequencia_7_dias', -50, '2026-10-16')",
+          [ALUNO]
+        )
+        .then(() => null, codigoDoErro);
+      expect(sinal).toBe("ponto_lancamento_sinal");
+      const referencia = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos) values ($1, 'sequencia_7_dias', 50)",
+          [ALUNO]
+        )
+        .then(() => null, codigoDoErro);
+      expect(referencia).toBe("ponto_lancamento_referencia");
     });
 
     test("o motivo trilha_concluida sai do enum", async () => {
