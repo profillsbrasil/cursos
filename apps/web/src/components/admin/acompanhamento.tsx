@@ -46,7 +46,7 @@ export function SeloDeSituacao({
 }
 
 /**
- * A barra de 4 px do cartão Continuar; o texto ao lado carrega o número. A coluna do
+ * A barra de 4 px das liberações; o texto ao lado carrega o número. A coluna do
  * texto tem piso de 5,5rem ("46 de 90 aulas" cabe), então as barras de uma lista
  * terminam no mesmo ponto em vez de encolher com o número.
  */

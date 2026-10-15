@@ -270,7 +270,7 @@ Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, bo
 Cheios e redondos, com o peso no amarelo.
 - **Shape:** pílula (raio cheio), 44 px de altura, 18 px de padding lateral, 600 em 14 px, vão de 8 px para ícone.
 - **Primary:** Sol com texto `sobre-cor`. É o `BOTAO` de `casca/botoes.ts`, também no banner de Meus cursos, que só acrescenta a largura cheia abaixo de 760 px.
-- **Hover / Focus:** sob o cursor e com o foco de teclado, clareia para `sol-hover` e ganha o brilho amarelo (`bg-sol-hover`, `shadow-brilho`). É o mesmo estado: nenhum botão desenha contorno ou anel de foco. Os três botões amarelos (o `BOTAO`, o Continuar redondo da sidebar recolhida e a Próxima aula em destaque no player) seguem a regra.
+- **Hover / Focus:** sob o cursor e com o foco de teclado, clareia para `sol-hover` e ganha o brilho amarelo (`bg-sol-hover`, `shadow-brilho`). É o mesmo estado: nenhum botão desenha contorno ou anel de foco. Os dois botões amarelos (o `BOTAO`, que a Próxima aula em destaque no player também usa, e o Continuar redondo da sidebar recolhida) seguem a regra.
 - **Outline:** fundo transparente, borda em `texto-apagado`, texto `texto`; sob o cursor e com o foco a borda vira `titulo`. É o `BOTAO_CONTORNO`: a borda passa de 3:1 contra o fundo, o que um cinza mais escuro, como o `cinza-grafico`, não faz.
 - **Small:** 36 px de altura, 14 px de padding, 13 px.
 - **Ícone:** círculo de 40 px (36 px a partir de 768 px), transparente, ícone em `texto-apagado`, fundo `popover` sob o cursor e com o foco.
