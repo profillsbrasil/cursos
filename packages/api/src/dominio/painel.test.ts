@@ -89,6 +89,36 @@ describe("montarPainel com o caso do protótipo", () => {
 describe("montarPainel com regras de liberação", () => {
   const a = cursoLinha("a", { aulas: [2] });
 
+  test("os cinco estados, liberados na ordem inversa, saem na ordem da tela", () => {
+    const quando = em("2026-08-01T00:00:00Z");
+    const liberados = [
+      cursoLinha("concluido", { aulas: [1] }),
+      cursoLinha("em-breve", { aulas: [1], status: "em_producao" }),
+      cursoLinha("nao-iniciado", { aulas: [1] }),
+      cursoLinha("prova", { aulas: [1] }),
+      cursoLinha("em-andamento", { aulas: [2] }),
+    ];
+    const painel = montar(
+      linhas({
+        assistidas: [
+          { assistidaEm: quando, aulaId: idAula("prova", 0, 1) },
+          { assistidaEm: quando, aulaId: idAula("em-andamento", 0, 1) },
+        ],
+        certificados: [
+          { codigo: "CERT-1", cursoId: "concluido", emitidoEm: quando },
+        ],
+        liberacoes: liberados.map((curso) => ({ curso, liberadaEm: quando })),
+      })
+    );
+    expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
+      ["em-andamento", "em_andamento"],
+      ["prova", "prova"],
+      ["nao-iniciado", "nao_iniciado"],
+      ["em-breve", "em_breve"],
+      ["concluido", "concluido"],
+    ]);
+  });
+
   test("o módulo da capa é o da aula para onde o Continuar leva, não o primeiro com aula pendente", () => {
     // Módulo 0 com 2 aulas e módulo 1 com 1: a pessoa viu a aula 1 do módulo 0 e
     // parou depois na aula 1 do módulo 1.

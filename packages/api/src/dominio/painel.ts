@@ -209,13 +209,13 @@ export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   };
 }
 
-const ORDEM_DOS_CURSOS: readonly TipoEstado[] = [
-  "em_andamento",
-  "prova",
-  "nao_iniciado",
-  "em_breve",
-  "concluido",
-];
+const ORDEM_DOS_CURSOS: Record<TipoEstado, number> = {
+  concluido: 4,
+  em_andamento: 0,
+  em_breve: 3,
+  nao_iniciado: 2,
+  prova: 1,
+};
 
 const somaSeg = (aulas: readonly { duracaoSeg: number }[]) =>
   aulas.reduce((s, a) => s + a.duracaoSeg, 0);
@@ -256,8 +256,7 @@ export function montarPainel(
     .map((curso) => ({ curso, estado: estadoDoCurso(curso, h) }))
     .sort(
       (a, b) =>
-        ORDEM_DOS_CURSOS.indexOf(a.estado.tipo) -
-        ORDEM_DOS_CURSOS.indexOf(b.estado.tipo)
+        ORDEM_DOS_CURSOS[a.estado.tipo] - ORDEM_DOS_CURSOS[b.estado.tipo]
     );
   const acessiveis = new Set<string>(telas.map((x) => x.curso.id));
   const comunicado = linhas.comunicados.find(
