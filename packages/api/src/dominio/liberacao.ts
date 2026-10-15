@@ -2,12 +2,22 @@
 // botão a partir dela e revogar, em consultas/liberacao.ts, recusa a partir dela.
 // O check liberacao_troca_nao_revoga é a última porta, no banco.
 
+import {
+  type Acompanhamento,
+  acompanharCurso,
+  acompanharTrilha,
+  estudoDe,
+} from "./acompanhamento";
+import type { LinhasHistorico } from "./historico";
 import type {
+  CursoCatalogo,
   CursoId,
+  DiaISO,
   LiberacaoId,
   OrigemDaLiberacao,
   Pessoa,
   StatusDoCurso,
+  TrilhaCatalogo,
   TrilhaId,
 } from "./tipos";
 
@@ -24,14 +34,24 @@ export interface LiberacaoAtiva {
   origem: OrigemDaLiberacao;
 }
 
-/** Linha de liberacao com o título do alvo, como a tela de acesso lê. */
+/** O alvo com módulos e aulas, como Meus cursos lê. */
+export type ConteudoDoAlvo =
+  | { tipo: "curso"; curso: CursoCatalogo }
+  | { tipo: "trilha"; trilha: TrilhaCatalogo };
+
+/** Linha de liberacao com o conteúdo do alvo, como a tela de acesso lê. */
 export interface LinhaDaLiberacao {
-  alvo: AlvoComTitulo;
+  conteudo: ConteudoDoAlvo;
   id: LiberacaoId;
   liberadaEm: Date;
   origem: OrigemDaLiberacao;
   revogadaEm: Date | null;
 }
+
+export const alvoDe = (c: ConteudoDoAlvo): AlvoComTitulo =>
+  c.tipo === "curso"
+    ? { id: c.curso.id, tipo: "curso", titulo: c.curso.titulo }
+    : { id: c.trilha.id, tipo: "trilha", titulo: c.trilha.titulo };
 
 export type AcaoNaLiberacao =
   | { tipo: "revogar" }
@@ -126,6 +146,8 @@ export type AcaoNaTela =
 /** O que a tela /admin/alunos/[userId] mostra de cada liberação. */
 export interface LiberacaoNaTela {
   acao: AcaoNaTela;
+  /** Na revogada, o estudo de hoje no alvo, com a mesma regra da ativa. */
+  acompanhamento: Acompanhamento;
   alvo: AlvoComTitulo;
   id: LiberacaoId;
   liberadaEm: string;
@@ -154,6 +176,8 @@ export interface TrilhaParaLiberar {
 
 export interface AcessoDoAluno {
   cursos: readonly CursoParaLiberar[];
+  /** O dia de São Paulo em que o servidor montou a tela, para ela dizer "ontem". */
+  hoje: DiaISO;
   /** Ativas primeiro, a mais recente antes; depois as revogadas. */
   liberacoes: readonly LiberacaoNaTela[];
   /** null: o Clerk não conhece mais o userId. A tela mostra o userId e não oferece liberar. */
@@ -172,6 +196,8 @@ export interface LinhasDoAcesso {
     }[];
     trilhas: readonly { id: TrilhaId; titulo: string }[];
   };
+  /** Aulas assistidas, posições e certificados da pessoa. */
+  historico: LinhasHistorico;
   liberacoes: readonly LinhaDaLiberacao[];
 }
 
@@ -195,13 +221,26 @@ function acaoNaTela(l: LinhaDaLiberacao): AcaoNaTela {
 export function montarAcesso(
   userId: string,
   pessoa: Pessoa | null,
-  linhas: LinhasDoAcesso
+  linhas: LinhasDoAcesso,
+  hoje: DiaISO
 ): AcessoDoAluno | null {
   if (!pessoa && linhas.liberacoes.length === 0) {
     return null;
   }
-  const ativas = linhas.liberacoes.filter((l) => l.revogadaEm === null);
+  const comAlvo = linhas.liberacoes.map((l) => ({
+    ...l,
+    alvo: alvoDe(l.conteudo),
+  }));
+  const ativas = comAlvo.filter((l) => l.revogadaEm === null);
   const liberado = (alvo: Alvo) => ativaDoAlvo(ativas, alvo) !== undefined;
+  const estudo = estudoDe(linhas.historico);
+  const liberadosDireto = new Set(
+    ativas.flatMap((l) => (l.alvo.tipo === "curso" ? [l.alvo.id] : []))
+  );
+  const acompanhar = (c: ConteudoDoAlvo): Acompanhamento =>
+    c.tipo === "curso"
+      ? acompanharCurso(c.curso, estudo)
+      : acompanharTrilha(c.trilha, estudo, liberadosDireto);
   const { cursos, trilhas } = linhas.catalogo;
   const trilhasLiberadas = new Map(
     trilhas
@@ -217,8 +256,10 @@ export function montarAcesso(
         ? (trilhasLiberadas.get(c.trilhaId) ?? null)
         : null,
     })),
-    liberacoes: [...linhas.liberacoes].sort(ordemNaTela).map((l) => ({
+    hoje,
+    liberacoes: comAlvo.sort(ordemNaTela).map((l) => ({
       acao: acaoNaTela(l),
+      acompanhamento: acompanhar(l.conteudo),
       alvo: l.alvo,
       id: l.id,
       liberadaEm: l.liberadaEm.toISOString(),

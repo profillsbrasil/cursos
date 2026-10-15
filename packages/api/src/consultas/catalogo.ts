@@ -46,6 +46,18 @@ export const COM_CONTEUDO = {
   },
 } as const;
 
+/** A trilha com os cursos em ordem de posição, cada um com módulos e aulas (TrilhaLinha). */
+export const TRILHA_COM_CONTEUDO = {
+  columns: { descricao: true, id: true, slug: true, titulo: true },
+  with: {
+    cursos: {
+      columns: { posicao: true },
+      orderBy: { posicao: "asc" },
+      with: { curso: COM_CONTEUDO },
+    },
+  },
+} as const;
+
 /**
  * Tela /admin/catalogo, em dois statements paralelos. Trilhas por título; cursos
  * na ordem das trilhas (título, depois posição) e os soltos no fim, por título.

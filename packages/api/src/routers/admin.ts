@@ -24,6 +24,7 @@ import {
 } from "../dominio/comunicado";
 import { documentoDaTrilha } from "../dominio/edicao-da-trilha";
 import { montarAcesso, type PedidoDeLiberar } from "../dominio/liberacao";
+import { diaLocal } from "../dominio/sequencia";
 import type {
   ComunicadoId,
   CursoId,
@@ -67,7 +68,7 @@ export const adminRouter = router({
           ctx.pessoas.porId(input.userId),
           linhasDoAcesso(ctx.db, input.userId),
         ]);
-        return montarAcesso(input.userId, pessoa, linhas);
+        return montarAcesso(input.userId, pessoa, linhas, diaLocal(new Date()));
       }),
     buscar: adminProcedure
       .input(z.object({ termo: z.string().trim().max(100) }))
