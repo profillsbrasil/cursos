@@ -6,10 +6,12 @@ import type { Versao } from "@cursos/api/dominio/tipos";
 import {
   apoioEm,
   apoioSalvo,
+  focarOPrimeiro,
   primeiroNaPagina,
   setaDepoisDeMover,
   sincronizarComAPagina,
   trocado,
+  vizinhoQueFica,
 } from "./editor";
 
 describe("trocado", () => {
@@ -40,6 +42,18 @@ describe("setaDepoisDeMover", () => {
   test("na borda, a seta clicada desliga e o foco vai para a outra", () => {
     expect(setaDepoisDeMover("acima", true)).toBe("abaixo");
     expect(setaDepoisDeMover("abaixo", true)).toBe("acima");
+  });
+});
+
+describe("vizinhoQueFica", () => {
+  test("o foco vai para o item que toma o lugar do removido; no fim, para o anterior", () => {
+    expect(vizinhoQueFica(["a", "b", "c"], 0)).toBe("b");
+    expect(vizinhoQueFica(["a", "b", "c"], 1)).toBe("c");
+    expect(vizinhoQueFica(["a", "b", "c"], 2)).toBe("b");
+  });
+
+  test("o item sozinho não deixa vizinho", () => {
+    expect(vizinhoQueFica(["a"], 0)).toBeNull();
   });
 });
 
@@ -91,6 +105,40 @@ describe("primeiroNaPagina", () => {
 
   test("lista vazia não escolhe nada", () => {
     expect(primeiroNaPagina<Campo>([])).toBeUndefined();
+  });
+});
+
+describe("focarOPrimeiro", () => {
+  // O Salvar recusado abre o bloco do campo no mesmo render que marca o erro:
+  // procurar o campo antes do quadro seguinte não o acha.
+  test("procura o campo só depois do render", () => {
+    const quadros: FrameRequestCallback[] = [];
+    const focados: string[] = [];
+    const naPagina = new Map<string, { focus: () => void }>();
+    const global = globalThis as unknown as {
+      document: unknown;
+      requestAnimationFrame: unknown;
+    };
+    const antes = {
+      document: global.document,
+      requestAnimationFrame: global.requestAnimationFrame,
+    };
+    global.requestAnimationFrame = (f: FrameRequestCallback) => quadros.push(f);
+    global.document = { getElementById: (id: string) => naPagina.get(id) };
+    try {
+      focarOPrimeiro(["aula-duracao"]);
+      naPagina.set("aula-duracao", {
+        focus: () => focados.push("aula-duracao"),
+      });
+      expect(focados).toEqual([]);
+      for (const f of quadros) {
+        f(0);
+      }
+      expect(focados).toEqual(["aula-duracao"]);
+    } finally {
+      global.document = antes.document;
+      global.requestAnimationFrame = antes.requestAnimationFrame;
+    }
   });
 });
 

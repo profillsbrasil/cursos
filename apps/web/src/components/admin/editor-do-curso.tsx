@@ -6,7 +6,7 @@ import {
   FORMATO_DO_SLUG,
   formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
-import type { ModuloId, StatusDoCurso } from "@cursos/api/dominio/tipos";
+import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
   Field,
@@ -30,11 +30,13 @@ import {
   type FormEvent,
   useCallback,
   useId,
+  useMemo,
+  useReducer,
   useState,
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { focarDepois, focarOPrimeiro, novoId } from "@/lib/editor";
+import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
@@ -44,18 +46,27 @@ import { BarraDeSalvar } from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
-import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
 import {
+  ErroDoCampo,
+  ErrosDoEditor,
+  SaiuDoCampo,
+  useErroDoCampo,
+} from "./erros-do-editor";
+import {
+  abrirOsComErro,
+  blocosAbertos,
+  despacharNosDois,
   type Mudanca,
+  NENHUM_ABERTO,
+  problemasNaTela,
   proximaOrdem,
   REGRAS_DO_CURSO,
 } from "./estado-do-editor";
-import { BlocoDoModulo } from "./modulos-do-curso";
-import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import { ModulosDoCurso } from "./modulos-do-curso";
+import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao } from "./partes";
 import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,
-  lerPreco,
   lerRascunho,
   type RascunhoDoCurso,
   type RecusaDoCurso,
@@ -284,7 +295,6 @@ function CamposDoCurso({
               aoMudar={mudarPreco}
               id={ID.curso("precoTroca")}
               inputMode="numeric"
-              ler={lerPreco}
               placeholder="300"
               required
               rotulo="Preço em pontos"
@@ -460,6 +470,8 @@ function ApagarCurso({
   );
 }
 
+const NENHUM_TOCADO: ReadonlySet<string> = new Set();
+
 const SEM_CAPA: Problema = {
   campo: ID.curso("capa"),
   mensagem: "Escolha a imagem da capa.",
@@ -474,7 +486,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     base,
     descartar,
     geracao,
-    mudar: despachar,
+    mudar: mudarRascunho,
     novo,
     pendente,
     rascunho,
@@ -489,6 +501,12 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     sujoAlem: (g) =>
       capaGuardada.geracao === g && capaGuardada.arquivo !== null,
   });
+  // Fica entre gerações: o Recarregar não fecha o módulo em que o admin estava.
+  const [abertos, mudarBlocos] = useReducer(blocosAbertos, NENHUM_ABERTO);
+  const despachar = useMemo(
+    () => despacharNosDois(mudarRascunho, mudarBlocos),
+    [mudarRascunho]
+  );
   const capa = capaGuardada.geracao === geracao ? capaGuardada.arquivo : null;
   const escolherCapa = useCallback(
     (arquivo: File | null) =>
@@ -496,6 +514,15 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     [geracao]
   );
   const [tentou, setTentou] = useDaGeracao<boolean>(geracao, false);
+  const [tocados, setTocados] = useDaGeracao<ReadonlySet<string>>(
+    geracao,
+    NENHUM_TOCADO
+  );
+  const saiuDoCampo = useCallback(
+    (id: string) =>
+      setTocados((atual) => (atual.has(id) ? atual : new Set([...atual, id]))),
+    [setTocados]
+  );
   const [recusa, setRecusa] = useDaGeracao<RecusaDoCurso | null>(geracao, null);
   const [chave, pedir] = useDaGeracao<string | null>(geracao, null);
   const fechar = useCallback(
@@ -506,12 +533,19 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
 
   const semCapa = novo && capa === null ? [SEM_CAPA] : [];
   const lido = lerRascunho(rascunho, base);
-  const problemas = [
-    ...(tentou && lido.tipo === "problemas" ? lido.problemas : []),
-    ...(tentou ? semCapa : []),
-    ...recusaNaTela(recusa, rascunho, ID.curso),
-  ];
+  const problemas = problemasNaTela({
+    achados: [...(lido.tipo === "problemas" ? lido.problemas : []), ...semCapa],
+    recusa: recusaNaTela(recusa, rascunho, ID.curso),
+    tentou,
+    tocados,
+  });
   const erros = errosPorCampo(problemas);
+  // Nenhum erro fica num bloco fechado: o bloco abre no render em que o erro
+  // aparece e continua aberto depois da correção.
+  const abrir = abrirOsComErro(abertos, rascunho, erros);
+  if (abrir) {
+    mudarBlocos(abrir);
+  }
 
   const mudarTexto = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -535,6 +569,8 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
         ...semCapa,
       ];
       if (lido.tipo === "problemas" || achados.length > 0) {
+        // O bloco de cada campo marcado abre no próximo render, e o foco vai
+        // depois dele.
         setTentou(true);
         focarOPrimeiro(achados.flatMap((p) => (p.campo ? [p.campo] : [])));
         return;
@@ -568,12 +604,6 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     [capa, lido, rascunho, salvar, semCapa, setRecusa, setTentou]
   );
 
-  const adicionarModulo = useCallback(() => {
-    const id = novoId<ModuloId>();
-    despachar({ id, tipo: "modulo_novo" });
-    focarDepois(ID.modulo(id, "titulo"));
-  }, [despachar]);
-
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
   const duracao = rascunho.modulos.reduce(
     (s, m) => s + segundosDas(m.aulas),
@@ -581,122 +611,99 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
   );
   return (
     <ErrosDoEditor value={erros}>
-      <form
-        className="mx-auto grid max-w-5xl gap-10"
-        noValidate
-        onSubmit={enviar}
-      >
-        <div>
-          <Link
-            className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/admin/catalogo"
-          >
-            <ArrowLeft aria-hidden="true" className="size-4" />
-            Catálogo
-          </Link>
-          <header className="grid gap-1.5">
-            <h1
-              className="text-balance font-bold text-3xl text-titulo tracking-tight"
-              ref={titulo}
-              tabIndex={-1}
+      <SaiuDoCampo value={saiuDoCampo}>
+        <form
+          className="mx-auto grid max-w-5xl gap-10"
+          noValidate
+          onSubmit={enviar}
+        >
+          <div>
+            <Link
+              className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+              href="/admin/catalogo"
             >
-              {rascunho.titulo.trim() || "Curso novo"}
-            </h1>
-            <p className="text-muted-foreground tabular-nums">
-              {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
-              {plural(aulas, "aula", "aulas")}
-              {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
-            </p>
-          </header>
-        </div>
-
-        <Secao
-          id="curso"
-          resumo={STATUS[rascunho.status].rotulo}
-          titulo="Curso"
-        >
-          <CamposDoCurso
-            despachar={despachar}
-            mudarTexto={mudarTexto}
-            rascunho={rascunho}
-            slugSalvo={novo ? null : base.slug}
-          />
-        </Secao>
-
-        <Secao
-          id="capa"
-          resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
-          titulo="Capa"
-        >
-          <CampoDeCapa
-            alt={rascunho.capaAlt}
-            aoEscolher={escolherCapa}
-            arquivo={capa}
-            atual={edicao.capa}
-            geracao={geracao}
-            mudarAlt={mudarTexto}
-          />
-        </Secao>
-
-        <Secao
-          id="niveis"
-          resumo={plural(rascunho.niveis.length, "nível", "níveis")}
-          titulo="Níveis"
-        >
-          <Niveis despachar={despachar} niveis={rascunho.niveis} />
-        </Secao>
-
-        <Secao
-          id="modulos"
-          resumo={`${plural(rascunho.modulos.length, "módulo", "módulos")}, ${plural(aulas, "aula", "aulas")}`}
-          titulo="Módulos e aulas"
-        >
-          {rascunho.modulos.length === 0 ? (
-            <Vazio>
-              O curso ainda não tem módulos. Cada módulo agrupa aulas, e o aluno
-              vê o número dele.
-            </Vazio>
-          ) : (
-            rascunho.modulos.map((m, i) => (
-              <BlocoDoModulo
-                assistidasPorAula={edicao.uso.assistidasPorAula}
-                despachar={despachar}
-                indice={i}
-                key={m.id}
-                linhaAberta={linhaAberta}
-                modulo={m}
-                modulos={rascunho.modulos}
-                niveis={rascunho.niveis}
-              />
-            ))
-          )}
-          <div className="border-border border-t px-5 py-4">
-            <Button
-              className={cn(BOTAO_CONTORNO, PEQUENO)}
-              onClick={adicionarModulo}
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Adicionar módulo
-            </Button>
+              <ArrowLeft aria-hidden="true" className="size-4" />
+              Catálogo
+            </Link>
+            <header className="grid gap-1.5">
+              <h1
+                className="text-balance font-bold text-3xl text-titulo tracking-tight"
+                ref={titulo}
+                tabIndex={-1}
+              >
+                {rascunho.titulo.trim() || "Curso novo"}
+              </h1>
+              <p className="text-muted-foreground tabular-nums">
+                {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
+                {plural(aulas, "aula", "aulas")}
+                {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
+              </p>
+            </header>
           </div>
-        </Secao>
 
-        {novo ? null : (
-          <Secao id="apagar" resumo="" titulo="Apagar">
-            <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
+          <Secao
+            id="curso"
+            resumo={STATUS[rascunho.status].rotulo}
+            titulo="Curso"
+          >
+            <CamposDoCurso
+              despachar={despachar}
+              mudarTexto={mudarTexto}
+              rascunho={rascunho}
+              slugSalvo={novo ? null : base.slug}
+            />
           </Secao>
-        )}
 
-        <BarraDeSalvar
-          novo={novo}
-          oQue="este curso"
-          pendente={pendente}
-          problemas={problemas}
-          recarregar={descartar}
-          sujo={sujo}
-          versaoMudou={versaoMudou}
-        />
-      </form>
+          <Secao
+            id="capa"
+            resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
+            titulo="Capa"
+          >
+            <CampoDeCapa
+              alt={rascunho.capaAlt}
+              aoEscolher={escolherCapa}
+              arquivo={capa}
+              atual={edicao.capa}
+              geracao={geracao}
+              mudarAlt={mudarTexto}
+            />
+          </Secao>
+
+          <Secao
+            id="niveis"
+            resumo={plural(rascunho.niveis.length, "nível", "níveis")}
+            titulo="Níveis"
+          >
+            <Niveis despachar={despachar} niveis={rascunho.niveis} />
+          </Secao>
+
+          <ModulosDoCurso
+            abertos={abertos}
+            assistidasPorAula={edicao.uso.assistidasPorAula}
+            despachar={despachar}
+            linhaAberta={linhaAberta}
+            marcados={erros}
+            mudarBlocos={mudarBlocos}
+            rascunho={rascunho}
+          />
+
+          {novo ? null : (
+            <Secao id="apagar" resumo="" titulo="Apagar">
+              <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
+            </Secao>
+          )}
+
+          <BarraDeSalvar
+            novo={novo}
+            oQue="este curso"
+            pendente={pendente}
+            problemas={problemas}
+            recarregar={descartar}
+            sujo={sujo}
+            versaoMudou={versaoMudou}
+          />
+        </form>
+      </SaiuDoCampo>
     </ErrosDoEditor>
   );
 }

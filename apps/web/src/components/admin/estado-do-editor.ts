@@ -4,8 +4,10 @@ import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import { type Direcao, trocado } from "@/lib/editor";
 import type { RegrasDoRascunho } from "@/lib/use-rascunho-apoiado";
 
+import type { Problema } from "./problemas";
 import {
   type AulaDoRascunho,
+  ID,
   lerNumeroDoModulo,
   type ModuloDoRascunho,
   mesmoRascunho,
@@ -201,3 +203,139 @@ export const REGRAS_DO_CURSO: RegrasDoRascunho<
   RascunhoDoCurso,
   Mudanca
 > = { deDocumento: rascunhoDoCurso, mesmo: mesmoRascunho, mudar };
+
+/**
+ * Os módulos que o admin deixou abertos no editor; fechado é o padrão. Fica
+ * fora do rascunho, então não entra no sujo nem no documento salvo.
+ */
+export type Abertos = ReadonlySet<ModuloId>;
+
+export const NENHUM_ABERTO: Abertos = new Set();
+
+export type AcaoNosBlocos =
+  | { tipo: "aberto"; id: ModuloId }
+  | { tipo: "fechado"; id: ModuloId }
+  /** O Salvar recusado pelo schema abre os módulos com campo marcado. */
+  | { tipo: "erros_mostrados"; ids: readonly ModuloId[] }
+  | { tipo: "mudou"; mudanca: Mudanca };
+
+/** Os campos com erro na tela, pelo id do input. */
+export type Marcados = Pick<ReadonlySet<string>, "has">;
+
+/** Como o bloco aparece. O erro nunca fica num bloco fechado. */
+export type Bloco =
+  | { tipo: "fechado" }
+  | { tipo: "aberto" }
+  | { tipo: "com_erro"; campos: number };
+
+const comAberto = (abertos: Abertos, id: ModuloId): Abertos =>
+  abertos.has(id) ? abertos : new Set([...abertos, id]);
+
+const semAberto = (abertos: Abertos, id: ModuloId): Abertos =>
+  abertos.has(id) ? new Set([...abertos].filter((x) => x !== id)) : abertos;
+
+/** O foco vai para dentro do módulo novo e do destino da aula movida. */
+function abertosDepoisDe(abertos: Abertos, m: Mudanca): Abertos {
+  switch (m.tipo) {
+    case "modulo_novo":
+      return comAberto(abertos, m.id);
+    case "aula_para_modulo":
+      return comAberto(abertos, m.moduloId);
+    case "modulo_removido":
+      return semAberto(abertos, m.id);
+    default:
+      return abertos;
+  }
+}
+
+export function blocosAbertos(abertos: Abertos, a: AcaoNosBlocos): Abertos {
+  switch (a.tipo) {
+    case "aberto":
+      return comAberto(abertos, a.id);
+    case "fechado":
+      return semAberto(abertos, a.id);
+    case "erros_mostrados":
+      return a.ids.reduce(comAberto, abertos);
+    case "mudou":
+      return abertosDepoisDe(abertos, a.mudanca);
+    default: {
+      const nenhuma: never = a;
+      throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
+    }
+  }
+}
+
+const CAMPOS_DO_MODULO = ["nivel", "numero", "titulo"] as const;
+const CAMPOS_DA_AULA = ["duracao", "titulo", "video"] as const;
+
+const camposComErro = (m: ModuloDoRascunho, marcados: Marcados) =>
+  [
+    ...CAMPOS_DO_MODULO.map((c) => ID.modulo(m.id, c)),
+    ...m.aulas.flatMap((a) => CAMPOS_DA_AULA.map((c) => ID.aula(a.id, c))),
+  ].filter((id) => marcados.has(id)).length;
+
+export const modulosComErro = (
+  r: RascunhoDoCurso,
+  marcados: Marcados
+): ModuloId[] =>
+  r.modulos.flatMap((m) => (camposComErro(m, marcados) > 0 ? [m.id] : []));
+
+export function blocoDoModulo(
+  m: ModuloDoRascunho,
+  abertos: Abertos,
+  marcados: Marcados
+): Bloco {
+  const campos = camposComErro(m, marcados);
+  if (campos > 0) {
+    return { campos, tipo: "com_erro" };
+  }
+  return abertos.has(m.id) ? { tipo: "aberto" } : { tipo: "fechado" };
+}
+
+/**
+ * Os módulos com erro na tela que ainda não estão entre os abertos. O editor
+ * despacha a ação no render em que o erro aparece, e o bloco continua aberto
+ * depois da correção. null: nada a abrir.
+ */
+export function abrirOsComErro(
+  abertos: Abertos,
+  r: RascunhoDoCurso,
+  marcados: Marcados
+): AcaoNosBlocos | null {
+  const ids = modulosComErro(r, marcados).filter((id) => !abertos.has(id));
+  return ids.length > 0 ? { ids, tipo: "erros_mostrados" } : null;
+}
+
+/** Toda mudança do rascunho passa também pelos blocos: o módulo novo e o destino da aula movida abrem. */
+export const despacharNosDois =
+  (
+    mudarRascunho: (m: Mudanca) => void,
+    mudarBlocos: (a: AcaoNosBlocos) => void
+  ) =>
+  (mudanca: Mudanca) => {
+    mudarRascunho(mudanca);
+    mudarBlocos({ mudanca, tipo: "mudou" });
+  };
+
+/**
+ * O que a tela marca. Antes do Salvar, só o erro dos campos que o admin já
+ * deixou (`tocados`), como o "abc" na duração; depois do Salvar recusado,
+ * tudo o que o Salvar recusaria (`achados`). A recusa do servidor aparece
+ * sempre, enquanto o valor recusado continua no campo.
+ */
+export function problemasNaTela({
+  achados,
+  recusa,
+  tentou,
+  tocados,
+}: {
+  achados: readonly Problema[];
+  recusa: readonly Problema[];
+  tentou: boolean;
+  tocados: ReadonlySet<string>;
+}): Problema[] {
+  const vistos = tentou
+    ? achados
+    : achados.filter((p) => p.campo !== null && tocados.has(p.campo));
+  return [...vistos, ...recusa];
+}
