@@ -22,6 +22,7 @@ import {
   type SituacaoNoCurso,
 } from "../dominio/acompanhamento";
 import type { CursoVM, PainelMeusCursos } from "../dominio/painel";
+import { diaLocal } from "../dominio/sequencia";
 import type { DiaISO, EstadoCurso, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { resumoDasPessoas } from "./acompanhamento";
@@ -283,6 +284,17 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       pessoas: [],
       trilhas: [],
     });
+  });
+
+  test("admin.alunos.buscar devolve a página do Clerk com o resumo de cada pessoa", async () => {
+    const busca = await admin.admin.alunos.buscar({ termo: `${S}nunca` });
+    expect(busca.total).toBe(1);
+    expect(busca.pessoas.map((p) => [p.userId, p.resumo.tipo])).toEqual([
+      [NUNCA, "nunca_abriu"],
+    ]);
+    expect(busca.hoje).toBe(diaLocal(new Date()));
+    const ninguem = await admin.admin.alunos.buscar({ termo: `${S}zzz` });
+    expect(ninguem).toMatchObject({ pessoas: [], total: 0 });
   });
 
   test("o acompanhamento de cada liberação ativa bate com o estado e o progresso de Meus cursos", async () => {
