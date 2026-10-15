@@ -8,14 +8,38 @@ import { fmtHoras, fmtNum, plural } from "@/lib/formato";
 
 import { SeloEstado } from "./selo-estado";
 
-export type Etiqueta = { tipo: "comece" } | { tipo: "em_producao" };
+export type Etiqueta =
+  | { tipo: "duracao"; texto: string }
+  | { tipo: "comece" }
+  | { tipo: "em_producao" };
+
+const aulasEDuracao = (c: CursoVM) =>
+  `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`;
+
+/**
+ * A etiqueta sobre a imagem, como no protótipo aprovado: "Em produção" no curso em
+ * produção, "Comece por aqui" no primeiro curso da trilha não iniciado e, nos
+ * outros, as aulas e a duração do curso inteiro.
+ */
+function etiquetaDe(c: CursoVM, comece: boolean): Etiqueta {
+  if (c.estado.tipo === "em_breve") {
+    return { tipo: "em_producao" };
+  }
+  if (comece) {
+    return { tipo: "comece" };
+  }
+  return { texto: aulasEDuracao(c), tipo: "duracao" };
+}
+
+const ESPACO_QUE_NAO_QUEBRA = " ";
 
 /**
  * A linha sob o título, igual na trilha e nos cursos rápidos: o tema, o código ou
  * o destaque que o admin escreveu e o tamanho do curso inteiro. Com aula assistida,
- * "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso em produção mostra só o tema,
- * porque as aulas dele ainda mudam. O tamanho vai com espaços que não quebram: com
- * um destaque longo, ele desce inteiro para a linha de baixo, nunca "2 de / 2 aulas".
+ * "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso em produção mostra o tema e o
+ * código ou destaque, sem o tamanho, porque as aulas dele ainda mudam. O tamanho e
+ * o "·" que junta as partes vão com espaços que não quebram: a linha quebra dentro
+ * de uma parte, nunca em "2 de / 2 aulas" nem com um "·" sozinho na ponta.
  */
 export function linhaDoCurso(c: CursoVM): string {
   const partes = [c.tema, c.extra];
@@ -24,16 +48,18 @@ export function linhaDoCurso(c: CursoVM): string {
     const tamanho =
       feitas > 0
         ? `${fmtNum(feitas)} de ${plural(total, "aula", "aulas")}`
-        : `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`;
-    partes.push(tamanho.replaceAll(" ", " "));
+        : aulasEDuracao(c);
+    partes.push(tamanho.replaceAll(" ", ESPACO_QUE_NAO_QUEBRA));
   }
-  return partes.filter((p) => p !== null && p !== "").join(" · ");
+  return partes
+    .filter((p) => p !== null && p !== "")
+    .join(`${ESPACO_QUE_NAO_QUEBRA}·${ESPACO_QUE_NAO_QUEBRA}`);
 }
 
 /**
- * "Agora: módulo 8, Pilar Urgência", só no curso em andamento dividido em níveis, a
- * mesma regra do "Módulo N" da linha "Agora:" da trilha. No curso curto o módulo
- * não diz nada que o título não diga.
+ * "Agora: Módulo 8, Pilar Urgência", só no curso em andamento dividido em níveis, a
+ * mesma regra e a mesma grafia do "Módulo N" da linha "Agora:" da trilha. No curso
+ * curto o módulo não diz nada que o título não diga.
  */
 const moduloDeAgora = (c: CursoVM) =>
   c.estado.tipo === "em_andamento" && c.temNiveis ? c.moduloAtual : null;
@@ -55,6 +81,12 @@ function TextoEtiqueta({ etiqueta }: { etiqueta: Etiqueta }) {
         <span className={cn(ETIQUETA, "bg-background text-ceu")}>
           <Clock aria-hidden="true" className="size-[13px]" />
           Em produção
+        </span>
+      );
+    case "duracao":
+      return (
+        <span className={cn(ETIQUETA, "bg-background text-foreground")}>
+          {etiqueta.texto}
         </span>
       );
     default:
@@ -98,7 +130,7 @@ export function CapaCurso({
   sizes,
 }: {
   curso: CursoVM;
-  /** "Comece por aqui" no lugar do vazio: o primeiro curso da trilha, não iniciado. */
+  /** "Comece por aqui" no lugar das aulas e da duração: o primeiro curso da trilha, não iniciado. */
   comece?: boolean;
   /**
    * Número do curso na trilha. Fica na árvore de acessibilidade: o `ol` sem marcador
@@ -109,12 +141,6 @@ export function CapaCurso({
 }) {
   const fechado =
     curso.estado.tipo === "em_breve" || curso.estado.tipo === "bloqueado";
-  let etiqueta: Etiqueta | null = null;
-  if (curso.estado.tipo === "em_breve") {
-    etiqueta = { tipo: "em_producao" };
-  } else if (comece) {
-    etiqueta = { tipo: "comece" };
-  }
   const agora = moduloDeAgora(curso);
   const titulo = (
     <h3
@@ -144,7 +170,7 @@ export function CapaCurso({
           sizes={sizes}
           src={curso.capa.url}
         />
-        {etiqueta ? <TextoEtiqueta etiqueta={etiqueta} /> : null}
+        <TextoEtiqueta etiqueta={etiquetaDe(curso, comece)} />
       </div>
       {ordem === undefined ? (
         titulo
@@ -166,7 +192,7 @@ export function CapaCurso({
         <p className="text-[13px] text-muted-foreground">
           Agora:{" "}
           <b className="font-semibold text-foreground">
-            módulo {agora.numero}, {agora.titulo}
+            Módulo {agora.numero}, {agora.titulo}
           </b>
         </p>
       )}
