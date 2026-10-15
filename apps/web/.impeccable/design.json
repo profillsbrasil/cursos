@@ -175,7 +175,23 @@
       },
       "mono": {
         "displayName": "Mono",
-        "purpose": "Carregada pelo layout; uso raro: os pontos da linha de status do player, em 600 e 16 px."
+        "purpose": "A voz dos números do player: os pontos da linha de status, em 600 e 16 px. Fora do player, número é Geist com tabular-nums."
+      },
+      "mono-player": {
+        "displayName": "Mono dos controles",
+        "purpose": "O tempo e a velocidade nos controles do player, em 13 px."
+      },
+      "mono-coluna": {
+        "displayName": "Mono da coluna",
+        "purpose": "Na coluna do curso do player, o número e a contagem do módulo, o número da aula e a duração de cada aula, em 12 px."
+      },
+      "tecla": {
+        "displayName": "Tecla",
+        "purpose": "A tecla dos atalhos escritos sob a barra do player, em 11 px."
+      },
+      "selo-da-area": {
+        "displayName": "Selo da área",
+        "purpose": "\"Admin\" ao lado da marca, em 600, 10 px e caixa alta. O único texto abaixo de 11 px."
       }
     },
     "shadows": [
@@ -333,6 +349,11 @@
       {
         "name": "The No Shouting Rule",
         "body": "Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Dates Rule",
+        "body": "Data tem dois formatos, os dois de `lib/formato.ts`: o curto, \"7 de out.\" (\"21 de set. de 2025\" fora do ano de hoje), nas linhas e frases; e o longo, \"20 de agosto de 2026\", no texto corrido do comunicado e na lista de comunicados do admin. Datas do mesmo item usam o mesmo formato.",
         "section": "typography"
       },
       {

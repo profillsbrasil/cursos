@@ -3,11 +3,13 @@ import type {
   Acompanhamento,
   CursoAcompanhado,
 } from "@cursos/api/dominio/acompanhamento";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
+import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
+import type { CursoId, DiaISO, LiberacaoId } from "@cursos/api/dominio/tipos";
 
 import { noDia } from "@/lib/formato";
 
 import {
+  dataDaLiberacao,
   fraseDaLiberacao,
   fraseDaPessoa,
   fraseNaTrilha,
@@ -35,7 +37,7 @@ describe("noDia", () => {
       ["2026-10-14", "2026-10-13", "2026-09-21", "2025-12-30"].map((d) =>
         noDia(d, HOJE)
       )
-    ).toEqual(["hoje", "ontem", "em 21 set", "em 30 dez 2025"]);
+    ).toEqual(["hoje", "ontem", "em 21 de set.", "em 30 de dez. de 2025"]);
   });
 });
 
@@ -50,7 +52,9 @@ describe("fraseDaPessoa", () => {
         },
         HOJE
       )
-    ).toBe("5 liberações · 2 de 5 cursos concluídos · último estudo em 21 set");
+    ).toBe(
+      "5 liberações · 2 de 5 cursos concluídos · último estudo em 21 de set."
+    );
   });
 
   test("nunca abriu diz desde quando tem liberação", () => {
@@ -63,7 +67,7 @@ describe("fraseDaPessoa", () => {
         },
         HOJE
       )
-    ).toBe("1 liberação desde 2 out · nenhuma aula aberta");
+    ).toBe("1 liberação desde 2 de out. · nenhuma aula aberta");
   });
 
   test("sem liberação: nunca recebeu, uma revogada ou várias", () => {
@@ -77,7 +81,7 @@ describe("fraseDaPessoa", () => {
       )
     ).toEqual([
       "Nunca recebeu liberação",
-      "1 liberação revogada em 2 set",
+      "1 liberação revogada em 2 de set.",
       "3 liberações revogadas, a última ontem",
     ]);
   });
@@ -111,7 +115,7 @@ describe("fraseDaLiberacao", () => {
       tipo: "curso",
     };
     expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
-      { quando: "último estudo em 21 set", texto: "Módulo 2, aula 1" },
+      { quando: "último estudo em 21 de set.", texto: "Módulo 2, aula 1" },
       "Estudando",
     ]);
   });
@@ -127,7 +131,7 @@ describe("fraseDaLiberacao", () => {
       tipo: "curso",
     };
     expect(fraseDaLiberacao(a, HOJE)).toEqual({
-      quando: "último estudo em 30 set",
+      quando: "último estudo em 30 de set.",
       texto: "Viu as 2 aulas. Falta a prova",
     });
   });
@@ -160,7 +164,7 @@ describe("fraseDaLiberacao", () => {
     );
     expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
       {
-        quando: "último estudo em 12 set",
+        quando: "último estudo em 12 de set.",
         texto: "Curso 2 de 2, Envasadora: nenhuma aula aberta",
       },
       "Estudando",
@@ -197,7 +201,7 @@ describe("fraseDaLiberacao", () => {
     );
     expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
       {
-        quando: "último estudo em 12 set",
+        quando: "último estudo em 12 de set.",
         texto: "Concluiu 1 de 3 cursos. Os cursos 2 e 3 estão em produção",
       },
       "Aguardando produção",
@@ -221,7 +225,49 @@ describe("fraseDaLiberacao", () => {
     ).toEqual([
       "Estudando · módulo 8, aula 4 · último estudo ontem",
       "Abre depois do curso 1",
-      "Concluído em 12 set",
+      "Concluído em 12 de set.",
+    ]);
+  });
+});
+
+describe("as datas do item da liberação", () => {
+  const concluido: Acompanhamento = {
+    curso: curso("Segurança", { em: dia("2026-09-17"), tipo: "concluido" }),
+    tipo: "curso",
+  };
+  const item = (
+    liberadaEm: string,
+    acao: LiberacaoNaTela["acao"] = { tipo: "revogar" },
+    origem: LiberacaoNaTela["origem"] = "admin"
+  ): LiberacaoNaTela => ({
+    acao,
+    acompanhamento: concluido,
+    alvo: { id: "c1" as CursoId, tipo: "curso", titulo: "Segurança" },
+    id: "l1" as LiberacaoId,
+    liberadaEm,
+    origem,
+  });
+
+  test("Concluído e Liberada em usam o mesmo formato curto", () => {
+    const l = item("2026-08-20T15:00:00.000Z");
+    expect([
+      fraseDaLiberacao(l.acompanhamento, HOJE).texto,
+      dataDaLiberacao(l, HOJE),
+    ]).toEqual(["Concluído em 17 de set.", "Liberada em 20 de ago."]);
+  });
+
+  test("a troca, a revogação e o ano de outra liberação", () => {
+    expect(
+      [
+        item("2026-08-20T15:00:00.000Z", { tipo: "fixa_por_troca" }, "troca"),
+        item("2025-11-03T15:00:00.000Z", {
+          em: "2026-10-02T15:00:00.000Z",
+          tipo: "revogada",
+        }),
+      ].map((l) => dataDaLiberacao(l, HOJE))
+    ).toEqual([
+      "Trocado por pontos em 20 de ago.",
+      "Liberada em 3 de nov. de 2025 · revogada em 2 de out.",
     ]);
   });
 });

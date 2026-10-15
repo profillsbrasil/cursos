@@ -16,22 +16,19 @@ import Link from "next/link";
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum, fmtPts, plural } from "@/lib/formato";
 
+import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
 
+// O link de linha de tabela do admin: sublinhado só sob o cursor e com o foco.
 const LINK_DA_LINHA = "rounded-sm underline-offset-4 hover:underline";
 
-const STATUS: Record<StatusDoCurso, { classe: string; rotulo: string }> = {
-  em_producao: {
-    classe:
-      "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset",
-    rotulo: "Em produção",
-  },
-  publicado: { classe: "bg-ceu/14 text-ceu", rotulo: "Publicado" },
-};
-
+/** "Em produção" é o mesmo selo do resto do admin, em contorno Céu com o relógio. */
 function SeloDeStatus({ status }: { status: StatusDoCurso }) {
-  const { classe, rotulo } = STATUS[status];
-  return <span className={cn(SELO, classe)}>{rotulo}</span>;
+  return status === "em_producao" ? (
+    <SeloDeSituacao selo={seloDoCurso("em_producao")} />
+  ) : (
+    <span className={cn(SELO, "bg-ceu/14 text-ceu")}>Publicado</span>
+  );
 }
 
 function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {
@@ -54,7 +51,7 @@ function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {
           <TableRow key={t.id}>
             <TableCell className={cn(CELULA, "font-medium text-foreground")}>
               <Link
-                className="underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-titulo"
+                className={LINK_DA_LINHA}
                 href={`/admin/catalogo/trilhas/${t.id}` as Route}
               >
                 {t.titulo}

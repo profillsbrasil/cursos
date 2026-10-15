@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { BarraDeSalvar } from "./barra-de-salvar";
 
 const TAG = /<[^>]+>/g;
+const BOTAO = /<button[^>]*>/;
+const DESCRITO_POR = /aria-describedby="([^"]+)"/;
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
 
@@ -48,6 +50,41 @@ describe("BarraDeSalvar", () => {
     );
     expect(barra({ sujo: true })).toContain("Alterações não salvas.");
     expect(barra()).toContain("Tudo salvo.");
+  });
+
+  const salvar = (props: Partial<ComponentProps<typeof BarraDeSalvar>>) => {
+    const html = renderToStaticMarkup(
+      <BarraDeSalvar
+        novo={false}
+        oQue="este curso"
+        pendente={false}
+        problemas={[]}
+        recarregar={nada}
+        sujo={false}
+        versaoMudou={false}
+        {...props}
+      />
+    );
+    const botao = BOTAO.exec(html)?.[0] ?? "";
+    const id = DESCRITO_POR.exec(botao)?.[1];
+    const descricao = id
+      ? texto(new RegExp(`id="${id}"[^>]*>(.*?)</`).exec(html)?.[1] ?? "")
+      : null;
+    return { botao, descricao };
+  };
+
+  test("sem nada a salvar, o Salvar fica desligado e diz por quê", () => {
+    const { botao, descricao } = salvar({});
+    expect(botao).toContain("data-disabled");
+    expect(descricao).toBe("Tudo salvo.");
+  });
+
+  test("documento novo e rascunho sujo deixam o Salvar ativo", () => {
+    for (const props of [{ novo: true }, { sujo: true }]) {
+      const { botao, descricao } = salvar(props);
+      expect(botao).not.toContain("data-disabled");
+      expect(descricao).toBeNull();
+    }
   });
 
   test("com a versão mudada, avisa com o nome do documento e oferece Recarregar", () => {

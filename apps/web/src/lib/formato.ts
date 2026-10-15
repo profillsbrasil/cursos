@@ -2,6 +2,8 @@
 
 const NUMERO = new Intl.NumberFormat("pt-BR");
 
+// Dois formatos de data, e só eles: o longo ("20 de agosto de 2026") e o curto
+// ("7 de out.", com " de 2025" fora do ano de hoje).
 const DATA = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "long",
@@ -13,6 +15,27 @@ const DIA_CURTO = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "short",
   timeZone: "America/Sao_Paulo",
+});
+
+// O dia (AAAA-MM-DD) já é do calendário de São Paulo: lido em UTC, não muda de dia.
+const DIA_DO_CALENDARIO = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+const DIA_DO_CALENDARIO_COM_ANO = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
+const DIA_EM_SAO_PAULO = new Intl.DateTimeFormat("en-CA", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "America/Sao_Paulo",
+  year: "numeric",
 });
 
 const ESPACOS = /\s+/;
@@ -49,10 +72,14 @@ export function fmtHoras(seg: number) {
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
-/** "2 de outubro de 2026", no fuso de São Paulo. */
+/** O formato longo: "2 de outubro de 2026", no fuso de São Paulo. */
 export const fmtData = (iso: string) => DATA.format(new Date(iso));
 
-/** "2 de out.", no fuso de São Paulo, para a linha em que o ano é óbvio. */
+/**
+ * O formato curto de um instante, "2 de out.", no fuso de São Paulo, sem o ano:
+ * só para o que é recente, como o comunicado do topo. Com o ano em jogo, use
+ * `diaCurto(diaEmSaoPaulo(iso), hoje)`.
+ */
 export const fmtDiaCurto = (iso: string) => DIA_CURTO.format(new Date(iso));
 
 /** "2.340 pts". */
@@ -93,20 +120,6 @@ export const fmtPtsComSinal = (n: number) =>
   n < 0 ? `${SINAL_DE_MENOS}${fmtPts(-n)}` : `+${fmtPts(n)}`;
 
 const DIA_DA_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const MES = [
-  "jan",
-  "fev",
-  "mar",
-  "abr",
-  "mai",
-  "jun",
-  "jul",
-  "ago",
-  "set",
-  "out",
-  "nov",
-  "dez",
-];
 const MS_POR_DIA = 86_400_000;
 
 const utc = (dia: string) => new Date(`${dia}T00:00:00Z`);
@@ -126,17 +139,21 @@ export function quando(dia: string, hoje: string) {
   return diaCurto(dia, hoje);
 }
 
-/** "21 set", ou "21 set 2025" fora do ano de hoje. */
+/** O formato curto: "21 de set.", ou "21 de set. de 2025" fora do ano de hoje. */
 export function diaCurto(dia: string, hoje: string) {
   const data = utc(dia);
-  const ano =
+  const formato =
     data.getUTCFullYear() === utc(hoje).getUTCFullYear()
-      ? ""
-      : ` ${data.getUTCFullYear()}`;
-  return `${data.getUTCDate()} ${MES[data.getUTCMonth()]}${ano}`;
+      ? DIA_DO_CALENDARIO
+      : DIA_DO_CALENDARIO_COM_ANO;
+  return formato.format(data);
 }
 
-/** O dia dentro da frase: "hoje", "ontem" ou "em 21 set". */
+/** O dia de um instante no calendário de São Paulo: "2026-10-07". */
+export const diaEmSaoPaulo = (iso: string) =>
+  DIA_EM_SAO_PAULO.format(new Date(iso));
+
+/** O dia dentro da frase: "hoje", "ontem" ou "em 21 de set.". */
 export function noDia(dia: string, hoje: string) {
   const atras = Math.round(
     (utc(hoje).getTime() - utc(dia).getTime()) / MS_POR_DIA
