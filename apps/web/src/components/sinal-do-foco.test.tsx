@@ -11,20 +11,32 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
+import type {
+  AulaId,
+  CursoId,
+  DiaISO,
+  LiberacaoId,
+} from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
-import { spawn } from "bun";
+import { sleep, spawn } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compile } from "tailwindcss";
 
-// Fora do App Router o usePathname não tem de onde ler; o teste diz o caminho, e o
-// resto do módulo fica o de verdade.
+// Fora do App Router o usePathname não tem de onde ler e o useRouter lança; o teste
+// diz o caminho, e o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 mock.module("next/navigation", () => ({
   ...navegacao,
   usePathname: () => "/meus-cursos",
+  useRouter: () => ({
+    push: () => undefined,
+    refresh: () => undefined,
+    replace: () => undefined,
+  }),
 }));
 
+const { AcessoDoAluno } = await import("./admin/acesso-do-aluno");
 const { ListaDePessoas } = await import("./admin/lista-de-pessoas");
 const { ITENS_DO_ALUNO } = await import("./aluno/menu");
 const { NavPrincipal } = await import("./casca/nav-principal");
@@ -110,20 +122,68 @@ const coluna = renderToStaticMarkup(
   />
 );
 
+const HOJE = "2026-10-14" as DiaISO;
 const pessoas = renderToStaticMarkup(
   <ListaDePessoas
     resultado={{
+      hoje: HOJE,
       pessoas: [
         {
           email: "ana@exemplo.com",
           foto: null,
           nome: "Ana Exemplo",
+          situacao: {
+            desde: HOJE,
+            numeros: { concluidos: 0, cursos: 1, liberacoes: 1 },
+            tipo: "nunca_abriu",
+          },
           userId: "user_exemplo",
         },
       ],
       total: 1,
     }}
     termo=""
+  />
+);
+
+// Uma liberação ativa, com Revogar, e uma revogada, que fica no summary recolhido.
+const liberacao = (
+  id: string,
+  titulo: string,
+  acao: LiberacaoNaTela["acao"]
+): LiberacaoNaTela => ({
+  acao,
+  acompanhamento: {
+    curso: {
+      progresso: { feitas: 0, pct: 0, total: 2 },
+      situacao: { tipo: "nunca_abriu" },
+      titulo,
+    },
+    tipo: "curso",
+  },
+  alvo: { id: id as CursoId, tipo: "curso", titulo },
+  id: id as LiberacaoId,
+  liberadaEm: "2026-10-01T15:00:00.000Z",
+  origem: "admin",
+});
+const acesso = renderToStaticMarkup(
+  <AcessoDoAluno
+    acesso={{
+      cursos: [],
+      hoje: HOJE,
+      liberacoes: [
+        liberacao("33333333-3333-4333-8333-333333333333", "Ativo", {
+          tipo: "revogar",
+        }),
+        liberacao("44444444-4444-4444-8444-444444444444", "Antigo", {
+          em: "2026-10-02T15:00:00.000Z",
+          tipo: "revogada",
+        }),
+      ],
+      pessoa: null,
+      trilhas: [],
+      userId: "user_exemplo",
+    }}
   />
 );
 
@@ -154,7 +214,7 @@ function elementos(html: string): Elemento[] {
   });
 }
 
-const todos = [nav, coluna, pessoas].flatMap(elementos);
+const todos = [nav, coluna, pessoas, acesso].flatMap(elementos);
 const compilador = await compile(readFileSync(INDEX, "utf8"), {
   base: dirname(INDEX),
   loadStylesheet: lerEstilo,
@@ -357,6 +417,17 @@ async function noDe(seletor: string) {
   return nodeId;
 }
 
+/** Aperta Tab, como a pessoa, até a condição valer ou acabarem as tentativas. */
+async function tabAte(condicao: string, tentativas: number): Promise<void> {
+  if (tentativas === 0 || (await avaliar<boolean>(condicao))) {
+    return;
+  }
+  const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
+  await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
+  await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
+  return tabAte(condicao, tentativas - 1);
+}
+
 const LINK_ATIVO = 'nav a[aria-current="page"]';
 const OUTRO_LINK = "nav a[href]:not([aria-current])";
 
@@ -461,6 +532,93 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     }
   );
 
+  // A tabela de liberações tinha 640 px de largura mínima: em 390 px, o Tab até
+  // Revogar rolava a tabela para o lado e o título da liberação saía da tela.
+  describe.skipIf(!existsSync(CHROMIUM))(
+    "com o foco de teclado em 390 px, Revogar aparece inteiro, sem rolar a lista para o lado",
+    () => {
+      let medida: {
+        borda: string;
+        direita: number;
+        esquerda: number;
+        focado: boolean;
+        largura: number;
+        rolagemLateral: number;
+        titulo: string;
+      };
+
+      beforeAll(async () => {
+        enviar = await abrirChromium();
+        await enviar("Emulation.setDeviceMetricsOverride", {
+          deviceScaleFactor: 1,
+          height: 900,
+          mobile: false,
+          width: 390,
+        });
+        await enviar("Emulation.setEmulatedMedia", {
+          features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+        });
+        // A moldura do conteúdo do app no celular: 16 px de cada lado.
+        await avaliar(
+          `document.open(); document.write(${JSON.stringify(
+            `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><main style="padding:16px">${acesso}</main><div id="sonda" style="color: var(--titulo)"></div></body></html>`
+          )}); document.close();`
+        );
+        // Tab de verdade, como a pessoa: o foco vem do teclado e o navegador
+        // rola o que for preciso para mostrar o botão.
+        await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
+        await tabAte(
+          `document.activeElement?.getAttribute("aria-label") === "Revogar Ativo"`,
+          20
+        );
+        // A borda troca de cor com transição: lê depois que ela termina.
+        await sleep(400);
+        medida = await avaliar(`(() => {
+          const revogar = document.activeElement;
+          const r = revogar.getBoundingClientRect();
+          let rolagemLateral = document.scrollingElement.scrollLeft;
+          for (let e = revogar.parentElement; e; e = e.parentElement) {
+            rolagemLateral = Math.max(rolagemLateral, e.scrollLeft);
+          }
+          return {
+            borda: getComputedStyle(revogar).borderTopColor,
+            direita: r.right,
+            esquerda: r.left,
+            focado:
+              revogar.getAttribute("aria-label") === "Revogar Ativo" &&
+              revogar.matches(":focus-visible"),
+            largura: innerWidth,
+            rolagemLateral,
+            titulo: getComputedStyle(document.getElementById("sonda")).color,
+          };
+        })()`);
+      }, 20_000);
+
+      afterAll(async () => {
+        await limpezas
+          .splice(0)
+          .reverse()
+          .reduce<Promise<unknown>>(
+            (anterior, limpar) => anterior.then(limpar),
+            Promise.resolve()
+          );
+      });
+
+      test("o foco é de teclado e a borda acende em titulo", () => {
+        expect(medida.focado).toBe(true);
+        expect(medida.titulo).toStartWith("rgb");
+        expect(medida.borda).toBe(medida.titulo);
+      });
+
+      test("nada rola para o lado e o botão cabe na tela", () => {
+        expect({
+          cabe: medida.esquerda >= 0 && medida.direita <= medida.largura,
+          rolagemLateral: medida.rolagemLateral,
+        }).toEqual({ cabe: true, rolagemLateral: 0 });
+      });
+    }
+  );
+
   test('"Em breve" clareia o nome e o ícone para foreground, sem fundo', () => {
     const emBreve = elementos(nav).filter(
       (e) => e.atributos["aria-disabled"] === "true"
@@ -515,5 +673,16 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     expect(noFoco(seta)).toContain("color: var(--ceu)");
     // O nome e a seta acendem pelo grupo da linha, que precisa existir.
     expect(linha.classes).toContain("group/pessoa");
+  });
+
+  test("o summary das revogadas ganha o fundo branco a 8% e o texto em titulo", () => {
+    const resumo = unico(
+      elementos(acesso).filter((e) => e.classes.includes("list-none")),
+      "summary das revogadas"
+    );
+    expect(noFoco(resumo)).toContain(
+      "background-color: color-mix(in srgb, #fff 8%, transparent)"
+    );
+    expect(noFoco(resumo)).toContain("color: var(--titulo)");
   });
 });

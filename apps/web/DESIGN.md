@@ -223,7 +223,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 ### Hierarchy
 - **Headline** (700, clamp de 24 a 32 px, 1,15 com retomada e 1,25 no banner vazio): o título do banner de retomada em Meus cursos, com o segundo verso em Sol.
 - **Title page** (700, 30 px, letra apertada): o `h1` das páginas, sempre em `titulo`. As telas de erro e de não encontrado usam 24 px, e o título da aula vai de 22 a 30 px.
-- **Title section** (700, 24 px, 1,33, letra apertada): o `h2` das seções (as trilhas e os cursos rápidos de Meus cursos, Cursos para trocar e Extrato recente), com o resumo em 14 px à direita. Seção e cartão formam um par fixo: 24 px sobre os 18 px do Title card, razão de 1,33, e 30 px do Title page sobre os 24 px, razão de 1,25. O tamanho sozinho separa os três níveis, sem depender do peso. A Headline do banner de retomada fica fora dessa conta: abaixo de cerca de 920 px de largura o clamp dela para no piso de 24 px e empata com a seção, e o que a separa é o cartão do banner, a entrelinha de 1,15 e o segundo verso em Sol. O `h2` das seções do admin (`admin/partes.tsx`) ainda usa 20 px e passa a 24 px no próximo ajuste do admin.
+- **Title section** (700, 24 px, 1,33, letra apertada): o `h2` das seções do aluno (as trilhas e os cursos rápidos de Meus cursos, Cursos para trocar e Extrato recente) e do admin (a `Secao` de `admin/partes.tsx`), com o resumo em 14 px à direita. Seção e cartão formam um par fixo: 24 px sobre os 18 px do Title card, razão de 1,33, e 30 px do Title page sobre os 24 px, razão de 1,25. O tamanho sozinho separa os três níveis, sem depender do peso. A Headline do banner de retomada fica fora dessa conta: abaixo de cerca de 920 px de largura o clamp dela para no piso de 24 px e empata com a seção, e o que a separa é o cartão do banner, a entrelinha de 1,15 e o segundo verso em Sol.
 - **Title card** (600, 18 px, 1,3): o `h3` do cartão de curso em Meus cursos e do cartão de troca. No mesmo degrau, em 700 e com a mesma entrelinha de 1,3, ficam o título do cartão Sua semana e o do painel vazio, os números de Sua semana e o preço do cartão de troca.
 - **Title block** (600, 16 px): o título da coluna do curso no player e o do aviso de comunicado e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
 - **Mono** (Geist Mono): os pontos da linha de status do player ("+10 pts"), em 600 e 16 px.
@@ -278,6 +278,7 @@ Cheios e redondos, com o peso no amarelo.
 
 ### Chips
 - **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 14 px. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Falta a prova em Canela cheio, Não iniciado em `popover`, Bloqueado e Em produção em contorno de 1 px (`texto-apagado` e Céu). O aluno vê "Em produção" no curso que o admin pôs em produção e no curso publicado ainda sem aula; "Em breve" é só do menu e de "Como ganhar pontos".
+- **Selos do admin:** a mesma pílula, com a palavra do admin. Estudando em Sol a 14%, Nunca abriu em `popover`, Concluído, Concluída e Concluiu tudo em Céu cheio, Em produção e Aguardando produção em contorno Céu, Bloqueado e Sem liberação em contorno `texto-apagado`. Quem parou de estudar não ganha selo nem cor: a frase mostra o dia do último estudo. Nenhum selo é vermelho.
 - **Número na trilha:** círculo de 24 px em `popover`, 600 em 12 px, à esquerda do título da capa. O `ol` não desenha marcador, então o número fica na árvore de acessibilidade e é ele que o leitor de tela lê; o `ol` leva `role="list"`, porque o WebKit tira o papel de lista de quem não tem marcador.
 - **Selo da área:** Céu a 14% com texto Céu, 10 px em caixa alta, encaixado à direita de CURSOS no lockup.
 
@@ -310,7 +311,10 @@ O rodapé das duas áreas. Avatar de 36 px (iniciais em Canela), nome em 600 e 1
 Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, padding de 12 px: o botão redondo de 32 px em Sol (play, ou o troféu na prova), o título da aula em 600 e 13 px, a chamada em 12 px e uma barra de progresso de 4 px. Sob o cursor e com o foco de teclado, o fundo vira `popover`. Recolhido, vira o botão redondo de 40 px com dica à direita, que clareia e brilha como o botão principal. Na página para onde aponta, mostra "Assistindo agora" ("Falta só a prova" na prova) e perde o link.
 
 ### Barra de progresso
-Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar.
+Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar e no acompanhamento do admin. No admin, o texto ao lado ("46 de 90 aulas") carrega o número, e a barra fica `aria-hidden`.
+
+### Acompanhamento do admin
+Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px com os números ("5 liberações · 2 de 5 cursos concluídos · último estudo ontem") e o selo à direita, antes da seta; em container abaixo de 36rem o selo desce para baixo da frase. Na tela de acesso, as liberações são uma lista no cartão da seção: título em 600 e 15 px, tipo em 12 px e o selo numa linha; a frase de 14 px com o "quando" apagado; a barra de 4 px até 32,5rem; e o rodapé de 12 px com a data ("Liberada em", ou "Trocado por pontos em" na troca). A trilha com mais de um curso troca a barra por uma lista ordenada em `fundo`, raio de 14 px e anel de 1 px, com o número num círculo de 22 px (Céu cheio no concluído, Sol no curso da vez, `popover` nos outros). Revogar fica à direita; em container abaixo de 36rem, desce para o pé do item. As revogadas ficam num `details` fechado no fim do cartão.
 
 ### Foco de teclado
 **The Focus Is The Hover Rule.** O foco de teclado é o hover de cada controle: o botão amarelo e a pílula do link ativo clareiam e brilham, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o item "Em breve" clareia o nome e o ícone, o cartão de curso e de trilha troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows (`forced-colors`), por decisão do dono.
@@ -319,6 +323,7 @@ Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na 
 - **Navegação:** o link ativo acende a pílula amarela, e o "Em breve" clareia o nome e o ícone (ver Navigation).
 - **Módulo da coluna do player:** o `summary` ganha fundo branco a 8% e o título clareia para `titulo`.
 - **Linha da busca de pessoas:** o fundo `muted` a 40%, o nome em `titulo` e a seta em Céu.
+- **Revogadas da tela de acesso:** o `summary` ganha fundo branco a 8% e o texto clareia para `titulo`, como o módulo da coluna do player.
 - **Sem sinal hoje:** o botão em contorno do player (Anterior, e a Próxima sem destaque) não muda, porque o `dark:border-input` da variante outline vence o `hover:border-foreground`.
 
 ## Do's and Don'ts

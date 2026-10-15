@@ -114,9 +114,29 @@ export function quando(dia: string, hoje: string) {
   if (atras > 1 && atras < 7) {
     return DIA_DA_SEMANA[data.getUTCDay()];
   }
+  return diaCurto(dia, hoje);
+}
+
+/** "21 set", ou "21 set 2025" fora do ano de hoje. */
+export function diaCurto(dia: string, hoje: string) {
+  const data = utc(dia);
   const ano =
     data.getUTCFullYear() === utc(hoje).getUTCFullYear()
       ? ""
       : ` ${data.getUTCFullYear()}`;
   return `${data.getUTCDate()} ${MES[data.getUTCMonth()]}${ano}`;
+}
+
+/** O dia dentro da frase: "hoje", "ontem" ou "em 21 set". */
+export function noDia(dia: string, hoje: string) {
+  const atras = Math.round(
+    (utc(hoje).getTime() - utc(dia).getTime()) / MS_POR_DIA
+  );
+  if (atras === 0) {
+    return "hoje";
+  }
+  if (atras === 1) {
+    return "ontem";
+  }
+  return `em ${diaCurto(dia, hoje)}`;
 }

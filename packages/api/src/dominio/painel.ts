@@ -1,12 +1,12 @@
 import {
-  estadoDoCurso,
-  estadosDaTrilha,
+  alcance,
+  type CursoAlcancado,
   type Progresso,
   progresso,
 } from "./curso";
 import { atividadeDe, historicoDe } from "./historico";
 import { PONTOS } from "./regras";
-import { type CursoNaTela, retomada } from "./retomada";
+import { type CursoNaTela, ondeNoCurso, retomada } from "./retomada";
 import {
   type DiaDaSemana,
   faltamParaBonus,
@@ -57,6 +57,14 @@ export interface CursoLinha extends LinhaDaCapa {
   titulo: string;
 }
 
+export interface TrilhaLinha {
+  cursos: readonly { curso: CursoLinha; posicao: number }[];
+  descricao: string;
+  id: string;
+  slug: string;
+  titulo: string;
+}
+
 export interface LinhasPainel {
   assistidas: readonly { assistidaEm: Date; aulaId: string }[];
   certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
@@ -71,13 +79,7 @@ export interface LinhasPainel {
   liberacoes: readonly {
     curso: CursoLinha | null;
     liberadaEm: Date;
-    trilha: {
-      cursos: { curso: CursoLinha; posicao: number }[];
-      descricao: string;
-      id: string;
-      slug: string;
-      titulo: string;
-    } | null;
+    trilha: TrilhaLinha | null;
   }[];
   posicoes: readonly {
     atualizadaEm: Date;
@@ -100,7 +102,10 @@ export interface CursoVM {
   estado: EstadoCurso;
   extra: string | null;
   id: CursoId;
-  /** Primeiro módulo pendente; null com todas as aulas assistidas. */
+  /**
+   * O módulo da aula para onde o Continuar leva (`ondeNoCurso`), o mesmo que o
+   * admin lê; null quando o curso não abre aula ou espera a prova.
+   */
   moduloAtual: { numero: number; titulo: string } | null;
   /** Primeiro módulo do curso, para a etiqueta "Segurança da máquina · 3 aulas · 25 min". */
   primeiroModulo: { aulas: number; duracaoSeg: number; titulo: string } | null;
@@ -239,11 +244,13 @@ const ORDEM_SOLTOS: readonly TipoEstado[] = [
 const somaSeg = (aulas: readonly { duracaoSeg: number }[]) =>
   aulas.reduce((s, a) => s + a.duracaoSeg, 0);
 
-function cursoVM(c: CursoCatalogo, estado: EstadoCurso, h: Historico): CursoVM {
+function cursoVM(
+  c: CursoCatalogo,
+  estado: EstadoCurso,
+  h: Historico,
+  atividade: ReadonlyMap<AulaId, string>
+): CursoVM {
   const aulas = c.modulos.flatMap((m) => m.aulas);
-  const atual = c.modulos.find((m) =>
-    m.aulas.some((a) => !h.assistidas.has(a.id))
-  );
   const [primeiro] = c.modulos;
   return {
     aulas: aulas.length,
@@ -252,7 +259,7 @@ function cursoVM(c: CursoCatalogo, estado: EstadoCurso, h: Historico): CursoVM {
     estado,
     extra: c.extra,
     id: c.id,
-    moduloAtual: atual ? { numero: atual.numero, titulo: atual.titulo } : null,
+    moduloAtual: ondeNoCurso(c, estado, h, atividade)?.modulo ?? null,
     primeiroModulo: primeiro
       ? {
           aulas: primeiro.aulas.length,
@@ -268,6 +275,19 @@ function cursoVM(c: CursoCatalogo, estado: EstadoCurso, h: Historico): CursoVM {
   };
 }
 
+/** Borda: a trilha com os cursos em ordem de posição. */
+export function paraTrilha(trilha: TrilhaLinha): TrilhaCatalogo {
+  return {
+    cursos: [...trilha.cursos]
+      .sort((a, b) => a.posicao - b.posicao)
+      .map((x) => paraCatalogo(x.curso)),
+    descricao: trilha.descricao,
+    id: trilha.id as TrilhaId,
+    slug: trilha.slug,
+    titulo: trilha.titulo,
+  };
+}
+
 /** Trilhas liberadas, na ordem da liberação, sem repetir. */
 function trilhasLiberadas(l: LinhasPainel): TrilhaCatalogo[] {
   const vistas = new Set<string>();
@@ -275,33 +295,27 @@ function trilhasLiberadas(l: LinhasPainel): TrilhaCatalogo[] {
   for (const { trilha } of l.liberacoes) {
     if (trilha && !vistas.has(trilha.id)) {
       vistas.add(trilha.id);
-      trilhas.push({
-        cursos: [...trilha.cursos]
-          .sort((a, b) => a.posicao - b.posicao)
-          .map((x) => paraCatalogo(x.curso)),
-        descricao: trilha.descricao,
-        id: trilha.id as TrilhaId,
-        slug: trilha.slug,
-        titulo: trilha.titulo,
-      });
+      trilhas.push(paraTrilha(trilha));
     }
   }
   return trilhas;
 }
 
-function trilhaVM(
-  t: TrilhaCatalogo,
+/** Uma trilha do alcance, com o estado de cada curso já decidido por `alcance`. */
+export interface TrilhaAlcancada {
+  cursos: readonly CursoAlcancado<CursoCatalogo>[];
+  trilha: TrilhaCatalogo;
+}
+
+/** A trilha como Meus cursos mostra; o acompanhamento do admin lê a mesma. */
+export function trilhaVM(
+  { cursos: alcancados, trilha: t }: TrilhaAlcancada,
   h: Historico,
-  liberadosDireto: ReadonlySet<CursoId>
+  atividade: ReadonlyMap<AulaId, string>
 ): { telas: CursoNaTela[]; vm: TrilhaVM } {
-  const estados = estadosDaTrilha(t, h, liberadosDireto);
-  const telas = t.cursos.map((curso, i) => ({
-    curso,
-    estado: estados[i] ?? ({ tipo: "em_breve" } as const),
-    trilha: { titulo: t.titulo },
-  }));
+  const telas = alcancados.map((x) => ({ ...x, trilha: { titulo: t.titulo } }));
   const cursos = telas.map((x, i) => ({
-    ...cursoVM(x.curso, x.estado, h),
+    ...cursoVM(x.curso, x.estado, h, atividade),
     posicao: i + 1,
   }));
   const contaveis = cursos.filter((c) => c.estado.tipo !== "em_breve");
@@ -337,28 +351,16 @@ function trilhaVM(
 
 export function montarPainel(linhas: LinhasPainel): PainelMeusCursos {
   const h = historicoDe(linhas);
-  const trilhasCat = trilhasLiberadas(linhas);
-  const naTrilha = new Set(
-    trilhasCat.flatMap((t) => t.cursos.map((c) => c.id))
+  const atividade = atividadeDe(linhas);
+  const diretos = linhas.liberacoes.flatMap(({ curso }) =>
+    curso ? [paraCatalogo(curso)] : []
   );
-  const diretos = new Map<CursoId, CursoCatalogo>();
-  for (const { curso } of linhas.liberacoes) {
-    if (curso && !diretos.has(curso.id as CursoId)) {
-      diretos.set(curso.id as CursoId, paraCatalogo(curso));
-    }
-  }
-  const liberadosDireto = new Set(diretos.keys());
+  const alcancado = alcance(trilhasLiberadas(linhas), diretos, h);
 
-  const trilhas = trilhasCat.map((t) => trilhaVM(t, h, liberadosDireto));
-  // Soltos: liberação direta fora de trilha liberada. O sort é estável, então
-  // o empate fica na ordem da liberação.
-  const soltosTela: CursoNaTela[] = [...diretos.values()]
-    .filter((c) => !naTrilha.has(c.id))
-    .map((curso) => ({
-      curso,
-      estado: estadoDoCurso(curso, h, { tipo: "livre" }),
-      trilha: null,
-    }))
+  const trilhas = alcancado.trilhas.map((t) => trilhaVM(t, h, atividade));
+  // O sort é estável, então o empate fica na ordem da liberação.
+  const soltosTela: CursoNaTela[] = alcancado.soltos
+    .map((x) => ({ ...x, trilha: null }))
     .sort(
       (a, b) =>
         ORDEM_SOLTOS.indexOf(a.estado.tipo) -
@@ -380,12 +382,8 @@ export function montarPainel(linhas: LinhasPainel): PainelMeusCursos {
           titulo: comunicado.titulo,
         }
       : null,
-    retomada: retomada({
-      atividade: atividadeDe(linhas),
-      cursos: telas,
-      historico: h,
-    }),
-    soltos: soltosTela.map((x) => cursoVM(x.curso, x.estado, h)),
+    retomada: retomada({ atividade, cursos: telas, historico: h }),
+    soltos: soltosTela.map((x) => cursoVM(x.curso, x.estado, h, atividade)),
     trilhas: trilhas.map((t) => t.vm),
   };
 }

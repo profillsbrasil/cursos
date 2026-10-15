@@ -5,8 +5,19 @@ import type {
   CursoId,
   EstadoCurso,
   Historico,
-  TrilhaCatalogo,
 } from "./tipos";
+
+/**
+ * O que estado e progresso leem de um curso. O CursoCatalogo serve, e a busca
+ * do admin, que não lê capa nem título de aula, também.
+ */
+export interface CursoComAulas {
+  id: CursoId;
+  /** Em ordem de número, aulas em ordem de posição. */
+  modulos: readonly { aulas: readonly { id: AulaId }[] }[];
+  status: CursoCatalogo["status"];
+  titulo: string;
+}
 
 export interface Progresso {
   feitas: number;
@@ -22,10 +33,10 @@ export interface FaixaNivel {
   total: number;
 }
 
-const aulasDe = (c: CursoCatalogo) => c.modulos.flatMap((m) => m.aulas);
+const aulasDe = (c: CursoComAulas) => c.modulos.flatMap((m) => m.aulas);
 
 export function progresso(
-  curso: CursoCatalogo,
+  curso: CursoComAulas,
   assistidas: ReadonlySet<AulaId>
 ): Progresso {
   const aulas = aulasDe(curso);
@@ -51,7 +62,7 @@ export const numeroDaAula = (indiceNoModulo: number): number =>
   indiceNoModulo + 1;
 
 export function estadoDoCurso(
-  curso: CursoCatalogo,
+  curso: CursoComAulas,
   h: Historico,
   antes: Antecessor
 ): EstadoCurso {
@@ -84,7 +95,7 @@ export function estadoDoCurso(
 
 // Regra sequencial: dobra a lista em ordem e passa o antecessor adiante.
 export function estadosDaTrilha(
-  trilha: TrilhaCatalogo,
+  trilha: { cursos: readonly CursoComAulas[] },
   h: Historico,
   liberadosDireto: ReadonlySet<CursoId>
 ): EstadoCurso[] {
@@ -104,6 +115,54 @@ export function estadosDaTrilha(
     };
   }
   return estados;
+}
+
+export interface CursoAlcancado<C extends CursoComAulas> {
+  curso: C;
+  estado: EstadoCurso;
+}
+
+export interface Alcance<C extends CursoComAulas, T> {
+  /** Liberados direto e fora de trilha liberada, na ordem em que chegaram, sem repetir. */
+  soltos: CursoAlcancado<C>[];
+  /** Na ordem em que chegaram; os cursos de cada uma em ordem de posição. */
+  trilhas: { cursos: CursoAlcancado<C>[]; trilha: T }[];
+}
+
+/**
+ * Os cursos que a pessoa alcança e o estado de cada um, como Meus cursos mostra:
+ * o curso da trilha liberada pela regra sequencial, em que o liberado direto não
+ * espera o anterior, e o curso solto sem antecessor. Meus cursos, a busca e a
+ * tela de acesso do admin leem o alcance daqui.
+ */
+export function alcance<
+  C extends CursoComAulas,
+  T extends { cursos: readonly C[] },
+>(trilhas: readonly T[], diretos: readonly C[], h: Historico): Alcance<C, T> {
+  const liberadosDireto = new Set(diretos.map((c) => c.id));
+  const naTrilha = new Set(trilhas.flatMap((t) => t.cursos.map((c) => c.id)));
+  const soltos = new Map<CursoId, CursoAlcancado<C>>();
+  for (const curso of diretos) {
+    if (!(naTrilha.has(curso.id) || soltos.has(curso.id))) {
+      soltos.set(curso.id, {
+        curso,
+        estado: estadoDoCurso(curso, h, { tipo: "livre" }),
+      });
+    }
+  }
+  return {
+    soltos: [...soltos.values()],
+    trilhas: trilhas.map((trilha) => {
+      const estados = estadosDaTrilha(trilha, h, liberadosDireto);
+      return {
+        cursos: trilha.cursos.map((curso, i) => ({
+          curso,
+          estado: estados[i] ?? { tipo: "em_breve" },
+        })),
+        trilha,
+      };
+    }),
+  };
 }
 
 export function niveis(

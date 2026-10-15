@@ -4,11 +4,18 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import {
   type Alvo,
   acaoNaLiberacao,
+  type ConteudoDoAlvo,
   decidirLiberar,
   type LiberacaoAtiva,
   type LinhasDoAcesso,
   type PedidoDeLiberar,
 } from "../dominio/liberacao";
+import {
+  type CursoLinha,
+  paraCatalogo,
+  paraTrilha,
+  type TrilhaLinha,
+} from "../dominio/painel";
 import type {
   AdminId,
   CursoId,
@@ -17,8 +24,10 @@ import type {
   TrilhaId,
 } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
+import { COM_CONTEUDO, TRILHA_COM_CONTEUDO } from "./catalogo";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
 import { violacaoDe } from "./erros";
+import { linhasDoHistorico } from "./meus-cursos";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
 export type NovaLiberacao =
@@ -231,27 +240,27 @@ export async function revogar(
   });
 }
 
-/** Tela /admin/alunos/[userId]: todas as liberações da pessoa e o catálogo, em paralelo. */
+/**
+ * Tela /admin/alunos/[userId], em 6 statements paralelos: todas as liberações da
+ * pessoa com o conteúdo do alvo (o statement 1 do painel, revogadas inclusive),
+ * o histórico de estudo (os statements 2, 3 e 4 do painel) e o catálogo.
+ */
 export async function linhasDoAcesso(
   db: Database,
   userId: string
 ): Promise<LinhasDoAcesso> {
-  const [liberacoes, cursos, trilhas] = await Promise.all([
+  const [liberacoes, historico, cursos, trilhas] = await Promise.all([
     db.query.liberacao.findMany({
       columns: {
-        cursoId: true,
         id: true,
         liberadaEm: true,
         origem: true,
         revogadaEm: true,
-        trilhaId: true,
       },
       where: { userId },
-      with: {
-        curso: { columns: { titulo: true } },
-        trilha: { columns: { titulo: true } },
-      },
+      with: { curso: COM_CONTEUDO, trilha: TRILHA_COM_CONTEUDO },
     }),
+    linhasDoHistorico(db, userId),
     db.query.curso.findMany({
       columns: { id: true, status: true, titulo: true },
       orderBy: { titulo: "asc" },
@@ -272,18 +281,27 @@ export async function linhasDoAcesso(
       })),
       trilhas: trilhas.map((t) => ({ id: t.id as TrilhaId, titulo: t.titulo })),
     },
-    liberacoes: liberacoes.map((l) => {
-      const titulo = l.curso?.titulo ?? l.trilha?.titulo;
-      if (titulo === undefined) {
-        throw new Error(`Liberação ${l.id} sem o título do alvo.`);
-      }
-      return {
-        alvo: { ...alvoDa(l), titulo },
-        id: l.id as LiberacaoId,
-        liberadaEm: l.liberadaEm,
-        origem: l.origem,
-        revogadaEm: l.revogadaEm,
-      };
-    }),
+    historico,
+    liberacoes: liberacoes.map((l) => ({
+      conteudo: conteudoDa(l),
+      id: l.id as LiberacaoId,
+      liberadaEm: l.liberadaEm,
+      origem: l.origem,
+      revogadaEm: l.revogadaEm,
+    })),
   };
+}
+
+function conteudoDa(l: {
+  curso: CursoLinha | null;
+  id: string;
+  trilha: TrilhaLinha | null;
+}): ConteudoDoAlvo {
+  if (l.curso) {
+    return { curso: paraCatalogo(l.curso), tipo: "curso" };
+  }
+  if (l.trilha) {
+    return { tipo: "trilha", trilha: paraTrilha(l.trilha) };
+  }
+  throw new Error(`Liberação ${l.id} sem alvo.`);
 }
