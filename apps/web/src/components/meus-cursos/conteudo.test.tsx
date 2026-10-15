@@ -163,6 +163,12 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(html).not.toContain("1 h 35 min");
   });
 
+  test("o tamanho do curso não quebra no meio quando a linha passa da largura", () => {
+    // Em 390 px, "30 afirmações · 6 competências" empurra o tamanho para a quebra.
+    expect(html).toContain("2 de 2 aulas");
+    expect(html).toContain("3 aulas · 32 min");
+  });
+
   test("a trilha de um curso não repete o curso no resumo", () => {
     // A descrição da trilha também cita o curso; a conta começa depois dela.
     const comercial = texto(secaoDaTrilha(html, "formacao-comercial"))

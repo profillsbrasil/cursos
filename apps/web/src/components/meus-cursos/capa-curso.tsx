@@ -14,17 +14,18 @@ export type Etiqueta = { tipo: "comece" } | { tipo: "em_producao" };
  * A linha sob o título, igual na trilha e nos cursos rápidos: o tema, o código ou
  * o destaque que o admin escreveu e o tamanho do curso inteiro. Com aula assistida,
  * "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso em produção mostra só o tema,
- * porque as aulas dele ainda mudam.
+ * porque as aulas dele ainda mudam. O tamanho vai com espaços que não quebram: com
+ * um destaque longo, ele desce inteiro para a linha de baixo, nunca "2 de / 2 aulas".
  */
 export function linhaDoCurso(c: CursoVM): string {
   const partes = [c.tema, c.extra];
   if (c.estado.tipo !== "em_breve" && c.aulas > 0) {
     const { feitas, total } = c.progresso;
-    partes.push(
+    const tamanho =
       feitas > 0
         ? `${fmtNum(feitas)} de ${plural(total, "aula", "aulas")}`
-        : `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`
-    );
+        : `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`;
+    partes.push(tamanho.replaceAll(" ", " "));
   }
   return partes.filter((p) => p !== null && p !== "").join(" · ");
 }
