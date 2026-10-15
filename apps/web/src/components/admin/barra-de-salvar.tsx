@@ -1,11 +1,12 @@
 import { Button } from "@cursos/ui/components/button";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 
 import { BOTAO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
 
 import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
 import { Carregando } from "./confirmacao-na-linha";
+import { CONTORNO_DESLIGADO } from "./partes";
 import type { Problema } from "./problemas";
 
 function Situacao({
@@ -63,6 +64,10 @@ export function BarraDeSalvar({
   sujo: boolean;
   versaoMudou: boolean;
 }) {
+  const situacao = useId();
+  // Documento salvo e rascunho igual a ele (a capa escolhida conta no sujo):
+  // o Salvar desliga, e a frase "Tudo salvo." diz por quê.
+  const nadaASalvar = !(novo || sujo || pendente);
   return (
     <div className="sticky bottom-3 z-10 grid gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
       {versaoMudou ? (
@@ -70,13 +75,18 @@ export function BarraDeSalvar({
       ) : null}
       {children}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div aria-live="polite" className="min-w-0 flex-1 text-sm">
+        <div
+          aria-live="polite"
+          className="min-w-0 flex-1 text-sm"
+          id={situacao}
+        >
           <Situacao novo={novo} problemas={problemas} sujo={sujo} />
         </div>
         <Button
           aria-busy={pendente}
-          className={BOTAO}
-          disabled={pendente}
+          aria-describedby={nadaASalvar ? situacao : undefined}
+          className={nadaASalvar ? CONTORNO_DESLIGADO : BOTAO}
+          disabled={pendente || nadaASalvar}
           focusableWhenDisabled
           type="submit"
         >

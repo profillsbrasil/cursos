@@ -212,6 +212,15 @@ export type Abertos = ReadonlySet<ModuloId>;
 
 export const NENHUM_ABERTO: Abertos = new Set();
 
+/**
+ * Os blocos abertos quando o editor monta: o curso de um módulo só abre com ele
+ * aberto, porque fechado ele custaria um clique sem esconder nada.
+ */
+export function abertosAoAbrir(r: RascunhoDoCurso): Abertos {
+  const [unico, ...outros] = r.modulos;
+  return unico && outros.length === 0 ? new Set([unico.id]) : NENHUM_ABERTO;
+}
+
 export type AcaoNosBlocos =
   | { tipo: "aberto"; id: ModuloId }
   | { tipo: "fechado"; id: ModuloId }

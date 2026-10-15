@@ -26,6 +26,8 @@ const { CursosDaTrilha } = await import("./cursos-da-trilha");
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 const BOTAO = /<button[^>]*>/g;
+const SELO_EM_PRODUCAO =
+  /<span class="([^"]*)"><svg[^>]*lucide-clock[^>]*>.*?<\/svg>Em produção<\/span>/;
 const desabilitado = (html: string, rotulo: string) => {
   const tag = html
     .match(BOTAO)
@@ -117,6 +119,10 @@ describe("editor da trilha", () => {
     const t = texto(html);
     expect(t).toContain("1 1º: Segurança do posto");
     expect(t).toContain("2 2º: Envasadora Em produção");
+    // O mesmo selo do catálogo e do acompanhamento: contorno Céu e relógio.
+    const selo = SELO_EM_PRODUCAO.exec(html)?.[1];
+    expect(selo).toContain("text-ceu");
+    expect(selo).toContain("ring-ceu");
     expect(t).toContain(TRILHA_EM_USO);
     expect(t).toContain("Tudo salvo.");
     expect(t).not.toContain("esta trilha liberada");

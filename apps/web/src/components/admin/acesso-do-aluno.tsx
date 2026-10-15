@@ -13,12 +13,13 @@ import Link from "next/link";
 import { type ReactNode, useCallback, useRef, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { fmtData, fmtNum, plural } from "@/lib/formato";
+import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
 import {
   BarraDeAulas,
+  dataDaLiberacao,
   fraseDaLiberacao,
   fraseNaTrilha,
   SeloDeSituacao,
@@ -164,17 +165,11 @@ function CursosDaTrilha({
   );
 }
 
-function Rodape({ l }: { l: LiberacaoNaTela }) {
-  const quando = fmtData(l.liberadaEm);
-  let texto =
-    l.origem === "troca"
-      ? `Trocado por pontos em ${quando}`
-      : `Liberada em ${quando}`;
-  if (l.acao.tipo === "revogada") {
-    texto += ` · revogada em ${fmtData(l.acao.em)}`;
-  }
+function Rodape({ hoje, l }: { hoje: string; l: LiberacaoNaTela }) {
   return (
-    <p className="mt-1.5 text-muted-foreground text-xs tabular-nums">{texto}</p>
+    <p className="mt-1.5 text-muted-foreground text-xs tabular-nums">
+      {dataDaLiberacao(l, hoje)}
+    </p>
   );
 }
 
@@ -201,7 +196,7 @@ function ItemDaLiberacao({
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
           <h3
             className={cn(
-              "font-semibold text-[15px]",
+              "font-semibold text-base",
               revogada ? "text-muted-foreground" : "text-titulo"
             )}
           >
@@ -228,7 +223,7 @@ function ItemDaLiberacao({
             progresso={a.tipo === "curso" ? a.curso.progresso : a.aulas}
           />
         )}
-        <Rodape l={l} />
+        <Rodape hoje={hoje} l={l} />
       </div>
       {revogada ? null : (
         <div className="@xl:justify-self-end">
