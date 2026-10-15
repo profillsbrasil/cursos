@@ -45,17 +45,30 @@ function LinhaDaVez({ trilha }: { trilha: TrilhaVM }) {
 // O resumo não é link: a capa do curso da vez, logo abaixo, já é. Na trilha de um
 // curso só, a linha "Agora:" repetiria o título e o selo da única capa, e sai.
 function ResumoDaTrilha({ trilha }: { trilha: TrilhaVM }) {
-  const repeteACapa = trilha.daVez !== null && trilha.cursos.length === 1;
+  const umCurso = trilha.cursos.length === 1;
+  const repeteACapa = trilha.daVez !== null && umCurso;
+  // Na trilha de um curso, "0 de 1 curso" esconde o andamento: o resumo conta as
+  // aulas. Sem aula aberta (o curso em produção), volta a contar o curso.
+  const contaAulas = umCurso && trilha.aulas.total > 0;
   return (
     <div className={CARTAO}>
       <div className="grid gap-2">
         <p className="flex justify-between gap-2 text-[13px] text-muted-foreground tabular-nums">
-          <span>
-            <b className="font-semibold text-foreground">
-              {trilha.concluidos} de {trilha.cursos.length}
-            </b>{" "}
-            {trilha.cursos.length === 1 ? "curso" : "cursos"}
-          </span>
+          {contaAulas ? (
+            <span>
+              <b className="font-semibold text-titulo">
+                {trilha.aulas.feitas} de {trilha.aulas.total}
+              </b>{" "}
+              {trilha.aulas.total === 1 ? "aula" : "aulas"}
+            </span>
+          ) : (
+            <span>
+              <b className="font-semibold text-foreground">
+                {trilha.concluidos} de {trilha.cursos.length}
+              </b>{" "}
+              {umCurso ? "curso" : "cursos"}
+            </span>
+          )}
           <span>{trilha.aulas.pct}% das aulas</span>
         </p>
         <BarraProgresso
