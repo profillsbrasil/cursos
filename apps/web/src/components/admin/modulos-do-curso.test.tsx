@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { BlocoDoModulo } from "./modulos-do-curso";
+import { type Bloco, NENHUM_ABERTO } from "./estado-do-editor";
+import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 
 const BOTAO = /<button[^>]*>[\s\S]*?<\/button>/g;
@@ -15,26 +16,91 @@ const botao = (html: string, rotulo: string) => {
   return achado;
 };
 
+/** O texto que a página mostra, sem o que só o leitor de tela ouve. */
+const textoVisivel = (html: string) =>
+  html
+    .replace(/<span class="sr-only"[^>]*>[^<]*<\/span>/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ");
+
+const tagDoId = (html: string, id: string) =>
+  html.match(new RegExp(`<[^>]*id="${id}"[^>]*>`))?.[0] ?? "";
+
 const nada = () => undefined;
 const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
 
-const blocoComAulaAssistida = () => {
+const blocoDoExemplo = (bloco: Bloco) => {
   const { modulos, niveis } = rascunhoDoCurso(documentoDeExemplo());
   return renderToStaticMarkup(
     <BlocoDoModulo
       assistidasPorAula={{ [EDICAO.A1]: 3 }}
+      bloco={bloco}
       despachar={nada}
       indice={0}
       linhaAberta={LINHA_FECHADA}
       modulo={modulos[0]}
       modulos={modulos}
+      mudarBlocos={nada}
       niveis={niveis}
     />
   );
 };
 
+describe("bloco fechado", () => {
+  const html = blocoDoExemplo({ tipo: "fechado" });
+
+  test("mostra só o resumo, sem nenhum campo", () => {
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain("<input");
+    expect(html).not.toContain("<select");
+  });
+
+  test("o resumo tem o número, o título, as aulas com a duração, o nível e as aulas assistidas", () => {
+    const texto = textoVisivel(html);
+    for (const trecho of [
+      " 0 ",
+      "Módulo zero",
+      "2 aulas · 10 min · Básico",
+      "1 aula assistida",
+    ]) {
+      expect(texto).toContain(trecho);
+    }
+  });
+});
+
+describe("bloco aberto", () => {
+  const html = blocoDoExemplo({ tipo: "aberto" });
+
+  test("mostra os campos do módulo e das aulas", () => {
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain(`id="modulo-${EDICAO.M1}-titulo"`);
+    expect(html).toContain(`id="aula-${EDICAO.A1}-duracao"`);
+  });
+
+  test("a aula assistida troca a frase da linha por um ícone com a dica", () => {
+    expect(textoVisivel(html)).not.toContain("Assistida por");
+    expect(tagDoId(html, `aula-${EDICAO.A1}-uso`)).toContain("sr-only");
+    const remover = tagDoId(html, `aula-${EDICAO.A1}-remover`);
+    expect(remover).toContain('aria-disabled="true"');
+    expect(remover).toContain(`aria-describedby="aula-${EDICAO.A1}-uso"`);
+    expect(remover).toContain('type="button"');
+  });
+});
+
+describe("bloco com erro na tela", () => {
+  const html = blocoDoExemplo({ campos: 2, tipo: "com_erro" });
+
+  test("fica aberto, não fecha e diz quantos campos corrigir", () => {
+    const cabeca = tagDoId(html, `modulo-${EDICAO.M1}-cabeca`);
+    expect(cabeca).toContain('aria-expanded="true"');
+    expect(cabeca).toContain('aria-disabled="true"');
+    expect(html).toContain(`id="modulo-${EDICAO.M1}-titulo"`);
+    expect(textoVisivel(html)).toContain("2 campos para corrigir");
+  });
+});
+
 describe("Remover módulo com aula assistida", () => {
-  const tag = botao(blocoComAulaAssistida(), "Remover módulo");
+  const tag = botao(blocoDoExemplo({ tipo: "aberto" }), "Remover módulo");
 
   test("fica desligado com o motivo ligado", () => {
     expect(tag).toContain('aria-disabled="true"');
@@ -46,5 +112,31 @@ describe("Remover módulo com aula assistida", () => {
     expect(tag).toContain("data-disabled:opacity-50");
     expect(tag).toContain("data-disabled:cursor-not-allowed");
     expect(tag).toContain("data-disabled:hover:border-muted-foreground");
+  });
+});
+
+describe("lista de módulos fechados", () => {
+  const html = renderToStaticMarkup(
+    <ModulosDoCurso
+      abertos={NENHUM_ABERTO}
+      assistidasPorAula={{}}
+      despachar={nada}
+      linhaAberta={LINHA_FECHADA}
+      marcados={new Set()}
+      mudarBlocos={nada}
+      rascunho={rascunhoDoCurso(documentoDeExemplo())}
+    />
+  );
+
+  test("não põe nenhum campo na página", () => {
+    expect(html).not.toContain("<input");
+    expect(html).not.toContain("<select");
+  });
+
+  test("o índice tem um link por módulo, que aponta para o bloco dele", () => {
+    for (const id of [EDICAO.M1, EDICAO.M2]) {
+      expect(html).toContain(`href="#modulo-${id}"`);
+      expect(html).toContain(`id="modulo-${id}"`);
+    }
   });
 });

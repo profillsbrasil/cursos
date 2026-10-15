@@ -6,7 +6,7 @@ import {
   FORMATO_DO_SLUG,
   formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
-import type { ModuloId, StatusDoCurso } from "@cursos/api/dominio/tipos";
+import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
   Field,
@@ -30,11 +30,12 @@ import {
   type FormEvent,
   useCallback,
   useId,
+  useReducer,
   useState,
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { focarDepois, focarOPrimeiro, novoId } from "@/lib/editor";
+import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
@@ -46,12 +47,15 @@ import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, ErrosDoEditor, useErroDoCampo } from "./erros-do-editor";
 import {
+  blocosAbertos,
   type Mudanca,
+  modulosComErro,
+  NENHUM_ABERTO,
   proximaOrdem,
   REGRAS_DO_CURSO,
 } from "./estado-do-editor";
-import { BlocoDoModulo } from "./modulos-do-curso";
-import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao, Vazio } from "./partes";
+import { ModulosDoCurso } from "./modulos-do-curso";
+import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao } from "./partes";
 import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,
@@ -474,7 +478,7 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     base,
     descartar,
     geracao,
-    mudar: despachar,
+    mudar: mudarRascunho,
     novo,
     pendente,
     rascunho,
@@ -489,6 +493,15 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     sujoAlem: (g) =>
       capaGuardada.geracao === g && capaGuardada.arquivo !== null,
   });
+  // Fica entre gerações: o Recarregar não fecha o módulo em que o admin estava.
+  const [abertos, mudarBlocos] = useReducer(blocosAbertos, NENHUM_ABERTO);
+  const despachar = useCallback(
+    (mudanca: Mudanca) => {
+      mudarRascunho(mudanca);
+      mudarBlocos({ mudanca, tipo: "mudou" });
+    },
+    [mudarRascunho]
+  );
   const capa = capaGuardada.geracao === geracao ? capaGuardada.arquivo : null;
   const escolherCapa = useCallback(
     (arquivo: File | null) =>
@@ -536,7 +549,14 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
       ];
       if (lido.tipo === "problemas" || achados.length > 0) {
         setTentou(true);
-        focarOPrimeiro(achados.flatMap((p) => (p.campo ? [p.campo] : [])));
+        const campos = new Set(
+          achados.flatMap((p) => (p.campo ? [p.campo] : []))
+        );
+        mudarBlocos({
+          ids: modulosComErro(rascunho, campos),
+          tipo: "erros_mostrados",
+        });
+        focarOPrimeiro([...campos]);
         return;
       }
       setTentou(false);
@@ -567,12 +587,6 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
     },
     [capa, lido, rascunho, salvar, semCapa, setRecusa, setTentou]
   );
-
-  const adicionarModulo = useCallback(() => {
-    const id = novoId<ModuloId>();
-    despachar({ id, tipo: "modulo_novo" });
-    focarDepois(ID.modulo(id, "titulo"));
-  }, [despachar]);
 
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
   const duracao = rascunho.modulos.reduce(
@@ -646,40 +660,15 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
           <Niveis despachar={despachar} niveis={rascunho.niveis} />
         </Secao>
 
-        <Secao
-          id="modulos"
-          resumo={`${plural(rascunho.modulos.length, "módulo", "módulos")}, ${plural(aulas, "aula", "aulas")}`}
-          titulo="Módulos e aulas"
-        >
-          {rascunho.modulos.length === 0 ? (
-            <Vazio>
-              O curso ainda não tem módulos. Cada módulo agrupa aulas, e o aluno
-              vê o número dele.
-            </Vazio>
-          ) : (
-            rascunho.modulos.map((m, i) => (
-              <BlocoDoModulo
-                assistidasPorAula={edicao.uso.assistidasPorAula}
-                despachar={despachar}
-                indice={i}
-                key={m.id}
-                linhaAberta={linhaAberta}
-                modulo={m}
-                modulos={rascunho.modulos}
-                niveis={rascunho.niveis}
-              />
-            ))
-          )}
-          <div className="border-border border-t px-5 py-4">
-            <Button
-              className={cn(BOTAO_CONTORNO, PEQUENO)}
-              onClick={adicionarModulo}
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Adicionar módulo
-            </Button>
-          </div>
-        </Secao>
+        <ModulosDoCurso
+          abertos={abertos}
+          assistidasPorAula={edicao.uso.assistidasPorAula}
+          despachar={despachar}
+          linhaAberta={linhaAberta}
+          marcados={erros}
+          mudarBlocos={mudarBlocos}
+          rascunho={rascunho}
+        />
 
         {novo ? null : (
           <Secao id="apagar" resumo="" titulo="Apagar">
