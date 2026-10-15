@@ -15,15 +15,29 @@ const linha = (id: string, publicadoPor: string) => ({
 describe("autor do comunicado", () => {
   const { comunicados } = montarComunicados(
     {
-      comunicados: [linha("a", "user_dona"), linha("b", "user_seed")],
+      comunicados: [
+        linha("a", "user_dona"),
+        linha("b", "user_seed"),
+        linha("c", "user_so_telefone"),
+      ],
       cursos: [],
     },
-    [{ email: null, foto: null, nome: "Dona do admin", userId: "user_dona" }]
+    [
+      { email: null, foto: null, nome: "Dona do admin", userId: "user_dona" },
+      // Sem nome, usuário nem e-mail, o Clerk devolve o userId no lugar do nome.
+      {
+        email: null,
+        foto: null,
+        nome: "user_so_telefone",
+        userId: "user_so_telefone",
+      },
+    ]
   );
 
-  test("quem o Clerk conhece aparece pelo nome, e quem ele não conhece fica sem autor, nunca com o userId", () => {
+  test("quem o Clerk conhece aparece pelo nome; quem ele não conhece ou conhece sem nome fica sem autor, nunca com o userId", () => {
     expect(comunicados.map((c) => c.publicadoPor)).toEqual([
       "Dona do admin",
+      null,
       null,
     ]);
   });

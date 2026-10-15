@@ -1,15 +1,23 @@
 import { describe, expect, test } from "bun:test";
+import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
-import type { VideoId } from "@cursos/api/dominio/tipos";
+import type { Versao, VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import {
+  apoiado,
+  type EstadoApoiado,
+  estadoApoiadoEm,
+  rascunhoSujo,
+} from "@/lib/use-rascunho-apoiado";
+
 import { ErrosDoEditor } from "./erros-do-editor";
-import { type Bloco, NENHUM_ABERTO } from "./estado-do-editor";
+import { type Bloco, NENHUM_ABERTO, REGRAS_DO_CURSO } from "./estado-do-editor";
 import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
 import {
   ID,
   lerRascunho,
-  mesmoRascunho,
+  type RascunhoDoCurso,
   rascunhoDoCurso,
 } from "./rascunho-do-curso";
 
@@ -119,7 +127,7 @@ describe("campo de vídeo da aula salva", () => {
     />
   );
 
-  test("mostra o link curto, com o id no começo do campo", () => {
+  test("o campo mostra o link curto", () => {
     expect(tagDoId(html, `aula-${EDICAO.A1}-video`)).toContain(
       'value="youtu.be/aqz-KE-bpKQ"'
     );
@@ -132,8 +140,37 @@ describe("campo de vídeo da aula salva", () => {
     ).toEqual({ id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" });
   });
 
-  test("o rascunho da página e o do editor comparam iguais", () => {
-    expect(mesmoRascunho(rascunho, rascunhoDoCurso(documento))).toBe(true);
+  test("o link longo colado e salvo volta ao campo curto, sem deixar o editor sujo", () => {
+    const sujo = (e: EstadoApoiado<DocumentoDoCurso, RascunhoDoCurso>) =>
+      rascunhoSujo(REGRAS_DO_CURSO, e);
+    const inicio = estadoApoiadoEm(
+      REGRAS_DO_CURSO,
+      documentoDeExemplo("v1" as Versao)
+    );
+    const colado = apoiado(REGRAS_DO_CURSO, inicio, {
+      mudanca: {
+        id: EDICAO.A1,
+        mudanca: { video: "https://www.youtube.com/watch?v=aqz-KE-bpKQ" },
+        tipo: "aula_editada",
+      },
+      tipo: "mudou",
+    });
+    const lido = lerRascunho(colado.rascunho, { versao: "v1" as Versao });
+    if (lido.tipo !== "lido") {
+      throw new Error("o rascunho colado não leu");
+    }
+    const salvo = apoiado(REGRAS_DO_CURSO, colado, {
+      enviado: colado.rascunho,
+      gravado: { ...lido.documento, versao: "v2" as Versao },
+      tipo: "salvo",
+    });
+
+    expect(sujo(inicio)).toBe(false);
+    expect(sujo(colado)).toBe(true);
+    expect(salvo.rascunho.modulos[0]?.aulas[0]?.video).toBe(
+      "youtu.be/aqz-KE-bpKQ"
+    );
+    expect(sujo(salvo)).toBe(false);
   });
 });
 

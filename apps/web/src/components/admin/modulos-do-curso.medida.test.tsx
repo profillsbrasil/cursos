@@ -2,12 +2,17 @@
 // do app. Cada suíte mede o que a revisão do PR 56 apontou: o título do módulo
 // espremido em 768 px com a sidebar aberta, o salto do índice que parava com o
 // cabeçalho embaixo do índice de duas linhas e o último número do índice
-// esmaecido no fim da rolagem em 390 px. Sem Chromium na máquina, tudo pula.
+// esmaecido no fim da rolagem em 390 px. A última mede o campo de vídeo da aula
+// salva, que escondia o id no fim do link longo. Sem Chromium na máquina, tudo pula.
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
-import { documentoDeExemplo, uuidDeExemplo } from "@cursos/api/dominio/exemplo";
-import type { ModuloId } from "@cursos/api/dominio/tipos";
+import {
+  documentoDeExemplo,
+  EDICAO,
+  uuidDeExemplo,
+} from "@cursos/api/dominio/exemplo";
+import type { ModuloId, VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import {
@@ -29,7 +34,13 @@ import { type RascunhoDoCurso, rascunhoDoCurso } from "./rascunho-do-curso";
 const nada = () => undefined;
 const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
 
-const exemplo = rascunhoDoCurso(documentoDeExemplo());
+const documento = documentoDeExemplo();
+const [primeira, ...resto] = documento.modulos[0].aulas;
+documento.modulos[0].aulas = [
+  { ...primeira, video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" } },
+  ...resto,
+];
+const exemplo = rascunhoDoCurso(documento);
 const [modelo] = exemplo.modulos;
 if (!modelo) {
   throw new Error("o exemplo não tem módulo");
@@ -213,5 +224,38 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
     );
     // A máscara vai a transparente nos últimos 2,5rem (40 px) da fila.
     expect(folga).toBeGreaterThanOrEqual(40);
+  });
+
+  // Cada bloco é a janela menos a sidebar aberta (248 px) e a moldura, como acima;
+  // em 1280 px a moldura chega ao teto de 3rem de cada lado.
+  describe.each([
+    [1280, 936],
+    [1024, 694],
+    [390, 358],
+  ])("em %i px, o campo de vídeo da aula salva", (janela, bloco) => {
+    test("mostra o link curto inteiro, sem cortar o id", async () => {
+      await abrirPagina(
+        janela,
+        `<div style="width:${bloco}px">${blocoAberto}</div>`
+      );
+      const campo = await avaliar<{
+        cabe: boolean;
+        largura: number;
+        valor: string;
+      }>(
+        enviar,
+        `(() => {
+          const campo = document.getElementById("aula-${EDICAO.A1}-video");
+          return {
+            cabe: campo.scrollWidth <= campo.clientWidth,
+            largura: campo.clientWidth,
+            valor: campo.value,
+          };
+        })()`
+      );
+      expect(campo.largura).toBeGreaterThan(0);
+      expect(campo.cabe).toBe(true);
+      expect(campo.valor).toBe("youtu.be/aqz-KE-bpKQ");
+    });
   });
 });

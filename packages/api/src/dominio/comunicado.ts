@@ -46,8 +46,11 @@ export function montarComunicados(
   linhas: LinhasDosComunicados,
   autores: readonly (Pessoa | null)[]
 ): ComunicadosDoAdmin {
+  // Sem nome, usuário nem e-mail no Clerk, `nome` é o próprio userId: fica sem autor.
   const nomes = new Map(
-    autores.flatMap((p) => (p ? [[p.userId, p.nome] as const] : []))
+    autores.flatMap((p) =>
+      p && p.nome !== p.userId ? [[p.userId, p.nome] as const] : []
+    )
   );
   return {
     comunicados: linhas.comunicados.map((c) => ({
