@@ -17,15 +17,19 @@ const SECUNDARIO =
 const DESTAQUE =
   "border-sol bg-sol text-sobre-cor hover:border-sol-hover hover:bg-sol-hover hover:text-sobre-cor hover:shadow-brilho dark:border-sol dark:bg-sol dark:hover:border-sol-hover dark:hover:bg-sol-hover";
 
+// O esqueleto de loading.tsx desenha as duas linhas com estas mesmas classes, então
+// a altura dele bate com a do cabeçalho em toda largura.
+export const TITULO_DA_AULA =
+  "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-tight tracking-[-0.02em]";
+export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
+
 /** O título da aula e a linha do módulo, acima do vídeo: a primeira coisa que a pessoa lê na aula. */
 export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
   const { aula } = dados;
   return (
     <div className="min-w-0">
-      <h1 className="font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-tight tracking-[-0.02em]">
-        {aula.titulo}
-      </h1>
-      <p className="mt-1 text-muted-foreground">
+      <h1 className={TITULO_DA_AULA}>{aula.titulo}</h1>
+      <p className={LINHA_DO_MODULO}>
         Módulo {aula.modulo.numero} · {aula.modulo.titulo} · aula{" "}
         {aula.numeroNoModulo} de {aula.totalNoModulo} ·{" "}
         {fmtMin(aula.duracaoSeg)}

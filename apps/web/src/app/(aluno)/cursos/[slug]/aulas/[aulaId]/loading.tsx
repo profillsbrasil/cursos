@@ -1,6 +1,10 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { TopoDoAluno } from "@/components/aluno/topo";
+import {
+  LINHA_DO_MODULO,
+  TITULO_DA_AULA,
+} from "@/components/player/cabecalho-da-aula";
 
 const PULSO = "bg-card motion-reduce:animate-none";
 
@@ -16,9 +20,14 @@ export default function CarregandoAula() {
       >
         <span className="sr-only">Carregando a aula</span>
         <div className="grid gap-4">
-          <div className="grid gap-1.5">
-            <Skeleton className={`${PULSO} h-9 w-2/3 rounded-lg`} />
-            <Skeleton className={`${PULSO} h-5 w-1/2 rounded-md`} />
+          {/* Cada linha tem 1lh dentro da tipografia do cabeçalho real: o vídeo não pula quando a aula chega. */}
+          <div>
+            <div className={TITULO_DA_AULA}>
+              <Skeleton className={`${PULSO} h-[1lh] w-2/3 rounded-lg`} />
+            </div>
+            <div className={LINHA_DO_MODULO}>
+              <Skeleton className={`${PULSO} h-[1lh] w-1/2 rounded-md`} />
+            </div>
           </div>
           <Skeleton className={`${PULSO} aspect-video rounded-[20px]`} />
         </div>
