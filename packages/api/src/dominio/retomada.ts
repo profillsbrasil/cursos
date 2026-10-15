@@ -107,6 +107,34 @@ export function aulaDeRetomada(
   return { aulaId, posicaoSeg: h.posicoes.get(aulaId)?.posicaoSeg ?? 0 };
 }
 
+export interface OndeNoCurso {
+  /** Número da aula dentro do módulo, a partir de 1. */
+  aula: number;
+  modulo: { numero: number; titulo: string };
+}
+
+/**
+ * Onde a pessoa está no curso: a aula para onde o Continuar dela leva. O cartão
+ * da trilha de Meus cursos e o acompanhamento do admin leem daqui. null quando o
+ * curso não abre aula: em produção, bloqueado, na prova ou concluído.
+ */
+export function ondeNoCurso(
+  curso: CursoCatalogo,
+  estado: EstadoCurso,
+  h: Historico,
+  atividade: ReadonlyMap<AulaId, string>
+): OndeNoCurso | null {
+  if (estado.tipo !== "em_andamento" && estado.tipo !== "nao_iniciado") {
+    return null;
+  }
+  const { aulaId } = aulaDeRetomada(curso, estado, h, atividade);
+  const { modulo, numeroNoModulo } = localizar(curso, aulaId);
+  return {
+    aula: numeroNoModulo,
+    modulo: { numero: modulo.numero, titulo: modulo.titulo },
+  };
+}
+
 export function retomada({
   atividade,
   cursos,

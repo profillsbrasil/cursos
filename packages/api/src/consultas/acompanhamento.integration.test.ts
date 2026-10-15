@@ -8,6 +8,7 @@ import {
   curso,
   liberacao,
   modulo,
+  nivel,
   posicaoAula,
   trilha,
   trilhaCurso,
@@ -17,11 +18,13 @@ import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
+  type Acompanhamento,
   type CursoAcompanhado,
   montarBusca,
+  type SituacaoNaTrilha,
   type SituacaoNoCurso,
 } from "../dominio/acompanhamento";
-import type { CursoVM, PainelMeusCursos } from "../dominio/painel";
+import type { CursoVM, PainelMeusCursos, TrilhaVM } from "../dominio/painel";
 import { diaLocal } from "../dominio/sequencia";
 import type { DiaISO, EstadoCurso, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
@@ -35,6 +38,8 @@ const REVOGADA = `user_teste${S}revogada`;
 const NADA = `user_teste${S}nada`;
 const DIRETO = `user_teste${S}direto`;
 const ALUNOS = [ESTUDA, NUNCA, REVOGADA, NADA, DIRETO];
+/** Fora da busca: só a trilha 2, com o curso de níveis. */
+const ONDE = `user_teste${S}onde`;
 const pessoas: Pessoa[] = ALUNOS.map((userId) => ({
   email: `${userId}@exemplo.com`,
   foto: null,
@@ -64,6 +69,32 @@ const cursosDoPainel = (painel: PainelMeusCursos) =>
     ])
   );
 
+/**
+ * A trilha na palavra do admin, lida só do que Meus cursos mostra: "Nunca abriu"
+ * só quando nenhum curso dela foi começado ou concluído; com estudo, a da prova
+ * quando o curso da vez espera a prova, e "Estudando" no resto.
+ */
+function trilhaNaPalavraDoAdmin(t: TrilhaVM): SituacaoNaTrilha {
+  if (t.situacao !== "em_curso") {
+    return t.situacao;
+  }
+  const comecou = t.cursos.some((c) =>
+    ["em_andamento", "prova", "concluido"].includes(c.estado.tipo)
+  );
+  if (!comecou) {
+    return "nunca_abriu";
+  }
+  return t.daVez?.estado.tipo === "prova" ? "falta_prova" : "estudando";
+}
+
+type DaTrilha = Extract<Acompanhamento, { tipo: "trilha" }>;
+
+/** O módulo do curso da vez que o admin lê; null fora de "Estudando". */
+function moduloDaVez(a: DaTrilha) {
+  const s = a.cursos.find((c) => c.posicao === a.daVez)?.situacao;
+  return s?.tipo === "estudando" ? s.onde.modulo : null;
+}
+
 describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const admin = createCaller(
@@ -73,6 +104,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     createCaller(contextoDeTeste({ db, userId })).meusCursos.painel();
   const cursos: string[] = [];
   let trilhaId = "";
+  let trilha2Id = "";
   /** Aulas por curso, em ordem: a, b, c (em produção) na trilha; d solto. */
   const aulas: Record<"a" | "b" | "c" | "d", string[]> = {
     a: [],
@@ -200,14 +232,98 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       posicaoSeg: 120,
       userId: ESTUDA,
     });
+
+    // Trilha 2: um curso com nível, módulo 0 com 2 aulas e módulo 1 com 1. ONDE
+    // viu a aula 1 do módulo 0 e parou a aula 1 do módulo 1 depois: a aula 2 do
+    // módulo 0 ficou para trás.
+    const [e] = await db
+      .insert(curso)
+      .values({
+        capaAlt: "Capa de teste",
+        capaAltura: 720,
+        capaLargura: 1280,
+        capaUrl: "/capas/teste.jpg",
+        slug: `teste-${S}-e`,
+        status: "publicado",
+        tema: "teste",
+        titulo: `Curso ${S} e`,
+      })
+      .returning({ id: curso.id });
+    const cursoE = e?.id ?? "";
+    cursos.push(cursoE);
+    await db
+      .insert(nivel)
+      .values({ cursoId: cursoE, nome: "Básico", ordem: 1 });
+    const modulosE = await db
+      .insert(modulo)
+      .values(
+        [0, 1].map((numero) => ({
+          cursoId: cursoE,
+          nivelOrdem: 1,
+          numero,
+          titulo: `Módulo ${numero}`,
+        }))
+      )
+      .returning({ id: modulo.id, numero: modulo.numero });
+    const doModulo = (numero: number) =>
+      modulosE.find((m) => m.numero === numero)?.id ?? "";
+    const aulasE = await db
+      .insert(aula)
+      .values(
+        [
+          { moduloId: doModulo(0), posicao: 1 },
+          { moduloId: doModulo(0), posicao: 2 },
+          { moduloId: doModulo(1), posicao: 1 },
+        ].map((nova) => ({ ...nova, duracaoSeg: 600, titulo: "Aula" }))
+      )
+      .returning({
+        id: aula.id,
+        moduloId: aula.moduloId,
+        posicao: aula.posicao,
+      });
+    const aulaE = (numero: number, posicao: number) =>
+      aulasE.find(
+        (x) => x.moduloId === doModulo(numero) && x.posicao === posicao
+      )?.id ?? "";
+    const [t2] = await db
+      .insert(trilha)
+      .values({
+        descricao: "Trilha de teste com níveis.",
+        slug: `teste-${S}-t2`,
+        titulo: `Trilha ${S} 2`,
+      })
+      .returning({ id: trilha.id });
+    trilha2Id = t2?.id ?? "";
+    await db
+      .insert(trilhaCurso)
+      .values({ cursoId: cursoE, posicao: 1, trilhaId: trilha2Id });
+    await db.insert(liberacao).values({
+      liberadaEm: new Date("2026-10-01T15:00:00Z"),
+      liberadaPor: "user_admin",
+      origem: "admin",
+      trilhaId: trilha2Id,
+      userId: ONDE,
+    });
+    await db.insert(aulaAssistida).values({
+      assistidaEm: new Date("2026-10-08T15:00:00Z"),
+      aulaId: aulaE(0, 1),
+      userId: ONDE,
+    });
+    await db.insert(posicaoAula).values({
+      atualizadaEm: new Date("2026-10-09T15:00:00Z"),
+      aulaId: aulaE(1, 1),
+      posicaoSeg: 120,
+      userId: ONDE,
+    });
   });
 
   afterAll(async () => {
-    await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
-    await db.delete(certificado).where(inArray(certificado.userId, ALUNOS));
-    await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
-    await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
-    await db.delete(trilha).where(inArray(trilha.id, [trilhaId]));
+    const todos = [...ALUNOS, ONDE];
+    await db.delete(posicaoAula).where(inArray(posicaoAula.userId, todos));
+    await db.delete(certificado).where(inArray(certificado.userId, todos));
+    await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, todos));
+    await db.delete(liberacao).where(inArray(liberacao.userId, todos));
+    await db.delete(trilha).where(inArray(trilha.id, [trilhaId, trilha2Id]));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
   });
@@ -341,7 +457,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       aulas: { feitas: 2, pct: 50, total: 4 },
       concluidos: 1,
       daVez: 2,
-      situacao: "em_curso",
+      situacao: "estudando",
       ultimoEstudo: "2026-10-07",
     });
     const solto = estuda?.liberacoes.find((l) => l.alvo.tipo === "curso");
@@ -370,5 +486,82 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         },
       ],
     ]);
+  });
+
+  // Achados 1 e 2 da revisão do PR #54: o selo da trilha de quem já concluiu um
+  // curso dizia "Nunca abriu", e o módulo do admin divergia do cartão da trilha.
+  test("a situação da trilha e o módulo do curso da vez são os que a pessoa vê em Meus cursos", async () => {
+    const comparacoes = await Promise.all(
+      [ESTUDA, NUNCA, DIRETO, ONDE].map(async (userId) => {
+        const [acesso, painel] = await Promise.all([
+          admin.admin.alunos.acesso({ userId }),
+          painelDe(userId),
+        ]);
+        const trilhas = (acesso?.liberacoes ?? []).flatMap((l) =>
+          l.acao.tipo !== "revogada" && l.acompanhamento.tipo === "trilha"
+            ? [{ a: l.acompanhamento, titulo: l.alvo.titulo }]
+            : []
+        );
+        const vistos: unknown[] = trilhas.map(({ a, titulo }) => ({
+          daVez: a.daVez,
+          modulo: moduloDaVez(a),
+          situacao: a.situacao,
+          titulo,
+        }));
+        const esperados: unknown[] = trilhas.map(({ titulo }) => {
+          const t = painel.trilhas.find((x) => x.titulo === titulo);
+          return {
+            daVez: t?.daVez?.posicao ?? null,
+            modulo:
+              t?.daVez?.estado.tipo === "em_andamento"
+                ? (t.daVez.moduloAtual?.numero ?? null)
+                : null,
+            situacao: t ? trilhaNaPalavraDoAdmin(t) : "fora do painel",
+            titulo,
+          };
+        });
+        return { esperados, userId, vistos };
+      })
+    );
+    // Todas as pessoas num expect só: a falha mostra cada divergência.
+    expect(comparacoes.map((c) => [c.userId, c.vistos.length > 0])).toEqual(
+      comparacoes.map((c) => [c.userId, true])
+    );
+    expect(comparacoes.map((c) => [c.userId, c.vistos])).toEqual(
+      comparacoes.map((c) => [c.userId, c.esperados])
+    );
+  });
+
+  test("o onde do curso em andamento é a aula para onde o Continuar da pessoa leva", async () => {
+    const comparacoes = await Promise.all(
+      [ESTUDA, DIRETO, ONDE].map(async (userId) => {
+        const [acesso, painel] = await Promise.all([
+          admin.admin.alunos.acesso({ userId }),
+          painelDe(userId),
+        ]);
+        const r = painel.retomada;
+        if (r?.tipo !== "continuar") {
+          return { esperado: "retomada continuar", userId, visto: r?.tipo };
+        }
+        const doAdmin = (acesso?.liberacoes ?? [])
+          .flatMap<CursoAcompanhado>((l) =>
+            l.acompanhamento.tipo === "curso"
+              ? [l.acompanhamento.curso]
+              : l.acompanhamento.cursos
+          )
+          .find((c) => c.titulo === r.curso.titulo);
+        return {
+          esperado: { aula: r.aula.numeroNoModulo, modulo: r.modulo.numero },
+          userId,
+          visto:
+            doAdmin?.situacao.tipo === "estudando"
+              ? doAdmin.situacao.onde
+              : doAdmin?.situacao.tipo,
+        };
+      })
+    );
+    for (const { esperado, userId, visto } of comparacoes) {
+      expect([userId, visto]).toEqual([userId, esperado]);
+    }
   });
 });

@@ -234,13 +234,13 @@ export function montarAcesso(
   const ativas = comAlvo.filter((l) => l.revogadaEm === null);
   const liberado = (alvo: Alvo) => ativaDoAlvo(ativas, alvo) !== undefined;
   const estudo = estudoDe(linhas.historico);
-  const liberadosDireto = new Set(
-    ativas.flatMap((l) => (l.alvo.tipo === "curso" ? [l.alvo.id] : []))
+  const diretos = ativas.flatMap((l) =>
+    l.conteudo.tipo === "curso" ? [l.conteudo.curso] : []
   );
   const acompanhar = (c: ConteudoDoAlvo): Acompanhamento =>
     c.tipo === "curso"
       ? acompanharCurso(c.curso, estudo)
-      : acompanharTrilha(c.trilha, estudo, liberadosDireto);
+      : acompanharTrilha(c.trilha, estudo, diretos);
   const { cursos, trilhas } = linhas.catalogo;
   const trilhasLiberadas = new Map(
     trilhas

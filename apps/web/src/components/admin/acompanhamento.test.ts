@@ -146,9 +146,9 @@ describe("fraseDaLiberacao", () => {
     ultimoEstudo: dia("2026-09-12"),
   });
 
-  test("trilha em curso fala do curso da vez e usa o selo dele", () => {
+  test("trilha com um curso concluído e o da vez fechado: Estudando, com o último estudo da trilha", () => {
     const a = trilha(
-      "em_curso",
+      "estudando",
       [
         {
           ...curso("Segurança", { em: dia("2026-09-12"), tipo: "concluido" }),
@@ -159,7 +159,25 @@ describe("fraseDaLiberacao", () => {
       2
     );
     expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
-      { quando: null, texto: "Curso 2 de 2, Envasadora: nenhuma aula aberta" },
+      {
+        quando: "último estudo em 12 set",
+        texto: "Curso 2 de 2, Envasadora: nenhuma aula aberta",
+      },
+      "Estudando",
+    ]);
+  });
+
+  test("trilha sem estudo nenhum: Nunca abriu", () => {
+    const a: Acompanhamento = {
+      ...(trilha(
+        "nunca_abriu",
+        [{ ...curso("Segurança", { tipo: "nunca_abriu" }), posicao: 1 }],
+        1
+      ) as Extract<Acompanhamento, { tipo: "trilha" }>),
+      ultimoEstudo: null,
+    };
+    expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
+      { quando: null, texto: "Curso 1 de 1, Segurança: nenhuma aula aberta" },
       "Nunca abriu",
     ]);
   });

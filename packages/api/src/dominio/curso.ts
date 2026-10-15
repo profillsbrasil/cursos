@@ -117,6 +117,54 @@ export function estadosDaTrilha(
   return estados;
 }
 
+export interface CursoAlcancado<C extends CursoComAulas> {
+  curso: C;
+  estado: EstadoCurso;
+}
+
+export interface Alcance<C extends CursoComAulas, T> {
+  /** Liberados direto e fora de trilha liberada, na ordem em que chegaram, sem repetir. */
+  soltos: CursoAlcancado<C>[];
+  /** Na ordem em que chegaram; os cursos de cada uma em ordem de posição. */
+  trilhas: { cursos: CursoAlcancado<C>[]; trilha: T }[];
+}
+
+/**
+ * Os cursos que a pessoa alcança e o estado de cada um, como Meus cursos mostra:
+ * o curso da trilha liberada pela regra sequencial, em que o liberado direto não
+ * espera o anterior, e o curso solto sem antecessor. Meus cursos, a busca e a
+ * tela de acesso do admin leem o alcance daqui.
+ */
+export function alcance<
+  C extends CursoComAulas,
+  T extends { cursos: readonly C[] },
+>(trilhas: readonly T[], diretos: readonly C[], h: Historico): Alcance<C, T> {
+  const liberadosDireto = new Set(diretos.map((c) => c.id));
+  const naTrilha = new Set(trilhas.flatMap((t) => t.cursos.map((c) => c.id)));
+  const soltos = new Map<CursoId, CursoAlcancado<C>>();
+  for (const curso of diretos) {
+    if (!(naTrilha.has(curso.id) || soltos.has(curso.id))) {
+      soltos.set(curso.id, {
+        curso,
+        estado: estadoDoCurso(curso, h, { tipo: "livre" }),
+      });
+    }
+  }
+  return {
+    soltos: [...soltos.values()],
+    trilhas: trilhas.map((trilha) => {
+      const estados = estadosDaTrilha(trilha, h, liberadosDireto);
+      return {
+        cursos: trilha.cursos.map((curso, i) => ({
+          curso,
+          estado: estados[i] ?? { tipo: "em_breve" },
+        })),
+        trilha,
+      };
+    }),
+  };
+}
+
 export function niveis(
   curso: CursoCatalogo,
   assistidas: ReadonlySet<AulaId>

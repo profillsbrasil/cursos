@@ -171,7 +171,7 @@ describe("acompanharTrilha", () => {
         certificados: [certificado("x", "2026-09-03T15:00:00Z")],
       })
     );
-    expect(acompanharTrilha(trilhaCat("t", [X, Y, Z]), e, new Set())).toEqual({
+    expect(acompanharTrilha(trilhaCat("t", [X, Y, Z]), e, [])).toEqual({
       aulas: { feitas: 2, pct: 66, total: 3 },
       concluidos: 1,
       cursos: [
@@ -195,30 +195,43 @@ describe("acompanharTrilha", () => {
         },
       ],
       daVez: 2,
-      situacao: "em_curso",
+      // Concluiu o curso 1: a trilha está em estudo, mesmo com o curso da vez fechado.
+      situacao: "estudando",
       tipo: "trilha",
       ultimoEstudo: "2026-09-03" as DiaISO,
     });
   });
 
-  test("o segundo curso espera o primeiro e diz qual", () => {
+  test("o segundo curso espera o primeiro e diz qual; sem estudo, a trilha nunca foi aberta", () => {
     const r = acompanharTrilha(
       trilhaCat("t", [X, Y]),
       estudoDe(linhas({})),
-      new Set()
+      []
     );
     expect(r.tipo === "trilha" && r.cursos.map((c) => c.situacao)).toEqual([
       { tipo: "nunca_abriu" },
       { depoisDe: { posicao: 1, titulo: "Curso x" }, tipo: "bloqueado" },
     ]);
+    expect(r).toMatchObject({ situacao: "nunca_abriu", ultimoEstudo: null });
+  });
+
+  test("o curso da vez na prova põe a trilha na prova", () => {
+    const r = acompanharTrilha(
+      trilhaCat("t", [Y, X]),
+      estudoDe(
+        linhas({
+          assistidas: [assistida(idAula("y", 0, 1), "2026-09-01T15:00:00Z")],
+        })
+      ),
+      []
+    );
+    expect(r).toMatchObject({ daVez: 1, situacao: "falta_prova" });
   });
 
   test("o curso liberado direto não espera o anterior", () => {
-    const r = acompanharTrilha(
-      trilhaCat("t", [X, Y]),
-      estudoDe(linhas({})),
-      new Set([Y.id])
-    );
+    const r = acompanharTrilha(trilhaCat("t", [X, Y]), estudoDe(linhas({})), [
+      Y,
+    ]);
     expect(r.tipo === "trilha" && r.cursos[1]?.situacao).toEqual({
       tipo: "nunca_abriu",
     });
@@ -230,7 +243,7 @@ describe("acompanharTrilha", () => {
       estudoDe(
         linhas({ certificados: [certificado("x", "2026-09-03T15:00:00Z")] })
       ),
-      new Set()
+      []
     );
     expect(r).toMatchObject({
       concluidos: 1,

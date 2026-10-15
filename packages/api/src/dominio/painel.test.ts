@@ -108,6 +108,42 @@ describe("montarPainel com regras de liberação", () => {
     ]);
   });
 
+  test("o módulo do cartão da trilha é o da aula para onde o Continuar leva, não o primeiro com aula pendente", () => {
+    // Módulo 0 com 2 aulas e módulo 1 com 1: a pessoa viu a aula 1 do módulo 0 e
+    // parou depois na aula 1 do módulo 1.
+    const e = cursoLinha("e", { aulas: [2, 1] });
+    const painel = montarPainel(
+      linhas({
+        assistidas: [
+          {
+            assistidaEm: em("2026-10-08T15:00:00Z"),
+            aulaId: idAula("e", 0, 1),
+          },
+        ],
+        liberacoes: [
+          {
+            curso: null,
+            liberadaEm: em("2026-10-01T15:00:00Z"),
+            trilha: trilhaLinha("t", [e]),
+          },
+        ],
+        posicoes: [
+          {
+            atualizadaEm: em("2026-10-09T15:00:00Z"),
+            aulaId: idAula("e", 1, 1),
+            posicaoSeg: 120,
+          },
+        ],
+      })
+    );
+    expect([
+      painel.trilhas[0]?.daVez?.moduloAtual?.numero,
+      painel.retomada?.tipo === "continuar"
+        ? painel.retomada.modulo.numero
+        : null,
+    ]).toEqual([1, 1]);
+  });
+
   test("curso com liberação direta fora de trilha liberada vai para soltos", () => {
     const painel = montarPainel(
       linhas({

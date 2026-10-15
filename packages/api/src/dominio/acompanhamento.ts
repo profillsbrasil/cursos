@@ -1,13 +1,12 @@
 // O que o admin vê do estudo de cada pessoa: o acompanhamento de cada liberação,
-// na tela de acesso, e o resumo da pessoa, na busca. Estado, progresso, curso da
-// vez e a aula do Continuar saem das regras do painel do aluno (estadoDoCurso,
-// estadosDaTrilha, trilhaVM, progresso, atividadeDe, aulaDeRetomada): nada aqui
-// decide de novo se um curso abre, se foi começado ou se foi concluído.
+// na tela de acesso, e a situação da pessoa, na busca. O alcance, o estado, o
+// progresso, o curso da vez e a aula do Continuar saem das regras de Meus cursos
+// (alcance, estadoDoCurso, trilhaVM, progresso, atividadeDe, ondeNoCurso): nada
+// aqui decide de novo se um curso abre, se foi começado ou se foi concluído.
 
 import {
+  alcance,
   type CursoComAulas,
-  estadoDoCurso,
-  estadosDaTrilha,
   type Progresso,
   progresso,
 } from "./curso";
@@ -18,7 +17,7 @@ import {
   posicaoComecada,
 } from "./historico";
 import { type TrilhaVM, trilhaVM } from "./painel";
-import { aulaDeRetomada, localizar } from "./retomada";
+import { ondeNoCurso } from "./retomada";
 import { diaLocal } from "./sequencia";
 import type {
   AulaId,
@@ -61,6 +60,14 @@ export interface CursoAcompanhado {
   titulo: string;
 }
 
+/** A trilha inteira na palavra do admin: o que o selo do item da trilha diz. */
+export type SituacaoNaTrilha =
+  | "nunca_abriu"
+  | "estudando"
+  | "falta_prova"
+  | "concluida"
+  | "aguardando_producao";
+
 /** O estudo da pessoa no alvo de uma liberação. */
 export type Acompanhamento =
   | { tipo: "curso"; curso: CursoAcompanhado }
@@ -73,7 +80,7 @@ export type Acompanhamento =
       cursos: readonly (CursoAcompanhado & { posicao: number })[];
       /** Posição do curso da vez; null quando nenhum curso abre sem estar concluído. */
       daVez: number | null;
-      situacao: TrilhaVM["situacao"];
+      situacao: SituacaoNaTrilha;
       ultimoEstudo: DiaISO | null;
     };
 
@@ -181,15 +188,12 @@ export function situacaoNoCurso(
     case "nao_iniciado":
       return { tipo: "nunca_abriu" };
     case "em_andamento": {
-      const { aulaId } = aulaDeRetomada(
-        curso,
-        estado,
-        e.historico,
-        e.atividade
-      );
-      const { modulo, numeroNoModulo } = localizar(curso, aulaId);
+      const onde = ondeNoCurso(curso, estado, e.historico, e.atividade);
+      if (!onde) {
+        throw new Error(`Curso ${curso.titulo} em andamento sem aula.`);
+      }
       return {
-        onde: { aula: numeroNoModulo, modulo: modulo.numero },
+        onde: { aula: onde.aula, modulo: onde.modulo.numero },
         tipo: "estudando",
         ultimoEstudo: estudou(curso, e),
       };
@@ -210,7 +214,8 @@ export function acompanharCurso(
   curso: CursoCatalogo,
   e: Estudo
 ): Acompanhamento {
-  const estado = estadoDoCurso(curso, e.historico, { tipo: "livre" });
+  const [solto] = alcance([], [curso], e.historico).soltos;
+  const estado = solto?.estado ?? { tipo: "em_breve" };
   return {
     curso: {
       progresso: progresso(curso, e.historico.assistidas),
@@ -221,35 +226,69 @@ export function acompanharCurso(
   };
 }
 
-/** A trilha pela trilhaVM de Meus cursos: o curso liberado direto não espera o anterior. */
+/**
+ * A trilha pelo `alcance` e pela `trilhaVM` de Meus cursos. `diretos`: os cursos
+ * com liberação direta ativa, que não esperam o anterior.
+ */
 export function acompanharTrilha(
   trilha: TrilhaCatalogo,
   e: Estudo,
-  liberadosDireto: ReadonlySet<CursoId>
+  diretos: readonly CursoCatalogo[]
 ): Acompanhamento {
-  const { vm } = trilhaVM(trilha, e.historico, liberadosDireto);
+  const [alcancada] = alcance([trilha], diretos, e.historico).trilhas;
+  if (!alcancada) {
+    throw new Error(`Trilha ${trilha.titulo} fora do próprio alcance.`);
+  }
+  const { vm } = trilhaVM(alcancada, e.historico, e.atividade);
   const ordem = trilha.cursos.map((c) => c.id);
   const doCatalogo = new Map(trilha.cursos.map((c) => [c.id, c]));
+  const cursos = vm.cursos.map((c) => {
+    const curso = doCatalogo.get(c.id);
+    if (!curso) {
+      throw new Error(`Curso ${c.id} fora da trilha ${trilha.titulo}.`);
+    }
+    return {
+      posicao: c.posicao,
+      progresso: c.progresso,
+      situacao: situacaoNoCurso(curso, c.estado, e, ordem),
+      titulo: c.titulo,
+    };
+  });
+  const daVez = vm.daVez?.posicao ?? null;
+  const ultimo = maisRecente(trilha.cursos.map((c) => ultimoEstudo(c, e)));
   return {
     aulas: vm.aulas,
     concluidos: vm.concluidos,
-    cursos: vm.cursos.map((c) => {
-      const curso = doCatalogo.get(c.id);
-      if (!curso) {
-        throw new Error(`Curso ${c.id} fora da trilha ${trilha.titulo}.`);
-      }
-      return {
-        posicao: c.posicao,
-        progresso: c.progresso,
-        situacao: situacaoNoCurso(curso, c.estado, e, ordem),
-        titulo: c.titulo,
-      };
-    }),
-    daVez: vm.daVez?.posicao ?? null,
-    situacao: vm.situacao,
+    cursos,
+    daVez,
+    situacao: situacaoNaTrilha(
+      vm.situacao,
+      cursos.find((c) => c.posicao === daVez),
+      ultimo
+    ),
     tipo: "trilha",
-    ultimoEstudo: maisRecente(trilha.cursos.map((c) => ultimoEstudo(c, e))),
+    ultimoEstudo: ultimo,
   };
+}
+
+/**
+ * "Nunca abriu" é a mesma regra da situação da pessoa: nenhum estudo em curso
+ * nenhum da trilha. Com estudo, a trilha em curso espera a prova quando o curso
+ * da vez espera, e está "Estudando" no resto, inclusive quando o curso da vez
+ * ainda não foi aberto depois de um curso concluído.
+ */
+function situacaoNaTrilha(
+  situacao: TrilhaVM["situacao"],
+  daVez: CursoAcompanhado | undefined,
+  ultimo: DiaISO | null
+): SituacaoNaTrilha {
+  if (situacao !== "em_curso") {
+    return situacao;
+  }
+  if (ultimo === null) {
+    return "nunca_abriu";
+  }
+  return daVez?.situacao.tipo === "falta_prova" ? "falta_prova" : "estudando";
 }
 
 // ---------- o resumo da pessoa na busca ----------
@@ -283,37 +322,6 @@ export interface LinhasDoResumo {
   pessoas: readonly LinhasDaPessoa[];
   /** As trilhas com liberação ativa de alguma das pessoas, com os cursos em ordem de posição. */
   trilhas: readonly { cursos: readonly string[]; id: string }[];
-}
-
-/**
- * Os cursos que a pessoa alcança, sem repetir, com o estado de Meus cursos: o da
- * trilha pela regra sequencial, o liberado direto sem antecessor.
- */
-export function cursosAlcancados<C extends CursoComAulas>(
-  trilhas: readonly { cursos: readonly C[] }[],
-  diretos: readonly C[],
-  h: Historico
-): Map<CursoId, { curso: C; estado: EstadoCurso }> {
-  const liberadosDireto = new Set(diretos.map((c) => c.id));
-  const alcancados = new Map<CursoId, { curso: C; estado: EstadoCurso }>();
-  for (const trilha of trilhas) {
-    const estados = estadosDaTrilha(trilha, h, liberadosDireto);
-    for (const [i, curso] of trilha.cursos.entries()) {
-      const estado = estados[i];
-      if (estado) {
-        alcancados.set(curso.id, { curso, estado });
-      }
-    }
-  }
-  for (const curso of diretos) {
-    if (!alcancados.has(curso.id)) {
-      alcancados.set(curso.id, {
-        curso,
-        estado: estadoDoCurso(curso, h, { tipo: "livre" }),
-      });
-    }
-  }
-  return alcancados;
 }
 
 interface CatalogoDoResumo {
@@ -379,13 +387,12 @@ export function resumoDaPessoa(
     };
   }
   const e = estudoDe(p);
-  const alcancados = [
-    ...cursosAlcancados(
-      ativas.flatMap((l) => (l.trilhaId ? [catalogo.trilha(l.trilhaId)] : [])),
-      ativas.flatMap((l) => (l.cursoId ? [catalogo.curso(l.cursoId)] : [])),
-      e.historico
-    ).values(),
-  ];
+  const { soltos, trilhas } = alcance(
+    ativas.flatMap((l) => (l.trilhaId ? [catalogo.trilha(l.trilhaId)] : [])),
+    ativas.flatMap((l) => (l.cursoId ? [catalogo.curso(l.cursoId)] : [])),
+    e.historico
+  );
+  const alcancados = [...trilhas.flatMap((t) => t.cursos), ...soltos];
   const contaveis = alcancados.filter((x) => x.estado.tipo !== "em_breve");
   const numeros: NumerosDaPessoa = {
     concluidos: contaveis.filter((x) => x.estado.tipo === "concluido").length,

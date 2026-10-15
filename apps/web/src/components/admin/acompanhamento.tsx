@@ -90,8 +90,8 @@ const NUNCA_ABRIU: Selo = {
   rotulo: "Nunca abriu",
 };
 
-export function seloDoCurso(s: SituacaoNoCurso): Selo {
-  switch (s.tipo) {
+export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]): Selo {
+  switch (tipo) {
     case "em_producao":
       return { classe: CONTORNO_CEU, icone: Clock, rotulo: "Em produção" };
     case "bloqueado":
@@ -109,7 +109,7 @@ export function seloDoCurso(s: SituacaoNoCurso): Selo {
     case "concluido":
       return { classe: CHEIO_CEU, icone: Check, rotulo: "Concluído" };
     default:
-      return s satisfies never;
+      return tipo satisfies never;
   }
 }
 
@@ -118,12 +118,13 @@ type DaTrilha = Extract<Acompanhamento, { tipo: "trilha" }>;
 const cursoDaVez = (a: DaTrilha) =>
   a.daVez === null ? undefined : a.cursos.find((c) => c.posicao === a.daVez);
 
-/** A trilha em curso mostra o selo do curso da vez. */
+/** O servidor decide a situação do item; aqui ela só ganha cor, ícone e palavra. */
 export function seloDaLiberacao(a: Acompanhamento): Selo {
   if (a.tipo === "curso") {
-    return seloDoCurso(a.curso.situacao);
+    return seloDoCurso(a.curso.situacao.tipo);
   }
-  switch (a.situacao) {
+  const { situacao } = a;
+  switch (situacao) {
     case "concluida":
       return { classe: CHEIO_CEU, icone: Check, rotulo: "Concluída" };
     case "aguardando_producao":
@@ -132,12 +133,8 @@ export function seloDaLiberacao(a: Acompanhamento): Selo {
         icone: Clock,
         rotulo: "Aguardando produção",
       };
-    case "em_curso": {
-      const daVez = cursoDaVez(a);
-      return daVez ? seloDoCurso(daVez.situacao) : NUNCA_ABRIU;
-    }
     default:
-      return a.situacao satisfies never;
+      return seloDoCurso(situacao);
   }
 }
 
@@ -220,7 +217,7 @@ export function fraseNaTrilha(c: CursoAcompanhado, hoje: string): string {
       return `Abre depois do curso ${s.depoisDe.posicao}`;
     case "em_producao":
     case "nunca_abriu":
-      return seloDoCurso(s).rotulo;
+      return seloDoCurso(s.tipo).rotulo;
     case "concluido":
       return fraseDoCurso(c, hoje).texto;
     default:
@@ -264,15 +261,18 @@ export function fraseDaLiberacao(a: Acompanhamento, hoje: string): Frase {
           emProducao.length > 0 ? `${feitos}. ${osCursos(emProducao)}` : feitos,
       };
     }
-    case "em_curso": {
+    // A frase é do curso da vez; o último estudo é o da trilha inteira, que
+    // conta o curso concluído antes dele.
+    case "nunca_abriu":
+    case "estudando":
+    case "falta_prova": {
       const daVez = cursoDaVez(a);
       if (!daVez) {
         return { quando, texto: "Nenhum curso aberto" };
       }
-      const doCurso = fraseDoCurso(daVez, hoje);
       return {
-        quando: doCurso.quando,
-        texto: `Curso ${daVez.posicao} de ${total}, ${daVez.titulo}: ${minuscula(doCurso.texto)}`,
+        quando,
+        texto: `Curso ${daVez.posicao} de ${total}, ${daVez.titulo}: ${minuscula(fraseDoCurso(daVez, hoje).texto)}`,
       };
     }
     default:
