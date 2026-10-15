@@ -12,6 +12,7 @@ import {
   type PainelDeTroca,
   paraCursoDaTroca,
   type RecusaDaTroca,
+  temCursoTrocavelNaVitrine,
 } from "../dominio/troca";
 import { ErroParaAPessoa } from "../index";
 import {
@@ -87,6 +88,20 @@ export async function carregarPainelDeTroca(
     linhasDoExtrato(db, userId, LIMITE_DO_EXTRATO),
   ]);
   return montarPainelDeTroca({ cursos, extrato, pontos }, hoje);
+}
+
+/**
+ * Para o botão Trocar pontos de Sua semana: a vitrine e a regra de Trocar
+ * pontos, num statement. Fica fora do resumo, que alimenta o placar da casca em
+ * toda página do aluno e do admin; só Meus cursos chama isto.
+ */
+export async function carregarTemCursoTrocavelNaVitrine(
+  exec: Executor,
+  userId: string
+): Promise<boolean> {
+  return temCursoTrocavelNaVitrine(
+    await linhasDosCursos(exec, userId, "vitrine")
+  );
 }
 
 export interface ResultadoDaTroca {

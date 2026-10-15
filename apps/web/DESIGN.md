@@ -239,13 +239,13 @@ O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clarei
 
 ### Shadow Vocabulary
 - **Brilho do botão** (`box-shadow: 0 6px 18px rgb(255 204 1 / 0.28)`, o token `shadow-brilho`): o botão amarelo e a pílula do link ativo sob o cursor e com o foco de teclado.
-- **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos.
+- **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos, junto com o gradiente radial em Sol a 16% no canto do cartão. Os dois só aparecem quando a vitrine da pessoa tem curso trocável, um que ela ainda não alcança; sem ele, o saldo fica plano, porque não há para onde chamar.
 - **Flutuante** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.45)`): a barra de salvar presa ao pé dos editores, com `backdrop-blur`.
 - **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta.
 - **Anel de conquista** (anel de 3 px em Sol a 35%): o cartão de conta quando o player registra pontos.
 
 ### Named Rules
-**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos.
+**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos, e só enquanto a vitrine tem curso trocável.
 
 ## Shapes
 

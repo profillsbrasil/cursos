@@ -19,11 +19,15 @@ import {
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "../routers/index";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
+import {
+  carregarPainelDeTroca,
+  carregarTemCursoTrocavelNaVitrine,
+} from "./troca";
 
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
@@ -37,7 +41,9 @@ const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
 const ALUNO_REVOGADO_TRILHA = `user_teste${S}g`;
 const ALUNO_MESMO_INSTANTE = `user_teste${S}h`;
 const ALUNO_TROCA = `user_teste${S}i`;
+const ALUNO_VITRINE = `user_teste${S}j`;
 const ALUNOS = [
+  ALUNO_VITRINE,
   ALUNO_A,
   ALUNO_B,
   ALUNO_VAZIO,
@@ -430,6 +436,98 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(painel.trilhas.map((t) => String(t.id))).toEqual([um.id, dois.id]);
   });
 
+  // O banco local é compartilhado e tem cursos com preço do seed. Para o false
+  // aparecer, o aluno alcança todo curso com preço numa transação em repeatable
+  // read (curso com preço criado por outro teste no meio não entra no retrato),
+  // e o rollback desfaz tudo. Os quatro passos mudam o valor, então uma resposta
+  // fixa não passa.
+  test("Sua semana e Trocar pontos leem o mesmo curso trocável na vitrine", async () => {
+    const t = await criarTrilha(1);
+    const [cursoDaTrilha] = t.cursos;
+    if (!cursoDaTrilha) {
+      throw new Error("curso não criado");
+    }
+    await db
+      .update(curso)
+      .set({ precoTroca: 300 })
+      .where(eq(curso.id, cursoDaTrilha));
+    expect({
+      semana: await carregarTemCursoTrocavelNaVitrine(db, ALUNO_VITRINE),
+      troca: (await carregarPainelDeTroca(db, ALUNO_VITRINE, AGORA))
+        .temCursoTrocavelNaVitrine,
+    }).toEqual({ semana: true, troca: true });
+    class Desfazer extends Error {}
+    const vistos: boolean[] = [];
+    const desfeito = await db
+      .transaction(
+        async (tx) => {
+          const fato = async () => {
+            vistos.push(
+              await carregarTemCursoTrocavelNaVitrine(tx, ALUNO_VITRINE)
+            );
+          };
+          await fato();
+          const comPreco = await tx
+            .select({ id: curso.id })
+            .from(curso)
+            .where(isNotNull(curso.precoTroca));
+          await tx.insert(liberacao).values(
+            comPreco.map((c) => ({
+              cursoId: c.id,
+              liberadaPor: "user_admin",
+              origem: "admin" as const,
+              userId: ALUNO_VITRINE,
+            }))
+          );
+          await fato();
+          await tx
+            .update(liberacao)
+            .set({ revogadaEm: sql`now()`, revogadaPor: "user_admin" })
+            .where(
+              and(
+                eq(liberacao.userId, ALUNO_VITRINE),
+                eq(liberacao.cursoId, cursoDaTrilha)
+              )
+            );
+          await fato();
+          await tx.insert(liberacao).values({
+            liberadaPor: "user_admin",
+            origem: "admin",
+            trilhaId: t.id,
+            userId: ALUNO_VITRINE,
+          });
+          await fato();
+          throw new Desfazer();
+        },
+        { isolationLevel: "repeatable read" }
+      )
+      .catch((e: unknown) => {
+        if (e instanceof Desfazer) {
+          return true;
+        }
+        throw e;
+      });
+    expect(desfeito).toBe(true);
+    expect(vistos).toEqual([
+      // o curso da trilha está à venda
+      true,
+      // liberação direta de todo curso com preço: nada à venda
+      false,
+      // revogada a do curso da trilha, ele volta à venda
+      true,
+      // a trilha liberada também o alcança
+      false,
+    ]);
+  });
+
+  test("Sua semana lê a vitrine num statement, fora do resumo", async () => {
+    statements = 0;
+    await carregarTemCursoTrocavelNaVitrine(db, ALUNO_A);
+    expect(statements).toBe(1);
+  });
+
+  // O resumo alimenta o placar da casca, que roda em toda página do aluno e do
+  // admin. A vitrine fica fora dele.
   test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
     const grande = await criarTrilha(40);
     await liberar(ALUNO_B, grande.id);

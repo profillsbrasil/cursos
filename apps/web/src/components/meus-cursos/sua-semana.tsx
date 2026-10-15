@@ -34,7 +34,13 @@ const ehHoje = (s: StatusDia) => s === "hoje_estudou" || s === "hoje_pendente";
 
 // O card expõe o padding em --pad; cada divisória volta o padding com margem
 // negativa, para a linha ir de uma borda à outra do card.
-export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
+export function SuaSemana({
+  resumo,
+  temCursoTrocavelNaVitrine,
+}: {
+  resumo: ResumoAluno;
+  temCursoTrocavelNaVitrine: boolean;
+}) {
   return (
     <aside
       aria-labelledby="semana-titulo"
@@ -103,17 +109,25 @@ export function SuaSemana({ resumo }: { resumo: ResumoAluno }) {
             {fmtPts(resumo.pontosSemana)}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3 border-border border-y px-(--pad) py-2.5">
+        <div
+          className={cn(
+            "flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5",
+            temCursoTrocavelNaVitrine && "border-b"
+          )}
+        >
           <dt className="text-muted-foreground text-sm">Seu saldo</dt>
           <dd className="font-bold text-lg text-sol tabular-nums">
             {fmtPts(resumo.saldo)}
           </dd>
         </div>
       </dl>
-      <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
-        <Gift aria-hidden="true" />
-        Trocar pontos
-      </Link>
+      {/* Sem curso trocável na vitrine, o botão levaria a uma vitrine vazia. */}
+      {temCursoTrocavelNaVitrine ? (
+        <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
+          <Gift aria-hidden="true" />
+          Trocar pontos
+        </Link>
+      ) : null}
     </aside>
   );
 }
