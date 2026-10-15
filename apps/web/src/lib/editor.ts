@@ -31,6 +31,10 @@ export const setaDepoisDeMover = (
   return direcao === "acima" ? "abaixo" : "acima";
 };
 
+/** Quem recebe o foco quando um item some: o que toma o lugar dele, senão o anterior. */
+export const vizinhoQueFica = <T>(lista: readonly T[], i: number): T | null =>
+  lista[i + 1] ?? lista[i - 1] ?? null;
+
 interface NaPagina<T> {
   compareDocumentPosition: (outro: T) => number;
 }
@@ -52,13 +56,15 @@ export function primeiroNaPagina<T extends NaPagina<T>>(
   );
 }
 
-export function focarOPrimeiro(ids: readonly string[]) {
-  const elementos = ids.flatMap((id) => {
-    const e = document.getElementById(id);
-    return e ? [e] : [];
+/** Depois do render: o campo marcado pode estar num bloco que abre com o erro. */
+export const focarOPrimeiro = (ids: readonly string[]) =>
+  requestAnimationFrame(() => {
+    const elementos = ids.flatMap((id) => {
+      const e = document.getElementById(id);
+      return e ? [e] : [];
+    });
+    primeiroNaPagina(elementos)?.focus();
   });
-  primeiroNaPagina(elementos)?.focus();
-}
 
 export const novoId = <T extends string>() => crypto.randomUUID() as T;
 

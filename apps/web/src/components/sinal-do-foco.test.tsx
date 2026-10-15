@@ -7,9 +7,7 @@
 // na máquina, só a suíte da pílula pula.
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { existsSync } from "node:fs";
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import type {
@@ -19,9 +17,15 @@ import type {
   LiberacaoId,
 } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
-import { sleep, spawn } from "bun";
+import { sleep } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
-import { compile } from "tailwindcss";
+
+import {
+  abrirChromium,
+  CHROMIUM,
+  cssDoApp,
+  fecharChromium,
+} from "./chromium-de-teste";
 
 // Fora do App Router o usePathname não tem de onde ler e o useRouter lança; o teste
 // diz o caminho, e o resto do módulo fica o de verdade.
@@ -43,26 +47,6 @@ const { NavPrincipal } = await import("./casca/nav-principal");
 const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
 const { ColunaDoCurso } = await import("./player/coluna-do-curso");
 const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
-
-const APP = join(import.meta.dir, "../..");
-const UI = join(APP, "../../packages/ui");
-const INDEX = join(APP, "src/index.css");
-
-const ESTILOS: Record<string, string> = {
-  "@cursos/ui/globals.css": join(UI, "src/styles/globals.css"),
-  "shadcn/tailwind.css": join(UI, "node_modules/shadcn/dist/tailwind.css"),
-  tailwindcss: join(UI, "node_modules/tailwindcss/index.css"),
-  "tw-animate-css": join(UI, "node_modules/tw-animate-css/dist/tw-animate.css"),
-};
-
-function lerEstilo(id: string, base: string) {
-  const caminho = ESTILOS[id] ?? join(base, id);
-  return Promise.resolve({
-    base: dirname(caminho),
-    content: readFileSync(caminho, "utf8"),
-    path: caminho,
-  });
-}
 
 // O HTML de cada controle, como o app o renderiza.
 const nav = renderToStaticMarkup(
@@ -227,11 +211,7 @@ function elementos(html: string): Elemento[] {
 }
 
 const todos = [nav, coluna, pessoas, acesso, faixa].flatMap(elementos);
-const compilador = await compile(readFileSync(INDEX, "utf8"), {
-  base: dirname(INDEX),
-  loadStylesheet: lerEstilo,
-});
-const css = compilador.build([...new Set(todos.flatMap((e) => e.classes))]);
+const css = await cssDoApp(todos.flatMap((e) => e.classes));
 
 interface Regra {
   declaracoes: string[];
@@ -300,111 +280,8 @@ function unico(lista: Elemento[], descricao: string) {
 const COR = /^color:/;
 const FUNDO = /^background-color:/;
 
-// O Chromium da máquina, guiado pelo protocolo do DevTools. Ele avalia o seletor da
-// variante ativo-aceso (:has com ~) contra o HTML renderizado, com o CSS compilado.
-const CHROMIUM = process.env.CHROMIUM ?? "/usr/bin/chromium";
-const DEVTOOLS = /DevTools listening on (ws:\/\/\S+)/;
-
-interface Resposta {
-  error?: { message: string };
-  id?: number;
-  result?: Record<string, unknown>;
-}
-
-async function enderecoDoDevTools(saida: ReadableStream<Uint8Array>) {
-  const decodificador = new TextDecoder();
-  let lido = "";
-  for await (const pedaco of saida) {
-    lido += decodificador.decode(pedaco);
-    const achado = DEVTOOLS.exec(lido)?.[1];
-    if (achado) {
-      return achado;
-    }
-  }
-  throw new Error(`o Chromium não abriu o DevTools:\n${lido}`);
-}
-
-/** O que o afterAll desfaz, na ordem inversa: vale também se o setup cair no meio. */
-const limpezas: (() => unknown)[] = [];
-
-const TETO_DO_WEBSOCKET_MS = 5000;
-
-function abrirWebSocket(url: string) {
-  const ws = new WebSocket(url);
-  limpezas.push(() => ws.close());
-  return new Promise<WebSocket>((pronto, falhou) => {
-    const teto = setTimeout(
-      () =>
-        falhou(
-          new Error(
-            `o WebSocket do DevTools não abriu em ${TETO_DO_WEBSOCKET_MS} ms`
-          )
-        ),
-      TETO_DO_WEBSOCKET_MS
-    );
-    ws.addEventListener("open", () => {
-      clearTimeout(teto);
-      pronto(ws);
-    });
-    ws.addEventListener("error", () => {
-      clearTimeout(teto);
-      falhou(new Error(`o WebSocket do DevTools falhou em ${url}`));
-    });
-  });
-}
-
-async function abrirChromium() {
-  const perfil = mkdtempSync(join(tmpdir(), "sinal-do-foco-"));
-  limpezas.push(() => rmSync(perfil, { force: true, recursive: true }));
-  const processo = spawn(
-    [
-      CHROMIUM,
-      "--headless",
-      "--remote-debugging-port=0",
-      `--user-data-dir=${perfil}`,
-      "--no-first-run",
-      // O headless se declara sem cursor; aqui ele tem um mouse (hover: hover).
-      "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
-      "about:blank",
-    ],
-    { stderr: "pipe", stdout: "ignore" }
-  );
-  limpezas.push(async () => {
-    processo.kill();
-    await processo.exited;
-  });
-  const navegador = new URL(await enderecoDoDevTools(processo.stderr));
-  const alvos = (await (
-    await fetch(`http://${navegador.host}/json/list`)
-  ).json()) as { type: string; webSocketDebuggerUrl: string }[];
-  const pagina = alvos.find((a) => a.type === "page");
-  if (!pagina) {
-    throw new Error("o Chromium abriu sem página");
-  }
-  const ws = await abrirWebSocket(pagina.webSocketDebuggerUrl);
-  const pendentes = new Map<number, (r: Resposta) => void>();
-  ws.addEventListener("message", (m) => {
-    const resposta = JSON.parse(String(m.data)) as Resposta;
-    if (resposta.id !== undefined) {
-      pendentes.get(resposta.id)?.(resposta);
-      pendentes.delete(resposta.id);
-    }
-  });
-  let proximo = 0;
-  return (method: string, params: Record<string, unknown> = {}) => {
-    proximo += 1;
-    const id = proximo;
-    return new Promise<Record<string, unknown>>((resolve, reject) => {
-      pendentes.set(id, (r) =>
-        r.error
-          ? reject(new Error(`${method}: ${r.error.message}`))
-          : resolve(r.result ?? {})
-      );
-      ws.send(JSON.stringify({ id, method, params }));
-    });
-  };
-}
-
+// O Chromium da máquina (chromium-de-teste.ts) avalia o seletor da variante
+// ativo-aceso (:has com ~) contra o HTML renderizado, com o CSS compilado.
 // Preenchidos pelo beforeAll da suíte do Chromium; sem Chromium, a suíte pula.
 let enviar: Awaited<ReturnType<typeof abrirChromium>>;
 let raiz: number;
@@ -470,7 +347,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     "a pílula do link ativo acende para sol-hover, com o brilho do botão amarelo",
     () => {
       beforeAll(async () => {
-        enviar = await abrirChromium();
+        enviar = await abrirChromium("sinal-do-foco");
         // Sem transição (motion-reduce:transition-none): a cor lida é a final.
         await enviar("Emulation.setEmulatedMedia", {
           features: [{ name: "prefers-reduced-motion", value: "reduce" }],
@@ -495,16 +372,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         repouso = await lerPilula();
       }, 20_000);
 
-      // Uma limpeza por vez: o perfil só sai depois que o processo terminou.
-      afterAll(async () => {
-        await limpezas
-          .splice(0)
-          .reverse()
-          .reduce<Promise<unknown>>(
-            (anterior, limpar) => anterior.then(limpar),
-            Promise.resolve()
-          );
-      });
+      afterAll(fecharChromium);
 
       test("o HTML tem um link ativo e uma pílula", () => {
         const daNav = elementos(nav);
@@ -560,7 +428,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       };
 
       beforeAll(async () => {
-        enviar = await abrirChromium();
+        enviar = await abrirChromium("sinal-do-foco");
         await enviar("Emulation.setDeviceMetricsOverride", {
           deviceScaleFactor: 1,
           height: 900,
@@ -606,15 +474,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         })()`);
       }, 20_000);
 
-      afterAll(async () => {
-        await limpezas
-          .splice(0)
-          .reverse()
-          .reduce<Promise<unknown>>(
-            (anterior, limpar) => anterior.then(limpar),
-            Promise.resolve()
-          );
-      });
+      afterAll(fecharChromium);
 
       test("o foco é de teclado e a borda acende em titulo", () => {
         expect(medida.focado).toBe(true);
