@@ -396,3 +396,27 @@ describe("Meus cursos com curso que ainda não abre", () => {
     expect(trilha?.[0]).not.toContain("Abre depois");
   });
 });
+
+const CLASSES_DA_IMAGEM = /<img[^>]*class="([^"]*object-cover[^"]*)"/g;
+
+describe("a capa sob o cursor", () => {
+  test("a imagem cresce em 200 ms com a curva ease-forte, sem transição com movimento reduzido", () => {
+    const html = render(montar(exemploDoPrototipo()));
+    const abertas = [...html.matchAll(CLASSES_DA_IMAGEM)]
+      .map((m) => m[1].split(" "))
+      .filter((c) => c.includes("group-hover:scale-[1.03]"));
+    expect(abertas.length).toBeGreaterThan(0);
+    for (const classes of abertas) {
+      expect(classes).toEqual(
+        expect.arrayContaining([
+          "transition-transform",
+          "duration-200",
+          "ease-forte",
+          "motion-reduce:transition-none",
+        ])
+      );
+      expect(classes).not.toContain("ease-out");
+      expect(classes).not.toContain("duration-300");
+    }
+  });
+});

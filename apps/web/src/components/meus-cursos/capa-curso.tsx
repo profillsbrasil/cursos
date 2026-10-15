@@ -163,7 +163,7 @@ export function CapaCurso({
         <Image
           alt={curso.capa.alt}
           className={cn(
-            "object-cover transition-transform duration-300 ease-out motion-reduce:transition-none",
+            "object-cover transition-transform duration-200 ease-forte motion-reduce:transition-none",
             fechado ? "opacity-55 saturate-[.6]" : "group-hover:scale-[1.03]"
           )}
           fill

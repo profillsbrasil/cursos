@@ -20,7 +20,7 @@ import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
 
 const LINK_DA_LINHA =
-  "rounded-sm underline decoration-muted-foreground underline-offset-4 hover:decoration-titulo";
+  "rounded-sm underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-titulo";
 
 function SeloDeStatus({ status }: { status: StatusDoCurso }) {
   return status === "em_producao" ? (

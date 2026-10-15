@@ -136,6 +136,7 @@ describe("visão do catálogo", () => {
         "decoration-muted-foreground",
         "underline-offset-4",
         "hover:decoration-titulo",
+        "transition-colors",
       ])
     );
   });

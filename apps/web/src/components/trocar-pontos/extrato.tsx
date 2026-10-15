@@ -34,7 +34,7 @@ export function Extrato({
           >
             <span
               className={cn(
-                "text-[13px] max-[520px]:col-span-full",
+                "whitespace-nowrap text-[13px] max-[520px]:col-span-full",
                 novo ? "text-foreground" : "text-muted-foreground"
               )}
             >
