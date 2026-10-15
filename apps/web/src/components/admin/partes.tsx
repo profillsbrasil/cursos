@@ -66,7 +66,7 @@ export function Secao({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
           aria-describedby={descritoPor}
-          className="font-bold text-titulo text-xl tracking-tight"
+          className="font-bold text-2xl text-titulo tracking-tight"
           id={id}
           tabIndex={-1}
         >

@@ -151,7 +151,7 @@
       },
       "title-section": {
         "displayName": "Título de seção",
-        "purpose": "O h2 das seções do aluno, 24 px sobre os 18 px do título de cartão (razão 1,33). O admin ainda usa 20 px e passa a 24 px no próximo ajuste dele."
+        "purpose": "O h2 das seções do aluno e do admin, 24 px sobre os 18 px do título de cartão (razão 1,33)."
       },
       "title-card": {
         "displayName": "Título de cartão",
