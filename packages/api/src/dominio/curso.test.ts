@@ -4,6 +4,7 @@ import { estadoDoCurso, estadosDaTrilha, niveis, progresso } from "./curso";
 import {
   cursoCat,
   cursoLinha,
+  HOJE_DO_EXEMPLO,
   historico,
   idAula,
   SEM_LIBERACAO,
@@ -292,31 +293,34 @@ describe("começou abre", () => {
 
   test("no painel, a retomada continua no curso começado depois da inserção", () => {
     const linhaB = cursoLinha("b", { aulas: [3] });
-    const painel = montarPainel({
-      ...SEM_LIBERACAO,
-      assistidas: [
-        {
-          assistidaEm: new Date("2026-10-06T15:00:00Z"),
-          aulaId: idAula("b", 0, 1),
-        },
-      ],
-      liberacoes: [
-        {
-          curso: null,
-          liberadaEm: new Date("2026-08-01T12:00:00Z"),
-          trilha: {
-            cursos: [
-              { curso: cursoLinha("novo", { aulas: [2] }), posicao: 1 },
-              { curso: linhaB, posicao: 2 },
-            ],
-            descricao: "Descrição",
-            id: "t",
-            slug: "t",
-            titulo: "Trilha t",
+    const painel = montarPainel(
+      {
+        ...SEM_LIBERACAO,
+        assistidas: [
+          {
+            assistidaEm: new Date("2026-10-06T15:00:00Z"),
+            aulaId: idAula("b", 0, 1),
           },
-        },
-      ],
-    });
+        ],
+        liberacoes: [
+          {
+            curso: null,
+            liberadaEm: new Date("2026-08-01T12:00:00Z"),
+            trilha: {
+              cursos: [
+                { curso: cursoLinha("novo", { aulas: [2] }), posicao: 1 },
+                { curso: linhaB, posicao: 2 },
+              ],
+              descricao: "Descrição",
+              id: "t",
+              slug: "t",
+              titulo: "Trilha t",
+            },
+          },
+        ],
+      },
+      HOJE_DO_EXEMPLO
+    );
     expect(
       painel.trilhas[0]?.cursos.map((x) => [x.slug, x.estado.tipo])
     ).toEqual([

@@ -10,7 +10,12 @@ import {
   montarCursoAberto,
 } from "./aula";
 import { podeAbrir } from "./curso";
-import { cursoLinha, exemploDoPrototipo, idAula } from "./exemplo";
+import {
+  cursoLinha,
+  exemploDoPrototipo,
+  HOJE_DO_EXEMPLO,
+  idAula,
+} from "./exemplo";
 import { type CursoLinha, montarPainel } from "./painel";
 
 const em = (iso: string) => new Date(iso);
@@ -94,7 +99,7 @@ describe("montarCursoAberto", () => {
 
   test("o estado bate com o do painel para cada curso do exemplo", () => {
     const exemplo = exemploDoPrototipo();
-    const painel = montarPainel(exemplo);
+    const painel = montarPainel(exemplo, HOJE_DO_EXEMPLO);
     const telas = [
       ...painel.trilhas.flatMap((t) => t.cursos),
       ...painel.soltos,

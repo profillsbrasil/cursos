@@ -2,12 +2,21 @@ import { describe, expect, test } from "bun:test";
 import {
   cursoLinha,
   exemploDoPrototipo,
+  HOJE_DO_EXEMPLO,
   SEM_LIBERACAO,
 } from "@cursos/api/dominio/exemplo";
-import { montarPainel, type ResumoAluno } from "@cursos/api/dominio/painel";
+import {
+  type LinhasPainel,
+  montarPainel,
+  type ResumoAluno,
+} from "@cursos/api/dominio/painel";
+import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ConteudoMeusCursos } from "./conteudo";
+
+const montar = (l: LinhasPainel, hoje: DiaISO = HOJE_DO_EXEMPLO) =>
+  montarPainel(l, hoje);
 
 const RESUMO: ResumoAluno = {
   bonus: 30,
@@ -64,7 +73,7 @@ const render = (painel: ReturnType<typeof montarPainel>) =>
   );
 
 describe("Meus cursos com o caso do protótipo", () => {
-  const html = render(montarPainel(exemploDoPrototipo()));
+  const html = render(montar(exemploDoPrototipo()));
 
   test("cada trilha vem com as capas logo abaixo, e os cursos rápidos no fim", () => {
     expect(titulos(html, "Formação comercial")).toEqual([
@@ -78,7 +87,6 @@ describe("Meus cursos com o caso do protótipo", () => {
       "Nova Rotina de Fechamento",
       "Gravação de Máquinas",
       "Autoavaliação Comercial",
-      "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM",
     ]);
   });
 
@@ -130,6 +138,57 @@ describe("Meus cursos com o caso do protótipo", () => {
   });
 });
 
+const CLASSES_DO_DETAILS = /<details class="([^"]*)"/;
+const H2 = /<h2[^>]*>(.*?)<\/h2>/g;
+
+describe("o comunicado em Meus cursos", () => {
+  // O comunicado do exemplo saiu em 2 de outubro.
+  const TITULO =
+    "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM";
+  const onde = (html: string) => ({
+    banner: html.indexOf("Cronograma reverso"),
+    comunicado: html.indexOf(TITULO),
+    rapidos: html.indexOf("Cursos rápidos"),
+    semana: html.indexOf("Sua semana"),
+    trilha: html.indexOf('aria-labelledby="trilha-'),
+  });
+
+  // Em uma coluna (abaixo de 1181 px) a ordem do HTML é a da tela: a faixa vem
+  // logo depois do banner, antes de Sua semana, para aparecer mais cedo. Em
+  // duas colunas ela desce para a linha de baixo, sob o banner e Sua semana.
+  test("com menos de 14 dias, é uma faixa entre o banner e Sua semana", () => {
+    const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
+    const p = onde(html);
+    expect(p.banner).toBeGreaterThan(-1);
+    expect(p.comunicado).toBeGreaterThan(p.banner);
+    expect(p.comunicado).toBeLessThan(p.semana);
+    expect(p.semana).toBeLessThan(p.trilha);
+    const faixa = html.match(CLASSES_DO_DETAILS)?.[1] ?? "";
+    expect(faixa.split(" ")).toEqual(
+      expect.arrayContaining([
+        "min-[1181px]:col-span-2",
+        "min-[1181px]:row-start-2",
+      ])
+    );
+    expect(html.split(TITULO).length - 1).toBe(1);
+    expect(texto(html)).toContain("2 de out.");
+  });
+
+  test("na faixa, o título é um h2, para quem navega por títulos", () => {
+    const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
+    const h2s = [...html.matchAll(H2)].map((m) => texto(m[1] ?? ""));
+    expect(h2s).toContain(`Comunicado: ${TITULO}`);
+  });
+
+  test("com 14 dias ou mais, fica no fim, depois dos cursos rápidos", () => {
+    const html = render(montar(exemploDoPrototipo(), "2026-10-16" as DiaISO));
+    const p = onde(html);
+    expect(p.comunicado).toBeGreaterThan(p.rapidos);
+    expect(html.split(TITULO).length - 1).toBe(1);
+    expect(texto(html)).toContain("Publicado em 2 de outubro de 2026.");
+  });
+});
+
 describe("Meus cursos com trilha sem curso", () => {
   const a = cursoLinha("a", { aulas: [2] });
   const trilha = (
@@ -149,7 +208,7 @@ describe("Meus cursos com trilha sem curso", () => {
 
   test("a trilha esvaziada pelo admin some da tela e da contagem", () => {
     const html = render(
-      montarPainel({
+      montar({
         ...SEM_LIBERACAO,
         liberacoes: [
           trilha("vazia", []),
@@ -164,7 +223,7 @@ describe("Meus cursos com trilha sem curso", () => {
 
   test("só com trilha vazia, a tela é a do painel vazio", () => {
     const html = render(
-      montarPainel({ ...SEM_LIBERACAO, liberacoes: [trilha("vazia", [])] })
+      montar({ ...SEM_LIBERACAO, liberacoes: [trilha("vazia", [])] })
     );
     expect(html).not.toContain("Trilha vazia");
     expect(html).not.toContain("liberada para você");
@@ -175,7 +234,7 @@ describe("Meus cursos com curso que ainda não abre", () => {
   const a = cursoLinha("a", { aulas: [2] });
   const b = cursoLinha("b", { aulas: [2] });
   const html = render(
-    montarPainel({
+    montar({
       ...SEM_LIBERACAO,
       liberacoes: [
         {

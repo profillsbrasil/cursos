@@ -19,6 +19,7 @@ import {
   type CursoCatalogo,
   type CursoId,
   capaDe,
+  type DiaISO,
   type Historico,
   type ModuloId,
   type StatusDoCurso,
@@ -296,6 +297,9 @@ export function exemploDoPrototipo(): LinhasPainel {
     ],
   };
 }
+
+/** O dia, em São Paulo, em que os testes montam o painel: a semana das posições do exemplo. */
+export const HOJE_DO_EXEMPLO = "2026-10-08" as DiaISO;
 
 export const SEM_LIBERACAO: LinhasPainel = {
   assistidas: [],

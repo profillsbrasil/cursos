@@ -9,6 +9,8 @@ import { PONTOS } from "./regras";
 import { type CursoNaTela, ondeNoCurso, retomada } from "./retomada";
 import {
   type DiaDaSemana,
+  diaLocal,
+  diasCorridos,
   faltamParaBonus,
   semana,
   sequenciaDiasUteis,
@@ -170,8 +172,24 @@ export type Retomada =
       trilha: { titulo: string } | null;
     };
 
+/**
+ * Onde Meus cursos mostra o comunicado: `topo`, numa faixa entre Sua semana e as
+ * trilhas, enquanto ele tem menos de `DIAS_NO_TOPO` dias corridos; `fim`, depois.
+ */
+export type LugarDoComunicado = "topo" | "fim";
+
+export const DIAS_NO_TOPO = 14;
+
+/** Os dias contam no fuso de São Paulo: o dia da publicação é o dia 0. */
+export const lugarDoComunicado = (
+  publicadoEm: Date,
+  hoje: DiaISO
+): LugarDoComunicado =>
+  diasCorridos(diaLocal(publicadoEm), hoje) < DIAS_NO_TOPO ? "topo" : "fim";
+
 export interface ComunicadoVM {
   id: string;
+  lugar: LugarDoComunicado;
   publicadoEm: string;
   texto: string;
   titulo: string;
@@ -349,7 +367,11 @@ export function trilhaVM(
   };
 }
 
-export function montarPainel(linhas: LinhasPainel): PainelMeusCursos {
+/** `hoje` é o dia em São Paulo, e só decide o lugar do comunicado. */
+export function montarPainel(
+  linhas: LinhasPainel,
+  hoje: DiaISO
+): PainelMeusCursos {
   const h = historicoDe(linhas);
   const atividade = atividadeDe(linhas);
   const diretos = linhas.liberacoes.flatMap(({ curso }) =>
@@ -377,6 +399,7 @@ export function montarPainel(linhas: LinhasPainel): PainelMeusCursos {
     comunicado: comunicado
       ? {
           id: comunicado.id,
+          lugar: lugarDoComunicado(comunicado.publicadoEm, hoje),
           publicadoEm: comunicado.publicadoEm.toISOString(),
           texto: comunicado.texto,
           titulo: comunicado.titulo,

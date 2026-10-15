@@ -2,7 +2,7 @@ import type { PainelMeusCursos, ResumoAluno } from "@cursos/api/dominio/painel";
 
 import { plural } from "@/lib/formato";
 
-import { AvisoComunicado } from "./aviso-comunicado";
+import { AvisoComunicado, FaixaComunicado } from "./aviso-comunicado";
 import { BannerContinuar } from "./banner-continuar";
 import {
   CapaCurso,
@@ -72,12 +72,23 @@ export function ConteudoMeusCursos({
       </>
     );
   }
+  // O servidor decide o lugar: na faixa do topo enquanto é recente, no fim depois.
+  const { comunicado } = painel;
   return (
     <>
       <Cabecalho painel={painel} />
       <div className="grid gap-10 max-[760px]:gap-8">
+        {/* Em uma coluna, a faixa vem logo depois do banner, antes de Sua semana,
+            para caber na primeira tela. Em duas colunas, ela ocupa a linha de baixo
+            inteira, e o banner e Sua semana ficam lado a lado na de cima. */}
         <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
           <BannerContinuar retomada={painel.retomada} />
+          {comunicado?.lugar === "topo" ? (
+            <FaixaComunicado
+              className="min-[1181px]:col-span-2 min-[1181px]:row-start-2"
+              comunicado={comunicado}
+            />
+          ) : null}
           <SuaSemana
             resumo={resumo}
             temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
@@ -105,8 +116,8 @@ export function ConteudoMeusCursos({
             </div>
           </Secao>
         )}
-        {painel.comunicado ? (
-          <AvisoComunicado comunicado={painel.comunicado} />
+        {comunicado?.lugar === "fim" ? (
+          <AvisoComunicado comunicado={comunicado} />
         ) : null}
       </div>
     </>

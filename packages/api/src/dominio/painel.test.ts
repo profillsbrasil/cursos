@@ -4,12 +4,17 @@ import {
   aulasDe,
   cursoLinha,
   exemploDoPrototipo,
+  HOJE_DO_EXEMPLO,
   idAula,
   SEM_LIBERACAO,
 } from "./exemplo";
 import { type CursoLinha, type LinhasPainel, montarPainel } from "./painel";
+import type { DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
+
+const montar = (l: LinhasPainel, hoje: DiaISO = HOJE_DO_EXEMPLO) =>
+  montarPainel(l, hoje);
 
 const trilhaLinha = (chave: string, cursos: CursoLinha[]) => ({
   cursos: cursos.map((curso, i) => ({ curso, posicao: i + 1 })),
@@ -25,7 +30,7 @@ const linhas = (o: Partial<LinhasPainel>): LinhasPainel => ({
 });
 
 describe("montarPainel com o caso do protótipo", () => {
-  const prototipo = () => montarPainel(exemploDoPrototipo());
+  const prototipo = () => montar(exemploDoPrototipo());
 
   test("trilha Formação comercial dá 51% e o curso da vez é o Comercial", () => {
     const painel = prototipo();
@@ -87,7 +92,7 @@ describe("montarPainel com regras de liberação", () => {
   const b = cursoLinha("b", { aulas: [2] });
 
   test("curso com liberação direta e trilha liberada aparece uma vez, sem bloqueio", () => {
-    const painel = montarPainel(
+    const painel = montar(
       linhas({
         liberacoes: [
           {
@@ -112,7 +117,7 @@ describe("montarPainel com regras de liberação", () => {
     // Módulo 0 com 2 aulas e módulo 1 com 1: a pessoa viu a aula 1 do módulo 0 e
     // parou depois na aula 1 do módulo 1.
     const e = cursoLinha("e", { aulas: [2, 1] });
-    const painel = montarPainel(
+    const painel = montar(
       linhas({
         assistidas: [
           {
@@ -145,7 +150,7 @@ describe("montarPainel com regras de liberação", () => {
   });
 
   test("curso com liberação direta fora de trilha liberada vai para soltos", () => {
-    const painel = montarPainel(
+    const painel = montar(
       linhas({
         liberacoes: [
           { curso: b, liberadaEm: em("2026-08-02T00:00:00Z"), trilha: null },
@@ -160,7 +165,7 @@ describe("montarPainel com regras de liberação", () => {
 
   test("trilha com os cursos seguintes em produção fica aguardando_producao", () => {
     const breve = cursoLinha("breve", { aulas: [2], status: "em_producao" });
-    const painel = montarPainel(
+    const painel = montar(
       linhas({
         assistidas: aulasDe(a).map((aulaId) => ({
           assistidaEm: em("2026-09-01T12:00:00Z"),
@@ -191,7 +196,7 @@ describe("montarPainel com regras de liberação", () => {
   });
 
   test("comunicado de curso sem liberação não aparece", () => {
-    const painel = montarPainel(
+    const painel = montar(
       linhas({
         comunicados: [
           {
@@ -226,7 +231,7 @@ describe("montarPainel com regras de liberação", () => {
   });
 
   test("zero liberações dá listas vazias e retomada nula", () => {
-    const painel = montarPainel(
+    const painel = montar(
       linhas({
         posicoes: [
           {
@@ -243,5 +248,44 @@ describe("montarPainel com regras de liberação", () => {
       soltos: [],
       trilhas: [],
     });
+  });
+});
+
+describe("lugar do comunicado em Meus cursos", () => {
+  const HOJE = "2026-10-15" as DiaISO;
+  const lugar = (publicadoEm: string) =>
+    montar(
+      linhas({
+        comunicados: [
+          {
+            cursoId: null,
+            id: "geral",
+            publicadoEm: em(publicadoEm),
+            texto: "t",
+            titulo: "Geral",
+          },
+        ],
+      }),
+      HOJE
+    ).comunicado?.lugar;
+
+  test("publicado hoje fica no topo", () => {
+    expect(lugar("2026-10-15T13:00:00Z")).toBe("topo");
+  });
+
+  test("com 13 dias corridos fica no topo, com 14 desce para o fim", () => {
+    expect(lugar("2026-10-02T15:00:00Z")).toBe("topo");
+    expect(lugar("2026-10-01T15:00:00Z")).toBe("fim");
+  });
+
+  test("os dias contam no fuso de São Paulo, não em UTC", () => {
+    // 02/10 às 02:00 UTC ainda é 01/10 às 23:00 em São Paulo: 14 dias.
+    expect(lugar("2026-10-02T02:00:00Z")).toBe("fim");
+    // 02/10 às 03:00 UTC já é meia-noite de 02/10 em São Paulo: 13 dias.
+    expect(lugar("2026-10-02T03:00:00Z")).toBe("topo");
+  });
+
+  test("o comunicado do exemplo, de 6 dias, fica no topo", () => {
+    expect(montar(exemploDoPrototipo()).comunicado?.lugar).toBe("topo");
   });
 });
