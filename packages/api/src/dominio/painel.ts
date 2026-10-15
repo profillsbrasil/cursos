@@ -186,6 +186,8 @@ export const lugarDoComunicado = (
   diasCorridos(diaLocal(publicadoEm), hoje) < DIAS_NO_TOPO ? "topo" : "fim";
 
 export interface ComunicadoVM {
+  /** O dia em São Paulo em que o painel foi montado: a data curta leva o ano quando ele muda. */
+  hoje: DiaISO;
   id: string;
   lugar: LugarDoComunicado;
   publicadoEm: string;
@@ -357,7 +359,7 @@ export function trilhaVM(
   };
 }
 
-/** `hoje` é o dia em São Paulo, e só decide o lugar do comunicado. */
+/** `hoje` é o dia em São Paulo, e só serve ao comunicado: o lugar e o ano da data. */
 export function montarPainel(
   linhas: LinhasPainel,
   hoje: DiaISO
@@ -388,6 +390,7 @@ export function montarPainel(
   return {
     comunicado: comunicado
       ? {
+          hoje,
           id: comunicado.id,
           lugar: lugarDoComunicado(comunicado.publicadoEm, hoje),
           publicadoEm: comunicado.publicadoEm.toISOString(),

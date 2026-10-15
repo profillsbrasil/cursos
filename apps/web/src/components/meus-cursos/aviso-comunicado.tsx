@@ -2,7 +2,7 @@ import type { ComunicadoVM } from "@cursos/api/dominio/painel";
 import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, Megaphone } from "lucide-react";
 
-import { fmtData, fmtDiaCurto } from "@/lib/formato";
+import { diaCurto, diaEmSaoPaulo, fmtData } from "@/lib/formato";
 
 // O comunicado recente (`lugar: "topo"`): uma linha com o título e a data, no
 // topo de Meus cursos. O texto abre por baixo, no `details`, sem JavaScript.
@@ -32,7 +32,7 @@ export function FaixaComunicado({
           className="shrink-0 text-muted-foreground text-sm"
           dateTime={comunicado.publicadoEm}
         >
-          {fmtDiaCurto(comunicado.publicadoEm)}
+          {diaCurto(diaEmSaoPaulo(comunicado.publicadoEm), comunicado.hoje)}
         </time>
         <ChevronDown
           aria-hidden="true"

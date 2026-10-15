@@ -19,10 +19,9 @@ import { fmtNum, fmtPts, plural } from "@/lib/formato";
 import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { CABECA, CELULA, NUMERO, SELO, Secao, Vazio } from "./partes";
 
-// O link de linha de tabela do admin: sublinhado só sob o cursor e com o foco.
-const LINK_DA_LINHA = "rounded-sm underline-offset-4 hover:underline";
+const LINK_DA_LINHA =
+  "rounded-sm underline decoration-muted-foreground underline-offset-4 hover:decoration-titulo";
 
-/** "Em produção" é o mesmo selo do resto do admin, em contorno Céu com o relógio. */
 function SeloDeStatus({ status }: { status: StatusDoCurso }) {
   return status === "em_producao" ? (
     <SeloDeSituacao selo={seloDoCurso("em_producao")} />

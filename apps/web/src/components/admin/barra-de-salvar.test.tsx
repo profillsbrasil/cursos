@@ -79,12 +79,22 @@ describe("BarraDeSalvar", () => {
     expect(descricao).toBe("Tudo salvo.");
   });
 
-  test("documento novo e rascunho sujo deixam o Salvar ativo", () => {
+  test("documento novo e rascunho sujo deixam o Salvar ativo, no Sol", () => {
     for (const props of [{ novo: true }, { sujo: true }]) {
       const { botao, descricao } = salvar(props);
+      expect(botao).toContain('type="submit"');
+      expect(botao).toContain("hover:bg-sol-hover");
       expect(botao).not.toContain("data-disabled");
       expect(descricao).toBeNull();
     }
+  });
+
+  test("com o envio pendente, o Salvar fica no Sol, ocupado, sem dizer Tudo salvo", () => {
+    const { botao, descricao } = salvar({ pendente: true });
+    expect(botao).toContain('type="submit"');
+    expect(botao).toContain("hover:bg-sol-hover");
+    expect(botao).toContain('aria-busy="true"');
+    expect(descricao).toBeNull();
   });
 
   test("com a versão mudada, avisa com o nome do documento e oferece Recarregar", () => {

@@ -122,7 +122,7 @@ describe("visão do catálogo", () => {
       />
     );
 
-  test("trilha e curso são o mesmo link: sublinhado só sob o cursor e com o foco", () => {
+  test("trilha e curso são o mesmo link: sublinhado em repouso, a decoração clareia sob o cursor e com o foco", () => {
     const classes = (titulo: string) =>
       new RegExp(`class="([^"]*)"[^>]*>${titulo}</a>`)
         .exec(comUmDeCada())?.[1]
@@ -130,8 +130,14 @@ describe("visão do catálogo", () => {
     const trilha = classes("Operador");
     const curso = classes("Vendas consultivas");
     expect(trilha).toEqual(curso);
-    expect(curso).toContain("hover:underline");
-    expect(curso).not.toContain("underline");
+    expect(curso).toEqual(
+      expect.arrayContaining([
+        "underline",
+        "decoration-muted-foreground",
+        "underline-offset-4",
+        "hover:decoration-titulo",
+      ])
+    );
   });
 
   test("Em produção é o selo do resto do admin, em contorno Céu com o relógio", () => {

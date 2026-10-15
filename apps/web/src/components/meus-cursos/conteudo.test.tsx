@@ -13,6 +13,7 @@ import {
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { FaixaComunicado } from "./aviso-comunicado";
 import { ConteudoMeusCursos } from "./conteudo";
 
 const montar = (l: LinhasPainel, hoje: DiaISO = HOJE_DO_EXEMPLO) =>
@@ -253,6 +254,7 @@ describe("Meus cursos com curso em produção que tem código", () => {
 
 const CLASSES_DO_DETAILS = /<details class="([^"]*)"/;
 const H2 = /<h2[^>]*>(.*?)<\/h2>/g;
+const DATA_DA_FAIXA = /<time[^>]*>(.*?)<\/time>/;
 
 describe("o comunicado em Meus cursos", () => {
   // O comunicado do exemplo saiu em 2 de outubro.
@@ -299,6 +301,25 @@ describe("o comunicado em Meus cursos", () => {
     expect(p.comunicado).toBeGreaterThan(p.rapidos);
     expect(html.split(TITULO).length - 1).toBe(1);
     expect(texto(html)).toContain("Publicado em 2 de outubro de 2026.");
+  });
+
+  // O resumo da faixa usa o curto do resto do app: o dia de São Paulo, com o
+  // ano quando ele não é o de hoje. Aberta, a faixa mostra a data longa.
+  test("na virada do ano, a data da faixa leva o ano, no dia de São Paulo", () => {
+    const html = renderToStaticMarkup(
+      <FaixaComunicado
+        comunicado={{
+          hoje: "2026-01-05" as DiaISO,
+          id: "comunicado-da-virada",
+          lugar: "topo",
+          publicadoEm: "2025-12-29T02:00:00.000Z",
+          texto: "O cadastro de atendimentos mudou.",
+          titulo: "Módulo 13 atualizado",
+        }}
+      />
+    );
+    expect(html.match(DATA_DA_FAIXA)?.[1]).toBe("28 de dez. de 2025");
+    expect(texto(html)).toContain("Publicado em 28 de dezembro de 2025.");
   });
 });
 

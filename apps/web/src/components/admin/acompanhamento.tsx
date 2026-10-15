@@ -223,15 +223,18 @@ export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
     : chegou;
 }
 
+// "Módulo" fica em maiúscula também no meio da frase, como em Meus cursos.
 const minuscula = (texto: string) =>
-  `${texto.charAt(0).toLowerCase()}${texto.slice(1)}`;
+  texto.startsWith("Módulo")
+    ? texto
+    : `${texto.charAt(0).toLowerCase()}${texto.slice(1)}`;
 
 /** A linha de um curso dentro da trilha: o estado e o detalhe numa frase curta. */
 export function fraseNaTrilha(c: CursoAcompanhado, hoje: string): string {
   const s = c.situacao;
   switch (s.tipo) {
     case "estudando":
-      return `Estudando · módulo ${s.onde.modulo}, aula ${s.onde.aula} · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
+      return `Estudando · Módulo ${s.onde.modulo}, aula ${s.onde.aula} · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
     case "falta_prova":
       return `Falta a prova · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
     case "bloqueado":

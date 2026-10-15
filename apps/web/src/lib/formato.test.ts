@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test";
 
 import {
   diaCurto,
+  diaEmSaoPaulo,
   duracaoDoTexto,
   fmtData,
-  fmtDiaCurto,
   fmtPtsComSinal,
   mmss,
   quando,
@@ -15,7 +15,9 @@ describe("os dois formatos de data", () => {
 
   test("o curto é o mesmo vindo de um dia ou de um instante", () => {
     expect(diaCurto("2026-10-07", hoje)).toBe("7 de out.");
-    expect(fmtDiaCurto("2026-10-07T15:00:00.000Z")).toBe("7 de out.");
+    expect(diaCurto(diaEmSaoPaulo("2026-10-07T15:00:00.000Z"), hoje)).toBe(
+      "7 de out."
+    );
     expect(diaCurto("2026-05-02", hoje)).toBe("2 de mai.");
   });
 
@@ -28,7 +30,7 @@ describe("os dois formatos de data", () => {
   });
 
   test("o instante cai no dia de São Paulo", () => {
-    expect(fmtDiaCurto("2026-10-08T02:00:00.000Z")).toBe("7 de out.");
+    expect(diaEmSaoPaulo("2026-10-08T02:00:00.000Z")).toBe("2026-10-07");
   });
 });
 

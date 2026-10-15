@@ -67,8 +67,8 @@ typography:
     lineHeight: 1.33
   mono:
     fontFamily: "Geist Mono, ui-monospace, monospace"
-    fontSize: "0.875rem"
-    fontWeight: 400
+    fontSize: "1rem"
+    fontWeight: 600
   mono-player:
     fontFamily: "Geist Mono, ui-monospace, monospace"
     fontSize: "0.8125rem"
@@ -246,7 +246,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Title block** (600, 16 px): o título da coluna do curso no player, o do aviso de comunicado, o do módulo no editor do curso e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
 - **Mono** (Geist Mono): a voz dos números do player. Os pontos da linha de status ("+10 pts") em 600 e 16 px; o tempo ("03:42 / 10:34", o atual em 500) e a velocidade ("1,25×", em 600), em 13 px nos controles; na coluna do curso, em 12 px, o número e a contagem ("3/8") do módulo, o número da aula no círculo (600) e a duração de cada aula ("11 min"). O que se compara leva `tabular-nums`. Fora do player, número é Geist com `tabular-nums`.
 - **Tecla** (Geist Mono, 400, 11 px): a tecla dos atalhos escritos sob a barra do player ("espaço", setas, j, l, f), com borda de 1 px e 2 px embaixo. Fica um degrau abaixo da frase de 12 px que a cerca, para a tecla com borda caber na linha sem aumentar a entrelinha.
-- **Selo da área** (600, 10 px, caixa alta, letra a 0,025em): "Admin" ao lado da marca. É o único texto abaixo de 11 px e o único em caixa alta.
+- **Selo da área** (600, 10 px, caixa alta, letra a 0,025em): "Admin" ao lado da marca. É o único texto legível abaixo de 11 px (o "10" de 7 px do ícone de voltar 10 s é parte do glifo) e o único em caixa alta.
 - **Body** (400, 14 px): texto corrido, células de tabela, campos. Parágrafos longos limitados a 60ch.
 - **Label** (600, 13 a 14 px): botões, nomes no menu, rótulos de campo.
 - **Caption** (400 ou 600, 12 px): selos de estado, números do cartão de conta, rótulos das placas Saldo e Sequência no menu da conta, "Em breve" no menu, cabeçalho de tabela.
@@ -256,7 +256,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 
 **The No Shouting Rule.** Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.
 
-**The Two Dates Rule.** Data tem dois formatos, os dois de `lib/formato.ts`: o curto, "7 de out." ("21 de set. de 2025" fora do ano de hoje), nas linhas e frases; e o longo, "20 de agosto de 2026", no texto corrido do comunicado e na lista de comunicados do admin. Datas do mesmo item usam o mesmo formato: na tela de acesso, "Concluído em 17 de set." e "Liberada em 20 de ago.".
+**The Two Dates Rule.** Data tem dois formatos, os dois de `lib/formato.ts`: o curto, "7 de out." ("21 de set. de 2025" fora do ano de hoje), nas linhas e frases; e o longo, "20 de agosto de 2026", no texto corrido do comunicado e na lista de comunicados do admin. Um instante entra no curto pelo dia de São Paulo, então a faixa do comunicado de 28 de dezembro, vista em janeiro, diz "28 de dez. de 2025". Datas diferentes no mesmo item usam o mesmo formato: na tela de acesso, "Concluído em 17 de set." e "Liberada em 20 de ago.". A exceção é a faixa do comunicado, que mostra o curto fechada e, aberta, repete a mesma data no longo dentro do texto ("Publicado em 2 de outubro de 2026.").
 
 ## Layout
 
@@ -339,8 +339,8 @@ Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, 
 Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar e no acompanhamento do admin. No admin, o texto ao lado ("46 de 90 aulas") carrega o número, e a barra fica `aria-hidden`.
 
 ### Tabelas do admin
-- **Link na linha:** o nome que abre o item (o curso e a trilha no catálogo) fica em 500 e `texto`, sem sublinhado em repouso; sob o cursor e com o foco de teclado, ganha o sublinhado a 4 px do texto. Todo link de linha de tabela do admin segue a mesma regra (`LINK_DA_LINHA`).
-- **Status no catálogo:** "Em produção" é o mesmo selo do acompanhamento, em contorno Céu com o relógio; "Publicado" é Céu a 14% com texto Céu.
+- **Link na linha:** o nome que abre o item (o curso e a trilha no catálogo) fica em 500 e `texto`, sublinhado em repouso a 4 px do texto, com a decoração em `texto-apagado`; sob o cursor e com o foco de teclado, a decoração clareia para `titulo`. O título da trilha e o do curso usam o mesmo `LINK_DA_LINHA`, porque o título é a única entrada para o editor e precisa mostrar que é link antes do cursor.
+- **Em produção no admin:** no catálogo, no editor da trilha e no acompanhamento, "Em produção" é o mesmo selo, em contorno Céu com o relógio (`seloDoCurso("em_producao")`). No catálogo, "Publicado" é Céu a 14% com texto Céu.
 
 ### Acompanhamento do admin
 Na busca de alunos, cada linha tem a foto, o nome, o e-mail, uma frase de 12 px com os números ("5 liberações · 2 de 5 cursos concluídos · último estudo ontem") e o selo à direita, antes da seta; em container abaixo de 36rem o selo desce para baixo da frase. Na tela de acesso, as liberações são uma lista no cartão da seção: título no degrau Title block (600 e 16 px), tipo em 12 px e o selo numa linha; a frase de 14 px com o "quando" apagado; a barra de 4 px até 32,5rem, com a coluna do número de 5,5rem no mínimo, para as barras da lista terminarem no mesmo ponto; e o rodapé de 12 px com a data curta ("Liberada em 20 de ago.", ou "Trocado por pontos em" na troca), no mesmo formato do "Concluído em" da frase. A trilha com mais de um curso troca a barra por uma lista ordenada em `fundo`, raio de 14 px e anel de 1 px, com o número num círculo de 22 px (Céu cheio no concluído, Sol no curso da vez, `popover` nos outros). Revogar fica à direita; em container abaixo de 36rem, desce para o pé do item. As revogadas ficam num `details` fechado no fim do cartão. Em Liberar trilha e Liberar curso, o botão ou o selo "Liberado" fica na coluna da direita em lista de 32rem ou mais, também quando os selos da linha quebram; mais estreita, a linha quebra como texto. "Em produção" ali é o mesmo selo da lista de liberações, em contorno Céu com o relógio.

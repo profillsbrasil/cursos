@@ -3,18 +3,13 @@
 const NUMERO = new Intl.NumberFormat("pt-BR");
 
 // Dois formatos de data, e só eles: o longo ("20 de agosto de 2026") e o curto
-// ("7 de out.", com " de 2025" fora do ano de hoje).
+// ("7 de out.", com " de 2025" fora do ano de hoje). Um instante entra no curto
+// por `diaCurto(diaEmSaoPaulo(iso), hoje)`.
 const DATA = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "long",
   timeZone: "America/Sao_Paulo",
   year: "numeric",
-});
-
-const DIA_CURTO = new Intl.DateTimeFormat("pt-BR", {
-  day: "numeric",
-  month: "short",
-  timeZone: "America/Sao_Paulo",
 });
 
 // O dia (AAAA-MM-DD) já é do calendário de São Paulo: lido em UTC, não muda de dia.
@@ -74,13 +69,6 @@ export function fmtHoras(seg: number) {
 
 /** O formato longo: "2 de outubro de 2026", no fuso de São Paulo. */
 export const fmtData = (iso: string) => DATA.format(new Date(iso));
-
-/**
- * O formato curto de um instante, "2 de out.", no fuso de São Paulo, sem o ano:
- * só para o que é recente, como o comunicado do topo. Com o ano em jogo, use
- * `diaCurto(diaEmSaoPaulo(iso), hoje)`.
- */
-export const fmtDiaCurto = (iso: string) => DIA_CURTO.format(new Date(iso));
 
 /** "2.340 pts". */
 export const fmtPts = (n: number) => `${NUMERO.format(n)} pts`;

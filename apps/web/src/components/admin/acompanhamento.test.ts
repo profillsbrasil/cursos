@@ -223,10 +223,31 @@ describe("fraseDaLiberacao", () => {
         curso("C", { em: dia("2026-09-12"), tipo: "concluido" }),
       ].map((c) => fraseNaTrilha(c, HOJE))
     ).toEqual([
-      "Estudando · módulo 8, aula 4 · último estudo ontem",
+      "Estudando · Módulo 8, aula 4 · último estudo ontem",
       "Abre depois do curso 1",
       "Concluído em 12 de set.",
     ]);
+  });
+
+  test("no meio da frase da trilha, Módulo continua em maiúscula, como em Meus cursos", () => {
+    const a = trilha(
+      "estudando",
+      [
+        {
+          ...curso("Envasadora", {
+            onde: { aula: 4, modulo: 8 },
+            tipo: "estudando",
+            ultimoEstudo: dia("2026-09-12"),
+          }),
+          posicao: 1,
+        },
+      ],
+      1
+    );
+    expect(fraseDaLiberacao(a, HOJE)).toEqual({
+      quando: "último estudo em 12 de set.",
+      texto: "Curso 1 de 1, Envasadora: Módulo 8, aula 4",
+    });
   });
 });
 
