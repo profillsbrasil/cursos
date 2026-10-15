@@ -286,8 +286,8 @@
       "kind": "chip",
       "refersTo": "badge-status",
       "description": "Estado do curso em pílula de 24 px.",
-      "html": "<div class=\"ds-selos\"><span class=\"ds-selo ds-selo-concluido\">Concluído</span><span class=\"ds-selo ds-selo-andamento\">Em andamento</span><span class=\"ds-selo ds-selo-prova\">Falta a prova</span><span class=\"ds-selo ds-selo-bloqueado\">Bloqueado</span></div>",
-      "css": ".ds-selos { display: flex; flex-wrap: wrap; gap: 8px; } .ds-selo { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-concluido { background: var(--ceu, #aad2ea); color: var(--sobre-cor, #22262b); } .ds-selo-andamento { background: rgb(255 204 1 / 0.14); color: var(--sol, #ffcc01); } .ds-selo-prova { background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); } .ds-selo-bloqueado { background: transparent; color: var(--muted-foreground, #a8acb0); box-shadow: inset 0 0 0 1px var(--muted-foreground, #a8acb0); }"
+      "html": "<div class=\"ds-selos\"><span class=\"ds-selo ds-selo-concluido\">Concluído</span><span class=\"ds-selo ds-selo-andamento\">Em andamento</span><span class=\"ds-selo ds-selo-prova\">Falta a prova</span><span class=\"ds-selo ds-selo-producao\">Em produção</span></div>",
+      "css": ".ds-selos { display: flex; flex-wrap: wrap; gap: 8px; } .ds-selo { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-concluido { background: var(--ceu, #aad2ea); color: var(--sobre-cor, #22262b); } .ds-selo-andamento { background: rgb(255 204 1 / 0.14); color: var(--sol, #ffcc01); } .ds-selo-prova { background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); } .ds-selo-producao { background: transparent; color: var(--ceu, #aad2ea); box-shadow: inset 0 0 0 1px var(--ceu, #aad2ea); }"
     },
     {
       "name": "Cartão",
