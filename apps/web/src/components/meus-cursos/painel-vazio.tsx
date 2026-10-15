@@ -18,7 +18,7 @@ export function PainelVazio({ conta }: { conta: string | null }) {
         >
           <BookOpen aria-hidden="true" />
         </EmptyMedia>
-        <EmptyTitle className="font-bold text-lg text-titulo">
+        <EmptyTitle className="font-bold text-lg text-titulo leading-[1.3]">
           Nenhum curso liberado ainda
         </EmptyTitle>
         <EmptyDescription className="text-muted-foreground text-sm">

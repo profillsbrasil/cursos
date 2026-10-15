@@ -306,7 +306,7 @@ export function CartaoDeTroca({
           {fmtMin(curso.duracaoSeg)}
         </span>
         {!liberado && (
-          <span className="mt-auto flex items-center gap-1.5 pt-3 font-bold text-lg text-sol tabular-nums">
+          <span className="mt-auto flex items-center gap-1.5 pt-3 font-bold text-lg text-sol tabular-nums leading-[1.3]">
             <Star
               aria-hidden="true"
               className="size-[18px] fill-current"

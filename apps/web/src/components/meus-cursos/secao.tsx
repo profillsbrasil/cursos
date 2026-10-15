@@ -12,7 +12,7 @@ export function Secao({
   return (
     <section aria-labelledby={id}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="font-bold text-titulo text-xl tracking-tight" id={id}>
+        <h2 className="font-bold text-2xl text-titulo tracking-tight" id={id}>
           {titulo}
         </h2>
         <p className="text-muted-foreground text-sm">{subtitulo}</p>

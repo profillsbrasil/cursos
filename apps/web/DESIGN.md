@@ -36,9 +36,9 @@ typography:
     letterSpacing: "-0.025em"
   title-section:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.25rem"
+    fontSize: "1.5rem"
     fontWeight: 700
-    lineHeight: 1.4
+    lineHeight: 1.33
     letterSpacing: "-0.025em"
   title-card:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
@@ -223,9 +223,10 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 ### Hierarchy
 - **Headline** (700, clamp de 24 a 32 px, 1,15 com retomada e 1,25 no banner vazio): o título do banner de retomada em Meus cursos, com o segundo verso em Sol.
 - **Title page** (700, 30 px, letra apertada): o `h1` das páginas, sempre em `titulo`. As telas de erro e de não encontrado usam 24 px, e o título da aula vai de 22 a 30 px.
-- **Title section** (700, 20 px, letra apertada): o `h2` das seções, no admin e no aluno (as trilhas e os cursos rápidos de Meus cursos, Cursos para trocar e Extrato recente), com o resumo em 14 px à direita.
-- **Title card** (600, 18 px, 1,3): o `h3` do cartão de curso em Meus cursos e do cartão de troca. No mesmo degrau, em 700, ficam o título do cartão Sua semana e o do painel vazio, os números de Sua semana e o preço do cartão de troca.
-- **Title block** (600, 16 px): o título da coluna do curso no player e o do aviso de comunicado, os valores das placas Saldo e Sequência no menu da conta e os pontos da linha de status do player. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
+- **Title section** (700, 24 px, 1,33, letra apertada): o `h2` das seções (as trilhas e os cursos rápidos de Meus cursos, Cursos para trocar e Extrato recente), com o resumo em 14 px à direita. Seção e cartão formam um par fixo: 24 px sobre os 18 px do Title card, razão de 1,33, e 30 px do Title page sobre os 24 px, razão de 1,25. O tamanho sozinho separa os três níveis, sem depender do peso. O `h2` das seções do admin (`admin/partes.tsx`) ainda usa 20 px e passa a 24 px no próximo ajuste do admin.
+- **Title card** (600, 18 px, 1,3): o `h3` do cartão de curso em Meus cursos e do cartão de troca. No mesmo degrau, em 700 e com a mesma entrelinha de 1,3, ficam o título do cartão Sua semana e o do painel vazio, os números de Sua semana e o preço do cartão de troca.
+- **Title block** (600, 16 px): o título da coluna do curso no player e o do aviso de comunicado e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
+- **Mono** (Geist Mono): os pontos da linha de status do player ("+10 pts"), em 600 e 16 px.
 - **Body** (400, 14 px): texto corrido, células de tabela, campos. Parágrafos longos limitados a 60ch.
 - **Label** (600, 13 a 14 px): botões, nomes no menu, rótulos de campo.
 - **Caption** (400 ou 600, 12 px): selos de estado, números do cartão de conta, rótulos das placas Saldo e Sequência no menu da conta, "Em breve" no menu, cabeçalho de tabela.
