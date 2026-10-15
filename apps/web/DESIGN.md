@@ -94,8 +94,10 @@ rounded:
   base: "14px"
   cartao: "20px"
   conta: "22px"
+  painel: "24px"
   pilula: "9999px"
 spacing:
+  moldura: "10px"
   vao-do-item: "4px"
   recuo-da-sidebar: "14px"
   secao: "14px"
@@ -171,7 +173,10 @@ components:
     backgroundColor: "{colors.sidebar}"
     width: "15.5rem"
   sidebar-collapsed:
-    width: "69px"
+    width: "68px"
+  painel-do-conteudo:
+    backgroundColor: "{colors.fundo}"
+    rounded: "{rounded.painel}"
 ---
 
 # Design System: Profills Cursos
@@ -182,7 +187,7 @@ components:
 
 Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da pessoa: o link em que ela está, o botão que ela deve apertar, quanto do curso já fez. O fundo é cinza grafite em quatro degraus (fundo, sidebar, cartão, popover), sem preto puro, e o texto é quase branco. Sobre isso entram as três cores da combinação nº 213 de Sanzo Wada: Sol (amarelo damasco), Céu (azul-claro) e Canela. O tom é amigável e alegre sem perder a seriedade técnica de quem fabrica as máquinas que os cursos ensinam.
 
-A densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal e da pílula do link ativo sob o cursor e com o foco de teclado, e em duas marcas pequenas em repouso: o selo de saldo e o cursor da barra do player.
+A densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece no painel do conteúdo sobre a moldura, em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal e da pílula do link ativo sob o cursor e com o foco de teclado, e em duas marcas pequenas em repouso: o selo de saldo e o cursor da barra do player.
 
 A marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo, na Orbitron em contorno. A marca são os SVG de `public/marca/`, traçados sobre o desenho aprovado, e nunca se redesenha em CSS. O favicon é só a pena.
 
@@ -209,11 +214,11 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 
 ### Neutral
 - **Fundo grafite** (`fundo`): o fundo da página e o fundo dos campos de formulário.
-- **Grafite da sidebar** (`sidebar`): a sidebar e o fundo atrás das capas.
+- **Grafite da sidebar** (`sidebar`): a sidebar, a moldura em volta do painel do conteúdo e o fundo atrás das capas.
 - **Realce da sidebar** (`sidebar-realce`): o hover dos itens de menu, o cartão Continuar e as placas de saldo no menu da conta.
 - **Cartão** (`cartao`): todo cartão de conteúdo.
 - **Popover** (`popover`): popovers padrão, o menu da conta, `secondary`, `muted` e `accent` do shadcn, e o selo "Não iniciado".
-- **Borda** (`borda`): bordas e o anel de 1 px dos cartões; também a borda da sidebar.
+- **Borda** (`borda`): bordas e o anel de 1 px dos cartões e do painel do conteúdo.
 - **Trilho** (`trilho`): o fundo vazio das barras de progresso e a borda do cartão de conta sob o cursor.
 - **Contorno de campo** (`contorno-de-campo`): o token `input` do shadcn. Os campos do admin usam `texto-apagado` como borda, para passar de 3:1.
 - **Título** (`titulo`): títulos, o texto sob o cursor e com o foco no menu, no módulo da coluna do player e no nome da linha da busca de pessoas, e o fundo da dica (tooltip).
@@ -260,7 +265,9 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 
 ## Layout
 
-A casca tem duas colunas: a sidebar à esquerda e o conteúdo. A sidebar aberta tem 15,5rem; recolhida, 69 px, a soma de recuo de 14 px, quadrado de 40 px, recuo de 14 px e a borda de 1 px. O recuo de 14 px vale nos dois modos para o cabeçalho, a lista e o rodapé, e todo ícone fica ancorado à esquerda, nunca centralizado por flex, então nada desliza quando a largura anda.
+A casca tem duas colunas: a sidebar à esquerda e o conteúdo. A sidebar aberta tem 15,5rem; recolhida, 68 px, a soma de recuo de 14 px, quadrado de 40 px e recuo de 14 px.
+
+Do 768 px para cima, a casca é a Moldura. A sidebar não tem borda e é a moldura da janela: o grafite dela cerca o conteúdo, que é um painel em `fundo` com raio de 24 px, anel de 1 px em `borda` e a sombra do painel. O painel fica a 10 px do topo, da direita e do pé da janela, e encosta na sidebar à esquerda. A página rola pela janela, não pelo painel, e a moldura fica parada: uma camada fixa por cima do conteúdo pinta as faixas de 10 px e os quatro cantos de 24 px com o anel, e anda junto com a largura da sidebar quando ela recolhe. Os 10 px e os 24 px são os tokens `--moldura` e `--raio-do-painel` do `index.css`. Abaixo de 768 px não há moldura. O recuo de 14 px vale nos dois modos para o cabeçalho, a lista e o rodapé, e todo ícone fica ancorado à esquerda, nunca centralizado por flex, então nada desliza quando a largura anda.
 
 A sidebar tem três faixas: o cabeçalho de 68 px (lockup, selo da área, botão de recolher), a navegação (itens de 40 px com vão de 4 px) e o rodapé (o Continuar do aluno e o cartão de conta). Pontos e sequência moram só no cartão de conta. O canto direito do topo do conteúdo fica livre para a página.
 
@@ -270,21 +277,22 @@ A página da aula lê de cima para baixo: a migalha, o título da aula com a lin
 
 ## Elevation & Depth
 
-O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clareiam em degraus, e cada cartão leva um anel de 1 px em `borda`. Sombra existe para o que flutua sobre o conteúdo, como resposta do botão principal ao cursor e ao foco de teclado, e em duas marcas pequenas em repouso: o selo de saldo e o cursor da barra do player (`0 2px 6px rgb(0 0 0 / 0.5)`).
+O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clareiam em degraus, e cada cartão leva um anel de 1 px em `borda`. Sombra existe para o painel do conteúdo sobre a moldura, para o que flutua sobre o conteúdo, como resposta do botão principal ao cursor e ao foco de teclado, e em duas marcas pequenas em repouso: o selo de saldo e o cursor da barra do player (`0 2px 6px rgb(0 0 0 / 0.5)`).
 
 ### Shadow Vocabulary
 - **Brilho do botão** (`box-shadow: 0 6px 18px rgb(255 204 1 / 0.28)`, o token `shadow-brilho`): o botão amarelo e a pílula do link ativo sob o cursor e com o foco de teclado.
 - **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos, junto com o gradiente radial em Sol a 16% no canto do cartão. Os dois só aparecem quando a vitrine da pessoa tem curso trocável, um que ela ainda não alcança; sem ele, o saldo fica plano, porque não há para onde chamar.
+- **Painel** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.35)`): o painel do conteúdo sobre a moldura, do 768 px para cima, junto com o anel de 1 px em `borda`.
 - **Flutuante** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.45)`): a barra de salvar presa ao pé dos editores, com `backdrop-blur`.
 - **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta.
 - **Anel de conquista** (anel de 3 px em Sol a 35%): o cartão de conta quando o player registra pontos.
 
 ### Named Rules
-**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos, e só enquanto a vitrine tem curso trocável.
+**The Flat At Rest Rule.** Superfície em repouso não tem sombra; ela separa pelo tom e pelo anel de 1 px. A exceção é o painel do conteúdo, que leva a sombra Painel porque é ele que fica por cima da moldura. A sombra amarela é resposta, não decoração, com uma exceção: o selo de saldo de Trocar pontos, e só enquanto a vitrine tem curso trocável.
 
 ## Shapes
 
-Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, botão de ícone 9 px, item de menu 10 px, campo 12 px, aviso e cartão Continuar 14 px, cartão de conteúdo 20 px, cartão de conta e menu 22 px (`rounded-2xl`, que este tema define como `--radius` mais 8 px, não os 16 px do Tailwind). Botões de texto, selos, barras de progresso, avatar e o botão de play são pílulas ou círculos. A capa dentro de cartão usa 14 px. Linha divisória dentro de cartão vai de borda a borda.
+Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, botão de ícone 9 px, item de menu 10 px, campo 12 px, aviso e cartão Continuar 14 px, cartão de conteúdo 20 px, cartão de conta e menu 22 px (`rounded-2xl`, que este tema define como `--radius` mais 8 px, não os 16 px do Tailwind), e o painel do conteúdo 24 px (`--raio-do-painel`). Botões de texto, selos, barras de progresso, avatar e o botão de play são pílulas ou círculos. A capa dentro de cartão usa 14 px. Linha divisória dentro de cartão vai de borda a borda.
 
 ## Components
 
@@ -325,7 +333,7 @@ Cheios e redondos, com o peso no amarelo.
 - **Itens:** 40 px de altura, raio de 10 px, ícone de 18 px a 11 px da borda, 500 em 14 px. Sob o cursor e com o foco de teclado, fundo `sidebar-realce` e texto e ícone `titulo` em 150 ms.
 - **Ativo:** uma pílula amarela inteira atrás do item, pintada pelo token `sidebar-primary`, que é o Sol, com texto e ícone em `sobre-cor` e peso 600. A pílula desliza entre itens com o `m.li` do Motion, dentro de um `LazyMotion` com `domAnimation`, em 180 ms na curva `cubic-bezier(0.23, 1, 0.32, 1)`, sempre pela string `transform` inteira e com `initial={false}`; com movimento reduzido ela salta. Recolhida, a pílula vira o quadrado de 40 px só por CSS, sem deslizar. Sob o cursor e com o foco de teclado no link ativo, a pílula clareia para `sol-hover` e ganha o brilho do botão amarelo em 150 ms; a pílula é irmã do link, e a variante `ativo-aceso` do `index.css` lê o estado dele. O Motion só escreve o `transform`, então o deslize não muda.
 - **Em breve:** texto e ícone apagados, "Em breve" em 12 px à direita, sem link. Sob o cursor e com o foco de teclado, o nome e o ícone clareiam para `texto`, sem fundo; o "Em breve" fica apagado.
-- **Recolher:** o botão no cabeçalho alterna entre 15,5rem e 69 px. Pelo clique a largura anima em 200 ms com a mesma curva; Ctrl+B e o cookie mudam a largura na hora, e com movimento reduzido nada anima. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
+- **Recolher:** o botão no cabeçalho alterna entre 15,5rem e 68 px. Pelo clique a largura anima em 200 ms com a mesma curva; Ctrl+B e o cookie mudam a largura na hora, e com movimento reduzido nada anima. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
 - **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%. No Mac, a dica do atalho mostra "⌘ B": o servidor escreve "Ctrl B", e o cliente troca depois da hidratação.
 - **Celular:** gaveta, com o botão de fechar no cabeçalho e a faixa de topo de 56 px no conteúdo.
 
