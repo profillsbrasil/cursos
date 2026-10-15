@@ -64,6 +64,20 @@ describe("ordem da página da aula", () => {
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
   });
 
+  test("num curso de uma aula só, a página não tem landmark de navegação vazio", () => {
+    const sozinha = { ...DADOS, anterior: null, proxima: null };
+    const comVideo = renderToStaticMarkup(
+      <PlayerDaAula dados={sozinha} inicioSeg={222} video={VIDEO} />
+    );
+    const semVideo = renderToStaticMarkup(
+      <AulaSemVideo
+        dados={{ ...sozinha, aula: { ...DADOS.aula, video: null } }}
+      />
+    );
+    expect(comVideo).not.toContain("<nav");
+    expect(semVideo).not.toContain("<nav");
+  });
+
   test("na aula sem vídeo, o título vem antes do aviso e a navegação depois", () => {
     const h = renderToStaticMarkup(
       <AulaSemVideo

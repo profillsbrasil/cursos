@@ -37,7 +37,9 @@ export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
 /**
  * Anterior e Próxima aula, abaixo dos controles: a Próxima acende em Sol quando a aula
  * fica assistida, logo abaixo da linha de status que avisa a conquista. Anterior fica à
- * esquerda e Próxima à direita, também quando a outra não existe.
+ * esquerda e Próxima à direita, também quando a outra não existe. Num curso de uma aula
+ * só não há nada para navegar: sem a `nav`, o grid não ganha um vão vazio e o leitor de
+ * tela não anuncia um landmark sem links.
  */
 export function NavegacaoEntreAulas({
   dados,
@@ -47,6 +49,9 @@ export function NavegacaoEntreAulas({
   destacarProxima: boolean;
 }) {
   const { anterior, curso, proxima } = dados;
+  if (!(anterior || proxima)) {
+    return null;
+  }
   return (
     <nav
       aria-label="Navegação entre aulas"
