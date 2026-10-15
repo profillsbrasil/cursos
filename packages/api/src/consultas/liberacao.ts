@@ -1,12 +1,7 @@
 import type { Database } from "@cursos/db";
 import { liberacao } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import {
-  acaoNaLiberacao,
-  decidirLiberar,
-  type LiberacaoAtiva,
-  type LinhasDoAcesso,
-} from "../dominio/liberacao";
+import { acaoNaLiberacao, type LinhasDoAcesso } from "../dominio/liberacao";
 import { paraCatalogo } from "../dominio/painel";
 import type { AdminId, CursoId, LiberacaoId, Pessoa } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
@@ -54,19 +49,17 @@ async function cursoExiste(exec: Executor, id: CursoId): Promise<boolean> {
   return c !== undefined;
 }
 
-async function liberacoesAtivas(
+/** A liberação ativa do curso, de qualquer origem. O índice liberacao_curso_ativa_unica garante uma no máximo. */
+async function ativaDoCurso(
   exec: Executor,
-  userId: string
-): Promise<LiberacaoAtiva[]> {
-  const linhas = await exec.query.liberacao.findMany({
-    columns: { cursoId: true, id: true, origem: true },
-    where: filtroLiberacaoAtiva(userId),
+  userId: string,
+  cursoId: CursoId
+): Promise<LiberacaoId | null> {
+  const l = await exec.query.liberacao.findFirst({
+    columns: { id: true },
+    where: { ...filtroLiberacaoAtiva(userId), cursoId },
   });
-  return linhas.map((l) => ({
-    cursoId: l.cursoId as CursoId,
-    id: l.id as LiberacaoId,
-    origem: l.origem,
-  }));
+  return l ? (l.id as LiberacaoId) : null;
 }
 
 const FK_DO_CURSO = "liberacao_curso_id_curso_id_fkey";
@@ -96,25 +89,18 @@ export async function liberar(
       if (!(await cursoExiste(aluno.tx, cursoId))) {
         throw sumiu();
       }
-      const d = decidirLiberar(
-        await liberacoesAtivas(aluno.tx, aluno.userId),
-        cursoId
-      );
-      switch (d.tipo) {
-        case "ja_liberada":
-          return { liberacaoId: d.liberacaoId, nova: false };
-        case "inserir":
-          return {
-            liberacaoId: await inserirLiberacao(
-              aluno,
-              { cursoId, origem: "admin", por: admin },
-              agora
-            ),
-            nova: true,
-          };
-        default:
-          return d satisfies never;
+      const existente = await ativaDoCurso(aluno.tx, aluno.userId, cursoId);
+      if (existente) {
+        return { liberacaoId: existente, nova: false };
       }
+      return {
+        liberacaoId: await inserirLiberacao(
+          aluno,
+          { cursoId, origem: "admin", por: admin },
+          agora
+        ),
+        nova: true,
+      };
     });
   } catch (erro) {
     // O curso foi lido antes de o DELETE dele comitar: liberar trava o aluno,

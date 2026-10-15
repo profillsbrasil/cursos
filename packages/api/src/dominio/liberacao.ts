@@ -24,13 +24,6 @@ export interface CursoLiberado {
   titulo: string;
 }
 
-/** Liberação ativa, como liberar lê depois da trava: sem o título do curso. */
-export interface LiberacaoAtiva {
-  cursoId: CursoId;
-  id: LiberacaoId;
-  origem: OrigemDaLiberacao;
-}
-
 /** Linha de liberacao com o curso, módulos e aulas, como a tela de acesso lê. */
 export interface LinhaDaLiberacao {
   curso: CursoCatalogo;
@@ -59,31 +52,6 @@ export function acaoNaLiberacao(
     default:
       return l.origem satisfies never;
   }
-}
-
-/** A liberação ativa deste curso, de qualquer origem. `ativas` já vêm sem as revogadas. */
-export const ativaDoCurso = <L extends { cursoId: CursoId }>(
-  ativas: readonly L[],
-  cursoId: CursoId
-): L | undefined => ativas.find((l) => l.cursoId === cursoId);
-
-export type DecisaoDeLiberar =
-  | { tipo: "inserir" }
-  | { tipo: "ja_liberada"; liberacaoId: LiberacaoId };
-
-/**
- * `ativas` são lidas depois da trava do aluno. Liberar o que já está ativo
- * devolve a liberação existente, de qualquer origem: o segundo clique não gera
- * erro nem linha nova.
- */
-export function decidirLiberar(
-  ativas: readonly LiberacaoAtiva[],
-  cursoId: CursoId
-): DecisaoDeLiberar {
-  const existente = ativaDoCurso(ativas, cursoId);
-  return existente
-    ? { liberacaoId: existente.id, tipo: "ja_liberada" }
-    : { tipo: "inserir" };
 }
 
 /** A ação como a tela recebe: a data já em texto. */
@@ -154,15 +122,17 @@ export function montarAcesso(
   if (!pessoa && linhas.liberacoes.length === 0) {
     return null;
   }
-  const ativas = linhas.liberacoes
-    .filter((l) => l.revogadaEm === null)
-    .map((l) => ({ cursoId: l.curso.id }));
+  const ativos = new Set(
+    linhas.liberacoes
+      .filter((l) => l.revogadaEm === null)
+      .map((l) => l.curso.id)
+  );
   const estudo = estudoDe(linhas.historico);
   return {
     cursos: linhas.catalogo.map((c) => ({
       curso: { id: c.id, titulo: c.titulo },
       emProducao: c.status === "em_producao",
-      liberado: ativaDoCurso(ativas, c.id) !== undefined,
+      liberado: ativos.has(c.id),
     })),
     hoje,
     liberacoes: [...linhas.liberacoes].sort(ordemNaTela).map((l) => ({

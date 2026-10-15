@@ -226,6 +226,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     ]);
     const c = await liberar(db, ADMIN, pessoa(userId), cursoId, AGORA);
     expect([a.nova, b.nova].sort()).toEqual([false, true]);
+    expect(b.liberacaoId).toBe(a.liberacaoId);
     expect(c).toEqual({ liberacaoId: a.liberacaoId, nova: false });
     expect(await liberacoesDe(userId)).toHaveLength(1);
   });

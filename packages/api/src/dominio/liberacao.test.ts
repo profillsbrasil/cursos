@@ -4,7 +4,6 @@ import { cursoCat, idAula } from "./exemplo";
 import type { LinhasHistorico } from "./historico";
 import {
   acaoNaLiberacao,
-  decidirLiberar,
   type LinhaDaLiberacao,
   type LinhasDoAcesso,
   montarAcesso,
@@ -37,12 +36,6 @@ function linha(
   };
 }
 
-const ativa = (l: LinhaDaLiberacao) => ({
-  cursoId: l.curso.id,
-  id: l.id,
-  origem: l.origem,
-});
-
 describe("acaoNaLiberacao", () => {
   test("liberação de admin ativa se revoga", () => {
     expect(acaoNaLiberacao(linha(C1))).toEqual({ tipo: "revogar" });
@@ -59,29 +52,6 @@ describe("acaoNaLiberacao", () => {
     expect(acaoNaLiberacao(linha(C1, { revogadaEm: em }))).toEqual({
       em,
       tipo: "revogada",
-    });
-  });
-});
-
-describe("decidirLiberar", () => {
-  test("sem liberação ativa do curso, insere", () => {
-    expect(decidirLiberar([ativa(linha(C1))], C2)).toEqual({
-      tipo: "inserir",
-    });
-  });
-
-  test("liberar de novo devolve a liberação ativa, sem inserir", () => {
-    expect(decidirLiberar([ativa(linha(C1))], C1)).toEqual({
-      liberacaoId: "lib-curso-1" as LiberacaoId,
-      tipo: "ja_liberada",
-    });
-  });
-
-  test("curso que o aluno trocou já está liberado", () => {
-    const troca = ativa(linha(C1, { origem: "troca" }));
-    expect(decidirLiberar([troca], C1)).toEqual({
-      liberacaoId: "lib-curso-1" as LiberacaoId,
-      tipo: "ja_liberada",
     });
   });
 });
