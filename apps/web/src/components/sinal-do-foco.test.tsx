@@ -42,6 +42,7 @@ const { ITENS_DO_ALUNO } = await import("./aluno/menu");
 const { NavPrincipal } = await import("./casca/nav-principal");
 const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
 const { ColunaDoCurso } = await import("./player/coluna-do-curso");
+const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
 
 const APP = join(import.meta.dir, "../..");
 const UI = join(APP, "../../packages/ui");
@@ -186,6 +187,17 @@ const acesso = renderToStaticMarkup(
     }}
   />
 );
+const faixa = renderToStaticMarkup(
+  <FaixaComunicado
+    comunicado={{
+      id: "comunicado-exemplo",
+      lugar: "topo",
+      publicadoEm: "2026-10-02T15:00:00.000Z",
+      texto: "O cadastro de atendimentos mudou.",
+      titulo: "Módulo 13 atualizado",
+    }}
+  />
+);
 
 interface Elemento {
   atributos: Record<string, string>;
@@ -214,7 +226,7 @@ function elementos(html: string): Elemento[] {
   });
 }
 
-const todos = [nav, coluna, pessoas, acesso].flatMap(elementos);
+const todos = [nav, coluna, pessoas, acesso, faixa].flatMap(elementos);
 const compilador = await compile(readFileSync(INDEX, "utf8"), {
   base: dirname(INDEX),
   loadStylesheet: lerEstilo,
@@ -684,5 +696,15 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
     expect(noFoco(resumo)).toContain("color: var(--titulo)");
+  });
+
+  test("o summary da faixa do comunicado ganha o fundo branco a 8%", () => {
+    const resumo = unico(
+      elementos(faixa).filter((e) => e.classes.includes("list-none")),
+      "summary da faixa"
+    );
+    expect(noFoco(resumo)).toContain(
+      "background-color: color-mix(in srgb, #fff 8%, transparent)"
+    );
   });
 });

@@ -1,20 +1,33 @@
 import type { ComunicadoVM } from "@cursos/api/dominio/painel";
+import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, Megaphone } from "lucide-react";
 
 import { fmtData, fmtDiaCurto } from "@/lib/formato";
 
-// O comunicado recente (`lugar: "topo"`): uma linha com o título e a data, entre
-// Sua semana e as trilhas. O texto abre por baixo, no `details`, sem JavaScript.
-export function FaixaComunicado({ comunicado }: { comunicado: ComunicadoVM }) {
+// O comunicado recente (`lugar: "topo"`): uma linha com o título e a data, no
+// topo de Meus cursos. O texto abre por baixo, no `details`, sem JavaScript.
+export function FaixaComunicado({
+  className,
+  comunicado,
+}: {
+  className?: string;
+  comunicado: ComunicadoVM;
+}) {
   return (
-    <details className="group min-w-0 rounded-[14px] bg-card text-card-foreground ring-1 ring-border">
+    <details
+      className={cn(
+        "group min-w-0 rounded-[14px] bg-card text-card-foreground ring-1 ring-border",
+        className
+      )}
+    >
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-[14px] px-4 py-2.5 transition-colors duration-150 hover:bg-white/8 group-open:rounded-b-none motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
         <Megaphone aria-hidden="true" className="size-4 shrink-0 text-ceu" />
-        {/* Fechada, o título corta em uma linha; aberta, ele quebra e aparece inteiro. */}
-        <span className="min-w-0 flex-1 truncate font-semibold text-sm text-titulo group-open:whitespace-normal">
+        {/* Fechada, o título corta em uma linha; aberta, ele quebra e aparece inteiro.
+            O h2 dentro do summary deixa o comunicado na navegação por títulos. */}
+        <h2 className="min-w-0 flex-1 truncate font-semibold text-sm text-titulo group-open:whitespace-normal">
           <span className="sr-only">Comunicado: </span>
           {comunicado.titulo}
-        </span>
+        </h2>
         <time
           className="shrink-0 text-muted-foreground text-sm"
           dateTime={comunicado.publicadoEm}

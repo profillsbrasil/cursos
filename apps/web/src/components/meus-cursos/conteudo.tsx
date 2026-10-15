@@ -78,17 +78,21 @@ export function ConteudoMeusCursos({
     <>
       <Cabecalho painel={painel} />
       <div className="grid gap-10 max-[760px]:gap-8">
-        <div className="grid gap-5">
-          <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
-            <BannerContinuar retomada={painel.retomada} />
-            <SuaSemana
-              resumo={resumo}
-              temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
-            />
-          </div>
+        {/* Em uma coluna, a faixa vem logo depois do banner, antes de Sua semana,
+            para caber na primeira tela. Em duas colunas, ela ocupa a linha de baixo
+            inteira, e o banner e Sua semana ficam lado a lado na de cima. */}
+        <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
+          <BannerContinuar retomada={painel.retomada} />
           {comunicado?.lugar === "topo" ? (
-            <FaixaComunicado comunicado={comunicado} />
+            <FaixaComunicado
+              className="min-[1181px]:col-span-2 min-[1181px]:row-start-2"
+              comunicado={comunicado}
+            />
           ) : null}
+          <SuaSemana
+            resumo={resumo}
+            temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+          />
         </div>
         {painel.trilhas.map((t) => (
           <Trilha key={t.id} trilha={t} />

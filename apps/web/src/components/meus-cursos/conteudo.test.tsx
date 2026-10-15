@@ -138,25 +138,46 @@ describe("Meus cursos com o caso do protótipo", () => {
   });
 });
 
+const CLASSES_DO_DETAILS = /<details class="([^"]*)"/;
+const H2 = /<h2[^>]*>(.*?)<\/h2>/g;
+
 describe("o comunicado em Meus cursos", () => {
   // O comunicado do exemplo saiu em 2 de outubro.
   const TITULO =
     "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM";
   const onde = (html: string) => ({
+    banner: html.indexOf("Cronograma reverso"),
     comunicado: html.indexOf(TITULO),
     rapidos: html.indexOf("Cursos rápidos"),
     semana: html.indexOf("Sua semana"),
     trilha: html.indexOf('aria-labelledby="trilha-'),
   });
 
-  test("com menos de 14 dias, é uma faixa entre Sua semana e a primeira trilha", () => {
+  // Em uma coluna (abaixo de 1181 px) a ordem do HTML é a da tela: a faixa vem
+  // logo depois do banner, antes de Sua semana, para aparecer mais cedo. Em
+  // duas colunas ela desce para a linha de baixo, sob o banner e Sua semana.
+  test("com menos de 14 dias, é uma faixa entre o banner e Sua semana", () => {
     const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
     const p = onde(html);
-    expect(p.semana).toBeGreaterThan(-1);
-    expect(p.comunicado).toBeGreaterThan(p.semana);
-    expect(p.comunicado).toBeLessThan(p.trilha);
+    expect(p.banner).toBeGreaterThan(-1);
+    expect(p.comunicado).toBeGreaterThan(p.banner);
+    expect(p.comunicado).toBeLessThan(p.semana);
+    expect(p.semana).toBeLessThan(p.trilha);
+    const faixa = html.match(CLASSES_DO_DETAILS)?.[1] ?? "";
+    expect(faixa.split(" ")).toEqual(
+      expect.arrayContaining([
+        "min-[1181px]:col-span-2",
+        "min-[1181px]:row-start-2",
+      ])
+    );
     expect(html.split(TITULO).length - 1).toBe(1);
     expect(texto(html)).toContain("2 de out.");
+  });
+
+  test("na faixa, o título é um h2, para quem navega por títulos", () => {
+    const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
+    const h2s = [...html.matchAll(H2)].map((m) => texto(m[1] ?? ""));
+    expect(h2s).toContain(`Comunicado: ${TITULO}`);
   });
 
   test("com 14 dias ou mais, fica no fim, depois dos cursos rápidos", () => {
