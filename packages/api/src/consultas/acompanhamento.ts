@@ -1,7 +1,7 @@
 import type { Database } from "@cursos/db";
 import { sql } from "drizzle-orm";
 
-import type { CursoDoResumo, LinhasDoResumo } from "../dominio/acompanhamento";
+import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
 
 /** Literal de text[] do Postgres, com aspas e barras escapadas. */
 const arrayDeTexto = (itens: readonly string[]) =>
@@ -24,12 +24,12 @@ interface PessoaEmJson {
 }
 
 interface LinhasEmJson {
-  cursos: CursoDoResumo[];
+  cursos: CursoDaBusca[];
   pessoas: PessoaEmJson[];
   trilhas: { cursos: string[]; id: string }[];
 }
 
-const SEM_PESSOAS: LinhasDoResumo = { cursos: [], pessoas: [], trilhas: [] };
+const SEM_PESSOAS: LinhasDaBusca = { cursos: [], pessoas: [], trilhas: [] };
 
 /**
  * A busca de alunos: um statement para a página do Clerk (até 20 userIds), que
@@ -39,10 +39,10 @@ const SEM_PESSOAS: LinhasDoResumo = { cursos: [], pessoas: [], trilhas: [] };
  * ids das aulas em ordem. O SQL só lê: estado, progresso e "abre" são decididos
  * em dominio/acompanhamento.ts pelas regras do painel.
  */
-export async function resumoDasPessoas(
+export async function linhasDaBusca(
   db: Database,
   userIds: readonly string[]
-): Promise<LinhasDoResumo> {
+): Promise<LinhasDaBusca> {
   if (userIds.length === 0) {
     return SEM_PESSOAS;
   }

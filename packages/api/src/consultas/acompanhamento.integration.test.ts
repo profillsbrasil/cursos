@@ -28,7 +28,7 @@ import type { CursoVM, PainelMeusCursos, TrilhaVM } from "../dominio/painel";
 import { diaLocal } from "../dominio/sequencia";
 import type { DiaISO, EstadoCurso, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
-import { resumoDasPessoas } from "./acompanhamento";
+import { linhasDaBusca } from "./acompanhamento";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -328,13 +328,13 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     await db.$client.end();
   });
 
-  test("o resumo de cada pessoa sai de um statement e bate com Meus cursos", async () => {
+  test("a situação de cada pessoa sai de um statement e bate com Meus cursos", async () => {
     const busca = montarBusca(
       { pessoas, total: pessoas.length },
-      await resumoDasPessoas(db, ALUNOS),
+      await linhasDaBusca(db, ALUNOS),
       "2026-10-14" as DiaISO
     );
-    expect(busca.pessoas.map((p) => [p.userId, p.resumo])).toEqual([
+    expect(busca.pessoas.map((p) => [p.userId, p.situacao])).toEqual([
       [
         ESTUDA,
         {
@@ -374,11 +374,11 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       busca.pessoas.map((p) => painelDe(p.userId))
     );
     const pelaBusca = busca.pessoas.map((p) =>
-      p.resumo.tipo === "sem_liberacao"
+      p.situacao.tipo === "sem_liberacao"
         ? { concluidos: 0, cursos: 0 }
         : {
-            concluidos: p.resumo.numeros.concluidos,
-            cursos: p.resumo.numeros.cursos,
+            concluidos: p.situacao.numeros.concluidos,
+            cursos: p.situacao.numeros.cursos,
           }
     );
     const pelosPaineis = paineis.map((painel) => {
@@ -395,17 +395,17 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   });
 
   test("sem userId, nenhum statement e nenhuma pessoa", async () => {
-    expect(await resumoDasPessoas(db, [])).toEqual({
+    expect(await linhasDaBusca(db, [])).toEqual({
       cursos: [],
       pessoas: [],
       trilhas: [],
     });
   });
 
-  test("admin.alunos.buscar devolve a página do Clerk com o resumo de cada pessoa", async () => {
+  test("admin.alunos.buscar devolve a página do Clerk com a situação de cada pessoa", async () => {
     const busca = await admin.admin.alunos.buscar({ termo: `${S}nunca` });
     expect(busca.total).toBe(1);
-    expect(busca.pessoas.map((p) => [p.userId, p.resumo.tipo])).toEqual([
+    expect(busca.pessoas.map((p) => [p.userId, p.situacao.tipo])).toEqual([
       [NUNCA, "nunca_abriu"],
     ]);
     expect(busca.hoje).toBe(diaLocal(new Date()));

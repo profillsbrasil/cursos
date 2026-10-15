@@ -4,8 +4,8 @@ import {
   acompanharCurso,
   acompanharTrilha,
   estudoDe,
+  type LinhasDaBusca,
   type LinhasDaPessoa,
-  type LinhasDoResumo,
   montarBusca,
 } from "./acompanhamento";
 import { cursoCat, idAula, trilhaCat } from "./exemplo";
@@ -283,7 +283,7 @@ describe("montarBusca", () => {
     titulo: `Curso ${id}`,
   });
   // Trilha t: x (2 aulas), y (1 aula), z em produção. Curso solto w (1 aula).
-  const catalogo: Omit<LinhasDoResumo, "pessoas"> = {
+  const catalogo: Omit<LinhasDaBusca, "pessoas"> = {
     cursos: [
       curso("x", 2),
       curso("y", 1),
@@ -292,15 +292,15 @@ describe("montarBusca", () => {
     ],
     trilhas: [{ cursos: ["x", "y", "z"], id: "t" }],
   };
-  const resumoDe = (p: Omit<LinhasDaPessoa, "userId">) =>
+  const situacaoDe = (p: Omit<LinhasDaPessoa, "userId">) =>
     montarBusca(
       { pessoas: [pessoa("user_a")], total: 1 },
       { ...catalogo, pessoas: [{ ...p, userId: "user_a" }] },
       HOJE
-    ).pessoas[0]?.resumo;
+    ).pessoas[0]?.situacao;
 
   test("nunca recebeu liberação", () => {
-    expect(resumoDe({ ...linhas({}), liberacoes: [] })).toEqual({
+    expect(situacaoDe({ ...linhas({}), liberacoes: [] })).toEqual({
       revogadas: 0,
       tipo: "sem_liberacao",
       ultimaRevogacao: null,
@@ -309,7 +309,7 @@ describe("montarBusca", () => {
 
   test("só liberações revogadas: quantas e o dia da última", () => {
     expect(
-      resumoDe({
+      situacaoDe({
         ...linhas({}),
         liberacoes: [
           {
@@ -331,7 +331,7 @@ describe("montarBusca", () => {
 
   test("liberação ativa sem estudo: nunca abriu, desde a liberação mais antiga", () => {
     expect(
-      resumoDe({
+      situacaoDe({
         ...linhas({}),
         liberacoes: [
           ativa({ trilhaId: "t" }, "2026-10-02T15:00:00Z"),
@@ -347,7 +347,7 @@ describe("montarBusca", () => {
 
   test("estudo só em curso que ela não alcança mais não conta", () => {
     expect(
-      resumoDe({
+      situacaoDe({
         ...linhas({
           assistidas: [assistida(idAula("w", 0, 1), "2026-09-01T15:00:00Z")],
         }),
@@ -358,7 +358,7 @@ describe("montarBusca", () => {
 
   test("estudando: cursos que abrem, concluídos e o último estudo", () => {
     expect(
-      resumoDe({
+      situacaoDe({
         ...linhas({
           assistidas: [
             assistida(idAula("x", 0, 1), "2026-09-01T15:00:00Z"),
@@ -382,7 +382,7 @@ describe("montarBusca", () => {
 
   test("todo curso que abre com certificado: concluiu tudo", () => {
     expect(
-      resumoDe({
+      situacaoDe({
         ...linhas({
           certificados: [
             certificado("x", "2026-09-03T15:00:00Z"),
@@ -400,7 +400,7 @@ describe("montarBusca", () => {
 
   test("curso liberado direto e também na trilha conta uma vez", () => {
     expect(
-      resumoDe({
+      situacaoDe({
         ...linhas({}),
         liberacoes: [
           ativa({ trilhaId: "t" }, "2026-08-08T15:00:00Z"),
@@ -431,7 +431,7 @@ describe("montarBusca", () => {
 
   test("curso liberado fora do catálogo do statement é erro, não silêncio", () => {
     expect(() =>
-      resumoDe({
+      situacaoDe({
         ...linhas({}),
         liberacoes: [
           ativa({ cursoId: "sumiu" as CursoId }, "2026-08-08T15:00:00Z"),

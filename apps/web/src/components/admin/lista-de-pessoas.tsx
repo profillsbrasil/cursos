@@ -53,12 +53,12 @@ export function ListaDePessoas({
                     {p.email ?? p.userId}
                   </span>
                   <span className="text-muted-foreground text-xs tabular-nums">
-                    {fraseDaPessoa(p.resumo, hoje)}
+                    {fraseDaPessoa(p.situacao, hoje)}
                   </span>
                 </span>
                 <SeloDeSituacao
                   className="@xl:col-start-3 col-start-2 @xl:row-start-1 row-start-2 justify-self-start"
-                  selo={seloDaPessoa(p.resumo)}
+                  selo={seloDaPessoa(p.situacao)}
                 />
                 <ChevronRight
                   aria-hidden="true"

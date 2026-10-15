@@ -4,7 +4,7 @@
 import type {
   Acompanhamento,
   CursoAcompanhado,
-  ResumoDaPessoa,
+  SituacaoDaPessoa,
   SituacaoNoCurso,
 } from "@cursos/api/dominio/acompanhamento";
 import type { Progresso } from "@cursos/api/dominio/curso";
@@ -138,7 +138,7 @@ export function seloDaLiberacao(a: Acompanhamento): Selo {
   }
 }
 
-export function seloDaPessoa(r: ResumoDaPessoa): Selo {
+export function seloDaPessoa(r: SituacaoDaPessoa): Selo {
   switch (r.tipo) {
     case "sem_liberacao":
       return {
@@ -281,7 +281,7 @@ export function fraseDaLiberacao(a: Acompanhamento, hoje: string): Frase {
 }
 
 /** A linha de números da busca: "5 liberações · 2 de 5 cursos concluídos · último estudo ontem". */
-export function fraseDaPessoa(r: ResumoDaPessoa, hoje: string): string {
+export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
   switch (r.tipo) {
     case "sem_liberacao":
       if (r.revogadas === 0 || r.ultimaRevogacao === null) {

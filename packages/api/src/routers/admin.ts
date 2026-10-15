@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { resumoDasPessoas } from "../consultas/acompanhamento";
+import { linhasDaBusca } from "../consultas/acompanhamento";
 import { visaoDoCatalogo } from "../consultas/catalogo";
 import {
   apagarComunicado,
@@ -72,12 +72,12 @@ export const adminRouter = router({
         ]);
         return montarAcesso(input.userId, pessoa, linhas, diaLocal(new Date()));
       }),
-    // Duas idas em série: o Clerk entrega a página, e o banco lê o resumo dos userIds dela.
+    // Duas idas em série: o Clerk entrega a página, e o banco lê o estudo dos userIds dela.
     buscar: adminProcedure
       .input(z.object({ termo: z.string().trim().max(100) }))
       .query(async ({ ctx, input }) => {
         const resultado = await ctx.pessoas.buscar(input.termo);
-        const linhas = await resumoDasPessoas(
+        const linhas = await linhasDaBusca(
           ctx.db,
           resultado.pessoas.map((p) => p.userId)
         );

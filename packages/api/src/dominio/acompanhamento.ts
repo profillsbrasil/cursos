@@ -92,8 +92,11 @@ export interface NumerosDaPessoa {
   liberacoes: number;
 }
 
-/** O que a busca mostra de cada pessoa. A ordem dos tipos é a ordem da decisão. */
-export type ResumoDaPessoa =
+/**
+ * A situação da pessoa, como a busca a mostra. A ordem dos tipos é a ordem da
+ * decisão. "Resumo" é do placar do aluno (`aluno.resumo`), não daqui.
+ */
+export type SituacaoDaPessoa =
   | {
       tipo: "sem_liberacao";
       revogadas: number;
@@ -103,14 +106,14 @@ export type ResumoDaPessoa =
   | { tipo: "concluiu_tudo"; numeros: NumerosDaPessoa; ultimoEstudo: DiaISO }
   | { tipo: "estudando"; numeros: NumerosDaPessoa; ultimoEstudo: DiaISO };
 
-export interface PessoaComResumo extends Pessoa {
-  resumo: ResumoDaPessoa;
+export interface PessoaComSituacao extends Pessoa {
+  situacao: SituacaoDaPessoa;
 }
 
 export interface BuscaDeAlunos {
   /** O dia de São Paulo em que o servidor montou a resposta, para a tela dizer "ontem". */
   hoje: DiaISO;
-  pessoas: readonly PessoaComResumo[];
+  pessoas: readonly PessoaComSituacao[];
   total: number;
 }
 
@@ -291,10 +294,10 @@ function situacaoNaTrilha(
   return daVez?.situacao.tipo === "falta_prova" ? "falta_prova" : "estudando";
 }
 
-// ---------- o resumo da pessoa na busca ----------
+// ---------- a situação da pessoa na busca ----------
 
 /** Um curso como o statement da busca lê: só o que estado e progresso pedem. */
-export interface CursoDoResumo {
+export interface CursoDaBusca {
   id: string;
   /** Em ordem de número, aulas em ordem de posição. */
   modulos: readonly { aulas: readonly { id: string }[] }[];
@@ -302,7 +305,7 @@ export interface CursoDoResumo {
   titulo: string;
 }
 
-export interface LiberacaoDoResumo {
+export interface LiberacaoDaBusca {
   cursoId: string | null;
   liberadaEm: Date;
   revogadaEm: Date | null;
@@ -311,25 +314,25 @@ export interface LiberacaoDoResumo {
 
 export interface LinhasDaPessoa extends LinhasHistorico {
   /** Todas as liberações, revogadas inclusive. */
-  liberacoes: readonly LiberacaoDoResumo[];
+  liberacoes: readonly LiberacaoDaBusca[];
   userId: string;
 }
 
 /** O statement da busca: uma linha por pessoa e o catálogo que elas alcançam. */
-export interface LinhasDoResumo {
+export interface LinhasDaBusca {
   /** Os cursos que alguma das pessoas alcança por liberação ativa. */
-  cursos: readonly CursoDoResumo[];
+  cursos: readonly CursoDaBusca[];
   pessoas: readonly LinhasDaPessoa[];
   /** As trilhas com liberação ativa de alguma das pessoas, com os cursos em ordem de posição. */
   trilhas: readonly { cursos: readonly string[]; id: string }[];
 }
 
-interface CatalogoDoResumo {
+interface CatalogoDaBusca {
   curso: (id: string) => CursoComAulas;
   trilha: (id: string) => { cursos: readonly CursoComAulas[] };
 }
 
-function catalogoDo(linhas: LinhasDoResumo): CatalogoDoResumo {
+function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
   const cursos = new Map(
     linhas.cursos.map((c) => [
       c.id,
@@ -371,10 +374,10 @@ function catalogoDo(linhas: LinhasDoResumo): CatalogoDoResumo {
 const maisAntiga = (datas: readonly Date[]) =>
   datas.reduce((min, d) => (d < min ? d : min));
 
-export function resumoDaPessoa(
+export function situacaoDaPessoa(
   p: LinhasDaPessoa,
-  catalogo: CatalogoDoResumo
-): ResumoDaPessoa {
+  catalogo: CatalogoDaBusca
+): SituacaoDaPessoa {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
   if (ativas.length === 0) {
     const revogacoes = p.liberacoes.flatMap((l) =>
@@ -413,10 +416,10 @@ export function resumoDaPessoa(
   return { numeros, tipo: "estudando", ultimoEstudo: ultimo };
 }
 
-/** A página do Clerk com o resumo de cada pessoa, na ordem do Clerk. */
+/** A página do Clerk com a situação de cada pessoa, na ordem do Clerk. */
 export function montarBusca(
   resultado: ResultadoDaBusca,
-  linhas: LinhasDoResumo,
+  linhas: LinhasDaBusca,
   hoje: DiaISO
 ): BuscaDeAlunos {
   const catalogo = catalogoDo(linhas);
@@ -428,7 +431,7 @@ export function montarBusca(
       if (!p) {
         throw new Error(`O statement da busca não trouxe ${pessoa.userId}.`);
       }
-      return { ...pessoa, resumo: resumoDaPessoa(p, catalogo) };
+      return { ...pessoa, situacao: situacaoDaPessoa(p, catalogo) };
     }),
     total: resultado.total,
   };
