@@ -1,11 +1,46 @@
+"use client";
+
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { useLayoutEffect, useRef } from "react";
 
 import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { fmtMin, plural } from "@/lib/formato";
+import { rolagemDaColuna } from "@/lib/player/rolagem-da-coluna";
 import { caminhoDaAula } from "@/lib/rotas";
+
+/**
+ * Rola só a coluna, sem animação, até a aula atual ficar no meio dela, na
+ * montagem e a cada aula nova. A página nunca rola: no celular a coluna não
+ * tem rolagem própria e `rolagemDaColuna` devolve `null`.
+ */
+function useColunaNaAulaAtual(aulaId: string) {
+  const coluna = useRef<HTMLElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a aula nova é o gatilho; a medida vem do DOM.
+  useLayoutEffect(() => {
+    const el = coluna.current;
+    const aula = el?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!(el && aula)) {
+      return;
+    }
+    const top = rolagemDaColuna({
+      alturaDaAula: aula.offsetHeight,
+      alturaDoConteudo: el.scrollHeight,
+      alturaVisivel: el.clientHeight,
+      topoDaAula:
+        aula.getBoundingClientRect().top -
+        el.getBoundingClientRect().top -
+        el.clientTop +
+        el.scrollTop,
+    });
+    if (top !== null) {
+      el.scrollTo({ behavior: "instant", top });
+    }
+  }, [aulaId]);
+  return coluna;
+}
 
 function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
   if (aula.assistida) {
@@ -32,10 +67,12 @@ function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
 
 export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
   const { progresso, slug, titulo } = dados.curso;
+  const coluna = useColunaNaAulaAtual(dados.aula.id);
   return (
     <aside
       aria-label="Aulas do curso"
       className="overflow-auto rounded-[20px] border border-border bg-sidebar min-[1081px]:sticky min-[1081px]:top-4 min-[1081px]:max-h-[calc(100vh-2rem)]"
+      ref={coluna}
     >
       <div className="grid gap-2.5 border-border border-b px-5 pt-[18px] pb-4">
         <h2 className="font-semibold text-base text-titulo">{titulo}</h2>
