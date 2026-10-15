@@ -19,7 +19,7 @@ import type {
   LiberacaoId,
 } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
-import { spawn } from "bun";
+import { sleep, spawn } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
 import { compile } from "tailwindcss";
 
@@ -417,6 +417,17 @@ async function noDe(seletor: string) {
   return nodeId;
 }
 
+/** Aperta Tab, como a pessoa, até a condição valer ou acabarem as tentativas. */
+async function tabAte(condicao: string, tentativas: number): Promise<void> {
+  if (tentativas === 0 || (await avaliar<boolean>(condicao))) {
+    return;
+  }
+  const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
+  await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
+  await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
+  return tabAte(condicao, tentativas - 1);
+}
+
 const LINK_ATIVO = 'nav a[aria-current="page"]';
 const OUTRO_LINK = "nav a[href]:not([aria-current])";
 
@@ -521,6 +532,93 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     }
   );
 
+  // A tabela de liberações tinha 640 px de largura mínima: em 390 px, o Tab até
+  // Revogar rolava a tabela para o lado e o título da liberação saía da tela.
+  describe.skipIf(!existsSync(CHROMIUM))(
+    "com o foco de teclado em 390 px, Revogar aparece inteiro, sem rolar a lista para o lado",
+    () => {
+      let medida: {
+        borda: string;
+        direita: number;
+        esquerda: number;
+        focado: boolean;
+        largura: number;
+        rolagemLateral: number;
+        titulo: string;
+      };
+
+      beforeAll(async () => {
+        enviar = await abrirChromium();
+        await enviar("Emulation.setDeviceMetricsOverride", {
+          deviceScaleFactor: 1,
+          height: 900,
+          mobile: false,
+          width: 390,
+        });
+        await enviar("Emulation.setEmulatedMedia", {
+          features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+        });
+        // A moldura do conteúdo do app no celular: 16 px de cada lado.
+        await avaliar(
+          `document.open(); document.write(${JSON.stringify(
+            `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><main style="padding:16px">${acesso}</main><div id="sonda" style="color: var(--titulo)"></div></body></html>`
+          )}); document.close();`
+        );
+        // Tab de verdade, como a pessoa: o foco vem do teclado e o navegador
+        // rola o que for preciso para mostrar o botão.
+        await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
+        await tabAte(
+          `document.activeElement?.getAttribute("aria-label") === "Revogar Ativo"`,
+          20
+        );
+        // A borda troca de cor com transição: lê depois que ela termina.
+        await sleep(400);
+        medida = await avaliar(`(() => {
+          const revogar = document.activeElement;
+          const r = revogar.getBoundingClientRect();
+          let rolagemLateral = document.scrollingElement.scrollLeft;
+          for (let e = revogar.parentElement; e; e = e.parentElement) {
+            rolagemLateral = Math.max(rolagemLateral, e.scrollLeft);
+          }
+          return {
+            borda: getComputedStyle(revogar).borderTopColor,
+            direita: r.right,
+            esquerda: r.left,
+            focado:
+              revogar.getAttribute("aria-label") === "Revogar Ativo" &&
+              revogar.matches(":focus-visible"),
+            largura: innerWidth,
+            rolagemLateral,
+            titulo: getComputedStyle(document.getElementById("sonda")).color,
+          };
+        })()`);
+      }, 20_000);
+
+      afterAll(async () => {
+        await limpezas
+          .splice(0)
+          .reverse()
+          .reduce<Promise<unknown>>(
+            (anterior, limpar) => anterior.then(limpar),
+            Promise.resolve()
+          );
+      });
+
+      test("o foco é de teclado e a borda acende em titulo", () => {
+        expect(medida.focado).toBe(true);
+        expect(medida.titulo).toStartWith("rgb");
+        expect(medida.borda).toBe(medida.titulo);
+      });
+
+      test("nada rola para o lado e o botão cabe na tela", () => {
+        expect({
+          cabe: medida.esquerda >= 0 && medida.direita <= medida.largura,
+          rolagemLateral: medida.rolagemLateral,
+        }).toEqual({ cabe: true, rolagemLateral: 0 });
+      });
+    }
+  );
+
   test('"Em breve" clareia o nome e o ícone para foreground, sem fundo', () => {
     const emBreve = elementos(nav).filter(
       (e) => e.atributos["aria-disabled"] === "true"
@@ -586,17 +684,5 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
     expect(noFoco(resumo)).toContain("color: var(--titulo)");
-  });
-
-  test("Revogar, no item da liberação, troca a borda por titulo", () => {
-    const revogar = unico(
-      elementos(acesso).filter(
-        (e) => e.atributos["aria-label"] === "Revogar Ativo"
-      ),
-      "Revogar"
-    );
-    expect(noFoco(revogar).filter((d) => d.startsWith("border-color"))).toEqual(
-      expect.arrayContaining(["border-color: var(--titulo)"])
-    );
   });
 });
