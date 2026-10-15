@@ -32,24 +32,32 @@ export const LIMITES = {
   modulos: 200,
   niveis: 50,
   numeroDeModulo: 999,
+  /** O check curso_topicos_validos repete este teto. */
+  topicos: 10,
 } as const;
 
+/** descricao, descricaoDaAula e topico se repetem nos checks do banco. */
 export const CARACTERES = {
   capaAlt: 300,
+  categoria: 80,
   codigo: 40,
+  descricao: 2000,
+  descricaoDaAula: 2000,
   destaque: 60,
   nomeDoNivel: 60,
   slug: 80,
-  tema: 80,
   titulo: 120,
   tituloDaAula: 160,
   tituloDoModulo: 160,
+  topico: 120,
 } as const;
 
 export const DURACAO_MAXIMA_SEG = 24 * 60 * 60;
 export const PRECO_MAXIMO = 1_000_000;
 
 const texto = (max: number) => z.string().trim().min(1).max(max);
+/** Texto que pode ficar vazio: a descrição do curso e a da aula. */
+const livre = (max: number) => z.string().trim().max(max);
 /** "" vira null: campo opcional apagado no formulário. */
 const opcional = (max: number) =>
   z
@@ -72,6 +80,7 @@ const video = z
   );
 
 const aula = z.object({
+  descricao: livre(CARACTERES.descricaoDaAula),
   duracaoSeg: z.int().positive().max(DURACAO_MAXIMA_SEG),
   /** Aula nova: o editor gera o id. A posição é o índice no módulo mais 1. */
   id: uuid.transform((id) => id as AulaId),
@@ -115,7 +124,9 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
 export const documentoDoCurso = z
   .object({
     capaAlt: texto(CARACTERES.capaAlt),
+    categoria: texto(CARACTERES.categoria),
     codigo: opcional(CARACTERES.codigo),
+    descricao: livre(CARACTERES.descricao),
     destaque: opcional(CARACTERES.destaque),
     id: uuid.transform((id) => id as CursoId),
     modulos: z.array(modulo).max(LIMITES.modulos),
@@ -123,8 +134,9 @@ export const documentoDoCurso = z
     precoTroca: z.int().positive().max(PRECO_MAXIMO).nullable(),
     slug: z.string().regex(new RegExp(SLUG)).max(CARACTERES.slug),
     status: z.enum(STATUS_DO_CURSO),
-    tema: texto(CARACTERES.tema),
     titulo: texto(CARACTERES.titulo),
+    /** "O que você vai aprender", na ordem em que o aluno lê. */
+    topicos: z.array(texto(CARACTERES.topico)).max(LIMITES.topicos),
     /** null: o editor acha que o curso é novo. Senão, a versão que ele abriu. */
     versao: z
       .string()
@@ -254,7 +266,9 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
     capa: null,
     documento: {
       capaAlt: "",
+      categoria: "",
       codigo: null,
+      descricao: "",
       destaque: null,
       id,
       modulos: [],
@@ -262,8 +276,8 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
       precoTroca: null,
       slug: "",
       status: "em_producao",
-      tema: "",
       titulo: "",
+      topicos: [],
       versao: null,
     },
     podeApagar: false,

@@ -56,10 +56,10 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
+        categoria: "teste",
         precoTroca,
         slug: `teste-${s}`,
         status: "publicado",
-        tema: "teste",
         titulo: `${titulo} ${s}`,
       })
       .returning({ id: curso.id });

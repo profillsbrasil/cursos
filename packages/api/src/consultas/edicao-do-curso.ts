@@ -51,7 +51,7 @@ import { comTrava } from "./trava";
  */
 const TETO_FINAL = Math.max(LIMITES.numeroDeModulo, LIMITES.aulasPorModulo);
 
-/** Aulas por INSERT: 7 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
+/** Aulas por INSERT: 8 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
 const AULAS_POR_LOTE = 1000;
 
 /**
@@ -66,14 +66,16 @@ export async function abrirCurso(
   const linha = await exec.query.curso.findFirst({
     columns: {
       ...COLUNAS_DA_CAPA,
+      categoria: true,
       codigo: true,
+      descricao: true,
       destaque: true,
       id: true,
       precoTroca: true,
       slug: true,
       status: true,
-      tema: true,
       titulo: true,
+      topicos: true,
     },
     where: { id },
     with: {
@@ -83,6 +85,7 @@ export async function abrirCurso(
         with: {
           aulas: {
             columns: {
+              descricao: true,
               duracaoSeg: true,
               id: true,
               titulo: true,
@@ -118,11 +121,14 @@ export async function abrirCurso(
 
   const semVersao: DocumentoDoCurso = {
     capaAlt: linha.capaAlt,
+    categoria: linha.categoria,
     codigo: linha.codigo,
+    descricao: linha.descricao,
     destaque: linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
+        descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
         titulo: a.titulo,
@@ -137,8 +143,8 @@ export async function abrirCurso(
     precoTroca: linha.precoTroca,
     slug: linha.slug,
     status: linha.status,
-    tema: linha.tema,
     titulo: linha.titulo,
+    topicos: linha.topicos,
     versao: null,
   };
   const uso = {
@@ -336,13 +342,15 @@ async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
   const cursoId = d.id;
   const campos = {
     capaAlt: d.capaAlt,
+    categoria: d.categoria,
     codigo: d.codigo,
+    descricao: d.descricao,
     destaque: d.destaque,
     precoTroca: d.precoTroca,
     slug: d.slug,
     status: d.status,
-    tema: d.tema,
     titulo: d.titulo,
+    topicos: d.topicos,
   };
   const doCurso = eq(modulo.cursoId, cursoId);
   const nosModulosDoCurso = inArray(
@@ -414,6 +422,7 @@ async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
 
   const aulas = d.modulos.flatMap((m) =>
     m.aulas.map((a, i) => ({
+      descricao: a.descricao,
       duracaoSeg: a.duracaoSeg,
       id: a.id,
       moduloId: m.id,
@@ -430,6 +439,7 @@ async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
       .values(lote)
       .onConflictDoUpdate({
         set: {
+          descricao: proposto(aula.descricao),
           duracaoSeg: proposto(aula.duracaoSeg),
           moduloId: proposto(aula.moduloId),
           posicao: proposto(aula.posicao),

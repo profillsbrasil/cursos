@@ -90,9 +90,9 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
+        categoria: "teste",
         slug,
         status: o.status ?? "publicado",
-        tema: "teste",
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });

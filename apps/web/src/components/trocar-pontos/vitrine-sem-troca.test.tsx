@@ -25,10 +25,10 @@ const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 const curso = {
   aulas: 3,
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
+  categoria: "Envase",
   duracaoSeg: 900,
   id: "c-1",
   slug: "x",
-  tema: "Envase",
   titulo: "Curso de envase",
 } as CartaoDeTroca["curso"];
 

@@ -367,3 +367,42 @@ migracaoComLinhas(
     });
   }
 );
+
+migracaoComLinhas(
+  "migração do formato Udemy",
+  "formato_udemy",
+  async (c) => {
+    const curso = await c.query<{ id: string }>(
+      `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
+       values ('comercial', 'Curso', 'tema', '/capas/c.jpg', 'Capa', 1280, 720, 'publicado') returning id`
+    );
+    const modulo = await c.query<{ id: string }>(
+      "insert into modulo (curso_id, numero, titulo) values ($1, 1, 'Abertura') returning id",
+      [curso.rows[0]?.id]
+    );
+    await c.query(
+      "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Boas-vindas', 300)",
+      [modulo.rows[0]?.id]
+    );
+  },
+  (banco) => {
+    test("o tema vira a categoria, e curso e aula ganham descrição e tópicos vazios", async () => {
+      const c = banco();
+      const curso = await c.query(
+        "select categoria, descricao, topicos::text as topicos from curso"
+      );
+      expect(curso.rows).toEqual([
+        { categoria: "tema", descricao: "", topicos: "{}" },
+      ]);
+      const aula = await c.query("select descricao from aula");
+      expect(aula.rows).toEqual([{ descricao: "" }]);
+    });
+
+    test("o check dos tópicos vale para as linhas depois da migração", async () => {
+      const erro = await banco()
+        .query("update curso set topicos = array['']")
+        .then(() => null, codigoDoErro);
+      expect(erro).toBe("curso_topicos_validos");
+    });
+  }
+);

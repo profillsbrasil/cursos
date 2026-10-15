@@ -108,7 +108,67 @@ describe("documentoDoCurso", () => {
     });
   });
 
-  test("o documento do curso novo não passa sem título, slug, tema e alt", () => {
+  test("descrições e tópicos são aparados, e a descrição vazia passa", () => {
+    const d = editar(documento(), (x) => {
+      const aula = x.modulos[0]?.aulas[0];
+      if (aula) {
+        aula.descricao = "  Como ligar a máquina.  ";
+      }
+      return { ...x, descricao: "   ", topicos: ["  Ligar a máquina  "] };
+    });
+    const lido = documentoDoCurso.parse(d);
+    expect([
+      lido.descricao,
+      lido.topicos,
+      lido.modulos[0]?.aulas[0]?.descricao,
+    ]).toEqual(["", ["Ligar a máquina"], "Como ligar a máquina."]);
+  });
+
+  test("aceita 10 tópicos de 120 caracteres e descrições de 2000", () => {
+    const d = editar(documento(), (x) => {
+      const aula = x.modulos[0]?.aulas[0];
+      if (aula) {
+        aula.descricao = "a".repeat(2000);
+      }
+      return {
+        ...x,
+        descricao: "b".repeat(2000),
+        topicos: Array.from({ length: 10 }, () => "c".repeat(120)),
+      };
+    });
+    expect(documentoDoCurso.safeParse(d).success).toBe(true);
+  });
+
+  test("recusa o 11º tópico, o tópico vazio, o tópico longo e a descrição longa", () => {
+    const caminhos = (mudar: (x: DocumentoDoCurso) => DocumentoDoCurso) =>
+      documentoDoCurso
+        .safeParse(editar(documento(), mudar))
+        .error?.issues.map((i) => i.path.join(".")) ?? [];
+    expect([
+      caminhos((x) => ({
+        ...x,
+        topicos: Array.from({ length: 11 }, () => "t"),
+      })),
+      caminhos((x) => ({ ...x, topicos: ["Envase", "  "] })),
+      caminhos((x) => ({ ...x, topicos: ["c".repeat(121)] })),
+      caminhos((x) => ({ ...x, descricao: "b".repeat(2001) })),
+      caminhos((x) => {
+        const aula = x.modulos[1]?.aulas[0];
+        if (aula) {
+          aula.descricao = "a".repeat(2001);
+        }
+        return x;
+      }),
+    ]).toEqual([
+      ["topicos"],
+      ["topicos.1"],
+      ["topicos.0"],
+      ["descricao"],
+      ["modulos.1.aulas.0.descricao"],
+    ]);
+  });
+
+  test("o documento do curso novo não passa sem título, slug, categoria e alt", () => {
     const novo = edicaoDeCursoNovo(CURSO).documento;
     expect(documentoDoCurso.safeParse(novo).success).toBe(false);
   });

@@ -79,9 +79,9 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
           capaAltura: 720,
           capaLargura: 1280,
           capaUrl: "/capas/teste.jpg",
+          categoria: "teste",
           slug: `teste-${sufixo}-${i}`,
           status: "publicado" as const,
-          tema: "teste",
           titulo: `Curso ${i}`,
         }))
       )

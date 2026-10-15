@@ -179,6 +179,7 @@ describe("aulas", () => {
     const r = mudar(exemplo(), { id: A4, moduloId: M2, tipo: "aula_nova" });
     expect(r.modulos[1]?.aulas.map((a) => a.id)).toEqual([A3, A4]);
     expect(r.modulos[1]?.aulas[1]).toEqual({
+      descricao: "",
       duracao: "",
       id: A4,
       titulo: "",
@@ -193,8 +194,14 @@ describe("aulas", () => {
       tipo: "aula_editada",
     });
     expect(r.modulos[0]?.aulas).toEqual([
-      { duracao: "05:00", id: A1, titulo: "Aula 1", video: "" },
-      { duracao: "12:34", id: A2, titulo: "Ajuste da válvula", video: "" },
+      { descricao: "", duracao: "05:00", id: A1, titulo: "Aula 1", video: "" },
+      {
+        descricao: "",
+        duracao: "12:34",
+        id: A2,
+        titulo: "Ajuste da válvula",
+        video: "",
+      },
     ]);
   });
 
@@ -245,6 +252,7 @@ describe("aulas", () => {
       { direcao: "acima", id: M2, tipo: "modulo_movido" }
     );
     expect(aula(r, A1)).toEqual({
+      descricao: "",
       duracao: "12:3",
       id: A1,
       titulo: "Aula 1",
@@ -305,16 +313,16 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
   test("texto só com espaços marca o campo dele", () => {
     const r = aplicar(
       exemplo(),
-      { mudanca: { tema: "  ", titulo: "   " }, tipo: "campos" },
+      { mudanca: { categoria: "  ", titulo: "   " }, tipo: "campos" },
       { id: A3, mudanca: { titulo: " " }, tipo: "aula_editada" },
       { id: M1, mudanca: { titulo: "\t" }, tipo: "modulo_editado" },
       { nome: "  ", ordem: 2, tipo: "nivel_renomeado" }
     );
     expect(problemas(r)).toEqual([
+      { campo: ID.curso("categoria"), mensagem: "Preencha este campo." },
       { campo: ID.modulo(M1, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.aula(A3, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.nivel(2), mensagem: "Preencha este campo." },
-      { campo: ID.curso("tema"), mensagem: "Preencha este campo." },
       { campo: ID.curso("titulo"), mensagem: "Preencha este campo." },
     ]);
   });
@@ -436,6 +444,46 @@ test("o rascunho editado vira um documento que passa no schema do servidor", () 
     [2, "Módulo um", [["Aula 3", 300, null]]],
   ]);
   expect(servidor.data?.precoTroca).toBe(300);
+});
+
+test("salvar sem campo na tela devolve a descrição, os tópicos e a descrição da aula que o banco tinha", () => {
+  const base = documentoDeExemplo();
+  const [m0] = base.modulos;
+  const salvo = {
+    ...base,
+    descricao: "Curso de envase.",
+    modulos: [
+      {
+        ...m0,
+        aulas: (m0?.aulas ?? []).map((a, i) =>
+          i === 1 ? { ...a, descricao: "Como trocar o bico." } : a
+        ),
+      },
+      ...base.modulos.slice(1),
+    ],
+    topicos: ["Ligar a máquina", "Dosar o volume"],
+  } as typeof base;
+  const r = aplicar(
+    rascunhoDoCurso(salvo),
+    { mudanca: { titulo: "Curso novo" }, tipo: "campos" },
+    { direcao: "acima", id: A2, tipo: "aula_movida" },
+    { id: A2, moduloId: M2, tipo: "aula_para_modulo" }
+  );
+  const lido = lerRascunho(r);
+  const doc = lido.tipo === "lido" ? lido.documento : null;
+  expect([
+    doc?.descricao,
+    doc?.topicos,
+    doc?.modulos.flatMap((m) => m.aulas.map((a) => [a.titulo, a.descricao])),
+  ]).toEqual([
+    "Curso de envase.",
+    ["Ligar a máquina", "Dosar o volume"],
+    [
+      ["Aula 1", ""],
+      ["Aula 3", ""],
+      ["Aula 2", "Como trocar o bico."],
+    ],
+  ]);
 });
 
 describe("blocos dos módulos", () => {

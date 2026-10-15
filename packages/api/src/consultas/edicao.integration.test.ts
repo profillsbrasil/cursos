@@ -21,9 +21,11 @@ import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
+  CARACTERES,
   type DocumentoDoCurso,
   type EdicaoDoCurso,
   formularioDoCurso,
+  LIMITES,
   type ModuloDoDocumento,
 } from "../dominio/edicao-do-curso";
 import type { AulaId, CursoId, ModuloId } from "../dominio/tipos";
@@ -94,6 +96,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   });
 
   const novaAula = (titulo: string) => ({
+    descricao: "",
     duracaoSeg: 120,
     id: randomUUID() as AulaId,
     titulo,
@@ -119,7 +122,9 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     cursos.push(id);
     return {
       capaAlt: "Capa de teste",
+      categoria: "teste",
       codigo: null,
+      descricao: "",
       destaque: null,
       id,
       modulos: modulosDoCurso,
@@ -127,8 +132,8 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       precoTroca: null,
       slug: `teste-${S}-${cursos.length}`,
       status: "em_producao",
-      tema: "teste",
       titulo: `Curso ${S} ${cursos.length}`,
+      topicos: [],
       versao: null,
     };
   }
@@ -222,6 +227,83 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect(linha).toEqual(CAPA);
   });
 
+  test("descrição, tópicos e descrição da aula voltam do banco como foram salvos, e mudam a versão", async () => {
+    const { documento } = await cursoSalvo();
+    const [a] = modulos(documento);
+    const [a1] = a.aulas;
+    if (!a1) {
+      throw new Error("sem A1");
+    }
+    a1.descricao = "Como ligar a envasadora.";
+    const salvo = await salvar({
+      ...documento,
+      descricao: "Curso de envase.",
+      topicos: ["Ligar a máquina", "Dosar o volume"],
+    });
+
+    const aberto = (await abrir(documento.id)).documento;
+    expect([
+      aberto.descricao,
+      aberto.topicos,
+      aberto.modulos[0]?.aulas[0]?.descricao,
+      aberto.versao === documento.versao,
+      aberto.versao === salvo.versao,
+    ]).toEqual([
+      "Curso de envase.",
+      ["Ligar a máquina", "Dosar o volume"],
+      "Como ligar a envasadora.",
+      false,
+      true,
+    ]);
+  });
+
+  test("o banco aceita os tetos do schema e recusa um a mais", async () => {
+    const { documento } = await cursoSalvo();
+    const { id } = documento;
+    const aulaId = documento.modulos[0]?.aulas[0]?.id ?? "";
+    const gravar = (mudanca: Partial<typeof curso.$inferInsert>) =>
+      db
+        .update(curso)
+        .set(mudanca)
+        .where(eq(curso.id, id))
+        .then(
+          () => "ok",
+          (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
+        );
+    const gravarAula = (texto: string) =>
+      db
+        .update(aula)
+        .set({ descricao: texto })
+        .where(eq(aula.id, aulaId))
+        .then(
+          () => "ok",
+          (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
+        );
+    const topicos = (n: number, tamanho: number) =>
+      Array.from({ length: n }, () => "t".repeat(tamanho));
+    const { descricao, descricaoDaAula, topico } = CARACTERES;
+
+    expect([
+      await gravar({ descricao: "d".repeat(descricao) }),
+      await gravar({ descricao: "d".repeat(descricao + 1) }),
+      await gravar({ topicos: topicos(LIMITES.topicos, topico) }),
+      await gravar({ topicos: topicos(LIMITES.topicos + 1, 1) }),
+      await gravar({ topicos: topicos(1, topico + 1) }),
+      await gravar({ topicos: [" "] }),
+      await gravarAula("d".repeat(descricaoDaAula)),
+      await gravarAula("d".repeat(descricaoDaAula + 1)),
+    ]).toEqual([
+      "ok",
+      "curso_descricao_tamanho",
+      "ok",
+      "curso_topicos_validos",
+      "curso_topicos_validos",
+      "curso_topicos_validos",
+      "ok",
+      "aula_descricao_tamanho",
+    ]);
+  });
+
   test("trocar a ordem das aulas do módulo passa pelo unique não deferrable", async () => {
     const { documento } = await cursoSalvo();
     const [a] = modulos(documento);
@@ -264,7 +346,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);
     expect(
       await resultado(
-        salvar({ ...documento, tema: "outro tema", versao: salvo.versao })
+        salvar({ ...documento, categoria: "outro tema", versao: salvo.versao })
       )
     ).toEqual(OK);
   });
@@ -435,7 +517,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const codigos = await Promise.all([
       resultado(salvar({ ...documento, titulo: `${documento.titulo} um` })),
-      resultado(salvar({ ...documento, tema: "dois" })),
+      resultado(salvar({ ...documento, categoria: "dois" })),
     ]);
     expect(codigos.map((r) => r.code).sort()).toEqual(["CONFLICT", "ok"]);
   });
@@ -525,7 +607,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const salvo = await salvar(primeiro);
     expect(await resultado(salvar(primeiro))).toEqual(OK);
 
-    const velho = { ...documento, tema: "outro tema" };
+    const velho = { ...documento, categoria: "outro tema" };
     expect((await resultado(salvar(velho))).code).toBe("CONFLICT");
     expect(await motivoDe(salvar(velho))).toBe("versao_mudou");
     expect((await abrir(documento.id)).documento.versao).toBe(salvo.versao);

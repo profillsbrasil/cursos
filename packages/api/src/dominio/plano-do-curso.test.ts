@@ -117,7 +117,7 @@ describe("planejarCurso", () => {
 
   test("a capa do banco que volta com o pedido não é capa nova", () => {
     const d = documento();
-    const meu = { ...d, tema: "meu tema" };
+    const meu = { ...d, categoria: "minha categoria" };
     expect(planejarCurso(edicao(d), meu, capa(CAPA_ATUAL))).toMatchObject({
       capa: null,
       tipo: "atualizar",
@@ -132,7 +132,7 @@ describe("planejarCurso", () => {
       ...outroAdmin,
       versao: versaoDoCurso(outroAdmin, CAPA_ATUAL),
     });
-    const meu = editar(d, (x) => ({ ...x, tema: "meu tema" }));
+    const meu = editar(d, (x) => ({ ...x, categoria: "minha categoria" }));
     const recusa = {
       recusa: { tipo: "versao_mudou" },
       tipo: "recusa",

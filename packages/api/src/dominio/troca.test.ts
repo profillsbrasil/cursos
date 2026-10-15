@@ -23,12 +23,12 @@ const curso = (mudar: Partial<CursoDaTroca> = {}): CursoDaTroca => ({
   acesso: { tipo: "nenhum" },
   aulas: 4,
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/bpf.jpg" },
+  categoria: "Processo de envase",
   duracaoSeg: 2400,
   id: "c-1" as CursoId,
   precoTroca: 500,
   slug: "bpf",
   status: "publicado",
-  tema: "Processo de envase",
   titulo: "Boas práticas de fabricação",
   ...mudar,
 });
@@ -151,6 +151,7 @@ const linha = (
   capaAltura: 720,
   capaLargura: 1280,
   capaUrl: "/capas/bpf.jpg",
+  categoria: "Processo de envase",
   id: "c-1",
   liberacoes: [],
   modulos: [
@@ -160,7 +161,6 @@ const linha = (
   precoTroca: 500,
   slug: "bpf",
   status: "publicado",
-  tema: "Processo de envase",
   titulo: "Boas práticas de fabricação",
   ...mudar,
 });

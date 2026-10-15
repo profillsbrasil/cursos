@@ -34,11 +34,14 @@ import { videoDaAula } from "./video";
 // ---------- entrada: as linhas cruas das consultas (seção 4.3 do desenho) ----------
 
 export interface CursoLinha extends LinhaDaCapa {
+  categoria: string;
   codigo: string | null;
+  descricao: string;
   destaque: string | null;
   id: string;
   modulos: {
     aulas: {
+      descricao: string;
       duracaoSeg: number;
       id: string;
       posicao: number;
@@ -53,8 +56,8 @@ export interface CursoLinha extends LinhaDaCapa {
   niveis: { nome: string; ordem: number }[];
   slug: string;
   status: StatusDoCurso;
-  tema: string;
   titulo: string;
+  topicos: string[];
 }
 
 export interface LinhasPainel {
@@ -86,6 +89,7 @@ export interface LinhasResumo {
 export interface CursoVM {
   aulas: number;
   capa: Capa;
+  categoria: string;
   duracaoSeg: number;
   estado: EstadoCurso;
   extra: string | null;
@@ -97,7 +101,6 @@ export interface CursoVM {
   moduloAtual: { numero: number; titulo: string } | null;
   progresso: Progresso;
   slug: string;
-  tema: string;
   temNiveis: boolean;
   titulo: string;
 }
@@ -187,10 +190,13 @@ export interface ResumoAluno {
 export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
     capa: capaDe(linha),
+    categoria: linha.categoria,
+    descricao: linha.descricao,
     extra: linha.codigo ?? linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
+        descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
         posicao: a.posicao,
@@ -204,8 +210,8 @@ export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
     niveis: linha.niveis,
     slug: linha.slug,
     status: linha.status,
-    tema: linha.tema,
     titulo: linha.titulo,
+    topicos: linha.topicos,
   };
 }
 
@@ -230,6 +236,7 @@ function cursoVM(
   return {
     aulas: aulas.length,
     capa: c.capa,
+    categoria: c.categoria,
     duracaoSeg: somaSeg(aulas),
     estado,
     extra: c.extra,
@@ -237,7 +244,6 @@ function cursoVM(
     moduloAtual: ondeNoCurso(c, estado, h, atividade)?.modulo ?? null,
     progresso: progresso(c, h.assistidas),
     slug: c.slug,
-    tema: c.tema,
     temNiveis: c.niveis.length > 0,
     titulo: c.titulo,
   };

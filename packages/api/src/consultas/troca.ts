@@ -31,11 +31,11 @@ export async function linhasDosCursos(
   const linhas = await exec.query.curso.findMany({
     columns: {
       ...COLUNAS_DA_CAPA,
+      categoria: true,
       id: true,
       precoTroca: true,
       slug: true,
       status: true,
-      tema: true,
       titulo: true,
     },
     where:

@@ -70,10 +70,10 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
+        categoria: "teste",
         precoTroca,
         slug: `teste-${s}`,
         status: "publicado",
-        tema: "teste",
         titulo: `Curso ${s}`,
       })
       .returning({ id: curso.id });

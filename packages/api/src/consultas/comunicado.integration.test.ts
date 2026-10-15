@@ -50,8 +50,8 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
+        categoria: "teste",
         slug: `teste-com-${S}-${cursos.length}`,
-        tema: "teste",
         titulo: `Curso do comunicado ${S} ${cursos.length}`,
       })
       .returning({ id: curso.id });

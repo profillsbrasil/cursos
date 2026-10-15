@@ -9,13 +9,15 @@ import { COLUNAS_DA_CAPA } from "./comum";
 export const COM_CONTEUDO = {
   columns: {
     ...COLUNAS_DA_CAPA,
+    categoria: true,
     codigo: true,
+    descricao: true,
     destaque: true,
     id: true,
     slug: true,
     status: true,
-    tema: true,
     titulo: true,
+    topicos: true,
   },
   with: {
     modulos: {
@@ -24,6 +26,7 @@ export const COM_CONTEUDO = {
       with: {
         aulas: {
           columns: {
+            descricao: true,
             duracaoSeg: true,
             id: true,
             posicao: true,

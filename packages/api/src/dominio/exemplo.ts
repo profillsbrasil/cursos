@@ -39,6 +39,7 @@ export const EDICAO = {
 } as const;
 
 export const aulaDeExemplo = (id: AulaId, titulo: string) => ({
+  descricao: "",
   duracaoSeg: 300,
   id,
   titulo,
@@ -51,7 +52,9 @@ export function documentoDeExemplo(
 ): DocumentoDoCurso {
   return {
     capaAlt: "Capa",
+    categoria: "teste",
     codigo: null,
+    descricao: "",
     destaque: null,
     id: EDICAO.CURSO,
     modulos: [
@@ -80,8 +83,8 @@ export function documentoDeExemplo(
     precoTroca: null,
     slug: "curso-teste",
     status: "publicado",
-    tema: "teste",
     titulo: "Curso",
+    topicos: [],
     versao,
   };
 }
@@ -108,11 +111,14 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: `/capas/${chave}.jpg`,
+    categoria: "Categoria",
     codigo: null,
+    descricao: "",
     destaque: null,
     id: chave,
     modulos: o.aulas.map((qtd, i) => ({
       aulas: Array.from({ length: qtd }, (_, p) => ({
+        descricao: "",
         duracaoSeg: o.duracaoSeg ?? 600,
         id: idAula(chave, primeiro + i, p + 1),
         posicao: p + 1,
@@ -127,8 +133,8 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
     niveis: o.niveis ?? [],
     slug: chave,
     status: o.status ?? "publicado",
-    tema: "Tema",
     titulo: `Curso ${chave}`,
+    topicos: [],
   };
 }
 
@@ -137,11 +143,14 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   const l = cursoLinha(chave, o);
   return {
     capa: capaDe(l),
+    categoria: l.categoria,
+    descricao: l.descricao,
     extra: null,
     id: l.id as CursoId,
     modulos: l.modulos.map((m) => ({
       ...m,
       aulas: m.aulas.map((a) => ({
+        descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
         posicao: a.posicao,
@@ -152,8 +161,8 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
     niveis: l.niveis,
     slug: l.slug,
     status: l.status,
-    tema: l.tema,
     titulo: l.titulo,
+    topicos: l.topicos,
   };
 }
 
@@ -195,11 +204,14 @@ function linhaDoSeed(chave: string): CursoLinha {
     capaAltura: c.capaAltura,
     capaLargura: c.capaLargura,
     capaUrl: c.capaUrl,
+    categoria: c.categoria,
     codigo: c.codigo,
+    descricao: c.descricao,
     destaque: c.destaque,
     id: chave,
     modulos: c.modulos.map((m) => ({
       aulas: m.aulas.map((a, i) => ({
+        descricao: a.descricao ?? "",
         duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(chave, m.numero, i + 1),
         posicao: i + 1,
@@ -214,8 +226,8 @@ function linhaDoSeed(chave: string): CursoLinha {
     niveis: c.niveis,
     slug: chave,
     status: c.status,
-    tema: c.tema,
     titulo: c.titulo,
+    topicos: c.topicos,
   };
 }
 

@@ -68,13 +68,13 @@ describe("o rascunho apoiado do curso", () => {
       estadoApoiadoEm(REGRAS_DO_CURSO, documentoDeExemplo()),
       campos({ titulo: "Curso   " })
     );
-    const depois = passo(enviando, campos({ tema: "Outro tema" }), {
+    const depois = passo(enviando, campos({ categoria: "Outra categoria" }), {
       enviado: enviando.rascunho,
       gravado: gravado(enviando),
       tipo: "salvo",
     });
-    expect([depois.rascunho.tema, depois.rascunho.titulo]).toEqual([
-      "Outro tema",
+    expect([depois.rascunho.categoria, depois.rascunho.titulo]).toEqual([
+      "Outra categoria",
       "Curso   ",
     ]);
     expect(depois.apoio.base.versao).toBe(V2);

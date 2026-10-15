@@ -89,10 +89,10 @@ const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
 
 type CampoDeTextoDoCurso =
   | "capaAlt"
+  | "categoria"
   | "codigo"
   | "destaque"
   | "slug"
-  | "tema"
   | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
@@ -214,14 +214,14 @@ function CamposDoCurso({
         slugSalvo={slugSalvo}
       />
       <CampoDeTexto
-        id={ID.curso("tema")}
-        maxLength={CARACTERES.tema}
-        name="tema"
+        id={ID.curso("categoria")}
+        maxLength={CARACTERES.categoria}
+        name="categoria"
         onChange={mudarTexto}
         placeholder="Máquinas"
         required
-        rotulo="Tema"
-        value={rascunho.tema}
+        rotulo="Categoria"
+        value={rascunho.categoria}
       />
       <Field>
         <FieldLabel className={ROTULO} htmlFor={`${id}-status`}>

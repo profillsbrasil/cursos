@@ -76,10 +76,10 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           capaAltura: 720,
           capaLargura: 1280,
           capaUrl: "/capas/teste.jpg",
+          categoria: "teste",
           slug: `teste-${S}-${chave}`,
           status:
             chave === "c" ? ("em_producao" as const) : ("publicado" as const),
-          tema: "teste",
           titulo: `Curso ${S} ${chave}`,
         }))
       )
@@ -174,9 +174,9 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
+        categoria: "teste",
         slug: `teste-${S}-e`,
         status: "publicado",
-        tema: "teste",
         titulo: `Curso ${S} e`,
       })
       .returning({ id: curso.id });

@@ -135,14 +135,16 @@ function linhasDeConteudo() {
     capaAltura: c.capaAltura,
     capaLargura: c.capaLargura,
     capaUrl: c.capaUrl,
+    categoria: c.categoria,
     codigo: c.codigo,
+    descricao: c.descricao,
     destaque: c.destaque,
     id: idCurso(c.chave),
     precoTroca: c.precoTroca ?? null,
     slug: c.chave,
     status: c.status,
-    tema: c.tema,
     titulo: c.titulo,
+    topicos: c.topicos,
   }));
   const niveis = CURSOS.flatMap((c) =>
     c.niveis.map((n) => ({
@@ -163,6 +165,7 @@ function linhasDeConteudo() {
   const aulas = CURSOS.flatMap((c) =>
     c.modulos.flatMap((m) =>
       m.aulas.map((a, i) => ({
+        descricao: a.descricao ?? "",
         duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(c.chave, m.numero, i + 1),
         moduloId: idModulo(c.chave, m.numero),

@@ -26,7 +26,7 @@ async function montarBase(c: Client): Promise<Base> {
   const s = sufixo();
   const aluno = `user_teste${s}`;
   const curso = await c.query<{ id: string }>(
-    `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
+    `insert into curso (slug, titulo, categoria, capa_url, capa_alt, capa_largura, capa_altura, status)
      values ($1, 'Curso teste', 'teste', '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
     [`teste-${s}`]
   );
@@ -151,7 +151,7 @@ const CASOS: Caso[] = [
     nome: "módulo apontando para nível de outro curso",
     violar: async (c, b) => {
       const outro = await c.query<{ id: string }>(
-        `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura)
+        `insert into curso (slug, titulo, categoria, capa_url, capa_alt, capa_largura, capa_altura)
          values ($1, 'Outro', 'teste', '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
         [`teste-${sufixo()}`]
       );
@@ -333,9 +333,66 @@ const CASOS: Caso[] = [
     nome: "capa sem texto alternativo",
     violar: (c) =>
       c.query(
-        "insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura) values ($1, 'Curso', 'teste', '/capas/x.jpg', '   ', 1280, 720)",
+        "insert into curso (slug, titulo, categoria, capa_url, capa_alt, capa_largura, capa_altura) values ($1, 'Curso', 'teste', '/capas/x.jpg', '   ', 1280, 720)",
         [`teste-${sufixo()}`]
       ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_descricao_tamanho",
+    constraint: "curso_descricao_tamanho",
+    nome: "descrição do curso com 2001 caracteres",
+    violar: (c, b) =>
+      c.query("update curso set descricao = repeat('a', 2001) where id = $1", [
+        b.cursoId,
+      ]),
+  },
+  {
+    apagar: "alter table aula drop constraint aula_descricao_tamanho",
+    constraint: "aula_descricao_tamanho",
+    nome: "descrição da aula com 2001 caracteres",
+    violar: (c, b) =>
+      c.query("update aula set descricao = repeat('a', 2001) where id = $1", [
+        b.aulaId,
+      ]),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "11 tópicos",
+    violar: (c, b) =>
+      c.query(
+        "update curso set topicos = array_fill('Tópico'::text, array[11]) where id = $1",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "tópico só com espaços",
+    violar: (c, b) =>
+      c.query(
+        "update curso set topicos = array['Envase', '   '] where id = $1",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "tópico com 121 caracteres",
+    violar: (c, b) =>
+      c.query(
+        "update curso set topicos = array[repeat('a', 121)] where id = $1",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "tópico nulo",
+    violar: (c, b) =>
+      c.query("update curso set topicos = array[null::text] where id = $1", [
+        b.cursoId,
+      ]),
   },
   {
     apagar: "alter table curso drop constraint curso_capa_dimensoes_positivas",
@@ -438,6 +495,28 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
       expect(constraintDoErro(erro)).toBe(caso.constraint);
     });
   }
+
+  test("aceita a descrição de 2000 caracteres e 10 tópicos de 120", async () => {
+    const lido = await emTransacao(async () => {
+      const b = await montarBase(c);
+      await c.query(
+        "update curso set descricao = repeat('a', 2000), topicos = array_fill(repeat('b', 120), array[10]) where id = $1",
+        [b.cursoId]
+      );
+      await c.query(
+        "update aula set descricao = repeat('c', 2000) where id = $1",
+        [b.aulaId]
+      );
+      const r = await c.query<{ aula: number; curso: number; topicos: number }>(
+        `select char_length(c.descricao) as curso, cardinality(c.topicos) as topicos,
+                char_length(a.descricao) as aula
+           from curso c join aula a on a.id = $2 where c.id = $1`,
+        [b.cursoId, b.aulaId]
+      );
+      return r.rows[0];
+    });
+    expect(lido).toEqual({ aula: 2000, curso: 2000, topicos: 10 });
+  });
 
   test("aceita liberar de novo depois de revogar", async () => {
     await emTransacao(async () => {

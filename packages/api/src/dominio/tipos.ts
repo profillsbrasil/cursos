@@ -43,6 +43,8 @@ export type VideoDaAula = {
 }[VideoProvedor];
 
 export interface AulaCatalogo {
+  /** "" quando o admin não escreveu. */
+  descricao: string;
   duracaoSeg: number;
   id: AulaId;
   posicao: number;
@@ -88,6 +90,9 @@ export const capaDe = (linha: LinhaDaCapa): Capa => ({
 
 export interface CursoCatalogo {
   capa: Capa;
+  categoria: string;
+  /** "" quando o admin não escreveu. */
+  descricao: string;
   /** codigo ?? destaque */
   extra: string | null;
   id: CursoId;
@@ -97,8 +102,9 @@ export interface CursoCatalogo {
   niveis: readonly NivelCatalogo[];
   slug: string;
   status: StatusDoCurso;
-  tema: string;
   titulo: string;
+  /** "O que você vai aprender", em ordem. */
+  topicos: readonly string[];
 }
 
 export interface Historico {

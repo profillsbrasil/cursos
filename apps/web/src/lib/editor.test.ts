@@ -81,7 +81,7 @@ describe("primeiroNaPagina", () => {
   const c = camposEmOrdem(
     "curso-titulo",
     "curso-slug",
-    "curso-tema",
+    "curso-categoria",
     "curso-capaAlt",
     "aula-duracao"
   );
@@ -91,7 +91,7 @@ describe("primeiroNaPagina", () => {
       primeiroNaPagina([
         c["curso-capaAlt"],
         c["curso-slug"],
-        c["curso-tema"],
+        c["curso-categoria"],
         c["curso-titulo"],
       ])?.id
     ).toBe("curso-titulo");

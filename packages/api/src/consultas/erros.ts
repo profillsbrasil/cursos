@@ -110,6 +110,7 @@ interface MensagemDoBanco {
  */
 export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "aula_assistida_aula_id_aula_id_fkey",
+  "aula_descricao_tamanho",
   "aula_duracao_positiva",
   "aula_modulo_id_modulo_id_fkey",
   "aula_pkey",
@@ -122,9 +123,11 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "comunicado_pkey",
   "curso_capa_alt_preenchido",
   "curso_capa_dimensoes_positivas",
+  "curso_descricao_tamanho",
   "curso_pkey",
   "curso_preco_troca_positivo",
   "curso_slug_formato",
+  "curso_topicos_validos",
   "liberacao_curso_id_curso_id_fkey",
   "liberacao_do_aluno",
   "liberacao_pkey",
