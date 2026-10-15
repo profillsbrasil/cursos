@@ -44,7 +44,7 @@ const ITEM =
   "h-9 gap-2.5 rounded-[9px] px-2.5 font-medium text-[13px] text-sidebar-foreground focus:bg-sidebar-accent focus:text-titulo [&_svg]:text-muted-foreground";
 
 const PLACA =
-  "grid gap-0.5 rounded-[10px] bg-sidebar-accent px-2.5 py-2 text-[11px] text-muted-foreground focus:bg-border focus:text-muted-foreground";
+  "grid gap-0.5 rounded-[10px] bg-sidebar-accent px-2.5 py-2 text-muted-foreground text-xs focus:bg-border focus:text-muted-foreground";
 
 const LINHA_ESQUELETO =
   "block animate-pulse rounded bg-muted motion-reduce:animate-none";
@@ -86,7 +86,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
           render={<Link href="/trocar-pontos" />}
         >
           Saldo
-          <b className="font-semibold text-[15px] text-sol tabular-nums">
+          <b className="font-semibold text-base text-sol tabular-nums">
             {fmtPts(p.saldo)}
           </b>
         </DropdownMenuItem>
@@ -96,7 +96,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
           render={<Link href="/trocar-pontos" />}
         >
           Sequência
-          <b className="font-semibold text-[15px] text-titulo tabular-nums">
+          <b className="font-semibold text-base text-titulo tabular-nums">
             {plural(p.sequenciaDias, "dia", "dias")}
           </b>
         </DropdownMenuItem>

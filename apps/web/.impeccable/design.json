@@ -151,7 +151,15 @@
       },
       "title-section": {
         "displayName": "Título de seção",
-        "purpose": "O h2 das seções do admin."
+        "purpose": "O h2 das seções, no admin e no aluno."
+      },
+      "title-card": {
+        "displayName": "Título de cartão",
+        "purpose": "O h3 do cartão de curso e do cartão de troca; em 700, o título de Sua semana e do painel vazio, os números de Sua semana e o preço da troca."
+      },
+      "title-block": {
+        "displayName": "Título de bloco",
+        "purpose": "O título da coluna do curso e do aviso de comunicado, os valores das placas do menu da conta, os pontos do status do player e \"Seu saldo\" em 400."
       },
       "body": {
         "displayName": "Corpo",
@@ -163,7 +171,7 @@
       },
       "caption": {
         "displayName": "Legenda",
-        "purpose": "Selos, números do cartão de conta, cabeçalho de tabela."
+        "purpose": "Selos, números do cartão de conta, rótulos das placas do menu da conta, cabeçalho de tabela."
       },
       "mono": {
         "displayName": "Mono",
