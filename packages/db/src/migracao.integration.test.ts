@@ -161,16 +161,15 @@ migracaoComLinhas(
     );
   },
   (banco) => {
+    // A liberação da trilha plantada aqui sai na migração catalogo_sem_trilha.
     test("troca com lançamento vira troca e o resto vira admin", async () => {
       const r = await banco().query(
-        `select coalesce(c.slug, t.slug) as alvo, l.origem::text as origem
+        `select c.slug as alvo, l.origem::text as origem
          from liberacao l
-         left join curso c on c.id = l.curso_id
-         left join trilha t on t.id = l.trilha_id
+         join curso c on c.id = l.curso_id
          order by alvo`
       );
       expect(r.rows).toEqual([
-        { alvo: "fabrica", origem: "admin" },
         { alvo: "proprio", origem: "admin" },
         { alvo: "trocado", origem: "troca" },
       ]);
@@ -214,6 +213,85 @@ migracaoComLinhas(
         { capa_altura: 604, capa_largura: 900, slug: "comercial" },
         { capa_altura: 720, capa_largura: 1280, slug: "desconhecida" },
       ]);
+    });
+  }
+);
+
+migracaoComLinhas(
+  "migração do catálogo sem trilha",
+  "catalogo_sem_trilha",
+  async (c) => {
+    const trilha = await c.query<{ id: string }>(
+      "insert into trilha (slug, titulo, descricao) values ('fabrica', 'Fábrica', 'teste') returning id"
+    );
+    const trilhaId = trilha.rows[0]?.id;
+    const curso = async (slug: string) => {
+      const r = await c.query<{ id: string }>(
+        `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
+         values ($1, 'Curso', 'tema', '/capas/c.jpg', 'Capa', 1280, 720, 'publicado') returning id`,
+        [slug]
+      );
+      return r.rows[0]?.id ?? "";
+    };
+    const naTrilha = await curso("na-trilha");
+    const solto = await curso("solto");
+    await c.query(
+      "insert into trilha_curso (curso_id, trilha_id, posicao) values ($1, $2, 1)",
+      [naTrilha, trilhaId]
+    );
+    await c.query(
+      "insert into liberacao (user_id, trilha_id, liberada_por, origem) values ($1, $2, $3, 'admin')",
+      [ALUNO, trilhaId, ADMIN]
+    );
+    await c.query(
+      "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $3, 'admin')",
+      [ALUNO, solto, ADMIN]
+    );
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, trilha_id) values ($1, 'trilha_concluida', 500, $2)",
+      [ALUNO, trilhaId]
+    );
+  },
+  (banco) => {
+    test("a trilha e o que aponta para ela somem, e o curso fica", async () => {
+      const c = banco();
+      const tabelas = await c.query(
+        "select table_name from information_schema.tables where table_schema = 'public' and table_name like 'trilha%'"
+      );
+      expect(tabelas.rows).toEqual([]);
+      const cursos = await c.query("select slug from curso order by slug");
+      expect(cursos.rows).toEqual([{ slug: "na-trilha" }, { slug: "solto" }]);
+      const liberacoes = await c.query(
+        "select c.slug from liberacao l join curso c on c.id = l.curso_id"
+      );
+      expect(liberacoes.rows).toEqual([{ slug: "solto" }]);
+      const lancamentos = await c.query("select motivo from ponto_lancamento");
+      expect(lancamentos.rows).toEqual([]);
+    });
+
+    test("o motivo trilha_concluida sai do enum", async () => {
+      const r = await banco().query<{ valores: string }>(
+        "select enum_range(null::motivo_ponto)::text as valores"
+      );
+      expect(r.rows[0]?.valores).toBe(
+        "{aula_assistida,curso_concluido,sequencia_7_dias,troca}"
+      );
+    });
+
+    test("liberação sem curso é recusada", async () => {
+      const erro = await banco()
+        .query(
+          "insert into liberacao (user_id, liberada_por, origem) values ($1, $2, 'admin')",
+          [ALUNO, ADMIN]
+        )
+        .then(
+          () => null,
+          (e: unknown) =>
+            typeof e === "object" && e !== null && "column" in e
+              ? String(e.column)
+              : String(e)
+        );
+      expect(erro).toBe("curso_id");
     });
   }
 );

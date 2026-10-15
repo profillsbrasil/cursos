@@ -26,7 +26,7 @@ export function urlDaCorrida(url: string | null): string {
  */
 export function seguraATabela(
   db: Database,
-  tabela: "liberacao" | "trilha_curso"
+  tabela: "liberacao"
 ): Promise<() => Promise<void>> {
   return seguraNumaTransacao(db, sql.raw(`lock table ${tabela} in share mode`));
 }

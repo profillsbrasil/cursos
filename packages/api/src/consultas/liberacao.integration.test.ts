@@ -7,21 +7,13 @@ import {
   liberacao,
   modulo,
   pontoLancamento,
-  trilha,
-  trilhaCurso,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import type {
-  AdminId,
-  CursoId,
-  LiberacaoId,
-  Pessoa,
-  TrilhaId,
-} from "../dominio/tipos";
+import type { AdminId, CursoId, LiberacaoId, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import {
   esperas as esperasNoBanco,
@@ -49,7 +41,6 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
   });
   const alunos: string[] = [];
   const cursos: string[] = [];
-  const trilhas: string[] = [];
 
   async function aluno(saldo = 0) {
     const userId = `user_lib${S}${alunos.length}`;
@@ -103,27 +94,6 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     return c.id as CursoId;
   }
 
-  async function trilhaCom(...cursosDaTrilha: CursoId[]) {
-    const [t] = await db
-      .insert(trilha)
-      .values({ descricao: "teste", slug: `teste-${hex()}`, titulo: "Trilha" })
-      .returning({ id: trilha.id });
-    if (!t) {
-      throw new Error("trilha não criada");
-    }
-    trilhas.push(t.id);
-    if (cursosDaTrilha.length > 0) {
-      await db.insert(trilhaCurso).values(
-        cursosDaTrilha.map((cursoId, i) => ({
-          cursoId,
-          posicao: i + 1,
-          trilhaId: t.id,
-        }))
-      );
-    }
-    return t.id as TrilhaId;
-  }
-
   const saldoDe = async (userId: string) => {
     const [r] = await db
       .select({
@@ -143,7 +113,6 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         origem: liberacao.origem,
         revogadaEm: liberacao.revogadaEm,
         revogadaPor: liberacao.revogadaPor,
-        trilhaId: liberacao.trilhaId,
       })
       .from(liberacao)
       .where(eq(liberacao.userId, userId));
@@ -168,23 +137,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, alunos));
     await db.delete(liberacao).where(inArray(liberacao.userId, alunos));
-    await db.delete(trilha).where(inArray(trilha.id, trilhas));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
   });
 
-  test("trilha liberada antes da troca: a troca espera a trava, vê a trilha e não debita", async () => {
+  test("admin libera antes da troca: a troca espera a trava, vê o curso liberado e não debita", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
-    const t = await trilhaCom(c);
     const soltar = await seguraOsInserts();
-    const admin = liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      { id: t, tipo: "trilha", trocadosVistos: [] },
-      AGORA
-    );
+    const admin = liberar(db, ADMIN, pessoa(userId), c, AGORA);
     await esperas(1);
     const troca = trocar(db, userId, c, 300, AGORA);
     const paradas = await esperas(2);
@@ -203,32 +164,25 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     });
   });
 
-  test("troca antes da trilha: a liberação espera a troca, vê que a tela ficou velha e recusa", async () => {
+  test("troca antes do admin: a liberação espera a troca e devolve a liberação dela", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
-    const t = await trilhaCom(c);
     const soltar = await seguraOsInserts();
     const troca = trocar(db, userId, c, 300, AGORA);
     await esperas(1);
-    const admin = liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      { id: t, tipo: "trilha", trocadosVistos: [] },
-      AGORA
-    );
+    const admin = liberar(db, ADMIN, pessoa(userId), c, AGORA);
     const paradas = await esperas(2);
     await soltar();
     const [rTroca, r] = await Promise.allSettled([troca, admin]);
     const ativas = (await liberacoesDe(userId)).filter((l) => !l.revogadaEm);
     expect({
-      admin: resultado(r),
-      ativas: ativas.map((l) => l.origem).sort(),
+      admin: r.status === "fulfilled" ? r.value.nova : resultado(r),
+      ativas: ativas.map((l) => l.origem),
       paradas,
       saldo: await saldoDe(userId),
       troca: resultado(rTroca),
     }).toEqual({
-      admin: "CONFLICT",
+      admin: false,
       ativas: ["troca"],
       paradas: ["advisory", "relation"],
       saldo: 0,
@@ -236,51 +190,14 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     });
   });
 
-  test("trilha com curso trocado: libera só quando a tela mostrou a troca, e as duas ficam", async () => {
-    const userId = await aluno(300);
-    const c = await cursoTrocavel(300);
-    const t = await trilhaCom(c);
-    await trocar(db, userId, c, 300, AGORA);
-    const semAviso = await liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      { id: t, tipo: "trilha", trocadosVistos: [] },
-      AGORA
-    ).catch((e: unknown) => e);
-    expect(semAviso).toMatchObject({ code: "CONFLICT" });
-    expect((await liberacoesDe(userId)).map((l) => l.origem).sort()).toEqual([
-      "troca",
-    ]);
-    const comAviso = await liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      { id: t, tipo: "trilha", trocadosVistos: [c] },
-      AGORA
-    );
-    expect(comAviso.nova).toBe(true);
-    expect((await liberacoesDe(userId)).map((l) => l.origem).sort()).toEqual([
-      "admin",
-      "troca",
-    ]);
-  });
-
   test("revogar antes de liberar: a liberação espera a revogação e grava uma nova", async () => {
     const userId = await aluno();
-    const t = await trilhaCom();
-    const alvo = { id: t, tipo: "trilha", trocadosVistos: [] } as const;
-    const { liberacaoId } = await liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      alvo,
-      AGORA
-    );
+    const c = await cursoTrocavel(300);
+    const { liberacaoId } = await liberar(db, ADMIN, pessoa(userId), c, AGORA);
     const soltar = await seguraOsInserts();
     const revogacao = revogar(db, ADMIN, liberacaoId, AGORA);
     await esperas(1);
-    const liberacaoNova = liberar(db, ADMIN, pessoa(userId), alvo, AGORA);
+    const liberacaoNova = liberar(db, ADMIN, pessoa(userId), c, AGORA);
     const paradas = await Promise.race([
       liberacaoNova.then(() => "a liberação não esperou"),
       esperas(2).catch(() => "a liberação não parou"),
@@ -302,13 +219,12 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   test("liberar duas vezes, em série ou em paralelo, grava uma linha", async () => {
     const userId = await aluno();
-    const t = await trilhaCom();
-    const alvo = { id: t, tipo: "trilha", trocadosVistos: [] } as const;
+    const cursoId = await cursoTrocavel(300);
     const [a, b] = await Promise.all([
-      liberar(db, ADMIN, pessoa(userId), alvo, AGORA),
-      liberar(db, ADMIN, pessoa(userId), alvo, AGORA),
+      liberar(db, ADMIN, pessoa(userId), cursoId, AGORA),
+      liberar(db, ADMIN, pessoa(userId), cursoId, AGORA),
     ]);
-    const c = await liberar(db, ADMIN, pessoa(userId), alvo, AGORA);
+    const c = await liberar(db, ADMIN, pessoa(userId), cursoId, AGORA);
     expect([a.nova, b.nova].sort()).toEqual([false, true]);
     expect(c).toEqual({ liberacaoId: a.liberacaoId, nova: false });
     expect(await liberacoesDe(userId)).toHaveLength(1);
@@ -316,14 +232,8 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   test("revogar duas vezes muda a linha uma vez", async () => {
     const userId = await aluno();
-    const t = await trilhaCom();
-    const { liberacaoId } = await liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      { id: t, tipo: "trilha", trocadosVistos: [] },
-      AGORA
-    );
+    const c = await cursoTrocavel(300);
+    const { liberacaoId } = await liberar(db, ADMIN, pessoa(userId), c, AGORA);
     const depois = new Date(AGORA.getTime() + 60_000);
     const primeira = await revogar(db, ADMIN, liberacaoId, depois);
     const segunda = await revogar(
@@ -343,14 +253,8 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   test("revogar com o relógio do app antes de liberada_em grava liberada_em", async () => {
     const userId = await aluno();
-    const t = await trilhaCom();
-    const { liberacaoId } = await liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      { id: t, tipo: "trilha", trocadosVistos: [] },
-      AGORA
-    );
+    const c = await cursoTrocavel(300);
+    const { liberacaoId } = await liberar(db, ADMIN, pessoa(userId), c, AGORA);
     const atrasado = new Date(AGORA.getTime() - 2000);
     expect(await revogar(db, ADMIN, liberacaoId, atrasado)).toEqual({
       revogada: true,
@@ -387,30 +291,19 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
   });
 
-  test("liberar curso ou trilha que não existe dá NOT_FOUND e não grava", async () => {
+  test("liberar curso que não existe dá NOT_FOUND e não grava", async () => {
     const userId = await aluno();
-    const doCurso = await liberar(
+    const erro = await liberar(
       db,
       ADMIN,
       pessoa(userId),
-      { id: crypto.randomUUID() as CursoId, tipo: "curso" },
+      crypto.randomUUID() as CursoId,
       AGORA
     ).catch((e: unknown) => e);
-    const daTrilha = await liberar(
-      db,
-      ADMIN,
-      pessoa(userId),
-      {
-        id: crypto.randomUUID() as TrilhaId,
-        tipo: "trilha",
-        trocadosVistos: [],
-      },
-      AGORA
-    ).catch((e: unknown) => e);
-    expect([doCurso, daTrilha]).toMatchObject([
-      { code: "NOT_FOUND", message: "Este curso não existe mais." },
-      { code: "NOT_FOUND", message: "Esta trilha não existe mais." },
-    ]);
+    expect(erro).toMatchObject({
+      code: "NOT_FOUND",
+      message: "Este curso não existe mais.",
+    });
     expect(await liberacoesDe(userId)).toEqual([]);
   });
 
@@ -429,15 +322,13 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     try {
       await outro.query("begin");
       await outro.query("delete from curso where id = $1", [c]);
-      const liberando = admin.admin.alunos
-        .liberar({ alvo: { id: c, tipo: "curso" }, userId })
-        .then(
-          () => ({ code: "ok", message: "" }),
-          (e: unknown) =>
-            e instanceof TRPCError
-              ? { code: e.code, message: e.message }
-              : { code: "não é TRPCError", message: String(e) }
-        );
+      const liberando = admin.admin.alunos.liberar({ cursoId: c, userId }).then(
+        () => ({ code: "ok", message: "" }),
+        (e: unknown) =>
+          e instanceof TRPCError
+            ? { code: e.code, message: e.message }
+            : { code: "não é TRPCError", message: String(e) }
+      );
       const paradas = await esperasNoBanco(db, 1, ['insert into "liberacao"']);
       await outro.query("commit");
 
@@ -457,7 +348,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   test("o admin libera para si mesmo pela API e revoga", async () => {
     const dono = await aluno();
-    const t = await trilhaCom();
+    const c = await cursoTrocavel(300);
     const admin = createCaller(
       contextoDeTeste({
         db,
@@ -467,7 +358,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       })
     );
     const { liberacaoId } = await admin.admin.alunos.liberar({
-      alvo: { id: t, tipo: "trilha", trocadosVistos: [] },
+      cursoId: c,
       userId: dono,
     });
     const acesso = await admin.admin.alunos.acesso({ userId: dono });
@@ -482,15 +373,12 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   test("liberar para quem o Clerk não conhece dá NOT_FOUND e não grava", async () => {
     const sumiu = await aluno();
-    const t = await trilhaCom();
+    const c = await cursoTrocavel(300);
     const admin = createCaller(
       contextoDeTeste({ db, papel: "admin", userId: "user_dono" })
     );
     const erro = await admin.admin.alunos
-      .liberar({
-        alvo: { id: t, tipo: "trilha", trocadosVistos: [] },
-        userId: sumiu,
-      })
+      .liberar({ cursoId: c, userId: sumiu })
       .catch((e: unknown) => e);
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
     expect(await liberacoesDe(sumiu)).toHaveLength(0);

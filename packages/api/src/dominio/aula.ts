@@ -1,7 +1,6 @@
 import {
   type EstadoQueAbre,
   estadoDoCurso,
-  estadosDaTrilha,
   numeroDaAula,
   type Progresso,
   podeAbrir,
@@ -15,7 +14,6 @@ import type {
   AulaCatalogo,
   AulaId,
   CursoCatalogo,
-  CursoId,
   DiaISO,
   Historico,
   ModuloCatalogo,
@@ -25,16 +23,6 @@ import { canonizar, type Trecho, type Trechos } from "./trechos";
 
 export interface CursoComAcessoLinha extends CursoLinha {
   liberacoes: readonly { id: string }[];
-  naTrilha: {
-    trilha: {
-      cursos: readonly { curso: CursoLinha; posicao: number }[];
-      descricao: string;
-      id: string;
-      liberacoes: readonly { id: string }[];
-      slug: string;
-      titulo: string;
-    };
-  } | null;
 }
 
 export interface LinhasCurso {
@@ -58,19 +46,10 @@ export interface CursoAberto {
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
 }
 
-/**
- * null sem liberação ativa (direta ou pela trilha) ou com o curso em_breve ou
- * bloqueado.
- */
+/** null sem liberação ativa do curso ou com o curso em_breve. */
 export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   const linha = linhas.curso;
-  if (!linha) {
-    return null;
-  }
-  const direto = linha.liberacoes.length > 0;
-  const trilhaLinha = linha.naTrilha?.trilha;
-  const pelaTrilha = (trilhaLinha?.liberacoes.length ?? 0) > 0;
-  if (!(direto || pelaTrilha)) {
+  if (!linha || linha.liberacoes.length === 0) {
     return null;
   }
   const comPosicao = {
@@ -79,18 +58,7 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   };
   const historico = historicoDe(comPosicao);
   const curso = paraCatalogo(linha);
-  let estado = estadoDoCurso(curso, historico, { tipo: "livre" });
-  if (trilhaLinha && pelaTrilha) {
-    const cursos = [...trilhaLinha.cursos]
-      .sort((a, b) => a.posicao - b.posicao)
-      .map((x) => paraCatalogo(x.curso));
-    const estados = estadosDaTrilha(
-      { cursos },
-      historico,
-      new Set<CursoId>(direto ? [curso.id] : [])
-    );
-    estado = estados[cursos.findIndex((c) => c.id === curso.id)] ?? estado;
-  }
+  const estado = estadoDoCurso(curso, historico);
   if (!podeAbrir(estado)) {
     return null;
   }

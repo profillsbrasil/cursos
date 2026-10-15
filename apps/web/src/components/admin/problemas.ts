@@ -26,7 +26,7 @@ export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
 }
 
 export const fraseDeReserva = (
-  oQue: "A trilha" | "O curso",
+  oQue: "O curso",
   caminho: readonly PropertyKey[]
 ) =>
   `${oQue} tem um valor que o servidor recusa (${caminho.map(String).join(".") || "documento"}). Recarregue a página e tente de novo.`;

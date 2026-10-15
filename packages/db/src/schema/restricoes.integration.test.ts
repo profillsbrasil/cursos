@@ -20,27 +20,17 @@ interface Base {
   aulaId: string;
   cursoId: string;
   moduloId: string;
-  trilhaId: string;
 }
 
 async function montarBase(c: Client): Promise<Base> {
   const s = sufixo();
   const aluno = `user_teste${s}`;
-  const trilha = await c.query<{ id: string }>(
-    "insert into trilha (slug, titulo, descricao) values ($1, 'Trilha teste', 'teste') returning id",
-    [`teste-${s}`]
-  );
   const curso = await c.query<{ id: string }>(
     `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
      values ($1, 'Curso teste', 'teste', '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
     [`teste-${s}`]
   );
   const cursoId = curso.rows[0]?.id ?? "";
-  const trilhaId = trilha.rows[0]?.id ?? "";
-  await c.query(
-    "insert into trilha_curso (curso_id, trilha_id, posicao) values ($1, $2, 1)",
-    [cursoId, trilhaId]
-  );
   await c.query(
     "insert into nivel (curso_id, ordem, nome) values ($1, 1, 'Nível teste')",
     [cursoId]
@@ -54,7 +44,7 @@ async function montarBase(c: Client): Promise<Base> {
     "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Aula teste', 600) returning id",
     [moduloId]
   );
-  return { aluno, aulaId: aula.rows[0]?.id ?? "", cursoId, moduloId, trilhaId };
+  return { aluno, aulaId: aula.rows[0]?.id ?? "", cursoId, moduloId };
 }
 
 interface Caso {
@@ -65,10 +55,10 @@ interface Caso {
   violar: (c: Client, b: Base) => Promise<unknown>;
 }
 
-const liberar = (c: Client, b: Base, alvo: "curso" | "trilha") =>
+const liberar = (c: Client, b: Base) =>
   c.query(
-    `insert into liberacao (user_id, ${alvo}_id, liberada_por, origem) values ($1, $2, 'user_admin', 'admin')`,
-    [b.aluno, alvo === "curso" ? b.cursoId : b.trilhaId]
+    "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, 'user_admin', 'admin')",
+    [b.aluno, b.cursoId]
   );
 
 const assistir = (c: Client, b: Base) =>
@@ -104,22 +94,12 @@ const pagarTroca = (
 
 const CASOS: Caso[] = [
   {
-    apagar: "alter table liberacao drop constraint liberacao_alvo_unico",
-    constraint: "liberacao_alvo_unico",
-    nome: "liberação com trilha e curso ao mesmo tempo",
-    violar: (c, b) =>
-      c.query(
-        "insert into liberacao (user_id, trilha_id, curso_id, liberada_por, origem) values ($1, $2, $3, 'user_admin', 'admin')",
-        [b.aluno, b.trilhaId, b.cursoId]
-      ),
-  },
-  {
-    apagar: "drop index liberacao_trilha_ativa_unica",
-    constraint: "liberacao_trilha_ativa_unica",
-    nome: "duas liberações ativas da mesma trilha",
+    apagar: "drop index liberacao_curso_ativa_unica",
+    constraint: "liberacao_curso_ativa_unica",
+    nome: "duas liberações ativas do mesmo curso",
     violar: async (c, b) => {
-      await liberar(c, b, "trilha");
-      await liberar(c, b, "trilha");
+      await liberar(c, b);
+      await liberar(c, b);
     },
   },
   {
@@ -128,8 +108,8 @@ const CASOS: Caso[] = [
     nome: "e-mail no lugar do userId",
     violar: (c, b) =>
       c.query(
-        "insert into liberacao (user_id, trilha_id, liberada_por, origem) values ('marina@x.com', $1, 'user_admin', 'admin')",
-        [b.trilhaId]
+        "insert into liberacao (user_id, curso_id, liberada_por, origem) values ('marina@x.com', $1, 'user_admin', 'admin')",
+        [b.cursoId]
       ),
   },
   {
@@ -139,8 +119,8 @@ const CASOS: Caso[] = [
     nome: "revogação sem autor",
     violar: (c, b) =>
       c.query(
-        "insert into liberacao (user_id, trilha_id, liberada_por, origem, revogada_em) values ($1, $2, 'user_admin', 'admin', now())",
-        [b.aluno, b.trilhaId]
+        "insert into liberacao (user_id, curso_id, liberada_por, origem, revogada_em) values ($1, $2, 'user_admin', 'admin', now())",
+        [b.aluno, b.cursoId]
       ),
   },
   {
@@ -164,31 +144,6 @@ const CASOS: Caso[] = [
         "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, 'user_admin', 'troca')",
         [b.aluno, b.cursoId]
       ),
-  },
-  {
-    apagar: "alter table liberacao drop constraint liberacao_troca_pelo_aluno",
-    constraint: "liberacao_troca_pelo_aluno",
-    nome: "troca de uma trilha",
-    violar: (c, b) =>
-      c.query(
-        "insert into liberacao (user_id, trilha_id, liberada_por, origem) values ($1, $2, $1, 'troca')",
-        [b.aluno, b.trilhaId]
-      ),
-  },
-  {
-    apagar: "alter table trilha_curso drop constraint trilha_curso_pkey",
-    constraint: "trilha_curso_pkey",
-    nome: "curso em duas trilhas",
-    violar: async (c, b) => {
-      const outra = await c.query<{ id: string }>(
-        "insert into trilha (slug, titulo, descricao) values ($1, 'Outra', 'teste') returning id",
-        [`teste-${sufixo()}`]
-      );
-      await c.query(
-        "insert into trilha_curso (curso_id, trilha_id, posicao) values ($1, $2, 1)",
-        [b.cursoId, outra.rows[0]?.id]
-      );
-    },
   },
   {
     apagar: "alter table modulo drop constraint modulo_nivel_do_mesmo_curso",
@@ -373,16 +328,6 @@ const CASOS: Caso[] = [
       ),
   },
   {
-    apagar: "alter table trilha drop constraint trilha_slug_formato",
-    constraint: "trilha_slug_formato",
-    nome: "slug com maiúscula",
-    violar: (c) =>
-      c.query(
-        "insert into trilha (slug, titulo, descricao) values ($1, 'Trilha', 'teste')",
-        [`Teste-${sufixo()}`]
-      ),
-  },
-  {
     apagar: "alter table curso drop constraint curso_capa_alt_preenchido",
     constraint: "curso_capa_alt_preenchido",
     nome: "capa sem texto alternativo",
@@ -497,12 +442,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   test("aceita liberar de novo depois de revogar", async () => {
     await emTransacao(async () => {
       const b = await montarBase(c);
-      await liberar(c, b, "trilha");
+      await liberar(c, b);
       await c.query(
         "update liberacao set revogada_em = now(), revogada_por = 'user_admin' where user_id = $1",
         [b.aluno]
       );
-      await liberar(c, b, "trilha");
+      await liberar(c, b);
       const n = await c.query<{ n: number }>(
         "select count(*)::int as n from liberacao where user_id = $1",
         [b.aluno]

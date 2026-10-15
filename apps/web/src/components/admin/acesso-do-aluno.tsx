@@ -4,8 +4,8 @@ import type {
   AcessoDoAluno as Acesso,
   CursoParaLiberar,
   LiberacaoNaTela,
-  TrilhaParaLiberar,
 } from "@cursos/api/dominio/liberacao";
+import type { CursoId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft, Check, ChevronRight, TriangleAlert } from "lucide-react";
@@ -13,17 +13,15 @@ import Link from "next/link";
 import { type ReactNode, useCallback, useRef, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { fmtNum, plural } from "@/lib/formato";
+import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
 import {
   BarraDeAulas,
   dataDaLiberacao,
-  fraseDaLiberacao,
-  fraseNaTrilha,
+  fraseDoCurso,
   SeloDeSituacao,
-  seloDaLiberacao,
   seloDoCurso,
 } from "./acompanhamento";
 import {
@@ -34,7 +32,6 @@ import {
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { SELO, Secao, Vazio } from "./partes";
 
-const TIPO = { curso: "Curso", trilha: "Trilha" } as const;
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
 
@@ -42,14 +39,6 @@ interface Para {
   nome: string;
   userId: string;
 }
-
-type Pedido = Parameters<
-  typeof trpcClient.admin.alunos.liberar.mutate
->[0]["alvo"];
-
-/** "A", "A e B", "A, B e C". */
-const lista = (itens: readonly string[]) =>
-  new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(itens);
 
 // Só quando o foco caiu no body: se o admin já está em outra linha, não o tira de lá.
 const focarLiberacoes = () => {
@@ -66,7 +55,7 @@ function AcaoDaLiberacao({
   linhaAberta: LinhaAberta;
 }) {
   const { executar, pendente } = useAcao();
-  const { titulo } = l.alvo;
+  const { titulo } = l.curso;
   const { fechar } = linhaAberta;
   const revogar = useCallback(
     () =>
@@ -114,57 +103,6 @@ function AcaoDaLiberacao({
   }
 }
 
-/** Os cursos da trilha em ordem: Céu no concluído, Sol no curso da vez. */
-function CursosDaTrilha({
-  acompanhamento: a,
-  hoje,
-}: {
-  acompanhamento: Extract<
-    LiberacaoNaTela["acompanhamento"],
-    { tipo: "trilha" }
-  >;
-  hoje: string;
-}) {
-  return (
-    <ol className="@container mt-2 max-w-[38.75rem] divide-y divide-border rounded-[14px] bg-background ring-1 ring-border">
-      {a.cursos.map((c) => (
-        <li
-          className="grid @md:grid-cols-[1.375rem_minmax(0,1fr)_auto] grid-cols-[1.375rem_minmax(0,1fr)] items-center gap-x-2.5 gap-y-0.5 px-3 py-2.5"
-          key={c.posicao}
-        >
-          <span
-            aria-hidden="true"
-            className={cn(
-              "@md:row-span-1 row-span-2 grid size-[22px] place-items-center self-start @md:self-center rounded-full font-semibold text-xs tabular-nums",
-              c.situacao.tipo === "concluido" && "bg-ceu text-sobre-cor",
-              c.situacao.tipo !== "concluido" &&
-                (c.posicao === a.daVez
-                  ? "bg-sol text-sobre-cor"
-                  : "bg-popover text-foreground")
-            )}
-          >
-            {c.posicao}
-          </span>
-          <span className="grid min-w-0">
-            <span className="font-medium text-foreground text-sm">
-              {c.titulo}
-            </span>
-            <span className="text-muted-foreground text-xs">
-              {fraseNaTrilha(c, hoje)}
-            </span>
-          </span>
-          {c.situacao.tipo === "em_producao" ? null : (
-            <span className="@md:col-start-3 col-start-2 @md:text-right text-muted-foreground text-xs tabular-nums">
-              {fmtNum(c.progresso.feitas)} de{" "}
-              {plural(c.progresso.total, "aula", "aulas")}
-            </span>
-          )}
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 function Rodape({ hoje, l }: { hoje: string; l: LiberacaoNaTela }) {
   return (
     <p className="mt-1.5 text-muted-foreground text-xs tabular-nums">
@@ -174,8 +112,8 @@ function Rodape({ hoje, l }: { hoje: string; l: LiberacaoNaTela }) {
 }
 
 /**
- * Uma liberação: título, tipo e selo; a frase do estudo; a barra (ou os cursos da
- * trilha); a data. Revogar fica à direita e, em container estreito, desce para o pé.
+ * Uma liberação: título e selo; a frase do estudo; a barra; a data. Revogar fica
+ * à direita e, em container estreito, desce para o pé.
  */
 function ItemDaLiberacao({
   hoje,
@@ -188,8 +126,7 @@ function ItemDaLiberacao({
 }) {
   const a = l.acompanhamento;
   const revogada = l.acao.tipo === "revogada";
-  const frase = fraseDaLiberacao(a, hoje);
-  const comCursos = a.tipo === "trilha" && a.cursos.length > 1 && !revogada;
+  const frase = fraseDoCurso(a, hoje);
   return (
     <li className="grid @xl:grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 @xl:px-5 px-4 py-4">
       <div className="grid min-w-0 content-start gap-1">
@@ -200,12 +137,11 @@ function ItemDaLiberacao({
               revogada ? "text-muted-foreground" : "text-titulo"
             )}
           >
-            {l.alvo.titulo}
+            {l.curso.titulo}
           </h3>
-          <span className="text-muted-foreground text-xs">
-            {TIPO[l.alvo.tipo]}
-          </span>
-          {revogada ? null : <SeloDeSituacao selo={seloDaLiberacao(a)} />}
+          {revogada ? null : (
+            <SeloDeSituacao selo={seloDoCurso(a.situacao.tipo)} />
+          )}
         </div>
         {revogada ? null : (
           <p className="text-foreground text-sm">
@@ -215,14 +151,10 @@ function ItemDaLiberacao({
             ) : null}
           </p>
         )}
-        {comCursos ? (
-          <CursosDaTrilha acompanhamento={a} hoje={hoje} />
-        ) : (
-          <BarraDeAulas
-            className="mt-1.5 max-w-[32.5rem]"
-            progresso={a.tipo === "curso" ? a.curso.progresso : a.aulas}
-          />
-        )}
+        <BarraDeAulas
+          className="mt-1.5 max-w-[32.5rem]"
+          progresso={a.progresso}
+        />
         <Rodape hoje={hoje} l={l} />
       </div>
       {revogada ? null : (
@@ -244,11 +176,7 @@ function Liberacoes({
   linhaAberta: LinhaAberta;
 }) {
   if (liberacoes.length === 0) {
-    return (
-      <Vazio>
-        Nenhuma liberação ainda. Libere uma trilha ou um curso abaixo.
-      </Vazio>
-    );
+    return <Vazio>Nenhuma liberação ainda. Libere um curso abaixo.</Vazio>;
   }
   const ativas = liberacoes.filter((l) => l.acao.tipo !== "revogada");
   const revogadas = liberacoes.filter((l) => l.acao.tipo === "revogada");
@@ -286,22 +214,16 @@ function Liberacoes({
  * Liberar a partir de uma linha. Depois do sucesso a linha fica no lugar e o
  * botão vira o selo "Liberado", que recebe o foco sem rolar a página.
  */
-function useLiberar(
-  { nome, userId }: Para,
-  pedido: Pedido,
-  titulo: string,
-  depois?: () => void
-) {
+function useLiberar({ nome, userId }: Para, cursoId: CursoId, titulo: string) {
   const { executar, pendente } = useAcao();
   const focarSelo = useRef(false);
   const liberar = useCallback(
     () =>
       executar(
-        () => trpcClient.admin.alunos.liberar.mutate({ alvo: pedido, userId }),
+        () => trpcClient.admin.alunos.liberar.mutate({ cursoId, userId }),
         {
           depois: () => {
             focarSelo.current = true;
-            depois?.();
           },
           sucesso: (r) =>
             r.nova
@@ -309,7 +231,7 @@ function useLiberar(
               : `O acesso a ${titulo} já estava liberado para ${nome}.`,
         }
       ),
-    [executar, pedido, userId, nome, titulo, depois]
+    [executar, cursoId, userId, nome, titulo]
   );
   const selo = useCallback((el: HTMLSpanElement | null) => {
     if (el && focarSelo.current) {
@@ -380,72 +302,9 @@ function LinhaParaLiberar({
   );
 }
 
-function LinhaDaTrilha({
-  linhaAberta,
-  para,
-  t,
-}: {
-  linhaAberta: LinhaAberta;
-  para: Para;
-  t: TrilhaParaLiberar;
-}) {
-  const { id, titulo } = t.alvo;
-  const trocados = t.trocadosNaTrilha;
-  const fecharAMinha = linhaAberta.fechar;
-  const fechar = useCallback(
-    () => fecharAMinha(`liberar:${id}`),
-    [fecharAMinha, id]
-  );
-  const { enviando, liberar, selo } = useLiberar(
-    para,
-    { id, tipo: "trilha", trocadosVistos: trocados.map((c) => c.id) },
-    titulo,
-    fechar
-  );
-  let acao: ReactNode;
-  if (t.liberado) {
-    acao = <Liberado selo={selo} />;
-  } else if (trocados.length === 0) {
-    acao = (
-      <BotaoLiberar enviando={enviando} liberar={liberar} titulo={titulo} />
-    );
-  } else {
-    acao = (
-      <ConfirmacaoNaLinha
-        botao={{ rotulo: "Liberar mesmo assim" }}
-        chave={`liberar:${id}`}
-        className="col-span-full grid basis-full gap-3"
-        confirmar={liberar}
-        enviando={enviando}
-        gatilho={{ nome: `Liberar ${titulo}`, rotulo: "Liberar" }}
-        linhaAberta={linhaAberta}
-        pergunta={
-          <p className={cn(AVISO, "p-3.5")}>
-            <TriangleAlert
-              aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0 text-sol"
-            />
-            <span>
-              {para.nome} trocou {lista(trocados.map((c) => c.titulo))} por
-              pontos. A trilha passa a cobrir{" "}
-              {trocados.length === 1 ? "esse curso" : "esses cursos"}, e os
-              pontos não voltam.
-            </span>
-          </p>
-        }
-      />
-    );
-  }
-  return <LinhaParaLiberar acao={acao} titulo={titulo} />;
-}
-
 function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
-  const { id, titulo } = c.alvo;
-  const { enviando, liberar, selo } = useLiberar(
-    para,
-    { id, tipo: "curso" },
-    titulo
-  );
+  const { id, titulo } = c.curso;
+  const { enviando, liberar, selo } = useLiberar(para, id, titulo);
   return (
     <LinhaParaLiberar
       acao={
@@ -456,21 +315,9 @@ function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
         )
       }
       selos={
-        <>
-          {c.emProducao ? (
-            <SeloDeSituacao selo={seloDoCurso("em_producao")} />
-          ) : null}
-          {c.pelaTrilha ? (
-            <span
-              className={cn(
-                SELO,
-                "bg-transparent text-ceu ring-1 ring-ceu/60 ring-inset"
-              )}
-            >
-              Já tem pela trilha {c.pelaTrilha}
-            </span>
-          ) : null}
-        </>
+        c.emProducao ? (
+          <SeloDeSituacao selo={seloDoCurso("em_producao")} />
+        ) : null
       }
       titulo={titulo}
     />
@@ -534,43 +381,21 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
           />
         </Secao>
         {pessoa ? (
-          <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
-            <Secao
-              id="liberar-trilha"
-              resumo={plural(acesso.trilhas.length, "trilha", "trilhas")}
-              titulo="Liberar trilha"
-            >
-              {acesso.trilhas.length === 0 ? (
-                <Vazio>Nenhuma trilha no catálogo.</Vazio>
-              ) : (
-                <ul className="@container divide-y divide-border">
-                  {acesso.trilhas.map((t) => (
-                    <LinhaDaTrilha
-                      key={t.alvo.id}
-                      linhaAberta={linhaAberta}
-                      para={para}
-                      t={t}
-                    />
-                  ))}
-                </ul>
-              )}
-            </Secao>
-            <Secao
-              id="liberar-curso"
-              resumo={plural(acesso.cursos.length, "curso", "cursos")}
-              titulo="Liberar curso"
-            >
-              {acesso.cursos.length === 0 ? (
-                <Vazio>Nenhum curso no catálogo.</Vazio>
-              ) : (
-                <ul className="@container divide-y divide-border">
-                  {acesso.cursos.map((c) => (
-                    <LinhaDoCurso c={c} key={c.alvo.id} para={para} />
-                  ))}
-                </ul>
-              )}
-            </Secao>
-          </div>
+          <Secao
+            id="liberar-curso"
+            resumo={plural(acesso.cursos.length, "curso", "cursos")}
+            titulo="Liberar curso"
+          >
+            {acesso.cursos.length === 0 ? (
+              <Vazio>Nenhum curso no catálogo.</Vazio>
+            ) : (
+              <ul className="@container divide-y divide-border">
+                {acesso.cursos.map((c) => (
+                  <LinhaDoCurso c={c} key={c.curso.id} para={para} />
+                ))}
+              </ul>
+            )}
+          </Secao>
         ) : null}
       </div>
     </>

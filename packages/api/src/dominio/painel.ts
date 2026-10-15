@@ -1,9 +1,4 @@
-import {
-  alcance,
-  type CursoAlcancado,
-  type Progresso,
-  progresso,
-} from "./curso";
+import { alcance, type Progresso, progresso } from "./curso";
 import { atividadeDe, historicoDe } from "./historico";
 import { PONTOS } from "./regras";
 import { type CursoNaTela, ondeNoCurso, retomada } from "./retomada";
@@ -27,8 +22,6 @@ import {
   type LinhaDaCapa,
   type StatusDoCurso,
   type TipoEstado,
-  type TrilhaCatalogo,
-  type TrilhaId,
   type VideoProvedor,
 } from "./tipos";
 import { videoDaAula } from "./video";
@@ -59,14 +52,6 @@ export interface CursoLinha extends LinhaDaCapa {
   titulo: string;
 }
 
-export interface TrilhaLinha {
-  cursos: readonly { curso: CursoLinha; posicao: number }[];
-  descricao: string;
-  id: string;
-  slug: string;
-  titulo: string;
-}
-
 export interface LinhasPainel {
   assistidas: readonly { assistidaEm: Date; aulaId: string }[];
   certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
@@ -78,11 +63,7 @@ export interface LinhasPainel {
     titulo: string;
   }[];
   /** Liberações ativas em ordem de liberadaEm. */
-  liberacoes: readonly {
-    curso: CursoLinha | null;
-    liberadaEm: Date;
-    trilha: TrilhaLinha | null;
-  }[];
+  liberacoes: readonly { curso: CursoLinha; liberadaEm: Date }[];
   posicoes: readonly {
     atualizadaEm: Date;
     aulaId: string;
@@ -116,23 +97,6 @@ export interface CursoVM {
   titulo: string;
 }
 
-export interface CursoNaTrilhaVM extends CursoVM {
-  posicao: number;
-}
-
-export interface TrilhaVM {
-  /** Só cursos que não estão em_breve. */
-  aulas: Progresso;
-  concluidos: number;
-  cursos: readonly CursoNaTrilhaVM[];
-  daVez: CursoNaTrilhaVM | null;
-  descricao: string;
-  id: TrilhaId;
-  situacao: "em_curso" | "aguardando_producao" | "concluida";
-  slug: string;
-  titulo: string;
-}
-
 interface CursoRef {
   capa: Capa;
   slug: string;
@@ -154,25 +118,22 @@ export type Retomada =
       modulo: { numero: number; titulo: string };
       progresso: Progresso;
       proximoNivel: string | null;
-      trilha: { titulo: string } | null;
     }
   | {
       tipo: "comecar";
       aula: AulaRef;
       curso: CursoRef;
       modulo: { numero: number; titulo: string };
-      trilha: { titulo: string } | null;
     }
   | {
       tipo: "prova";
       curso: CursoRef;
       progresso: Progresso;
-      trilha: { titulo: string } | null;
     };
 
 /**
- * Onde Meus cursos mostra o comunicado: `topo`, numa faixa entre Sua semana e as
- * trilhas, enquanto ele tem menos de `DIAS_NO_TOPO` dias corridos; `fim`, depois.
+ * Onde Meus cursos mostra o comunicado: `topo`, numa faixa entre Sua semana e os
+ * cursos, enquanto ele tem menos de `DIAS_NO_TOPO` dias corridos; `fim`, depois.
  */
 export type LugarDoComunicado = "topo" | "fim";
 
@@ -198,10 +159,10 @@ export interface ComunicadoVM {
 export interface PainelMeusCursos {
   /** O mais recente visível. */
   comunicado: ComunicadoVM | null;
+  /** Os cursos liberados, pela ORDEM_DOS_CURSOS e, no empate, pela liberação. */
+  cursos: readonly CursoVM[];
   /** null: "Tudo em dia". */
   retomada: Retomada | null;
-  soltos: readonly CursoVM[];
-  trilhas: readonly TrilhaVM[];
 }
 
 export interface ResumoAluno {
@@ -243,18 +204,10 @@ export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   };
 }
 
-/** Estados que abrem o curso: o curso da vez é o primeiro da trilha num deles. */
-const ABRE: ReadonlySet<TipoEstado> = new Set([
+const ORDEM_DOS_CURSOS: readonly TipoEstado[] = [
   "em_andamento",
   "prova",
   "nao_iniciado",
-]);
-
-const ORDEM_SOLTOS: readonly TipoEstado[] = [
-  "em_andamento",
-  "prova",
-  "nao_iniciado",
-  "bloqueado",
   "em_breve",
   "concluido",
 ];
@@ -285,80 +238,6 @@ function cursoVM(
   };
 }
 
-/** Borda: a trilha com os cursos em ordem de posição. */
-export function paraTrilha(trilha: TrilhaLinha): TrilhaCatalogo {
-  return {
-    cursos: [...trilha.cursos]
-      .sort((a, b) => a.posicao - b.posicao)
-      .map((x) => paraCatalogo(x.curso)),
-    descricao: trilha.descricao,
-    id: trilha.id as TrilhaId,
-    slug: trilha.slug,
-    titulo: trilha.titulo,
-  };
-}
-
-/** Trilhas liberadas, na ordem da liberação, sem repetir. */
-function trilhasLiberadas(l: LinhasPainel): TrilhaCatalogo[] {
-  const vistas = new Set<string>();
-  const trilhas: TrilhaCatalogo[] = [];
-  for (const { trilha } of l.liberacoes) {
-    if (trilha && !vistas.has(trilha.id)) {
-      vistas.add(trilha.id);
-      trilhas.push(paraTrilha(trilha));
-    }
-  }
-  return trilhas;
-}
-
-/** Uma trilha do alcance, com o estado de cada curso já decidido por `alcance`. */
-export interface TrilhaAlcancada {
-  cursos: readonly CursoAlcancado<CursoCatalogo>[];
-  trilha: TrilhaCatalogo;
-}
-
-/** A trilha como Meus cursos mostra; o acompanhamento do admin lê a mesma. */
-export function trilhaVM(
-  { cursos: alcancados, trilha: t }: TrilhaAlcancada,
-  h: Historico,
-  atividade: ReadonlyMap<AulaId, string>
-): { telas: CursoNaTela[]; vm: TrilhaVM } {
-  const telas = alcancados.map((x) => ({ ...x, trilha: { titulo: t.titulo } }));
-  const cursos = telas.map((x, i) => ({
-    ...cursoVM(x.curso, x.estado, h, atividade),
-    posicao: i + 1,
-  }));
-  const contaveis = cursos.filter((c) => c.estado.tipo !== "em_breve");
-  const feitas = contaveis.reduce((s, c) => s + c.progresso.feitas, 0);
-  const total = contaveis.reduce((s, c) => s + c.progresso.total, 0);
-  const concluidos = cursos.filter((c) => c.estado.tipo === "concluido").length;
-  const daVez = cursos.find((c) => ABRE.has(c.estado.tipo)) ?? null;
-  let situacao: TrilhaVM["situacao"] = "aguardando_producao";
-  if (cursos.length > 0 && concluidos === cursos.length) {
-    situacao = "concluida";
-  } else if (daVez) {
-    situacao = "em_curso";
-  }
-  return {
-    telas,
-    vm: {
-      aulas: {
-        feitas,
-        pct: total === 0 ? 0 : Math.floor((feitas * 100) / total),
-        total,
-      },
-      concluidos,
-      cursos,
-      daVez,
-      descricao: t.descricao,
-      id: t.id,
-      situacao,
-      slug: t.slug,
-      titulo: t.titulo,
-    },
-  };
-}
-
 /** `hoje` é o dia em São Paulo, e só serve ao comunicado: o lugar e o ano da data. */
 export function montarPainel(
   linhas: LinhasPainel,
@@ -366,22 +245,13 @@ export function montarPainel(
 ): PainelMeusCursos {
   const h = historicoDe(linhas);
   const atividade = atividadeDe(linhas);
-  const diretos = linhas.liberacoes.flatMap(({ curso }) =>
-    curso ? [paraCatalogo(curso)] : []
-  );
-  const alcancado = alcance(trilhasLiberadas(linhas), diretos, h);
-
-  const trilhas = alcancado.trilhas.map((t) => trilhaVM(t, h, atividade));
+  const liberados = linhas.liberacoes.map(({ curso }) => paraCatalogo(curso));
   // O sort é estável, então o empate fica na ordem da liberação.
-  const soltosTela: CursoNaTela[] = alcancado.soltos
-    .map((x) => ({ ...x, trilha: null }))
-    .sort(
-      (a, b) =>
-        ORDEM_SOLTOS.indexOf(a.estado.tipo) -
-        ORDEM_SOLTOS.indexOf(b.estado.tipo)
-    );
-
-  const telas = [...trilhas.flatMap((t) => t.telas), ...soltosTela];
+  const telas: CursoNaTela[] = alcance(liberados, h).sort(
+    (a, b) =>
+      ORDEM_DOS_CURSOS.indexOf(a.estado.tipo) -
+      ORDEM_DOS_CURSOS.indexOf(b.estado.tipo)
+  );
   const acessiveis = new Set<string>(telas.map((x) => x.curso.id));
   const comunicado = linhas.comunicados.find(
     (c) => c.cursoId === null || acessiveis.has(c.cursoId)
@@ -398,9 +268,8 @@ export function montarPainel(
           titulo: comunicado.titulo,
         }
       : null,
+    cursos: telas.map((x) => cursoVM(x.curso, x.estado, h, atividade)),
     retomada: retomada({ atividade, cursos: telas, historico: h }),
-    soltos: soltosTela.map((x) => cursoVM(x.curso, x.estado, h, atividade)),
-    trilhas: trilhas.map((t) => t.vm),
   };
 }
 

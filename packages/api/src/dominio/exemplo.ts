@@ -5,10 +5,9 @@ import {
   COMUNICADO,
   CURSOS,
   codigoCertificado,
+  LIBERADOS_A,
   POSICAO_A,
   PROGRESSO_A,
-  SOLTOS,
-  TRILHAS,
   VIDEO_EXEMPLO,
 } from "@cursos/db/seed/dados";
 
@@ -23,8 +22,6 @@ import {
   type Historico,
   type ModuloId,
   type StatusDoCurso,
-  type TrilhaCatalogo,
-  type TrilhaId,
   type Versao,
 } from "./tipos";
 
@@ -160,19 +157,6 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   };
 }
 
-export function trilhaCat(
-  chave: string,
-  cursos: CursoCatalogo[]
-): TrilhaCatalogo {
-  return {
-    cursos,
-    descricao: `Descrição de ${chave}`,
-    id: chave as TrilhaId,
-    slug: chave,
-    titulo: `Trilha ${chave}`,
-  };
-}
-
 export function historico(o: {
   assistidas?: string[];
   certificados?: string[];
@@ -238,27 +222,10 @@ function linhaDoSeed(chave: string): CursoLinha {
 const em = (iso: string) => new Date(iso);
 
 export function exemploDoPrototipo(): LinhasPainel {
-  const liberacoes: LinhasPainel["liberacoes"][number][] = [
-    ...TRILHAS.map((t, i) => ({
-      curso: null,
-      liberadaEm: em(`2026-08-0${i + 1}T12:00:00Z`),
-      trilha: {
-        cursos: t.cursos.map((chave, p) => ({
-          curso: linhaDoSeed(chave),
-          posicao: p + 1,
-        })),
-        descricao: t.descricao,
-        id: t.chave,
-        slug: t.chave,
-        titulo: t.titulo,
-      },
-    })),
-    ...SOLTOS.map((chave, i) => ({
-      curso: linhaDoSeed(chave),
-      liberadaEm: em(`2026-08-1${i}T12:00:00Z`),
-      trilha: null,
-    })),
-  ];
+  const liberacoes = LIBERADOS_A.map((chave, i) => ({
+    curso: linhaDoSeed(chave),
+    liberadaEm: em(`2026-08-0${i + 1}T12:00:00Z`),
+  }));
   const assistidas = PROGRESSO_A.flatMap((p) => {
     const linha = linhaDoSeed(p.curso);
     const m = linha.modulos.find((x) => x.numero === p.modulo);

@@ -35,7 +35,6 @@ import {
   type CursoId,
   capaDe,
   type ModuloId,
-  type TrilhaId,
   type Versao,
 } from "../dominio/tipos";
 import { videoDaAula } from "../dominio/video";
@@ -94,10 +93,6 @@ export async function abrirCurso(
           },
         },
       },
-      naTrilha: {
-        columns: {},
-        with: { trilha: { columns: { id: true, titulo: true } } },
-      },
       niveis: {
         columns: { nome: true, ordem: true },
         orderBy: { ordem: "asc" },
@@ -146,16 +141,12 @@ export async function abrirCurso(
     titulo: linha.titulo,
     versao: null,
   };
-  const trilha = linha.naTrilha?.trilha;
   const uso = {
     assistidasPorAula: Object.fromEntries(
       assistidas.map((a) => [a.aulaId, a.alunos])
     ),
     certificados: contagens?.certificados ?? 0,
     liberacoes: contagens?.liberacoes ?? 0,
-    trilha: trilha
-      ? { id: trilha.id as TrilhaId, titulo: trilha.titulo }
-      : null,
   };
   return {
     capa: capaDe(linha),

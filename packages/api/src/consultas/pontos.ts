@@ -56,7 +56,6 @@ export function linhasDoExtrato(
         columns: {},
         with: { curso: { columns: { titulo: true } } },
       },
-      trilha: { columns: { titulo: true } },
     },
   });
 }

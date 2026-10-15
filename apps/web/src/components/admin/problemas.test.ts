@@ -29,8 +29,8 @@ describe("problemas", () => {
   });
 
   test("a frase de reserva diz o caminho recusado, ou o documento", () => {
-    expect(fraseDeReserva("A trilha", ["versao"])).toBe(
-      "A trilha tem um valor que o servidor recusa (versao). Recarregue a página e tente de novo."
+    expect(fraseDeReserva("O curso", ["versao"])).toBe(
+      "O curso tem um valor que o servidor recusa (versao). Recarregue a página e tente de novo."
     );
     expect(fraseDeReserva("O curso", [])).toContain("(documento)");
   });

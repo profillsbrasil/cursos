@@ -2,13 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { cursoCat, historico, idAula } from "./exemplo";
 import { aulaDeRetomada, type CursoNaTela, retomada } from "./retomada";
-import type {
-  AulaId,
-  CursoCatalogo,
-  CursoId,
-  EstadoCurso,
-  Historico,
-} from "./tipos";
+import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 
 const andamento = (_c: CursoCatalogo, proxima: string): EstadoCurso => ({
   proximaAula: proxima as AulaId,
@@ -18,7 +12,6 @@ const andamento = (_c: CursoCatalogo, proxima: string): EstadoCurso => ({
 const naTela = (curso: CursoCatalogo, estado: EstadoCurso): CursoNaTela => ({
   curso,
   estado,
-  trilha: null,
 });
 
 const entrada = (cursos: CursoNaTela[], h: Historico) => ({
@@ -87,24 +80,16 @@ describe("retomada", () => {
     });
   });
 
-  test("posição em curso bloqueado ou em breve é ignorada", () => {
-    const bloq = cursoCat("bloq", { aulas: [2] });
+  test("posição em curso em breve é ignorada", () => {
     const breve = cursoCat("breve", { aulas: [2], status: "em_producao" });
     const h = historico({
       assistidas: [idAula("c", 0, 1)],
-      posicoes: [
-        [idAula("bloq", 0, 1), 50, "2026-10-07T12:00:00.000Z"],
-        [idAula("breve", 0, 1), 50, "2026-10-07T13:00:00.000Z"],
-      ],
+      posicoes: [[idAula("breve", 0, 1), 50, "2026-10-07T13:00:00.000Z"]],
     });
     const r = retomada(
       entrada(
         [
           naTela(c, andamento(c, idAula("c", 0, 2))),
-          naTela(bloq, {
-            liberadoPor: { id: "c" as CursoId, titulo: "Curso c" },
-            tipo: "bloqueado",
-          }),
           naTela(breve, { tipo: "em_breve" }),
         ],
         h

@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type {
-  Acompanhamento,
-  CursoAcompanhado,
-} from "@cursos/api/dominio/acompanhamento";
+import type { Acompanhamento } from "@cursos/api/dominio/acompanhamento";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import type { CursoId, DiaISO, LiberacaoId } from "@cursos/api/dominio/tipos";
 
@@ -10,11 +7,10 @@ import { noDia } from "@/lib/formato";
 
 import {
   dataDaLiberacao,
-  fraseDaLiberacao,
   fraseDaPessoa,
-  fraseNaTrilha,
-  seloDaLiberacao,
+  fraseDoCurso,
   seloDaPessoa,
+  seloDoCurso,
 } from "./acompanhamento";
 
 const HOJE = "2026-10-14";
@@ -22,10 +18,10 @@ const dia = (d: string) => d as DiaISO;
 
 const curso = (
   titulo: string,
-  situacao: CursoAcompanhado["situacao"],
+  situacao: Acompanhamento["situacao"],
   feitas = 0,
   total = 2
-): CursoAcompanhado => ({
+): Acompanhamento => ({
   progresso: { feitas, pct: Math.floor((feitas * 100) / total), total },
   situacao,
   titulo,
@@ -104,158 +100,56 @@ describe("fraseDaPessoa", () => {
   });
 });
 
-describe("fraseDaLiberacao", () => {
+describe("fraseDoCurso", () => {
   test("curso estudando: módulo e aula, e o último estudo à parte", () => {
-    const a: Acompanhamento = {
-      curso: curso("Nova Rotina", {
-        onde: { aula: 1, modulo: 2 },
-        tipo: "estudando",
-        ultimoEstudo: dia("2026-09-21"),
-      }),
-      tipo: "curso",
-    };
-    expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
+    const a = curso("Nova Rotina", {
+      onde: { aula: 1, modulo: 2 },
+      tipo: "estudando",
+      ultimoEstudo: dia("2026-09-21"),
+    });
+    expect([
+      fraseDoCurso(a, HOJE),
+      seloDoCurso(a.situacao.tipo).rotulo,
+    ]).toEqual([
       { quando: "último estudo em 21 de set.", texto: "Módulo 2, aula 1" },
       "Estudando",
     ]);
   });
 
   test("curso na prova conta as aulas vistas", () => {
-    const a: Acompanhamento = {
-      curso: curso(
-        "Autoavaliação",
-        { tipo: "falta_prova", ultimoEstudo: dia("2026-09-30") },
-        2,
-        2
-      ),
-      tipo: "curso",
-    };
-    expect(fraseDaLiberacao(a, HOJE)).toEqual({
+    const a = curso(
+      "Autoavaliação",
+      { tipo: "falta_prova", ultimoEstudo: dia("2026-09-30") },
+      2,
+      2
+    );
+    expect(fraseDoCurso(a, HOJE)).toEqual({
       quando: "último estudo em 30 de set.",
       texto: "Viu as 2 aulas. Falta a prova",
     });
   });
 
-  const trilha = (
-    situacao: Extract<Acompanhamento, { tipo: "trilha" }>["situacao"],
-    cursos: (CursoAcompanhado & { posicao: number })[],
-    daVez: number | null
-  ): Acompanhamento => ({
-    aulas: { feitas: 0, pct: 0, total: 0 },
-    concluidos: cursos.filter((c) => c.situacao.tipo === "concluido").length,
-    cursos,
-    daVez,
-    situacao,
-    tipo: "trilha",
-    ultimoEstudo: dia("2026-09-12"),
-  });
-
-  test("trilha com um curso concluído e o da vez fechado: Estudando, com o último estudo da trilha", () => {
-    const a = trilha(
-      "estudando",
-      [
-        {
-          ...curso("Segurança", { em: dia("2026-09-12"), tipo: "concluido" }),
-          posicao: 1,
-        },
-        { ...curso("Envasadora", { tipo: "nunca_abriu" }), posicao: 2 },
-      ],
-      2
-    );
-    expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
-      {
-        quando: "último estudo em 12 de set.",
-        texto: "Curso 2 de 2, Envasadora: nenhuma aula aberta",
-      },
-      "Estudando",
-    ]);
-  });
-
-  test("trilha sem estudo nenhum: Nunca abriu", () => {
-    const a: Acompanhamento = {
-      ...(trilha(
-        "nunca_abriu",
-        [{ ...curso("Segurança", { tipo: "nunca_abriu" }), posicao: 1 }],
-        1
-      ) as Extract<Acompanhamento, { tipo: "trilha" }>),
-      ultimoEstudo: null,
-    };
-    expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
-      { quando: null, texto: "Curso 1 de 1, Segurança: nenhuma aula aberta" },
-      "Nunca abriu",
-    ]);
-  });
-
-  test("trilha esperando produção diz quais cursos estão em produção", () => {
-    const a = trilha(
-      "aguardando_producao",
-      [
-        {
-          ...curso("Segurança", { em: dia("2026-09-12"), tipo: "concluido" }),
-          posicao: 1,
-        },
-        { ...curso("Envasadora", { tipo: "em_producao" }), posicao: 2 },
-        { ...curso("Montagem", { tipo: "em_producao" }), posicao: 3 },
-      ],
-      null
-    );
-    expect([fraseDaLiberacao(a, HOJE), seloDaLiberacao(a).rotulo]).toEqual([
-      {
-        quando: "último estudo em 12 de set.",
-        texto: "Concluiu 1 de 3 cursos. Os cursos 2 e 3 estão em produção",
-      },
-      "Aguardando produção",
-    ]);
-  });
-
-  test("a linha do curso na trilha", () => {
+  test("curso em produção e nunca aberto", () => {
     expect(
       [
-        curso("A", {
-          onde: { aula: 4, modulo: 8 },
-          tipo: "estudando",
-          ultimoEstudo: dia("2026-10-13"),
-        }),
-        curso("B", {
-          depoisDe: { posicao: 1, titulo: "A" },
-          tipo: "bloqueado",
-        }),
-        curso("C", { em: dia("2026-09-12"), tipo: "concluido" }),
-      ].map((c) => fraseNaTrilha(c, HOJE))
+        curso("A", { tipo: "em_producao" }),
+        curso("B", { tipo: "nunca_abriu" }),
+      ].map((c) => [
+        fraseDoCurso(c, HOJE).texto,
+        seloDoCurso(c.situacao.tipo).rotulo,
+      ])
     ).toEqual([
-      "Estudando · Módulo 8, aula 4 · último estudo ontem",
-      "Abre depois do curso 1",
-      "Concluído em 12 de set.",
+      ["Em produção. A pessoa ainda não vê o curso", "Em produção"],
+      ["Nenhuma aula aberta", "Nunca abriu"],
     ]);
-  });
-
-  test("no meio da frase da trilha, Módulo continua em maiúscula, como em Meus cursos", () => {
-    const a = trilha(
-      "estudando",
-      [
-        {
-          ...curso("Envasadora", {
-            onde: { aula: 4, modulo: 8 },
-            tipo: "estudando",
-            ultimoEstudo: dia("2026-09-12"),
-          }),
-          posicao: 1,
-        },
-      ],
-      1
-    );
-    expect(fraseDaLiberacao(a, HOJE)).toEqual({
-      quando: "último estudo em 12 de set.",
-      texto: "Curso 1 de 1, Envasadora: Módulo 8, aula 4",
-    });
   });
 });
 
 describe("as datas do item da liberação", () => {
-  const concluido: Acompanhamento = {
-    curso: curso("Segurança", { em: dia("2026-09-17"), tipo: "concluido" }),
-    tipo: "curso",
-  };
+  const concluido = curso("Segurança", {
+    em: dia("2026-09-17"),
+    tipo: "concluido",
+  });
   const item = (
     liberadaEm: string,
     acao: LiberacaoNaTela["acao"] = { tipo: "revogar" },
@@ -263,7 +157,7 @@ describe("as datas do item da liberação", () => {
   ): LiberacaoNaTela => ({
     acao,
     acompanhamento: concluido,
-    alvo: { id: "c1" as CursoId, tipo: "curso", titulo: "Segurança" },
+    curso: { id: "c1" as CursoId, titulo: "Segurança" },
     id: "l1" as LiberacaoId,
     liberadaEm,
     origem,
@@ -272,7 +166,7 @@ describe("as datas do item da liberação", () => {
   test("Concluído e Liberada em usam o mesmo formato curto", () => {
     const l = item("2026-08-20T15:00:00.000Z");
     expect([
-      fraseDaLiberacao(l.acompanhamento, HOJE).texto,
+      fraseDoCurso(l.acompanhamento, HOJE).texto,
       dataDaLiberacao(l, HOJE),
     ]).toEqual(["Concluído em 17 de set.", "Liberada em 20 de ago."]);
   });

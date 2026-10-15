@@ -8,23 +8,10 @@ import { CapaCurso, GRADE_CAPAS, SIZES_DA_GRADE } from "./capa-curso";
 import { PainelVazio } from "./painel-vazio";
 import { Secao } from "./secao";
 import { SuaSemana } from "./sua-semana";
-import { Trilha } from "./trilha";
 
-// Omite a parte que dá zero e concorda o participio: "1 trilha liberada para você".
-function liberados({ soltos, trilhas }: PainelMeusCursos) {
-  const partes = [
-    trilhas.length > 0 && plural(trilhas.length, "trilha", "trilhas"),
-    soltos.length > 0 &&
-      plural(soltos.length, "curso rápido", "cursos rápidos"),
-  ].filter((p) => p !== false);
-  let participio = "liberados";
-  if (soltos.length === 0) {
-    participio = trilhas.length === 1 ? "liberada" : "liberadas";
-  } else if (trilhas.length === 0 && soltos.length === 1) {
-    participio = "liberado";
-  }
-  return `${partes.join(" e ")} ${participio} para você`;
-}
+// "1 curso liberado para você", "3 cursos liberados para você".
+const liberados = ({ cursos }: PainelMeusCursos) =>
+  `${plural(cursos.length, "curso liberado", "cursos liberados")} para você`;
 
 function Cabecalho({ painel }: { painel: PainelMeusCursos }) {
   return (
@@ -38,11 +25,9 @@ function Cabecalho({ painel }: { painel: PainelMeusCursos }) {
 }
 
 // A página inteira a partir do painel e do resumo. A busca de dados fica na page.tsx.
-// As trilhas vêm antes dos cursos rápidos: o conteúdo se organiza em trilhas, e o
-// curso solto é a exceção.
 export function ConteudoMeusCursos({
   conta,
-  painel: doServidor,
+  painel,
   resumo,
   temCursoTrocavelNaVitrine,
 }: {
@@ -51,13 +36,7 @@ export function ConteudoMeusCursos({
   resumo: ResumoAluno;
   temCursoTrocavelNaVitrine: boolean;
 }) {
-  // A trilha sem curso saiu de uso: o admin tira os cursos dela para isso, porque
-  // a trilha liberada não se apaga. Ela não aparece nem conta no cabeçalho.
-  const painel = {
-    ...doServidor,
-    trilhas: doServidor.trilhas.filter((t) => t.cursos.length > 0),
-  };
-  if (painel.trilhas.length === 0 && painel.soltos.length === 0) {
+  if (painel.cursos.length === 0) {
     return (
       <>
         <h1 className="mb-7 font-bold text-3xl text-titulo tracking-tight">
@@ -89,22 +68,13 @@ export function ConteudoMeusCursos({
             temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
           />
         </div>
-        {painel.trilhas.map((t) => (
-          <Trilha key={t.id} trilha={t} />
-        ))}
-        {painel.soltos.length > 0 && (
-          <Secao
-            id="cursos-rapidos"
-            subtitulo="Liberados para você"
-            titulo="Cursos rápidos"
-          >
-            <div className={GRADE_CAPAS}>
-              {painel.soltos.map((c) => (
-                <CapaCurso curso={c} key={c.id} sizes={SIZES_DA_GRADE} />
-              ))}
-            </div>
-          </Secao>
-        )}
+        <Secao id="cursos" subtitulo="Liberados para você" titulo="Cursos">
+          <div className={GRADE_CAPAS}>
+            {painel.cursos.map((c) => (
+              <CapaCurso curso={c} key={c.id} sizes={SIZES_DA_GRADE} />
+            ))}
+          </div>
+        </Secao>
         {comunicado?.lugar === "fim" ? (
           <AvisoComunicado comunicado={comunicado} />
         ) : null}

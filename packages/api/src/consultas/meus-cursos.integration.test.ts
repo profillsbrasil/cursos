@@ -14,8 +14,6 @@ import {
   modulo,
   pontoLancamento,
   posicaoAula,
-  trilha,
-  trilhaCurso,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
@@ -38,7 +36,6 @@ const ALUNO_VAZIO = `user_teste${S}c`;
 const ALUNO_AVISO = `user_teste${S}d`;
 const ALUNO_DIRETO = `user_teste${S}e`;
 const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
-const ALUNO_REVOGADO_TRILHA = `user_teste${S}g`;
 const ALUNO_MESMO_INSTANTE = `user_teste${S}h`;
 const ALUNO_TROCA = `user_teste${S}i`;
 const ALUNO_VITRINE = `user_teste${S}j`;
@@ -50,7 +47,6 @@ const ALUNOS = [
   ALUNO_AVISO,
   ALUNO_DIRETO,
   ALUNO_REVOGADO_DIRETO,
-  ALUNO_REVOGADO_TRILHA,
   ALUNO_MESMO_INSTANTE,
   ALUNO_TROCA,
 ];
@@ -70,24 +66,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       },
     }
   );
-  const trilhas: string[] = [];
   const cursos: string[] = [];
 
-  /** Trilha com `n` cursos publicados de 1 módulo e 2 aulas cada. */
-  async function criarTrilha(n: number) {
+  /** `n` cursos publicados de 1 módulo e 2 aulas cada. */
+  async function criarCursos(n: number) {
     const sufixo = hex();
-    const [t] = await db
-      .insert(trilha)
-      .values({
-        descricao: "teste",
-        slug: `teste-${sufixo}`,
-        titulo: `Trilha ${sufixo}`,
-      })
-      .returning({ id: trilha.id });
-    if (!t) {
-      throw new Error("trilha não criada");
-    }
-    trilhas.push(t.id);
     const novos = await db
       .insert(curso)
       .values(
@@ -104,11 +87,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       )
       .returning({ id: curso.id });
     cursos.push(...novos.map((c) => c.id));
-    await db
-      .insert(trilhaCurso)
-      .values(
-        novos.map((c, i) => ({ cursoId: c.id, posicao: i + 1, trilhaId: t.id }))
-      );
     const modulos = await db
       .insert(modulo)
       .values(
@@ -131,14 +109,19 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     return {
       aulas: aulas.map((a) => a.id),
       cursos: novos.map((c) => c.id),
-      id: t.id,
     };
   }
 
-  const liberar = (userId: string, trilhaId: string) =>
-    db
-      .insert(liberacao)
-      .values({ liberadaPor: "user_admin", origem: "admin", trilhaId, userId });
+  /** Uma liberação ativa por curso. */
+  const liberar = (userId: string, ids: readonly string[]) =>
+    db.insert(liberacao).values(
+      ids.map((cursoId) => ({
+        cursoId,
+        liberadaPor: "user_admin",
+        origem: "admin" as const,
+        userId,
+      }))
+    );
 
   /** Liberação de um curso só, ativa ou já revogada. */
   const liberarCurso = (userId: string, cursoId: string, revogada = false) =>
@@ -148,16 +131,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       origem: "admin",
       userId,
       ...(revogada ? revogacao() : {}),
-    });
-
-  /** Liberação de trilha já revogada; a revogação vem depois da liberação. */
-  const liberarERevogarTrilha = (userId: string, trilhaId: string) =>
-    db.insert(liberacao).values({
-      liberadaPor: "user_admin",
-      origem: "admin",
-      trilhaId,
-      userId,
-      ...revogacao(),
     });
 
   const revogacao = () => ({
@@ -182,10 +155,15 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   const comoAluno = (userId: string | null) =>
     createCaller(contextoDeTeste({ db, userId }));
 
-  let pequena: Awaited<ReturnType<typeof criarTrilha>>;
+  let pequena: Awaited<ReturnType<typeof criarCursos>>;
+  const idsDe = (painel: { cursos: readonly { id: string }[] }) =>
+    painel.cursos.map((c) => String(c.id));
+  const doPequeno = (painel: {
+    cursos: readonly { id: string; progresso: unknown; estado: unknown }[];
+  }) => painel.cursos.find((c) => c.id === pequena.cursos[0]);
 
   beforeAll(async () => {
-    pequena = await criarTrilha(1);
+    pequena = await criarCursos(1);
   });
 
   afterAll(async () => {
@@ -195,7 +173,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
-    await db.delete(trilha).where(inArray(trilha.id, trilhas));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
   });
@@ -215,39 +192,40 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   test("aluno sem liberação recebe painel vazio e retomada nula", async () => {
     const painel = await comoAluno(ALUNO_VAZIO).meusCursos.painel();
-    expect(painel.trilhas).toEqual([]);
-    expect(painel.soltos).toEqual([]);
+    expect(painel.cursos).toEqual([]);
     expect(painel.retomada).toBeNull();
   });
 
-  test("aluno B não vê trilha liberada só para o aluno A", async () => {
-    await liberar(ALUNO_A, pequena.id);
+  test("aluno B não vê curso liberado só para o aluno A", async () => {
+    await liberar(ALUNO_A, pequena.cursos);
     const a = await comoAluno(ALUNO_A).meusCursos.painel();
     const b = await comoAluno(ALUNO_B).meusCursos.painel();
-    expect(a.trilhas.map((t) => String(t.id))).toContain(pequena.id);
-    expect(b.trilhas.map((t) => String(t.id))).not.toContain(pequena.id);
+    expect(idsDe(a)).toContain(pequena.cursos[0] ?? "");
+    expect(idsDe(b)).not.toContain(pequena.cursos[0] ?? "");
   });
 
-  test("liberação revogada tira a trilha do painel, e liberar de novo devolve o progresso", async () => {
+  test("liberação revogada tira o curso do painel, e liberar de novo devolve o progresso", async () => {
     const [primeira] = pequena.aulas;
     await db
       .insert(aulaAssistida)
       .values({ aulaId: primeira ?? "", userId: ALUNO_A });
     const antes = await carregarPainel(db, ALUNO_A, AGORA);
-    expect(antes.trilhas.find((t) => t.id === pequena.id)?.aulas.feitas).toBe(
-      1
-    );
+    expect(doPequeno(antes)?.progresso).toEqual({
+      feitas: 1,
+      pct: 50,
+      total: 2,
+    });
 
     await db
       .update(liberacao)
       .set({ revogadaEm: new Date(), revogadaPor: "user_admin" })
       .where(and(eq(liberacao.userId, ALUNO_A), isNull(liberacao.revogadaEm)));
     const revogado = await carregarPainel(db, ALUNO_A, AGORA);
-    expect(revogado.trilhas.map((t) => String(t.id))).not.toContain(pequena.id);
+    expect(idsDe(revogado)).not.toContain(pequena.cursos[0] ?? "");
 
-    await liberar(ALUNO_A, pequena.id);
+    await liberar(ALUNO_A, pequena.cursos);
     const deNovo = await carregarPainel(db, ALUNO_A, AGORA);
-    expect(deNovo.trilhas.find((t) => t.id === pequena.id)?.aulas).toEqual({
+    expect(doPequeno(deNovo)?.progresso).toEqual({
       feitas: 1,
       pct: 50,
       total: 2,
@@ -255,15 +233,16 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   });
 
   test("aula assistida e posição de outro aluno não entram", async () => {
-    await liberar(ALUNO_B, pequena.id);
+    await liberar(ALUNO_B, pequena.cursos);
     const [, segunda] = pequena.aulas;
     await db
       .insert(posicaoAula)
       .values({ aulaId: segunda ?? "", posicaoSeg: 120, userId: ALUNO_A });
     const b = await carregarPainel(db, ALUNO_B, AGORA);
-    const daTrilha = b.trilhas.find((t) => t.id === pequena.id);
-    expect(daTrilha?.aulas.feitas).toBe(0);
-    expect(daTrilha?.cursos[0]?.estado.tipo).toBe("nao_iniciado");
+    expect(doPequeno(b)).toMatchObject({
+      estado: { tipo: "nao_iniciado" },
+      progresso: { feitas: 0 },
+    });
     expect(b.retomada?.tipo).toBe("comecar");
   });
 
@@ -304,7 +283,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   });
 
   test("troca nesta semana baixa o saldo e não baixa os pontos da semana", async () => {
-    const t = await criarTrilha(1);
+    const t = await criarCursos(1);
     const [aulaId] = t.aulas;
     const [cursoId] = t.cursos;
     await db
@@ -313,7 +292,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const [lib] = await db
       .insert(liberacao)
       .values({
-        cursoId,
+        cursoId: cursoId ?? "",
         liberadaPor: ALUNO_TROCA,
         origem: "troca",
         userId: ALUNO_TROCA,
@@ -350,9 +329,9 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   });
 
   test("comunicado do curso liberado aparece mesmo com 20 mais novos de cursos fora do alcance", async () => {
-    const minha = await criarTrilha(1);
-    const alheia = await criarTrilha(1);
-    await liberar(ALUNO_AVISO, minha.id);
+    const minha = await criarCursos(1);
+    const alheia = await criarCursos(1);
+    await liberar(ALUNO_AVISO, minha.cursos);
     // Datas no futuro para ficar à frente de qualquer comunicado geral do banco local.
     // O cascade do curso apaga os comunicados no afterAll.
     const base = Date.parse("2090-01-01T00:00:00Z");
@@ -376,24 +355,24 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(painel.comunicado?.titulo).toBe(`Aviso do meu curso ${S}`);
   });
 
-  // Nos três testes abaixo, as datas no futuro deixam os comunicados à frente de
+  // Nos dois testes abaixo, as datas no futuro deixam os comunicados à frente de
   // qualquer comunicado geral do banco local.
-  test("comunicado de curso com liberação direta aparece", async () => {
+  test("comunicado de curso liberado aparece", async () => {
     const {
-      cursos: [solto],
-    } = await criarTrilha(1);
-    await liberarCurso(ALUNO_DIRETO, solto ?? "");
-    await publicar(solto, "2091-01-01T00:00:00Z", `Aviso direto ${S}`);
+      cursos: [liberado],
+    } = await criarCursos(1);
+    await liberarCurso(ALUNO_DIRETO, liberado ?? "");
+    await publicar(liberado, "2091-01-01T00:00:00Z", `Aviso direto ${S}`);
     const painel = await carregarPainel(db, ALUNO_DIRETO, AGORA);
     expect(painel.comunicado?.titulo).toBe(`Aviso direto ${S}`);
   });
 
-  test("comunicado de curso com liberação direta revogada não aparece nem toma o limit 1", async () => {
-    const liberada = await criarTrilha(1);
+  test("comunicado de curso com liberação revogada não aparece nem toma o limit 1", async () => {
+    const liberada = await criarCursos(1);
     const {
       cursos: [revogado],
-    } = await criarTrilha(1);
-    await liberar(ALUNO_REVOGADO_DIRETO, liberada.id);
+    } = await criarCursos(1);
+    await liberar(ALUNO_REVOGADO_DIRETO, liberada.cursos);
     await liberarCurso(ALUNO_REVOGADO_DIRETO, revogado ?? "", true);
     await publicar(liberada.cursos[0], "2092-01-01T00:00:00Z", `Visível ${S}`);
     await publicar(revogado, "2092-01-02T00:00:00Z", `Revogado ${S}`);
@@ -401,39 +380,29 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
   });
 
-  test("comunicado de curso de trilha revogada não aparece nem toma o limit 1", async () => {
-    const liberada = await criarTrilha(1);
-    const revogada = await criarTrilha(1);
-    await liberar(ALUNO_REVOGADO_TRILHA, liberada.id);
-    await liberarERevogarTrilha(ALUNO_REVOGADO_TRILHA, revogada.id);
-    await publicar(liberada.cursos[0], "2093-01-01T00:00:00Z", `Visível ${S}`);
-    await publicar(revogada.cursos[0], "2093-01-02T00:00:00Z", `Revogado ${S}`);
-    const painel = await carregarPainel(db, ALUNO_REVOGADO_TRILHA, AGORA);
-    expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
-  });
-
   test("duas liberações no mesmo instante saem na ordem do id (item 25)", async () => {
-    const um = await criarTrilha(1);
-    const dois = await criarTrilha(1);
+    const {
+      cursos: [um, dois],
+    } = await criarCursos(2);
     const [menor, maior] = [crypto.randomUUID(), crypto.randomUUID()].sort();
     await db.insert(liberacao).values([
       {
+        cursoId: dois ?? "",
         id: maior,
         liberadaPor: "user_admin",
         origem: "admin",
-        trilhaId: dois.id,
         userId: ALUNO_MESMO_INSTANTE,
       },
       {
+        cursoId: um ?? "",
         id: menor,
         liberadaPor: "user_admin",
         origem: "admin",
-        trilhaId: um.id,
         userId: ALUNO_MESMO_INSTANTE,
       },
     ]);
     const painel = await carregarPainel(db, ALUNO_MESMO_INSTANTE, AGORA);
-    expect(painel.trilhas.map((t) => String(t.id))).toEqual([um.id, dois.id]);
+    expect(idsDe(painel)).toEqual([um ?? "", dois ?? ""]);
   });
 
   // O banco local é compartilhado e tem cursos com preço do seed. Para o false
@@ -442,15 +411,16 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   // e o rollback desfaz tudo. Os quatro passos mudam o valor, então uma resposta
   // fixa não passa.
   test("Sua semana e Trocar pontos leem o mesmo curso trocável na vitrine", async () => {
-    const t = await criarTrilha(1);
-    const [cursoDaTrilha] = t.cursos;
-    if (!cursoDaTrilha) {
+    const {
+      cursos: [trocavel],
+    } = await criarCursos(1);
+    if (!trocavel) {
       throw new Error("curso não criado");
     }
     await db
       .update(curso)
       .set({ precoTroca: 300 })
-      .where(eq(curso.id, cursoDaTrilha));
+      .where(eq(curso.id, trocavel));
     expect({
       semana: await carregarTemCursoTrocavelNaVitrine(db, ALUNO_VITRINE),
       troca: (await carregarPainelDeTroca(db, ALUNO_VITRINE, AGORA))
@@ -486,14 +456,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
             .where(
               and(
                 eq(liberacao.userId, ALUNO_VITRINE),
-                eq(liberacao.cursoId, cursoDaTrilha)
+                eq(liberacao.cursoId, trocavel)
               )
             );
           await fato();
           await tx.insert(liberacao).values({
+            cursoId: trocavel,
             liberadaPor: "user_admin",
             origem: "admin",
-            trilhaId: t.id,
             userId: ALUNO_VITRINE,
           });
           await fato();
@@ -509,13 +479,13 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       });
     expect(desfeito).toBe(true);
     expect(vistos).toEqual([
-      // o curso da trilha está à venda
+      // o curso novo está à venda
       true,
-      // liberação direta de todo curso com preço: nada à venda
+      // liberação de todo curso com preço: nada à venda
       false,
-      // revogada a do curso da trilha, ele volta à venda
+      // revogada a do curso novo, ele volta à venda
       true,
-      // a trilha liberada também o alcança
+      // liberado de novo, ele sai da venda
       false,
     ]);
   });
@@ -529,8 +499,8 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   // O resumo alimenta o placar da casca, que roda em toda página do aluno e do
   // admin. A vitrine fica fora dele.
   test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
-    const grande = await criarTrilha(40);
-    await liberar(ALUNO_B, grande.id);
+    const grande = await criarCursos(40);
+    await liberar(ALUNO_B, grande.cursos);
     const contar = async (f: () => Promise<unknown>) => {
       statements = 0;
       await f();
@@ -545,9 +515,8 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       resumo: await contar(() => carregarResumo(db, ALUNO_B, AGORA)),
     };
     const painelB = await carregarPainel(db, ALUNO_B, AGORA);
-    expect(
-      painelB.trilhas.find((t) => t.id === grande.id)?.cursos
-    ).toHaveLength(40);
+    const doGrande = new Set(grande.cursos);
+    expect(painelB.cursos.filter((c) => doGrande.has(c.id))).toHaveLength(40);
     expect(comUm).toEqual({ painel: 5, resumo: 2 });
     expect(comQuarenta).toEqual({ painel: 5, resumo: 2 });
   });

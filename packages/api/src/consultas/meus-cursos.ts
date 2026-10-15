@@ -5,9 +5,8 @@ import {
   comunicado,
   liberacao,
   posicaoAula,
-  trilhaCurso,
 } from "@cursos/db/schema/index";
-import { and, desc, eq, gt, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
 
 import type { LinhasHistorico } from "../dominio/historico";
 import {
@@ -18,7 +17,7 @@ import {
 } from "../dominio/painel";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { DiaISO } from "../dominio/tipos";
-import { COM_CONTEUDO, TRILHA_COM_CONTEUDO } from "./catalogo";
+import { COM_CONTEUDO } from "./catalogo";
 import { filtroLiberacaoAtiva } from "./comum";
 import { linhasDoSaldo } from "./pontos";
 
@@ -72,13 +71,13 @@ export async function linhasDoPainel(db: Database, userId: string) {
       columns: { liberadaEm: true },
       orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
       where: filtroLiberacaoAtiva(userId),
-      with: { curso: COM_CONTEUDO, trilha: TRILHA_COM_CONTEUDO },
+      with: { curso: COM_CONTEUDO },
     }),
     // 2, 3 e 4
     linhasDoHistorico(db, userId),
-    // 5. o comunicado mais recente que o aluno pode ver: geral, de curso liberado
-    // direto ou de curso de trilha liberada. O filtro fica no SQL para que
-    // comunicados de cursos fora do alcance não empurrem o dele para fora do limit.
+    // 5. o comunicado mais recente que o aluno pode ver: geral ou de curso
+    // liberado. O filtro fica no SQL para que comunicados de cursos fora do
+    // alcance não empurrem o dele para fora do limit.
     db
       .select({
         cursoId: comunicado.cursoId,
@@ -96,23 +95,6 @@ export async function linhasDoPainel(db: Database, userId: string) {
             db
               .select({ id: liberacao.cursoId })
               .from(liberacao)
-              .where(
-                and(
-                  eq(liberacao.userId, userId),
-                  isNull(liberacao.revogadaEm),
-                  isNotNull(liberacao.cursoId)
-                )
-              )
-          ),
-          inArray(
-            comunicado.cursoId,
-            db
-              .select({ id: trilhaCurso.cursoId })
-              .from(trilhaCurso)
-              .innerJoin(
-                liberacao,
-                eq(liberacao.trilhaId, trilhaCurso.trilhaId)
-              )
               .where(
                 and(eq(liberacao.userId, userId), isNull(liberacao.revogadaEm))
               )

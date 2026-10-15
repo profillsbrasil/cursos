@@ -10,7 +10,7 @@ describe("Secao", () => {
     renderToStaticMarkup(
       <Secao
         descritoPor={descritoPor}
-        id="trilha-cursos"
+        id="curso-modulos"
         resumo=""
         titulo="Cursos"
       >
@@ -19,8 +19,8 @@ describe("Secao", () => {
     ).match(H2)?.[0] ?? "";
 
   test("o título focado pelo erro aponta para a mensagem", () => {
-    expect(h2("trilha-cursos-erro")).toContain(
-      'aria-describedby="trilha-cursos-erro"'
+    expect(h2("curso-modulos-erro")).toContain(
+      'aria-describedby="curso-modulos-erro"'
     );
   });
 

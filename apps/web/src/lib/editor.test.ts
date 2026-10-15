@@ -216,26 +216,18 @@ describe("sincronizarComAPagina", () => {
 // Key pela versão remonta o editor no refresh do salvar e apaga o que o admin
 // digitou com o salvar pendente; o Apoio decide quando recomeçar.
 describe("a página monta o editor pela key do id, nunca da versão", () => {
-  const EDITORES = [
-    { editor: "EditorDoCurso", pasta: "cursos" },
-    { editor: "EditorDaTrilha", pasta: "trilhas" },
-  ];
-  for (const { editor, pasta } of EDITORES) {
-    test(pasta, () => {
-      const pagina = readFileSync(
-        join(
-          import.meta.dir,
-          `../app/(admin)/admin/catalogo/${pasta}/[id]/page.tsx`
-        ),
-        "utf8"
-      );
-      const keys = [
-        ...pagina.matchAll(
-          new RegExp(`<${editor}\\b[^>]*?\\bkey=\\{([^}]*)\\}`, "g")
-        ),
-      ];
-      expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
-      expect(pagina).toContain("abrirOuRascunho(");
-    });
-  }
+  test("cursos", () => {
+    const pagina = readFileSync(
+      join(
+        import.meta.dir,
+        "../app/(admin)/admin/catalogo/cursos/[id]/page.tsx"
+      ),
+      "utf8"
+    );
+    const keys = [
+      ...pagina.matchAll(/<EditorDoCurso\b[^>]*?\bkey=\{([^}]*)\}/g),
+    ];
+    expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
+    expect(pagina).toContain("abrirOuRascunho(");
+  });
 });

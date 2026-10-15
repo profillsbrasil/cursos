@@ -14,7 +14,7 @@ export default async function Catalogo() {
           Catálogo
         </h1>
         <p className="text-muted-foreground">
-          Trilhas e cursos que os alunos podem receber
+          Cursos que os alunos podem receber
         </p>
       </header>
       <VisaoDoCatalogo visao={visao} />

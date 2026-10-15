@@ -47,7 +47,7 @@ export function FaixaComunicado({
 }
 
 // O comunicado que passou do topo (`lugar: "fim"`), com o texto inteiro, depois
-// dos cursos rápidos. Sem botão até a tela de comunicados existir.
+// dos cursos. Sem botão até a tela de comunicados existir.
 export function AvisoComunicado({ comunicado }: { comunicado: ComunicadoVM }) {
   return (
     <section

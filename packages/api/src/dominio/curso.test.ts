@@ -1,20 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { estadoDoCurso, estadosDaTrilha, niveis, progresso } from "./curso";
-import {
-  cursoCat,
-  cursoLinha,
-  HOJE_DO_EXEMPLO,
-  historico,
-  idAula,
-  SEM_LIBERACAO,
-  trilhaCat,
-} from "./exemplo";
+import { alcance, estadoDoCurso, niveis, progresso } from "./curso";
+import { cursoCat, historico, idAula } from "./exemplo";
 import { historicoDe } from "./historico";
-import { montarPainel } from "./painel";
-import type { AulaId, CursoId } from "./tipos";
+import type { AulaId } from "./tipos";
 
-const livre = { tipo: "livre" } as const;
 const todas = (chave: string, aulas: number[]) =>
   aulas.flatMap((qtd, m) =>
     Array.from({ length: qtd }, (_, p) => idAula(chave, m, p + 1))
@@ -24,51 +14,43 @@ describe("estadoDoCurso", () => {
   test("certificado mantém concluido mesmo com aula nova no curso", () => {
     const c = cursoCat("c", { aulas: [3] });
     const h = historico({ assistidas: todas("c", [2]), certificados: ["c"] });
-    expect(estadoDoCurso(c, h, livre).tipo).toBe("concluido");
+    expect(estadoDoCurso(c, h).tipo).toBe("concluido");
   });
 
   test("curso concluído que volta para em produção continua concluido", () => {
     const c = cursoCat("c", { aulas: [2], status: "em_producao" });
     const h = historico({ certificados: ["c"] });
-    expect(estadoDoCurso(c, h, livre).tipo).toBe("concluido");
+    expect(estadoDoCurso(c, h).tipo).toBe("concluido");
   });
 
   test("curso em produção é em_breve mesmo com liberação", () => {
     const c = cursoCat("c", { aulas: [2], status: "em_producao" });
-    expect(estadoDoCurso(c, historico({}), livre)).toEqual({
-      tipo: "em_breve",
-    });
+    expect(estadoDoCurso(c, historico({}))).toEqual({ tipo: "em_breve" });
   });
 
-  test("em_breve vence bloqueado", () => {
-    const c = cursoCat("c", { aulas: [2], status: "em_producao" });
-    const antes = {
-      concluido: false,
-      curso: { id: "a" as CursoId, titulo: "A" },
-      tipo: "na_trilha",
-    } as const;
-    expect(estadoDoCurso(c, historico({}), antes).tipo).toBe("em_breve");
+  test("curso começado que voltou para em produção é em_breve", () => {
+    const c = cursoCat("c", { aulas: [3], status: "em_producao" });
+    const h = historico({ assistidas: [idAula("c", 0, 1)] });
+    expect(estadoDoCurso(c, h)).toEqual({ tipo: "em_breve" });
   });
 
   test("curso publicado sem aulas é em_breve e nunca vira prova", () => {
     const c = cursoCat("c", { aulas: [] });
-    expect(estadoDoCurso(c, historico({}), livre).tipo).toBe("em_breve");
+    expect(estadoDoCurso(c, historico({})).tipo).toBe("em_breve");
     const vazioDeAulas = cursoCat("v", { aulas: [0] });
-    expect(estadoDoCurso(vazioDeAulas, historico({}), livre).tipo).toBe(
-      "em_breve"
-    );
+    expect(estadoDoCurso(vazioDeAulas, historico({})).tipo).toBe("em_breve");
   });
 
   test("todas as aulas assistidas sem certificado é prova", () => {
     const c = cursoCat("c", { aulas: [2, 1] });
     const h = historico({ assistidas: todas("c", [2, 1]) });
-    expect(estadoDoCurso(c, h, livre)).toEqual({ tipo: "prova" });
+    expect(estadoDoCurso(c, h)).toEqual({ tipo: "prova" });
   });
 
   test("posição salva sem aula assistida já conta como em_andamento", () => {
     const c = cursoCat("c", { aulas: [3] });
     const h = historico({ posicoes: [[idAula("c", 0, 1), 30]] });
-    expect(estadoDoCurso(c, h, livre)).toEqual({
+    expect(estadoDoCurso(c, h)).toEqual({
       proximaAula: idAula("c", 0, 1) as AulaId,
       tipo: "em_andamento",
     });
@@ -76,57 +58,31 @@ describe("estadoDoCurso", () => {
 
   test("sem aula assistida e sem posição é nao_iniciado", () => {
     const c = cursoCat("c", { aulas: [3] });
-    expect(estadoDoCurso(c, historico({}), livre)).toEqual({
+    expect(estadoDoCurso(c, historico({}))).toEqual({
       primeiraAula: idAula("c", 0, 1) as AulaId,
       tipo: "nao_iniciado",
     });
   });
 });
 
-describe("estadosDaTrilha", () => {
+describe("alcance", () => {
   const a = cursoCat("a", { aulas: [2] });
   const b = cursoCat("b", { aulas: [2] });
-  const t = trilhaCat("t", [a, b]);
 
-  test("segundo curso da trilha fica bloqueado até o primeiro ter certificado", () => {
-    const tudoAssistido = historico({ assistidas: todas("a", [2]) });
+  test("os cursos liberados na ordem em que chegaram, cada um com o próprio estado", () => {
+    const h = historico({ assistidas: [idAula("b", 0, 1)] });
     expect(
-      estadosDaTrilha(t, tudoAssistido, new Set()).map((e) => e.tipo)
-    ).toEqual(["prova", "bloqueado"]);
-    const comCertificado = historico({
-      assistidas: todas("a", [2]),
-      certificados: ["a"],
-    });
-    expect(
-      estadosDaTrilha(t, comCertificado, new Set()).map((e) => e.tipo)
-    ).toEqual(["concluido", "nao_iniciado"]);
+      alcance([b, a], h).map((x) => [x.curso.slug, x.estado.tipo])
+    ).toEqual([
+      ["b", "em_andamento"],
+      ["a", "nao_iniciado"],
+    ]);
   });
 
-  test("bloqueado aponta o curso anterior em liberadoPor", () => {
-    const [, segundo] = estadosDaTrilha(t, historico({}), new Set());
-    expect(segundo).toEqual({
-      liberadoPor: { id: "a" as CursoId, titulo: "Curso a" },
-      tipo: "bloqueado",
-    });
-  });
-
-  test("curso depois de um em_breve fica bloqueado", () => {
-    const breve = cursoCat("breve", { aulas: [2], status: "em_producao" });
-    const trilha = trilhaCat("t2", [breve, b]);
-    expect(
-      estadosDaTrilha(trilha, historico({}), new Set()).map((e) => e.tipo)
-    ).toEqual(["em_breve", "bloqueado"]);
-  });
-
-  test("liberação direta ignora a ordem da trilha", () => {
-    const estados = estadosDaTrilha(
-      t,
-      historico({}),
-      new Set(["b" as CursoId])
-    );
-    expect(estados.map((e) => e.tipo)).toEqual([
-      "nao_iniciado",
-      "nao_iniciado",
+  test("curso liberado duas vezes aparece uma vez, no lugar da primeira", () => {
+    expect(alcance([a, b, a], historico({})).map((x) => x.curso.slug)).toEqual([
+      "a",
+      "b",
     ]);
   });
 });
@@ -219,121 +175,6 @@ describe("niveis", () => {
   });
 });
 
-describe("começou abre", () => {
-  const a = cursoCat("a", { aulas: [2] });
-  const b = cursoCat("b", { aulas: [3] });
-  const c = cursoCat("c", { aulas: [2] });
-  const novo = cursoCat("novo", { aulas: [2] });
-  // a concluído, b começado só por posição salva, c e novo intocados
-  const h = historico({
-    assistidas: todas("a", [2]),
-    certificados: ["a"],
-    posicoes: [[idAula("b", 0, 1), 40]],
-  });
-  const tipos = (cursos: (typeof a)[], hist = h) =>
-    estadosDaTrilha(trilhaCat("t", cursos), hist, new Set()).map((e) => e.tipo);
-
-  test("curso começado não volta a bloqueado quando um curso entra antes dele", () => {
-    expect(tipos([a, b, c])).toEqual([
-      "concluido",
-      "em_andamento",
-      "bloqueado",
-    ]);
-    expect(tipos([a, novo, b, c])).toEqual([
-      "concluido",
-      "nao_iniciado",
-      "em_andamento",
-      "bloqueado",
-    ]);
-  });
-
-  test("curso novo no topo não tranca o começado", () => {
-    expect(tipos([novo, b, a])).toEqual([
-      "nao_iniciado",
-      "em_andamento",
-      "concluido",
-    ]);
-  });
-
-  test("reordenar não tranca o curso começado", () => {
-    expect(tipos([c, b, a])).toEqual([
-      "nao_iniciado",
-      "em_andamento",
-      "concluido",
-    ]);
-  });
-
-  test("curso com aula assistida atrás de um curso novo continua em_andamento", () => {
-    const comAula = historico({ assistidas: [idAula("b", 0, 1)] });
-    expect(
-      estadoDoCurso(b, comAula, {
-        concluido: false,
-        curso: { id: "novo" as CursoId, titulo: "Curso novo" },
-        tipo: "na_trilha",
-      })
-    ).toEqual({
-      proximaAula: idAula("b", 0, 2) as AulaId,
-      tipo: "em_andamento",
-    });
-  });
-
-  test("curso com todas as aulas assistidas atrás de um curso novo vai para a prova", () => {
-    const comTudo = historico({ assistidas: todas("b", [3]) });
-    expect(tipos([novo, b], comTudo)).toEqual(["nao_iniciado", "prova"]);
-  });
-
-  test("curso não tocado atrás de um curso novo continua bloqueado", () => {
-    expect(tipos([novo, c])).toEqual(["nao_iniciado", "bloqueado"]);
-  });
-
-  test("curso começado que voltou para em produção é em_breve", () => {
-    const arquivado = cursoCat("b", { aulas: [3], status: "em_producao" });
-    expect(tipos([a, arquivado])).toEqual(["concluido", "em_breve"]);
-  });
-
-  test("no painel, a retomada continua no curso começado depois da inserção", () => {
-    const linhaB = cursoLinha("b", { aulas: [3] });
-    const painel = montarPainel(
-      {
-        ...SEM_LIBERACAO,
-        assistidas: [
-          {
-            assistidaEm: new Date("2026-10-06T15:00:00Z"),
-            aulaId: idAula("b", 0, 1),
-          },
-        ],
-        liberacoes: [
-          {
-            curso: null,
-            liberadaEm: new Date("2026-08-01T12:00:00Z"),
-            trilha: {
-              cursos: [
-                { curso: cursoLinha("novo", { aulas: [2] }), posicao: 1 },
-                { curso: linhaB, posicao: 2 },
-              ],
-              descricao: "Descrição",
-              id: "t",
-              slug: "t",
-              titulo: "Trilha t",
-            },
-          },
-        ],
-      },
-      HOJE_DO_EXEMPLO
-    );
-    expect(
-      painel.trilhas[0]?.cursos.map((x) => [x.slug, x.estado.tipo])
-    ).toEqual([
-      ["novo", "nao_iniciado"],
-      ["b", "em_andamento"],
-    ]);
-    expect(painel.retomada).toMatchObject({
-      curso: { slug: "b" },
-      tipo: "continuar",
-    });
-  });
-});
-
 describe("historicoDe", () => {
   test("posição em 0 s não entra no histórico e não conta como começado", () => {
     const h = historicoDe({
@@ -353,12 +194,7 @@ describe("historicoDe", () => {
       ],
     });
     expect([...h.posicoes.keys()]).toEqual([idAula("c", 0, 1) as AulaId]);
-    const novo = cursoCat("novo", { aulas: [1] });
     const b = cursoCat("b", { aulas: [2] });
-    expect(
-      estadosDaTrilha(trilhaCat("t", [novo, b]), h, new Set()).map(
-        (e) => e.tipo
-      )
-    ).toEqual(["nao_iniciado", "bloqueado"]);
+    expect(estadoDoCurso(b, h).tipo).toBe("nao_iniciado");
   });
 });

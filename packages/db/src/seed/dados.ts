@@ -32,13 +32,6 @@ export interface CursoSeed {
   titulo: string;
 }
 
-export interface TrilhaSeed {
-  chave: string;
-  cursos: string[];
-  descricao: string;
-  titulo: string;
-}
-
 /**
  * Toda aula de exemplo toca o mesmo vídeo: Big Buck Bunny (CC BY, Blender
  * Foundation). O getDuration() da IFrame API mediu 634,6 s.
@@ -137,52 +130,28 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/seguranca.jpg",
-    chave: "seguranca-posto",
+    chave: "fabrica-montagem",
     codigo: null,
     destaque: null,
-    modulos: umModulo(1, "Segurança da máquina", [
-      "Riscos do posto de montagem",
-      "Bloqueio antes de mexer",
-      "Ferramentas e EPI",
-    ]),
+    modulos: [
+      ...umModulo(1, "Segurança do posto", [
+        "Riscos do posto de montagem",
+        "Bloqueio antes de mexer",
+        "Ferramentas e EPI",
+      ]),
+      ...umModulo(2, "Envasadora: conhecendo a máquina", [
+        "Estrutura e conjuntos",
+        "Bicos e dosagem",
+      ]),
+      ...umModulo(3, "Montagem pneumática", [
+        "Leitura do esquema",
+        "Montando o conjunto",
+      ]),
+    ],
     niveis: [],
     status: "publicado",
     tema: "Fábrica e montagem",
-    titulo: "Segurança do posto",
-  },
-  {
-    capaAlt: "Ilustração de uma envasadora e seus conjuntos",
-    capaAltura: 720,
-    capaLargura: 1280,
-    capaUrl: "/capas/operacao.jpg",
-    chave: "envasadora",
-    codigo: null,
-    destaque: null,
-    modulos: umModulo(1, "Componentes e conjuntos", [
-      "Estrutura e conjuntos",
-      "Bicos e dosagem",
-    ]),
-    niveis: [],
-    status: "em_producao",
-    tema: "Fábrica e montagem",
-    titulo: "Envasadora: conhecendo a máquina",
-  },
-  {
-    capaAlt: "Ilustração de montagem de componentes pneumáticos",
-    capaAltura: 720,
-    capaLargura: 1280,
-    capaUrl: "/capas/calibracao.jpg",
-    chave: "montagem",
-    codigo: null,
-    destaque: null,
-    modulos: umModulo(1, "Montagem passo a passo", [
-      "Leitura do esquema",
-      "Montando o conjunto",
-    ]),
-    niveis: [],
-    status: "em_producao",
-    tema: "Fábrica e montagem",
-    titulo: "Montagem pneumática",
+    titulo: "Fábrica e montagem",
   },
   {
     capaAlt:
@@ -366,24 +335,17 @@ export const CURSOS: CursoSeed[] = [
   },
 ];
 
-export const TRILHAS: TrilhaSeed[] = [
-  {
-    chave: "formacao-comercial",
-    cursos: ["comercial"],
-    descricao:
-      "O curso Profills School Comercial, do diagnóstico ao pós-venda, em 16 módulos e três níveis.",
-    titulo: "Formação comercial",
-  },
-  {
-    chave: "fabrica-montagem",
-    cursos: ["seguranca-posto", "envasadora", "montagem"],
-    descricao:
-      "Trilha teórica da fábrica. Dois cursos ainda estão em produção.",
-    titulo: "Fábrica e montagem",
-  },
+/** Cursos que o admin liberou ao aluno A, do mais antigo ao mais novo. */
+export const LIBERADOS_A = [
+  "comercial",
+  "fabrica-montagem",
+  "nova-rotina",
+  "gravacao",
+  "autoavaliacao",
 ];
 
-export const SOLTOS = ["nova-rotina", "gravacao", "autoavaliacao"];
+/** O curso que o admin liberou ao aluno B. */
+export const LIBERADO_B = "fabrica-montagem";
 
 export const COMUNICADO = {
   chave: "modulo-13-atualizado",

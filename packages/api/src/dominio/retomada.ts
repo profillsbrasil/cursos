@@ -5,13 +5,12 @@ import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 export interface CursoNaTela {
   curso: CursoCatalogo;
   estado: EstadoCurso;
-  trilha: { titulo: string } | null;
 }
 
 export interface EntradaRetomada {
   /** Momento ISO da última atividade por aula: assistida ou posição salva. */
   atividade: ReadonlyMap<AulaId, string>;
-  /** Cursos acessíveis na ordem da tela: trilhas, depois soltos. */
+  /** Cursos acessíveis na ordem da tela. */
   cursos: readonly CursoNaTela[];
   historico: Historico;
 }
@@ -57,7 +56,6 @@ function continuar(
     progresso: progresso(item.curso, h.assistidas),
     proximoNivel: niveis(item.curso, h.assistidas).proximo?.nome ?? null,
     tipo: "continuar",
-    trilha: item.trilha,
   };
 }
 
@@ -114,9 +112,9 @@ export interface OndeNoCurso {
 }
 
 /**
- * Onde a pessoa está no curso: a aula para onde o Continuar dela leva. O cartão
- * da trilha de Meus cursos e o acompanhamento do admin leem daqui. null quando o
- * curso não abre aula: em produção, bloqueado, na prova ou concluído.
+ * Onde a pessoa está no curso: a aula para onde o Continuar dela leva. A capa
+ * do curso em Meus cursos e o acompanhamento do admin leem daqui. null quando o
+ * curso não abre aula: em produção, na prova ou concluído.
  */
 export function ondeNoCurso(
   curso: CursoCatalogo,
@@ -177,10 +175,9 @@ export function retomada({
       curso: cursoRef(emProva.curso),
       progresso: progresso(emProva.curso, h.assistidas),
       tipo: "prova",
-      trilha: emProva.trilha,
     };
   }
-  // 6: o primeiro curso não iniciado, trilhas antes dos soltos.
+  // 6: o primeiro curso não iniciado, na ordem da tela.
   const novo = cursos.find(ehEstado("nao_iniciado"));
   if (novo) {
     const { aula, modulo, numeroNoModulo } = localizar(
@@ -197,7 +194,6 @@ export function retomada({
       curso: cursoRef(novo.curso),
       modulo: { numero: modulo.numero, titulo: modulo.titulo },
       tipo: "comecar",
-      trilha: novo.trilha,
     };
   }
   return null;

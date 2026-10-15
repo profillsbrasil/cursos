@@ -11,8 +11,6 @@ import {
   modulo,
   pontoLancamento,
   posicaoAula,
-  trilha,
-  trilhaCurso,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
@@ -79,7 +77,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   // O registrar das corridas roda neste db: esperas() conta só as conexões dele.
   const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE) });
   const cursos: string[] = [];
-  const trilhas: string[] = [];
 
   async function criarCurso(
     n: number,
@@ -170,7 +167,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
     await db.delete(cotaVideo).where(inArray(cotaVideo.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
-    await db.delete(trilha).where(inArray(trilha.id, trilhas));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
     await dbDaCorrida.$client.end();
@@ -188,7 +184,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(erros).toEqual(["UNAUTHORIZED", "UNAUTHORIZED"]);
   });
 
-  test("NOT_FOUND sem liberação, com curso em breve, bloqueado e depois de revogar", async () => {
+  test("NOT_FOUND sem liberação, com curso em breve e depois de revogar", async () => {
     const aluno = novoAluno();
     const caller = comoAluno(aluno);
     const tentar = (aulaId: string) =>
@@ -200,31 +196,15 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const breve = await criarCurso(1, { status: "em_producao" });
     await liberarCurso(aluno, breve.id);
     const primeiro = await criarCurso(1);
-    const segundo = await criarCurso(1);
-    const [tr] = await db
-      .insert(trilha)
-      .values({ descricao: "teste", slug: `teste-${hex()}`, titulo: "T" })
-      .returning({ id: trilha.id });
-    trilhas.push(tr?.id ?? "");
-    await db.insert(trilhaCurso).values([
-      { cursoId: primeiro.id, posicao: 1, trilhaId: tr?.id ?? "" },
-      { cursoId: segundo.id, posicao: 2, trilhaId: tr?.id ?? "" },
-    ]);
-    await db.insert(liberacao).values({
-      liberadaPor: "user_admin",
-      origem: "admin",
-      trilhaId: tr?.id,
-      userId: aluno,
-    });
+    await liberarCurso(aluno, primeiro.id);
 
     expect(await tentar(semLiberacao.aulas[0] ?? "")).toBe("NOT_FOUND");
     expect(await tentar(breve.aulas[0] ?? "")).toBe("NOT_FOUND");
-    expect(await tentar(segundo.aulas[0] ?? "")).toBe("NOT_FOUND");
     expect(await tentar(primeiro.aulas[0] ?? "")).toBe("ok");
     expect(
       await caller.aula.abrir({
-        aulaId: segundo.aulas[0] ?? "",
-        slug: segundo.slug,
+        aulaId: semLiberacao.aulas[0] ?? "",
+        slug: semLiberacao.slug,
       })
     ).toBeNull();
 

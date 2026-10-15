@@ -1,6 +1,6 @@
 // Seed de EXEMPLO. Sem flag, só escreve no Supabase local (SEED_DATABASE_URL, padrão 127.0.0.1:54322).
 // Com --cloud, lê o DATABASE_URL do ambiente, imprime o destino e só segue com --sim-cloud.
-// Catálogo: só cria curso e trilha que faltam, por id fixo. Curso ou trilha que já existe é do admin,
+// Catálogo: só cria curso que falta, por id fixo. Curso que já existe é do admin,
 // com tudo o que ele mudou ou tirou dentro dele. Fatos dos alunos de exemplo: apagados só por user_id
 // e reinseridos; fato que aponta para aula que o admin apagou fica de fora.
 // Uso: bun run db:seed -- --aluno user_xxx [--cloud --sim-cloud]
@@ -22,8 +22,6 @@ import {
   nivel,
   pontoLancamento,
   posicaoAula,
-  trilha,
-  trilhaCurso,
 } from "../schema";
 import {
   ALUNO_B,
@@ -32,12 +30,12 @@ import {
   CURSOS,
   codigoCertificado,
   LIBERADA_POR,
+  LIBERADO_B,
+  LIBERADOS_A,
   PONTOS_AULA,
   PONTOS_CURSO,
   POSICAO_A,
   PROGRESSO_A,
-  SOLTOS,
-  TRILHAS,
   TROCA_A,
   VIDEO_EXEMPLO,
 } from "./dados";
@@ -175,25 +173,12 @@ function linhasDeConteudo() {
       }))
     )
   );
-  const trilhas = TRILHAS.map((t) => ({
-    descricao: t.descricao,
-    id: idFixo(`trilha:${t.chave}`),
-    slug: t.chave,
-    titulo: t.titulo,
-  }));
-  const trilhaCursos = TRILHAS.flatMap((t) =>
-    t.cursos.map((chave, i) => ({
-      cursoId: idCurso(chave),
-      posicao: i + 1,
-      trilhaId: idFixo(`trilha:${t.chave}`),
-    }))
-  );
-  return { aulas, cursos, modulos, niveis, trilhaCursos, trilhas };
+  return { aulas, cursos, modulos, niveis };
 }
 
 /**
  * Catálogo: cria só o que falta, na ordem das FKs. Níveis, módulos e aulas entram só para
- * curso que nasceu nesta execução, e `trilha_curso` só para trilha que nasceu nela.
+ * curso que nasceu nesta execução.
  */
 async function plantarConteudo(tx: Transacao) {
   const l = linhasDeConteudo();
@@ -219,23 +204,7 @@ async function plantarConteudo(tx: Transacao) {
   if (aulas.length > 0) {
     await tx.insert(aula).values(aulas).onConflictDoNothing();
   }
-
-  const trilhasNovas = new Set(
-    (
-      await tx
-        .insert(trilha)
-        .values(l.trilhas)
-        .onConflictDoNothing()
-        .returning({ id: trilha.id })
-    ).map((r) => r.id)
-  );
-  const trilhaCursos = l.trilhaCursos.filter((t) =>
-    trilhasNovas.has(t.trilhaId)
-  );
-  if (trilhaCursos.length > 0) {
-    await tx.insert(trilhaCurso).values(trilhaCursos).onConflictDoNothing();
-  }
-  return { cursosNovos: cursosNovos.size, trilhasNovas: trilhasNovas.size };
+  return { cursosNovos: cursosNovos.size };
 }
 
 export async function semear(url: string, alunoA: string) {
@@ -276,27 +245,19 @@ async function semearNoBanco(db: Database, alunoA: string) {
     await tx.delete(aulaAssistida).where(inArray(aulaAssistida.userId, alunos));
     await tx.delete(liberacao).where(inArray(liberacao.userId, alunos));
 
-    const idTrilha = (chave: string) => idFixo(`trilha:${chave}`);
     await tx.insert(liberacao).values([
-      ...TRILHAS.map((t, i) => ({
-        liberadaEm: diasAtras(hoje, 60 - i, 9),
-        liberadaPor: LIBERADA_POR,
-        origem: "admin" as const,
-        trilhaId: idTrilha(t.chave),
-        userId: alunoA,
-      })),
-      ...SOLTOS.map((chave, i) => ({
+      ...LIBERADOS_A.map((chave, i) => ({
         cursoId: idCurso(chave),
-        liberadaEm: diasAtras(hoje, 50 - i, 9),
+        liberadaEm: diasAtras(hoje, 60 - i, 9),
         liberadaPor: LIBERADA_POR,
         origem: "admin" as const,
         userId: alunoA,
       })),
       {
+        cursoId: idCurso(LIBERADO_B),
         liberadaEm: diasAtras(hoje, 30, 9),
         liberadaPor: LIBERADA_POR,
         origem: "admin",
-        trilhaId: idTrilha("fabrica-montagem"),
         userId: ALUNO_B,
       },
     ]);
@@ -429,9 +390,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
   });
 
   const contagem = await db.execute<{ n: number; tabela: string }>(sql`
-    select 'trilha' as tabela, count(*)::int as n from trilha
-    union all select 'curso', count(*)::int from curso
-    union all select 'trilha_curso', count(*)::int from trilha_curso
+    select 'curso' as tabela, count(*)::int as n from curso
     union all select 'nivel', count(*)::int from nivel
     union all select 'modulo', count(*)::int from modulo
     union all select 'aula', count(*)::int from aula
@@ -444,7 +403,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
     union all select 'comunicado', count(*)::int from comunicado`);
   console.table(contagem.rows);
   console.log(
-    `Cursos novos: ${resumo.cursosNovos}. Trilhas novas: ${resumo.trilhasNovas}. Aulas de exemplo que o admin apagou (fatos pulados): ${resumo.aulasAusentes}.`
+    `Cursos novos: ${resumo.cursosNovos}. Aulas de exemplo que o admin apagou (fatos pulados): ${resumo.aulasAusentes}.`
   );
 }
 

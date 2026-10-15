@@ -17,7 +17,7 @@ export default async function MeusCursos() {
     carregarResumo(),
     carregarTemCursoTrocavelNaVitrine(),
   ]);
-  const vazio = painel.trilhas.length === 0 && painel.soltos.length === 0;
+  const vazio = painel.cursos.length === 0;
   // A conta só aparece no estado vazio, para a pessoa conferir se entrou com a conta certa.
   const usuario = vazio ? await currentUser() : null;
   const conta =

@@ -8,11 +8,6 @@ import {
   salvarComunicado,
 } from "../consultas/comunicado";
 import {
-  abrirTrilha,
-  apagarTrilha,
-  salvarTrilha,
-} from "../consultas/edicao-da-trilha";
-import {
   abrirCurso,
   apagarCurso,
   salvarCurso,
@@ -24,37 +19,18 @@ import {
   TEXTO_MAX,
   TITULO_MAX,
 } from "../dominio/comunicado";
-import { documentoDaTrilha } from "../dominio/edicao-da-trilha";
-import { montarAcesso, type PedidoDeLiberar } from "../dominio/liberacao";
+import { montarAcesso } from "../dominio/liberacao";
 import { diaLocal } from "../dominio/sequencia";
-import type {
-  ComunicadoId,
-  CursoId,
-  LiberacaoId,
-  TrilhaId,
-} from "../dominio/tipos";
+import type { ComunicadoId, CursoId, LiberacaoId } from "../dominio/tipos";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
 // O mesmo formato do check liberacao_user_id_clerk.
 const USER_ID = /^user_[A-Za-z0-9]+$/;
 const userId = z.string().regex(USER_ID);
 
-const alvo = z.discriminatedUnion("tipo", [
-  z.object({ id: z.uuid(), tipo: z.literal("curso") }),
-  z.object({
-    id: z.uuid(),
-    tipo: z.literal("trilha"),
-    trocadosVistos: z.array(z.uuid()).max(500),
-  }),
-]);
+const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
 
-const doCurso = z.object({
-  id: z.uuid().transform((id) => id.toLowerCase() as CursoId),
-});
-
-const daTrilha = z.object({
-  id: z.uuid().transform((id) => id.toLowerCase() as TrilhaId),
-});
+const doCurso = z.object({ id: cursoId });
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
 export const adminRouter = router({
@@ -84,7 +60,7 @@ export const adminRouter = router({
         return montarBusca(resultado, linhas, diaLocal(new Date()));
       }),
     liberar: adminProcedure
-      .input(z.object({ alvo, userId }))
+      .input(z.object({ cursoId, userId }))
       .mutation(async ({ ctx, input }) => {
         const pessoa = await ctx.pessoas.porId(input.userId);
         if (!pessoa) {
@@ -93,13 +69,7 @@ export const adminRouter = router({
             message: "Esta pessoa não existe mais no login da plataforma.",
           });
         }
-        return liberar(
-          ctx.db,
-          ctx.admin,
-          pessoa,
-          input.alvo as PedidoDeLiberar,
-          new Date()
-        );
+        return liberar(ctx.db, ctx.admin, pessoa, input.cursoId, new Date());
       }),
     revogar: adminProcedure
       .input(z.object({ liberacaoId: z.uuid() }))
@@ -115,15 +85,9 @@ export const adminRouter = router({
     abrirCurso: adminProcedure
       .input(doCurso)
       .query(({ ctx, input }) => abrirCurso(ctx.db, input.id)),
-    abrirTrilha: adminProcedure
-      .input(daTrilha)
-      .query(({ ctx, input }) => abrirTrilha(ctx.db, input.id)),
     apagarCurso: adminProcedure
       .input(doCurso)
       .mutation(({ ctx, input }) => apagarCurso(ctx.db, input.id)),
-    apagarTrilha: adminProcedure
-      .input(daTrilha)
-      .mutation(({ ctx, input }) => apagarTrilha(ctx.db, input.id)),
     /**
      * FormData com "documento" (JSON de DocumentoDoCurso) e "capa" (arquivo
      * opcional), montado por formularioDoCurso. O fetch adapter do tRPC lê
@@ -132,9 +96,6 @@ export const adminRouter = router({
     salvarCurso: adminProcedure
       .input(z.instanceof(FormData))
       .mutation(({ ctx, input }) => salvarCurso(ctx, input)),
-    salvarTrilha: adminProcedure
-      .input(documentoDaTrilha)
-      .mutation(({ ctx, input }) => salvarTrilha(ctx.db, input)),
     visao: adminProcedure.query(({ ctx }) => visaoDoCatalogo(ctx.db)),
   }),
   comunicados: router({

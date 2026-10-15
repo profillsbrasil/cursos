@@ -30,20 +30,12 @@ const continuar = (faltaSeg: number): Retomada => ({
   progresso: { feitas: 9, pct: 45, total: 20 },
   proximoNivel: null,
   tipo: "continuar",
-  trilha: null,
 });
-const comecar: Retomada = {
-  aula,
-  curso,
-  modulo,
-  tipo: "comecar",
-  trilha: null,
-};
+const comecar: Retomada = { aula, curso, modulo, tipo: "comecar" };
 const prova: Retomada = {
   curso,
   progresso: { feitas: 20, pct: 100, total: 20 },
   tipo: "prova",
-  trilha: null,
 };
 
 describe("continuarDe", () => {

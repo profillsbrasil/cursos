@@ -1,5 +1,4 @@
 import type {
-  Antecessor,
   AulaId,
   CursoCatalogo,
   CursoId,
@@ -50,22 +49,15 @@ export function progresso(
   };
 }
 
-export type EstadoQueAbre = Exclude<
-  EstadoCurso,
-  { tipo: "em_breve" } | { tipo: "bloqueado" }
->;
+export type EstadoQueAbre = Exclude<EstadoCurso, { tipo: "em_breve" }>;
 
 export const podeAbrir = (e: EstadoCurso): e is EstadoQueAbre =>
-  e.tipo !== "em_breve" && e.tipo !== "bloqueado";
+  e.tipo !== "em_breve";
 
 export const numeroDaAula = (indiceNoModulo: number): number =>
   indiceNoModulo + 1;
 
-export function estadoDoCurso(
-  curso: CursoComAulas,
-  h: Historico,
-  antes: Antecessor
-): EstadoCurso {
+export function estadoDoCurso(curso: CursoComAulas, h: Historico): EstadoCurso {
   const cert = h.certificados.get(curso.id);
   if (cert) {
     // vence aula nova e volta a "em produção"
@@ -74,16 +66,11 @@ export function estadoDoCurso(
   const aulas = aulasDe(curso);
   const [primeira] = aulas;
   if (curso.status === "em_producao" || !primeira) {
-    // em_breve vence bloqueado
     return { tipo: "em_breve" };
   }
   const tocado = aulas.some(
     (a) => h.assistidas.has(a.id) || h.posicoes.has(a.id)
   );
-  // Curso começado nunca volta a ter cadeado quando a trilha muda de ordem.
-  if (!tocado && antes.tipo === "na_trilha" && !antes.concluido) {
-    return { liberadoPor: antes.curso, tipo: "bloqueado" };
-  }
   const proxima = aulas.find((a) => !h.assistidas.has(a.id));
   if (!proxima) {
     return { tipo: "prova" };
@@ -93,76 +80,27 @@ export function estadoDoCurso(
     : { primeiraAula: primeira.id, tipo: "nao_iniciado" };
 }
 
-// Regra sequencial: dobra a lista em ordem e passa o antecessor adiante.
-export function estadosDaTrilha(
-  trilha: { cursos: readonly CursoComAulas[] },
-  h: Historico,
-  liberadosDireto: ReadonlySet<CursoId>
-): EstadoCurso[] {
-  const estados: EstadoCurso[] = [];
-  let antes: Antecessor = { tipo: "livre" };
-  for (const curso of trilha.cursos) {
-    const estado = estadoDoCurso(
-      curso,
-      h,
-      liberadosDireto.has(curso.id) ? { tipo: "livre" } : antes
-    );
-    estados.push(estado);
-    antes = {
-      concluido: estado.tipo === "concluido",
-      curso: { id: curso.id, titulo: curso.titulo },
-      tipo: "na_trilha",
-    };
-  }
-  return estados;
-}
-
 export interface CursoAlcancado<C extends CursoComAulas> {
   curso: C;
   estado: EstadoCurso;
 }
 
-export interface Alcance<C extends CursoComAulas, T> {
-  /** Liberados direto e fora de trilha liberada, na ordem em que chegaram, sem repetir. */
-  soltos: CursoAlcancado<C>[];
-  /** Na ordem em que chegaram; os cursos de cada uma em ordem de posição. */
-  trilhas: { cursos: CursoAlcancado<C>[]; trilha: T }[];
-}
-
 /**
- * Os cursos que a pessoa alcança e o estado de cada um, como Meus cursos mostra:
- * o curso da trilha liberada pela regra sequencial, em que o liberado direto não
- * espera o anterior, e o curso solto sem antecessor. Meus cursos, a busca e a
- * tela de acesso do admin leem o alcance daqui.
+ * Os cursos que a pessoa alcança, os liberados, na ordem em que chegaram e sem
+ * repetir, com o estado de cada um. Meus cursos, a busca e a tela de acesso do
+ * admin leem o alcance daqui.
  */
-export function alcance<
-  C extends CursoComAulas,
-  T extends { cursos: readonly C[] },
->(trilhas: readonly T[], diretos: readonly C[], h: Historico): Alcance<C, T> {
-  const liberadosDireto = new Set(diretos.map((c) => c.id));
-  const naTrilha = new Set(trilhas.flatMap((t) => t.cursos.map((c) => c.id)));
-  const soltos = new Map<CursoId, CursoAlcancado<C>>();
-  for (const curso of diretos) {
-    if (!(naTrilha.has(curso.id) || soltos.has(curso.id))) {
-      soltos.set(curso.id, {
-        curso,
-        estado: estadoDoCurso(curso, h, { tipo: "livre" }),
-      });
+export function alcance<C extends CursoComAulas>(
+  liberados: readonly C[],
+  h: Historico
+): CursoAlcancado<C>[] {
+  const vistos = new Map<CursoId, CursoAlcancado<C>>();
+  for (const curso of liberados) {
+    if (!vistos.has(curso.id)) {
+      vistos.set(curso.id, { curso, estado: estadoDoCurso(curso, h) });
     }
   }
-  return {
-    soltos: [...soltos.values()],
-    trilhas: trilhas.map((trilha) => {
-      const estados = estadosDaTrilha(trilha, h, liberadosDireto);
-      return {
-        cursos: trilha.cursos.map((curso, i) => ({
-          curso,
-          estado: estados[i] ?? { tipo: "em_breve" },
-        })),
-        trilha,
-      };
-    }),
-  };
+  return [...vistos.values()];
 }
 
 export function niveis(

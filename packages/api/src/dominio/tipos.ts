@@ -12,7 +12,6 @@ export type AulaId = Marca<string, "AulaId">;
 export type ModuloId = Marca<string, "ModuloId">;
 /** Impressão do conteúdo de um documento do admin (dominio/versao.ts). */
 export type Versao = Marca<string, "Versao">;
-export type TrilhaId = Marca<string, "TrilhaId">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;
 export type ComunicadoId = Marca<string, "ComunicadoId">;
 /** "2026-10-07": dia civil de São Paulo. */
@@ -102,32 +101,14 @@ export interface CursoCatalogo {
   titulo: string;
 }
 
-export interface TrilhaCatalogo {
-  /** Em ordem de posição. */
-  cursos: readonly CursoCatalogo[];
-  descricao: string;
-  id: TrilhaId;
-  slug: string;
-  titulo: string;
-}
-
 export interface Historico {
   assistidas: ReadonlySet<AulaId>;
   certificados: ReadonlyMap<CursoId, { codigo: string; emitidoEm: string }>;
   posicoes: ReadonlyMap<AulaId, { posicaoSeg: number; atualizadaEm: string }>;
 }
 
-export type Antecessor =
-  | { tipo: "livre" } // primeiro da trilha, curso solto ou liberação direta
-  | {
-      tipo: "na_trilha";
-      curso: { id: CursoId; titulo: string };
-      concluido: boolean;
-    };
-
 export type EstadoCurso =
   | { tipo: "em_breve" }
-  | { tipo: "bloqueado"; liberadoPor: { id: CursoId; titulo: string } }
   | { tipo: "nao_iniciado"; primeiraAula: AulaId }
   | { tipo: "em_andamento"; proximaAula: AulaId }
   | { tipo: "prova" }

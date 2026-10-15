@@ -2,57 +2,41 @@ import type { Database } from "@cursos/db";
 import { liberacao } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import {
-  type Alvo,
   acaoNaLiberacao,
-  type ConteudoDoAlvo,
   decidirLiberar,
   type LiberacaoAtiva,
   type LinhasDoAcesso,
-  type PedidoDeLiberar,
 } from "../dominio/liberacao";
-import {
-  type CursoLinha,
-  paraCatalogo,
-  paraTrilha,
-  type TrilhaLinha,
-} from "../dominio/painel";
-import type {
-  AdminId,
-  CursoId,
-  LiberacaoId,
-  Pessoa,
-  TrilhaId,
-} from "../dominio/tipos";
+import { paraCatalogo } from "../dominio/painel";
+import type { AdminId, CursoId, LiberacaoId, Pessoa } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
-import { COM_CONTEUDO, TRILHA_COM_CONTEUDO } from "./catalogo";
+import { COM_CONTEUDO } from "./catalogo";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
 import { violacaoDe } from "./erros";
 import { linhasDoHistorico } from "./meus-cursos";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
+/** Na troca o autor é o próprio aluno (liberacao_troca_pelo_aluno). */
 export type NovaLiberacao =
-  | { alvo: Alvo; origem: "admin"; por: AdminId }
-  /** Na troca o autor é o próprio aluno, e o alvo é sempre um curso (liberacao_troca_pelo_aluno). */
-  | { alvo: { tipo: "curso"; id: CursoId }; origem: "troca" };
+  | { cursoId: CursoId; origem: "admin"; por: AdminId }
+  | { cursoId: CursoId; origem: "troca" };
 
 /**
  * Único INSERT em liberacao do app. Não decide nada: quem chama já decidiu com o
- * aluno travado. A violação dos índices de liberação ativa sobe como está.
+ * aluno travado. A violação do índice de liberação ativa sobe como está.
  */
 export async function inserirLiberacao(
   aluno: AlunoTravado,
   nova: NovaLiberacao,
   agora: Date
 ): Promise<LiberacaoId> {
-  const { alvo } = nova;
   const [linha] = await aluno.tx
     .insert(liberacao)
     .values({
-      cursoId: alvo.tipo === "curso" ? alvo.id : null,
+      cursoId: nova.cursoId,
       liberadaEm: agora,
       liberadaPor: nova.origem === "admin" ? nova.por : aluno.userId,
       origem: nova.origem,
-      trilhaId: alvo.tipo === "trilha" ? alvo.id : null,
       userId: aluno.userId,
     })
     .returning({ id: liberacao.id });
@@ -62,39 +46,12 @@ export async function inserirLiberacao(
   return linha.id as LiberacaoId;
 }
 
-function alvoDa(l: {
-  cursoId: string | null;
-  id: string;
-  trilhaId: string | null;
-}): Alvo {
-  if (l.cursoId) {
-    return { id: l.cursoId as CursoId, tipo: "curso" };
-  }
-  if (l.trilhaId) {
-    return { id: l.trilhaId as TrilhaId, tipo: "trilha" };
-  }
-  throw new Error(`Liberação ${l.id} sem alvo.`);
-}
-
-/** null: o alvo não existe. Os cursos da trilha, ou vazio para curso. */
-async function cursosDoAlvo(
-  exec: Executor,
-  alvo: Alvo
-): Promise<CursoId[] | null> {
-  const where = { id: alvo.id };
-  if (alvo.tipo === "curso") {
-    const c = await exec.query.curso.findFirst({
-      columns: { id: true },
-      where,
-    });
-    return c ? [] : null;
-  }
-  const t = await exec.query.trilha.findFirst({
+async function cursoExiste(exec: Executor, id: CursoId): Promise<boolean> {
+  const c = await exec.query.curso.findFirst({
     columns: { id: true },
-    where,
-    with: { cursos: { columns: { cursoId: true } } },
+    where: { id },
   });
-  return t ? t.cursos.map((c) => c.cursoId as CursoId) : null;
+  return c !== undefined;
 }
 
 async function liberacoesAtivas(
@@ -102,68 +59,55 @@ async function liberacoesAtivas(
   userId: string
 ): Promise<LiberacaoAtiva[]> {
   const linhas = await exec.query.liberacao.findMany({
-    columns: { cursoId: true, id: true, origem: true, trilhaId: true },
+    columns: { cursoId: true, id: true, origem: true },
     where: filtroLiberacaoAtiva(userId),
   });
   return linhas.map((l) => ({
-    alvo: alvoDa(l),
+    cursoId: l.cursoId as CursoId,
     id: l.id as LiberacaoId,
     origem: l.origem,
   }));
 }
 
-const FK_DO_ALVO = new Set([
-  "liberacao_curso_id_curso_id_fkey",
-  "liberacao_trilha_id_trilha_id_fkey",
-]);
+const FK_DO_CURSO = "liberacao_curso_id_curso_id_fkey";
 
 /**
- * Admin libera trilha ou curso. Com a trava do aluno, uma troca concorrente
- * espera, lê a liberação nova e devolve "já tem" sem debitar. Liberar o que já
- * está ativo devolve a liberação existente. A Pessoa vem de Pessoas.porId: só
- * libera para quem o Clerk conhece.
+ * Admin libera um curso. Com a trava do aluno, uma troca concorrente espera, lê
+ * a liberação nova e devolve "já tem" sem debitar. Liberar o que já está ativo
+ * devolve a liberação existente. A Pessoa vem de Pessoas.porId: só libera para
+ * quem o Clerk conhece.
  */
 export async function liberar(
   db: Database,
   admin: AdminId,
   pessoa: Pessoa,
-  pedido: PedidoDeLiberar,
+  cursoId: CursoId,
   agora: Date
 ): Promise<{ liberacaoId: LiberacaoId; nova: boolean }> {
   const sumiu = (cause?: unknown) =>
     new ErroParaAPessoa({
       cause,
       code: "NOT_FOUND",
-      message:
-        pedido.tipo === "curso"
-          ? "Este curso não existe mais."
-          : "Esta trilha não existe mais.",
+      message: "Este curso não existe mais.",
     });
   try {
     return await comAlunoTravado(db, pessoa.userId, async (aluno) => {
       // Em série: a transação tem um client só (consultas/aula.ts).
-      const cursosDaTrilha = await cursosDoAlvo(aluno.tx, pedido);
-      if (!cursosDaTrilha) {
+      if (!(await cursoExiste(aluno.tx, cursoId))) {
         throw sumiu();
       }
       const d = decidirLiberar(
         await liberacoesAtivas(aluno.tx, aluno.userId),
-        pedido,
-        cursosDaTrilha
+        cursoId
       );
       switch (d.tipo) {
-        case "trocados_mudaram":
-          throw new ErroParaAPessoa({
-            code: "CONFLICT",
-            message: `Os cursos que ${pessoa.nome} trocou por pontos nesta trilha mudaram desde que a tela abriu. Confira o aviso e libere de novo.`,
-          });
         case "ja_liberada":
           return { liberacaoId: d.liberacaoId, nova: false };
         case "inserir":
           return {
             liberacaoId: await inserirLiberacao(
               aluno,
-              { alvo: pedido, origem: "admin", por: admin },
+              { cursoId, origem: "admin", por: admin },
               agora
             ),
             nova: true,
@@ -173,10 +117,9 @@ export async function liberar(
       }
     });
   } catch (erro) {
-    // O alvo foi lido antes de o DELETE do curso ou da trilha comitar: liberar
-    // trava o aluno, não o alvo, e o INSERT espera a linha e para no FK.
-    const restricao = violacaoDe(erro)?.restricao;
-    if (restricao !== undefined && FK_DO_ALVO.has(restricao)) {
+    // O curso foi lido antes de o DELETE dele comitar: liberar trava o aluno,
+    // não o curso, e o INSERT espera a linha e para no FK.
+    if (violacaoDe(erro)?.restricao === FK_DO_CURSO) {
       throw sumiu(erro);
     }
     throw erro;
@@ -241,15 +184,15 @@ export async function revogar(
 }
 
 /**
- * Tela /admin/alunos/[userId], em 6 statements paralelos: todas as liberações da
- * pessoa com o conteúdo do alvo (o statement 1 do painel, revogadas inclusive),
- * o histórico de estudo (os statements 2, 3 e 4 do painel) e o catálogo.
+ * Tela /admin/alunos/[userId], em 5 statements paralelos: todas as liberações da
+ * pessoa com o curso (o statement 1 do painel, revogadas inclusive), o histórico
+ * de estudo (os statements 2, 3 e 4 do painel) e o catálogo.
  */
 export async function linhasDoAcesso(
   db: Database,
   userId: string
 ): Promise<LinhasDoAcesso> {
-  const [liberacoes, historico, cursos, trilhas] = await Promise.all([
+  const [liberacoes, historico, catalogo] = await Promise.all([
     db.query.liberacao.findMany({
       columns: {
         id: true,
@@ -258,50 +201,23 @@ export async function linhasDoAcesso(
         revogadaEm: true,
       },
       where: { userId },
-      with: { curso: COM_CONTEUDO, trilha: TRILHA_COM_CONTEUDO },
+      with: { curso: COM_CONTEUDO },
     }),
     linhasDoHistorico(db, userId),
     db.query.curso.findMany({
       columns: { id: true, status: true, titulo: true },
       orderBy: { titulo: "asc" },
-      with: { naTrilha: { columns: { trilhaId: true } } },
-    }),
-    db.query.trilha.findMany({
-      columns: { id: true, titulo: true },
-      orderBy: { titulo: "asc" },
     }),
   ]);
   return {
-    catalogo: {
-      cursos: cursos.map((c) => ({
-        id: c.id as CursoId,
-        status: c.status,
-        titulo: c.titulo,
-        trilhaId: (c.naTrilha?.trilhaId ?? null) as TrilhaId | null,
-      })),
-      trilhas: trilhas.map((t) => ({ id: t.id as TrilhaId, titulo: t.titulo })),
-    },
+    catalogo: catalogo.map((c) => ({ ...c, id: c.id as CursoId })),
     historico,
     liberacoes: liberacoes.map((l) => ({
-      conteudo: conteudoDa(l),
+      curso: paraCatalogo(l.curso),
       id: l.id as LiberacaoId,
       liberadaEm: l.liberadaEm,
       origem: l.origem,
       revogadaEm: l.revogadaEm,
     })),
   };
-}
-
-function conteudoDa(l: {
-  curso: CursoLinha | null;
-  id: string;
-  trilha: TrilhaLinha | null;
-}): ConteudoDoAlvo {
-  if (l.curso) {
-    return { curso: paraCatalogo(l.curso), tipo: "curso" };
-  }
-  if (l.trilha) {
-    return { tipo: "trilha", trilha: paraTrilha(l.trilha) };
-  }
-  throw new Error(`Liberação ${l.id} sem alvo.`);
 }
