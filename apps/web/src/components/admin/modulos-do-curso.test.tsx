@@ -1,11 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
+import type { VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ErrosDoEditor } from "./erros-do-editor";
 import { type Bloco, NENHUM_ABERTO } from "./estado-do-editor";
 import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
-import { ID, rascunhoDoCurso } from "./rascunho-do-curso";
+import {
+  ID,
+  lerRascunho,
+  mesmoRascunho,
+  rascunhoDoCurso,
+} from "./rascunho-do-curso";
 
 const BOTAO = /<button[^>]*>[\s\S]*?<\/button>/g;
 
@@ -85,6 +91,49 @@ describe("bloco aberto", () => {
     expect(remover).toContain('aria-disabled="true"');
     expect(remover).toContain(`aria-describedby="aula-${EDICAO.A1}-uso"`);
     expect(remover).toContain('type="button"');
+  });
+});
+
+describe("campo de vídeo da aula salva", () => {
+  const documento = documentoDeExemplo();
+  const [primeira, ...resto] = documento.modulos[0].aulas;
+  documento.modulos[0].aulas = [
+    {
+      ...primeira,
+      video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" },
+    },
+    ...resto,
+  ];
+  const rascunho = rascunhoDoCurso(documento);
+  const html = renderToStaticMarkup(
+    <BlocoDoModulo
+      assistidasPorAula={{}}
+      bloco={{ tipo: "aberto" }}
+      despachar={nada}
+      indice={0}
+      linhaAberta={LINHA_FECHADA}
+      modulo={rascunho.modulos[0]}
+      modulos={rascunho.modulos}
+      mudarBlocos={nada}
+      niveis={rascunho.niveis}
+    />
+  );
+
+  test("mostra o link curto, com o id no começo do campo", () => {
+    expect(tagDoId(html, `aula-${EDICAO.A1}-video`)).toContain(
+      'value="youtu.be/aqz-KE-bpKQ"'
+    );
+  });
+
+  test("o link curto volta ao mesmo vídeo no documento", () => {
+    const lido = lerRascunho(rascunho, { versao: null });
+    expect(
+      lido.tipo === "lido" ? lido.documento.modulos[0].aulas[0].video : null
+    ).toEqual({ id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" });
+  });
+
+  test("o rascunho da página e o do editor comparam iguais", () => {
+    expect(mesmoRascunho(rascunho, rascunhoDoCurso(documento))).toBe(true);
   });
 });
 
