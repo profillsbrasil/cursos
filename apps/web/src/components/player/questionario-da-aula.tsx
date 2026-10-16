@@ -94,7 +94,7 @@ function Pips({ cheios, total }: { cheios: number; total: number }) {
 }
 
 const ALTERNATIVA =
-  "grid min-h-[46px] grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border py-2 pr-3.5 pl-[9px] text-pretty";
+  "grid min-h-[46px] grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 rounded-[23px] border py-2 pr-3.5 pl-[9px] text-pretty";
 const LETRA =
   "grid size-7 place-items-center rounded-full font-semibold text-xs transition-colors duration-150 motion-reduce:transition-none";
 
@@ -124,7 +124,7 @@ function AlternativaParaMarcar({
       className={cn(
         ALTERNATIVA,
         "group/alt cursor-pointer border-border text-foreground transition-colors duration-150 hover:border-ceu motion-reduce:transition-none",
-        marcada && "border-ceu bg-ceu/8 text-titulo"
+        marcada && "border-sol bg-sol/8 text-titulo"
       )}
     >
       <input
@@ -140,7 +140,7 @@ function AlternativaParaMarcar({
         className={cn(
           LETRA,
           marcada
-            ? "bg-ceu text-sobre-cor"
+            ? "bg-sol text-sobre-cor"
             : "text-foreground ring-[1.5px] ring-muted-foreground ring-inset group-hover/alt:text-titulo group-hover/alt:ring-ceu"
         )}
       >

@@ -32,7 +32,7 @@ const JA_TEM: Selo = {
 // Marcada pelo aria-checked: o data-checked: sai num :where e perde para o
 // dark:bg-background que apaga o dark:bg-input/30 do Checkbox do packages/ui.
 const CAIXA =
-  "size-5 rounded-[6px] border-[1.5px] border-muted-foreground bg-background transition-colors motion-reduce:transition-none dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
+  "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors motion-reduce:transition-none dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
 
 function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const { despachar, estado } = useLote();

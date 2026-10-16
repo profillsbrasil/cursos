@@ -32,7 +32,7 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO } from "@/components/casca/campos";
+import { ALAVANCA, CAMPO } from "@/components/casca/campos";
 import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
@@ -151,6 +151,7 @@ function Publicacao({
         <Field className="w-auto" orientation="horizontal">
           <Switch
             checked={rascunho.precoTroca !== null}
+            className={ALAVANCA}
             id={`${id}-troca`}
             onCheckedChange={ligarTroca}
           />
