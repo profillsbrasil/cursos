@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 import {
   aulaPorId,
   type CursoComAcessoLinha,
-  entradaDoCurso,
   inicioDaAula,
   type LinhasCurso,
   montarAulaNoPlayer,
@@ -201,50 +200,6 @@ describe("montarAulaNoPlayer", () => {
     expect(montarAulaNoPlayer(d, ultima).aula).toMatchObject({
       numeroNoModulo: 3,
       totalNoModulo: 3,
-    });
-  });
-});
-
-describe("entradaDoCurso", () => {
-  const c = cursoLinha("c", { aulas: [3] });
-
-  test("não iniciado leva à primeira aula", () => {
-    const aberto = montarCursoAberto(linhas(comAcesso(c, { liberado: true })));
-    expect(aberto && entradaDoCurso(aberto)).toEqual({
-      aulaId: idAula("c", 0, 1) as never,
-      tipo: "aula",
-    });
-  });
-
-  test("em andamento leva à última aula tocada que não foi assistida", () => {
-    const aberto = montarCursoAberto(
-      linhas(comAcesso(c, { liberado: true }), {
-        assistidas: [assistida(idAula("c", 0, 1))],
-        posicoes: [
-          {
-            atualizadaEm: em("2026-10-07T12:00:00Z"),
-            aulaId: idAula("c", 0, 3),
-            posicaoSeg: 40,
-            trechosVistos: [],
-          },
-        ],
-      })
-    );
-    expect(aberto && entradaDoCurso(aberto)).toEqual({
-      aulaId: idAula("c", 0, 3) as never,
-      tipo: "aula",
-    });
-  });
-
-  test("todas assistidas: prova, com a primeira aula para rever", () => {
-    const aberto = montarCursoAberto(
-      linhas(comAcesso(c, { liberado: true }), {
-        assistidas: [1, 2, 3].map((p) => assistida(idAula("c", 0, p))),
-      })
-    );
-    expect(aberto && entradaDoCurso(aberto)).toEqual({
-      primeira: idAula("c", 0, 1) as never,
-      tipo: "prova",
     });
   });
 });

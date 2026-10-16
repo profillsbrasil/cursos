@@ -77,6 +77,19 @@ describe("fraseDaPessoa", () => {
     ).toBe("Com acesso desde 2 de out. · nenhuma aula aberta");
   });
 
+  test("nunca abriu, com curso em produção, diz quantos estão em produção", () => {
+    expect(
+      fraseDaPessoa(
+        {
+          desde: dia("2026-10-02"),
+          numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
+          tipo: "nunca_abriu",
+        },
+        HOJE
+      )
+    ).toBe("Com acesso desde 2 de out. · 1 em produção · nenhuma aula aberta");
+  });
+
   test("sem liberação: nunca recebeu, uma revogada ou várias", () => {
     expect(
       [

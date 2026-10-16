@@ -17,7 +17,13 @@ import {
   apagarCurso,
   salvarCurso,
 } from "../consultas/edicao-do-curso";
-import { liberar, linhasDoAcesso, revogar } from "../consultas/liberacao";
+import {
+  liberar,
+  liberarVarios,
+  linhasDoAcesso,
+  PESSOA_SUMIU,
+  revogar,
+} from "../consultas/liberacao";
 import { montarBusca } from "../dominio/acompanhamento";
 import { nomeDaCategoria } from "../dominio/categoria";
 import {
@@ -25,7 +31,7 @@ import {
   TEXTO_MAX,
   TITULO_MAX,
 } from "../dominio/comunicado";
-import { montarAcesso } from "../dominio/liberacao";
+import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
 import { diaLocal } from "../dominio/sequencia";
 import type {
   CategoriaId,
@@ -78,11 +84,29 @@ export const adminRouter = router({
         if (!pessoa) {
           throw new ErroParaAPessoa({
             code: "NOT_FOUND",
-            message: "Esta pessoa não existe mais no login da plataforma.",
+            message: PESSOA_SUMIU,
           });
         }
         return liberar(ctx.db, ctx.admin, pessoa, input.cursoId, new Date());
       }),
+    /** Um resultado por pessoa: a falha de uma não recusa o lote. */
+    liberarVarios: adminProcedure
+      .input(
+        z.object({
+          cursoId,
+          userIds: z.array(userId).min(1).max(TETO_DO_LOTE),
+        })
+      )
+      .mutation(({ ctx, input }) =>
+        liberarVarios(
+          ctx.db,
+          (id) => ctx.pessoas.porId(id),
+          ctx.admin,
+          input.userIds,
+          input.cursoId,
+          new Date()
+        )
+      ),
     revogar: adminProcedure
       .input(z.object({ liberacaoId: z.uuid() }))
       .mutation(({ ctx, input }) =>

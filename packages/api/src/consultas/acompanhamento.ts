@@ -2,6 +2,7 @@ import type { Database } from "@cursos/db";
 import { sql } from "drizzle-orm";
 
 import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
+import type { OrigemDaLiberacao } from "../dominio/tipos";
 
 /** Literal de text[] do Postgres, com aspas e barras escapadas. */
 const arrayDeTexto = (itens: readonly string[]) =>
@@ -13,7 +14,12 @@ type Ms = number;
 interface PessoaEmJson {
   assistidas: { assistidaEm: Ms; aulaId: string }[];
   certificados: { codigo: string; cursoId: string; emitidoEm: Ms }[];
-  liberacoes: { cursoId: string; liberadaEm: Ms; revogadaEm: Ms | null }[];
+  liberacoes: {
+    cursoId: string;
+    liberadaEm: Ms;
+    origem: OrigemDaLiberacao;
+    revogadaEm: Ms | null;
+  }[];
   posicoes: { atualizadaEm: Ms; aulaId: string; posicaoSeg: number }[];
   userId: string;
 }
@@ -47,7 +53,7 @@ export async function linhasDaBusca(
       select user_id from unnest(${arrayDeTexto(userIds)}::text[]) as p(user_id)
     ),
     lib as (
-      select l.user_id, l.curso_id, l.liberada_em, l.revogada_em
+      select l.user_id, l.curso_id, l.liberada_em, l.origem, l.revogada_em
         from liberacao l
        where l.user_id in (select user_id from p)
     ),
@@ -60,6 +66,7 @@ export async function linhasDaBusca(
         'liberacoes', coalesce((select json_agg(json_build_object(
             'cursoId', lib.curso_id,
             'liberadaEm', ${emMs("lib.liberada_em")},
+            'origem', lib.origem,
             'revogadaEm', ${emMs("lib.revogada_em")}))
           from lib where lib.user_id = p.user_id), '[]'),
         'assistidas', coalesce((select json_agg(json_build_object(
@@ -111,6 +118,7 @@ export async function linhasDaBusca(
       liberacoes: p.liberacoes.map((l) => ({
         cursoId: l.cursoId,
         liberadaEm: data(l.liberadaEm),
+        origem: l.origem,
         revogadaEm: l.revogadaEm === null ? null : data(l.revogadaEm),
       })),
       posicoes: p.posicoes.map((x) => ({

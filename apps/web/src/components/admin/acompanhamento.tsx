@@ -3,6 +3,7 @@
 
 import type {
   Acompanhamento,
+  NumerosDaPessoa,
   SituacaoDaPessoa,
   SituacaoNoCurso,
 } from "@cursos/api/dominio/acompanhamento";
@@ -65,7 +66,7 @@ export function BarraDeAulas({
     >
       <span
         aria-hidden="true"
-        className="h-1 min-w-16 overflow-hidden rounded-full bg-trilho"
+        className="h-1 min-w-16 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset"
       >
         <span
           className="block h-full rounded-full bg-sol"
@@ -189,6 +190,12 @@ export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
     : chegou;
 }
 
+const emProducao = ({ emProducao: n }: NumerosDaPessoa) =>
+  n === 0 ? null : `${fmtNum(n)} em produção`;
+
+const frase = (partes: readonly (string | null)[]) =>
+  partes.filter((parte) => parte !== null).join(" · ");
+
 /** A linha de números da busca: "2 de 4 cursos concluídos · 1 em produção · último estudo ontem". */
 export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
   switch (r.tipo) {
@@ -200,19 +207,21 @@ export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
         ? `1 liberação revogada ${noDia(r.ultimaRevogacao, hoje)}`
         : `${fmtNum(r.revogadas)} liberações revogadas, a última ${noDia(r.ultimaRevogacao, hoje)}`;
     case "nunca_abriu":
-      return `Com acesso desde ${diaCurto(r.desde, hoje)} · nenhuma aula aberta`;
+      return frase([
+        `Com acesso desde ${diaCurto(r.desde, hoje)}`,
+        emProducao(r.numeros),
+        "nenhuma aula aberta",
+      ]);
     case "estudando":
     case "concluiu_tudo": {
-      const { concluidos, cursos, emProducao } = r.numeros;
-      return [
+      const { concluidos, cursos } = r.numeros;
+      return frase([
         cursos === 0
           ? "nenhum curso publicado"
           : `${fmtNum(concluidos)} de ${plural(cursos, "curso concluído", "cursos concluídos")}`,
-        emProducao === 0 ? null : `${fmtNum(emProducao)} em produção`,
+        emProducao(r.numeros),
         ultimoEstudo(r.ultimoEstudo, hoje),
-      ]
-        .filter((parte) => parte !== null)
-        .join(" · ");
+      ]);
     }
     default:
       return r satisfies never;

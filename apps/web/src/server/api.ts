@@ -60,6 +60,10 @@ export function paraACasca<T>(
   });
 }
 
+export const carregarConquistas = cache(async () =>
+  (await caller()).aluno.conquistas()
+);
+
 export const carregarAula = cache(async (slug: string, aulaId: string) =>
   (await caller()).aula.abrir({ aulaId, slug })
 );

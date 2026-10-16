@@ -3,7 +3,7 @@ import { aula, curso, modulo } from "@cursos/db/schema/index";
 import { eq, sql } from "drizzle-orm";
 
 import type { VisaoDoCatalogo } from "../dominio/catalogo";
-import type { CursoId } from "../dominio/tipos";
+import { type CursoId, capaDe } from "../dominio/tipos";
 import { COLUNAS_DA_CAPA } from "./comum";
 
 export const COM_CONTEUDO = {
@@ -50,6 +50,10 @@ export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
   const cursos = await db
     .select({
       aulas: sql<number>`count(${aula.id})::int`,
+      capaAlt: curso.capaAlt,
+      capaAltura: curso.capaAltura,
+      capaLargura: curso.capaLargura,
+      capaUrl: curso.capaUrl,
       id: curso.id,
       precoTroca: curso.precoTroca,
       status: curso.status,
@@ -60,5 +64,14 @@ export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
     .leftJoin(aula, eq(aula.moduloId, modulo.id))
     .groupBy(curso.id)
     .orderBy(curso.titulo, curso.id);
-  return { cursos: cursos.map((c) => ({ ...c, id: c.id as CursoId })) };
+  return {
+    cursos: cursos.map((c) => ({
+      aulas: c.aulas,
+      capa: capaDe(c),
+      id: c.id as CursoId,
+      precoTroca: c.precoTroca,
+      status: c.status,
+      titulo: c.titulo,
+    })),
+  };
 }

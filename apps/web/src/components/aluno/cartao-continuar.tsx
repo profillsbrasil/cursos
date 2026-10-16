@@ -76,7 +76,7 @@ function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
       <span
         aria-hidden="true"
         className={cn(
-          "h-1 overflow-hidden rounded-full bg-trilho group-data-[collapsible=icon]:hidden",
+          "h-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset group-data-[collapsible=icon]:hidden",
           pct === null && "invisible"
         )}
       >

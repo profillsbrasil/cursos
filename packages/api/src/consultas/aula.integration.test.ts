@@ -22,7 +22,7 @@ import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
 import {
   carregarAula,
-  carregarEntrada,
+  carregarPaginaDoCurso,
   ESPERA_PELA_COTA_MS,
   registrar,
 } from "./aula";
@@ -524,7 +524,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(cota?.segundos).toBe(0);
   });
 
-  test("abrir e entrada montam a aula e o caminho do curso", async () => {
+  test("abrir e a página do curso levam à aula da retomada", async () => {
     const { aluno, c } = await cursoLiberado(3);
     await registrar(
       db,
@@ -546,14 +546,16 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       proxima: { id: c.aulas[2] },
     });
     expect(vm?.estudo.trechos).toEqual([t(0, 42)] as never);
-    expect(await carregarEntrada(db, aluno, c.slug)).toEqual({
+    expect(
+      (await carregarPaginaDoCurso(db, aluno, c.slug))?.acao
+    ).toMatchObject({
       aulaId: c.aulas[1] as AulaId,
-      tipo: "aula",
+      tipo: "continuar",
     });
     expect(await carregarAula(db, aluno, c.slug, cursos[0] ?? "")).toBeNull();
   });
 
-  test("a página do curso abre para quem aula.entrada abre, e para mais ninguém", async () => {
+  test("a página do curso abre só para quem tem liberação ativa de curso publicado", async () => {
     const aluno = novoAluno();
     const caller = comoAluno(aluno);
     const semLiberacao = await criarCurso(1);
@@ -582,18 +584,11 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       "nao-existe",
       "Fora do Formato",
     ];
-    const abre = await emSerie(slugs, async (slug) => [
-      (await caller.aula.entrada({ slug })) !== null,
-      (await caller.curso.pagina({ slug })) !== null,
-    ]);
-    expect(abre).toEqual([
-      [false, false],
-      [false, false],
-      [true, true],
-      [false, false],
-      [false, false],
-      [false, false],
-    ]);
+    const abre = await emSerie(
+      slugs,
+      async (slug) => (await caller.curso.pagina({ slug })) !== null
+    );
+    expect(abre).toEqual([false, false, true, false, false, false]);
 
     const pagina = await caller.curso.pagina({ slug: liberado.slug });
     expect({

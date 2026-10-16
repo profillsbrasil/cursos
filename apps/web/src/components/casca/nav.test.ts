@@ -10,6 +10,7 @@ import {
   LARGURAS_DA_SIDEBAR,
   type MovimentoDaPilula,
   movimentoDaPilula,
+  VALIDADE_DO_COOKIE_S,
 } from "./nav";
 
 const SIDEBAR_DO_UI = join(
@@ -17,6 +18,7 @@ const SIDEBAR_DO_UI = join(
   "../../../../../packages/ui/src/components/sidebar.tsx"
 );
 const NOME_DO_COOKIE = /const SIDEBAR_COOKIE_NAME = "([^"]+)"/;
+const VALIDADE = /const SIDEBAR_COOKIE_MAX_AGE = ([\d *]+);/;
 
 describe("cookie da sidebar", () => {
   // O shadcn add pode regenerar o sidebar.tsx com outro nome: a casca passaria a
@@ -24,6 +26,14 @@ describe("cookie da sidebar", () => {
   test("a casca lê o cookie que o SidebarProvider do packages/ui grava", () => {
     const gravado = readFileSync(SIDEBAR_DO_UI, "utf8").match(NOME_DO_COOKIE);
     expect(gravado?.[1]).toBe(COOKIE_DA_SIDEBAR);
+  });
+
+  test("a casca regrava o cookie com a validade do SidebarProvider", () => {
+    const expressao = readFileSync(SIDEBAR_DO_UI, "utf8").match(VALIDADE)?.[1];
+    const segundos = expressao
+      ?.split("*")
+      .reduce((produto, fator) => produto * Number(fator), 1);
+    expect(segundos).toBe(VALIDADE_DO_COOKIE_S);
   });
 });
 
@@ -35,18 +45,29 @@ describe("largura recolhida", () => {
   });
 });
 
+describe("o menu do aluno", () => {
+  test("começa em Meus cursos, sem Início", () => {
+    expect(ITENS_DO_ALUNO.map((i) => [i.nome, i.tipo])).toEqual([
+      ["Meus cursos", "link"],
+      ["Trocar pontos", "link"],
+      ["Conquistas", "link"],
+      ["Comunicados", "em_breve"],
+    ]);
+  });
+});
+
 describe("indiceAtivo", () => {
   test("caminho exato marca page", () => {
     expect(indiceAtivo("/meus-cursos", ITENS_DO_ALUNO)).toEqual({
       ariaCurrent: "page",
-      indice: 1,
+      indice: 0,
     });
   });
 
   test("rota filha por outrosPrefixos marca true", () => {
     expect(indiceAtivo("/cursos/comercial/aulas/x", ITENS_DO_ALUNO)).toEqual({
       ariaCurrent: "true",
-      indice: 1,
+      indice: 0,
     });
   });
 
@@ -61,7 +82,7 @@ describe("indiceAtivo", () => {
     expect(indiceAtivo("/meus-cursos-antigos", ITENS_DO_ALUNO)).toBeNull();
   });
 
-  test("item em breve nunca é ativo", () => {
+  test("a raiz, que redireciona, não marca item nenhum", () => {
     expect(indiceAtivo("/", ITENS_DO_ALUNO)).toBeNull();
   });
 });
