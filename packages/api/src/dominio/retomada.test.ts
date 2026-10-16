@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { CursoNaTela } from "./curso";
-import { cursoCat, historico, idAula } from "./exemplo";
+import { cursoCat, historico, idAula, questionario } from "./exemplo";
 import { aulaDeRetomada, retomada } from "./retomada";
 import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 
@@ -138,10 +138,16 @@ describe("retomada", () => {
     });
   });
 
-  test("curso com todas as aulas assistidas leva à prova", () => {
+  test("curso com todas as aulas assistidas leva ao questionário pendente, com a nota da última tentativa", () => {
     const novo = cursoCat("novo", { aulas: [2] });
+    const comQuiz = cursoCat("c", { aulas: [4], perguntas: 3 });
+    const pendente = idAula("c", 0, 3) as AulaId;
     const h = historico({
       assistidas: [1, 2, 3, 4].map((p) => idAula("c", 0, p)),
+      questionarios: [
+        [idAula("c", 0, 1), questionario(true)],
+        [pendente, questionario(false, { acertos: 2, total: 3 })],
+      ],
     });
     const r = retomada(
       entrada(
@@ -150,15 +156,28 @@ describe("retomada", () => {
             primeiraAula: idAula("novo", 0, 1) as AulaId,
             tipo: "nao_iniciado",
           }),
-          naTela(c, { tipo: "prova" }),
+          naTela(comQuiz, {
+            aprovados: 1,
+            proximaAula: pendente,
+            tipo: "questionarios",
+            total: 4,
+          }),
         ],
         h
       )
     );
-    expect(r).toMatchObject({
-      curso: { slug: "c" },
-      progresso: { feitas: 4, pct: 100, total: 4 },
-      tipo: "prova",
+    expect(r).toEqual({
+      aula: {
+        duracaoSeg: 600,
+        id: pendente,
+        numeroNoModulo: 3,
+        titulo: "Aula 3 de c",
+      },
+      curso: { capa: comQuiz.capa, slug: "c", titulo: "Curso c" },
+      modulo: { numero: 0, titulo: "Módulo 0 de c" },
+      questionarios: { feitas: 1, pct: 25, total: 4 },
+      tipo: "questionario",
+      ultima: { acertos: 2, total: 3 },
     });
   });
 

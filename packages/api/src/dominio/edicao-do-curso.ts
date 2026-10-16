@@ -273,6 +273,8 @@ export interface UsoDoCurso {
   certificados: number;
   /** Liberações, ativas ou revogadas: a FK restrict conta as duas. */
   liberacoes: number;
+  /** Alunos que enviaram alguma tentativa do questionário, por aula. */
+  tentativasPorAula: Readonly<Record<string, number>>;
 }
 
 export interface EdicaoDoCurso {
@@ -292,13 +294,15 @@ const SEM_USO: UsoDoCurso = {
   assistidasPorAula: {},
   certificados: 0,
   liberacoes: 0,
+  tentativasPorAula: {},
 };
 
 /** Única regra de "dá para apagar o curso". A tela e apagarCurso usam esta. */
 export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   u.certificados === 0 &&
   u.liberacoes === 0 &&
-  Object.values(u.assistidasPorAula).every((n) => n === 0);
+  Object.values(u.assistidasPorAula).every((n) => n === 0) &&
+  Object.values(u.tentativasPorAula).every((n) => n === 0);
 
 /** O curso novo ainda sem categoria escolhida; o schema recusa o id vazio. */
 const SEM_CATEGORIA = "" as CategoriaId;

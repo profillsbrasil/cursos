@@ -4,7 +4,11 @@ import {
   type Progresso,
   progresso,
 } from "./curso";
-import { atividadeDe, historicoDe } from "./historico";
+import {
+  atividadeDe,
+  historicoDe,
+  type LinhaDoQuestionario,
+} from "./historico";
 import { PONTOS } from "./regras";
 import { ondeNoCurso, retomada } from "./retomada";
 import {
@@ -44,6 +48,7 @@ export interface CursoLinha extends LinhaDaCapa {
       descricao: string;
       duracaoSeg: number;
       id: string;
+      perguntas: number;
       posicao: number;
       titulo: string;
       videoId: string | null;
@@ -77,6 +82,7 @@ export interface LinhasPainel {
     aulaId: string;
     posicaoSeg: number;
   }[];
+  questionarios: readonly LinhaDoQuestionario[];
 }
 
 export interface LinhasResumo {
@@ -96,7 +102,7 @@ export interface CursoVM {
   id: CursoId;
   /**
    * O módulo da aula para onde o Continuar leva (`ondeNoCurso`), o mesmo que o
-   * admin lê; null quando o curso não abre aula ou espera a prova.
+   * admin lê; null quando o curso não abre aula.
    */
   moduloAtual: { numero: number; titulo: string } | null;
   progresso: Progresso;
@@ -134,9 +140,14 @@ export type Retomada =
       modulo: { numero: number; titulo: string };
     }
   | {
-      tipo: "prova";
+      tipo: "questionario";
+      aula: AulaRef;
       curso: CursoRef;
-      progresso: Progresso;
+      modulo: { numero: number; titulo: string };
+      /** Os questionários aprovados sobre os do curso. */
+      questionarios: Progresso;
+      /** A nota da última tentativa nesta aula; null antes da primeira. */
+      ultima: { acertos: number; total: number } | null;
     };
 
 /**
@@ -199,6 +210,7 @@ export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
+        perguntas: a.perguntas,
         posicao: a.posicao,
         titulo: a.titulo,
         video: videoDaAula(a.videoProvedor, a.videoId),
@@ -220,7 +232,7 @@ const ORDEM_DOS_CURSOS: Record<TipoEstado, number> = {
   em_andamento: 0,
   em_breve: 3,
   nao_iniciado: 2,
-  prova: 1,
+  questionarios: 1,
 };
 
 const somaSeg = (aulas: readonly { duracaoSeg: number }[]) =>

@@ -47,7 +47,12 @@ export type SituacaoNoCurso =
   | { tipo: "em_producao" }
   | { tipo: "nunca_abriu" }
   | { tipo: "estudando"; onde: Onde; ultimoEstudo: DiaISO }
-  | { tipo: "falta_prova"; ultimoEstudo: DiaISO }
+  | {
+      tipo: "faltam_questionarios";
+      aprovados: number;
+      total: number;
+      ultimoEstudo: DiaISO;
+    }
   | { tipo: "concluido"; em: DiaISO };
 
 /** O estudo da pessoa no curso de uma liberação. */
@@ -133,7 +138,7 @@ export function ultimoEstudo(curso: CursoComAulas, e: Estudo): DiaISO | null {
   return ultimo ? diaDe(ultimo) : null;
 }
 
-/** Curso em andamento ou na prova sempre tem estudo: estadoDoCurso só chega lá com aula tocada. */
+/** Curso em andamento ou com questionário pendente sempre tem estudo: estadoDoCurso só chega lá com aula tocada. */
 function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
   const dia = ultimoEstudo(curso, e);
   if (!dia) {
@@ -163,8 +168,13 @@ export function situacaoNoCurso(
         ultimoEstudo: estudou(curso, e),
       };
     }
-    case "prova":
-      return { tipo: "falta_prova", ultimoEstudo: estudou(curso, e) };
+    case "questionarios":
+      return {
+        aprovados: estado.aprovados,
+        tipo: "faltam_questionarios",
+        total: estado.total,
+        ultimoEstudo: estudou(curso, e),
+      };
     case "concluido":
       return { em: diaDe(estado.certificado.emitidoEm), tipo: "concluido" };
     default:
@@ -191,7 +201,9 @@ export function acompanharCurso(
 export interface CursoDaBusca {
   id: string;
   /** Em ordem de número, aulas em ordem de posição. */
-  modulos: readonly { aulas: readonly { id: string }[] }[];
+  modulos: readonly {
+    aulas: readonly { id: string; perguntas: number }[];
+  }[];
   status: StatusDoCurso;
   titulo: string;
 }
@@ -224,7 +236,10 @@ function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
       {
         id: c.id as CursoId,
         modulos: c.modulos.map((m) => ({
-          aulas: m.aulas.map((a) => ({ id: a.id as AulaId })),
+          aulas: m.aulas.map((a) => ({
+            id: a.id as AulaId,
+            perguntas: a.perguntas,
+          })),
         })),
         status: c.status,
         titulo: c.titulo,

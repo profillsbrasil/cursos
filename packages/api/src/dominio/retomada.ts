@@ -1,4 +1,11 @@
-import { type CursoNaTela, niveis, numeroDaAula, progresso } from "./curso";
+import {
+  type CursoNaTela,
+  niveis,
+  numeroDaAula,
+  progresso,
+  progressoDosQuestionarios,
+  questionariosDoCurso,
+} from "./curso";
 import type { Retomada } from "./painel";
 import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
 
@@ -107,9 +114,10 @@ export interface OndeNoCurso {
 }
 
 /**
- * Onde a pessoa está no curso: a aula para onde o Continuar dela leva. A capa
- * do curso em Meus cursos e o acompanhamento do admin leem daqui. null quando o
- * curso não abre aula: em produção, na prova ou concluído.
+ * Onde a pessoa está no curso: a aula para onde o Continuar dela leva, a do
+ * próximo questionário quando as aulas acabaram. A capa do curso em Meus cursos
+ * e o acompanhamento do admin leem daqui. null quando o curso não abre aula: em
+ * produção ou concluído.
  */
 export function ondeNoCurso(
   curso: CursoCatalogo,
@@ -117,10 +125,13 @@ export function ondeNoCurso(
   h: Historico,
   atividade: ReadonlyMap<AulaId, string>
 ): OndeNoCurso | null {
-  if (estado.tipo !== "em_andamento" && estado.tipo !== "nao_iniciado") {
+  if (estado.tipo === "em_breve" || estado.tipo === "concluido") {
     return null;
   }
-  const { aulaId } = aulaDeRetomada(curso, estado, h, atividade);
+  const aulaId =
+    estado.tipo === "questionarios"
+      ? estado.proximaAula
+      : aulaDeRetomada(curso, estado, h, atividade).aulaId;
   const { modulo, numeroNoModulo } = localizar(curso, aulaId);
   return {
     aula: numeroNoModulo,
@@ -153,10 +164,10 @@ export function retomada({
     );
     return continuar(emAndamento, aulaId, posicaoSeg, h);
   }
-  // 5: o curso em prova com a atividade mais recente.
-  const emProva = cursos
-    .filter(ehEstado("prova"))
-    .reduce<CursoNaTela | null>(
+  // 5: o curso com questionário pendente e a atividade mais recente.
+  const comQuestionario = cursos
+    .filter(ehEstado("questionarios"))
+    .reduce<ComEstado<"questionarios"> | null>(
       (max, x) =>
         !max ||
         ultimaAtividade(x.curso, atividade) >
@@ -165,11 +176,24 @@ export function retomada({
           : max,
       null
     );
-  if (emProva) {
+  if (comQuestionario) {
+    const { curso, estado } = comQuestionario;
+    const { aula, modulo, numeroNoModulo } = localizar(
+      curso,
+      estado.proximaAula
+    );
     return {
-      curso: cursoRef(emProva.curso),
-      progresso: progresso(emProva.curso, h.assistidas),
-      tipo: "prova",
+      aula: {
+        duracaoSeg: aula.duracaoSeg,
+        id: aula.id,
+        numeroNoModulo,
+        titulo: aula.titulo,
+      },
+      curso: cursoRef(curso),
+      modulo: { numero: modulo.numero, titulo: modulo.titulo },
+      questionarios: progressoDosQuestionarios(questionariosDoCurso(curso, h)),
+      tipo: "questionario",
+      ultima: h.questionarios.get(aula.id)?.ultima ?? null,
     };
   }
   // 6: o primeiro curso não iniciado, na ordem da tela.

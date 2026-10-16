@@ -95,13 +95,13 @@ describe("montarPainel com regras de liberação", () => {
       cursoLinha("concluido", { aulas: [1] }),
       cursoLinha("em-breve", { aulas: [1], status: "em_producao" }),
       cursoLinha("nao-iniciado", { aulas: [1] }),
-      cursoLinha("prova", { aulas: [1] }),
+      cursoLinha("questionarios", { aulas: [1], perguntas: 1 }),
       cursoLinha("em-andamento", { aulas: [2] }),
     ];
     const painel = montar(
       linhas({
         assistidas: [
-          { assistidaEm: quando, aulaId: idAula("prova", 0, 1) },
+          { assistidaEm: quando, aulaId: idAula("questionarios", 0, 1) },
           { assistidaEm: quando, aulaId: idAula("em-andamento", 0, 1) },
         ],
         certificados: [
@@ -112,7 +112,7 @@ describe("montarPainel com regras de liberação", () => {
     );
     expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
       ["em-andamento", "em_andamento"],
-      ["prova", "prova"],
+      ["questionarios", "questionarios"],
       ["nao-iniciado", "nao_iniciado"],
       ["em-breve", "em_breve"],
       ["concluido", "concluido"],

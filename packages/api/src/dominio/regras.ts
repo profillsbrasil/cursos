@@ -2,8 +2,8 @@
 export const PONTOS = {
   aula_assistida: 10,
   curso_concluido: 100,
-  prova_aprovada: 50,
-  quiz_acerto: 5,
+  /** Por acerto, só na primeira tentativa do questionário da aula. */
+  questionario: 5,
   sequencia_7_dias: 30,
 } as const;
 

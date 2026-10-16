@@ -1,5 +1,15 @@
 import type { AulaId, CursoId, Historico } from "./tipos";
 
+/** As tentativas de uma aula, somadas pelo banco: uma linha por aula tentada. */
+export interface LinhaDoQuestionario {
+  aprovada: boolean;
+  aulaId: string;
+  tentativas: number;
+  ultimaEm: Date;
+  ultimosAcertos: number;
+  ultimoTotal: number;
+}
+
 export interface LinhasHistorico {
   assistidas: readonly { assistidaEm: Date; aulaId: string }[];
   certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
@@ -8,6 +18,7 @@ export interface LinhasHistorico {
     aulaId: string;
     posicaoSeg: number;
   }[];
+  questionarios: readonly LinhaDoQuestionario[];
 }
 
 export const posicaoComecada = (p: { posicaoSeg: number }): boolean =>
@@ -31,6 +42,16 @@ export function historicoDe(l: LinhasHistorico): Historico {
         },
       ])
     ),
+    questionarios: new Map(
+      l.questionarios.map((q) => [
+        q.aulaId as AulaId,
+        {
+          aprovada: q.aprovada,
+          tentativas: q.tentativas,
+          ultima: { acertos: q.ultimosAcertos, total: q.ultimoTotal },
+        },
+      ])
+    ),
   };
 }
 
@@ -48,6 +69,9 @@ export function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
   }
   for (const p of l.posicoes) {
     anotar(p.aulaId, p.atualizadaEm);
+  }
+  for (const q of l.questionarios) {
+    anotar(q.aulaId, q.ultimaEm);
   }
   return atividade;
 }

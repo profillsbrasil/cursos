@@ -15,6 +15,7 @@ export interface LinhaDoExtrato {
   liberacao: { curso: { titulo: string } | null } | null;
   motivo: MotivoPonto;
   pontos: number;
+  tentativa: { aula: { titulo: string } } | null;
 }
 
 export interface ItemDoExtrato {
@@ -39,6 +40,11 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
         throw referenciaAusente(l);
       }
       return `Curso concluído: ${l.curso.titulo}`;
+    case "questionario":
+      if (!l.tentativa) {
+        throw referenciaAusente(l);
+      }
+      return `Questionário: ${l.tentativa.aula.titulo}`;
     case "sequencia_7_dias":
       return "7 dias úteis seguidos";
     case "troca":
@@ -63,15 +69,13 @@ type RegraDePonto = keyof typeof PONTOS;
 const ROTULOS: Record<RegraDePonto, string> = {
   aula_assistida: "Aula assistida (90% do vídeo)",
   curso_concluido: "Curso concluído",
-  prova_aprovada: "Prova aprovada",
-  quiz_acerto: "Acerto no quiz de fixação, primeira tentativa",
+  questionario: "Acerto no questionário da aula, primeira tentativa",
   sequencia_7_dias: "7 dias úteis seguidos",
 };
 
 const ORDEM: readonly RegraDePonto[] = [
   "aula_assistida",
-  "quiz_acerto",
-  "prova_aprovada",
+  "questionario",
   "curso_concluido",
   "sequencia_7_dias",
 ];

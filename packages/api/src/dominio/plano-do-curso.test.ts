@@ -44,7 +44,12 @@ function edicao(
     documento: doc,
     podeApagar: false,
     slug: "curso-teste",
-    uso: { assistidasPorAula, certificados: 0, liberacoes: 0 },
+    uso: {
+      assistidasPorAula,
+      certificados: 0,
+      liberacoes: 0,
+      tentativasPorAula: {},
+    },
   };
 }
 

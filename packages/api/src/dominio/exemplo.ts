@@ -25,6 +25,7 @@ import {
   type CursoId,
   capaDe,
   type DiaISO,
+  type EstudoDoQuestionario,
   type Historico,
   type ModuloId,
   type PerguntaId,
@@ -124,6 +125,8 @@ interface OpcoesCurso {
   niveis?: { nome: string; ordem: number }[];
   /** Nível de cada módulo, na mesma ordem de `aulas`. */
   nivelPorModulo?: (number | null)[];
+  /** Perguntas em cada aula; sem a opção, nenhuma aula tem questionário. */
+  perguntas?: number;
   primeiroNumero?: number;
   status?: StatusDoCurso;
 }
@@ -145,6 +148,7 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
         descricao: "",
         duracaoSeg: o.duracaoSeg ?? 600,
         id: idAula(chave, primeiro + i, p + 1),
+        perguntas: o.perguntas ?? 0,
         posicao: p + 1,
         titulo: `Aula ${p + 1} de ${chave}`,
         videoId: null,
@@ -177,6 +181,7 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
+        perguntas: a.perguntas,
         posicao: a.posicao,
         titulo: a.titulo,
         video: null,
@@ -190,10 +195,17 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   };
 }
 
+/** Aprovado, ou reprovado com a nota da última tentativa. */
+export const questionario = (
+  aprovada: boolean,
+  ultima = aprovada ? { acertos: 3, total: 3 } : { acertos: 1, total: 3 }
+): EstudoDoQuestionario => ({ aprovada, tentativas: 1, ultima });
+
 export function historico(o: {
   assistidas?: string[];
   certificados?: string[];
   posicoes?: [string, number, string?][];
+  questionarios?: [string, EstudoDoQuestionario][];
 }): Historico {
   return {
     assistidas: new Set((o.assistidas ?? []) as AulaId[]),
@@ -208,6 +220,9 @@ export function historico(o: {
         aula as AulaId,
         { atualizadaEm: quando ?? "2026-10-07T12:00:00.000Z", posicaoSeg: seg },
       ])
+    ),
+    questionarios: new Map(
+      (o.questionarios ?? []).map(([aula, q]) => [aula as AulaId, q])
     ),
   };
 }
@@ -238,6 +253,7 @@ function linhaDoSeed(chave: string): CursoLinha {
         descricao: a.descricao ?? "",
         duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(chave, m.numero, i + 1),
+        perguntas: 0,
         posicao: i + 1,
         titulo: a.titulo,
         videoId: VIDEO_EXEMPLO.id,
@@ -298,6 +314,7 @@ export function exemploDoPrototipo(): LinhasPainel {
         posicaoSeg: POSICAO_A.posicaoSeg,
       },
     ],
+    questionarios: [],
   };
 }
 
@@ -310,4 +327,5 @@ export const SEM_LIBERACAO: LinhasPainel = {
   comunicados: [],
   liberacoes: [],
   posicoes: [],
+  questionarios: [],
 };

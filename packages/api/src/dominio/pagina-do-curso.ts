@@ -3,9 +3,17 @@
 // regra de quem vê é a de montarCursoAberto, a mesma do player e de aula.entrada.
 
 import type { CursoAberto } from "./aula";
-import { type EstadoQueAbre, niveis, type Progresso, progresso } from "./curso";
+import {
+  type EstadoQueAbre,
+  niveis,
+  type Progresso,
+  progresso,
+  progressoDosQuestionarios,
+  questionariosDoCurso,
+} from "./curso";
+import { type MarcaDoQuestionario, marcaDoQuestionario } from "./questionario";
 import { aulaDeRetomada, type OndeNoCurso, ondeNoCurso } from "./retomada";
-import { caminhoDaAula, caminhoDoCurso } from "./rotas";
+import { caminhoDaAula, caminhoDoQuestionario } from "./rotas";
 import type { AulaId, Capa, NivelCatalogo } from "./tipos";
 
 export interface AulaDaPagina {
@@ -14,6 +22,7 @@ export interface AulaDaPagina {
   descricao: string;
   duracaoSeg: number;
   id: AulaId;
+  questionario: MarcaDoQuestionario;
   titulo: string;
 }
 
@@ -27,8 +36,9 @@ export interface ModuloDaPagina {
 
 /**
  * O botão principal. Começar e continuar levam à aula da retomada, a mesma do
- * Continuar de Meus cursos; `onde` é o módulo e o número dela. A prova leva à
- * página do curso, como o banner. O curso concluído leva à primeira aula, para rever.
+ * Continuar de Meus cursos; `onde` é o módulo e o número dela. Com as aulas
+ * assistidas e questionário por aprovar, leva ao questionário da próxima aula
+ * pendente (a reprovada primeiro). O curso concluído leva à primeira aula, para rever.
  */
 export type AcaoDaPagina =
   | { tipo: "comecar"; aulaId: AulaId; href: string; onde: OndeNoCurso }
@@ -39,7 +49,16 @@ export type AcaoDaPagina =
       onde: OndeNoCurso;
       posicaoSeg: number;
     }
-  | { tipo: "prova"; href: string }
+  | {
+      tipo: "questionario";
+      aulaId: AulaId;
+      href: string;
+      onde: OndeNoCurso;
+      /** Os questionários aprovados sobre os do curso: a barra do cartão. */
+      questionarios: Progresso;
+      /** A nota da última tentativa nessa aula; null antes da primeira. */
+      ultima: { acertos: number; total: number } | null;
+    }
   | { tipo: "rever"; aulaId: AulaId; href: string };
 
 export interface PaginaDoCurso {
@@ -83,8 +102,22 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
         ? { aulaId, href, onde, tipo: "comecar" }
         : { aulaId, href, onde, posicaoSeg, tipo: "continuar" };
     }
-    case "prova":
-      return { href: caminhoDoCurso(slug), tipo: "prova" };
+    case "questionarios": {
+      const onde = ondeNoCurso(curso, estado, historico, atividade);
+      if (!onde) {
+        throw new Error(`Curso ${slug} com questionário pendente sem aula`);
+      }
+      return {
+        aulaId: estado.proximaAula,
+        href: caminhoDoQuestionario(slug, estado.proximaAula),
+        onde,
+        questionarios: progressoDosQuestionarios(
+          questionariosDoCurso(curso, historico)
+        ),
+        tipo: "questionario",
+        ultima: historico.questionarios.get(estado.proximaAula)?.ultima ?? null,
+      };
+    }
     case "concluido": {
       const [primeira] = curso.modulos.flatMap((m) => m.aulas);
       if (!primeira) {
@@ -105,7 +138,7 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
 
 export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
   const { curso } = c;
-  const { assistidas } = c.historico;
+  const { assistidas, questionarios } = c.historico;
   const nivelPorOrdem = new Map(curso.niveis.map((n) => [n.ordem, n]));
   const { proximo } = niveis(curso, assistidas);
   return {
@@ -120,6 +153,7 @@ export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id,
+        questionario: marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),
         titulo: a.titulo,
       })),
       nivel:

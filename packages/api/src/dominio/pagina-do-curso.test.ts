@@ -4,6 +4,7 @@ import { type LinhasCurso, montarCursoAberto } from "./aula";
 import { cursoLinha, idAula } from "./exemplo";
 import { montarPaginaDoCurso } from "./pagina-do-curso";
 import type { CursoLinha } from "./painel";
+import type { MarcaDoQuestionario } from "./questionario";
 import type { AulaId } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
@@ -42,9 +43,12 @@ const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
     certificados: o.certificados ?? [],
     curso: { ...linha(), liberacoes: [{ id: "lib" }] },
     posicoes: o.posicoes ?? [],
+    questionarios: o.questionarios ?? [],
   });
   return aberto && montarPaginaDoCurso(aberto);
 };
+
+const SEM: MarcaDoQuestionario = { tipo: "sem" };
 
 const assistida = (aulaId: string) => ({
   assistidaEm: em("2026-10-06T15:00:00Z"),
@@ -73,6 +77,7 @@ describe("montarPaginaDoCurso", () => {
               descricao: "Liga a máquina.",
               duracaoSeg: 600,
               id: A1,
+              questionario: SEM,
               titulo: "Aula 1 de envase",
             },
             {
@@ -80,6 +85,7 @@ describe("montarPaginaDoCurso", () => {
               descricao: "",
               duracaoSeg: 600,
               id: A2,
+              questionario: SEM,
               titulo: "Aula 2 de envase",
             },
           ],
@@ -94,6 +100,7 @@ describe("montarPaginaDoCurso", () => {
               descricao: "",
               duracaoSeg: 600,
               id: B1,
+              questionario: SEM,
               titulo: "Aula 1 de envase",
             },
           ],
@@ -135,6 +142,7 @@ describe("montarPaginaDoCurso", () => {
         ],
       },
       posicoes: [],
+      questionarios: [],
     });
     const p = aberto && montarPaginaDoCurso(aberto);
     expect({
@@ -187,11 +195,48 @@ describe("montarPaginaDoCurso", () => {
     ]);
   });
 
-  test("com todas as aulas assistidas, a ação é a prova, na página do curso", () => {
-    const p = pagina({ assistidas: [A1, A2, B1].map(assistida) });
-    expect([p?.estado.tipo, p?.acao]).toEqual([
-      "prova",
-      { href: "/cursos/envase", tipo: "prova" },
+  test("com todas as aulas assistidas e questionário por aprovar, a ação leva ao questionário reprovado, e cada aula diz o dela", () => {
+    const base = linha();
+    const comPerguntas: CursoLinha = {
+      ...base,
+      modulos: base.modulos.map((m) => ({
+        ...m,
+        aulas: m.aulas.map((a) => ({ ...a, perguntas: a.id === A1 ? 0 : 3 })),
+      })),
+    };
+    const tentativa = (aulaId: string, aprovada: boolean, acertos: number) => ({
+      aprovada,
+      aulaId,
+      tentativas: 1,
+      ultimaEm: em("2026-10-06T16:00:00Z"),
+      ultimosAcertos: acertos,
+      ultimoTotal: 3,
+    });
+    const aberto = montarCursoAberto({
+      assistidas: [A1, A2, B1].map(assistida),
+      certificados: [],
+      curso: { ...comPerguntas, liberacoes: [{ id: "lib" }] },
+      posicoes: [],
+      questionarios: [tentativa(B1, false, 2)],
+    });
+    const p = aberto && montarPaginaDoCurso(aberto);
+    expect([p?.estado, p?.acao]).toEqual([
+      { aprovados: 0, proximaAula: B1, tipo: "questionarios", total: 2 },
+      {
+        aulaId: B1,
+        href: `/cursos/envase/aulas/${B1}#questionario`,
+        onde: { aula: 1, modulo: { numero: 2, titulo: "Módulo 2 de envase" } },
+        questionarios: { feitas: 0, pct: 0, total: 2 },
+        tipo: "questionario",
+        ultima: { acertos: 2, total: 3 },
+      },
+    ]);
+    expect(
+      p?.modulos.flatMap((m) => m.aulas.map((a) => a.questionario))
+    ).toEqual([
+      { tipo: "sem" },
+      { tipo: "a_fazer" },
+      { tipo: "reprovado", ultima: { acertos: 2, total: 3 } },
     ]);
   });
 
@@ -233,6 +278,7 @@ describe("montarPaginaDoCurso", () => {
         modulos: [{ ...m1, aulas: [], numero: 0 }, ...base.modulos],
       },
       posicoes: [],
+      questionarios: [],
     });
     expect(aberto && montarPaginaDoCurso(aberto).acao).toEqual({
       aulaId: A1,

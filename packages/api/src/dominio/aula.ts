@@ -6,8 +6,21 @@ import {
   podeAbrir,
   progresso,
 } from "./curso";
-import { atividadeDe, historicoDe, posicaoComecada } from "./historico";
+import {
+  atividadeDe,
+  historicoDe,
+  type LinhaDoQuestionario,
+  posicaoComecada,
+} from "./historico";
 import { type CursoLinha, paraCatalogo } from "./painel";
+import {
+  type MarcaDoQuestionario,
+  marcaDoQuestionario,
+  montarQuestionarioDaAula,
+  type PerguntaComGabarito,
+  type QuestionarioDaAula,
+  type TentativaGravada,
+} from "./questionario";
 import { MARGEM_REINICIO_SEG } from "./regras";
 import { aulaDeRetomada } from "./retomada";
 import type {
@@ -35,6 +48,7 @@ export interface LinhasCurso {
     posicaoSeg: number;
     trechosVistos: readonly Trecho[];
   }[];
+  questionarios: readonly LinhaDoQuestionario[];
 }
 
 export interface CursoAberto {
@@ -81,6 +95,7 @@ export interface AulaNaColuna {
   atual: boolean;
   duracaoSeg: number;
   id: AulaId;
+  questionario: MarcaDoQuestionario;
   titulo: string;
 }
 
@@ -118,6 +133,15 @@ export interface AulaNoPlayer {
   estudo: { assistida: boolean; posicaoSeg: number; trechos: Trechos };
   modulos: readonly ModuloNaColuna[];
   proxima: VizinhaDaAula | null;
+  /** null na aula sem pergunta. */
+  questionario: QuestionarioDaAula | null;
+}
+
+/** O questionário da aula aberta, como a consulta o traz: o gabarito e as tentativas da pessoa. */
+export interface LinhasDoQuestionario {
+  perguntas: readonly PerguntaComGabarito[];
+  /** Em ordem de número. */
+  tentativas: readonly TentativaGravada[];
 }
 
 interface AulaNoCurso {
@@ -147,7 +171,8 @@ export function estudoDaAula(
 
 export function montarAulaNoPlayer(
   c: CursoAberto,
-  aula: AulaCatalogo
+  aula: AulaCatalogo,
+  questionario: LinhasDoQuestionario
 ): AulaNoPlayer {
   const ordem = aulasEmOrdem(c.curso);
   const i = ordem.findIndex((x) => x.aula.id === aula.id);
@@ -155,7 +180,7 @@ export function montarAulaNoPlayer(
   if (!modulo) {
     throw new Error(`Aula ${aula.id} fora do curso ${c.curso.slug}`);
   }
-  const { assistidas } = c.historico;
+  const { assistidas, questionarios } = c.historico;
   return {
     anterior: vizinha(ordem[i - 1]),
     aula: {
@@ -183,6 +208,7 @@ export function montarAulaNoPlayer(
         atual: a.id === aula.id,
         duracaoSeg: a.duracaoSeg,
         id: a.id,
+        questionario: marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),
         titulo: a.titulo,
       })),
       feitas: m.aulas.filter((a) => assistidas.has(a.id)).length,
@@ -190,15 +216,22 @@ export function montarAulaNoPlayer(
       titulo: m.titulo,
     })),
     proxima: vizinha(ordem[i + 1]),
+    questionario: montarQuestionarioDaAula(
+      questionario.perguntas,
+      questionario.tentativas
+    ),
   };
 }
 
 export type EntradaDoCurso =
   | { aulaId: AulaId; tipo: "aula" }
-  | { primeira: AulaId; tipo: "prova" | "concluido" };
+  | { primeira: AulaId; tipo: "concluido" };
 
 export function entradaDoCurso(c: CursoAberto): EntradaDoCurso {
   const { estado } = c;
+  if (estado.tipo === "questionarios") {
+    return { aulaId: estado.proximaAula, tipo: "aula" };
+  }
   if (estado.tipo === "em_andamento" || estado.tipo === "nao_iniciado") {
     const { aulaId } = aulaDeRetomada(
       c.curso,

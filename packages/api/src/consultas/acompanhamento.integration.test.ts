@@ -48,7 +48,7 @@ const NA_PALAVRA_DO_ADMIN: Record<
   em_andamento: "estudando",
   em_breve: "em_producao",
   nao_iniciado: "nunca_abriu",
-  prova: "falta_prova",
+  questionarios: "faltam_questionarios",
 };
 
 describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {

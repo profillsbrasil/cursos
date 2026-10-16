@@ -37,7 +37,10 @@ const linhas = (
   certificados: o.certificados ?? [],
   curso,
   posicoes: o.posicoes ?? [],
+  questionarios: o.questionarios ?? [],
 });
+
+const SEM_QUESTIONARIO = { perguntas: [], tentativas: [] };
 
 const assistida = (aulaId: string, dia = "2026-10-06") => ({
   assistidaEm: em(`${dia}T15:00:00Z`),
@@ -91,6 +94,7 @@ describe("montarCursoAberto", () => {
         certificados: exemplo.certificados,
         curso: comAcesso(linha, { liberado: true }),
         posicoes: exemplo.posicoes.map((p) => ({ ...p, trechosVistos: [] })),
+        questionarios: [],
       });
       expect(aberto?.estado ?? null).toEqual(
         podeAbrir(vm.estado) ? vm.estado : null
@@ -125,7 +129,7 @@ describe("montarAulaNoPlayer", () => {
     if (!aula) {
       throw new Error(`aula ${id} fora do curso`);
     }
-    return montarAulaNoPlayer(aberto, aula);
+    return montarAulaNoPlayer(aberto, aula, SEM_QUESTIONARIO);
   };
 
   test("anterior e próxima atravessam módulos", () => {
@@ -169,7 +173,9 @@ describe("montarAulaNoPlayer", () => {
     );
     const descricao = (id: string) => {
       const aula = e && aulaPorId(e, id);
-      return e && aula ? montarAulaNoPlayer(e, aula).aula.descricao : null;
+      return e && aula
+        ? montarAulaNoPlayer(e, aula, SEM_QUESTIONARIO).aula.descricao
+        : null;
     };
     expect([
       descricao(idAula("c", 1, 1)),
@@ -198,7 +204,7 @@ describe("montarAulaNoPlayer", () => {
     if (!(d && ultima)) {
       throw new Error("curso d não abriu");
     }
-    expect(montarAulaNoPlayer(d, ultima).aula).toMatchObject({
+    expect(montarAulaNoPlayer(d, ultima, SEM_QUESTIONARIO).aula).toMatchObject({
       numeroNoModulo: 3,
       totalNoModulo: 3,
     });
@@ -236,15 +242,26 @@ describe("entradaDoCurso", () => {
     });
   });
 
-  test("todas assistidas: prova, com a primeira aula para rever", () => {
+  test("todas assistidas e questionário pendente: a aula desse questionário", () => {
+    const comQuestionario = cursoLinha("q", { aulas: [3], perguntas: 2 });
     const aberto = montarCursoAberto(
-      linhas(comAcesso(c, { liberado: true }), {
-        assistidas: [1, 2, 3].map((p) => assistida(idAula("c", 0, p))),
+      linhas(comAcesso(comQuestionario, { liberado: true }), {
+        assistidas: [1, 2, 3].map((p) => assistida(idAula("q", 0, p))),
+        questionarios: [
+          {
+            aprovada: true,
+            aulaId: idAula("q", 0, 1),
+            tentativas: 1,
+            ultimaEm: em("2026-10-06T16:00:00Z"),
+            ultimosAcertos: 2,
+            ultimoTotal: 2,
+          },
+        ],
       })
     );
     expect(aberto && entradaDoCurso(aberto)).toEqual({
-      primeira: idAula("c", 0, 1) as never,
-      tipo: "prova",
+      aulaId: idAula("q", 0, 2) as never,
+      tipo: "aula",
     });
   });
 });
