@@ -12,7 +12,7 @@ import {
   centrarAAulaAtual,
   rolagemDaColuna,
 } from "@/lib/player/rolagem-da-coluna";
-import { caminhoDaAula } from "@/lib/rotas";
+import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
 /**
  * O script que segue a coluna no HTML do servidor: na carga direta (F5, link,
@@ -83,7 +83,15 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
         ref={coluna}
       >
         <div className="grid gap-2.5 border-border border-b px-5 pt-[18px] pb-4">
-          <h2 className="font-semibold text-base text-titulo">{titulo}</h2>
+          <h2 className="font-semibold text-base text-titulo">
+            {/* O único caminho da aula de volta à página do curso: sublinhado já em repouso. */}
+            <Link
+              className="underline decoration-muted-foreground underline-offset-4 hover:decoration-titulo"
+              href={caminhoDoCurso(slug)}
+            >
+              {titulo}
+            </Link>
+          </h2>
           <BarraProgresso
             pct={progresso.pct}
             rotulo={`Progresso no curso ${titulo}`}

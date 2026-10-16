@@ -2,8 +2,7 @@ import { diaLocal } from "@cursos/api/dominio/sequencia";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { TopoDoAluno } from "@/components/aluno/topo";
-import { MigalhaDoCurso } from "@/components/curso/migalha-do-curso";
+import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { TelaDoCurso } from "@/components/curso/tela-do-curso";
 import { carregarPaginaDoCurso } from "@/server/api";
 
@@ -23,7 +22,7 @@ export default async function Curso({ params }: Props) {
   }
   return (
     <>
-      <TopoDoAluno esquerda={<MigalhaDoCurso titulo={pagina.titulo} />} />
+      <TopoDoAluno esquerda={<BuscaEmBreve />} />
       <TelaDoCurso hoje={diaLocal(new Date())} pagina={pagina} />
     </>
   );
