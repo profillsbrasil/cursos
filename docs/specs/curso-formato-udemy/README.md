@@ -93,35 +93,30 @@ Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 |---|---|---|
 | Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Pronto e revisado. Espera o merge. |
 | Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria em tabela, descrição, tópicos, descrição da aula, endereço automático, `curso.pagina` e `admin.categorias` |
-| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy` | Começou. O view model da página com os níveis está pronto (`e237bf5`). A tela ainda não. |
+| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy` | Pronto e provado no browser (`prova-curso-udemy/`). Espera o dono aceitar os desvios listados abaixo. |
 | Curso no formato Udemy: editor (Vitrine, tópicos e aulas) | `feat/curso-formato-udemy` | Protótipo aprovado (rodada 3). Não começou. |
 | Questionário, conclusão e certificado | PR seguinte | Não começou |
 
-## Próximos passos da página do curso e das categorias
+## Página do curso e categorias: entregue
 
-O trabalho parou em `e237bf5`. O todo do delegado está em `arquivos/ui-pagina-e-categorias.todo.md`, e o relatório em `arquivos/relatorio-ui-pagina-e-categorias.md`. Falta o seguinte:
+O plano desta seção está todo feito, com os briefs `arquivos/brief-comum-r3.md`, `brief-pagina-do-curso.md` e `brief-tela-de-categorias.md`. A prova no browser, contra um database local semeado, está em `arquivos/prova-curso-udemy/`.
 
-1. **API.**
-   - `admin.categorias.lista` passa a devolver os títulos dos cursos de cada categoria, em ordem pt-BR. Hoje ela devolve só a contagem, e o protótipo mostra os nomes.
-   - `categoria.integration.test.ts` e `editor-do-curso.test.tsx` acompanham o formato novo.
-2. **`useAcao`.** `aoRecusar` passa a receber também a mensagem para a pessoa, além do `Motivo`. Sem isso, o campo não mostra o texto do servidor quando o nome se repete.
-3. **Página do curso.**
-   - `(aluno)/cursos/[slug]/page.tsx` sai do redirect para a aula e passa a montar a página a partir de `carregarPaginaDoCurso`. Ganha um `loading.tsx` próprio.
-   - Componentes novos em `components/curso/`: cabeçalho, "O que você vai aprender", a sanfona com índice de livro e "Abrir todos", e o cartão preso a partir de 1081 px.
-   - A capa de Meus cursos e a migalha do player já apontam para `/cursos/[slug]`. Os testes de href rodam de novo.
-   - Testes de render para os quatro estados (não iniciado, em andamento, prova e concluído), com e sem níveis.
-4. **Tela de categorias.**
-   - Item "Categorias" em `admin/menu.tsx`, mais `(admin)/admin/categorias/page.tsx` e `loading.tsx`.
-   - `components/admin/categorias.tsx` cria, renomeia na linha, desliga o Apagar com a dica e confirma o apagar com a `ConfirmacaoNaLinha`.
-   - Testes de render: categoria em uso, livre e com nome repetido.
-5. **Docs e prova.** Atualizar o `CLAUDE.md` e o `DESIGN.md`, rodar as três verificações e provar as telas no browser.
+Depois de juntar as duas frentes, a prova no browser achou dois defeitos, e uma revisão independente achou mais quatro. Cada um ganhou um teste que falhava antes:
+- abaixo de 1081 px, a capa ao lado do texto esticava e era cortada;
+- o resumo abria linha com um "·" sozinho e punha um "·" depois do selo da categoria;
+- a prova e o concluído davam erro quando o primeiro módulo estava vazio;
+- o módulo vazio aparecia como concluído;
+- depois de apagar uma categoria, o foco caía no `body`;
+- depois da recusa de apagar, a linha ficava sem o nome e sem o Renomear.
 
-Desvios planejados em relação ao protótipo, que o dono pode recusar:
-- "Prova e certificado no módulo 15" vira "no fim do curso", porque o curso não diz em que módulo fica a prova.
-- Os estados de prova e de concluído do cartão não estão no protótipo e vão seguir o mesmo cartão.
-- Cada aula do índice vira link para a aula.
-
-O brief completo desta rodada é `arquivos/brief-ui-pagina-e-categorias.md`. Os caminhos de máquina citados nos briefs e relatórios (`/home/othavio/.herdr/worktrees/...`) são da máquina antiga.
+Desvios do protótipo que o dono pode recusar:
+- "Prova e certificado no módulo 15" virou "no fim do curso".
+- A prova mostra "Você assistiu a todas as aulas", "Prova e certificado", o botão "Rever aulas" e "A prova abre em breve nesta página". O concluído mostra "Certificado emitido em <data>", "Rever o curso" e "Código do certificado". Esses textos não estão no protótipo.
+- Cada aula do índice de livro é link para a aula.
+- O selo do cartão tem ícone, como o DESIGN.md pede.
+- Abaixo de 1081 px, o cartão ocupa a largura toda, com a capa ao lado do texto.
+- Nas categorias, o confirmar do Apagar é o botão amarelo da `ConfirmacaoNaLinha`, e a dica do Apagar desligado usa a frase do servidor.
+- Os selos vazios ("Nenhum curso", a categoria da página) usam contorno em `texto-apagado`, como o "Sem liberação", porque o `trilho` dava 1,5:1. O dono pediu os três iguais.
 
 ## Editor: refino aprovado
 
@@ -176,6 +171,9 @@ Estas notas viviam na memória da máquina antiga.
 
 ## Pendências pequenas
 
+- Em `comunicados.tsx`, depois de apagar, o foco cai no `body`, pelo mesmo motivo que foi corrigido nas categorias.
+- `aula.entrada` só serve de referência nos testes de acesso desde que a página do curso deixou de redirecionar. Dá para trocá-lo por `curso.pagina` nesses testes e apagá-lo.
+- O `ultracite check` da raiz acusa os HTML e JS de `docs/specs/**/arquivos/`. Tirar a pasta do Biome espera o OK do dono.
 - No seed, o curso "Limpeza CIP e troca de formato" tem a categoria "Fábrica e montagem", que é também o título de outro curso.
 - `apps/web/DESIGN.md` ainda fala em "pé dos editores".
 - Na busca do admin, a frase de quem nunca abriu um curso não conta os cursos em produção.
