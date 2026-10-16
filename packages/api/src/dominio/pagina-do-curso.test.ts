@@ -211,4 +211,33 @@ describe("montarPaginaDoCurso", () => {
       { aulaId: A1, href: `/cursos/envase/aulas/${A1}`, tipo: "rever" },
     ]);
   });
+
+  test("com certificado e um módulo vazio na frente, rever leva à primeira aula que existe", () => {
+    const base = linha();
+    const [m1] = base.modulos;
+    if (!m1) {
+      throw new Error("o exemplo tem dois módulos");
+    }
+    const aberto = montarCursoAberto({
+      assistidas: [A1, A2, B1].map(assistida),
+      certificados: [
+        {
+          codigo: "CERT-1",
+          cursoId: "envase",
+          emitidoEm: em("2026-10-08T12:00:00Z"),
+        },
+      ],
+      curso: {
+        ...base,
+        liberacoes: [{ id: "lib" }],
+        modulos: [{ ...m1, aulas: [], numero: 0 }, ...base.modulos],
+      },
+      posicoes: [],
+    });
+    expect(aberto && montarPaginaDoCurso(aberto).acao).toEqual({
+      aulaId: A1,
+      href: `/cursos/envase/aulas/${A1}`,
+      tipo: "rever",
+    });
+  });
 });

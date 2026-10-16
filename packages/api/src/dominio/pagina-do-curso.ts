@@ -86,7 +86,7 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
     case "prova":
       return { href: caminhoDoCurso(slug), tipo: "prova" };
     case "concluido": {
-      const primeira = curso.modulos[0]?.aulas[0];
+      const [primeira] = curso.modulos.flatMap((m) => m.aulas);
       if (!primeira) {
         throw new Error(`Curso ${slug} concluído sem aulas`);
       }

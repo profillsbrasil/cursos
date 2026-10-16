@@ -79,7 +79,7 @@ export function marcaDoModulo(
   m: ModuloDaPagina,
   atual: AulaId | null
 ): MarcaDoModulo {
-  if (m.aulas.every((a) => a.assistida)) {
+  if (m.aulas.length > 0 && m.aulas.every((a) => a.assistida)) {
     return "feito";
   }
   return m.aulas.some((a) => a.id === atual) ? "atual" : "pendente";
@@ -89,6 +89,9 @@ export function linhasDoModulo(
   m: ModuloDaPagina,
   comecou: boolean
 ): { direita: string | null; sob: string } {
+  if (m.aulas.length === 0) {
+    return { direita: null, sob: "Nenhuma aula ainda" };
+  }
   const tamanho = `${plural(m.aulas.length, "aula", "aulas")} · ${fmtHoras(duracaoDe(m.aulas))}`;
   const sob = m.nivel ? `Nível ${m.nivel.ordem} · ${m.nivel.nome}` : tamanho;
   if (comecou) {
@@ -210,7 +213,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
       };
     }
     case "prova": {
-      const primeira = p.modulos[0]?.aulas[0];
+      const [primeira] = p.modulos.flatMap((m) => m.aulas);
       if (!primeira) {
         throw new Error(`Curso ${p.slug} na prova sem aulas`);
       }

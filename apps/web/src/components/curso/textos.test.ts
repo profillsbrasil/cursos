@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { ModuloDaPagina } from "@cursos/api/dominio/pagina-do-curso";
 import type { Route } from "next";
 
 import {
@@ -14,6 +15,7 @@ import {
   abertosDeSaida,
   cartaoDoCurso,
   linhasDoModulo,
+  marcaDoModulo,
   paragrafos,
   parouEm,
   resumoDoCurso,
@@ -201,5 +203,33 @@ describe("os módulos abertos de saída", () => {
   test("com mais de 3, na prova e no concluído, nenhum", () => {
     expect(abertosDeSaida(comercial.prova)).toEqual([]);
     expect(abertosDeSaida(comercial.concluido)).toEqual([]);
+  });
+});
+
+describe("o módulo ainda sem aula", () => {
+  const vazio: ModuloDaPagina = {
+    aulas: [],
+    nivel: null,
+    numero: 0,
+    titulo: "Boas-vindas",
+  };
+
+  test("na frente do curso, a prova ainda leva à primeira aula que existe", () => {
+    const p = { ...fabrica.prova, modulos: [vazio, ...fabrica.prova.modulos] };
+    expect(cartaoDoCurso(p, HOJE).botao.href).toBe(
+      rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`)
+    );
+  });
+
+  test("não aparece como concluído e diz que não tem aula", () => {
+    expect(marcaDoModulo(vazio, null)).toBe("pendente");
+    expect(linhasDoModulo(vazio, false)).toEqual({
+      direita: null,
+      sob: "Nenhuma aula ainda",
+    });
+    expect(linhasDoModulo(vazio, true)).toEqual({
+      direita: null,
+      sob: "Nenhuma aula ainda",
+    });
   });
 });
