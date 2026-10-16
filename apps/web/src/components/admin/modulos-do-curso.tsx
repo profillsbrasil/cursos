@@ -335,7 +335,7 @@ export function BlocoDoModulo({
             />
             <CampoDeTexto
               campoClasse="gap-1.5"
-              className="font-semibold md:h-10"
+              className="font-semibold"
               id={ID.modulo(id, "titulo")}
               maxLength={CARACTERES.tituloDoModulo}
               onChange={mudarTitulo}

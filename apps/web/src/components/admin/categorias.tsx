@@ -143,7 +143,7 @@ function CampoDoNome({
           aria-label={rotulo}
           autoComplete="off"
           autoFocus={focarAoAbrir}
-          className={cn(CAMPO, "h-10")}
+          className={CAMPO}
           defaultValue={inicial}
           maxLength={CARACTERES.categoria}
           name="nome"
@@ -193,7 +193,7 @@ function NovaCategoria({ aoCriar }: { aoCriar: (id: CategoriaId) => void }) {
     >
       <Button
         aria-busy={nome.pendente}
-        className={cn(BOTAO, PEQUENO, "h-10")}
+        className={BOTAO}
         disabled={nome.pendente}
         focusableWhenDisabled
         type="submit"
@@ -361,7 +361,7 @@ function LinhaDaCategoria({
         >
           <Button
             aria-busy={nome.pendente}
-            className={cn(BOTAO_CONTORNO, PEQUENO, "h-10")}
+            className={BOTAO_CONTORNO}
             disabled={nome.pendente}
             focusableWhenDisabled
             type="submit"
@@ -372,8 +372,7 @@ function LinhaDaCategoria({
           <Button
             className={cn(
               BOTAO_CONTORNO,
-              PEQUENO,
-              "h-10 border-transparent dark:border-transparent"
+              "border-transparent dark:border-transparent"
             )}
             disabled={nome.pendente}
             onClick={sair}

@@ -50,7 +50,7 @@ export function CampoDeTexto({
         {...input}
         {...aria}
         autoComplete="off"
-        className={cn(CAMPO, "h-11", input.className)}
+        className={cn(CAMPO, input.className)}
         id={id}
       />
       {ajuda ? (
@@ -119,7 +119,7 @@ export function CampoLido({
         aria-describedby={mensagem ? `${id}-erro` : undefined}
         aria-invalid={mensagem ? true : undefined}
         autoComplete="off"
-        className={cn(CAMPO, "h-11 md:h-10", input.className)}
+        className={cn(CAMPO, input.className)}
         id={id}
         onBlur={sair}
         onChange={mudar}

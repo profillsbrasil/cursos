@@ -13,7 +13,7 @@ export const NUMERO = "text-right tabular-nums";
  * data-slot="select-trigger"; a seta gira com o data-popup-open do Base UI.
  */
 export const SELECAO =
-  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-[12px] border border-muted-foreground bg-background px-3.5 text-left text-foreground text-sm transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
+  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-full border border-muted-foreground bg-background px-3.5 text-left text-foreground text-sm transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
 
 export const GATILHO_DA_SELECAO = {
   campo: SELECAO,

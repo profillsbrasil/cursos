@@ -288,7 +288,7 @@ export function CampoDeCapa({
         <Input
           {...daDescricao.aria}
           autoComplete="off"
-          className={cn(CAMPO, "h-11 md:h-10")}
+          className={CAMPO}
           id={descricao}
           maxLength={CARACTERES.capaAlt}
           name="capaAlt"

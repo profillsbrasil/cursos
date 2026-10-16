@@ -238,7 +238,7 @@ function LinhaDoNivel({
           <Input
             {...aria}
             autoComplete="off"
-            className={cn(CAMPO, "h-11 min-w-0 flex-1 md:h-10")}
+            className={cn(CAMPO, "min-w-0 flex-1")}
             id={id}
             maxLength={CARACTERES.nomeDoNivel}
             onChange={renomear}

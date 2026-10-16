@@ -96,7 +96,7 @@ export function ConferirOutro({ digitado }: { digitado: string }) {
       <Input
         autoCapitalize="characters"
         autoComplete="off"
-        className={cn(CAMPO, "h-11 min-w-0 flex-1 tracking-[0.04em]")}
+        className={cn(CAMPO, "min-w-0 flex-1 tracking-[0.04em]")}
         defaultValue={digitado}
         id="codigo-do-certificado"
         maxLength={40}

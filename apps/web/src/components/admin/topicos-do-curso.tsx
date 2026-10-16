@@ -56,7 +56,7 @@ function LinhaDoTopico({
           <Input
             {...aria}
             autoComplete="off"
-            className={cn(CAMPO, "h-11 md:h-10")}
+            className={CAMPO}
             id={id}
             maxLength={CARACTERES.topico}
             onChange={editar}

@@ -29,7 +29,7 @@ export function TopoDoAluno({
 
 export function BuscaEmBreve() {
   return (
-    <InputGroup className="h-10 max-w-[460px] flex-1 rounded-full border-input bg-card px-2 has-disabled:opacity-100 dark:bg-card">
+    <InputGroup className="h-11 max-w-[460px] flex-1 rounded-full border-input bg-background px-2 has-disabled:opacity-100 dark:bg-background">
       <InputGroupAddon>
         <Search aria-hidden="true" className="text-muted-foreground" />
       </InputGroupAddon>

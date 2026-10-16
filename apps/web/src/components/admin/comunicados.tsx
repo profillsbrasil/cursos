@@ -23,7 +23,7 @@ import {
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO } from "@/components/casca/campos";
+import { AREA, CAMPO } from "@/components/casca/campos";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -122,7 +122,7 @@ function Formulario({
           aria-invalid={faltando || undefined}
           autoComplete="off"
           autoFocus={focarAoAbrir}
-          className={cn(CAMPO, "h-11")}
+          className={CAMPO}
           defaultValue={inicial.titulo}
           id={`${id}-titulo`}
           maxLength={TITULO_MAX}
@@ -136,7 +136,7 @@ function Formulario({
         </FieldLabel>
         <Textarea
           aria-invalid={faltando || undefined}
-          className={cn(CAMPO, "min-h-28 py-3 leading-relaxed")}
+          className={cn(AREA, "min-h-28")}
           defaultValue={inicial.texto}
           id={`${id}-texto`}
           maxLength={TEXTO_MAX}
