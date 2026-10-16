@@ -9,3 +9,9 @@ export const caminhoDaAula = (slug: string, aulaId: string) =>
 /** O questionário mora na página da aula, depois do vídeo: a âncora rola até ele. */
 export const caminhoDoQuestionario = (slug: string, aulaId: string) =>
   `${caminhoDaAula(slug, aulaId)}#questionario`;
+
+export const caminhoDoCertificado = (slug: string) =>
+  `${caminhoDoCurso(slug)}/certificado`;
+
+export const caminhoDaConferencia = (codigo: string) =>
+  `/certificado/${codigo}`;
