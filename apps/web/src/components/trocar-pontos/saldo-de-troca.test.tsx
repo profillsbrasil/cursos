@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { comoGanhar } from "@cursos/api/dominio/pontos";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ComoGanhar } from "./como-ganhar";
 import { SaldoDeTroca } from "./saldo-de-troca";
 
 const texto = (h: string) =>
@@ -35,5 +37,20 @@ describe("o selo dos pontos da semana em Trocar pontos", () => {
     expect(saldo(40)).toBe(
       "Seu saldo 610 pts +40 pts nesta semana Como ganhar pontos"
     );
+  });
+});
+
+describe("Como ganhar pontos", () => {
+  const painel = texto(
+    renderToStaticMarkup(
+      <ComoGanhar aberta id="como-ganhar" regras={comoGanhar()} />
+    )
+  );
+
+  test("diz que só a primeira tentativa do questionário pontua, sem falar em prova", () => {
+    expect(painel).toContain(
+      "Rever aula não pontua de novo, e o questionário pontua só na primeira tentativa."
+    );
+    expect(painel).not.toContain("prova");
   });
 });

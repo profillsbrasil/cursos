@@ -47,8 +47,8 @@ export function ComoGanhar({
         ))}
       </ul>
       <p className="mt-3.5 text-muted-foreground text-sm">
-        Rever aula ou refazer prova não pontua de novo. Sábado e domingo nunca
-        quebram a sequência.
+        Rever aula não pontua de novo, e o questionário pontua só na primeira
+        tentativa. Sábado e domingo nunca quebram a sequência.
       </p>
     </div>
   );
