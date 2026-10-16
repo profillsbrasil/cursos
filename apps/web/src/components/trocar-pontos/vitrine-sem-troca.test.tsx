@@ -4,6 +4,8 @@ import type { DiaISO } from "@cursos/api/dominio/tipos";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { caminhoDaAula } from "@/lib/rotas";
+
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 mock.module("next/navigation", () => ({
@@ -32,20 +34,48 @@ const curso = {
   titulo: "Curso de envase",
 } as CartaoDeTroca["curso"];
 
-const vitrine = (
+const AULA = caminhoDaAula("x", "00000000-0000-4000-8000-000000000001");
+
+const vitrineEmHtml = (
   cartoes: CartaoDeTroca[],
   temCursoTrocavelNaVitrine: boolean
 ) =>
-  texto(
-    renderToStaticMarkup(
-      <CursosParaTrocar
-        cartoes={cartoes}
-        extrato={[]}
-        hoje="2026-10-14"
-        temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
-      />
-    )
+  renderToStaticMarkup(
+    <CursosParaTrocar
+      cartoes={cartoes}
+      extrato={[]}
+      hoje="2026-10-14"
+      temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+      voltarAEstudar={AULA}
+    />
   );
+
+const vitrine = (
+  cartoes: CartaoDeTroca[],
+  temCursoTrocavelNaVitrine: boolean
+) => texto(vitrineEmHtml(cartoes, temCursoTrocavelNaVitrine));
+
+const LINK_DE_VOLTA =
+  /<a [^>]*href="([^"]*)"[^>]*>(?:<[^>]+>)*Voltar a estudar<\/a>/;
+
+describe("a vitrine sem curso trocável tem saída", () => {
+  test("vazia: Voltar a estudar leva aonde a pessoa parou", () => {
+    expect(LINK_DE_VOLTA.exec(vitrineEmHtml([], false))?.[1]).toBe(AULA);
+  });
+
+  test("só com curso já trocado: Voltar a estudar também aparece", () => {
+    const html = vitrineEmHtml([{ curso, pago: 300, tipo: "trocado" }], false);
+    expect(LINK_DE_VOLTA.exec(html)?.[1]).toBe(AULA);
+  });
+
+  test("com curso trocável, a vitrine é a ação e o link não aparece", () => {
+    const html = vitrineEmHtml(
+      [{ curso, faltam: 200, pct: 60, preco: 500, saldo: 300, tipo: "faltam" }],
+      true
+    );
+    expect(html).not.toContain("Voltar a estudar");
+  });
+});
 
 // A vitrine vazia também acontece quando existe curso trocável que o aluno já
 // alcança por liberação. A frase fala do lado do aluno, e nenhuma promete prazo

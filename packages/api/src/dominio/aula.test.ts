@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 import {
   aulaPorId,
   type CursoComAcessoLinha,
-  entradaDoCurso,
   inicioDaAula,
   type LinhasCurso,
   montarAulaNoPlayer,
@@ -207,61 +206,6 @@ describe("montarAulaNoPlayer", () => {
     expect(montarAulaNoPlayer(d, ultima, SEM_QUESTIONARIO).aula).toMatchObject({
       numeroNoModulo: 3,
       totalNoModulo: 3,
-    });
-  });
-});
-
-describe("entradaDoCurso", () => {
-  const c = cursoLinha("c", { aulas: [3] });
-
-  test("não iniciado leva à primeira aula", () => {
-    const aberto = montarCursoAberto(linhas(comAcesso(c, { liberado: true })));
-    expect(aberto && entradaDoCurso(aberto)).toEqual({
-      aulaId: idAula("c", 0, 1) as never,
-      tipo: "aula",
-    });
-  });
-
-  test("em andamento leva à última aula tocada que não foi assistida", () => {
-    const aberto = montarCursoAberto(
-      linhas(comAcesso(c, { liberado: true }), {
-        assistidas: [assistida(idAula("c", 0, 1))],
-        posicoes: [
-          {
-            atualizadaEm: em("2026-10-07T12:00:00Z"),
-            aulaId: idAula("c", 0, 3),
-            posicaoSeg: 40,
-            trechosVistos: [],
-          },
-        ],
-      })
-    );
-    expect(aberto && entradaDoCurso(aberto)).toEqual({
-      aulaId: idAula("c", 0, 3) as never,
-      tipo: "aula",
-    });
-  });
-
-  test("todas assistidas e questionário pendente: a aula desse questionário", () => {
-    const comQuestionario = cursoLinha("q", { aulas: [3], perguntas: 2 });
-    const aberto = montarCursoAberto(
-      linhas(comAcesso(comQuestionario, { liberado: true }), {
-        assistidas: [1, 2, 3].map((p) => assistida(idAula("q", 0, p))),
-        questionarios: [
-          {
-            aprovada: true,
-            aulaId: idAula("q", 0, 1),
-            tentativas: 1,
-            ultimaEm: em("2026-10-06T16:00:00Z"),
-            ultimosAcertos: 2,
-            ultimoTotal: 2,
-          },
-        ],
-      })
-    );
-    expect(aberto && entradaDoCurso(aberto)).toEqual({
-      aulaId: idAula("q", 0, 2) as never,
-      tipo: "aula",
     });
   });
 });

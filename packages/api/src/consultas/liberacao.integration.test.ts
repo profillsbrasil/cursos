@@ -13,7 +13,13 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import type { AdminId, CursoId, LiberacaoId, Pessoa } from "../dominio/tipos";
+import type {
+  AdminId,
+  CursoId,
+  DiaISO,
+  LiberacaoId,
+  Pessoa,
+} from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste } from "./categoria-de-teste";
 import {
@@ -228,7 +234,12 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const c = await liberar(db, ADMIN, pessoa(userId), cursoId, AGORA);
     expect([a.nova, b.nova].sort()).toEqual([false, true]);
     expect(b.liberacaoId).toBe(a.liberacaoId);
-    expect(c).toEqual({ liberacaoId: a.liberacaoId, nova: false });
+    expect(c).toEqual({
+      liberacaoId: a.liberacaoId,
+      liberadaEm: AGORA,
+      nova: false,
+      origem: "admin",
+    });
     expect(await liberacoesDe(userId)).toHaveLength(1);
   });
 
@@ -384,5 +395,147 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       .catch((e: unknown) => e);
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
     expect(await liberacoesDe(sumiu)).toHaveLength(0);
+  });
+
+  describe("admin.alunos.liberarVarios", () => {
+    const nomeado = (userId: string, nome: string): Pessoa => ({
+      email: `${nome.toLowerCase()}@exemplo.com`,
+      foto: null,
+      nome,
+      userId,
+    });
+    const loteDe = (conhecidas: readonly Pessoa[], clerkCai?: string) => {
+      const ctx = contextoDeTeste({
+        db,
+        papel: "admin",
+        pessoas: conhecidas,
+        userId: "user_dono",
+      });
+      const { porId } = ctx.pessoas;
+      ctx.pessoas.porId = (id) =>
+        id === clerkCai
+          ? Promise.reject(new Error("Clerk fora do ar"))
+          : porId(id);
+      return createCaller(ctx).admin.alunos.liberarVarios;
+    };
+
+    test("libera quem não tem, diz quem já tinha e por onde, e a falha de uma pessoa não derruba as outras", async () => {
+      const c = await cursoTrocavel(300);
+      const [nova, peloAdmin, porTroca, semLogin, clerkCaiu] = [
+        await aluno(),
+        await aluno(),
+        await aluno(300),
+        await aluno(),
+        await aluno(),
+      ];
+      const ontem = new Date("2026-08-20T15:00:00Z");
+      await liberar(db, ADMIN, pessoa(peloAdmin), c, ontem);
+      await trocar(db, porTroca, c, 300, new Date("2025-12-30T15:00:00Z"));
+      const liberarVarios = loteDe(
+        [
+          nomeado(nova, "Ana"),
+          nomeado(peloAdmin, "Bruno"),
+          nomeado(porTroca, "Carla"),
+          nomeado(clerkCaiu, "Davi"),
+        ],
+        clerkCaiu
+      );
+      const errosNoLog: unknown[] = [];
+      const logOriginal = console.error;
+      console.error = (...args: unknown[]) => {
+        errosNoLog.push(args[0]);
+      };
+      const r = await liberarVarios({
+        cursoId: c,
+        userIds: [nova, peloAdmin, porTroca, semLogin, clerkCaiu, nova],
+      }).finally(() => {
+        console.error = logOriginal;
+      });
+
+      expect(r.pessoas).toEqual([
+        { tipo: "liberada_agora", userId: nova },
+        {
+          liberadaEm: "2026-08-20" as DiaISO,
+          origem: "admin",
+          tipo: "ja_tinha",
+          userId: peloAdmin,
+        },
+        {
+          liberadaEm: "2025-12-30" as DiaISO,
+          origem: "troca",
+          tipo: "ja_tinha",
+          userId: porTroca,
+        },
+        {
+          mensagem: "Esta pessoa não existe mais no login da plataforma.",
+          tipo: "nao_liberou",
+          userId: semLogin,
+        },
+        {
+          mensagem: "Não deu para liberar agora. Nada mudou para esta pessoa.",
+          tipo: "nao_liberou",
+          userId: clerkCaiu,
+        },
+      ]);
+      expect(errosNoLog).toEqual([`liberarVarios: ${clerkCaiu} não liberou`]);
+      const ativas = async (userId: string) =>
+        (await liberacoesDe(userId)).map((l) => [l.origem, l.revogadaEm]);
+      expect(await ativas(nova)).toEqual([["admin", null]]);
+      expect(await ativas(peloAdmin)).toEqual([["admin", null]]);
+      expect(await ativas(porTroca)).toEqual([["troca", null]]);
+      expect(await ativas(semLogin)).toEqual([]);
+      expect(await ativas(clerkCaiu)).toEqual([]);
+    });
+
+    test("Tentar de novo com a mesma pessoa diz que ela já tem o curso", async () => {
+      const c = await cursoTrocavel(300);
+      const userId = await aluno();
+      const liberarVarios = loteDe([nomeado(userId, "Ana")]);
+      await liberarVarios({ cursoId: c, userIds: [userId] });
+      const r = await liberarVarios({ cursoId: c, userIds: [userId] });
+      expect(r.pessoas.map((p) => p.tipo)).toEqual(["ja_tinha"]);
+      expect(await liberacoesDe(userId)).toHaveLength(1);
+    });
+
+    test("o curso que não existe recusa o lote inteiro sem gravar", async () => {
+      const userId = await aluno();
+      const erro = await loteDe([nomeado(userId, "Ana")])({
+        cursoId: "00000000-0000-4000-8000-000000000000" as CursoId,
+        userIds: [userId],
+      }).catch((e: unknown) => e);
+      expect(erro).toMatchObject({
+        code: "NOT_FOUND",
+        message: "Este curso não existe mais.",
+      });
+      expect(await liberacoesDe(userId)).toHaveLength(0);
+    });
+
+    test("aceita até 50 pessoas: 51 é recusado antes de gravar, e lista vazia também", async () => {
+      const c = await cursoTrocavel(300);
+      const userIds = Array.from({ length: 51 }, (_, i) => `user_teto${S}${i}`);
+      alunos.push(...userIds);
+      const liberarVarios = loteDe(userIds.map((u) => nomeado(u, "Pessoa")));
+      const recusas = await Promise.all(
+        [userIds, []].map((lista) =>
+          liberarVarios({ cursoId: c, userIds: lista }).catch(
+            (e: { code?: string }) => e.code
+          )
+        )
+      );
+      expect(recusas).toEqual(["BAD_REQUEST", "BAD_REQUEST"]);
+      const gravadas = await db
+        .select({ id: liberacao.id })
+        .from(liberacao)
+        .where(inArray(liberacao.userId, userIds));
+      expect(gravadas).toHaveLength(0);
+
+      const r = await liberarVarios({
+        cursoId: c,
+        userIds: userIds.slice(0, 50),
+      });
+      expect(r.pessoas.filter((p) => p.tipo === "liberada_agora")).toHaveLength(
+        50
+      );
+    });
   });
 });

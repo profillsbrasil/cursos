@@ -11,8 +11,15 @@ const SELO_EM_PRODUCAO =
   /<span class="([^"]*)"><svg[^>]*lucide-clock[^>]*>.*?<\/svg>Em produção<\/span>/;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
+const CAPA = {
+  alt: "Capa",
+  altura: 720,
+  largura: 1280,
+  url: "/capas/x.jpg",
+};
 const EM_PRODUCAO = {
   aulas: 0,
+  capa: CAPA,
   id: "c2" as CursoId,
   precoTroca: 1500,
   status: "em_producao",
@@ -27,6 +34,7 @@ describe("visão do catálogo", () => {
           cursos: [
             {
               aulas: 12,
+              capa: CAPA,
               id: "c1" as CursoId,
               precoTroca: null,
               status: "publicado",
@@ -51,6 +59,7 @@ describe("visão do catálogo", () => {
           cursos: [
             {
               aulas: 1,
+              capa: CAPA,
               id: "c1" as CursoId,
               precoTroca: null,
               status: "publicado",

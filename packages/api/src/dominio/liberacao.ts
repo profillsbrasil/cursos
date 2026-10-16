@@ -147,3 +147,24 @@ export function montarAcesso(
     userId,
   };
 }
+
+/**
+ * Quantas pessoas uma liberação em lote aceita. Cada pessoa custa uma ida ao
+ * Clerk, e a instância de desenvolvimento dele aceita 100 por 10 s.
+ */
+export const TETO_DO_LOTE = 50;
+
+/** Nada mudou para quem não liberou. */
+export type LiberacaoNaPessoa =
+  | { tipo: "liberada_agora" }
+  | { liberadaEm: DiaISO; origem: OrigemDaLiberacao; tipo: "ja_tinha" }
+  | { mensagem: string; tipo: "nao_liberou" };
+
+export type ResultadoNaPessoa = LiberacaoNaPessoa & { userId: string };
+
+export interface ResultadoDoLote {
+  /** O dia de São Paulo da liberação. */
+  hoje: DiaISO;
+  /** Na ordem dos userIds pedidos, sem repetir. */
+  pessoas: readonly ResultadoNaPessoa[];
+}

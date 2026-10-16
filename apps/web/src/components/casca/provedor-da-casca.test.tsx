@@ -1,13 +1,25 @@
-import { describe, expect, test } from "bun:test";
-import { SidebarProvider } from "@cursos/ui/components/sidebar";
+import { afterAll, describe, expect, mock, test } from "bun:test";
+import { Sidebar, SidebarProvider } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import {
-  ProvedorDaCasca,
-  useAlternarNavegacao,
-  useModoDaCasca,
-} from "./provedor-da-casca";
+import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
+
+let caminhoAtual = "/meus-cursos";
+const navegacao = await import("next/navigation");
+mock.module("next/navigation", () => ({
+  ...navegacao,
+  usePathname: () => caminhoAtual,
+}));
+
+// O mock vale para os arquivos que rodam depois, no mesmo processo: eles ficam fora da aula.
+afterAll(() => {
+  caminhoAtual = "/meus-cursos";
+});
+
+const { ProvedorDaCasca, useAlternarNavegacao, useModoDaCasca } = await import(
+  "./provedor-da-casca"
+);
 
 function UsaAlternar() {
   useAlternarNavegacao();
@@ -64,5 +76,34 @@ describe("useModoDaCasca lê o modo do cookie no servidor", () => {
         </ProvedorDaCasca>
       )()
     ).toContain("celular=false recolhida=true");
+  });
+});
+
+const ESTADO = /data-state="(\w+)"/;
+
+function estadoNoServidor(caminho: string, cookieAberta: boolean) {
+  caminhoAtual = caminho;
+  const html = renderToStaticMarkup(
+    <ProvedorDaCasca aberta={cookieAberta}>
+      <Sidebar collapsible="icon">
+        <span>menu</span>
+      </Sidebar>
+    </ProvedorDaCasca>
+  );
+  return html.match(ESTADO)?.[1];
+}
+
+describe("na carga direta da aula, a sidebar chega recolhida do servidor", () => {
+  test("com o cookie dizendo aberta", () => {
+    expect(estadoNoServidor(caminhoDaAula("comercial", "a1"), true)).toBe(
+      "collapsed"
+    );
+  });
+
+  test("fora da aula, o cookie manda", () => {
+    expect(estadoNoServidor(caminhoDoCurso("comercial"), true)).toBe(
+      "expanded"
+    );
+    expect(estadoNoServidor("/meus-cursos", false)).toBe("collapsed");
   });
 });

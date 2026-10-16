@@ -32,10 +32,10 @@ function EnderecoDoCurso({
   const classe =
     "flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground";
   if (slug === null && titulo.trim() === "") {
-    return <p className={classe}>O link do curso sai do título.</p>;
+    return <span className={classe}>O link do curso sai do título.</span>;
   }
   return (
-    <p className={classe}>
+    <span className={classe}>
       <Link2 aria-hidden="true" className="size-[13px]" />
       <code className="font-mono text-foreground text-xs">
         /cursos/{slug ?? slugDoTitulo(titulo)}
@@ -45,7 +45,7 @@ function EnderecoDoCurso({
           ? "gerado a partir do título"
           : "fixo desde o primeiro salvamento"}
       </span>
-    </p>
+    </span>
   );
 }
 

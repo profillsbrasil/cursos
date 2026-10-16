@@ -87,3 +87,21 @@ describe("o cartão de conta com sequência", () => {
     );
   });
 });
+
+describe("o cartão de conta do admin, sem placar", () => {
+  const h = renderToStaticMarkup(
+    <ProvedorDaCasca aberta={true}>
+      <CartaoDeConta outraArea={null} placar={null} />
+    </ProvedorDaCasca>
+  );
+
+  test("o gatilho mostra só o nome, sem saldo nem sequência", () => {
+    expect(gatilho(h)).toBe("AS Conta de Ana Souza");
+    expect(h).not.toContain("text-sol");
+    expect(h).not.toContain("animate-pulse");
+  });
+
+  test("o menu não tem as placas de Saldo e Sequência", () => {
+    expect(menuAberto(h)).toBe("Minha conta Sair");
+  });
+});
