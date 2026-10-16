@@ -16,7 +16,6 @@ const curso = (id: string, titulo: string) => ({
   titulo,
 });
 
-/** A aluna A do seed, como no protótipo aprovado: as datas e o código são de exemplo. */
 export const ALUNA: Conquistas = {
   certificados: [
     {
@@ -92,7 +91,6 @@ export const ALUNA: Conquistas = {
   ],
 };
 
-/** O aluno novo do protótipo: só Fábrica e montagem, nenhuma aula e 0 pts. */
 export const NOVO: Conquistas = {
   certificados: [
     {

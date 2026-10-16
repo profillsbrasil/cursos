@@ -39,7 +39,6 @@ const APARENCIA: Record<Marco["tipo"], { cor: Cor; icone: LucideIcon }> = {
   sequencia: { cor: "canela", icone: Flame },
 };
 
-// O disco ganho tem o anel separado por 3 px do cartão, na cor do fato.
 const DISCO: Record<Cor, string> = {
   canela:
     "bg-canela shadow-[0_0_0_3px_var(--card),0_0_0_4px_color-mix(in_srgb,var(--canela)_55%,transparent)]",
@@ -96,8 +95,6 @@ function BarraDaMedalha({ feitas, total, unidade }: Progresso) {
 
 const DICA = "text-[13px] text-muted-foreground text-pretty";
 
-// Larga: medalha, nome e regra, e o estado numa coluna de 220 px. Estreita: o
-// estado desce para baixo do nome. A largura é a do conteúdo, não a da janela.
 const LINHA =
   "grid grid-cols-[48px_minmax(0,1fr)] items-center gap-x-3.5 gap-y-3 p-4 @min-[600px]:grid-cols-[48px_minmax(0,1fr)_220px] @min-[600px]:gap-[18px] @min-[600px]:px-6 @min-[600px]:py-[18px]";
 const LINHA_DO_CERTIFICADO =
@@ -119,7 +116,7 @@ function LinhaDoMarco({ hoje, marco }: { hoje: string; marco: Marco }) {
       {l.estado === "ganha" ? (
         <div className={cn(ESTADO, "justify-items-start")}>
           <SeloGanho>{ganhaEm(l.dia, hoje)}</SeloGanho>
-          {l.detalhe ? <span className={DICA}>{l.detalhe}</span> : null}
+          {l.fato ? <span className={DICA}>{l.fato}</span> : null}
         </div>
       ) : (
         <div className={ESTADO}>
@@ -135,7 +132,9 @@ function LinhaDoMarco({ hoje, marco }: { hoje: string; marco: Marco }) {
               Por ganhar
             </span>
           )}
-          {l.dica ? <span className={DICA}>{l.dica}</span> : null}
+          {l.proximoPasso ? (
+            <span className={DICA}>{l.proximoPasso}</span>
+          ) : null}
         </div>
       )}
     </li>

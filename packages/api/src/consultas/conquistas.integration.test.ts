@@ -1,6 +1,3 @@
-// Consultas contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
-// Cada execução cria alunos user_teste<hex> e slugs teste-<hex> e apaga tudo no afterAll.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
@@ -31,8 +28,7 @@ const ALUNA = `user_teste${S}a`;
 const NOVO = `user_teste${S}b`;
 const ALUNOS = [ALUNA, NOVO];
 
-// sexta-feira, 2026-10-16, 15:00 em São Paulo
-const AGORA = new Date("2026-10-16T18:00:00Z");
+const SEXTA_15H = new Date("2026-10-16T15:00:00-03:00");
 
 const resumo = (c: Conquistas) => ({
   certificados: c.certificados.map((x) =>
@@ -214,7 +210,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
 
   test("a aluna: medalhas pelos fatos do banco, em 6 statements", async () => {
     statements = 0;
-    const c = resumo(await carregarConquistas(db, ALUNA, AGORA));
+    const c = resumo(await carregarConquistas(db, ALUNA, SEXTA_15H));
     expect(statements).toBe(6);
     expect(c.marcos).toEqual({
       aulas_10: { estado: "por_ganhar", feitas: 4 },

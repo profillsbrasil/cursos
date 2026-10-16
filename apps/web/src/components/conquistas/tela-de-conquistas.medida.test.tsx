@@ -69,11 +69,10 @@ interface Caixa {
   topo: number;
 }
 
-/** A medalha ou a capa, o bloco do nome e o estado de cada linha da seção. */
-const linhasDe = (secao: string) =>
+const linhasDe = (idDoTitulo: string) =>
   avaliar<{ estado: Caixa; figura: Caixa; nome: Caixa }[]>(
     enviar,
-    `[...document.querySelectorAll('[aria-labelledby="${secao}"] ol > li')].map((li) => {
+    `[...document.querySelectorAll('[aria-labelledby="${idDoTitulo}"] ol > li')].map((li) => {
       const caixa = (el) => {
         const r = el.getBoundingClientRect();
         return { altura: Math.round(r.height), esquerda: Math.round(r.left), fundo: Math.round(r.bottom), largura: Math.round(r.width), topo: Math.round(r.top) };
@@ -117,8 +116,11 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
 
     test(`390 px, ${nome}: o estado desce para baixo do nome, sem rolar de lado`, async () => {
       await abrir(390, tela);
-      for (const secao of ["conquistas-marcos", "conquistas-certificados"]) {
-        for (const l of await linhasDe(secao)) {
+      for (const idDoTitulo of [
+        "conquistas-marcos",
+        "conquistas-certificados",
+      ]) {
+        for (const l of await linhasDe(idDoTitulo)) {
           expect(l.estado.topo).toBeGreaterThanOrEqual(l.nome.fundo);
           expect(l.estado.esquerda).toBe(l.nome.esquerda);
         }

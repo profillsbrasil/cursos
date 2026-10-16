@@ -17,8 +17,6 @@ import {
 } from "./tipos";
 import { type CursoDaTroca, situacao } from "./troca";
 
-// ---------- entrada: as linhas cruas das consultas ----------
-
 export interface LinhasDasConquistas {
   /** Toda aula assistida, também de curso revogado, com os títulos da aula e do curso. */
   assistidas: readonly {
@@ -47,8 +45,6 @@ export interface LinhasDasConquistas {
   vitrine: readonly CursoDaTroca[];
 }
 
-// ---------- saída: o que a tela Conquistas mostra ----------
-
 /** A medalha ganha leva o dia, em São Paulo, em que o fato aconteceu. */
 export type Medalha<Ganha, PorGanhar> =
   | ({ estado: "ganha"; dia: DiaISO } & Ganha)
@@ -68,7 +64,6 @@ export interface CursoPerto {
   total: number;
 }
 
-/** Os marcos, sempre na ordem de `montarConquistas`, ganhos ou não. */
 export type Marco =
   | {
       tipo: "primeira_aula";
@@ -124,8 +119,6 @@ export interface Conquistas {
   marcos: readonly Marco[];
 }
 
-// ---------- montagem ----------
-
 type Ganho<T extends { estado: string }> = Extract<T, { estado: "ganha" }>;
 
 const oMaisAntigo = <T extends { criadoEm: Date }>(
@@ -169,7 +162,6 @@ function certificados(
   return { emitidos, porGanhar };
 }
 
-/** Sem certificado e com aula para assistir: não o concluído nem o em produção. */
 const ABREM_AULA: ReadonlySet<TipoEstado> = new Set([
   "nao_iniciado",
   "em_andamento",
@@ -278,7 +270,6 @@ function primeiraTroca(
   };
 }
 
-/** O curso a que faltam menos aulas; no empate, o primeiro na ordem de Meus cursos. */
 function primeiroCurso({
   emitidos,
   porGanhar,

@@ -15,9 +15,8 @@ const texto = (h: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** O texto de cada linha de uma lista, pelo id do título da seção. */
-const linhas = (h: string, secao: string) => {
-  const inicio = h.indexOf(`aria-labelledby="${secao}"`);
+const linhas = (h: string, idDoTitulo: string) => {
+  const inicio = h.indexOf(`aria-labelledby="${idDoTitulo}"`);
   const fim = h.indexOf("</section>", inicio);
   return [...h.slice(inicio, fim).matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(
     ([, li = ""]) => texto(li)

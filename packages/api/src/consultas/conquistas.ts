@@ -36,7 +36,7 @@ export async function linhasDasConquistas(
 ): Promise<LinhasDasConquistas> {
   const [liberacoes, assistidas, posicoes, certificados, lancamentos, vitrine] =
     await Promise.all([
-      // 1. liberações ativas com o catálogo, o statement 1 do painel
+      // 1. liberações ativas com o catálogo
       db.query.liberacao.findMany({
         columns: { liberadaEm: true },
         orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
@@ -56,7 +56,7 @@ export async function linhasDasConquistas(
         .innerJoin(modulo, eq(modulo.id, aula.moduloId))
         .innerJoin(curso, eq(curso.id, modulo.cursoId))
         .where(eq(aulaAssistida.userId, userId)),
-      // 3. posições com segundo > 0, para a aula de começar ou continuar
+      // 3. posições com segundo > 0
       db
         .select({
           atualizadaEm: posicaoAula.atualizadaEm,

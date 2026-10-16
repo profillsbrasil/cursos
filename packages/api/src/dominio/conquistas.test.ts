@@ -9,8 +9,7 @@ import { cursoLinha, idAula } from "./exemplo";
 import type { CursoId, DiaISO } from "./tipos";
 import type { CursoDaTroca } from "./troca";
 
-// sexta-feira
-const HOJE = "2026-10-16" as DiaISO;
+const SEXTA = "2026-10-16" as DiaISO;
 const SABADO = "2026-10-17" as DiaISO;
 
 const AUTO = cursoLinha("auto", { aulas: [2] });
@@ -120,7 +119,7 @@ const marco = (c: Conquistas, tipo: string, meta?: number) =>
   )?.medalha;
 
 describe("montarConquistas", () => {
-  const aluna = montarConquistas(ALUNA, HOJE);
+  const aluna = montarConquistas(ALUNA, SEXTA);
 
   test("os marcos saem sempre na mesma ordem", () => {
     expect(
@@ -200,7 +199,7 @@ describe("montarConquistas", () => {
         `2026-10-${String(1 + i).padStart(2, "0")}T14:00:00Z`
       )
     );
-    const c = montarConquistas({ ...NADA, assistidas: dez }, HOJE);
+    const c = montarConquistas({ ...NADA, assistidas: dez }, SEXTA);
     expect(marco(c, "aulas", 10)).toEqual({
       dia: "2026-10-10" as DiaISO,
       estado: "ganha",
@@ -216,7 +215,7 @@ describe("montarConquistas para o aluno novo", () => {
       liberacoes: [liberado(FABRICA, 1)],
       vitrine: [vitrine(500, "Portfólio"), vitrine(200, "BPF")],
     },
-    HOJE
+    SEXTA
   );
 
   test("a primeira aula aponta a aula de começar", () => {
@@ -256,7 +255,7 @@ describe("montarConquistas para o aluno novo", () => {
   });
 
   test("sem liberação e sem vitrine, nada a apontar", () => {
-    const vazio = montarConquistas(NADA, HOJE);
+    const vazio = montarConquistas(NADA, SEXTA);
     expect(marco(vazio, "primeira_aula")).toEqual({
       estado: "por_ganhar",
       proxima: null,
@@ -285,7 +284,7 @@ describe("a sequência por ganhar", () => {
   test("três dias úteis e hoje sem aula", () => {
     expect(
       marco(
-        montarConquistas({ ...NADA, assistidas: tresDias }, HOJE),
+        montarConquistas({ ...NADA, assistidas: tresDias }, SEXTA),
         "sequencia"
       )
     ).toMatchObject({ dias: 3, hojePendente: true });
@@ -319,7 +318,7 @@ test("a troca sem o curso é um erro do banco, não uma medalha vazia", () => {
           { criadoEm: new Date(), curso: null, motivo: "troca", pontos: -200 },
         ],
       },
-      HOJE
+      SEXTA
     )
   ).toThrow("Lançamento de troca sem o curso da liberação.");
 });
