@@ -40,7 +40,7 @@ describe("o menu do aluno", () => {
     expect(ITENS_DO_ALUNO.map((i) => [i.nome, i.tipo])).toEqual([
       ["Meus cursos", "link"],
       ["Trocar pontos", "link"],
-      ["Conquistas", "em_breve"],
+      ["Conquistas", "link"],
       ["Comunicados", "em_breve"],
     ]);
   });
