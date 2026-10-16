@@ -55,7 +55,14 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     await db.$client.end();
   });
 
-  test("admin vê os cursos por título, com as aulas contadas", async () => {
+  const CAPA = {
+    alt: "Capa de teste",
+    altura: 720,
+    largura: 1280,
+    url: "/capas/teste.jpg",
+  };
+
+  test("admin vê os cursos por título, com a capa e as aulas contadas", async () => {
     const comAulas = await novoCurso(`A com aulas ${S}`, {
       status: "publicado",
     });
@@ -86,6 +93,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     expect((await visao()).cursos.filter((x) => nossos.has(x.id))).toEqual([
       {
         aulas: 3,
+        capa: CAPA,
         id: comAulas,
         precoTroca: null,
         status: "publicado",
@@ -93,6 +101,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       },
       {
         aulas: 0,
+        capa: CAPA,
         id: trocavel,
         precoTroca: 300,
         status: "publicado",
@@ -100,6 +109,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       },
       {
         aulas: 0,
+        capa: CAPA,
         id: vazio,
         precoTroca: null,
         status: "em_producao",

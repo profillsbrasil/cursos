@@ -1,6 +1,6 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-import { TopoDoAluno } from "@/components/aluno/topo";
+import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import {
   GRADE_DO_CURSO,
   LUGAR_DO_CARTAO,
@@ -12,9 +12,7 @@ const PULSO = "bg-card motion-reduce:animate-none";
 export default function CarregandoCurso() {
   return (
     <>
-      <TopoDoAluno
-        esquerda={<Skeleton className={`${PULSO} h-5 w-64 rounded-md`} />}
-      />
+      <TopoDoAluno esquerda={<BuscaEmBreve />} />
       <div aria-busy="true" className={GRADE_DO_CURSO}>
         <div className="grid gap-3.5">
           <span className="sr-only">Carregando o curso</span>

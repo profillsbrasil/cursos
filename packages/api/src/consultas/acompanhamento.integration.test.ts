@@ -319,6 +319,13 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     expect(busca.pessoas.map((p) => [p.userId, p.situacao.tipo])).toEqual([
       [NUNCA, "nunca_abriu"],
     ]);
+    expect(busca.pessoas[0]?.ativas.map((l) => l.origem)).toEqual([
+      "admin",
+      "admin",
+      "admin",
+    ]);
+    const revogada = await admin.admin.alunos.buscar({ termo: REVOGADA });
+    expect(revogada.pessoas.map((p) => p.ativas)).toEqual([[]]);
     expect(busca.hoje).toBe(diaLocal(new Date()));
     const ninguem = await admin.admin.alunos.buscar({ termo: `${S}zzz` });
     expect(ninguem).toMatchObject({ pessoas: [], total: 0 });

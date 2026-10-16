@@ -25,6 +25,7 @@ import type {
   DiaISO,
   EstadoCurso,
   Historico,
+  OrigemDaLiberacao,
   Pessoa,
   ResultadoDaBusca,
   StatusDoCurso,
@@ -83,7 +84,13 @@ export type SituacaoDaPessoa =
   | { tipo: "concluiu_tudo"; numeros: NumerosDaPessoa; ultimoEstudo: DiaISO }
   | { tipo: "estudando"; numeros: NumerosDaPessoa; ultimoEstudo: DiaISO };
 
+export interface CursoQueAPessoaTem {
+  cursoId: CursoId;
+  origem: OrigemDaLiberacao;
+}
+
 export interface PessoaComSituacao extends Pessoa {
+  ativas: readonly CursoQueAPessoaTem[];
   situacao: SituacaoDaPessoa;
 }
 
@@ -211,6 +218,7 @@ export interface CursoDaBusca {
 export interface LiberacaoDaBusca {
   cursoId: string;
   liberadaEm: Date;
+  origem: OrigemDaLiberacao;
   revogadaEm: Date | null;
 }
 
@@ -312,7 +320,15 @@ export function montarBusca(
       if (!p) {
         throw new Error(`O statement da busca não trouxe ${pessoa.userId}.`);
       }
-      return { ...pessoa, situacao: situacaoDaPessoa(p, curso) };
+      return {
+        ...pessoa,
+        ativas: p.liberacoes.flatMap((l) =>
+          l.revogadaEm === null
+            ? [{ cursoId: l.cursoId as CursoId, origem: l.origem }]
+            : []
+        ),
+        situacao: situacaoDaPessoa(p, curso),
+      };
     }),
     total: resultado.total,
   };

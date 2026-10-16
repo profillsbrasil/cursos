@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { CODIGO_DO_CERTIFICADO } from "../schema/formatos";
-import { codigoCertificado } from "./dados";
+import { CURSOS, codigoCertificado } from "./dados";
 
 const FORMATO = new RegExp(CODIGO_DO_CERTIFICADO);
 
@@ -20,5 +20,17 @@ describe("codigoCertificado", () => {
 
   test("o código sai no formato que o servidor emite e a conferência pública lê", () => {
     expect(codigoCertificado("user_seedA")).toMatch(FORMATO);
+  });
+});
+
+describe("as categorias do seed", () => {
+  test("nenhuma categoria tem o nome de um curso", () => {
+    const titulos = new Set(CURSOS.map((c) => c.titulo));
+    expect(
+      CURSOS.filter((c) => titulos.has(c.categoria)).map((c) => [
+        c.titulo,
+        c.categoria,
+      ])
+    ).toEqual([]);
   });
 });

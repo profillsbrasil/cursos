@@ -42,6 +42,7 @@ mock.module("next/navigation", () => ({
 
 const { AcessoDoAluno } = await import("./admin/acesso-do-aluno");
 const { ListaDePessoas } = await import("./admin/lista-de-pessoas");
+const { ProvedorDoLote } = await import("./admin/provedor-do-lote");
 const { ITENS_DO_ALUNO } = await import("./aluno/menu");
 const { NavPrincipal } = await import("./casca/nav-principal");
 const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
@@ -112,26 +113,29 @@ const coluna = renderToStaticMarkup(
 
 const HOJE = "2026-10-14" as DiaISO;
 const pessoas = renderToStaticMarkup(
-  <ListaDePessoas
-    resultado={{
-      hoje: HOJE,
-      pessoas: [
-        {
-          email: "ana@exemplo.com",
-          foto: null,
-          nome: "Ana Exemplo",
-          situacao: {
-            desde: HOJE,
-            numeros: { concluidos: 0, cursos: 1, emProducao: 0 },
-            tipo: "nunca_abriu",
+  <ProvedorDoLote>
+    <ListaDePessoas
+      resultado={{
+        hoje: HOJE,
+        pessoas: [
+          {
+            ativas: [],
+            email: "ana@exemplo.com",
+            foto: null,
+            nome: "Ana Exemplo",
+            situacao: {
+              desde: HOJE,
+              numeros: { concluidos: 0, cursos: 1, emProducao: 0 },
+              tipo: "nunca_abriu",
+            },
+            userId: "user_exemplo",
           },
-          userId: "user_exemplo",
-        },
-      ],
-      total: 1,
-    }}
-    termo=""
-  />
+        ],
+        total: 1,
+      }}
+      termo=""
+    />
+  </ProvedorDoLote>
 );
 
 // Uma liberação ativa, com Revogar, e uma revogada, que fica no summary recolhido.
@@ -494,7 +498,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     const emBreve = elementos(nav).filter(
       (e) => e.atributos["aria-disabled"] === "true"
     );
-    expect(emBreve.map((e) => e.texto || "item")).toHaveLength(3);
+    expect(emBreve.map((e) => e.texto || "item")).toHaveLength(1);
     for (const item of emBreve) {
       const foco = noFoco(item);
       expect(foco.filter((d) => COR.test(d))).toEqual([
@@ -523,17 +527,14 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     expect(resumo.classes).toContain("group/modulo");
   });
 
-  test("a linha da busca de pessoas mantém o fundo, clareia o nome e pinta a seta de Céu", () => {
+  test("na linha da busca de pessoas, a caixa ganha a borda Céu, o nome clareia e a seta vira Céu", () => {
     const daLista = elementos(pessoas);
-    const linha = unico(
-      daLista.filter((e) => e.atributos.href === "/admin/alunos/user_exemplo"),
-      "linha"
-    );
-    expect(noFoco(linha).filter((d) => FUNDO.test(d)).length).toBeGreaterThan(
-      0
-    );
     const nome = unico(
-      daLista.filter((e) => e.texto === "Ana Exemplo"),
+      daLista.filter(
+        (e) =>
+          e.texto === "Ana Exemplo" &&
+          e.atributos.href === "/admin/alunos/user_exemplo"
+      ),
       "nome"
     );
     expect(noFoco(nome)).toContain("color: var(--titulo)");
@@ -542,8 +543,16 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       "seta"
     );
     expect(noFoco(seta)).toContain("color: var(--ceu)");
-    // O nome e a seta acendem pelo grupo da linha, que precisa existir.
-    expect(linha.classes).toContain("group/pessoa");
+    const linkDaSeta = unico(
+      daLista.filter((e) => e.atributos["aria-label"] === "Abrir Ana Exemplo"),
+      "link da seta"
+    );
+    expect(linkDaSeta.classes).toContain("group/seta");
+    const caixa = unico(
+      daLista.filter((e) => e.atributos["aria-label"] === "Marcar Ana Exemplo"),
+      "caixa"
+    );
+    expect(caixa.atributos["data-slot"]).toBe("checkbox");
   });
 
   test("o summary das revogadas ganha o fundo branco a 8% e o texto em titulo", () => {

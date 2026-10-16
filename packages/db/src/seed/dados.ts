@@ -454,7 +454,7 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/limpeza.jpg",
-    categoria: "Fábrica e montagem",
+    categoria: "Operação de linha",
     chave: "limpeza",
     codigo: null,
     descricao:

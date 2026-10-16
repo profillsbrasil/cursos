@@ -9,10 +9,10 @@ const caller = createCaller(
 const FORA_DO_FORMATO = ["Comercial", "comercial.", "a_b", "%C3%A7urso"];
 const AULA = "00000000-0000-4000-8000-000000000000";
 
-describe("aula com slug fora do formato", () => {
-  test("entrada devolve null, como curso que não existe", async () => {
+describe("slug fora do formato", () => {
+  test("a página do curso devolve null, como curso que não existe", async () => {
     const r = await Promise.all(
-      FORA_DO_FORMATO.map((slug) => caller.aula.entrada({ slug }))
+      FORA_DO_FORMATO.map((slug) => caller.curso.pagina({ slug }))
     );
     expect(r).toEqual([null, null, null, null]);
   });

@@ -3,12 +3,16 @@ import type { Metadata } from "next";
 import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { CursosParaTrocar } from "@/components/trocar-pontos/cursos-para-trocar";
 import { SaldoDeTroca } from "@/components/trocar-pontos/saldo-de-troca";
-import { carregarPainelDeTroca } from "@/server/api";
+import { hrefDaRetomada } from "@/lib/rotas";
+import { carregarPainel, carregarPainelDeTroca } from "@/server/api";
 
 export const metadata: Metadata = { title: "Trocar pontos" };
 
 export default async function TrocarPontos() {
-  const painel = await carregarPainelDeTroca();
+  const [painel, { retomada }] = await Promise.all([
+    carregarPainelDeTroca(),
+    carregarPainel(),
+  ]);
   return (
     <>
       <TopoDoAluno esquerda={<BuscaEmBreve />} />
@@ -32,6 +36,7 @@ export default async function TrocarPontos() {
           extrato={painel.extrato}
           hoje={painel.hoje}
           temCursoTrocavelNaVitrine={painel.temCursoTrocavelNaVitrine}
+          voltarAEstudar={retomada ? hrefDaRetomada(retomada) : "/meus-cursos"}
         />
       </div>
     </>
