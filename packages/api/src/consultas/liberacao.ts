@@ -145,35 +145,39 @@ export async function liberar(
 
 const NAO_LIBEROU = "Não deu para liberar agora. Nada mudou para esta pessoa.";
 
-function mensagemDaFalha(erro: unknown, userId: string): string {
+function naoLiberou(erro: unknown, userId: string): LiberacaoNaPessoa {
   if (erro instanceof ErroParaAPessoa) {
-    return erro.message;
+    return { mensagem: erro.message, tipo: "nao_liberou" };
   }
   const doBanco = mensagemDoBanco(erro);
   if (doBanco) {
-    return doBanco.message;
+    return { mensagem: doBanco.message, tipo: "nao_liberou" };
   }
   // O lote responde 200 com a falha dentro, e o onError do tRPC não a vê.
   console.error(`liberarVarios: ${userId} não liberou`, erro);
-  return NAO_LIBEROU;
+  return { mensagem: NAO_LIBEROU, tipo: "nao_liberou" };
 }
+
+/** A resposta do Clerk para um userId do lote. */
+type Procura =
+  | { pessoa: Pessoa | null; userId: string }
+  | { erro: unknown; userId: string };
 
 async function liberarNaPessoa(
   db: Database,
   admin: AdminId,
-  userId: string,
-  achada: PromiseSettledResult<Pessoa | null>,
+  procura: Procura,
   cursoId: CursoId,
   agora: Date
 ): Promise<LiberacaoNaPessoa> {
+  if ("erro" in procura) {
+    return naoLiberou(procura.erro, procura.userId);
+  }
+  if (procura.pessoa === null) {
+    return { mensagem: PESSOA_SUMIU, tipo: "nao_liberou" };
+  }
   try {
-    if (achada.status === "rejected") {
-      throw achada.reason;
-    }
-    if (achada.value === null) {
-      return { mensagem: PESSOA_SUMIU, tipo: "nao_liberou" };
-    }
-    const r = await liberar(db, admin, achada.value, cursoId, agora);
+    const r = await liberar(db, admin, procura.pessoa, cursoId, agora);
     return r.nova
       ? { tipo: "liberada_agora" }
       : {
@@ -182,7 +186,7 @@ async function liberarNaPessoa(
           tipo: "ja_tinha",
         };
   } catch (erro) {
-    return { mensagem: mensagemDaFalha(erro, userId), tipo: "nao_liberou" };
+    return naoLiberou(erro, procura.userId);
   }
 }
 
@@ -202,15 +206,20 @@ export async function liberarVarios(
   if (!(await cursoExiste(db, cursoId))) {
     throw cursoSumiu();
   }
-  const unicos = [...new Set(userIds)];
-  const achadas = await Promise.allSettled(unicos.map(porId));
+  const procuras = await Promise.all(
+    [...new Set(userIds)].map((userId) =>
+      porId(userId).then(
+        (pessoa): Procura => ({ pessoa, userId }),
+        (erro: unknown): Procura => ({ erro, userId })
+      )
+    )
+  );
   const pessoas: ResultadoNaPessoa[] = [];
-  for (const [i, uid] of unicos.entries()) {
-    const achada = achadas[i] as PromiseSettledResult<Pessoa | null>;
+  for (const procura of procuras) {
     pessoas.push({
-      userId: uid,
+      userId: procura.userId,
       // biome-ignore lint/performance/noAwaitInLoops: uma pessoa por vez, para o lote ocupar uma conexão do pool, não todas.
-      ...(await liberarNaPessoa(db, admin, uid, achada, cursoId, agora)),
+      ...(await liberarNaPessoa(db, admin, procura, cursoId, agora)),
     });
   }
   return { hoje: diaLocal(agora), pessoas };
