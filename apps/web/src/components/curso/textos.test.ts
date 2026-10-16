@@ -41,9 +41,9 @@ describe("o cartão preso", () => {
         { icone: "trofeu", texto: "Certificado no fim do curso" },
       ],
       situacao: {
-        nota: null,
         rotulo: "Comece por: Módulo 1, Segurança do posto",
         titulo: "Aula 1 · Riscos do posto de montagem",
+        ultimaTentativa: null,
       },
     });
   });
@@ -74,9 +74,9 @@ describe("o cartão preso", () => {
         { icone: "trofeu", texto: "Certificado no fim do curso" },
       ],
       situacao: {
-        nota: null,
         rotulo: "Agora: Módulo 1, Segurança do posto",
         titulo: "Aula 2 · Bloqueio antes de mexer",
+        ultimaTentativa: null,
       },
     });
   });
@@ -108,9 +108,9 @@ describe("o cartão preso", () => {
         { icone: "trofeu", texto: "Certificado quando todos passarem" },
       ],
       situacao: {
-        nota: "2 de 3 na última tentativa",
         rotulo: "Próximo questionário",
         titulo: "Módulo 1, aula 2 · Bloqueio antes de mexer",
+        ultimaTentativa: "2 de 3 na última tentativa",
       },
     });
     expect(progressoDoCartao(fabrica.questionarios)).toEqual({
@@ -119,9 +119,9 @@ describe("o cartão preso", () => {
     });
   });
 
-  test("com um questionário por fazer: sem nota, Fazer o questionário e Falta 1", () => {
+  test("com um questionário por fazer: sem última tentativa, Fazer o questionário e Falta 1", () => {
     const c = cartaoDoCurso(comercial.questionarios, HOJE);
-    expect([c.botao.texto, c.situacao.nota]).toEqual([
+    expect([c.botao.texto, c.situacao.ultimaTentativa]).toEqual([
       "Fazer o questionário",
       null,
     ]);
@@ -146,9 +146,9 @@ describe("o cartão preso", () => {
       },
       inclui: [{ icone: "trofeu", texto: "Código do certificado: CERT-COM-7" }],
       situacao: {
-        nota: null,
         rotulo: "Curso concluído",
         titulo: "Certificado emitido em 28 de dez. de 2025",
+        ultimaTentativa: null,
       },
     });
     expect(cartaoDoCurso(fabrica.concluido, HOJE).situacao.titulo).toBe(

@@ -1,7 +1,3 @@
-// O questionário de uma aula: o gabarito e as tentativas da pessoa para o player,
-// e o envio de uma tentativa. É o único escritor de questionario_tentativa e
-// questionario_resposta.
-
 import type { Database } from "@cursos/db";
 import {
   pontoLancamento,
@@ -69,7 +65,6 @@ export async function perguntasDaAula(
   });
 }
 
-/** As tentativas da pessoa numa aula, em ordem de número, com as respostas. */
 export function tentativasDaAula(
   exec: Executor,
   userId: string,
@@ -92,7 +87,7 @@ export function tentativasDaAula(
   });
 }
 
-/** Dois statements em série: a consulta roda também dentro da transação do envio. */
+/** Em série: a consulta roda também dentro da transação do envio, num client só. */
 export async function linhasDoQuestionario(
   exec: Executor,
   userId: string,
@@ -171,7 +166,6 @@ async function gravarTentativa(
   }
 }
 
-/** O que o envio corrige: o gabarito da aula e as tentativas anteriores, com o acesso conferido. */
 async function abrirQuestionario(aluno: AlunoTravado, aulaId: AulaId) {
   const aberto = montarCursoAberto(
     await linhasDoCurso(aluno.tx, aluno.userId, { aulaId }, { serial: true })
@@ -195,8 +189,8 @@ async function abrirQuestionario(aluno: AlunoTravado, aulaId: AulaId) {
 }
 
 /**
- * O resultado já gravado, quando o envio não cria tentativa: o reenvio da mesma
- * tentativa e o envio depois da aprovação. null quando há o que corrigir.
+ * A última tentativa gravada, quando o envio não cria outra: o id já gravado
+ * (reenvio) ou o questionário já aprovado. null quando há o que corrigir.
  */
 async function resultadoGravado(
   aluno: AlunoTravado,

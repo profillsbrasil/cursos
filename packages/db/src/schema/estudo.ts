@@ -105,15 +105,13 @@ export const questionarioTentativa = tabela(
     ),
     unique("tentativa_numero_unico").on(t.userId, t.aulaId, t.numero),
     unique("tentativa_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento
-    // Depois de aprovar, não há outra tentativa daquela aula.
+    // Uma aprovação por aula; parar de tentar depois dela é regra do responder.
     uniqueIndex("tentativa_aprovada_unica")
       .on(t.userId, t.aulaId)
       .where(sql`${t.aprovada}`),
   ]
 );
 
-// A alternativa marcada em cada pergunta de uma tentativa. Pergunta ou alternativa
-// que o admin apaga leva a resposta junto; a tentativa fica com a conta.
 export const questionarioResposta = tabela(
   "questionario_resposta",
   {
@@ -136,9 +134,6 @@ export const questionarioResposta = tabela(
   ]
 );
 
-// O seed com --cloud cria um certificado de exemplo para o aluno A sem tentativa,
-// então o certificado não aponta para tentativa nenhuma. A carga horária fica
-// congelada na emissão: o certificado continua valendo se o curso ganhar aula.
 export const certificado = tabela(
   "certificado",
   {

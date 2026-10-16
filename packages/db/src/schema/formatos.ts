@@ -14,5 +14,25 @@ export const ID_DO_YOUTUBE = "^[A-Za-z0-9_-]{11}$";
 /** Os símbolos do código do certificado: sem 0, O, 1, I e L, que se confundem. */
 export const ALFABETO_DO_CODIGO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
-/** "7K3M-Q9TD": dois blocos de 4 do alfabeto. O seed e o servidor geram neste formato. */
-export const CODIGO_DO_CERTIFICADO = `^[${ALFABETO_DO_CODIGO}]{4}-[${ALFABETO_DO_CODIGO}]{4}$`;
+const SIMBOLOS_DO_CODIGO = 8;
+const METADE_DO_CODIGO = SIMBOLOS_DO_CODIGO / 2;
+
+/** "7K3M-Q9TD": dois blocos de 4 do alfabeto. */
+export const CODIGO_DO_CERTIFICADO = `^[${ALFABETO_DO_CODIGO}]{${METADE_DO_CODIGO}}-[${ALFABETO_DO_CODIGO}]{${METADE_DO_CODIGO}}$`;
+
+/** O código a partir de 8 índices no alfabeto. Índice fora dele é defeito de quem sorteou: lança. */
+export function codigoDosIndices(indices: ArrayLike<number>): string {
+  if (indices.length !== SIMBOLOS_DO_CODIGO) {
+    throw new Error(
+      `O código tem ${SIMBOLOS_DO_CODIGO} símbolos, não ${indices.length}.`
+    );
+  }
+  const simbolos = Array.from(indices, (i) => {
+    const s = ALFABETO_DO_CODIGO[i];
+    if (s === undefined) {
+      throw new Error(`Índice ${i} fora do alfabeto do código.`);
+    }
+    return s;
+  });
+  return `${simbolos.slice(0, METADE_DO_CODIGO).join("")}-${simbolos.slice(METADE_DO_CODIGO).join("")}`;
+}

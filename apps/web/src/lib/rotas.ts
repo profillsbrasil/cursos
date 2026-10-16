@@ -11,7 +11,6 @@ export const caminhoDoCurso = (slug: string) => curso(slug) as Route;
 export const caminhoDaAula = (slug: string, aulaId: string) =>
   aula(slug, aulaId) as Route;
 
-/** A página da aula, rolada até o questionário. */
 export const caminhoDoQuestionario = (slug: string, aulaId: string) =>
   questionario(slug, aulaId) as Route;
 

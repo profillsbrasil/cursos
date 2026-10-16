@@ -190,8 +190,7 @@ export interface CartaoDoCurso {
     variante: "contorno" | "principal";
   };
   inclui: readonly LinhaDoCartao[];
-  /** `nota`: a última tentativa do questionário da vez, em Canela sob o título. */
-  situacao: { nota: string | null; rotulo: string; titulo: string };
+  situacao: { rotulo: string; titulo: string; ultimaTentativa: string | null };
 }
 
 function localizar(p: PaginaDoCurso, aulaId: AulaId) {
@@ -246,9 +245,9 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
           CERTIFICADO_NO_FIM,
         ],
         situacao: {
-          nota: null,
           rotulo: `Comece por: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
           titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
+          ultimaTentativa: null,
         },
       };
     }
@@ -274,9 +273,9 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
           CERTIFICADO_NO_FIM,
         ],
         situacao: {
-          nota: null,
           rotulo: `Agora: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
           titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
+          ultimaTentativa: null,
         },
       };
     }
@@ -302,11 +301,11 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
           { icone: "trofeu", texto: "Certificado quando todos passarem" },
         ],
         situacao: {
-          nota: acao.ultima
-            ? `${acao.ultima.acertos} de ${acao.ultima.total} na última tentativa`
-            : null,
           rotulo: "Próximo questionário",
           titulo: `Módulo ${acao.onde.modulo.numero}, aula ${acao.onde.aula} · ${aula.titulo}`,
+          ultimaTentativa: acao.ultima
+            ? `${acao.ultima.acertos} de ${acao.ultima.total} na última tentativa`
+            : null,
         },
       };
     }
@@ -329,9 +328,9 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
           },
         ],
         situacao: {
-          nota: null,
           rotulo: "Curso concluído",
           titulo: `Certificado emitido em ${diaCurto(diaEmSaoPaulo(certificado.emitidoEm), hoje)}`,
+          ultimaTentativa: null,
         },
       };
     }

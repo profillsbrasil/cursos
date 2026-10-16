@@ -130,11 +130,7 @@ export interface Historico {
   questionarios: ReadonlyMap<AulaId, EstudoDoQuestionario>;
 }
 
-/**
- * `questionarios`: todas as aulas assistidas e algum questionário sem aprovação.
- * `aprovados` e `total` contam as aulas com questionário, e `proximaAula` é a do
- * questionário reprovado mais antigo na ordem do curso, senão a do primeiro por fazer.
- */
+/** `questionarios`: todas as aulas assistidas e questionário por aprovar; a regra é estadoDoCurso. */
 export type EstadoCurso =
   | { tipo: "em_breve" }
   | { tipo: "nao_iniciado"; primeiraAula: AulaId }

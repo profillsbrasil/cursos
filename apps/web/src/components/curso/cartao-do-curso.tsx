@@ -97,9 +97,9 @@ export function CartaoDoCurso({
             <strong className="font-semibold text-base text-titulo leading-normal">
               {situacao.titulo}
             </strong>
-            {situacao.nota ? (
+            {situacao.ultimaTentativa ? (
               <span className="font-semibold text-[13px] text-canela">
-                {situacao.nota}
+                {situacao.ultimaTentativa}
               </span>
             ) : null}
           </div>

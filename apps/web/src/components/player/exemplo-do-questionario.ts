@@ -1,6 +1,3 @@
-// Os questionários dos testes: os dois do protótipo aprovado, nos estados em
-// que a tela os mostra.
-
 import type {
   QuestionarioDaAula,
   ResultadoDoQuestionario,
@@ -22,7 +19,6 @@ const pergunta = (
   id: P(n),
 });
 
-/** "Cronograma reverso": 3 perguntas, a certa é sempre a B. */
 export const CRONOGRAMA: QuestionarioDaAula = {
   paraPassar: 3,
   perguntas: [
@@ -54,7 +50,6 @@ export const CRONOGRAMA: QuestionarioDaAula = {
   ultima: null,
 };
 
-/** "Bloqueio antes de mexer": 4 perguntas, a certa é a B na 1 e na 2 e a A na 3 e na 4. */
 export const BLOQUEIO: QuestionarioDaAula = {
   paraPassar: 3,
   perguntas: [
@@ -91,9 +86,9 @@ export const BLOQUEIO: QuestionarioDaAula = {
   ultima: null,
 };
 
+export const CERTA_DO_CRONOGRAMA = [A(11), A(21), A(31)];
 const CERTA_DO_BLOQUEIO = [A(11), A(21), A(30), A(40)];
 
-/** 2 de 4 na primeira tentativa: errou a 2 (marcou A) e a 3 (marcou B). */
 export const REPROVADO_NA_PRIMEIRA: ResultadoDoQuestionario = {
   acertos: 2,
   aprovada: false,
@@ -110,7 +105,6 @@ export const REPROVADO_NA_PRIMEIRA: ResultadoDoQuestionario = {
   total: 4,
 };
 
-/** 3 de 3 na primeira tentativa. */
 export const APROVADO_NA_PRIMEIRA: ResultadoDoQuestionario = {
   acertos: 3,
   aprovada: true,
@@ -127,7 +121,6 @@ export const APROVADO_NA_PRIMEIRA: ResultadoDoQuestionario = {
   total: 3,
 };
 
-/** 4 de 4 na segunda tentativa, depois dos 2 de 4 da primeira. */
 export const APROVADO_NA_SEGUNDA: ResultadoDoQuestionario = {
   acertos: 4,
   aprovada: true,
@@ -144,7 +137,6 @@ export const APROVADO_NA_SEGUNDA: ResultadoDoQuestionario = {
   total: 4,
 };
 
-/** 3 de 4 na segunda tentativa: marcou a C na pergunta 2 e acertou o resto. */
 export const APROVADO_NA_SEGUNDA_COM_ERRO: ResultadoDoQuestionario = {
   ...APROVADO_NA_SEGUNDA,
   acertos: 3,

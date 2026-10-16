@@ -41,7 +41,6 @@ import {
   textoDoEnvio,
 } from "./textos-do-questionario";
 
-/** Onde o cartão está: respondendo (com ou sem falha de envio) ou mostrando um resultado. */
 type Fase =
   | {
       tipo: "respondendo";
@@ -375,12 +374,6 @@ function Resultado({
   );
 }
 
-/**
- * O questionário da aula, depois de Anterior e Próxima: todas as perguntas numa
- * folha e um envio. O resultado entra no topo do mesmo cartão. Abre a qualquer
- * momento da aula; o servidor corrige, e a alternativa certa só chega com a
- * aprovação.
- */
 export function QuestionarioDaAula({
   aulaId,
   proxima,

@@ -1,8 +1,3 @@
-// A conclusão do curso: o certificado e os pontos de curso concluído. É um
-// escritor só, idempotente, chamado de toda escrita que pode completar o curso:
-// a aula assistida (registrar), o questionário aprovado (responder) e a edição do
-// admin que tira a aula ou a pergunta que faltava (salvarCurso).
-
 import {
   aula,
   aulaAssistida,
@@ -23,20 +18,19 @@ import type { AulaId, CursoId, Historico } from "../dominio/tipos";
 import type { Transacao } from "./comum";
 import { type AlunoTravado, travarAluno } from "./trava";
 
-/** Quantos códigos sorteia antes de desistir: colidir duas vezes em 31^8 é defeito. */
+/** Colidir duas vezes em 31^8 códigos é defeito, não azar. */
 const SORTEIOS = 5;
 
 export interface Conclusao {
   codigo: string;
 }
 
-/** Um statement: o status do curso e as aulas dele com a contagem de perguntas. null sem o curso. */
 interface CursoParaConcluir extends CursoComAulas {
-  /** A soma dos vídeos, que o certificado congela como carga horária. */
   segundosDeVideo: number;
 }
 
-async function aulasDoCurso(
+/** Um statement: o curso com as aulas e as perguntas contadas. null sem o curso. */
+async function cursoParaConcluir(
   tx: Transacao,
   cursoId: CursoId
 ): Promise<CursoParaConcluir | null> {
@@ -183,18 +177,17 @@ async function gravarCertificado(
 }
 
 /**
- * Emite o certificado se a pessoa assistiu a todas as aulas e foi aprovada em todo
- * questionário do curso, e lança os pontos de curso concluído. Lê o estado atual
- * com o aluno travado, então rodar duas vezes, ou de dois caminhos, emite uma vez.
- * null: nada a emitir agora (curso incompleto, sem liberação ativa, em produção,
- * ou já concluído antes).
+ * O certificado e os pontos de curso concluído, quando a pessoa assistiu a todas
+ * as aulas e foi aprovada em todo questionário. Lê o estado atual com o aluno
+ * travado, então rodar duas vezes, ou de dois caminhos, emite uma vez. null: nada
+ * a emitir agora.
  */
 export async function concluirCurso(
   aluno: AlunoTravado,
   cursoId: CursoId,
   agora: Date
 ): Promise<Conclusao | null> {
-  const alvo = await aulasDoCurso(aluno.tx, cursoId);
+  const alvo = await cursoParaConcluir(aluno.tx, cursoId);
   if (!alvo || alvo.status === "em_producao") {
     return null;
   }
@@ -230,8 +223,7 @@ export async function concluirCurso(
 
 /**
  * Depois de uma edição que tira aula ou pergunta: quem já tinha assistido a todas
- * as aulas que ficaram pode ter completado o curso sem escrever nada. Confere cada
- * candidato com a trava dele, pela mesma regra. Quem chama segura a trava do curso.
+ * as aulas que ficaram pode ter completado o curso sem escrever nada.
  */
 export async function concluirParaQuemCompletou(
   tx: Transacao,

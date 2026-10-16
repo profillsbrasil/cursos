@@ -1,7 +1,3 @@
-// O questionário no Chromium headless, com o CSS real do app e um servidor falso:
-// o envio que falha e fica marcado, o reenvio que vira resultado, o Tentar de novo
-// que abre outra tentativa, e a medida do cartão em 1280 e 390 px.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -19,6 +15,7 @@ import {
 import {
   APROVADO_NA_PRIMEIRA,
   BLOQUEIO,
+  CERTA_DO_CRONOGRAMA,
   CRONOGRAMA,
   REPROVADO_NA_PRIMEIRA,
 } from "./exemplo-do-questionario";
@@ -32,9 +29,8 @@ const NEXT_NAVIGATION = /^next\/navigation$/;
 const NEXT_LINK = /^next\/link$/;
 
 const [P1, P2, P3] = CRONOGRAMA.perguntas.map((p) => p.id);
-const certaDe = (n: number) => CRONOGRAMA.perguntas[n]?.alternativas[1]?.id;
+const certaDe = (n: number) => CERTA_DO_CRONOGRAMA[n];
 
-/** O resultado que o servidor falso devolve: 2 de 3, errou a pergunta 2. */
 const RESULTADO = {
   acertos: 2,
   aprovada: false,
@@ -135,7 +131,6 @@ async function empacotar() {
   return saida.text();
 }
 
-// O CSS das classes que os estados usam, sem o roteador: só o HTML.
 const navegacao = await import("next/navigation");
 const { mock } = await import("bun:test");
 mock.module("next/navigation", () => ({
@@ -238,8 +233,7 @@ interface Medida {
   alternativa: Caixa;
   larguraDaJanela: number;
   larguraDaPagina: number;
-  /** A janela sem a barra de rolagem. */
-  larguraUtil: number;
+  larguraSemRolagem: number;
   pergunta: Caixa;
   pontos: Caixa;
   secao: Caixa;
@@ -258,7 +252,7 @@ const MEDIR = `(() => {
     alternativa: caixa(grupo.querySelector(".grid.gap-2 > *")),
     larguraDaPagina: document.documentElement.scrollWidth,
     larguraDaJanela: window.innerWidth,
-    larguraUtil: document.documentElement.clientWidth,
+    larguraSemRolagem: document.documentElement.clientWidth,
     pergunta: caixa(grupo.querySelector(".grid.gap-2")),
     pontos: caixa(status.querySelector(".font-mono")),
     secao: caixa(document.getElementById("questionario")),
@@ -339,9 +333,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     await abrir(390, htmlDe({ ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }));
     const m = await medir();
     expect(m.larguraDaPagina).toBeLessThanOrEqual(390);
-    expect(m.secao.largura).toBe(m.larguraUtil - 32);
-    // Cada botão cresce (flex: 1): lado a lado, os dois dividem a linha; se a
-    // fonte não deixar, cada um toma a linha inteira. Nunca sobra vão à direita.
+    expect(m.secao.largura).toBe(m.larguraSemRolagem - 32);
     const linha = m.secao.largura - 36;
     expect(m.acoes).toHaveLength(2);
     for (const botao of m.acoes) {

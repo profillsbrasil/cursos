@@ -1,7 +1,3 @@
-// O envio do questionário, no banco local: pontos uma vez, a tentativa gravada, a
-// certa escondida até a aprovação e o certificado emitido pelos três caminhos que
-// completam o curso (o questionário, a aula assistida e a edição do admin).
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createDb } from "@cursos/db";
@@ -142,7 +138,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       .returning({ id: modulo.id });
     const aulas: AulaPlantada[] = [];
     for (const [i, n] of perguntasPorAula.entries()) {
-      // biome-ignore lint/performance/noAwaitInLoops: a ordem das aulas é a posição.
+      // biome-ignore lint/performance/noAwaitInLoops: as perguntas precisam do id da aula gravada.
       const [a] = await db
         .insert(aula)
         .values({
@@ -156,7 +152,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         .returning({ id: aula.id });
       const perguntas: PerguntaPlantada[] = [];
       for (let p = 1; p <= n; p += 1) {
-        // biome-ignore lint/performance/noAwaitInLoops: a ordem das perguntas é a posição.
+        // biome-ignore lint/performance/noAwaitInLoops: as alternativas precisam do id da pergunta gravada.
         const [pg] = await db
           .insert(pergunta)
           .values({
