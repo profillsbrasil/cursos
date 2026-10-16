@@ -106,13 +106,18 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Comunicados medida", () => {
 
   afterAll(fecharChromium);
 
-  test("1280 px: a capa de 240 px à direita do texto, no topo do destaque, e o dia na coluna de 64 px", async () => {
+  test("1280 px: a capa cobre o canto direito do destaque, de cima a baixo, e o dia fica na coluna de 64 px", async () => {
     await abrir(1280, TELAS.varios);
     const m = await medir();
-    expect(m.lado.largura).toBe(240);
-    expect(m.lado.altura).toBe(Math.round((240 * 604) / 900));
+    expect([m.lado.topo, m.lado.direita, m.lado.fundo]).toEqual([
+      m.cartao.topo,
+      m.cartao.direita,
+      m.cartao.fundo,
+    ]);
+    expect(m.lado.largura).toBeGreaterThanOrEqual(
+      Math.round(m.cartao.largura * 0.38)
+    );
     expect(m.lado.esquerda).toBeGreaterThanOrEqual(m.titulo.direita + 28);
-    expect(m.lado.topo).toBeLessThan(m.titulo.topo);
     expect(m.dias).toHaveLength(3);
     for (const d of m.dias) {
       expect(d.largura).toBe(64);
@@ -120,11 +125,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Comunicados medida", () => {
     expect(m.rolaDeLado).toBe(false);
   });
 
-  test("390 px: a capa sobe para cima do título na largura do cartão, e o dia fica em 44 px", async () => {
+  test("390 px: a capa sobe para o topo do destaque, de borda a borda, e o dia fica em 44 px", async () => {
     await abrir(390, TELAS.varios);
     const m = await medir();
     expect(m.lado.fundo).toBeLessThanOrEqual(m.titulo.topo);
-    expect(m.lado.largura).toBe(m.titulo.largura);
+    expect([m.lado.topo, m.lado.esquerda, m.lado.largura]).toEqual([
+      m.cartao.topo,
+      m.cartao.esquerda,
+      m.cartao.largura,
+    ]);
     for (const d of m.dias) {
       expect(d.largura).toBe(44);
     }

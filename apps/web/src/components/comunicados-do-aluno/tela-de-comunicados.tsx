@@ -66,13 +66,19 @@ function Texto({ className, texto }: { className?: string; texto: string }) {
 }
 
 function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
+  const doCurso = c.alvo.tipo === "curso" ? c.alvo : null;
   return (
     <article
       aria-labelledby="comunicado-destaque"
-      className="grid @min-[641px]:grid-cols-[minmax(0,1fr)_240px] gap-7 rounded-[20px] bg-card p-[clamp(22px,3.4vw,36px)] ring-1 ring-border"
+      className={cn(
+        "grid overflow-hidden rounded-[20px] bg-card ring-1 ring-border",
+        doCurso
+          ? "@min-[641px]:grid-cols-[minmax(0,1fr)_minmax(0,40%)]"
+          : "@min-[641px]:grid-cols-[minmax(0,1fr)_auto] gap-7 p-[clamp(22px,3.4vw,36px)]"
+      )}
       data-destaque=""
     >
-      <div>
+      <div className={doCurso ? "p-[clamp(22px,3.4vw,36px)]" : undefined}>
         <p className={LINHA_APAGADA}>
           <time dateTime={c.publicadoEm}>{fmtData(c.publicadoEm)}</time>
           {c.publicadoPor ? <span>por {c.publicadoPor}</span> : null}
@@ -84,33 +90,31 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
           {c.titulo}
         </h2>
         <Texto className="mt-3 text-base leading-[1.55]" texto={c.texto} />
+        {doCurso ? (
+          <p className="mt-4 text-[13px] text-muted-foreground">
+            Sobre o curso <LinkDoCurso alvo={doCurso} />
+          </p>
+        ) : null}
       </div>
-      <div className="@min-[641px]:row-start-auto row-start-1 grid content-start gap-2.5 text-[13px] text-muted-foreground">
-        {c.alvo.tipo === "curso" ? (
-          <>
-            <span
-              className="relative block aspect-[900/604] overflow-hidden rounded-[14px] bg-sidebar ring-1 ring-border"
-              data-capa=""
-            >
-              <Image
-                alt=""
-                className="object-cover"
-                fill
-                sizes="(max-width: 767px) 100vw, 240px"
-                src={c.alvo.capa.url}
-              />
-            </span>
-            <p>
-              Sobre o curso <LinkDoCurso alvo={c.alvo} />
-            </p>
-          </>
-        ) : (
-          <>
-            <Megafone className="bg-ceu text-sobre-cor" />
-            <p>Para todos os alunos</p>
-          </>
-        )}
-      </div>
+      {doCurso ? (
+        <span
+          className="relative @min-[641px]:row-start-auto row-start-1 block @min-[641px]:aspect-auto aspect-[900/604] @min-[641px]:min-h-full bg-sidebar"
+          data-capa=""
+        >
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="(max-width: 767px) 100vw, 40vw"
+            src={doCurso.capa.url}
+          />
+        </span>
+      ) : (
+        <div className="@min-[641px]:row-start-auto row-start-1 grid content-start gap-2.5 text-[13px] text-muted-foreground">
+          <Megafone className="bg-ceu text-sobre-cor" />
+          <p>Para todos os alunos</p>
+        </div>
+      )}
     </article>
   );
 }
