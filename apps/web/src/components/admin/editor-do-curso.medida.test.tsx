@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 import {
   documentoDeExemplo,
@@ -22,7 +22,14 @@ import { CampoDeCapa } from "./campo-de-capa";
 import { escolhas, NADA_ESCOLHIDO } from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
-import { Vitrine } from "./vitrine";
+
+// Fora do App Router o useRouter lança; a categoria da Vitrine cria pelo useAcao.
+const navegacao = await import("next/navigation");
+mock.module("next/navigation", () => ({
+  ...navegacao,
+  useRouter: () => ({ refresh: () => undefined }),
+}));
+const { Vitrine } = await import("./vitrine");
 
 const nada = () => undefined;
 const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };

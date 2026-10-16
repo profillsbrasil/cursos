@@ -3,8 +3,13 @@
 import { Combobox } from "@base-ui/react/combobox";
 import { Select } from "@base-ui/react/select";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check, ChevronDown, Search } from "lucide-react";
-import { type AriaAttributes, type ReactNode, useCallback } from "react";
+import { Check, ChevronDown, Plus, Search } from "lucide-react";
+import {
+  type AriaAttributes,
+  type ReactNode,
+  useCallback,
+  useState,
+} from "react";
 
 import {
   BUSCA_DA_SELECAO,
@@ -13,10 +18,14 @@ import {
   GRUPO_DA_SELECAO,
   ITEM_DA_SELECAO,
   LISTA_DA_SELECAO,
+  OPCAO_DE_CRIAR,
+  PE_DA_SELECAO,
   SEM_OPCAO_DA_SELECAO,
 } from "./partes";
 
 export interface OpcaoDaSelecao {
+  /** Em 12 px texto-apagado ao lado do rótulo, como "2 cursos". */
+  contagem?: string;
   descricao?: string;
   icone?: ReactNode;
   rotulo: string;
@@ -57,7 +66,14 @@ function ConteudoDaOpcao({ opcao }: { opcao: OpcaoDaSelecao }) {
     <>
       {opcao.icone}
       <span className="grid min-w-0 flex-1 gap-px">
-        <span className="truncate">{opcao.rotulo}</span>
+        <span className="truncate">
+          {opcao.rotulo}
+          {opcao.contagem ? (
+            <span className="ml-1.5 font-normal text-muted-foreground text-xs tabular-nums">
+              {opcao.contagem}
+            </span>
+          ) : null}
+        </span>
         {opcao.descricao ? (
           <span className="font-normal text-muted-foreground text-xs">
             {opcao.descricao}
@@ -188,42 +204,105 @@ const mesmaOpcao = (a: OpcaoDaSelecao, b: OpcaoDaSelecao) =>
 const rotuloDa = (o: OpcaoDaSelecao) => o.rotulo;
 const valorDa = (o: OpcaoDaSelecao) => o.valor;
 
+/** O valor da opção que cria; nenhum id do app começa com o caractere nulo. */
+const CRIAR = "\u0000criar";
+
+const comparavel = (texto: string) => texto.trim().toLocaleLowerCase("pt-BR");
+
+/** A opção de criar sempre passa: o rótulo dela não precisa conter a busca. */
+const filtroComCriar = (o: OpcaoDaSelecao, busca: string) =>
+  o.valor === CRIAR || comparavel(o.rotulo).includes(comparavel(busca));
+
+export interface CriarNaSelecao {
+  aoCriar: (nome: string) => void;
+  rotulo: (nome: string) => string;
+}
+
+/**
+ * Com `criar`, a busca que não casa com nenhum rótulo mostra no fim da lista a
+ * opção de criar o que foi digitado; escolhê-la chama `aoCriar` com o texto
+ * aparado e não muda o valor.
+ */
+function opcoesComCriar(
+  opcoes: readonly ItemDaSelecao[],
+  criar: CriarNaSelecao | undefined,
+  busca: string
+): readonly ItemDaSelecao[] {
+  const nome = busca.trim();
+  if (!criar || nome === "") {
+    return opcoes;
+  }
+  const existe = todasAsOpcoes(opcoes).some(
+    (o) => comparavel(o.rotulo) === comparavel(nome)
+  );
+  return existe
+    ? opcoes
+    : [
+        ...opcoes,
+        {
+          icone: <Plus aria-hidden="true" />,
+          rotulo: criar.rotulo(nome),
+          valor: CRIAR,
+        },
+      ];
+}
+
 /** A Selecao com um campo de busca no topo da lista, para as listas que crescem. */
 export function SelecaoComBusca({
   aoMudar,
   className,
+  criar,
   id,
   name,
   opcoes,
+  pe,
   placeholder,
+  placeholderDaBusca = "Buscar",
   required,
   rotuloDaBusca,
   semResultado,
   tamanho = "campo",
   valor,
   ...aria
-}: PropsDaSelecao & { rotuloDaBusca: string; semResultado: string }) {
+}: PropsDaSelecao & {
+  criar?: CriarNaSelecao;
+  /** O pé da lista aberta, abaixo das opções. */
+  pe?: ReactNode;
+  placeholderDaBusca?: string;
+  rotuloDaBusca: string;
+  semResultado: string;
+}) {
+  const [busca, setBusca] = useState("");
   const escolhida =
     todasAsOpcoes(opcoes).find((o) => o.valor === valor) ?? null;
   const mudar = useCallback(
     (nova: OpcaoDaSelecao | null) => {
-      if (nova !== null) {
-        aoMudar(nova.valor);
+      if (nova === null) {
+        return;
       }
+      if (nova.valor === CRIAR) {
+        criar?.aoCriar(busca.trim());
+        return;
+      }
+      aoMudar(nova.valor);
     },
-    [aoMudar]
+    [aoMudar, busca, criar]
   );
   return (
     <Combobox.Root
+      filter={criar ? filtroComCriar : undefined}
+      inputValue={busca}
       isItemEqualToValue={mesmaOpcao}
-      items={gruposDaBusca(opcoes)}
+      items={gruposDaBusca(opcoesComCriar(opcoes, criar, busca))}
       itemToStringLabel={rotuloDa}
       itemToStringValue={valorDa}
       name={name}
+      onInputValueChange={setBusca}
       onValueChange={mudar}
       required={required}
       value={escolhida}
     >
+      {" "}
       <Combobox.Trigger
         {...aria}
         className={cn(GATILHO_DA_SELECAO[tamanho], className)}
@@ -243,7 +322,7 @@ export function SelecaoComBusca({
               <Combobox.Input
                 aria-label={rotuloDaBusca}
                 className="h-full min-w-0 flex-1 bg-transparent text-[13px] text-titulo placeholder:text-muted-foreground"
-                placeholder="Buscar"
+                placeholder={placeholderDaBusca}
               />
             </div>
             <Combobox.Empty className="px-4 py-3 text-[13px] text-muted-foreground empty:hidden">
@@ -263,7 +342,10 @@ export function SelecaoComBusca({
                   <Combobox.Collection>
                     {(o: OpcaoDaSelecao) => (
                       <Combobox.Item
-                        className={ITEM_DA_SELECAO}
+                        className={cn(
+                          ITEM_DA_SELECAO,
+                          o.valor === CRIAR && OPCAO_DE_CRIAR
+                        )}
                         key={o.valor}
                         value={o}
                       >
@@ -277,6 +359,7 @@ export function SelecaoComBusca({
                 </Combobox.Group>
               )}
             </Combobox.List>
+            {pe ? <div className={PE_DA_SELECAO}>{pe}</div> : null}
           </Combobox.Popup>
         </Combobox.Positioner>
       </Combobox.Portal>
