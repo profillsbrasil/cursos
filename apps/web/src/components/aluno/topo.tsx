@@ -7,7 +7,7 @@ import { Search } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
- * O topo de cada página do aluno. `esquerda`: busca ou migalha. `direita`: o canto
+ * O topo de cada página do aluno. `esquerda`: a busca. `direita`: o canto
  * livre que cada página usa como quiser. A navegação e o placar moram na sidebar.
  */
 export function TopoDoAluno({
