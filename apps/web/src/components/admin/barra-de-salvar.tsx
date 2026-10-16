@@ -128,6 +128,7 @@ export function SituacaoESalvar({
         <Button
           aria-busy={pendente}
           aria-describedby={desligado ? id : undefined}
+          aria-keyshortcuts={desligado ? undefined : "Control+S Meta+S"}
           className={cn(
             desligado ? CONTORNO_DESLIGADO : BOTAO,
             coluna && "w-full"
@@ -138,6 +139,14 @@ export function SituacaoESalvar({
         >
           <Carregando ativo={pendente} />
           Salvar
+          {coluna && !desligado ? (
+            <span
+              aria-hidden="true"
+              className="rounded-[5px] border border-sobre-cor/35 px-1.5 font-mono font-semibold text-[11px] text-sobre-cor leading-4"
+            >
+              Ctrl S
+            </span>
+          ) : null}
         </Button>
       </div>
     </div>

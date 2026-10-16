@@ -6,6 +6,7 @@ import { BarraDeSalvar, SituacaoESalvar } from "./barra-de-salvar";
 
 const TAG = /<[^>]+>/g;
 const BOTAO = /<button[^>]*>/;
+const SITUACAO = /aria-live="polite"[^>]*>(.*?)<\/div>/;
 const DESCRITO_POR = /aria-describedby="([^"]+)"/;
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
@@ -123,7 +124,10 @@ describe("BarraDeSalvar", () => {
       <SituacaoESalvar coluna estado={estado} />
     );
     const naBarra = renderToStaticMarkup(<BarraDeSalvar {...estado} />);
-    expect(texto(coluna)).toBe(texto(naBarra));
+    const situacao = (html: string) => texto(SITUACAO.exec(html)?.[1] ?? "");
+    expect(situacao(coluna)).toBe("Mudanças não salvas.");
+    expect(situacao(naBarra)).toBe(situacao(coluna));
+    expect(texto(coluna)).toContain("Ctrl S");
     expect(BOTAO.exec(coluna)?.[0]).toContain("hover:bg-sol-hover");
   });
 });

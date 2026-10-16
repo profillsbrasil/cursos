@@ -82,10 +82,14 @@ const PAGINA = `
     gerados += 1;
     return "00000000-0000-4000-8000-1" + String(gerados).padStart(11, "0");
   };
+  // O document.open troca o documento e mantém a janela: o editor de antes sai com os ouvintes dele.
+  window.desmontar?.();
+  window.gravado = undefined;
   window.criadas = [];
   window.refreshes = 0;
   window.versao = EDICAO.documento.versao;
   const raiz = createRoot(document.getElementById("raiz"));
+  window.desmontar = () => raiz.unmount();
   // O refresh do App Router: a página chega com objetos novos, na versão que o servidor tem.
   const desenhar = () =>
     flushSync(() =>
@@ -470,5 +474,36 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       );
       await foto("sujo-1920");
     });
+  });
+
+  describe("Ctrl+S", () => {
+    // O navegador abriria o "salvar página" no Ctrl+S que ninguém impediu.
+    const vigiar = () =>
+      avaliar(
+        enviar,
+        `window.impedidos = []; window.addEventListener("keydown", (e) => { if (e.key === "s") window.impedidos.push(e); });`
+      );
+
+    for (const janela of [1920, 1280]) {
+      test(`em ${janela} px, sem mudança não salva nem abre o salvar do navegador; com mudança, salva`, async () => {
+        await abrirEditor(janela);
+        await vigiar();
+        await teclar("s", { ctrl: true });
+        await sleep(100);
+        expect(await pedidos()).toEqual([]);
+        await escrever("#curso-titulo", "Curso de Filmagem revisto");
+        await teclar("s", { ctrl: true });
+        await esperar("window.pedidos.length === 1");
+        expect(await pedidos()).toEqual([
+          { salvarCurso: "Curso de Filmagem revisto" },
+        ]);
+        expect(
+          await avaliar<boolean[]>(
+            enviar,
+            "window.impedidos.map((e) => e.defaultPrevented)"
+          )
+        ).toEqual([true, true]);
+      });
+    }
   });
 });

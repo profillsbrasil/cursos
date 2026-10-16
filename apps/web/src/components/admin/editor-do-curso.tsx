@@ -23,11 +23,13 @@ import {
   useId,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { ALAVANCA, CAMPO } from "@/components/casca/campos";
+import { useAtalhoDeSalvar } from "@/lib/atalho-de-salvar";
 import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
@@ -35,7 +37,11 @@ import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
 import { trpcClient } from "@/utils/trpc";
 
 import { antesDePublicar, secoesDoEditor } from "./antes-de-publicar";
-import { BarraDeSalvar, type EstadoDoSalvar } from "./barra-de-salvar";
+import {
+  BarraDeSalvar,
+  type EstadoDoSalvar,
+  nadaASalvar,
+} from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ColunaDePublicacao, STATUS } from "./coluna-de-publicacao";
@@ -493,6 +499,8 @@ export function EditorDoCurso({
     sujo,
     versaoMudou,
   };
+  const formulario = useRef<HTMLFormElement>(null);
+  useAtalhoDeSalvar(formulario, !nadaASalvar(estadoDoSalvar));
 
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
   const duracao = rascunho.modulos.reduce(
@@ -502,7 +510,12 @@ export function EditorDoCurso({
   return (
     <ErrosDoEditor value={erros}>
       <SaiuDoCampo value={saiuDoCampo}>
-        <form className="@container grid gap-10" noValidate onSubmit={enviar}>
+        <form
+          className="@container grid gap-10"
+          noValidate
+          onSubmit={enviar}
+          ref={formulario}
+        >
           <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
             <div className="grid min-w-0 gap-10">
               <header className="grid gap-1.5">
