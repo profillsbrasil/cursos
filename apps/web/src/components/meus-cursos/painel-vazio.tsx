@@ -7,7 +7,7 @@ import {
 } from "@cursos/ui/components/empty";
 import { BookOpen } from "lucide-react";
 
-// Zero liberações: diz com qual conta a pessoa entrou e quem libera as trilhas.
+// Zero liberações: diz com qual conta a pessoa entrou e quem libera os cursos.
 export function PainelVazio({ conta }: { conta: string | null }) {
   return (
     <Empty className="rounded-[20px] bg-card px-6 py-14 ring-1 ring-border">
@@ -28,7 +28,7 @@ export function PainelVazio({ conta }: { conta: string | null }) {
               <b className="font-semibold text-foreground">{conta}</b>.{" "}
             </>
           ) : null}
-          As trilhas aparecem aqui quando o admin da Profills libera para a sua
+          Os cursos aparecem aqui quando o admin da Profills libera para a sua
           conta. Se você esperava ver cursos, confira se entrou com a conta
           certa ou fale com quem cuida do treinamento.
         </EmptyDescription>

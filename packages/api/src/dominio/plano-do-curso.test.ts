@@ -34,7 +34,7 @@ function edicao(
     capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA_ATUAL },
     documento: doc,
     podeApagar: false,
-    uso: { assistidasPorAula, certificados: 0, liberacoes: 0, trilha: null },
+    uso: { assistidasPorAula, certificados: 0, liberacoes: 0 },
   };
 }
 

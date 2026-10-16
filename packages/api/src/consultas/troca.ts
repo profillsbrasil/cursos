@@ -15,12 +15,7 @@ import {
   temCursoTrocavelNaVitrine,
 } from "../dominio/troca";
 import { ErroParaAPessoa } from "../index";
-import {
-  COLUNAS_DA_CAPA,
-  type Executor,
-  filtroLiberacaoAtiva,
-  relacaoLiberacoesAtivas,
-} from "./comum";
+import { COLUNAS_DA_CAPA, type Executor, filtroLiberacaoAtiva } from "./comum";
 import { inserirLiberacao } from "./liberacao";
 import { comSaldoTravado, linhasDoExtrato, linhasDoSaldo } from "./pontos";
 import type { AlunoTravado } from "./trava";
@@ -61,15 +56,6 @@ export async function linhasDosCursos(
       modulos: {
         columns: {},
         with: { aulas: { columns: { duracaoSeg: true } } },
-      },
-      naTrilha: {
-        columns: {},
-        with: {
-          trilha: {
-            columns: {},
-            with: { liberacoes: relacaoLiberacoesAtivas(userId) },
-          },
-        },
       },
     },
   });
@@ -154,7 +140,7 @@ async function gravarTroca(
 ): Promise<{ lancamentoId: string }> {
   const liberacaoId = await inserirLiberacao(
     aluno,
-    { alvo: { id: cursoId, tipo: "curso" }, origem: "troca" },
+    { cursoId, origem: "troca" },
     agora
   ).catch((e: unknown) => {
     throw violou(e, "liberacao_curso_ativa_unica")

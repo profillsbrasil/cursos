@@ -6,7 +6,6 @@ import {
   Check,
   ClipboardCheck,
   Clock,
-  Lock,
   type LucideIcon,
   Play,
 } from "lucide-react";
@@ -42,13 +41,6 @@ function aparencia(estado: EstadoCurso): Aparencia {
         classe: "bg-popover text-foreground",
         icone: BookOpen,
         rotulo: "Não iniciado",
-      };
-    case "bloqueado":
-      return {
-        classe:
-          "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset",
-        icone: Lock,
-        rotulo: "Bloqueado",
       };
     case "em_breve":
       return {

@@ -2,15 +2,14 @@ import { describe, expect, test } from "bun:test";
 
 import {
   acompanharCurso,
-  acompanharTrilha,
   estudoDe,
   type LinhasDaBusca,
   type LinhasDaPessoa,
   montarBusca,
 } from "./acompanhamento";
-import { cursoCat, idAula, trilhaCat } from "./exemplo";
+import { cursoCat, idAula } from "./exemplo";
 import type { LinhasHistorico } from "./historico";
-import type { CursoId, DiaISO } from "./tipos";
+import type { DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 
@@ -39,12 +38,8 @@ const A = cursoCat("a", { aulas: [2, 1] });
 describe("acompanharCurso, um estado por linha da tabela", () => {
   test("sem estudo: nunca abriu", () => {
     expect(acompanharCurso(A, estudoDe(linhas({})))).toEqual({
-      curso: {
-        progresso: { feitas: 0, pct: 0, total: 3 },
-        situacao: { tipo: "nunca_abriu" },
-        titulo: "Curso a",
-      },
-      tipo: "curso",
+      progresso: { feitas: 0, pct: 0, total: 3 },
+      situacao: { tipo: "nunca_abriu" },
     });
   });
 
@@ -60,9 +55,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         ],
       })
     );
-    expect(acompanharCurso(A, e)).toMatchObject({
-      curso: { situacao: { tipo: "nunca_abriu" } },
-    });
+    expect(acompanharCurso(A, e).situacao).toEqual({ tipo: "nunca_abriu" });
   });
 
   test("estudando: a aula do Continuar e o dia do último estudo em São Paulo", () => {
@@ -80,16 +73,12 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
       })
     );
     expect(acompanharCurso(A, e)).toEqual({
-      curso: {
-        progresso: { feitas: 1, pct: 33, total: 3 },
-        situacao: {
-          onde: { aula: 2, modulo: 0 },
-          tipo: "estudando",
-          ultimoEstudo: "2026-10-13" as DiaISO,
-        },
-        titulo: "Curso a",
+      progresso: { feitas: 1, pct: 33, total: 3 },
+      situacao: {
+        onde: { aula: 2, modulo: 0 },
+        tipo: "estudando",
+        ultimoEstudo: "2026-10-13" as DiaISO,
       },
-      tipo: "curso",
     });
   });
 
@@ -102,14 +91,10 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         ],
       })
     );
-    expect(acompanharCurso(A, e)).toMatchObject({
-      curso: {
-        situacao: {
-          onde: { aula: 1, modulo: 1 },
-          tipo: "estudando",
-          ultimoEstudo: "2026-09-21",
-        },
-      },
+    expect(acompanharCurso(A, e).situacao).toEqual({
+      onde: { aula: 1, modulo: 1 },
+      tipo: "estudando",
+      ultimoEstudo: "2026-09-21" as DiaISO,
     });
   });
 
@@ -124,10 +109,8 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
       })
     );
     expect(acompanharCurso(A, e)).toMatchObject({
-      curso: {
-        progresso: { feitas: 3, pct: 100, total: 3 },
-        situacao: { tipo: "falta_prova", ultimoEstudo: "2026-09-30" },
-      },
+      progresso: { feitas: 3, pct: 100, total: 3 },
+      situacao: { tipo: "falta_prova", ultimoEstudo: "2026-09-30" },
     });
   });
 
@@ -135,8 +118,9 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
     const e = estudoDe(
       linhas({ certificados: [certificado("a", "2026-09-12T15:00:00Z")] })
     );
-    expect(acompanharCurso(A, e)).toMatchObject({
-      curso: { situacao: { em: "2026-09-12", tipo: "concluido" } },
+    expect(acompanharCurso(A, e).situacao).toEqual({
+      em: "2026-09-12" as DiaISO,
+      tipo: "concluido",
     });
   });
 
@@ -148,107 +132,8 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
       })
     );
     expect(acompanharCurso(emProducao, e)).toMatchObject({
-      curso: {
-        progresso: { feitas: 1, pct: 100, total: 1 },
-        situacao: { tipo: "em_producao" },
-      },
-    });
-  });
-});
-
-describe("acompanharTrilha", () => {
-  const X = cursoCat("x", { aulas: [2] });
-  const Y = cursoCat("y", { aulas: [1] });
-  const Z = cursoCat("z", { aulas: [1], status: "em_producao" });
-
-  test("concluído, curso da vez e em produção, com a soma das aulas que abrem", () => {
-    const e = estudoDe(
-      linhas({
-        assistidas: [
-          assistida(idAula("x", 0, 1), "2026-09-01T15:00:00Z"),
-          assistida(idAula("x", 0, 2), "2026-09-02T15:00:00Z"),
-        ],
-        certificados: [certificado("x", "2026-09-03T15:00:00Z")],
-      })
-    );
-    expect(acompanharTrilha(trilhaCat("t", [X, Y, Z]), e, [])).toEqual({
-      aulas: { feitas: 2, pct: 66, total: 3 },
-      concluidos: 1,
-      cursos: [
-        {
-          posicao: 1,
-          progresso: { feitas: 2, pct: 100, total: 2 },
-          situacao: { em: "2026-09-03" as DiaISO, tipo: "concluido" },
-          titulo: "Curso x",
-        },
-        {
-          posicao: 2,
-          progresso: { feitas: 0, pct: 0, total: 1 },
-          situacao: { tipo: "nunca_abriu" },
-          titulo: "Curso y",
-        },
-        {
-          posicao: 3,
-          progresso: { feitas: 0, pct: 0, total: 1 },
-          situacao: { tipo: "em_producao" },
-          titulo: "Curso z",
-        },
-      ],
-      daVez: 2,
-      // Concluiu o curso 1: a trilha está em estudo, mesmo com o curso da vez fechado.
-      situacao: "estudando",
-      tipo: "trilha",
-      ultimoEstudo: "2026-09-03" as DiaISO,
-    });
-  });
-
-  test("o segundo curso espera o primeiro e diz qual; sem estudo, a trilha nunca foi aberta", () => {
-    const r = acompanharTrilha(
-      trilhaCat("t", [X, Y]),
-      estudoDe(linhas({})),
-      []
-    );
-    expect(r.tipo === "trilha" && r.cursos.map((c) => c.situacao)).toEqual([
-      { tipo: "nunca_abriu" },
-      { depoisDe: { posicao: 1, titulo: "Curso x" }, tipo: "bloqueado" },
-    ]);
-    expect(r).toMatchObject({ situacao: "nunca_abriu", ultimoEstudo: null });
-  });
-
-  test("o curso da vez na prova põe a trilha na prova", () => {
-    const r = acompanharTrilha(
-      trilhaCat("t", [Y, X]),
-      estudoDe(
-        linhas({
-          assistidas: [assistida(idAula("y", 0, 1), "2026-09-01T15:00:00Z")],
-        })
-      ),
-      []
-    );
-    expect(r).toMatchObject({ daVez: 1, situacao: "falta_prova" });
-  });
-
-  test("o curso liberado direto não espera o anterior", () => {
-    const r = acompanharTrilha(trilhaCat("t", [X, Y]), estudoDe(linhas({})), [
-      Y,
-    ]);
-    expect(r.tipo === "trilha" && r.cursos[1]?.situacao).toEqual({
-      tipo: "nunca_abriu",
-    });
-  });
-
-  test("só o curso em produção sobrando: aguardando produção, sem curso da vez", () => {
-    const r = acompanharTrilha(
-      trilhaCat("t", [X, Z]),
-      estudoDe(
-        linhas({ certificados: [certificado("x", "2026-09-03T15:00:00Z")] })
-      ),
-      []
-    );
-    expect(r).toMatchObject({
-      concluidos: 1,
-      daVez: null,
-      situacao: "aguardando_producao",
+      progresso: { feitas: 1, pct: 100, total: 1 },
+      situacao: { tipo: "em_producao" },
     });
   });
 });
@@ -261,14 +146,10 @@ describe("montarBusca", () => {
     nome: userId,
     userId,
   });
-  const ativa = (
-    alvo: { cursoId?: string; trilhaId?: string },
-    iso: string
-  ) => ({
-    cursoId: alvo.cursoId ?? null,
+  const ativa = (cursoId: string, iso: string) => ({
+    cursoId,
     liberadaEm: em(iso),
     revogadaEm: null,
-    trilhaId: alvo.trilhaId ?? null,
   });
   const curso = (id: string, aulas: number, status = "publicado" as const) => ({
     id,
@@ -282,7 +163,7 @@ describe("montarBusca", () => {
     status,
     titulo: `Curso ${id}`,
   });
-  // Trilha t: x (2 aulas), y (1 aula), z em produção. Curso solto w (1 aula).
+  // x (2 aulas), y (1 aula), z em produção, w (1 aula).
   const catalogo: Omit<LinhasDaBusca, "pessoas"> = {
     cursos: [
       curso("x", 2),
@@ -290,7 +171,6 @@ describe("montarBusca", () => {
       { ...curso("z", 1), status: "em_producao" },
       curso("w", 1),
     ],
-    trilhas: [{ cursos: ["x", "y", "z"], id: "t" }],
   };
   const situacaoDe = (p: Omit<LinhasDaPessoa, "userId">) =>
     montarBusca(
@@ -313,11 +193,11 @@ describe("montarBusca", () => {
         ...linhas({}),
         liberacoes: [
           {
-            ...ativa({ cursoId: "w" }, "2026-08-10T15:00:00Z"),
+            ...ativa("w", "2026-08-10T15:00:00Z"),
             revogadaEm: em("2026-09-02T15:00:00Z"),
           },
           {
-            ...ativa({ trilhaId: "t" }, "2026-08-11T15:00:00Z"),
+            ...ativa("x", "2026-08-11T15:00:00Z"),
             revogadaEm: em("2026-08-20T15:00:00Z"),
           },
         ],
@@ -334,13 +214,15 @@ describe("montarBusca", () => {
       situacaoDe({
         ...linhas({}),
         liberacoes: [
-          ativa({ trilhaId: "t" }, "2026-10-02T15:00:00Z"),
-          ativa({ cursoId: "w" }, "2026-09-30T15:00:00Z"),
+          ativa("x", "2026-10-02T15:00:00Z"),
+          ativa("z", "2026-10-02T15:00:00Z"),
+          ativa("w", "2026-09-30T15:00:00Z"),
         ],
       })
     ).toEqual({
       desde: "2026-09-30" as DiaISO,
-      numeros: { concluidos: 0, cursos: 3, liberacoes: 2 },
+      // z está em produção e fica fora da conta de cursos.
+      numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
       tipo: "nunca_abriu",
     });
   });
@@ -351,7 +233,7 @@ describe("montarBusca", () => {
         ...linhas({
           assistidas: [assistida(idAula("w", 0, 1), "2026-09-01T15:00:00Z")],
         }),
-        liberacoes: [ativa({ trilhaId: "t" }, "2026-10-02T15:00:00Z")],
+        liberacoes: [ativa("x", "2026-10-02T15:00:00Z")],
       })
     ).toMatchObject({ tipo: "nunca_abriu" });
   });
@@ -368,13 +250,13 @@ describe("montarBusca", () => {
           certificados: [certificado("x", "2026-09-03T15:00:00Z")],
         }),
         liberacoes: [
-          ativa({ trilhaId: "t" }, "2026-08-08T15:00:00Z"),
-          ativa({ cursoId: "w" }, "2026-08-18T15:00:00Z"),
+          ativa("x", "2026-08-08T15:00:00Z"),
+          ativa("y", "2026-08-08T15:00:00Z"),
+          ativa("w", "2026-08-18T15:00:00Z"),
         ],
       })
     ).toEqual({
-      // z está em produção e fica fora; y espera e entra.
-      numeros: { concluidos: 1, cursos: 3, liberacoes: 2 },
+      numeros: { concluidos: 1, cursos: 3, emProducao: 0 },
       tipo: "estudando",
       ultimoEstudo: "2026-10-13" as DiaISO,
     });
@@ -389,25 +271,17 @@ describe("montarBusca", () => {
             certificado("y", "2026-09-10T15:00:00Z"),
           ],
         }),
-        liberacoes: [ativa({ trilhaId: "t" }, "2026-08-08T15:00:00Z")],
+        liberacoes: [
+          ativa("x", "2026-08-08T15:00:00Z"),
+          ativa("y", "2026-08-08T15:00:00Z"),
+          ativa("z", "2026-08-08T15:00:00Z"),
+        ],
       })
     ).toEqual({
-      numeros: { concluidos: 2, cursos: 2, liberacoes: 1 },
+      numeros: { concluidos: 2, cursos: 2, emProducao: 1 },
       tipo: "concluiu_tudo",
       ultimoEstudo: "2026-09-10" as DiaISO,
     });
-  });
-
-  test("curso liberado direto e também na trilha conta uma vez", () => {
-    expect(
-      situacaoDe({
-        ...linhas({}),
-        liberacoes: [
-          ativa({ trilhaId: "t" }, "2026-08-08T15:00:00Z"),
-          ativa({ cursoId: "y" }, "2026-08-09T15:00:00Z"),
-        ],
-      })
-    ).toMatchObject({ numeros: { cursos: 2, liberacoes: 2 } });
   });
 
   test("mantém a ordem do Clerk, o total e o dia de hoje", () => {
@@ -433,9 +307,7 @@ describe("montarBusca", () => {
     expect(() =>
       situacaoDe({
         ...linhas({}),
-        liberacoes: [
-          ativa({ cursoId: "sumiu" as CursoId }, "2026-08-08T15:00:00Z"),
-        ],
+        liberacoes: [ativa("sumiu", "2026-08-08T15:00:00Z")],
       })
     ).toThrow("Curso sumiu alcançado e fora do catálogo da busca.");
   });

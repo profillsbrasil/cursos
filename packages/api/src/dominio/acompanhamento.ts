@@ -1,12 +1,12 @@
 // O que o admin vê do estudo de cada pessoa: o acompanhamento de cada liberação,
-// na tela de acesso, e a situação da pessoa, na busca. O alcance, o estado, o
-// progresso, o curso da vez e a aula do Continuar saem das regras de Meus cursos
-// (alcance, estadoDoCurso, trilhaVM, progresso, atividadeDe, ondeNoCurso): nada
-// aqui decide de novo se um curso abre, se foi começado ou se foi concluído.
+// na tela de acesso, e a situação da pessoa, na busca. O estado, o progresso e a
+// aula do Continuar saem das regras de Meus cursos (estadoDoCurso, a regra única
+// do estado, progresso, atividadeDe, ondeNoCurso): nada aqui decide de novo se um
+// curso abre, se foi começado ou se foi concluído.
 
 import {
-  alcance,
   type CursoComAulas,
+  estadoDoCurso,
   type Progresso,
   progresso,
 } from "./curso";
@@ -16,7 +16,6 @@ import {
   type LinhasHistorico,
   posicaoComecada,
 } from "./historico";
-import { type TrilhaVM, trilhaVM } from "./painel";
 import { ondeNoCurso } from "./retomada";
 import { diaLocal } from "./sequencia";
 import type {
@@ -29,8 +28,6 @@ import type {
   Pessoa,
   ResultadoDaBusca,
   StatusDoCurso,
-  TrilhaCatalogo,
-  TrilhaId,
 } from "./tipos";
 
 // ---------- o que a tela recebe ----------
@@ -48,48 +45,23 @@ export interface Onde {
  */
 export type SituacaoNoCurso =
   | { tipo: "em_producao" }
-  | { tipo: "bloqueado"; depoisDe: { posicao: number; titulo: string } }
   | { tipo: "nunca_abriu" }
   | { tipo: "estudando"; onde: Onde; ultimoEstudo: DiaISO }
   | { tipo: "falta_prova"; ultimoEstudo: DiaISO }
   | { tipo: "concluido"; em: DiaISO };
 
-export interface CursoAcompanhado {
+/** O estudo da pessoa no curso de uma liberação. */
+export interface Acompanhamento {
   progresso: Progresso;
   situacao: SituacaoNoCurso;
-  titulo: string;
 }
-
-/** A trilha inteira na palavra do admin: o que o selo do item da trilha diz. */
-export type SituacaoNaTrilha =
-  | "nunca_abriu"
-  | "estudando"
-  | "falta_prova"
-  | "concluida"
-  | "aguardando_producao";
-
-/** O estudo da pessoa no alvo de uma liberação. */
-export type Acompanhamento =
-  | { tipo: "curso"; curso: CursoAcompanhado }
-  | {
-      tipo: "trilha";
-      /** Aulas dos cursos que não estão em produção, como em Meus cursos. */
-      aulas: Progresso;
-      concluidos: number;
-      /** Em ordem de posição. */
-      cursos: readonly (CursoAcompanhado & { posicao: number })[];
-      /** Posição do curso da vez; null quando nenhum curso abre sem estar concluído. */
-      daVez: number | null;
-      situacao: SituacaoNaTrilha;
-      ultimoEstudo: DiaISO | null;
-    };
 
 export interface NumerosDaPessoa {
   concluidos: number;
   /** Cursos que a pessoa alcança e que não estão em produção; os concluídos entram. */
   cursos: number;
-  /** Liberações ativas. */
-  liberacoes: number;
+  /** Cursos liberados que o aluno vê como "Em produção", fora de `cursos`. */
+  emProducao: number;
 }
 
 /**
@@ -170,24 +142,14 @@ function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
   return dia;
 }
 
-/** `ordem`: os cursos da trilha, para dizer depois de qual o bloqueado abre. */
 export function situacaoNoCurso(
   curso: CursoCatalogo,
   estado: EstadoCurso,
-  e: Estudo,
-  ordem: readonly CursoId[]
+  e: Estudo
 ): SituacaoNoCurso {
   switch (estado.tipo) {
     case "em_breve":
       return { tipo: "em_producao" };
-    case "bloqueado":
-      return {
-        depoisDe: {
-          posicao: ordem.indexOf(estado.liberadoPor.id) + 1,
-          titulo: estado.liberadoPor.titulo,
-        },
-        tipo: "bloqueado",
-      };
     case "nao_iniciado":
       return { tipo: "nunca_abriu" };
     case "em_andamento": {
@@ -212,86 +174,15 @@ export function situacaoNoCurso(
 
 // ---------- o acompanhamento de uma liberação ----------
 
-/** Curso liberado direto: sem antecessor, como os soltos de Meus cursos. */
+/** O curso pelo mesmo estadoDoCurso de Meus cursos. */
 export function acompanharCurso(
   curso: CursoCatalogo,
   e: Estudo
 ): Acompanhamento {
-  const [solto] = alcance([], [curso], e.historico).soltos;
-  const estado = solto?.estado ?? { tipo: "em_breve" };
   return {
-    curso: {
-      progresso: progresso(curso, e.historico.assistidas),
-      situacao: situacaoNoCurso(curso, estado, e, []),
-      titulo: curso.titulo,
-    },
-    tipo: "curso",
+    progresso: progresso(curso, e.historico.assistidas),
+    situacao: situacaoNoCurso(curso, estadoDoCurso(curso, e.historico), e),
   };
-}
-
-/**
- * A trilha pelo `alcance` e pela `trilhaVM` de Meus cursos. `diretos`: os cursos
- * com liberação direta ativa, que não esperam o anterior.
- */
-export function acompanharTrilha(
-  trilha: TrilhaCatalogo,
-  e: Estudo,
-  diretos: readonly CursoCatalogo[]
-): Acompanhamento {
-  const [alcancada] = alcance([trilha], diretos, e.historico).trilhas;
-  if (!alcancada) {
-    throw new Error(`Trilha ${trilha.titulo} fora do próprio alcance.`);
-  }
-  const { vm } = trilhaVM(alcancada, e.historico, e.atividade);
-  const ordem = trilha.cursos.map((c) => c.id);
-  const doCatalogo = new Map(trilha.cursos.map((c) => [c.id, c]));
-  const cursos = vm.cursos.map((c) => {
-    const curso = doCatalogo.get(c.id);
-    if (!curso) {
-      throw new Error(`Curso ${c.id} fora da trilha ${trilha.titulo}.`);
-    }
-    return {
-      posicao: c.posicao,
-      progresso: c.progresso,
-      situacao: situacaoNoCurso(curso, c.estado, e, ordem),
-      titulo: c.titulo,
-    };
-  });
-  const daVez = vm.daVez?.posicao ?? null;
-  const ultimo = maisRecente(trilha.cursos.map((c) => ultimoEstudo(c, e)));
-  return {
-    aulas: vm.aulas,
-    concluidos: vm.concluidos,
-    cursos,
-    daVez,
-    situacao: situacaoNaTrilha(
-      vm.situacao,
-      cursos.find((c) => c.posicao === daVez),
-      ultimo
-    ),
-    tipo: "trilha",
-    ultimoEstudo: ultimo,
-  };
-}
-
-/**
- * "Nunca abriu" é a mesma regra da situação da pessoa: nenhum estudo em curso
- * nenhum da trilha. Com estudo, a trilha em curso espera a prova quando o curso
- * da vez espera, e está "Estudando" no resto, inclusive quando o curso da vez
- * ainda não foi aberto depois de um curso concluído.
- */
-function situacaoNaTrilha(
-  situacao: TrilhaVM["situacao"],
-  daVez: CursoAcompanhado | undefined,
-  ultimo: DiaISO | null
-): SituacaoNaTrilha {
-  if (situacao !== "em_curso") {
-    return situacao;
-  }
-  if (ultimo === null) {
-    return "nunca_abriu";
-  }
-  return daVez?.situacao.tipo === "falta_prova" ? "falta_prova" : "estudando";
 }
 
 // ---------- a situação da pessoa na busca ----------
@@ -306,10 +197,9 @@ export interface CursoDaBusca {
 }
 
 export interface LiberacaoDaBusca {
-  cursoId: string | null;
+  cursoId: string;
   liberadaEm: Date;
   revogadaEm: Date | null;
-  trilhaId: string | null;
 }
 
 export interface LinhasDaPessoa extends LinhasHistorico {
@@ -318,19 +208,14 @@ export interface LinhasDaPessoa extends LinhasHistorico {
   userId: string;
 }
 
-/** O statement da busca: uma linha por pessoa e o catálogo que elas alcançam. */
+/** O statement da busca: uma linha por pessoa e os cursos que elas alcançam. */
 export interface LinhasDaBusca {
   /** Os cursos que alguma das pessoas alcança por liberação ativa. */
   cursos: readonly CursoDaBusca[];
   pessoas: readonly LinhasDaPessoa[];
-  /** As trilhas com liberação ativa de alguma das pessoas, com os cursos em ordem de posição. */
-  trilhas: readonly { cursos: readonly string[]; id: string }[];
 }
 
-interface CatalogoDaBusca {
-  curso: (id: string) => CursoComAulas;
-  trilha: (id: string) => { cursos: readonly CursoComAulas[] };
-}
+type CatalogoDaBusca = (id: string) => CursoComAulas;
 
 function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
   const cursos = new Map(
@@ -346,28 +231,12 @@ function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
       },
     ])
   );
-  const curso = (id: string) => {
+  return (id) => {
     const c = cursos.get(id);
     if (!c) {
       throw new Error(`Curso ${id} alcançado e fora do catálogo da busca.`);
     }
     return c;
-  };
-  const trilhas = new Map(
-    linhas.trilhas.map((t) => [
-      t.id as TrilhaId,
-      { cursos: t.cursos.map(curso) },
-    ])
-  );
-  return {
-    curso,
-    trilha: (id) => {
-      const t = trilhas.get(id as TrilhaId);
-      if (!t) {
-        throw new Error(`Trilha ${id} liberada e fora do catálogo da busca.`);
-      }
-      return t;
-    },
   };
 }
 
@@ -376,7 +245,7 @@ const maisAntiga = (datas: readonly Date[]) =>
 
 export function situacaoDaPessoa(
   p: LinhasDaPessoa,
-  catalogo: CatalogoDaBusca
+  curso: CatalogoDaBusca
 ): SituacaoDaPessoa {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
   if (ativas.length === 0) {
@@ -390,19 +259,16 @@ export function situacaoDaPessoa(
     };
   }
   const e = estudoDe(p);
-  const { soltos, trilhas } = alcance(
-    ativas.flatMap((l) => (l.trilhaId ? [catalogo.trilha(l.trilhaId)] : [])),
-    ativas.flatMap((l) => (l.cursoId ? [catalogo.curso(l.cursoId)] : [])),
-    e.historico
-  );
-  const alcancados = [...trilhas.flatMap((t) => t.cursos), ...soltos];
-  const contaveis = alcancados.filter((x) => x.estado.tipo !== "em_breve");
+  const naTela = ativas
+    .map((l) => curso(l.cursoId))
+    .map((c) => ({ curso: c, estado: estadoDoCurso(c, e.historico) }));
+  const contaveis = naTela.filter((x) => x.estado.tipo !== "em_breve");
   const numeros: NumerosDaPessoa = {
     concluidos: contaveis.filter((x) => x.estado.tipo === "concluido").length,
     cursos: contaveis.length,
-    liberacoes: ativas.length,
+    emProducao: naTela.length - contaveis.length,
   };
-  const ultimo = maisRecente(alcancados.map((x) => ultimoEstudo(x.curso, e)));
+  const ultimo = maisRecente(naTela.map((x) => ultimoEstudo(x.curso, e)));
   if (!ultimo) {
     return {
       desde: diaLocal(maisAntiga(ativas.map((l) => l.liberadaEm))),
@@ -422,7 +288,7 @@ export function montarBusca(
   linhas: LinhasDaBusca,
   hoje: DiaISO
 ): BuscaDeAlunos {
-  const catalogo = catalogoDo(linhas);
+  const curso = catalogoDo(linhas);
   const porPessoa = new Map(linhas.pessoas.map((p) => [p.userId, p]));
   return {
     hoje,
@@ -431,7 +297,7 @@ export function montarBusca(
       if (!p) {
         throw new Error(`O statement da busca não trouxe ${pessoa.userId}.`);
       }
-      return { ...pessoa, situacao: situacaoDaPessoa(p, catalogo) };
+      return { ...pessoa, situacao: situacaoDaPessoa(p, curso) };
     }),
     total: resultado.total,
   };

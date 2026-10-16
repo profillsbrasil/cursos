@@ -13,18 +13,6 @@ import {
 import { cursoStatus, momento, tabela, videoProvedor } from "./comum";
 import { SLUG } from "./formatos";
 
-export const trilha = tabela(
-  "trilha",
-  {
-    criadaEm: momento(),
-    descricao: text().notNull(),
-    id: uuid().primaryKey().defaultRandom(),
-    slug: text().notNull().unique(),
-    titulo: text().notNull(),
-  },
-  (t) => [check("trilha_slug_formato", sql`${t.slug} ~ ${SLUG}`)]
-);
-
 export const curso = tabela(
   "curso",
   {
@@ -54,24 +42,6 @@ export const curso = tabela(
       "curso_preco_troca_positivo",
       sql`${t.precoTroca} is null or ${t.precoTroca} > 0`
     ),
-  ]
-);
-
-// Um curso está em no máximo uma trilha: a chave primária é o curso.
-export const trilhaCurso = tabela(
-  "trilha_curso",
-  {
-    cursoId: uuid()
-      .primaryKey()
-      .references(() => curso.id, { onDelete: "restrict" }),
-    posicao: smallint().notNull(),
-    trilhaId: uuid()
-      .notNull()
-      .references(() => trilha.id, { onDelete: "cascade" }),
-  },
-  (t) => [
-    unique("trilha_curso_posicao_unica").on(t.trilhaId, t.posicao),
-    check("trilha_curso_posicao_positiva", sql`${t.posicao} >= 1`),
   ]
 );
 

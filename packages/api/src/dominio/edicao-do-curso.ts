@@ -16,7 +16,6 @@ import type {
   Capa,
   CursoId,
   ModuloId,
-  TrilhaId,
   Versao,
   VideoDaAula,
   VideoId,
@@ -221,9 +220,8 @@ export interface UsoDoCurso {
   /** Alunos com aula assistida, por aula. Aula ausente: ninguém assistiu. */
   assistidasPorAula: Readonly<Record<string, number>>;
   certificados: number;
-  /** Liberações diretas, ativas ou revogadas: a FK restrict conta as duas. */
+  /** Liberações, ativas ou revogadas: a FK restrict conta as duas. */
   liberacoes: number;
-  trilha: { id: TrilhaId; titulo: string } | null;
 }
 
 export interface EdicaoDoCurso {
@@ -238,14 +236,12 @@ const SEM_USO: UsoDoCurso = {
   assistidasPorAula: {},
   certificados: 0,
   liberacoes: 0,
-  trilha: null,
 };
 
 /** Única regra de "dá para apagar o curso". A tela e apagarCurso usam esta. */
 export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   u.certificados === 0 &&
   u.liberacoes === 0 &&
-  u.trilha === null &&
   Object.values(u.assistidasPorAula).every((n) => n === 0);
 
 /**

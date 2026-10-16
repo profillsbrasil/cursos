@@ -48,7 +48,7 @@ const vitrine = (
   );
 
 // A vitrine vazia também acontece quando existe curso trocável que o aluno já
-// alcança pela trilha. A frase fala do lado do aluno, e nenhuma promete prazo
+// alcança por liberação. A frase fala do lado do aluno, e nenhuma promete prazo
 // ou que ponto não vence (decisão aberta do dono no PRODUCT.md).
 const PROMESSAS = [
   "guardados",

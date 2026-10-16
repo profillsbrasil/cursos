@@ -17,35 +17,16 @@ import {
   idAula,
 } from "./exemplo";
 import { type CursoLinha, montarPainel } from "./painel";
+import type { AulaId } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 const LIBERADA = [{ id: "lib" }];
 
-interface Acesso {
-  direto?: boolean;
-  trilha?: { cursos: CursoLinha[]; liberada: boolean };
-}
-
-function comAcesso(linha: CursoLinha, a: Acesso): CursoComAcessoLinha {
-  return {
-    ...linha,
-    liberacoes: a.direto ? LIBERADA : [],
-    naTrilha: a.trilha
-      ? {
-          trilha: {
-            cursos: a.trilha.cursos.map((curso, i) => ({
-              curso,
-              posicao: i + 1,
-            })),
-            descricao: "teste",
-            id: "t",
-            liberacoes: a.trilha.liberada ? LIBERADA : [],
-            slug: "t",
-            titulo: "Trilha t",
-          },
-        }
-      : null,
-  };
+function comAcesso(
+  linha: CursoLinha,
+  a: { liberado: boolean }
+): CursoComAcessoLinha {
+  return { ...linha, liberacoes: a.liberado ? LIBERADA : [] };
 }
 
 const linhas = (
@@ -66,31 +47,27 @@ const assistida = (aulaId: string, dia = "2026-10-06") => ({
 
 describe("montarCursoAberto", () => {
   const a = cursoLinha("a", { aulas: [2] });
-  const b = cursoLinha("b", { aulas: [2] });
 
   test("sem liberação ativa, null", () => {
-    expect(montarCursoAberto(linhas(comAcesso(a, {})))).toBeNull();
     expect(
-      montarCursoAberto(
-        linhas(comAcesso(a, { trilha: { cursos: [a, b], liberada: false } }))
-      )
+      montarCursoAberto(linhas(comAcesso(a, { liberado: false })))
     ).toBeNull();
+  });
+
+  test("com liberação ativa, o curso abre no estado dele", () => {
+    expect(
+      montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.estado
+    ).toEqual({
+      primeiraAula: idAula("a", 0, 1) as AulaId,
+      tipo: "nao_iniciado",
+    });
   });
 
   test("curso em_breve não abre", () => {
     const breve = cursoLinha("breve", { aulas: [2], status: "em_producao" });
     expect(
-      montarCursoAberto(linhas(comAcesso(breve, { direto: true })))
+      montarCursoAberto(linhas(comAcesso(breve, { liberado: true })))
     ).toBeNull();
-  });
-
-  test("curso bloqueado na trilha não abre, e a liberação direta o solta", () => {
-    const trilha = { cursos: [a, b], liberada: true };
-    expect(montarCursoAberto(linhas(comAcesso(b, { trilha })))).toBeNull();
-    expect(
-      montarCursoAberto(linhas(comAcesso(b, { direto: true, trilha })))?.estado
-        .tipo
-    ).toBe("nao_iniciado");
   });
 
   test("slug que não existe, null", () => {
@@ -100,19 +77,9 @@ describe("montarCursoAberto", () => {
   test("o estado bate com o do painel para cada curso do exemplo", () => {
     const exemplo = exemploDoPrototipo();
     const painel = montarPainel(exemplo, HOJE_DO_EXEMPLO);
-    const telas = [
-      ...painel.trilhas.flatMap((t) => t.cursos),
-      ...painel.soltos,
-    ];
-    expect(telas.length).toBeGreaterThan(3);
-    for (const vm of telas) {
-      const lib = exemplo.liberacoes;
-      const trilha = lib.find((l) =>
-        l.trilha?.cursos.some((c) => c.curso.id === vm.id)
-      )?.trilha;
-      const linha =
-        lib.find((l) => l.curso?.id === vm.id)?.curso ??
-        trilha?.cursos.find((c) => c.curso.id === vm.id)?.curso;
+    expect(painel.cursos.length).toBeGreaterThan(3);
+    for (const vm of painel.cursos) {
+      const linha = exemplo.liberacoes.find((l) => l.curso.id === vm.id)?.curso;
       if (!linha) {
         throw new Error(`curso ${vm.slug} sem linha`);
       }
@@ -122,12 +89,7 @@ describe("montarCursoAberto", () => {
           dia: "2026-09-01",
         })),
         certificados: exemplo.certificados,
-        curso: comAcesso(linha, {
-          direto: lib.some((l) => l.curso?.id === vm.id),
-          trilha: trilha
-            ? { cursos: trilha.cursos.map((c) => c.curso), liberada: true }
-            : undefined,
-        }),
+        curso: comAcesso(linha, { liberado: true }),
         posicoes: exemplo.posicoes.map((p) => ({ ...p, trechosVistos: [] })),
       });
       expect(aberto?.estado ?? null).toEqual(
@@ -140,7 +102,7 @@ describe("montarCursoAberto", () => {
 describe("montarAulaNoPlayer", () => {
   const c = cursoLinha("c", { aulas: [2, 3], duracaoSeg: 600 });
   const aberto = montarCursoAberto(
-    linhas(comAcesso(c, { direto: true }), {
+    linhas(comAcesso(c, { liberado: true }), {
       assistidas: [assistida(idAula("c", 0, 1))],
       posicoes: [
         {
@@ -206,7 +168,9 @@ describe("montarAulaNoPlayer", () => {
         aulas: m.aulas.map((a, i) => ({ ...a, posicao: posicoes[i] ?? 0 })),
       })),
     };
-    const d = montarCursoAberto(linhas(comAcesso(comBuraco, { direto: true })));
+    const d = montarCursoAberto(
+      linhas(comAcesso(comBuraco, { liberado: true }))
+    );
     const ultima = d && aulaPorId(d, idAula("d", 0, 3));
     if (!(d && ultima)) {
       throw new Error("curso d não abriu");
@@ -222,7 +186,7 @@ describe("entradaDoCurso", () => {
   const c = cursoLinha("c", { aulas: [3] });
 
   test("não iniciado leva à primeira aula", () => {
-    const aberto = montarCursoAberto(linhas(comAcesso(c, { direto: true })));
+    const aberto = montarCursoAberto(linhas(comAcesso(c, { liberado: true })));
     expect(aberto && entradaDoCurso(aberto)).toEqual({
       aulaId: idAula("c", 0, 1) as never,
       tipo: "aula",
@@ -231,7 +195,7 @@ describe("entradaDoCurso", () => {
 
   test("em andamento leva à última aula tocada que não foi assistida", () => {
     const aberto = montarCursoAberto(
-      linhas(comAcesso(c, { direto: true }), {
+      linhas(comAcesso(c, { liberado: true }), {
         assistidas: [assistida(idAula("c", 0, 1))],
         posicoes: [
           {
@@ -251,7 +215,7 @@ describe("entradaDoCurso", () => {
 
   test("todas assistidas: prova, com a primeira aula para rever", () => {
     const aberto = montarCursoAberto(
-      linhas(comAcesso(c, { direto: true }), {
+      linhas(comAcesso(c, { liberado: true }), {
         assistidas: [1, 2, 3].map((p) => assistida(idAula("c", 0, p))),
       })
     );

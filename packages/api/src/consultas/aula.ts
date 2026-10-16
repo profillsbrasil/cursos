@@ -53,21 +53,6 @@ export async function linhasDoCurso(
       with: {
         ...COM_CONTEUDO.with,
         liberacoes: relacaoLiberacoesAtivas(userId),
-        naTrilha: {
-          columns: {},
-          with: {
-            trilha: {
-              columns: { descricao: true, id: true, slug: true, titulo: true },
-              with: {
-                cursos: {
-                  columns: { posicao: true },
-                  with: { curso: COM_CONTEUDO },
-                },
-                liberacoes: relacaoLiberacoesAtivas(userId),
-              },
-            },
-          },
-        },
       },
     }),
     exec

@@ -17,7 +17,6 @@ const barra = (props: Partial<ComponentProps<typeof BarraDeSalvar>> = {}) =>
     renderToStaticMarkup(
       <BarraDeSalvar
         novo={false}
-        oQue="esta trilha"
         pendente={false}
         problemas={[]}
         recarregar={nada}
@@ -32,16 +31,16 @@ describe("BarraDeSalvar", () => {
   test("conta os campos marcados e mostra cada frase sem campo", () => {
     const t = barra({
       problemas: [
-        { campo: "trilha-titulo", mensagem: "Preencha este campo." },
-        { campo: "trilha-slug", mensagem: "Preencha este campo." },
+        { campo: "curso-titulo", mensagem: "Preencha este campo." },
+        { campo: "curso-slug", mensagem: "Preencha este campo." },
         {
           campo: null,
-          mensagem: "A trilha tem um valor que o servidor recusa.",
+          mensagem: "O curso tem um valor que o servidor recusa.",
         },
       ],
     });
     expect(t).toContain("Confira 2 campos marcados.");
-    expect(t).toContain("A trilha tem um valor que o servidor recusa.");
+    expect(t).toContain("O curso tem um valor que o servidor recusa.");
   });
 
   test("sem problema, diz em que pé está o rascunho", () => {
@@ -56,7 +55,6 @@ describe("BarraDeSalvar", () => {
     const html = renderToStaticMarkup(
       <BarraDeSalvar
         novo={false}
-        oQue="este curso"
         pendente={false}
         problemas={[]}
         recarregar={nada}
@@ -100,7 +98,7 @@ describe("BarraDeSalvar", () => {
   test("com a versão mudada, avisa com o nome do documento e oferece Recarregar", () => {
     const t = barra({ versaoMudou: true });
     expect(t).toContain(
-      "Outra pessoa salvou esta trilha depois que você abriu."
+      "Outra pessoa salvou este curso depois que você abriu."
     );
     expect(t).toContain("Recarregar");
     expect(barra()).not.toContain("Outra pessoa salvou");

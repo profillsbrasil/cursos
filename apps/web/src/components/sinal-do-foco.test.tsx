@@ -119,7 +119,7 @@ const pessoas = renderToStaticMarkup(
           nome: "Ana Exemplo",
           situacao: {
             desde: HOJE,
-            numeros: { concluidos: 0, cursos: 1, liberacoes: 1 },
+            numeros: { concluidos: 0, cursos: 1, emProducao: 0 },
             tipo: "nunca_abriu",
           },
           userId: "user_exemplo",
@@ -139,14 +139,10 @@ const liberacao = (
 ): LiberacaoNaTela => ({
   acao,
   acompanhamento: {
-    curso: {
-      progresso: { feitas: 0, pct: 0, total: 2 },
-      situacao: { tipo: "nunca_abriu" },
-      titulo,
-    },
-    tipo: "curso",
+    progresso: { feitas: 0, pct: 0, total: 2 },
+    situacao: { tipo: "nunca_abriu" },
   },
-  alvo: { id: id as CursoId, tipo: "curso", titulo },
+  curso: { id: id as CursoId, titulo },
   id: id as LiberacaoId,
   liberadaEm: "2026-10-01T15:00:00.000Z",
   origem: "admin",
@@ -166,7 +162,6 @@ const acesso = renderToStaticMarkup(
         }),
       ],
       pessoa: null,
-      trilhas: [],
       userId: "user_exemplo",
     }}
   />

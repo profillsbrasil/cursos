@@ -30,15 +30,15 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 - Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), fazem prova no fim do curso e recebem certificado.
 - Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para o perfil ou a empresa dela.
-- O conteúdo se organiza em trilhas. Uma trilha é um conjunto ordenado de cursos, e a ordem é sequencial: o curso seguinte só abre quando o anterior é concluído. Um curso também pode existir solto, fora de trilha, mas curso de trilha liberado sozinho é raro.
-- Um admin cria as trilhas e as libera por pessoa (por exemplo, trilhas X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
-- Clientes e público aberto recebem trilhas liberadas do mesmo jeito; a compra ou a assinatura só libera trilhas.
+- O catálogo tem um tipo só de coisa: o curso, no formato da Udemy, com módulos como seções e aulas em sequência. Não existe ordem entre cursos: um curso liberado abre sem esperar outro (`docs/adr/0001-catalogo-so-de-cursos.md`).
+- Um admin cria os cursos e os libera por pessoa (por exemplo, cursos X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
+- Clientes e público aberto recebem cursos liberados do mesmo jeito; a compra ou a assinatura só libera cursos.
 - A liberação é permanente. Ela só some se o admin revogar.
 - O aluno tem um Início separado da tela "Meus cursos".
 - Não há prazo de conclusão em liberação nenhuma.
-- A trilha Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
+- O Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
 - Existe gamificação individual: pontos, sequência de dias, medalhas e níveis. Não existe ranking nem comparação entre colegas.
-- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no quiz de fixação na primeira tentativa, 50 por prova aprovada, 100 por curso concluído, 500 por trilha concluída e 30 por 7 dias de sequência. Rever aula ou refazer prova não pontua de novo.
+- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no quiz de fixação na primeira tentativa, 50 por prova aprovada, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula ou refazer prova não pontua de novo.
 - A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
 - Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
 - Cada aula pode ter um quiz de fixação com pontos só na primeira tentativa.
@@ -64,14 +64,14 @@ Fora do escopo confirmado:
 Decisões abertas:
 
 - Preços, planos de assinatura e o meio de pagamento.
-- Como compra e assinatura viram liberação de trilha (quais trilhas cada plano libera).
+- Como compra e assinatura viram liberação de curso (quais cursos cada plano libera).
 - Quando os clientes e o público aberto entram depois do lançamento interno.
 - Se o certificado tem valor formal (carga horária, validação externa) ou é só comprovante interno.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
 - A nota mínima e o limite de tentativas da prova.
 - Os níveis e as medalhas exatos (o protótipo anterior tinha os níveis Vendedor, Consultor e Especialista e 8 medalhas).
 - Se ponto vence e se existe teto diário de pontos vindos de vídeo.
-- Os perfis de acesso exatos além de aluno e admin. Trilha, liberação, admin e o resto do vocabulário estão no `GLOSSARY.md` da raiz.
+- Os perfis de acesso exatos além de aluno e admin. Curso, liberação, admin e o resto do vocabulário estão no `GLOSSARY.md` da raiz.
 
 ## Brand Commitments
 

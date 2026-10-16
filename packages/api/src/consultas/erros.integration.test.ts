@@ -19,8 +19,6 @@ const TABELAS_DO_ADMIN = [
   "liberacao",
   "modulo",
   "nivel",
-  "trilha",
-  "trilha_curso",
 ];
 
 describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
@@ -83,9 +81,7 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
            Object.keys(MENSAGEM_DA_RESTRICAO).map((n) => sql`${n}`),
            sql`, `
          )})`);
-    // Curso que já está numa trilha: a chave é o próprio curso, um sentido só.
-    const comFrase = new Set(["trilha_curso_pkey"]);
-    expect(rows.map((r) => r.nome).filter((n) => !comFrase.has(n))).toEqual([]);
+    expect(rows.map((r) => r.nome)).toEqual([]);
   });
 
   test("nenhuma restrição está nas duas listas", () => {

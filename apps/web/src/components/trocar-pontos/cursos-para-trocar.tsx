@@ -21,7 +21,7 @@ const NENHUM_CURSO_NOVO = "Nenhum curso novo para trocar agora";
 /**
  * Sem curso trocável na vitrine, a culpa não é de quem estuda: a frase nunca diz
  * que faltam pontos. Ela também fala só do lado do aluno, porque a vitrine vazia
- * pode ter curso trocável que ele já alcança pela trilha, e não promete prazo nem
+ * pode ter curso trocável que ele já alcança por liberação, e não promete prazo nem
  * que ponto não vence (decisão aberta do dono no PRODUCT.md).
  */
 function subtitulo(

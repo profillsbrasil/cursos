@@ -30,7 +30,7 @@ interface Documento {
 export interface RegrasDoRascunho<D extends Documento, R, M> {
   deDocumento: (d: D) => R;
   mesmo: (a: R, b: R) => boolean;
-  mudar: (r: R, m: M, base: D) => R;
+  mudar: (r: R, m: M) => R;
 }
 
 export interface EstadoApoiado<D extends Documento, R> {
@@ -71,7 +71,7 @@ export function apoiado<D extends Documento, R, M>(
     case "mudou":
       return {
         ...e,
-        rascunho: regras.mudar(e.rascunho, a.mudanca, e.apoio.base),
+        rascunho: regras.mudar(e.rascunho, a.mudanca),
       };
     case "pagina": {
       const s = sincronizarComAPagina(e.apoio, a);

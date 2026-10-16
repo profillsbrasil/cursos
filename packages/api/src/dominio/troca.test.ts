@@ -57,12 +57,10 @@ describe("situacao", () => {
     }
   });
 
-  test("liberação do admin ou trilha liberada dá ja_tem, mesmo com preço", () => {
-    for (const tipo of ["liberado", "na_trilha"] as const) {
-      expect(situacao(curso({ acesso: { tipo } }), 1000)).toEqual({
-        tipo: "ja_tem",
-      });
-    }
+  test("liberação do admin dá ja_tem, mesmo com preço", () => {
+    expect(situacao(curso({ acesso: { tipo: "liberado" } }), 1000)).toEqual({
+      tipo: "ja_tem",
+    });
   });
 
   test("trocado vence tudo, mesmo depois de o admin tirar o preço", () => {
@@ -118,9 +116,9 @@ describe("decidirTroca", () => {
     });
   });
 
-  test("curso liberado pelo admin ou na trilha é recusado como ja_tem", () => {
+  test("curso liberado pelo admin é recusado como ja_tem", () => {
     expect(
-      decidirTroca(curso({ acesso: { tipo: "na_trilha" } }), 1000, 500)
+      decidirTroca(curso({ acesso: { tipo: "liberado" } }), 1000, 500)
     ).toEqual({ recusa: { tipo: "ja_tem" }, tipo: "recusa" });
   });
 
@@ -159,7 +157,6 @@ const linha = (
     { aulas: [{ duracaoSeg: 600 }, { duracaoSeg: 300 }] },
     { aulas: [{ duracaoSeg: 60 }] },
   ],
-  naTrilha: null,
   precoTroca: 500,
   slug: "bpf",
   status: "publicado",
@@ -212,19 +209,11 @@ describe("paraCursoDaTroca", () => {
     ).toThrow();
   });
 
-  test("liberação do admin dá liberado; trilha liberada dá na_trilha", () => {
-    const direta = { origem: "admin", trocaLancamento: null } as const;
-    expect(paraCursoDaTroca(linha({ liberacoes: [direta] })).acesso.tipo).toBe(
+  test("liberação do admin dá liberado", () => {
+    const doAdmin = { origem: "admin", trocaLancamento: null } as const;
+    expect(paraCursoDaTroca(linha({ liberacoes: [doAdmin] })).acesso.tipo).toBe(
       "liberado"
     );
-    expect(
-      paraCursoDaTroca(linha({ naTrilha: { trilha: { liberacoes: [{}] } } }))
-        .acesso.tipo
-    ).toBe("na_trilha");
-    expect(
-      paraCursoDaTroca(linha({ naTrilha: { trilha: { liberacoes: [] } } }))
-        .acesso.tipo
-    ).toBe("nenhum");
   });
 });
 
@@ -280,7 +269,6 @@ describe("montarPainelDeTroca", () => {
         curso({ status: "em_producao" }),
         curso({ aulas: 0 }),
         curso({ acesso: { tipo: "liberado" } }),
-        curso({ acesso: { tipo: "na_trilha" } }),
         curso({ acesso: TROCADO }),
       ])
     ).toBe(false);

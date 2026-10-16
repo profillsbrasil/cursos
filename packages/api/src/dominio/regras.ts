@@ -5,7 +5,6 @@ export const PONTOS = {
   prova_aprovada: 50,
   quiz_acerto: 5,
   sequencia_7_dias: 30,
-  trilha_concluida: 500,
 } as const;
 
 export const META_SEQUENCIA = 7;

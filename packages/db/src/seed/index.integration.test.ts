@@ -5,7 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
 
-import { CURSOS, TRILHAS } from "./dados";
+import { CURSOS } from "./dados";
 import { urlDeTeste } from "./guarda-local";
 import { semear } from "./index";
 
@@ -39,14 +39,14 @@ async function apagarAula(c: Client, id: string) {
   await c.query("delete from aula where id = $1", [id]);
 }
 
-const ordemDaTrilha = async (c: Client, slug: string) =>
+const modulosDoCurso = async (c: Client, slug: string) =>
   (
-    await c.query<{ slug: string }>(
-      `select c.slug from trilha_curso tc join trilha t on t.id = tc.trilha_id
-       join curso c on c.id = tc.curso_id where t.slug = $1 order by tc.posicao`,
+    await c.query<{ numero: number; titulo: string }>(
+      `select m.numero, m.titulo from modulo m join curso c on c.id = m.curso_id
+       where c.slug = $1 order by m.numero`,
       [slug]
     )
-  ).rows.map((r) => r.slug);
+  ).rows;
 
 describe.skipIf(URL_TESTE === null)(
   "seed planta o catálogo e não sobrescreve o admin",
@@ -82,12 +82,14 @@ describe.skipIf(URL_TESTE === null)(
       expect(await contar(c, "select count(*)::int as n from curso")).toBe(
         CURSOS.length
       );
-      expect(await contar(c, "select count(*)::int as n from trilha")).toBe(
-        TRILHAS.length
-      );
+      expect(await modulosDoCurso(c, "fabrica-montagem")).toEqual([
+        { numero: 1, titulo: "Segurança do posto" },
+        { numero: 2, titulo: "Envasadora: conhecendo a máquina" },
+        { numero: 3, titulo: "Montagem pneumática" },
+      ]);
     });
 
-    test("a segunda execução mantém título, ordem e aulas que o admin mudou", async () => {
+    test("a segunda execução mantém título, módulos e aulas que o admin mudou", async () => {
       const assistidasAntes = await contar(
         c,
         "select count(*)::int as n from aula_assistida where user_id = $1",
@@ -102,20 +104,9 @@ describe.skipIf(URL_TESTE === null)(
       await c.query(
         "update curso set titulo = 'Título do admin' where slug = 'comercial'"
       );
-      expect(await ordemDaTrilha(c, "fabrica-montagem")).toEqual([
-        "seguranca-posto",
-        "envasadora",
-        "montagem",
-      ]);
       await c.query(
-        `update trilha_curso set posicao = posicao + 100
-         where trilha_id = (select id from trilha where slug = 'fabrica-montagem')`
-      );
-      await c.query(
-        `update trilha_curso tc
-         set posicao = case c.slug when 'envasadora' then 1 when 'seguranca-posto' then 2 else 3 end
-         from curso c where c.id = tc.curso_id
-         and tc.trilha_id = (select id from trilha where slug = 'fabrica-montagem')`
+        `update modulo set titulo = 'Módulo do admin'
+         where numero = 2 and curso_id = (select id from curso where slug = 'fabrica-montagem')`
       );
       await apagarAula(c, doProgresso ?? "");
       await apagarAula(c, daPosicao ?? "");
@@ -126,19 +117,16 @@ describe.skipIf(URL_TESTE === null)(
         (await c.query("select titulo from curso where slug = 'comercial'"))
           .rows
       ).toEqual([{ titulo: "Título do admin" }]);
-      expect(await ordemDaTrilha(c, "fabrica-montagem")).toEqual([
-        "envasadora",
-        "seguranca-posto",
-        "montagem",
+      expect(await modulosDoCurso(c, "fabrica-montagem")).toEqual([
+        { numero: 1, titulo: "Segurança do posto" },
+        { numero: 2, titulo: "Módulo do admin" },
+        { numero: 3, titulo: "Montagem pneumática" },
       ]);
       expect(await contar(c, "select count(*)::int as n from aula")).toBe(
         aulasAntes - 2
       );
       expect(await contar(c, "select count(*)::int as n from curso")).toBe(
         CURSOS.length
-      );
-      expect(await contar(c, "select count(*)::int as n from trilha")).toBe(
-        TRILHAS.length
       );
       expect(
         await contar(

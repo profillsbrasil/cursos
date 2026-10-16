@@ -13,12 +13,7 @@ type Ms = number;
 interface PessoaEmJson {
   assistidas: { assistidaEm: Ms; aulaId: string }[];
   certificados: { codigo: string; cursoId: string; emitidoEm: Ms }[];
-  liberacoes: {
-    cursoId: string | null;
-    liberadaEm: Ms;
-    revogadaEm: Ms | null;
-    trilhaId: string | null;
-  }[];
+  liberacoes: { cursoId: string; liberadaEm: Ms; revogadaEm: Ms | null }[];
   posicoes: { atualizadaEm: Ms; aulaId: string; posicaoSeg: number }[];
   userId: string;
 }
@@ -26,17 +21,16 @@ interface PessoaEmJson {
 interface LinhasEmJson {
   cursos: CursoDaBusca[];
   pessoas: PessoaEmJson[];
-  trilhas: { cursos: string[]; id: string }[];
 }
 
-const SEM_PESSOAS: LinhasDaBusca = { cursos: [], pessoas: [], trilhas: [] };
+const SEM_PESSOAS: LinhasDaBusca = { cursos: [], pessoas: [] };
 
 /**
  * A busca de alunos: um statement para a página do Clerk (até 20 userIds), que
  * devolve um documento JSON só. Para cada pessoa, todas as liberações e o
  * histórico (as mesmas linhas dos statements 2, 3 e 4 do painel); uma vez só,
- * os cursos e as trilhas que alguma delas alcança por liberação ativa, com os
- * ids das aulas em ordem. O SQL só lê: estado, progresso e "abre" são decididos
+ * os cursos que alguma delas alcança por liberação ativa, com os ids das aulas
+ * em ordem. O SQL só lê: estado, progresso e "abre" são decididos
  * em dominio/acompanhamento.ts pelas regras do painel.
  */
 export async function linhasDaBusca(
@@ -53,26 +47,18 @@ export async function linhasDaBusca(
       select user_id from unnest(${arrayDeTexto(userIds)}::text[]) as p(user_id)
     ),
     lib as (
-      select l.user_id, l.curso_id, l.trilha_id, l.liberada_em, l.revogada_em
+      select l.user_id, l.curso_id, l.liberada_em, l.revogada_em
         from liberacao l
        where l.user_id in (select user_id from p)
     ),
-    trilhas as (
-      select distinct trilha_id as id from lib
-       where revogada_em is null and trilha_id is not null
-    ),
     cursos as (
-      select curso_id as id from lib
-       where revogada_em is null and curso_id is not null
-      union
-      select tc.curso_id from trilha_curso tc join trilhas t on t.id = tc.trilha_id
+      select distinct curso_id as id from lib where revogada_em is null
     )
     select json_build_object(
       'pessoas', coalesce((select json_agg(json_build_object(
         'userId', p.user_id,
         'liberacoes', coalesce((select json_agg(json_build_object(
             'cursoId', lib.curso_id,
-            'trilhaId', lib.trilha_id,
             'liberadaEm', ${emMs("lib.liberada_em")},
             'revogadaEm', ${emMs("lib.revogada_em")}))
           from lib where lib.user_id = p.user_id), '[]'),
@@ -92,11 +78,6 @@ export async function linhasDaBusca(
             'emitidoEm', ${emMs("ce.emitido_em")}))
           from certificado ce where ce.user_id = p.user_id), '[]')
       )) from p), '[]'),
-      'trilhas', coalesce((select json_agg(json_build_object(
-        'id', t.id,
-        'cursos', coalesce((select json_agg(tc.curso_id order by tc.posicao)
-          from trilha_curso tc where tc.trilha_id = t.id), '[]')
-      )) from trilhas t), '[]'),
       'cursos', coalesce((select json_agg(json_build_object(
         'id', c.id,
         'status', c.status,
@@ -113,7 +94,7 @@ export async function linhasDaBusca(
   if (!linha) {
     throw new Error("O statement da busca não devolveu linha.");
   }
-  const { cursos, pessoas, trilhas } = linha.linhas;
+  const { cursos, pessoas } = linha.linhas;
   const data = (ms: Ms) => new Date(Number(ms));
   return {
     cursos,
@@ -131,7 +112,6 @@ export async function linhasDaBusca(
         cursoId: l.cursoId,
         liberadaEm: data(l.liberadaEm),
         revogadaEm: l.revogadaEm === null ? null : data(l.revogadaEm),
-        trilhaId: l.trilhaId,
       })),
       posicoes: p.posicoes.map((x) => ({
         atualizadaEm: data(x.atualizadaEm),
@@ -140,6 +120,5 @@ export async function linhasDaBusca(
       })),
       userId: p.userId,
     })),
-    trilhas,
   };
 }

@@ -30,56 +30,16 @@ function SeloDeStatus({ status }: { status: StatusDoCurso }) {
   );
 }
 
-function TrilhasDoCatalogo({ trilhas }: { trilhas: Visao["trilhas"] }) {
-  if (trilhas.length === 0) {
-    return <Vazio>Nenhuma trilha no catálogo.</Vazio>;
-  }
-  return (
-    <Table className="min-w-[420px]">
-      <TableHeader>
-        <TableRow className="hover:bg-transparent">
-          <TableHead className={CABECA}>Trilha</TableHead>
-          <TableHead className={cn(CABECA, NUMERO)}>Cursos</TableHead>
-          <TableHead className={cn(CABECA, NUMERO)}>
-            Alunos com a trilha liberada
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {trilhas.map((t) => (
-          <TableRow key={t.id}>
-            <TableCell className={cn(CELULA, "font-medium text-foreground")}>
-              <Link
-                className={LINK_DA_LINHA}
-                href={`/admin/catalogo/trilhas/${t.id}` as Route}
-              >
-                {t.titulo}
-              </Link>
-            </TableCell>
-            <TableCell className={cn(CELULA, NUMERO)}>
-              {fmtNum(t.cursos)}
-            </TableCell>
-            <TableCell className={cn(CELULA, NUMERO)}>
-              {fmtNum(t.alunos)}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
-
 function CursosDoCatalogo({ cursos }: { cursos: Visao["cursos"] }) {
   if (cursos.length === 0) {
     return <Vazio>Nenhum curso no catálogo.</Vazio>;
   }
   return (
-    <Table className="min-w-[680px]">
+    <Table className="min-w-[560px]">
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead className={CABECA}>Curso</TableHead>
           <TableHead className={CABECA}>Status</TableHead>
-          <TableHead className={CABECA}>Trilha</TableHead>
           <TableHead className={cn(CABECA, NUMERO)}>Aulas</TableHead>
           <TableHead className={cn(CABECA, NUMERO)}>Troca</TableHead>
         </TableRow>
@@ -97,19 +57,6 @@ function CursosDoCatalogo({ cursos }: { cursos: Visao["cursos"] }) {
             </TableCell>
             <TableCell className={CELULA}>
               <SeloDeStatus status={c.status} />
-            </TableCell>
-            <TableCell className={CELULA}>
-              {c.trilha ? (
-                <>
-                  {c.trilha.titulo}
-                  <span className="text-muted-foreground tabular-nums">
-                    {" "}
-                    · {c.trilha.posicao}º
-                  </span>
-                </>
-              ) : (
-                <span className="text-muted-foreground">Solto</span>
-              )}
             </TableCell>
             <TableCell className={cn(CELULA, NUMERO)}>
               {fmtNum(c.aulas)}
@@ -133,39 +80,21 @@ export function VisaoDoCatalogo({ visao }: { visao: Visao }) {
     (c) => c.status === "publicado"
   ).length;
   return (
-    <div className="grid gap-10">
-      <Secao
-        id="trilhas"
-        resumo={plural(visao.trilhas.length, "trilha", "trilhas")}
-        titulo="Trilhas"
-      >
-        <TrilhasDoCatalogo trilhas={visao.trilhas} />
-        <div className="border-border border-t px-5 py-4">
-          <Link
-            className={cn(BOTAO_CONTORNO, PEQUENO)}
-            href="/admin/catalogo/trilhas/novo"
-          >
-            <Plus aria-hidden="true" />
-            Nova trilha
-          </Link>
-        </div>
-      </Secao>
-      <Secao
-        id="cursos"
-        resumo={`${plural(visao.cursos.length, "curso", "cursos")}, ${plural(publicados, "publicado", "publicados")}`}
-        titulo="Cursos"
-      >
-        <CursosDoCatalogo cursos={visao.cursos} />
-        <div className="border-border border-t px-5 py-4">
-          <Link
-            className={cn(BOTAO_CONTORNO, PEQUENO)}
-            href="/admin/catalogo/cursos/novo"
-          >
-            <Plus aria-hidden="true" className="size-4" />
-            Novo curso
-          </Link>
-        </div>
-      </Secao>
-    </div>
+    <Secao
+      id="cursos"
+      resumo={`${plural(visao.cursos.length, "curso", "cursos")}, ${plural(publicados, "publicado", "publicados")}`}
+      titulo="Cursos"
+    >
+      <CursosDoCatalogo cursos={visao.cursos} />
+      <div className="border-border border-t px-5 py-4">
+        <Link
+          className={cn(BOTAO_CONTORNO, PEQUENO)}
+          href="/admin/catalogo/cursos/novo"
+        >
+          <Plus aria-hidden="true" className="size-4" />
+          Novo curso
+        </Link>
+      </div>
+    </Secao>
   );
 }

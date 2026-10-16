@@ -82,13 +82,13 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
           Tudo em dia
         </h2>
         <p className="max-w-[60ch] text-muted-foreground">
-          Você não tem aula pendente nos cursos liberados. Quando uma trilha
-          nova for liberada para você, ela aparece aqui.
+          Você não tem aula pendente nos cursos liberados. Quando um curso novo
+          for liberado para você, ele aparece aqui.
         </p>
       </section>
     );
   }
-  const onde = retomada.trilha?.titulo ?? retomada.curso.titulo;
+  const onde = retomada.curso.titulo;
   const href = hrefDaRetomada(retomada);
   return (
     <section

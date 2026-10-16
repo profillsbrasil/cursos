@@ -48,7 +48,6 @@ function Situacao({
 export function BarraDeSalvar({
   children,
   novo,
-  oQue,
   pendente,
   problemas,
   recarregar,
@@ -57,7 +56,6 @@ export function BarraDeSalvar({
 }: {
   children?: ReactNode;
   novo: boolean;
-  oQue: string;
   pendente: boolean;
   problemas: readonly Problema[];
   recarregar: () => void;
@@ -70,9 +68,7 @@ export function BarraDeSalvar({
   const nadaASalvar = !(novo || sujo || pendente);
   return (
     <div className="sticky bottom-3 z-10 grid gap-3 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5">
-      {versaoMudou ? (
-        <AvisoDeVersaoMudou oQue={oQue} recarregar={recarregar} />
-      ) : null}
+      {versaoMudou ? <AvisoDeVersaoMudou recarregar={recarregar} /> : null}
       {children}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div

@@ -18,8 +18,7 @@ import {
 export type Acesso =
   | { tipo: "nenhum" }
   | { tipo: "trocado"; lancamentoId: string; pago: number }
-  | { tipo: "liberado" }
-  | { tipo: "na_trilha" };
+  | { tipo: "liberado" };
 
 export interface CursoDaTroca {
   acesso: Acesso;
@@ -41,7 +40,6 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
     trocaLancamento: { id: string; pontos: number } | null;
   }[];
   modulos: readonly { aulas: readonly { duracaoSeg: number }[] }[];
-  naTrilha: { trilha: { liberacoes: readonly unknown[] } } | null;
   precoTroca: number | null;
   slug: string;
   status: StatusDoCurso;
@@ -51,26 +49,20 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
 
 /** A origem decide, como no check liberacao_troca_nao_revoga; o lançamento só dá o id e o valor. */
 function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
-  const [direta] = linha.liberacoes;
-  if (direta?.origem === "troca") {
-    if (!direta.trocaLancamento) {
+  const [ativa] = linha.liberacoes;
+  if (ativa?.origem === "troca") {
+    if (!ativa.trocaLancamento) {
       throw new Error(
         `Liberação de troca do curso ${linha.id} sem lançamento de troca.`
       );
     }
     return {
-      lancamentoId: direta.trocaLancamento.id,
-      pago: -direta.trocaLancamento.pontos,
+      lancamentoId: ativa.trocaLancamento.id,
+      pago: -ativa.trocaLancamento.pontos,
       tipo: "trocado",
     };
   }
-  if (direta) {
-    return { tipo: "liberado" };
-  }
-  if (linha.naTrilha && linha.naTrilha.trilha.liberacoes.length > 0) {
-    return { tipo: "na_trilha" };
-  }
-  return { tipo: "nenhum" };
+  return ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
 }
 
 export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
@@ -100,7 +92,6 @@ export function situacao(c: CursoDaTroca, saldo: number): Situacao {
     case "trocado":
       return { ...c.acesso, tipo: "trocado" };
     case "liberado":
-    case "na_trilha":
       return { tipo: "ja_tem" };
     case "nenhum":
       return c.precoTroca !== null && c.status === "publicado" && c.aulas > 0
@@ -117,8 +108,8 @@ export function situacao(c: CursoDaTroca, saldo: number): Situacao {
 
 /**
  * Se a vitrine deste aluno tem algum curso trocável, com saldo ou sem. Pelo
- * glossário, o curso trocável some da vitrine de quem já o alcança por liberação
- * direta ou por trilha, então false não quer dizer que nenhum curso tem preço. É o
+ * glossário, o curso trocável some da vitrine de quem já o alcança por
+ * liberação, então false não quer dizer que nenhum curso tem preço. É o
  * fato que acende o saldo de Trocar pontos e mostra o botão de Sua semana. O
  * saldo só muda o `faltam` da situação, então o zero não muda a resposta.
  */

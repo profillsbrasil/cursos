@@ -402,7 +402,6 @@ function motivosDoUso(uso: EdicaoDoCurso["uso"]): string[] {
     (n) => n > 0
   ).length;
   return [
-    uso.trilha ? `está na trilha ${uso.trilha.titulo}` : null,
     uso.liberacoes > 0
       ? `já foi liberado ${plural(uso.liberacoes, "vez", "vezes")}`
       : null,
@@ -434,15 +433,10 @@ function ApagarCurso({
     [executar, id, router, titulo]
   );
   if (!edicao.podeApagar) {
-    const motivos = motivosDoUso(edicao.uso);
-    const soATrilha = edicao.uso.trilha !== null && motivos.length === 1;
     return (
       <p className="max-w-[70ch] p-5 text-muted-foreground text-sm">
-        O curso não se apaga porque {lista(motivos)}.{" "}
-        {soATrilha
-          ? "Para apagar, tire o curso dessa trilha e volte aqui. "
-          : null}
-        Para só tirar do ar, mude o status para Em produção e salve.
+        O curso não se apaga porque {lista(motivosDoUso(edicao.uso))}. Para só
+        tirar do ar, mude o status para Em produção e salve.
       </p>
     );
   }
@@ -699,7 +693,6 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
 
           <BarraDeSalvar
             novo={novo}
-            oQue="este curso"
             pendente={pendente}
             problemas={problemas}
             recarregar={descartar}

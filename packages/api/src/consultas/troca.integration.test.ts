@@ -8,8 +8,6 @@ import {
   liberacao,
   modulo,
   pontoLancamento,
-  trilha,
-  trilhaCurso,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
@@ -29,7 +27,6 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
   const cursos: string[] = [];
-  const trilhas: string[] = [];
 
   async function aluno(saldo: number) {
     const userId = `user_teste${S}${alunos.length}`;
@@ -125,7 +122,6 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, alunos));
     await db.delete(liberacao).where(inArray(liberacao.userId, alunos));
-    await db.delete(trilha).where(inArray(trilha.id, trilhas));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
   });
@@ -275,21 +271,13 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     expect(await saldoDe(userId)).toBe(1000);
   });
 
-  test("curso de trilha liberada dá CONFLICT e não aparece na vitrine", async () => {
+  test("curso que o admin já liberou dá CONFLICT e não aparece na vitrine", async () => {
     const userId = await aluno(1000);
     const c = await cursoTrocavel(300);
-    const [t] = await db
-      .insert(trilha)
-      .values({ descricao: "teste", slug: `teste-${hex()}`, titulo: "Trilha" })
-      .returning({ id: trilha.id });
-    trilhas.push(t?.id ?? "");
-    await db
-      .insert(trilhaCurso)
-      .values({ cursoId: c, posicao: 1, trilhaId: t?.id ?? "" });
     await db.insert(liberacao).values({
+      cursoId: c,
       liberadaPor: "user_admin",
       origem: "admin",
-      trilhaId: t?.id,
       userId,
     });
     const erro = await trocar(db, userId, c, 300, AGORA).catch(

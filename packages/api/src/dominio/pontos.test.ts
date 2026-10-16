@@ -12,7 +12,6 @@ const linha = (mudar: Partial<LinhaDoExtrato>): LinhaDoExtrato => ({
   liberacao: null,
   motivo: "sequencia_7_dias",
   pontos: 30,
-  trilha: null,
   ...mudar,
 });
 
@@ -29,11 +28,6 @@ describe("itemDoExtrato", () => {
         motivo: "curso_concluido",
         pontos: 100,
       }),
-      linha({
-        motivo: "trilha_concluida",
-        pontos: 500,
-        trilha: { titulo: "Comercial" },
-      }),
       linha({}),
       linha({
         liberacao: {
@@ -46,7 +40,6 @@ describe("itemDoExtrato", () => {
     expect(linhas.map(itemDoExtrato).map((i) => [i.texto, i.pontos])).toEqual([
       ["Aula assistida: O funil da semana", 10],
       ["Curso concluído: Nova rotina", 100],
-      ["Trilha concluída: Comercial", 500],
       ["7 dias úteis seguidos", 30],
       ["Troca: Boas práticas de fabricação", -200],
     ]);
@@ -79,7 +72,6 @@ describe("comoGanhar", () => {
       },
       { emBreve: true, pontos: 50, rotulo: "Prova aprovada" },
       { emBreve: true, pontos: 100, rotulo: "Curso concluído" },
-      { emBreve: true, pontos: 500, rotulo: "Trilha concluída" },
       { emBreve: false, pontos: 30, rotulo: "7 dias úteis seguidos" },
     ]);
     expect(comoGanhar()).toHaveLength(Object.keys(PONTOS).length);

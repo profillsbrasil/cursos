@@ -15,7 +15,6 @@ export interface LinhaDoExtrato {
   liberacao: { curso: { titulo: string } | null } | null;
   motivo: MotivoPonto;
   pontos: number;
-  trilha: { titulo: string } | null;
 }
 
 export interface ItemDoExtrato {
@@ -40,11 +39,6 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
         throw referenciaAusente(l);
       }
       return `Curso concluído: ${l.curso.titulo}`;
-    case "trilha_concluida":
-      if (!l.trilha) {
-        throw referenciaAusente(l);
-      }
-      return `Trilha concluída: ${l.trilha.titulo}`;
     case "sequencia_7_dias":
       return "7 dias úteis seguidos";
     case "troca":
@@ -72,7 +66,6 @@ const ROTULOS: Record<RegraDePonto, string> = {
   prova_aprovada: "Prova aprovada",
   quiz_acerto: "Acerto no quiz de fixação, primeira tentativa",
   sequencia_7_dias: "7 dias úteis seguidos",
-  trilha_concluida: "Trilha concluída",
 };
 
 const ORDEM: readonly RegraDePonto[] = [
@@ -80,7 +73,6 @@ const ORDEM: readonly RegraDePonto[] = [
   "quiz_acerto",
   "prova_aprovada",
   "curso_concluido",
-  "trilha_concluida",
   "sequencia_7_dias",
 ];
 

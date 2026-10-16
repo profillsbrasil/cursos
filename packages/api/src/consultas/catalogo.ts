@@ -1,16 +1,9 @@
 import type { Database } from "@cursos/db";
-import {
-  aula,
-  curso,
-  liberacao,
-  modulo,
-  trilha,
-  trilhaCurso,
-} from "@cursos/db/schema/index";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { aula, curso, modulo } from "@cursos/db/schema/index";
+import { eq, sql } from "drizzle-orm";
 
 import type { VisaoDoCatalogo } from "../dominio/catalogo";
-import type { CursoId, TrilhaId } from "../dominio/tipos";
+import type { CursoId } from "../dominio/tipos";
 import { COLUNAS_DA_CAPA } from "./comum";
 
 export const COM_CONTEUDO = {
@@ -46,81 +39,23 @@ export const COM_CONTEUDO = {
   },
 } as const;
 
-/** A trilha com os cursos em ordem de posição, cada um com módulos e aulas (TrilhaLinha). */
-export const TRILHA_COM_CONTEUDO = {
-  columns: { descricao: true, id: true, slug: true, titulo: true },
-  with: {
-    cursos: {
-      columns: { posicao: true },
-      orderBy: { posicao: "asc" },
-      with: { curso: COM_CONTEUDO },
-    },
-  },
-} as const;
-
 /**
- * Tela /admin/catalogo, em dois statements paralelos. Trilhas por título; cursos
- * na ordem das trilhas (título, depois posição) e os soltos no fim, por título.
- * O id desempata títulos iguais, para duas trilhas de mesmo nome não se intercalarem.
+ * Tela /admin/catalogo, em um statement: os cursos por título. O id desempata
+ * títulos iguais, para a ordem não mudar entre um carregamento e outro.
  */
 export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
-  const [cursos, trilhas] = await Promise.all([
-    db
-      .select({
-        aulas: sql<number>`count(${aula.id})::int`,
-        id: curso.id,
-        posicao: trilhaCurso.posicao,
-        precoTroca: curso.precoTroca,
-        status: curso.status,
-        titulo: curso.titulo,
-        trilhaId: trilha.id,
-        trilhaTitulo: trilha.titulo,
-      })
-      .from(curso)
-      .leftJoin(trilhaCurso, eq(trilhaCurso.cursoId, curso.id))
-      .leftJoin(trilha, eq(trilha.id, trilhaCurso.trilhaId))
-      .leftJoin(modulo, eq(modulo.cursoId, curso.id))
-      .leftJoin(aula, eq(aula.moduloId, modulo.id))
-      .groupBy(curso.id, trilhaCurso.cursoId, trilha.id)
-      .orderBy(
-        sql`${trilha.titulo} asc nulls last`,
-        trilha.id,
-        trilhaCurso.posicao,
-        curso.titulo,
-        curso.id
-      ),
-    db
-      .select({
-        alunos: sql<number>`count(distinct ${liberacao.userId})::int`,
-        cursos: sql<number>`count(distinct ${trilhaCurso.cursoId})::int`,
-        id: trilha.id,
-        titulo: trilha.titulo,
-      })
-      .from(trilha)
-      .leftJoin(trilhaCurso, eq(trilhaCurso.trilhaId, trilha.id))
-      .leftJoin(
-        liberacao,
-        and(eq(liberacao.trilhaId, trilha.id), isNull(liberacao.revogadaEm))
-      )
-      .groupBy(trilha.id)
-      .orderBy(trilha.titulo, trilha.id),
-  ]);
-  return {
-    cursos: cursos.map((c) => ({
-      aulas: c.aulas,
-      id: c.id as CursoId,
-      precoTroca: c.precoTroca,
-      status: c.status,
-      titulo: c.titulo,
-      trilha:
-        c.trilhaId === null || c.trilhaTitulo === null || c.posicao === null
-          ? null
-          : {
-              id: c.trilhaId as TrilhaId,
-              posicao: c.posicao,
-              titulo: c.trilhaTitulo,
-            },
-    })),
-    trilhas: trilhas.map((t) => ({ ...t, id: t.id as TrilhaId })),
-  };
+  const cursos = await db
+    .select({
+      aulas: sql<number>`count(${aula.id})::int`,
+      id: curso.id,
+      precoTroca: curso.precoTroca,
+      status: curso.status,
+      titulo: curso.titulo,
+    })
+    .from(curso)
+    .leftJoin(modulo, eq(modulo.cursoId, curso.id))
+    .leftJoin(aula, eq(aula.moduloId, modulo.id))
+    .groupBy(curso.id)
+    .orderBy(curso.titulo, curso.id);
+  return { cursos: cursos.map((c) => ({ ...c, id: c.id as CursoId })) };
 }

@@ -65,7 +65,7 @@ export const ESPERA_ESGOTADA = {
 } as const satisfies MensagemDoBanco;
 
 export const CURSO_EM_USO =
-  "Este curso já tem aluno (aula assistida, certificado ou liberação) ou está numa trilha. Para tirá-lo do ar, mude o status para Em produção.";
+  "Este curso já tem aluno (aula assistida, certificado ou liberação). Para tirá-lo do ar, mude o status para Em produção.";
 
 /**
  * Só unique e check que uma escrita do admin dispara com o app funcionando: cada
@@ -86,22 +86,9 @@ export const MENSAGEM_DA_RESTRICAO = {
     code: "CONFLICT",
     message: "A pessoa já tem este curso liberado.",
   },
-  liberacao_trilha_ativa_unica: {
-    code: "CONFLICT",
-    message: "A pessoa já tem esta trilha liberada.",
-  },
   liberacao_troca_nao_revoga: {
     code: "PRECONDITION_FAILED",
     message: "Liberação de troca não se revoga.",
-  },
-  trilha_curso_pkey: {
-    code: "CONFLICT",
-    message: "Este curso já está em outra trilha.",
-  },
-  trilha_slug_key: {
-    code: "CONFLICT",
-    message: "Já existe uma trilha com este endereço.",
-    motivo: "slug_repetido",
   },
 } as const satisfies Record<string, MensagemDoBanco>;
 
@@ -138,12 +125,10 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "curso_pkey",
   "curso_preco_troca_positivo",
   "curso_slug_formato",
-  "liberacao_alvo_unico",
   "liberacao_curso_id_curso_id_fkey",
   "liberacao_do_aluno",
   "liberacao_pkey",
   "liberacao_revogacao_coerente",
-  "liberacao_trilha_id_trilha_id_fkey",
   "liberacao_troca_pelo_aluno",
   "liberacao_user_id_clerk",
   "modulo_curso_id_curso_id_fkey",
@@ -154,15 +139,8 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "nivel_curso_id_curso_id_fkey",
   "nivel_ordem_positiva",
   "nivel_pkey",
-  "ponto_lancamento_trilha_id_trilha_id_fkey",
   "ponto_liberacao_fk",
   "posicao_aula_aula_id_aula_id_fkey",
-  "trilha_curso_curso_id_curso_id_fkey",
-  "trilha_curso_posicao_positiva",
-  "trilha_curso_posicao_unica",
-  "trilha_curso_trilha_id_trilha_id_fkey",
-  "trilha_pkey",
-  "trilha_slug_formato",
 ]);
 
 /**

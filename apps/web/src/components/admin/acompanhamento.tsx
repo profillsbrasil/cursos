@@ -3,7 +3,6 @@
 
 import type {
   Acompanhamento,
-  CursoAcompanhado,
   SituacaoDaPessoa,
   SituacaoNoCurso,
 } from "@cursos/api/dominio/acompanhamento";
@@ -15,7 +14,6 @@ import {
   Check,
   ClipboardCheck,
   Clock,
-  Lock,
   type LucideIcon,
   Minus,
   Play,
@@ -99,8 +97,6 @@ export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]): Selo {
   switch (tipo) {
     case "em_producao":
       return { classe: CONTORNO_CEU, icone: Clock, rotulo: "Em produção" };
-    case "bloqueado":
-      return { classe: CONTORNO_APAGADO, icone: Lock, rotulo: "Bloqueado" };
     case "nunca_abriu":
       return NUNCA_ABRIU;
     case "estudando":
@@ -115,31 +111,6 @@ export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]): Selo {
       return { classe: CHEIO_CEU, icone: Check, rotulo: "Concluído" };
     default:
       return tipo satisfies never;
-  }
-}
-
-type DaTrilha = Extract<Acompanhamento, { tipo: "trilha" }>;
-
-const cursoDaVez = (a: DaTrilha) =>
-  a.daVez === null ? undefined : a.cursos.find((c) => c.posicao === a.daVez);
-
-/** O servidor decide a situação do item; aqui ela só ganha cor, ícone e palavra. */
-export function seloDaLiberacao(a: Acompanhamento): Selo {
-  if (a.tipo === "curso") {
-    return seloDoCurso(a.curso.situacao.tipo);
-  }
-  const { situacao } = a;
-  switch (situacao) {
-    case "concluida":
-      return { classe: CHEIO_CEU, icone: Check, rotulo: "Concluída" };
-    case "aguardando_producao":
-      return {
-        classe: CONTORNO_CEU,
-        icone: Clock,
-        rotulo: "Aguardando produção",
-      };
-    default:
-      return seloDoCurso(situacao);
   }
 }
 
@@ -174,19 +145,14 @@ const ultimoEstudo = (dia: string, hoje: string) =>
 const aulasVistas = (total: number) =>
   total === 1 ? "Viu a aula" : `Viu as ${fmtNum(total)} aulas`;
 
-/** A situação de um curso, como o item da liberação ou a linha da trilha a escreve. */
-export function fraseDoCurso(c: CursoAcompanhado, hoje: string): Frase {
+/** A situação do curso, como o item da liberação a escreve. */
+export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase {
   const s = c.situacao;
   switch (s.tipo) {
     case "em_producao":
       return {
         quando: null,
         texto: "Em produção. A pessoa ainda não vê o curso",
-      };
-    case "bloqueado":
-      return {
-        quando: null,
-        texto: `Abre depois do curso ${s.depoisDe.posicao}, ${s.depoisDe.titulo}`,
       };
     case "nunca_abriu":
       return { quando: null, texto: "Nenhuma aula aberta" };
@@ -223,88 +189,7 @@ export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
     : chegou;
 }
 
-// "Módulo" fica em maiúscula também no meio da frase, como em Meus cursos.
-const minuscula = (texto: string) =>
-  texto.startsWith("Módulo")
-    ? texto
-    : `${texto.charAt(0).toLowerCase()}${texto.slice(1)}`;
-
-/** A linha de um curso dentro da trilha: o estado e o detalhe numa frase curta. */
-export function fraseNaTrilha(c: CursoAcompanhado, hoje: string): string {
-  const s = c.situacao;
-  switch (s.tipo) {
-    case "estudando":
-      return `Estudando · Módulo ${s.onde.modulo}, aula ${s.onde.aula} · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
-    case "falta_prova":
-      return `Falta a prova · ${ultimoEstudo(s.ultimoEstudo, hoje)}`;
-    case "bloqueado":
-      return `Abre depois do curso ${s.depoisDe.posicao}`;
-    case "em_producao":
-    case "nunca_abriu":
-      return seloDoCurso(s.tipo).rotulo;
-    case "concluido":
-      return fraseDoCurso(c, hoje).texto;
-    default:
-      return s satisfies never;
-  }
-}
-
-/** "O curso 2 está em produção", "Os cursos 2 e 3 estão em produção". */
-function osCursos(posicoes: readonly number[]) {
-  const lista = new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(
-    posicoes.map(String)
-  );
-  return posicoes.length === 1
-    ? `O curso ${lista} está em produção`
-    : `Os cursos ${lista} estão em produção`;
-}
-
-export function fraseDaLiberacao(a: Acompanhamento, hoje: string): Frase {
-  if (a.tipo === "curso") {
-    return fraseDoCurso(a.curso, hoje);
-  }
-  const total = a.cursos.length;
-  const quando = a.ultimoEstudo ? ultimoEstudo(a.ultimoEstudo, hoje) : null;
-  switch (a.situacao) {
-    case "concluida":
-      return {
-        quando,
-        texto:
-          total === 1
-            ? "Concluiu o curso da trilha"
-            : `Concluiu os ${fmtNum(total)} cursos`,
-      };
-    case "aguardando_producao": {
-      const emProducao = a.cursos
-        .filter((c) => c.situacao.tipo === "em_producao")
-        .map((c) => c.posicao);
-      const feitos = `Concluiu ${fmtNum(a.concluidos)} de ${plural(total, "curso", "cursos")}`;
-      return {
-        quando,
-        texto:
-          emProducao.length > 0 ? `${feitos}. ${osCursos(emProducao)}` : feitos,
-      };
-    }
-    // A frase é do curso da vez; o último estudo é o da trilha inteira, que
-    // conta o curso concluído antes dele.
-    case "nunca_abriu":
-    case "estudando":
-    case "falta_prova": {
-      const daVez = cursoDaVez(a);
-      if (!daVez) {
-        return { quando, texto: "Nenhum curso aberto" };
-      }
-      return {
-        quando,
-        texto: `Curso ${daVez.posicao} de ${total}, ${daVez.titulo}: ${minuscula(fraseDoCurso(daVez, hoje).texto)}`,
-      };
-    }
-    default:
-      return a.situacao satisfies never;
-  }
-}
-
-/** A linha de números da busca: "5 liberações · 2 de 5 cursos concluídos · último estudo ontem". */
+/** A linha de números da busca: "2 de 4 cursos concluídos · 1 em produção · último estudo ontem". */
 export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
   switch (r.tipo) {
     case "sem_liberacao":
@@ -315,17 +200,19 @@ export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
         ? `1 liberação revogada ${noDia(r.ultimaRevogacao, hoje)}`
         : `${fmtNum(r.revogadas)} liberações revogadas, a última ${noDia(r.ultimaRevogacao, hoje)}`;
     case "nunca_abriu":
-      return `${plural(r.numeros.liberacoes, "liberação", "liberações")} desde ${diaCurto(r.desde, hoje)} · nenhuma aula aberta`;
+      return `Com acesso desde ${diaCurto(r.desde, hoje)} · nenhuma aula aberta`;
     case "estudando":
     case "concluiu_tudo": {
-      const { concluidos, cursos, liberacoes } = r.numeros;
+      const { concluidos, cursos, emProducao } = r.numeros;
       return [
-        plural(liberacoes, "liberação", "liberações"),
         cursos === 0
           ? "nenhum curso publicado"
           : `${fmtNum(concluidos)} de ${plural(cursos, "curso concluído", "cursos concluídos")}`,
+        emProducao === 0 ? null : `${fmtNum(emProducao)} em produção`,
         ultimoEstudo(r.ultimoEstudo, hoje),
-      ].join(" · ");
+      ]
+        .filter((parte) => parte !== null)
+        .join(" · ");
     }
     default:
       return r satisfies never;
