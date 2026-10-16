@@ -5,7 +5,7 @@ import {
   carregarPaginaDoCertificado,
   conferir,
 } from "../consultas/certificado-emitido";
-import { codigoDigitado } from "../dominio/conferencia";
+import { codigoDigitado } from "../dominio/certificado";
 import { protectedProcedure, publicProcedure, router } from "../index";
 
 const FORMATO_DO_SLUG = new RegExp(SLUG);

@@ -1,4 +1,4 @@
-import { codigoDigitado } from "@cursos/api/dominio/conferencia";
+import { codigoDigitado } from "@cursos/api/dominio/certificado";
 import { diaLocal } from "@cursos/api/dominio/sequencia";
 import { redirect } from "next/navigation";
 

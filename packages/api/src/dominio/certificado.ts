@@ -17,7 +17,7 @@ const TETO_SEM_VIES =
   Math.floor(256 / ALFABETO_DO_CODIGO.length) * ALFABETO_DO_CODIGO.length;
 
 /** Um código novo, sorteado. A colisão com o unique é de quem grava. */
-export function gerarCodigo(): string {
+export function gerarCodigo(): CodigoDoCertificado {
   const indices: number[] = [];
   while (indices.length < SIMBOLOS) {
     const bytes = crypto.getRandomValues(new Uint8Array(SIMBOLOS));
@@ -27,17 +27,23 @@ export function gerarCodigo(): string {
       }
     }
   }
-  return codigoDosIndices(indices);
+  return codigoDosIndices(indices) as CodigoDoCertificado;
 }
 
-const FORA_DO_ALFABETO = /[^A-Z0-9]/g;
+declare const marca: unique symbol;
 
-/** O que a pessoa digitou, no formato gravado: sem caixa, espaços nem hífen. null quando não é um código. */
-export function normalizarCodigo(texto: string): string | null {
-  const limpo = texto.toUpperCase().replaceAll(FORA_DO_ALFABETO, "");
-  if (limpo.length !== SIMBOLOS) {
-    return null;
-  }
+/** O código no formato do banco: `XXXX-XXXX`, em maiúsculas. */
+export type CodigoDoCertificado = string & {
+  readonly [marca]: "CodigoDoCertificado";
+};
+
+const SEPARADORES = /[\s\-\u2010-\u2015]/g;
+
+/** O que a pessoa digitou, no formato do banco: sem caixa, espaços nem hífen. null quando não é um código. */
+export function codigoDigitado(texto: string): CodigoDoCertificado | null {
+  const limpo = texto.toUpperCase().replaceAll(SEPARADORES, "");
   const codigo = `${limpo.slice(0, SIMBOLOS / 2)}-${limpo.slice(SIMBOLOS / 2)}`;
-  return FORMATO_DO_CODIGO.test(codigo) ? codigo : null;
+  return FORMATO_DO_CODIGO.test(codigo)
+    ? (codigo as CodigoDoCertificado)
+    : null;
 }

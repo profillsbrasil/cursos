@@ -3,7 +3,7 @@
 // apaga tudo no afterAll.
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { randomBytes, randomInt } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -18,7 +18,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import { ALFABETO_DO_CODIGO } from "../dominio/conferencia";
+import { gerarCodigo } from "../dominio/certificado";
 import type { Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste } from "./categoria-de-teste";
@@ -44,12 +44,9 @@ const PESSOAS: Pessoa[] = [
   },
 ];
 
-const letra = () => ALFABETO_DO_CODIGO[randomInt(ALFABETO_DO_CODIGO.length)];
-const novoCodigo = () =>
-  `${Array.from({ length: 4 }, letra).join("")}-${Array.from({ length: 4 }, letra).join("")}`;
-const CODIGO_DA_ANA = novoCodigo();
-const CODIGO_SO_EMAIL = novoCodigo();
-const CODIGO_DE_QUEM_SUMIU = novoCodigo();
+const CODIGO_DA_ANA = gerarCodigo();
+const CODIGO_SO_EMAIL = gerarCodigo();
+const CODIGO_DE_QUEM_SUMIU = gerarCodigo();
 const EMITIDO_EM = new Date("2026-10-14T15:00:00Z");
 const SLUG = `teste-${S}-fabrica`;
 
@@ -157,13 +154,13 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
 
   test("código que não existe, ou fora do formato, não acha nada", async () => {
     const anonimo = como(null).certificado;
-    let inexistente = novoCodigo();
+    let inexistente = gerarCodigo();
     while (
       [CODIGO_DA_ANA, CODIGO_SO_EMAIL, CODIGO_DE_QUEM_SUMIU].includes(
         inexistente
       )
     ) {
-      inexistente = novoCodigo();
+      inexistente = gerarCodigo();
     }
     expect(await anonimo.conferir({ codigo: inexistente })).toBeNull();
     expect(await anonimo.conferir({ codigo: "PS-M0-2026-A1B2C3" })).toBeNull();

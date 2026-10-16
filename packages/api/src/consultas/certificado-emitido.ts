@@ -4,7 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 
 import type { Servicos } from "../context";
 import { montarCursoAberto } from "../dominio/aula";
-import type { CodigoDoCertificado } from "../dominio/conferencia";
+import type { CodigoDoCertificado } from "../dominio/certificado";
 import {
   type CertificadoEmitido,
   certificadoEmitido,
