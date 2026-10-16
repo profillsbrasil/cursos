@@ -51,7 +51,7 @@ Os protótipos aprovados se seguem à risca.
 
 14. **Página do curso para o aluno: rodada 2, versão A.** À direita fica um cartão preso com a capa, o progresso, a aula atual e o botão principal. À esquerda vêm o título, a descrição, os tópicos e o conteúdo em sanfona. O módulo aberto mostra as aulas como índice de livro, com a descrição de cada uma.
 15. **Tela de categorias: rodada 2, versão A.** É um item próprio no menu do admin, entre Catálogo e Comunicados. O campo de criar fica no topo, e a lista mostra a contagem e os nomes dos cursos de cada categoria.
-16. **Editor do curso.** O topo é a "Vitrine" da rodada 1, versão C: capa à esquerda e, à direita, título com o link gerado, categoria em select e descrição. As aulas seguem a rodada 2, versão C: lista estreita das aulas, painel largo da aula escolhida e, dentro dele, a lista das perguntas com a pergunta em edição. **Pendente:** o dono pediu um refino dessa versão pelo `/impeccable` e ainda não aprovou o resultado.
+16. **Editor do curso.** O topo é a "Vitrine" da rodada 1, versão C: capa à esquerda e, à direita, título com o link gerado, categoria em select e descrição. As aulas seguem a rodada 2, versão C: lista estreita das aulas, painel largo da aula escolhida e, dentro dele, a lista das perguntas com a pergunta em edição. O refino dessa versão pelo `/impeccable` é a rodada 3 (`arquivos/prototipo-editor-r3.html`), que o dono aprovou.
 
 ### Escolhas assumidas
 
@@ -67,6 +67,7 @@ O dono pode trocar qualquer uma destas sem custo.
 Os protótipos estão publicados em links privados do dono:
 - rodada 1: https://claude.ai/artifact/GLjpXQQ6P1Sy8pEssGGjBW
 - rodada 2: https://claude.ai/artifact/QzSdL3osKzQ67964gpbkpd
+- rodada 3, o editor aprovado: https://claude.ai/artifact/15rtE3njWqnN7wYuzYJd8G
 - análise do raio de impacto: https://claude.ai/artifact/PYURW5PTtVqXTWqr39dpiA
 
 Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
@@ -82,7 +83,7 @@ Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 | `prova-player-fabrica.jpg` | Player de Fábrica e montagem, com os 3 módulos |
 | `arquivos/prototipos-curso.html` | Rodada 1: 4 versões da página do curso e 4 do editor |
 | `arquivos/prototipos-curso-r2.html` | Rodada 2: 4 da página, 4 do editor com questionário e 4 das categorias |
-| `arquivos/prototipo-editor-r3.html` | Refino do editor C, ainda não verificado |
+| `arquivos/prototipo-editor-r3.html` | Refino do editor C, verificado e aprovado (rodada 3) |
 | `arquivos/fontes/r1`, `r2` e `r3` | A fonte de cada rodada (`fonte.html`), o `montar.py`, que embute as imagens, e os scripts de foto e de interação |
 | `arquivos/catalogo-sem-trilha.html` | A análise que levou à decisão de tirar a trilha |
 
@@ -93,7 +94,7 @@ Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 | Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Pronto e revisado. Espera o merge. |
 | Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria em tabela, descrição, tópicos, descrição da aula, endereço automático, `curso.pagina` e `admin.categorias` |
 | Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy` | Começou. O view model da página com os níveis está pronto (`e237bf5`). A tela ainda não. |
-| Curso no formato Udemy: editor (Vitrine, tópicos e aulas) | `feat/curso-formato-udemy` | Espera a aprovação do refino |
+| Curso no formato Udemy: editor (Vitrine, tópicos e aulas) | `feat/curso-formato-udemy` | Protótipo aprovado (rodada 3). Não começou. |
 | Questionário, conclusão e certificado | PR seguinte | Não começou |
 
 ## Próximos passos da página do curso e das categorias
@@ -122,25 +123,20 @@ Desvios planejados em relação ao protótipo, que o dono pode recusar:
 
 O brief completo desta rodada é `arquivos/brief-ui-pagina-e-categorias.md`. Os caminhos de máquina citados nos briefs e relatórios (`/home/othavio/.herdr/worktrees/...`) são da máquina antiga.
 
-## Editor: refino pendente
+## Editor: refino aprovado
 
-O refino da versão C pelo `/impeccable` parou no meio. O arquivo `arquivos/prototipo-editor-r3.html` abre, mas teve uma screenshot só e nenhuma interação testada. O brief é `arquivos/brief-refino-editor-questionario.md`, e a fonte é `arquivos/fontes/r3/fonte.html`. Para montar o HTML, rode `montar.py`, que precisa de `comercial.jpg` e de um `seguranca.jpg` vazio ao lado. Gere o `seguranca.jpg` com `touch`, porque o git não guarda o arquivo vazio.
+O dono aprovou a rodada 3, que é a versão C refinada pelo `/impeccable`. A fonte é `arquivos/fontes/r3/fonte.html`.
+- `fontes/r3/interacao.sh` monta o HTML e roda `interacao.js` no Chromium headless, com 25 passos de interação. Ele precisa terminar com `erros: []`.
+- `fontes/r3/fotos.sh <pasta>` tira as fotos da janela, da página inteira, de 390 px e dos estados vazio, erro e salvo.
+- Os dois scripts criam o `seguranca.jpg` vazio que o `montar.py` pede.
 
-O que o refino já mudou:
-- A lista de aulas ficou com 272 px e deixou de cortar os títulos.
-- O título da aula e o título do questionário viraram dois títulos do mesmo nível.
-- O bloco "Para passar: K de N acertos" mostra a conta da nota.
-- Cada alternativa tem a letra num círculo, que funciona como botão de marcar a certa.
-- A pergunta nova nasce sem alternativa certa.
-- Os erros de pergunta sem texto, alternativa vazia e pergunta sem certa aparecem na tela.
-- Tirar uma pergunta deixa um Desfazer no lugar.
-- A Vitrine ganhou o link "Gerenciar categorias".
+Na verificação, o roteiro achou uma reentrada: o `focusout` redesenhava o painel no meio do próprio redesenho, e cada tecla mostrava o erro antes de a pessoa sair do campo. A correção ignora o `focusout` enquanto o painel se redesenha.
 
-Falta, antes de mostrar ao dono:
-- rodar um roteiro que prova cada interação (como `fontes/r2/interacao.js`);
-- tirar as screenshots da janela, da página inteira, em 390 px e dos três estados;
-- uma rodada de correção;
-- o detector do `/impeccable`.
+O detector do `/impeccable`, rodado na página renderizada, deixou só falsos positivos já conhecidos:
+- o selo "Admin" de 10 px;
+- a fonte Geist;
+- os cartões dentro do painel da Moldura;
+- a seção de tópicos, que o protótipo apaga de propósito.
 
 ## Ordem no banco cloud
 
