@@ -49,6 +49,9 @@ export function indiceAtivo(
 /** O cookie que o SidebarProvider grava; o nome é constante interna do packages/ui, e nav.test.ts confere os dois. */
 export const COOKIE_DA_SIDEBAR = "sidebar_state";
 
+/** A validade com que o SidebarProvider grava o cookie, em segundos; nav.test.ts confere os dois. */
+export const VALIDADE_DO_COOKIE_S = 60 * 60 * 24 * 7;
+
 /** Da borda da sidebar ao conteúdo, nos dois modos; casca.tsx aplica no cabeçalho, na lista e no rodapé. */
 export const RECUO = 14;
 /** O quadrado recolhido: o item, o botão do cabeçalho, o Continuar e o cartão de conta. */

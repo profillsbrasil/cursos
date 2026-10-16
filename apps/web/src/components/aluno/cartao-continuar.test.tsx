@@ -18,6 +18,7 @@ mock.module("next/navigation", () => ({
 const { CartaoContinuar } = await import("./cartao-continuar");
 
 const AULA = "/cursos/comercial/aulas/a1" as Route;
+const DESTINO_FORA_DA_AULA = "/cursos/comercial" as Route;
 
 const CONTINUAR: Continuar = {
   chamada: "Continuar · faltam 7 min",
@@ -29,6 +30,16 @@ const CONTINUAR: Continuar = {
   titulo: "Pilar Urgência · Aula 4",
 };
 
+const PROVA_FORA_DA_AULA: Continuar = {
+  chamada: "Falta a prova",
+  chamadaAqui: "Falta só a prova",
+  href: DESTINO_FORA_DA_AULA,
+  pct: 100,
+  rotulo: "Falta a prova: Comercial, 100% do curso",
+  tipo: "prova",
+  titulo: "Comercial",
+};
+
 // O use() lê na hora uma Promise marcada como cumprida, sem suspender.
 function cumprida<T>(valor: T): Promise<T> {
   return Object.assign(Promise.resolve(valor), {
@@ -37,11 +48,11 @@ function cumprida<T>(valor: T): Promise<T> {
   });
 }
 
-function html(caminho: string, aberta: boolean) {
+function html(caminho: string, aberta: boolean, cartao = CONTINUAR) {
   caminhoAtual = caminho;
   return renderToStaticMarkup(
     <ProvedorDaCasca aberta={aberta}>
-      <CartaoContinuar cartao={cumprida(CONTINUAR)} />
+      <CartaoContinuar cartao={cumprida(cartao)} />
     </ProvedorDaCasca>
   );
 }
@@ -65,10 +76,10 @@ describe("o Continuar é um elemento só", () => {
     });
 
     test(`${modo}, no destino: aria-current uma vez, sem link`, () => {
-      const h = html(AULA, aberta);
+      const h = html(DESTINO_FORA_DA_AULA, aberta, PROVA_FORA_DA_AULA);
       expect(vezes(h, "<a ")).toBe(0);
       expect(vezes(h, 'aria-current="page"')).toBe(1);
-      expect(vezes(h, CONTINUAR.chamadaAqui)).toBe(1);
+      expect(vezes(h, PROVA_FORA_DA_AULA.chamadaAqui)).toBe(1);
     });
   }
 });
@@ -91,12 +102,16 @@ const classesDoContinuar = (h: string) => {
 describe("a troca de modo não anima o Continuar", () => {
   for (const [caso, caminho] of [
     ["com link", "/meus-cursos"],
-    ["no destino", AULA],
+    ["no destino", DESTINO_FORA_DA_AULA],
   ] as const) {
     test(`${caso}: nenhuma transição fora do ::before`, () => {
-      const transicoes = classesDoContinuar(html(caminho, true)).filter((c) =>
-        c.includes("transition")
-      );
+      const transicoes = classesDoContinuar(
+        html(
+          caminho,
+          true,
+          caso === "no destino" ? PROVA_FORA_DA_AULA : CONTINUAR
+        )
+      ).filter((c) => c.includes("transition"));
       expect(
         transicoes.filter(
           (c) => !(c.startsWith("before:") || c.includes(":before:"))

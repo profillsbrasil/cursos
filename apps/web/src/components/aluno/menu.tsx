@@ -17,7 +17,13 @@ export const ITENS_DO_ALUNO: readonly ItemDoMenu[] = [
     outrosPrefixos: [],
     tipo: "link",
   },
-  { icone: <Award />, nome: "Conquistas", tipo: "em_breve" },
+  {
+    href: "/conquistas",
+    icone: <Award />,
+    nome: "Conquistas",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
   { icone: <Megaphone />, nome: "Comunicados", tipo: "em_breve" },
 ];
 

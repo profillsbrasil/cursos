@@ -496,7 +496,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     const emBreve = elementos(nav).filter(
       (e) => e.atributos["aria-disabled"] === "true"
     );
-    expect(emBreve.map((e) => e.texto || "item")).toHaveLength(2);
+    expect(emBreve.map((e) => e.texto || "item")).toHaveLength(1);
     for (const item of emBreve) {
       const foco = noFoco(item);
       expect(foco.filter((d) => COR.test(d))).toEqual([
