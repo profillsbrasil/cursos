@@ -44,7 +44,13 @@ a1.perguntas = [
     "A linha do cliente precisa rodar em 1º de março, e a fabricação leva 90 dias. O que o cronograma reverso mostra?"
   ),
 ];
-const rascunho = rascunhoDoCurso(documento);
+const rascunho = {
+  ...rascunhoDoCurso(documento),
+  descricao: Array.from(
+    { length: 6 },
+    (_, i) => `Parágrafo ${i + 1} da descrição do curso.`
+  ).join("\n\n"),
+};
 const [m1] = rascunho.modulos;
 if (!m1) {
   throw new Error("o exemplo não tem módulo");
@@ -133,7 +139,8 @@ interface Alavanca {
 
 interface Medida {
   alavancas: [Alavanca, Alavanca];
-  area: { altura: number; raio: string };
+  area: { altura: number; raio: string; rola: boolean };
+  camada: string;
   campo: { altura: number; raio: string };
   capa: DOMRect;
   edicao: DOMRect;
@@ -172,9 +179,10 @@ const medir = () =>
       });
       return {
         alavancas,
-        area: forma(document.getElementById("curso-descricao")),
+        area: { ...forma(document.getElementById("curso-descricao")), rola: (() => { const a = document.getElementById("curso-descricao"); return a.scrollHeight > a.clientHeight; })() },
+        camada: getComputedStyle(document.getElementById("curso-capa").closest("label").querySelector("[aria-hidden]")).opacity,
         campo: forma(document.getElementById("curso-titulo")),
-        capa: caixa(document.getElementById("curso-capa").closest(".grid")),
+        capa: caixa(document.getElementById("curso-capa").closest("label")),
         edicao: caixa(document.getElementById("pergunta-${EDICAO.P1}-enunciado").closest(".grid")),
         lista: caixa(document.querySelector('ol[aria-label^="Aulas do módulo"]').parentElement),
         painel: caixa(painel),
@@ -200,7 +208,8 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
       m = await medir();
     });
 
-    test("a capa fica à esquerda do título, com 280 px", () => {
+    test("a capa fica à esquerda do título, com 280 px, e a camada Trocar capa fica escondida", () => {
+      expect(m.camada).toBe("0");
       expect(Math.round(m.capa.width)).toBe(280);
       expect(m.titulo.left).toBeGreaterThan(m.capa.right);
     });
@@ -218,6 +227,26 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
 
     test("nada transborda o painel da aula", () => {
       expect(m.transborda).toBeNull();
+    });
+
+    test("a descrição do curso fica em 4 linhas e rola por dentro", () => {
+      expect([m.area.altura, m.area.rola]).toEqual([4 * 21 + 21 + 2, true]);
+    });
+
+    test("com o foco no input da capa, a camada Trocar capa aparece", async () => {
+      // Do começo da página, o Tab chega ao input da capa, o primeiro controle.
+      const tecla = (type: string) =>
+        enviar("Input.dispatchKeyEvent", {
+          code: "Tab",
+          key: "Tab",
+          type,
+          windowsVirtualKeyCode: 9,
+        });
+      await tecla("keyDown");
+      await tecla("keyUp");
+      const focado = await avaliar<string>(enviar, "document.activeElement.id");
+      await avaliar(enviar, "new Promise((r) => setTimeout(r, 300))");
+      expect([focado, (await medir()).camada]).toEqual(["curso-capa", "1"]);
     });
 
     test("o campo é a pílula de 44 px, e a área de texto tem raio de 20 px", () => {
@@ -243,6 +272,29 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
       expect(ligada.polegar.fundo).toBe("rgb(34, 38, 43)");
       expect(desligada.fundo).toBe("rgb(77, 82, 87)");
       expect(desligada.borda).toBe("rgb(168, 172, 176)");
+    });
+  });
+
+  // 1920 px de janela, menos a sidebar aberta e a moldura: a capa cresce com o bloco até 440 px.
+  describe("em 1920 px", () => {
+    let m: Medida;
+    beforeAll(async () => {
+      await abrirPagina(1920, 1576);
+      m = await medir();
+    });
+
+    test("a capa cresce até 440 px, ao lado do título", () => {
+      expect(Math.round(m.capa.width)).toBe(440);
+      expect(m.titulo.left).toBeGreaterThan(m.capa.right);
+    });
+
+    test("a lista das aulas continua em 272 px, com o painel ao lado", () => {
+      expect(Math.round(m.lista.width)).toBe(272);
+      expect(m.painel.left).toBeGreaterThanOrEqual(m.lista.right);
+    });
+
+    test("nada transborda o painel da aula", () => {
+      expect(m.transborda).toBeNull();
     });
   });
 

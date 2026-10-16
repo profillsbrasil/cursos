@@ -113,37 +113,39 @@ export function Vitrine({
   );
   return (
     <Secao id="vitrine" resumo="O topo da página do curso" titulo="Vitrine">
-      <div className="grid gap-7 p-6 md:grid-cols-[280px_minmax(0,1fr)]">
-        {capa}
-        <div className="grid min-w-0 content-start gap-5">
-          <CampoDeTexto
-            ajuda={<EnderecoDoCurso slug={slug} titulo={rascunho.titulo} />}
-            campoClasse="gap-2"
-            className="font-bold text-titulo text-xl tracking-tight"
-            id={ID.curso("titulo")}
-            maxLength={CARACTERES.titulo}
-            name="titulo"
-            onChange={mudarTexto}
-            placeholder="Operação da envasadora volumétrica"
-            required
-            rotulo="Título"
-            value={rascunho.titulo}
-          />
-          <CampoDaCategoria
-            categorias={categorias}
-            mudar={mudarCategoria}
-            valor={rascunho.categoriaId}
-          />
-          <AreaDeTexto
-            ajuda="Linha em branco separa parágrafos."
-            aoMudar={mudarDescricao}
-            id={ID.curso("descricao")}
-            linhasFixas={4}
-            maximo={CARACTERES.descricao}
-            placeholder="O que o curso ensina e para quem ele é."
-            rotulo="Descrição"
-            texto={rascunho.descricao}
-          />
+      <div className="@container">
+        <div className="grid @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)] gap-7 p-6">
+          {capa}
+          <div className="grid min-w-0 content-start gap-5">
+            <CampoDeTexto
+              ajuda={<EnderecoDoCurso slug={slug} titulo={rascunho.titulo} />}
+              campoClasse="gap-2"
+              className="font-bold text-titulo text-xl tracking-tight"
+              id={ID.curso("titulo")}
+              maxLength={CARACTERES.titulo}
+              name="titulo"
+              onChange={mudarTexto}
+              placeholder="Operação da envasadora volumétrica"
+              required
+              rotulo="Título"
+              value={rascunho.titulo}
+            />
+            <CampoDaCategoria
+              categorias={categorias}
+              mudar={mudarCategoria}
+              valor={rascunho.categoriaId}
+            />
+            <AreaDeTexto
+              ajuda="Linha em branco separa parágrafos."
+              aoMudar={mudarDescricao}
+              id={ID.curso("descricao")}
+              linhasFixas={4}
+              maximo={CARACTERES.descricao}
+              placeholder="O que o curso ensina e para quem ele é."
+              rotulo="Descrição"
+              texto={rascunho.descricao}
+            />
+          </div>
         </div>
       </div>
     </Secao>
