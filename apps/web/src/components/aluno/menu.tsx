@@ -24,7 +24,13 @@ export const ITENS_DO_ALUNO: readonly ItemDoMenu[] = [
     outrosPrefixos: [],
     tipo: "link",
   },
-  { icone: <Megaphone />, nome: "Comunicados", tipo: "em_breve" },
+  {
+    href: "/comunicados",
+    icone: <Megaphone />,
+    nome: "Comunicados",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
 ];
 
 /** Entra no menu da conta só para quem tem o papel admin: o layout do aluno decide. */

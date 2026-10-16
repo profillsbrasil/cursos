@@ -29,7 +29,7 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
     geralNovo: crypto.randomUUID(),
     geralVelho: crypto.randomUUID(),
   };
-  const nossos = new Set(Object.values(ids));
+  const nossos = new Set<string>(Object.values(ids));
 
   async function novoCurso(nome: string) {
     const [c] = await db

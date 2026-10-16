@@ -18,6 +18,7 @@ import type {
 } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { sleep } from "bun";
+import { Sparkles } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import {
@@ -49,10 +50,17 @@ const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
 const { ColunaDoCurso } = await import("./player/coluna-do-curso");
 const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
 
-// O HTML de cada controle, como o app o renderiza.
+// O HTML de cada controle, como o app o renderiza. Nenhum item do menu está "Em
+// breve" hoje: o do fim existe para o teste do estado continuar valendo.
 const nav = renderToStaticMarkup(
   <ProvedorDaCasca aberta>
-    <NavPrincipal itens={ITENS_DO_ALUNO} rotulo="Navegação" />
+    <NavPrincipal
+      itens={[
+        ...ITENS_DO_ALUNO,
+        { icone: <Sparkles />, nome: "Novidade", tipo: "em_breve" },
+      ]}
+      rotulo="Navegação"
+    />
   </ProvedorDaCasca>
 );
 

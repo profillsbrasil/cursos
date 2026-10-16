@@ -5,7 +5,7 @@ import {
   montarComunicados,
   montarComunicadosDoAluno,
 } from "./comunicado";
-import type { ComunicadoId } from "./tipos";
+import type { ComunicadoId, DiaISO } from "./tipos";
 
 const linha = (id: string, publicadoPor: string) => ({
   curso: null,
@@ -106,15 +106,15 @@ describe("os comunicados do aluno", () => {
         tipo: "curso",
         titulo: "Profills School Comercial",
       },
-      dia: "2026-10-14",
-      id: "c1",
+      dia: "2026-10-14" as DiaISO,
+      id: "c1" as ComunicadoId,
       publicadoEm: "2026-10-14T13:00:00.000Z",
       publicadoPor: "Marina Duarte",
       texto: "Texto",
       titulo: "Comunicado c1",
     });
     expect(
-      r.anteriores.map((m) => [m.mes, m.comunicados.map((c) => c.id)])
+      r.anteriores.map((m) => [m.mes, m.comunicados.map((c) => String(c.id))])
     ).toEqual([
       ["2026-10", ["c2", "c3"]],
       ["2026-09", ["c4"]],

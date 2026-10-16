@@ -64,6 +64,10 @@ export const carregarConquistas = cache(async () =>
   (await caller()).aluno.conquistas()
 );
 
+export const carregarComunicadosDoAluno = cache(async () =>
+  (await caller()).aluno.comunicados()
+);
+
 export const carregarAula = cache(async (slug: string, aulaId: string) =>
   (await caller()).aula.abrir({ aulaId, slug })
 );
