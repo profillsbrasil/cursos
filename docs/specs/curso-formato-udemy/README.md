@@ -2,22 +2,18 @@
 
 Este arquivo é a fonte única para retomar o trabalho numa máquina nova. Ele guarda as decisões do dono, o estado de cada entrega, o que falta, as provas e todo o material de trabalho em `arquivos/`. Vale até o trabalho fechar. Depois, ele é apagado, e o que ficar de regra vai para o `GLOSSARY.md`, a ADR e o `CLAUDE.md`.
 
-O issue de acompanhamento é o #65. Este trabalho está no PR #66 (rascunho), que depende do #64.
+O issue de acompanhamento é o #65. Os PRs #64 e #66 já entraram na main. O editor começa numa branch nova, a partir da main.
 
 ## Como retomar
 
 Cole esta mensagem num agente aberto no clone do repo:
 
-> Retome o curso no formato Udemy em profillsbrasil/cursos. Faça `git fetch` e trabalhe na branch `feat/curso-formato-udemy` (PR #66, em rascunho, empilhado no #64). Leia, nesta ordem:
+> Retome o curso no formato Udemy em profillsbrasil/cursos. Faça `git fetch` e crie uma branch a partir da `origin/main`. Leia, nesta ordem:
 > 1. `docs/specs/curso-formato-udemy/README.md`, inteiro;
 > 2. `gh issue view 65 --comments`;
 > 3. o `CLAUDE.md` da raiz.
 >
-> Antes de escrever código, me pergunte duas coisas:
-> 1. Se o #64 já entrou na main. Se entrou, junte a main na branch.
-> 2. Se eu aprovo o refino do editor com o questionário (`docs/specs/curso-formato-udemy/arquivos/prototipo-editor-r3.html`). Antes de perguntar, termine a verificação dele, conforme a seção "Editor" deste README, e publique o HTML como Artifact para eu ver.
->
-> Depois, continue a página do curso e a tela de categorias pela seção "Próximos passos" deste README, sob `/impeccable` e seguindo os protótipos aprovados à risca. Para a prova no browser, crie um database próprio no Supabase local e migre-o. Depois me peça para rodar o seed com `!`, porque o classificador nega o seed ao agente.
+> Construa o editor do curso pelo protótipo aprovado (`docs/specs/curso-formato-udemy/arquivos/prototipo-editor-r3.html`), sob `/impeccable` e seguindo o protótipo à risca. Para a prova no browser, crie um database próprio no Supabase local e migre-o. Depois me peça para rodar o seed com `!`, porque o classificador nega o seed ao agente.
 
 ## Decisões do dono
 
@@ -91,9 +87,9 @@ Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 
 | Entrega | Branch | Estado |
 |---|---|---|
-| Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Pronto e revisado. Espera o merge. |
+| Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Na main. As migrações no cloud ficam com o dono. |
 | Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria em tabela, descrição, tópicos, descrição da aula, endereço automático, `curso.pagina` e `admin.categorias` |
-| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy` | Pronto e provado no browser (`prova-curso-udemy/`). Espera o dono aceitar os desvios listados abaixo. |
+| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy`, PR #66 | Na main, provado no browser (`prova-curso-udemy/`). O dono aceitou os desvios listados abaixo. |
 | Curso no formato Udemy: editor (Vitrine, tópicos e aulas) | `feat/curso-formato-udemy` | Protótipo aprovado (rodada 3). Não começou. |
 | Questionário, conclusão e certificado | PR seguinte | Não começou |
 
@@ -109,7 +105,7 @@ Depois de juntar as duas frentes, a prova no browser achou dois defeitos, e uma 
 - depois de apagar uma categoria, o foco caía no `body`;
 - depois da recusa de apagar, a linha ficava sem o nome e sem o Renomear.
 
-Desvios do protótipo que o dono pode recusar:
+Desvios do protótipo, todos aceitos pelo dono:
 - "Prova e certificado no módulo 15" virou "no fim do curso".
 - A prova mostra "Você assistiu a todas as aulas", "Prova e certificado", o botão "Rever aulas" e "A prova abre em breve nesta página". O concluído mostra "Certificado emitido em <data>", "Rever o curso" e "Código do certificado". Esses textos não estão no protótipo.
 - Cada aula do índice de livro é link para a aula.
@@ -173,7 +169,6 @@ Estas notas viviam na memória da máquina antiga.
 
 - Em `comunicados.tsx`, depois de apagar, o foco cai no `body`, pelo mesmo motivo que foi corrigido nas categorias.
 - `aula.entrada` só serve de referência nos testes de acesso desde que a página do curso deixou de redirecionar. Dá para trocá-lo por `curso.pagina` nesses testes e apagá-lo.
-- O `ultracite check` da raiz acusa os HTML e JS de `docs/specs/**/arquivos/`. Tirar a pasta do Biome espera o OK do dono.
 - No seed, o curso "Limpeza CIP e troca de formato" tem a categoria "Fábrica e montagem", que é também o título de outro curso.
 - `apps/web/DESIGN.md` ainda fala em "pé dos editores".
 - Na busca do admin, a frase de quem nunca abriu um curso não conta os cursos em produção.
