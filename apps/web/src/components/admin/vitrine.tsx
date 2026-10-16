@@ -5,10 +5,6 @@ import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import { slugDoTitulo } from "@cursos/api/dominio/endereco";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@cursos/ui/components/native-select";
 import { ArrowUpRight, Link2 } from "lucide-react";
 import Link from "next/link";
 import { type ChangeEvent, type Dispatch, useCallback } from "react";
@@ -16,8 +12,9 @@ import { type ChangeEvent, type Dispatch, useCallback } from "react";
 import { AreaDeTexto, CampoDeTexto } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import type { Mudanca } from "./estado-do-editor";
-import { ROTULO, SELECAO, Secao } from "./partes";
+import { ROTULO, Secao } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
+import { Selecao } from "./selecao";
 
 const LINK_DE_APOIO =
   "inline-flex items-center gap-1.5 rounded-md py-1 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo";
@@ -55,7 +52,7 @@ function CampoDaCategoria({
   valor,
 }: {
   categorias: readonly CategoriaNaLista[];
-  mudar: (e: ChangeEvent<HTMLSelectElement>) => void;
+  mudar: (valor: string) => void;
   valor: string;
 }) {
   const id = ID.curso("categoriaId");
@@ -71,23 +68,16 @@ function CampoDaCategoria({
           <ArrowUpRight aria-hidden="true" className="size-3.5" />
         </Link>
       </div>
-      <NativeSelect
+      <Selecao
         {...aria}
-        className={SELECAO}
+        aoMudar={mudar}
         id={id}
-        onChange={mudar}
+        opcoes={categorias.map((c) => ({ rotulo: c.nome, valor: c.id }))}
+        placeholder="Escolha a categoria"
         required
-        value={valor}
-      >
-        <NativeSelectOption disabled value="">
-          Escolha a categoria
-        </NativeSelectOption>
-        {categorias.map((c) => (
-          <NativeSelectOption key={c.id} value={c.id}>
-            {c.nome}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
+        semOpcoes="Nenhuma categoria ainda. Crie em Gerenciar categorias."
+        valor={valor}
+      />
       <ErroDoCampo id={id} mensagem={mensagem} />
     </Field>
   );
@@ -109,9 +99,9 @@ export function Vitrine({
   slug: string | null;
 }) {
   const mudarCategoria = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) =>
+    (categoriaId: string) =>
       despachar({
-        mudanca: { categoriaId: e.target.value as CategoriaId },
+        mudanca: { categoriaId: categoriaId as CategoriaId },
         tipo: "campos",
       }),
     [despachar]

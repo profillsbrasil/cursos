@@ -4,10 +4,6 @@ import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@cursos/ui/components/native-select";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -44,6 +40,7 @@ import {
   ID,
   type ModuloDoRascunho,
 } from "./rascunho-do-curso";
+import { Selecao } from "./selecao";
 
 type Despachar = Dispatch<Mudanca>;
 
@@ -52,9 +49,6 @@ const ALVO_DA_AULA = {
   nova: (modulo: ModuloId) => `modulo-${modulo}-nova-aula`,
   remover: (id: AulaId) => `aula-${id}-remover`,
 };
-
-const SELECAO_PEQUENA =
-  "w-36 *:data-[slot=native-select]:h-10 *:data-[slot=native-select]:rounded-full *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-[13px] md:*:data-[slot=native-select]:h-9";
 
 const AULA_ASSISTIDA =
   "grid size-10 cursor-help place-items-center rounded-full text-ceu hover:bg-muted md:size-9";
@@ -245,10 +239,10 @@ function PainelDaAula({
     focarNoBotao(`aula-${id}`, "abaixo", posicao + 1 === total);
   }, [despachar, id, posicao, total]);
   const moverPara = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
+    (moduloId: string) => {
       despachar({
         id,
-        moduloId: e.target.value as ModuloId,
+        moduloId: moduloId as ModuloId,
         tipo: "aula_para_modulo",
       });
       focarDepois(`aula-${id}-modulo`);
@@ -359,22 +353,15 @@ function PainelDaAula({
         texto={aula.descricao}
       />
       {outros.length > 0 ? (
-        <NativeSelect
+        <Selecao
+          aoMudar={moverPara}
           aria-label={`Mover a ${nome} para outro módulo`}
-          className={SELECAO_PEQUENA}
           id={`aula-${id}-modulo`}
-          onChange={moverPara}
-          value=""
-        >
-          <NativeSelectOption disabled value="">
-            Mover para…
-          </NativeSelectOption>
-          {outros.map((m) => (
-            <NativeSelectOption key={m.id} value={m.id}>
-              {nomeDoModulo(m)}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          opcoes={outros.map((m) => ({ rotulo: nomeDoModulo(m), valor: m.id }))}
+          placeholder="Mover para…"
+          tamanho="pilula"
+          valor=""
+        />
       ) : null}
       <div aria-hidden="true" className="-mx-5 mt-2.5 mb-1.5 h-px bg-border" />
       <QuestionarioDaAula

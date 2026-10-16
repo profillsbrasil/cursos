@@ -284,7 +284,7 @@ O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clarei
 - **Brilho do selo de saldo** (`box-shadow: 0 10px 30px rgb(255 204 1 / 0.25)`): o círculo amarelo do saldo em Trocar pontos, junto com o gradiente radial em Sol a 16% no canto do cartão. Os dois só aparecem quando a vitrine da pessoa tem curso trocável, um que ela ainda não alcança; sem ele, o saldo fica plano, porque não há para onde chamar. A vitrine sem curso trocável termina no botão em contorno "Voltar a estudar", que leva à aula da retomada ou, sem ela, a Meus cursos.
 - **Painel** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.35)`): o painel do conteúdo sobre a moldura, do 768 px para cima, junto com o anel de 1 px em `borda`.
 - **Flutuante** (`box-shadow: 0 10px 30px rgb(0 0 0 / 0.45)`): a barra de salvar presa ao pé do editor do curso, com `backdrop-blur`.
-- **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta.
+- **Menu** (sombra `xl` do Tailwind em preto a 45%): o menu da conta e a lista aberta da seleção.
 - **Anel de conquista** (anel de 3 px em Sol a 35%): o cartão de conta quando o player registra pontos.
 
 ### Named Rules
@@ -328,6 +328,9 @@ Cheios e redondos, com o peso no amarelo.
 - **Style:** 44 px, fundo `fundo`, borda de 1 px em `texto-apagado`, raio de 12 px, padding lateral de 14 px, texto de 14 px.
 - **Focus:** o campo não tem hover para copiar, então a borda de 1 px vira Céu no foco e sob o cursor, sem contorno. A regra mora no `index.css` e pega pelo `data-slot` do shadcn (input, textarea, select, grupo de input, switch, checkbox, radio); a moldura de campo montada no app leva `data-campo`. O desligado não muda.
 - **Error:** a mensagem por campo em `erro`, ligada ao input pelo id. O campo com erro fica com a borda vermelha também no foco e sob o cursor.
+- **Seleção:** toda escolha de uma lista é a `Selecao` de `admin/selecao.tsx`, sobre o Select do Base UI, nunca o `<select>` do sistema, cuja lista sai com as cores do sistema operacional. O gatilho é o campo acima (44 px, ou a pílula de 36 px na seleção de ação "Mover para…"), com a seta à direita em `texto-apagado` que gira 180° em 200 ms com `ease-forte` enquanto a lista está aberta; o placeholder fica em `texto-apagado`.
+- **Lista da seleção:** no padrão do menu da conta. Abre 6 px abaixo do campo, com pelo menos a largura dele e no máximo 26 rem, em `popover`, raio de 14 px, padding de 6 px, anel de 1 px em `borda` e a sombra Menu. Cada item tem 36 px no mínimo, raio de 9 px, 10 px de padding lateral e texto de 13 px em 500 e `sidebar-foreground`; o destacado pelo cursor ou pelas setas ganha `sidebar-accent` e `titulo`; o escolhido fica em 600 e `titulo`, com o check em Sol à direita. O item pode ter um ícone à esquerda (o megafone de "Todos os alunos") e uma segunda linha de 12 px em `texto-apagado` (a descrição de cada status). O rótulo de grupo é de 12 px, 600, em `texto-apagado`, e o divisor de 1 px em `borda` vai de borda a borda. Sem opção nenhuma, a lista diz isso em 13 px `texto-apagado` ("Nenhuma categoria ainda. Crie em Gerenciar categorias."), em vez de abrir vazia. A lista abre em 150 ms com `ease-forte`, pela opacidade e pelo transform inteiro (4 px acima e 98%), e fecha em 100 ms; com movimento reduzido, aparece e some sem transição.
+- **Seleção com busca:** a lista que cresce (o "Para quem" do comunicado) põe no topo uma linha de 38 px com a lupa e o campo sem moldura, separada da lista por 1 px em `borda`, e filtra enquanto se digita; sem resultado, a frase "Nenhum curso com esse nome." em `texto-apagado`.
 
 ### Navigation
 - **Itens:** 40 px de altura, raio de 10 px, ícone de 18 px a 11 px da borda, 500 em 14 px. Sob o cursor e com o foco de teclado, fundo `sidebar-realce` e texto e ícone `titulo` em 150 ms.
