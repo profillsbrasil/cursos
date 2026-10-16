@@ -1,6 +1,6 @@
 // A página do curso para o aluno, no formato da Udemy: o que o curso ensina, a ação
 // principal e as aulas por módulo. Só monta a partir de um CursoAberto, então a
-// regra de quem vê é a de montarCursoAberto, a mesma do player e de aula.entrada.
+// regra de quem vê é a de montarCursoAberto, a mesma do player.
 
 import type { CursoAberto } from "./aula";
 import { type EstadoQueAbre, niveis, type Progresso, progresso } from "./curso";

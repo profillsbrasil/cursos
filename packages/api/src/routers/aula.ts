@@ -1,7 +1,7 @@
 import { SLUG } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
-import { carregarAula, carregarEntrada, registrar } from "../consultas/aula";
+import { carregarAula, registrar } from "../consultas/aula";
 import { TRECHOS_POR_ENVIO } from "../dominio/regras";
 import type { AulaId } from "../dominio/tipos";
 import { protectedProcedure, protegidoComTraducao, router } from "../index";
@@ -25,13 +25,6 @@ export const aulaRouter = router({
     .query(({ ctx, input }) =>
       FORMATO_DO_SLUG.test(input.slug) && UUID.safeParse(input.aulaId).success
         ? carregarAula(ctx.db, ctx.auth.userId, input.slug, input.aulaId)
-        : null
-    ),
-  entrada: protectedProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(({ ctx, input }) =>
-      FORMATO_DO_SLUG.test(input.slug)
-        ? carregarEntrada(ctx.db, ctx.auth.userId, input.slug)
         : null
     ),
   // A tradução leva o lock_timeout de registrar a TOO_MANY_REQUESTS.

@@ -10,8 +10,6 @@ import { eq, sql } from "drizzle-orm";
 import {
   type AulaNoPlayer,
   aulaPorId,
-  type EntradaDoCurso,
-  entradaDoCurso,
   estudoDaAula,
   type LinhasCurso,
   montarAulaNoPlayer,
@@ -109,18 +107,7 @@ export async function carregarAula(
   return aberto && aula ? montarAulaNoPlayer(aberto, aula) : null;
 }
 
-export async function carregarEntrada(
-  db: Database,
-  userId: string,
-  slug: string
-): Promise<EntradaDoCurso | null> {
-  const aberto = montarCursoAberto(
-    await linhasDoCurso(db, userId, { slug }, { serial: false })
-  );
-  return aberto && entradaDoCurso(aberto);
-}
-
-/** curso.pagina: null para quem aula.entrada também devolve null. */
+/** curso.pagina: null quando montarCursoAberto recusa, a mesma porta do player. */
 export async function carregarPaginaDoCurso(
   db: Database,
   userId: string,
