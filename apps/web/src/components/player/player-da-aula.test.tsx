@@ -39,6 +39,7 @@ const DADOS: AulaNoPlayer = {
   estudo: { assistida: false, posicaoSeg: 222, trechos: SEM_TRECHOS },
   modulos: [],
   proxima: { id: "a5" as AulaId, titulo: "Prazo que o cliente aceita" },
+  questionario: null,
 };
 
 const TITULO = "<h1";

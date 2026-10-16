@@ -7,6 +7,7 @@ import { AulaSemVideo } from "@/components/player/aula-sem-video";
 import { ColunaDoCurso } from "@/components/player/coluna-do-curso";
 import { MigalhaDaAula } from "@/components/player/migalha-da-aula";
 import { PlayerDaAula } from "@/components/player/player-da-aula";
+import { QuestionarioDaAula } from "@/components/player/questionario-da-aula";
 import { carregarAula } from "@/server/api";
 
 interface Props {
@@ -34,16 +35,28 @@ export default async function PaginaDaAula({ params }: Props) {
     <>
       <TopoDoAluno esquerda={<MigalhaDaAula dados={dados} />} />
       <div className="grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]">
-        {dados.aula.video ? (
-          <PlayerDaAula
-            dados={dados}
-            inicioSeg={inicioDaAula(dados.estudo, dados.aula.duracaoSeg)}
-            key={dados.aula.id}
-            video={dados.aula.video}
-          />
-        ) : (
-          <AulaSemVideo dados={dados} />
-        )}
+        <div className="grid min-w-0 gap-6">
+          {dados.aula.video ? (
+            <PlayerDaAula
+              dados={dados}
+              inicioSeg={inicioDaAula(dados.estudo, dados.aula.duracaoSeg)}
+              key={dados.aula.id}
+              video={dados.aula.video}
+            />
+          ) : (
+            <AulaSemVideo dados={dados} />
+          )}
+          {dados.questionario ? (
+            <QuestionarioDaAula
+              aulaId={dados.aula.id}
+              key={dados.aula.id}
+              proxima={dados.proxima}
+              questionario={dados.questionario}
+              slug={dados.curso.slug}
+              temVideo={dados.aula.video !== null}
+            />
+          ) : null}
+        </div>
         <ColunaDoCurso dados={dados} />
       </div>
     </>
