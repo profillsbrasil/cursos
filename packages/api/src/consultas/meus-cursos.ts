@@ -3,11 +3,10 @@ import {
   aulaAssistida,
   certificado,
   comunicado,
-  liberacao,
   posicaoAula,
   questionarioTentativa,
 } from "@cursos/db/schema/index";
-import { and, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 
 import type {
   LinhaDoQuestionario,
@@ -23,6 +22,7 @@ import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
+import { comunicadoVisivelPara, DO_MAIS_NOVO } from "./comunicado";
 import { linhasDoSaldo } from "./pontos";
 
 /**
@@ -107,9 +107,7 @@ export async function linhasDoPainel(db: Database, userId: string) {
     }),
     // 2 a 5
     linhasDoHistorico(db, userId),
-    // 6. o comunicado mais recente que o aluno pode ver: geral ou de curso
-    // liberado. O filtro fica no SQL para que comunicados de cursos fora do
-    // alcance não empurrem o dele para fora do limit.
+    // 6. o comunicado mais recente que o aluno pode ver
     db
       .select({
         cursoId: comunicado.cursoId,
@@ -119,21 +117,8 @@ export async function linhasDoPainel(db: Database, userId: string) {
         titulo: comunicado.titulo,
       })
       .from(comunicado)
-      .where(
-        or(
-          isNull(comunicado.cursoId),
-          inArray(
-            comunicado.cursoId,
-            db
-              .select({ id: liberacao.cursoId })
-              .from(liberacao)
-              .where(
-                and(eq(liberacao.userId, userId), isNull(liberacao.revogadaEm))
-              )
-          )
-        )
-      )
-      .orderBy(desc(comunicado.publicadoEm))
+      .where(comunicadoVisivelPara(db, userId))
+      .orderBy(...DO_MAIS_NOVO)
       .limit(1),
   ]);
   return { ...historico, comunicados, liberacoes };
