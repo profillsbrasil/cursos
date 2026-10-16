@@ -2,18 +2,7 @@
 
 Este arquivo é a fonte única para retomar o trabalho numa máquina nova. Ele guarda as decisões do dono, o estado de cada entrega, o que falta, as provas e todo o material de trabalho em `arquivos/`. Vale até o trabalho fechar. Depois, ele é apagado, e o que ficar de regra vai para o `GLOSSARY.md`, a ADR e o `CLAUDE.md`.
 
-O issue de acompanhamento é o #65. Os PRs #64 e #66 já entraram na main. O editor começa numa branch nova, a partir da main.
-
-## Como retomar
-
-Cole esta mensagem num agente aberto no clone do repo:
-
-> Retome o curso no formato Udemy em profillsbrasil/cursos. Faça `git fetch` e crie uma branch a partir da `origin/main`. Leia, nesta ordem:
-> 1. `docs/specs/curso-formato-udemy/README.md`, inteiro;
-> 2. `gh issue view 65 --comments`;
-> 3. o `CLAUDE.md` da raiz.
->
-> Construa o editor do curso pelo protótipo aprovado (`docs/specs/curso-formato-udemy/arquivos/prototipo-editor-r3.html`), sob `/impeccable` e seguindo o protótipo à risca. Para a prova no browser, crie um database próprio no Supabase local e migre-o. Depois me peça para rodar o seed com `!`, porque o classificador nega o seed ao agente.
+O issue de acompanhamento é o #65. **O trabalho fechou em 16 de outubro de 2026**: todos os PRs abaixo estão na main, e as cinco migrações estão no banco cloud. Este arquivo fica como registro das decisões e das provas, e pode ser apagado quando o dono quiser. As regras que continuam valendo já estão no `GLOSSARY.md`, no `apps/web/PRODUCT.md`, no `apps/web/DESIGN.md` e no `CLAUDE.md`.
 
 ## Decisões do dono
 
@@ -55,7 +44,7 @@ O dono pode trocar qualquer uma destas sem custo.
 
 - Limites: descrição do curso e da aula com até 2000 caracteres, até 10 tópicos de até 120 caracteres e nome de categoria com até 80 caracteres.
 - A capa de cada curso em Meus cursos leva à página do curso. O banner de retomada e o Continuar da sidebar levam direto à aula.
-- No player, o nome do curso na migalha leva à página do curso.
+- No player, o nome do curso no topo da coluna de aulas leva à página do curso. O app não tem migalha.
 - Abaixo de 1081 px, o cartão preso da página do curso sobe para baixo do cabeçalho e deixa de ser preso.
 
 ## Protótipos e provas
@@ -85,14 +74,18 @@ Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 
 ## Entregas
 
-| Entrega | Branch | Estado |
+| Entrega | PR | Estado |
 |---|---|---|
-| Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Na main. As migrações no cloud ficam com o dono. |
-| Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria em tabela, descrição, tópicos, descrição da aula, endereço automático, `curso.pagina` e `admin.categorias` |
-| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy`, PR #66 | Provado no browser (`prova-curso-udemy/`). Espera o merge. O dono aceitou os desvios listados abaixo. |
-| Curso no formato Udemy: editor (Vitrine, tópicos, aulas e questionário) | `feat/udemy-editor`, PR #71 | Provado no browser. Espera o merge. |
-| Questionário do aluno, pontos e conclusão | `feat/udemy-questionario`, PR #76 | Provado no browser. Espera o merge. |
-| Certificado: página, PDF e conferência | `feat/udemy-certificado`, PR #75, junto do questionário no PR #77 | Provado no browser. Espera o merge. |
+| Tirar a trilha do catálogo | #64 | Na main |
+| Curso no formato Udemy: dados, página do curso e tela de categorias | #66 | Na main. O dono aceitou os desvios listados abaixo |
+| Polimento: críticas do `/impeccable`, menu sem Início e pendências pequenas | #70 | Na main |
+| Editor do curso (Vitrine, tópicos, aulas e questionário) | #71 | Na main |
+| Sidebar recolhe na aula, app sem migalha | #72 | Na main |
+| Conquistas | #73 | Na main |
+| Liberar um curso para várias pessoas | #74 | Na main |
+| Questionário do aluno, pontos e conclusão | #76 | Na main |
+| Certificado (página, PDF e conferência) junto do questionário | #77, que contém o #75 | Na main |
+| Comunicados do aluno | #78 | Na main |
 
 ## Página do curso e categorias: entregue
 
@@ -132,13 +125,7 @@ O detector do `/impeccable`, rodado na página renderizada, deixou só falsos po
 
 ## Ordem no banco cloud
 
-O banco cloud é dividido entre a main e os worktrees abertos. Siga esta ordem:
-
-1. O dono faz o merge do #66 e, em seguida, dos PRs empilhados nele: #70 a #77.
-2. Os worktrees abertos juntam a main.
-3. O dono aplica as migrações na ordem `catalogo_sem_trilha`, `formato_udemy`, `categoria`, `questionario` e `questionario_do_aluno`, e zera o banco no mesmo momento.
-
-Aplicar antes quebra a main e os outros worktrees, porque eles ainda leem trilha.
+Feito em 16 de outubro de 2026: o dono aplicou `catalogo_sem_trilha`, `formato_udemy`, `categoria`, `questionario` e `questionario_do_aluno`, e a tabela `drizzle.__drizzle_migrations` do cloud tem as 12 migrações da main. Zerar o banco, como pede a ADR 0001, fica com o dono.
 
 ## Notas para o agente
 
@@ -163,22 +150,15 @@ Estas notas viviam na memória da máquina antiga.
 - Toda interface nova sai em 4 protótipos lado a lado para o dono escolher, e o aprovado se segue à risca.
 - Não proponha de novo:
   - anel ou contorno de foco;
-  - tirar os itens "Em breve" do menu do aluno;
   - botão de legenda no player, ou qualquer elemento por cima do iframe do YouTube.
 
 ## Pendências pequenas
 
-- Em `comunicados.tsx`, depois de apagar, o foco cai no `body`, pelo mesmo motivo que foi corrigido nas categorias.
-- `aula.entrada` só serve de referência nos testes de acesso desde que a página do curso deixou de redirecionar. Dá para trocá-lo por `curso.pagina` nesses testes e apagá-lo.
-- No seed, o curso "Limpeza CIP e troca de formato" tem a categoria "Fábrica e montagem", que é também o título de outro curso.
-- `apps/web/DESIGN.md` ainda fala em "pé dos editores".
-- Na busca do admin, a frase de quem nunca abriu um curso não conta os cursos em produção.
-- As críticas anteriores do `/impeccable` sobre o app inteiro estão em `arquivos/critica-impeccable/`, com `shape-admin.md`. As pendências que o dono não fechou são:
-  - o trilho da barra de progresso, a 1,5:1;
-  - a largura do extrato e de Sua semana;
-  - os três selos em Céu na linha de liberar;
-  - os pontos no cartão de conta do admin;
-  - a tela Trocar pontos, que não tem saída.
+Todas as pendências que estavam aqui foram resolvidas no #70. Ficam como sugestão:
+
+- A faixa de comunicado de Meus cursos pode ganhar um link para `/comunicados`.
+- O certificado em Conquistas ainda não tem link para a página do certificado.
+- Nenhum item do menu usa mais o estado "Em breve"; ele só sobrevive no teste de foco.
 
 ## Como verificar
 
