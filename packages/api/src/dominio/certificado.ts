@@ -2,15 +2,15 @@
 // como XXXX-XXXX. Roda no servidor e no browser (a conferência pública digita o
 // código), então o aleatório vem do Web Crypto, não de node:crypto.
 
-export const ALFABETO_DO_CODIGO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+import {
+  ALFABETO_DO_CODIGO,
+  CODIGO_DO_CERTIFICADO,
+} from "@cursos/db/schema/formatos";
 
 const SIMBOLOS = 8;
 const METADE = SIMBOLOS / 2;
 
-/** "7K3M-Q9TD": dois blocos de 4 do alfabeto. */
-export const FORMATO_DO_CODIGO = new RegExp(
-  `^[${ALFABETO_DO_CODIGO}]{${METADE}}-[${ALFABETO_DO_CODIGO}]{${METADE}}$`
-);
+export const FORMATO_DO_CODIGO = new RegExp(CODIGO_DO_CERTIFICADO);
 
 /**
  * O código a partir de 8 índices no alfabeto. Índice fora do alfabeto é defeito de

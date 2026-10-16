@@ -46,6 +46,15 @@ export interface AlunoTravado {
   readonly [travado]: true;
 }
 
+/** A trava do aluno numa transação que já está aberta (o registrar, a edição do admin). */
+export async function travarAluno(
+  tx: Transacao,
+  userId: string
+): Promise<AlunoTravado> {
+  await travarTambem(tx, `ponto:${userId}`);
+  return { tx, userId } as AlunoTravado;
+}
+
 /**
  * Em READ COMMITTED o snapshot de um statement nasce antes de ele esperar a trava.
  * Leia o estado do aluno dentro de fn, num statement depois da trava, para ver o
@@ -56,7 +65,5 @@ export function comAlunoTravado<T>(
   userId: string,
   fn: (aluno: AlunoTravado) => Promise<T>
 ): Promise<T> {
-  return comTrava(db, `ponto:${userId}`, (tx) =>
-    fn({ tx, userId } as AlunoTravado)
-  );
+  return db.transaction(async (tx) => fn(await travarAluno(tx, userId)));
 }

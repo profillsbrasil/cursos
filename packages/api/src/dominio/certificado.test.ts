@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
+import { ALFABETO_DO_CODIGO } from "@cursos/db/schema/formatos";
+
 import {
-  ALFABETO_DO_CODIGO,
   codigoDosIndices,
   FORMATO_DO_CODIGO,
   gerarCodigo,

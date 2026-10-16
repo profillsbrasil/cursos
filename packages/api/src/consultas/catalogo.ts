@@ -1,5 +1,5 @@
 import type { Database } from "@cursos/db";
-import { aula, curso, modulo } from "@cursos/db/schema/index";
+import { aula, curso, modulo, pergunta } from "@cursos/db/schema/index";
 import { eq, sql } from "drizzle-orm";
 
 import type { VisaoDoCatalogo } from "../dominio/catalogo";
@@ -33,6 +33,13 @@ export const COM_CONTEUDO = {
             titulo: true,
             videoId: true,
             videoProvedor: true,
+          },
+          extras: {
+            // O callback recebe a aula com o alias da consulta; `aula.id` solto sairia sem alias.
+            perguntas: (t: Pick<typeof aula, "id">) =>
+              sql<number>`(select count(*)::int from ${pergunta} where ${pergunta.aulaId} = ${t.id})`.as(
+                "perguntas"
+              ),
           },
           orderBy: { posicao: "asc" },
         },

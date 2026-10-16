@@ -148,9 +148,7 @@ export function resultadoDaTentativa(
   tentativa: TentativaGravada,
   primeira: Pick<TentativaGravada, "acertos">
 ): ResultadoDoQuestionario {
-  const respostaDe = new Map(
-    tentativa.respostas.map((r) => [r.perguntaId, r])
-  );
+  const respostaDe = new Map(tentativa.respostas.map((r) => [r.perguntaId, r]));
   return {
     acertos: tentativa.acertos,
     aprovada: tentativa.aprovada,

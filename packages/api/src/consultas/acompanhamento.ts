@@ -15,6 +15,14 @@ interface PessoaEmJson {
   certificados: { codigo: string; cursoId: string; emitidoEm: Ms }[];
   liberacoes: { cursoId: string; liberadaEm: Ms; revogadaEm: Ms | null }[];
   posicoes: { atualizadaEm: Ms; aulaId: string; posicaoSeg: number }[];
+  questionarios: {
+    aprovada: boolean;
+    aulaId: string;
+    tentativas: number;
+    ultimaEm: Ms;
+    ultimosAcertos: number;
+    ultimoTotal: number;
+  }[];
   userId: string;
 }
 
@@ -76,14 +84,32 @@ export async function linhasDaBusca(
             'codigo', ce.codigo,
             'cursoId', ce.curso_id,
             'emitidoEm', ${emMs("ce.emitido_em")}))
-          from certificado ce where ce.user_id = p.user_id), '[]')
+          from certificado ce where ce.user_id = p.user_id), '[]'),
+        'questionarios', coalesce((select json_agg(json_build_object(
+            'aulaId', q.aula_id,
+            'aprovada', q.aprovada,
+            'tentativas', q.tentativas,
+            'ultimaEm', q.ultima_em,
+            'ultimosAcertos', q.ultimos_acertos,
+            'ultimoTotal', q.ultimo_total))
+          from (select t.aula_id,
+                       bool_or(t.aprovada) as aprovada,
+                       count(*)::int as tentativas,
+                       ${emMs("max(t.enviada_em)")} as ultima_em,
+                       (array_agg(t.acertos order by t.numero desc))[1] as ultimos_acertos,
+                       (array_agg(t.total order by t.numero desc))[1] as ultimo_total
+                  from questionario_tentativa t
+                 where t.user_id = p.user_id
+                 group by t.aula_id) q), '[]')
       )) from p), '[]'),
       'cursos', coalesce((select json_agg(json_build_object(
         'id', c.id,
         'status', c.status,
         'titulo', c.titulo,
         'modulos', coalesce((select json_agg(json_build_object(
-            'aulas', coalesce((select json_agg(json_build_object('id', au.id)
+            'aulas', coalesce((select json_agg(json_build_object(
+                  'id', au.id,
+                  'perguntas', (select count(*)::int from pergunta pe where pe.aula_id = au.id))
                 order by au.posicao)
               from aula au where au.modulo_id = m.id), '[]'))
             order by m.numero)
@@ -117,6 +143,10 @@ export async function linhasDaBusca(
         atualizadaEm: data(x.atualizadaEm),
         aulaId: x.aulaId,
         posicaoSeg: x.posicaoSeg,
+      })),
+      questionarios: p.questionarios.map((q) => ({
+        ...q,
+        ultimaEm: data(q.ultimaEm),
       })),
       userId: p.userId,
     })),

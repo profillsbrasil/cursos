@@ -14,6 +14,7 @@ import {
   modulo,
   nivel,
   pergunta,
+  questionarioTentativa,
 } from "@cursos/db/schema/index";
 import { and, count, eq, inArray, like, or, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
@@ -47,6 +48,7 @@ import {
 } from "../dominio/tipos";
 import { videoDaAula } from "../dominio/video";
 import { ErroParaAPessoa } from "../index";
+import { concluirParaQuemCompletou } from "./certificado";
 import { COLUNAS_DA_CAPA, type Executor, type Transacao } from "./comum";
 import { CURSO_EM_USO, violacaoDe } from "./erros";
 import { comTrava, travarTambem } from "./trava";
@@ -63,7 +65,7 @@ const TETO_FINAL = Math.max(LIMITES.numeroDeModulo, LIMITES.aulasPorModulo);
 const LINHAS_POR_LOTE = 1000;
 
 /**
- * O curso como o editor abre: documento (com versão), capa e uso. Três
+ * O curso como o editor abre: documento (com versão), capa e uso. Quatro
  * statements em série, porque dentro da transação eles dividem um client. null
  * quando o id não existe.
  */
@@ -132,6 +134,16 @@ export async function abrirCurso(
     .innerJoin(modulo, eq(modulo.id, aula.moduloId))
     .where(eq(modulo.cursoId, id))
     .groupBy(aulaAssistida.aulaId);
+  const tentativas = await exec
+    .select({
+      alunos: sql<number>`count(distinct ${questionarioTentativa.userId})::int`,
+      aulaId: questionarioTentativa.aulaId,
+    })
+    .from(questionarioTentativa)
+    .innerJoin(aula, eq(aula.id, questionarioTentativa.aulaId))
+    .innerJoin(modulo, eq(modulo.id, aula.moduloId))
+    .where(eq(modulo.cursoId, id))
+    .groupBy(questionarioTentativa.aulaId);
   const {
     rows: [contagens],
   } = await exec.execute<{ certificados: number; liberacoes: number }>(sql`
@@ -181,6 +193,9 @@ export async function abrirCurso(
     ),
     certificados: contagens?.certificados ?? 0,
     liberacoes: contagens?.liberacoes ?? 0,
+    tentativasPorAula: Object.fromEntries(
+      tentativas.map((t) => [t.aulaId, t.alunos])
+    ),
   };
   return {
     capa: capaDe(linha),
@@ -227,6 +242,12 @@ function erroDaEdicao(r: RecusaDaEdicao, cause?: unknown): ErroParaAPessoa {
         cause,
         code: "PRECONDITION_FAILED",
         message: `A aula "${r.titulo}" já foi assistida por ${r.alunos} ${r.alunos === 1 ? "aluno" : "alunos"} e não se apaga. Troque o vídeo ou o título dela.`,
+      });
+    case "questionario_respondido":
+      return new ErroParaAPessoa({
+        cause,
+        code: "PRECONDITION_FAILED",
+        message: `O questionário da aula "${r.titulo}" já foi respondido por ${r.alunos} ${r.alunos === 1 ? "aluno" : "alunos"}, e a aula não se apaga. Troque o vídeo ou o título dela.`,
       });
     default: {
       const nenhuma: never = r;
@@ -301,9 +322,15 @@ async function slugParaCursoNovo(tx: Transacao, titulo: string) {
  * A trava curso:<id> serializa dois salvamentos do mesmo curso, inclusive a
  * criação repetida, sem bloquear troca nem registro de aula.
  */
+const FK_DO_ALUNO: ReadonlySet<string> = new Set([
+  "aula_assistida_aula_id_aula_id_fkey",
+  "questionario_tentativa_aula_id_aula_id_fkey",
+]);
+
 export async function salvarCurso(
   s: Pick<Servicos, "capas" | "db">,
-  formulario: FormData
+  formulario: FormData,
+  agora = new Date()
 ): Promise<CursoSalvo> {
   const lido = lerFormularioDoCurso(formulario);
   if (lido.tipo === "invalido") {
@@ -333,12 +360,19 @@ export async function salvarCurso(
       if (plano.tipo !== "nada_mudou") {
         await gravarCurso(tx, plano, slug);
       }
+      // A aula ou a pergunta que saiu pode ter sido a última coisa que faltava a alguém.
+      if (
+        plano.tipo === "atualizar" &&
+        (plano.apagar.aulas.length > 0 || plano.apagar.perguntas.length > 0)
+      ) {
+        await concluirParaQuemCompletou(tx, documento.id, agora);
+      }
       return { cursoId: documento.id, slug, versao: plano.versao };
     });
   } catch (erro) {
-    // O aluno não pega a trava do curso: a aula assistida que entra entre a conta
-    // e o DELETE para no FK restrict. O plano refeito já conta essa aula.
-    if (violacaoDe(erro)?.restricao === "aula_assistida_aula_id_aula_id_fkey") {
+    // O aluno não pega a trava do curso: a aula assistida ou a tentativa que entra
+    // entre a conta e o DELETE para no FK restrict. O plano refeito já a conta.
+    if (FK_DO_ALUNO.has(violacaoDe(erro)?.restricao ?? "")) {
       const plano = planejarCurso(
         await abrirCurso(s.db, documento.id),
         documento,

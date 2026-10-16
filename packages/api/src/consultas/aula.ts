@@ -29,16 +29,20 @@ import {
   type Registro,
 } from "../dominio/registro";
 import { COTA_VIDEO } from "../dominio/regras";
-import type { AulaId, DiaISO } from "../dominio/tipos";
+import type { AulaId, CursoId, DiaISO } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
 import { COM_CONTEUDO } from "./catalogo";
+import { concluirCurso } from "./certificado";
 import { type Executor, relacaoLiberacoesAtivas } from "./comum";
+import { linhasDosQuestionarios } from "./meus-cursos";
+import { linhasDoQuestionario } from "./questionario";
+import { travarAluno } from "./trava";
 
 export type ChaveCurso = { aulaId: string } | { slug: string };
 
 /**
- * `serial` é para dentro de uma transação: os quatro dividem um client, e o pg 8
+ * `serial` é para dentro de uma transação: os cinco dividem um client, e o pg 8
  * avisa que query concorrente no mesmo client deixa de funcionar no pg 9.
  */
 export async function linhasDoCurso(
@@ -84,16 +88,24 @@ export async function linhasDoCurso(
       })
       .from(posicaoAula)
       .where(eq(posicaoAula.userId, userId)),
+    linhasDosQuestionarios(exec, userId),
   ] as const;
-  const [curso, certificados, assistidas, posicoes] = serial
+  const [curso, certificados, assistidas, posicoes, questionarios] = serial
     ? ([
         await consultas[0],
         await consultas[1],
         await consultas[2],
         await consultas[3],
+        await consultas[4],
       ] as const)
     : await Promise.all(consultas);
-  return { assistidas, certificados, curso: curso ?? null, posicoes };
+  return {
+    assistidas,
+    certificados,
+    curso: curso ?? null,
+    posicoes,
+    questionarios,
+  };
 }
 
 export async function carregarAula(
@@ -102,11 +114,13 @@ export async function carregarAula(
   slug: string,
   aulaId: string
 ): Promise<AulaNoPlayer | null> {
-  const aberto = montarCursoAberto(
-    await linhasDoCurso(db, userId, { slug }, { serial: false })
-  );
+  const [linhas, questionario] = await Promise.all([
+    linhasDoCurso(db, userId, { slug }, { serial: false }),
+    linhasDoQuestionario(db, userId, aulaId as AulaId),
+  ]);
+  const aberto = montarCursoAberto(linhas);
   const aula = aberto && aulaPorId(aberto, aulaId);
-  return aberto && aula ? montarAulaNoPlayer(aberto, aula) : null;
+  return aberto && aula ? montarAulaNoPlayer(aberto, aula, questionario) : null;
 }
 
 export async function carregarEntrada(
@@ -158,7 +172,8 @@ export const ESPERA_PELA_COTA_MS = 3000;
 
 /**
  * Uma transação: trava a cota do aluno, relê o acesso, aplica o registro, grava
- * posição, trechos e cota e, só na virada, a aula assistida e os lançamentos.
+ * posição, trechos e cota e, só na virada, a aula assistida, os lançamentos e,
+ * com a trava do aluno, a conclusão do curso que essa aula fechou.
  * Qualquer erro desfaz tudo; reenviar o mesmo pedido dá o mesmo resultado.
  */
 export function registrar(
@@ -252,6 +267,11 @@ export function registrar(
             pontos: pontoLancamento.pontos,
           });
         conquista = conquistaDe(gravados, efeitos.sequenciaDias);
+        await concluirCurso(
+          await travarAluno(tx, userId),
+          aberto.curso.id as CursoId,
+          agora
+        );
       }
     }
     return {

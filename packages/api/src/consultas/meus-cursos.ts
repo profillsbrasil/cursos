@@ -5,10 +5,14 @@ import {
   comunicado,
   liberacao,
   posicaoAula,
+  questionarioTentativa,
 } from "@cursos/db/schema/index";
-import { and, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 
-import type { LinhasHistorico } from "../dominio/historico";
+import type {
+  LinhaDoQuestionario,
+  LinhasHistorico,
+} from "../dominio/historico";
 import {
   montarPainel,
   montarResumo,
@@ -18,48 +22,76 @@ import {
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
-import { filtroLiberacaoAtiva } from "./comum";
+import { type Executor, filtroLiberacaoAtiva } from "./comum";
 import { linhasDoSaldo } from "./pontos";
 
 /**
- * Statements 2, 3 e 4 do painel, em paralelo: o histórico de estudo da pessoa.
+ * As tentativas da pessoa somadas por aula: se aprovou, quantas foram, quando foi
+ * a última e a nota dela. Uma linha por aula tentada.
+ */
+export function linhasDosQuestionarios(
+  exec: Executor,
+  userId: string
+): Promise<LinhaDoQuestionario[]> {
+  const t = questionarioTentativa;
+  return exec
+    .select({
+      aprovada: sql<boolean>`bool_or(${t.aprovada})`,
+      aulaId: t.aulaId,
+      tentativas: sql<number>`count(*)::int`,
+      // O decodificador da coluna devolve Date; o sql cru devolveria texto.
+      ultimaEm: sql`max(${t.enviadaEm})`.mapWith(t.enviadaEm),
+      ultimosAcertos: sql<number>`(array_agg(${t.acertos} order by ${t.numero} desc))[1]`,
+      ultimoTotal: sql<number>`(array_agg(${t.total} order by ${t.numero} desc))[1]`,
+    })
+    .from(t)
+    .where(eq(t.userId, userId))
+    .groupBy(t.aulaId);
+}
+
+/**
+ * Statements 2 a 5 do painel, em paralelo: o histórico de estudo da pessoa.
  * O painel do aluno e a tela de acesso do admin leem o mesmo.
  */
 export async function linhasDoHistorico(
   db: Database,
   userId: string
 ): Promise<LinhasHistorico> {
-  const [assistidas, posicoes, certificados] = await Promise.all([
-    // 2. aulas assistidas (inclusive de curso revogado; a montagem ignora as de fora do catálogo)
-    db
-      .select({
-        assistidaEm: aulaAssistida.assistidaEm,
-        aulaId: aulaAssistida.aulaId,
-      })
-      .from(aulaAssistida)
-      .where(eq(aulaAssistida.userId, userId)),
-    // 3. posições com segundo > 0
-    db
-      .select({
-        atualizadaEm: posicaoAula.atualizadaEm,
-        aulaId: posicaoAula.aulaId,
-        posicaoSeg: posicaoAula.posicaoSeg,
-      })
-      .from(posicaoAula)
-      .where(
-        and(eq(posicaoAula.userId, userId), gt(posicaoAula.posicaoSeg, 0))
-      ),
-    // 4. certificados
-    db
-      .select({
-        codigo: certificado.codigo,
-        cursoId: certificado.cursoId,
-        emitidoEm: certificado.emitidoEm,
-      })
-      .from(certificado)
-      .where(eq(certificado.userId, userId)),
-  ]);
-  return { assistidas, certificados, posicoes };
+  const [assistidas, posicoes, certificados, questionarios] = await Promise.all(
+    [
+      // 2. aulas assistidas (inclusive de curso revogado; a montagem ignora as de fora do catálogo)
+      db
+        .select({
+          assistidaEm: aulaAssistida.assistidaEm,
+          aulaId: aulaAssistida.aulaId,
+        })
+        .from(aulaAssistida)
+        .where(eq(aulaAssistida.userId, userId)),
+      // 3. posições com segundo > 0
+      db
+        .select({
+          atualizadaEm: posicaoAula.atualizadaEm,
+          aulaId: posicaoAula.aulaId,
+          posicaoSeg: posicaoAula.posicaoSeg,
+        })
+        .from(posicaoAula)
+        .where(
+          and(eq(posicaoAula.userId, userId), gt(posicaoAula.posicaoSeg, 0))
+        ),
+      // 4. certificados
+      db
+        .select({
+          codigo: certificado.codigo,
+          cursoId: certificado.cursoId,
+          emitidoEm: certificado.emitidoEm,
+        })
+        .from(certificado)
+        .where(eq(certificado.userId, userId)),
+      // 5. os questionários tentados
+      linhasDosQuestionarios(db, userId),
+    ]
+  );
+  return { assistidas, certificados, posicoes, questionarios };
 }
 
 // Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita
@@ -73,9 +105,9 @@ export async function linhasDoPainel(db: Database, userId: string) {
       where: filtroLiberacaoAtiva(userId),
       with: { curso: COM_CONTEUDO },
     }),
-    // 2, 3 e 4
+    // 2 a 5
     linhasDoHistorico(db, userId),
-    // 5. o comunicado mais recente que o aluno pode ver: geral ou de curso
+    // 6. o comunicado mais recente que o aluno pode ver: geral ou de curso
     // liberado. O filtro fica no SQL para que comunicados de cursos fora do
     // alcance não empurrem o dele para fora do limit.
     db
