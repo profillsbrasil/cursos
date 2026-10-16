@@ -138,10 +138,10 @@ export function Vitrine({
             ajuda="Linha em branco separa parágrafos."
             aoMudar={mudarDescricao}
             id={ID.curso("descricao")}
+            linhasFixas={4}
             maximo={CARACTERES.descricao}
             placeholder="O que o curso ensina e para quem ele é."
             rotulo="Descrição"
-            rows={4}
             texto={rascunho.descricao}
           />
         </div>

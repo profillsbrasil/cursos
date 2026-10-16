@@ -135,6 +135,7 @@ export function AreaDeTexto({
   aoMudar,
   campoClasse,
   id,
+  linhasFixas,
   maximo,
   rotulo,
   rotuloClasse,
@@ -145,6 +146,8 @@ export function AreaDeTexto({
   aoMudar: (texto: string) => void;
   campoClasse?: string;
   id: string;
+  /** Altura de N linhas que não cresce: o texto além delas rola por dentro. */
+  linhasFixas?: number;
   maximo?: number;
   rotulo: ReactNode;
   rotuloClasse?: string;
@@ -173,11 +176,16 @@ export function AreaDeTexto({
       <Textarea
         {...area}
         {...aria}
-        className={cn(AREA, area.className)}
+        className={cn(
+          AREA,
+          linhasFixas === undefined ? null : "field-sizing-fixed",
+          area.className
+        )}
         id={id}
         maxLength={maximo}
         onBlur={sair}
         onChange={mudar}
+        rows={linhasFixas ?? area.rows}
         value={texto}
       />
       {pe ? (
