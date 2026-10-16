@@ -43,7 +43,7 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Preço de troca | Pontos que a próxima troca de um curso custa. Mudar o preço não muda as trocas feitas. |
 | Dia útil | Segunda a sexta no fuso `America/Sao_Paulo`. Feriado conta como dia útil. |
 | Sequência | Dias úteis seguidos com pelo menos uma aula assistida pela primeira vez. Sábado e domingo não contam nem quebram. |
-| Medalha | Conquista individual por critério. Ainda não existe no código. |
+| Medalha | Conquista individual por um marco que o app já registra: Primeira aula, 10, 50 e 100 aulas, Sete dias seguidos, Primeira troca, Primeiro curso concluído e o certificado de cada curso. Ganha, leva o dia; por ganhar, o que falta. Não há nível de aluno, ranking nem comparação. A tela é "Conquistas". |
 | Comunicado | Aviso publicado pelo admin, geral ou de um curso. |
 | Estado do curso | Um de cinco valores calculados no servidor: `em_breve`, `nao_iniciado`, `em_andamento`, `prova`, `concluido`. O aluno lê `em_breve` como "Em produção". O termo é o do admin, mas o alcance é maior: `em_breve` vale para o curso com status `em_producao` e para o curso publicado ainda sem aula, que o admin vê como publicado. |
 | Último estudo | O dia mais recente, em São Paulo, em que a pessoa assistiu a uma aula, salvou uma posição acima de 0 s ou recebeu um certificado. Entrar no app não conta. |
