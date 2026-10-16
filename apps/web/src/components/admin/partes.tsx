@@ -10,8 +10,36 @@ export const NUMERO = "text-right tabular-nums";
 
 export const CAMPO =
   "rounded-[12px] border-muted-foreground bg-background px-3.5 text-sm md:text-sm dark:border-muted-foreground dark:bg-background";
+/**
+ * O gatilho da Selecao. A borda Céu do foco e do cursor vem do index.css pelo
+ * data-slot="select-trigger"; a seta gira com o data-popup-open do Base UI.
+ */
 export const SELECAO =
-  "w-full *:data-[slot=native-select]:h-11 *:data-[slot=native-select]:rounded-[12px] *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-sm";
+  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-[12px] border border-muted-foreground bg-background px-3.5 text-left text-foreground text-sm transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
+
+export const GATILHO_DA_SELECAO = {
+  campo: SELECAO,
+  pilula: cn(SELECAO, "h-10 w-36 rounded-full text-[13px] md:h-9"),
+} as const;
+
+/**
+ * A lista aberta, no padrão do menu da conta. Abre em 150 ms pela opacidade e
+ * pelo transform inteiro; com movimento reduzido, aparece sem transição.
+ */
+export const LISTA_DA_SELECAO =
+  "max-h-[min(20rem,var(--available-height))] min-w-(--anchor-width) max-w-[min(26rem,var(--available-width))] origin-(--transform-origin) overflow-y-auto rounded-[14px] bg-popover p-1.5 text-popover-foreground shadow-black/45 shadow-xl ring-1 ring-border transition-[opacity,transform] duration-150 ease-forte data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-100 data-ending-style:[transform:translateY(-4px)_scale(0.98)] data-starting-style:[transform:translateY(-4px)_scale(0.98)] motion-reduce:transition-none";
+
+export const ITEM_DA_SELECAO =
+  "flex min-h-9 cursor-pointer select-none items-center gap-2.5 rounded-[9px] px-2.5 py-1.5 font-medium text-[13px] text-sidebar-foreground data-highlighted:bg-sidebar-accent data-selected:font-semibold data-highlighted:text-titulo data-selected:text-titulo [&_svg]:size-4 [&_svg]:shrink-0";
+
+export const GRUPO_DA_SELECAO =
+  "px-2.5 pt-2.5 pb-1 font-semibold text-muted-foreground text-xs";
+
+export const DIVISOR_DA_SELECAO = "-mx-1.5 my-1.5 h-px bg-border";
+
+export const BUSCA_DA_SELECAO =
+  "flex h-[38px] shrink-0 items-center gap-2 border-border border-b px-3.5 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground";
+
 export const ROTULO = "font-semibold text-foreground text-sm";
 
 export const AVISO =

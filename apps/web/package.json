@@ -12,6 +12,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@clerk/backend": "catalog:",
     "@clerk/nextjs": "^7.9.1",
     "@cursos/api": "workspace:*",
