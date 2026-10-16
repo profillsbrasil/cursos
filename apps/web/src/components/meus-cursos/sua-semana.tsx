@@ -48,7 +48,7 @@ export function SuaSemana({
   return (
     <aside
       aria-labelledby="semana-titulo"
-      className="grid content-start gap-3.5 rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:20px]"
+      className="grid max-w-3xl content-start gap-3.5 rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:20px]"
     >
       <div className="flex items-center justify-between gap-2.5">
         <h2

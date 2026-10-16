@@ -125,17 +125,20 @@ export function CursosParaTrocar({
           </Link>
         )}
       </Secao>
-      <Secao
-        id="extrato-recente"
-        subtitulo="Pontos que entraram e saíram"
-        titulo="Extrato recente"
-      >
-        <Extrato
-          hoje={hoje}
-          itens={extrato}
-          lancamentoNovoId={lancamentoNovoId}
-        />
-      </Secao>
+      {/* Lista de leitura: na janela larga, a data e os pontos não se afastam do texto. */}
+      <div className="max-w-3xl">
+        <Secao
+          id="extrato-recente"
+          subtitulo="Pontos que entraram e saíram"
+          titulo="Extrato recente"
+        >
+          <Extrato
+            hoje={hoje}
+            itens={extrato}
+            lancamentoNovoId={lancamentoNovoId}
+          />
+        </Secao>
+      </div>
     </>
   );
 }
