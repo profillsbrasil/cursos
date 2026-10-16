@@ -111,7 +111,7 @@ export const capaNoCampo = (
     : e;
 
 const MOLDURA =
-  "relative grid aspect-video w-full place-items-center overflow-hidden rounded-[14px] bg-background ring-1 ring-border";
+  "relative grid aspect-[900/604] w-full place-items-center overflow-hidden rounded-[14px] bg-background ring-1 ring-border";
 
 function Previa({
   alt,
@@ -128,7 +128,7 @@ function Previa({
         alt={alt}
         className="object-cover"
         fill
-        sizes="(max-width: 768px) 100vw, 40vw"
+        sizes="(max-width: 768px) 100vw, 280px"
         src={escolhida.url}
         unoptimized
       />
@@ -140,7 +140,7 @@ function Previa({
         alt={atual.alt}
         className="object-cover"
         fill
-        sizes="(max-width: 768px) 100vw, 40vw"
+        sizes="(max-width: 768px) 100vw, 280px"
         src={atual.url}
       />
     );
@@ -230,7 +230,7 @@ export function CampoDeCapa({
   const descricao = ID.curso("capaAlt");
   const daDescricao = useErroDoCampo(descricao, `${id}-alt-ajuda`);
   return (
-    <div className="grid gap-5 p-5 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:items-start">
+    <div className="grid content-start gap-4">
       <div className="grid gap-2">
         <div className={MOLDURA}>
           <Previa alt={alt} atual={atual} escolhida={escolhida} />
@@ -242,71 +242,65 @@ export function CampoDeCapa({
           </p>
         ) : null}
       </div>
-      <div className="grid gap-5">
-        <Field data-invalid={mensagemDaImagem ? true : undefined}>
-          <p className={ROTULO}>Imagem</p>
-          <div className="flex flex-wrap items-center gap-2">
-            {/* O input de arquivo fica escondido dentro do label. A variante hover:
-                acende o label também quando o input tem o foco de teclado (#30). */}
-            <label
-              className={cn(BOTAO_CONTORNO, PEQUENO, "cursor-pointer")}
-              htmlFor={arquivo}
-            >
-              <ImageUp aria-hidden="true" className="size-4" />
-              {atual || escolhida ? "Trocar imagem" : "Escolher imagem"}
-              <input
-                accept={TIPOS.join(",")}
-                aria-describedby={
-                  mensagemDaImagem
-                    ? `${id}-regra ${arquivo}-erro`
-                    : `${id}-regra`
-                }
-                aria-invalid={mensagemDaImagem ? true : undefined}
-                className="sr-only"
-                id={arquivo}
-                onChange={escolher}
-                ref={input}
-                required={!(atual || escolhida)}
-                type="file"
-              />
-            </label>
-            {escolhida ? (
-              <Button
-                className={cn(BOTAO_CONTORNO, PEQUENO)}
-                onClick={desfazer}
-              >
-                {atual ? "Manter a capa atual" : "Tirar a imagem"}
-              </Button>
-            ) : null}
-          </div>
-          <FieldDescription className="text-xs" id={`${id}-regra`}>
-            JPG, PNG ou WebP, até {LIMITE_DA_CAPA.bytes / 1024 / 1024} MB, com
-            pelo menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
-          </FieldDescription>
-          <ErroDoCampo id={arquivo} mensagem={mensagemDaImagem} />
-        </Field>
-        <Field data-invalid={daDescricao.mensagem ? true : undefined}>
-          <FieldLabel className={ROTULO} htmlFor={descricao}>
-            Descrição da capa
-          </FieldLabel>
-          <Input
-            {...daDescricao.aria}
-            autoComplete="off"
-            className={cn(CAMPO, "h-11")}
-            id={descricao}
-            maxLength={CARACTERES.capaAlt}
-            name="capaAlt"
-            onChange={mudarAlt}
-            placeholder="Envasadora de líquidos com o painel aberto"
-            required
-            value={alt}
-          />
-          <FieldDescription className="text-xs" id={`${id}-alt-ajuda`}>
-            Quem usa leitor de tela ouve este texto no lugar da imagem.
-          </FieldDescription>
-          <ErroDoCampo id={descricao} mensagem={daDescricao.mensagem} />
-        </Field>
-      </div>
+      <Field
+        className="relative"
+        data-invalid={mensagemDaImagem ? true : undefined}
+      >
+        <p className="sr-only">Imagem da capa</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <label
+            className={cn(BOTAO_CONTORNO, PEQUENO, "cursor-pointer")}
+            htmlFor={arquivo}
+          >
+            <ImageUp aria-hidden="true" className="size-4" />
+            {atual || escolhida ? "Trocar capa" : "Escolher capa"}
+            <input
+              accept={TIPOS.join(",")}
+              aria-describedby={
+                mensagemDaImagem ? `${id}-regra ${arquivo}-erro` : `${id}-regra`
+              }
+              aria-invalid={mensagemDaImagem ? true : undefined}
+              className="sr-only"
+              id={arquivo}
+              onChange={escolher}
+              ref={input}
+              required={!(atual || escolhida)}
+              type="file"
+            />
+          </label>
+          {escolhida ? (
+            <Button className={cn(BOTAO_CONTORNO, PEQUENO)} onClick={desfazer}>
+              {atual ? "Manter a capa atual" : "Tirar a imagem"}
+            </Button>
+          ) : null}
+        </div>
+        <FieldDescription className="text-xs" id={`${id}-regra`}>
+          JPG, PNG ou WebP, até {LIMITE_DA_CAPA.bytes / 1024 / 1024} MB, com
+          pelo menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
+        </FieldDescription>
+        <ErroDoCampo id={arquivo} mensagem={mensagemDaImagem} />
+      </Field>
+      <Field data-invalid={daDescricao.mensagem ? true : undefined}>
+        <FieldLabel className={ROTULO} htmlFor={descricao}>
+          Descrição da capa
+        </FieldLabel>
+        <Input
+          {...daDescricao.aria}
+          autoComplete="off"
+          className={cn(CAMPO, "h-11 md:h-10")}
+          id={descricao}
+          maxLength={CARACTERES.capaAlt}
+          name="capaAlt"
+          onChange={mudarAlt}
+          placeholder="Envasadora de líquidos com o painel aberto"
+          required
+          value={alt}
+        />
+        <FieldDescription className="text-xs" id={`${id}-alt-ajuda`}>
+          Quem usa leitor de tela ouve este texto no lugar da imagem.
+        </FieldDescription>
+        <ErroDoCampo id={descricao} mensagem={daDescricao.mensagem} />
+      </Field>
     </div>
   );
 }

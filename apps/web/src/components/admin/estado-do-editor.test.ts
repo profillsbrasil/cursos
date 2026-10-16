@@ -849,7 +849,7 @@ describe("questionário da aula", () => {
 
   test("uma alternativa só, vinda de fora do editor, marca o grupo com a regra do mínimo", () => {
     const r = completa(mudar(exemplo(), nova(A1, P1, [X1, X2])));
-    const p = perguntas(r)[0];
+    const [p] = perguntas(r);
     const quebrado = {
       ...r,
       modulos: r.modulos.map((m) => ({

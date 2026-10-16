@@ -194,6 +194,7 @@ type CampoDoCursoComId =
   | "capaAlt"
   | "categoriaId"
   | "codigo"
+  | "descricao"
   | "destaque"
   | "precoTroca"
   | "titulo";
@@ -243,6 +244,7 @@ const CAMPOS_DO_CURSO = new Set<string>([
   "capaAlt",
   "categoriaId",
   "codigo",
+  "descricao",
   "destaque",
   "precoTroca",
   "titulo",

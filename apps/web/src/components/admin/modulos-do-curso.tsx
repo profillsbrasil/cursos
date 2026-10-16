@@ -1,7 +1,7 @@
 "use client";
 
 import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
-import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
+import type { ModuloId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
 import {
@@ -14,14 +14,7 @@ import {
   TooltipTrigger,
 } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
-import {
-  ChevronDown,
-  ChevronUp,
-  CircleAlert,
-  Eye,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, CircleAlert, Eye, Plus } from "lucide-react";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -40,14 +33,17 @@ import {
 } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 
+import { AulasDoModulo } from "./aulas-do-modulo";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import {
   type Abertos,
+  type AcaoNasEscolhas,
   type AcaoNosBlocos,
   type Bloco,
   blocoDoModulo,
+  type Escolhas,
   type Marcados,
   type Mudanca,
 } from "./estado-do-editor";
@@ -60,7 +56,6 @@ import {
   Vazio,
 } from "./partes";
 import {
-  type AulaDoRascunho,
   ID,
   type ModuloDoRascunho,
   type RascunhoDoCurso,
@@ -69,6 +64,7 @@ import {
 
 type Despachar = Dispatch<Mudanca>;
 type MudarBlocos = Dispatch<AcaoNosBlocos>;
+type MudarEscolhas = Dispatch<AcaoNasEscolhas>;
 type Niveis = RascunhoDoCurso["niveis"];
 
 /** Âncora e alvos de foco do bloco; os campos que o schema marca usam o ID. */
@@ -76,19 +72,8 @@ const ALVO = {
   bloco: (id: ModuloId) => `modulo-${id}`,
   cabeca: (id: ModuloId) => `modulo-${id}-cabeca`,
   conteudo: (id: ModuloId) => `modulo-${id}-conteudo`,
-  novaAula: (id: ModuloId) => `modulo-${id}-nova-aula`,
   novoModulo: "modulo-novo",
-  removerAula: (id: AulaId) => `aula-${id}-remover`,
 };
-
-const SELECAO_PEQUENA =
-  "w-36 *:data-[slot=native-select]:h-10 *:data-[slot=native-select]:rounded-full *:data-[slot=native-select]:border-muted-foreground *:data-[slot=native-select]:bg-background *:data-[slot=native-select]:pl-3.5 *:data-[slot=native-select]:text-[13px] md:*:data-[slot=native-select]:h-9";
-const GRADE_DA_AULA =
-  "xl:grid-cols-[2rem_minmax(0,1fr)_7rem_minmax(0,0.9fr)_16.5rem] xl:gap-x-3";
-
-/** No lugar da lixeira: o ícone em Céu é informação, não botão desligado. */
-const AULA_ASSISTIDA =
-  "grid size-10 cursor-help place-items-center rounded-full text-ceu hover:bg-muted md:size-9";
 
 /** O número do módulo no cabeçalho e no índice: aberto em Sol suave, erro em contorno. */
 const NUMERO: Record<Bloco["tipo"], string> = {
@@ -103,11 +88,8 @@ const NUMERO_SOB_O_CURSOR: Record<Bloco["tipo"], string> = {
   fechado: "hover:bg-trilho hover:text-titulo",
 };
 
-const nomeFalado = (tipo: string, n: number | string, titulo: string) =>
-  titulo.trim() ? `${tipo} ${n} (${titulo.trim()})` : `${tipo} ${n}`;
-
-const nomeDoModulo = (m: ModuloDoRascunho) =>
-  m.titulo.trim() ? `Módulo ${m.numero} · ${m.titulo}` : `Módulo ${m.numero}`;
+const nomeFalado = (n: string, titulo: string) =>
+  titulo.trim() ? `módulo ${n} (${titulo.trim()})` : `módulo ${n}`;
 
 const numeroNaTela = (m: ModuloDoRascunho) => m.numero.trim() || "?";
 
@@ -120,210 +102,6 @@ function focarNoBotao(
   chegouNaBorda: boolean
 ) {
   focarDepois(`${prefixo}-${setaDepoisDeMover(direcao, chegouNaBorda)}`);
-}
-
-function AulaAssistida({
-  alunos,
-  id,
-  nome,
-}: {
-  alunos: number;
-  id: AulaId;
-  nome: string;
-}) {
-  const frase = `Assistida por ${plural(alunos, "aluno", "alunos")}. Não se apaga, mas dá para trocar o vídeo e o título.`;
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        aria-describedby={`aula-${id}-uso`}
-        aria-disabled="true"
-        aria-label={`Remover a ${nome}`}
-        className={AULA_ASSISTIDA}
-        id={ALVO.removerAula(id)}
-        type="button"
-      >
-        <Eye aria-hidden="true" className="size-4" />
-      </TooltipTrigger>
-      <TooltipContent className={DICA} side="left">
-        {frase}
-      </TooltipContent>
-      <span className="sr-only" id={`aula-${id}-uso`}>
-        {frase}
-      </span>
-    </Tooltip>
-  );
-}
-
-function LinhaDaAula({
-  assistida,
-  aula,
-  despachar,
-  modulo,
-  modulos,
-  posicao,
-  total,
-  vizinho,
-}: {
-  assistida: number;
-  aula: AulaDoRascunho;
-  despachar: Despachar;
-  modulo: ModuloDoRascunho;
-  modulos: readonly ModuloDoRascunho[];
-  posicao: number;
-  total: number;
-  vizinho: AulaId | null;
-}) {
-  const { id } = aula;
-  const nome = nomeFalado("aula", posicao, aula.titulo);
-  const outros = modulos.filter((m) => m.id !== modulo.id);
-
-  const editarAula = useCallback(
-    (mudanca: Extract<Mudanca, { tipo: "aula_editada" }>["mudanca"]) =>
-      despachar({ id, mudanca, tipo: "aula_editada" }),
-    [despachar, id]
-  );
-  const mudarTitulo = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      editarAula({ titulo: e.target.value }),
-    [editarAula]
-  );
-  const mudarDuracao = useCallback(
-    (duracao: string) => editarAula({ duracao }),
-    [editarAula]
-  );
-  const mudarVideo = useCallback(
-    (video: string) => editarAula({ video }),
-    [editarAula]
-  );
-  const subir = useCallback(() => {
-    despachar({ direcao: "acima", id, tipo: "aula_movida" });
-    focarNoBotao(`aula-${id}`, "acima", posicao - 1 === 1);
-  }, [despachar, id, posicao]);
-  const descer = useCallback(() => {
-    despachar({ direcao: "abaixo", id, tipo: "aula_movida" });
-    focarNoBotao(`aula-${id}`, "abaixo", posicao + 1 === total);
-  }, [despachar, id, posicao, total]);
-  // O destino abre no reducer dos blocos, e o foco segue a aula até lá.
-  const moverPara = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      despachar({
-        id,
-        moduloId: e.target.value as ModuloId,
-        tipo: "aula_para_modulo",
-      });
-      focarDepois(`aula-${id}-modulo`);
-    },
-    [despachar, id]
-  );
-  const remover = useCallback(() => {
-    despachar({ id, tipo: "aula_removida" });
-    focarDepois(vizinho ? ALVO.removerAula(vizinho) : ALVO.novaAula(modulo.id));
-  }, [despachar, id, modulo.id, vizinho]);
-
-  return (
-    <li
-      className={cn(
-        "grid gap-3 border-border border-t px-5 py-4 xl:items-start",
-        GRADE_DA_AULA
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className="hidden pt-2.5 text-right font-semibold text-muted-foreground text-sm tabular-nums xl:block"
-      >
-        {posicao}
-      </span>
-      <CampoDeTexto
-        campoClasse="gap-1.5"
-        className="md:h-10"
-        id={ID.aula(id, "titulo")}
-        maxLength={CARACTERES.tituloDaAula}
-        onChange={mudarTitulo}
-        placeholder="Título da aula"
-        required
-        rotulo={`Aula ${posicao}`}
-        rotuloClasse="xl:sr-only"
-        value={aula.titulo}
-      />
-      <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-3 xl:contents">
-        <CampoLido
-          aoMudar={mudarDuracao}
-          id={ID.aula(id, "duracao")}
-          placeholder="12:30"
-          required
-          rotulo={
-            <>
-              Duração<span className="sr-only"> da {nome}</span>
-            </>
-          }
-          rotuloClasse="xl:sr-only"
-          texto={aula.duracao}
-        />
-        <CampoLido
-          aoMudar={mudarVideo}
-          id={ID.aula(id, "video")}
-          placeholder="Link ou id do YouTube"
-          rotulo={
-            <>
-              Vídeo<span className="sr-only"> da {nome}</span>
-            </>
-          }
-          rotuloClasse="xl:sr-only"
-          texto={aula.video}
-        />
-      </div>
-      <div className="flex flex-wrap items-center gap-1">
-        <Button
-          aria-label={`Subir a ${nome}`}
-          className={ICONE}
-          disabled={posicao === 1}
-          id={`aula-${id}-acima`}
-          onClick={subir}
-        >
-          <ChevronUp aria-hidden="true" />
-        </Button>
-        <Button
-          aria-label={`Descer a ${nome}`}
-          className={ICONE}
-          disabled={posicao === total}
-          id={`aula-${id}-abaixo`}
-          onClick={descer}
-        >
-          <ChevronDown aria-hidden="true" />
-        </Button>
-        {outros.length > 0 ? (
-          <NativeSelect
-            aria-label={`Mover a ${nome} para outro módulo`}
-            className={SELECAO_PEQUENA}
-            id={`aula-${id}-modulo`}
-            onChange={moverPara}
-            value=""
-          >
-            <NativeSelectOption disabled value="">
-              Mover para…
-            </NativeSelectOption>
-            {outros.map((m) => (
-              <NativeSelectOption key={m.id} value={m.id}>
-                {nomeDoModulo(m)}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        ) : null}
-        {assistida > 0 ? (
-          <AulaAssistida alunos={assistida} id={id} nome={nome} />
-        ) : (
-          <Button
-            aria-label={`Remover a ${nome}`}
-            className={ICONE}
-            id={ALVO.removerAula(id)}
-            onClick={remover}
-          >
-            <Trash2 aria-hidden="true" />
-          </Button>
-        )}
-      </div>
-    </li>
-  );
 }
 
 function NivelDoModulo({
@@ -458,25 +236,31 @@ export function BlocoDoModulo({
   assistidasPorAula,
   bloco,
   despachar,
+  escolhas,
   indice,
   linhaAberta,
+  marcados,
   modulo,
   modulos,
   mudarBlocos,
+  mudarEscolhas,
   niveis,
 }: {
   assistidasPorAula: Readonly<Record<string, number>>;
   bloco: Bloco;
   despachar: Despachar;
+  escolhas: Escolhas;
   indice: number;
   linhaAberta: LinhaAberta;
+  marcados: Marcados;
   modulo: ModuloDoRascunho;
   modulos: readonly ModuloDoRascunho[];
   mudarBlocos: MudarBlocos;
+  mudarEscolhas: MudarEscolhas;
   niveis: Niveis;
 }) {
   const { id } = modulo;
-  const nome = nomeFalado("módulo", modulo.numero, modulo.titulo);
+  const nome = nomeFalado(modulo.numero, modulo.titulo);
   const assistidas = modulo.aulas.filter(
     (a) => (assistidasPorAula[a.id] ?? 0) > 0
   ).length;
@@ -530,12 +314,6 @@ export function BlocoDoModulo({
     const vizinho = vizinhoQueFica(modulos, indice);
     focarDepois(vizinho ? ALVO.cabeca(vizinho.id) : ALVO.novoModulo);
   }, [despachar, id, indice, linhaAberta, modulos]);
-  const adicionarAula = useCallback(() => {
-    const aula = novoId<AulaId>();
-    despachar({ id: aula, moduloId: id, tipo: "aula_nova" });
-    focarDepois(ID.aula(aula, "titulo"));
-  }, [despachar, id]);
-
   return (
     <section
       aria-label={nome}
@@ -652,49 +430,15 @@ export function BlocoDoModulo({
               )}
             </div>
           </div>
-          {modulo.aulas.length === 0 ? (
-            <p className="border-border border-t px-5 py-4 text-muted-foreground text-sm">
-              Nenhuma aula neste módulo.
-            </p>
-          ) : (
-            <ol aria-label={`Aulas do ${nome}`}>
-              <li
-                aria-hidden="true"
-                className={cn(
-                  "hidden border-border border-t px-5 pt-3 font-semibold text-muted-foreground text-xs xl:grid",
-                  GRADE_DA_AULA
-                )}
-              >
-                <span className="text-right">Nº</span>
-                <span>Título</span>
-                <span>Duração</span>
-                <span>Vídeo</span>
-              </li>
-              {modulo.aulas.map((a, i) => (
-                <LinhaDaAula
-                  assistida={assistidasPorAula[a.id] ?? 0}
-                  aula={a}
-                  despachar={despachar}
-                  key={a.id}
-                  modulo={modulo}
-                  modulos={modulos}
-                  posicao={i + 1}
-                  total={modulo.aulas.length}
-                  vizinho={vizinhoQueFica(modulo.aulas, i)?.id ?? null}
-                />
-              ))}
-            </ol>
-          )}
-          <div className="border-border border-t px-5 py-3">
-            <Button
-              className={cn(BOTAO_CONTORNO, PEQUENO)}
-              id={ALVO.novaAula(id)}
-              onClick={adicionarAula}
-            >
-              <Plus aria-hidden="true" className="size-4" />
-              Adicionar aula
-            </Button>
-          </div>
+          <AulasDoModulo
+            assistidasPorAula={assistidasPorAula}
+            despachar={despachar}
+            escolhas={escolhas}
+            marcados={marcados}
+            modulo={modulo}
+            modulos={modulos}
+            mudarEscolhas={mudarEscolhas}
+          />
         </div>
       )}
     </section>
@@ -817,17 +561,21 @@ export function ModulosDoCurso({
   abertos,
   assistidasPorAula,
   despachar,
+  escolhas,
   linhaAberta,
   marcados,
   mudarBlocos,
+  mudarEscolhas,
   rascunho,
 }: {
   abertos: Abertos;
   assistidasPorAula: Readonly<Record<string, number>>;
   despachar: Despachar;
+  escolhas: Escolhas;
   linhaAberta: LinhaAberta;
   marcados: Marcados;
   mudarBlocos: MudarBlocos;
+  mudarEscolhas: MudarEscolhas;
   rascunho: RascunhoDoCurso;
 }) {
   const { modulos, niveis } = rascunho;
@@ -890,12 +638,15 @@ export function ModulosDoCurso({
               assistidasPorAula={assistidasPorAula}
               bloco={bloco}
               despachar={despachar}
+              escolhas={escolhas}
               indice={i}
               key={modulo.id}
               linhaAberta={linhaAberta}
+              marcados={marcados}
               modulo={modulo}
               modulos={modulos}
               mudarBlocos={mudarBlocos}
+              mudarEscolhas={mudarEscolhas}
               niveis={niveis}
             />
           ))

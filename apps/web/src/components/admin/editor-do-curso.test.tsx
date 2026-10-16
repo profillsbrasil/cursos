@@ -67,12 +67,23 @@ const render = (edicao: EdicaoDoCurso) =>
   );
 
 describe("editor do curso: endereço e categoria", () => {
-  test("o curso salvo mostra o link como texto, sem campo de endereço", () => {
+  test("o curso salvo mostra o link como texto, fixo, sem campo de endereço", () => {
     const html = render(salvo);
     expect(texto(html)).toContain(
-      "Link do curso: /cursos/operacao-da-envasadora"
+      "/cursos/operacao-da-envasadora fixo desde o primeiro salvamento"
     );
     expect(html).not.toContain('name="slug"');
+  });
+
+  test("o curso novo com título mostra o link que sairia dele", () => {
+    const novo = edicaoDeCursoNovo(EDICAO.CURSO);
+    const html = render({
+      ...novo,
+      documento: { ...novo.documento, titulo: "Ação: Reação Única" },
+    });
+    expect(texto(html)).toContain(
+      "/cursos/acao-reacao-unica gerado a partir do título"
+    );
   });
 
   test("o select da categoria lista as categorias e marca a do curso", () => {
@@ -85,9 +96,7 @@ describe("editor do curso: endereço e categoria", () => {
 
   test("o curso novo diz que o link sai do título e começa sem categoria", () => {
     const html = render(edicaoDeCursoNovo(EDICAO.CURSO));
-    expect(texto(html)).toContain(
-      "O link do curso sai do título quando você salvar pela primeira vez."
-    );
+    expect(texto(html)).toContain("O link do curso sai do título.");
     expect(opcoesDaCategoria(html)).toEqual([
       ["", "Escolha a categoria", true],
       [EDICAO.CATEGORIA, "Processo de envase", false],
