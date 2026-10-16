@@ -4,14 +4,14 @@ import { Search } from "lucide-react";
 import type { Metadata } from "next";
 import Form from "next/form";
 
-import { ListaDePessoas } from "@/components/admin/lista-de-pessoas";
+import { TelaDeAlunos } from "@/components/admin/tela-de-alunos";
 import { BOTAO } from "@/components/casca/botoes";
-import { carregarPessoas } from "@/server/api";
+import { carregarCatalogo, carregarPessoas } from "@/server/api";
 
 export const metadata: Metadata = { title: "Alunos · Admin" };
 
 // A busca é um form GET pelo next/form: navega no cliente, a página relê ?q= e
-// chama o Clerk, e o endereço guarda a busca.
+// chama o Clerk, e o endereço guarda a busca. A seleção do lote mora no layout.
 export default async function Alunos({
   searchParams,
 }: {
@@ -19,7 +19,10 @@ export default async function Alunos({
 }) {
   const { q } = await searchParams;
   const termo = typeof q === "string" ? q.trim().slice(0, 100) : "";
-  const resultado = await carregarPessoas(termo);
+  const [resultado, catalogo] = await Promise.all([
+    carregarPessoas(termo),
+    carregarCatalogo(),
+  ]);
   return (
     <>
       <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
@@ -27,10 +30,10 @@ export default async function Alunos({
           Alunos
         </h1>
         <p className="text-muted-foreground">
-          Escolha uma pessoa para liberar ou revogar acesso
+          Marque pessoas para liberar um curso, ou abra uma para ver o acesso
         </p>
       </header>
-      <search className="mb-10 block">
+      <search className="mb-8 block">
         <Form action="/admin/alunos" className="flex flex-wrap gap-2.5">
           <label className="sr-only" htmlFor="busca-de-alunos">
             Nome ou e-mail
@@ -57,7 +60,11 @@ export default async function Alunos({
           </Button>
         </Form>
       </search>
-      <ListaDePessoas resultado={resultado} termo={termo} />
+      <TelaDeAlunos
+        cursos={catalogo.cursos}
+        resultado={resultado}
+        termo={termo}
+      />
     </>
   );
 }
