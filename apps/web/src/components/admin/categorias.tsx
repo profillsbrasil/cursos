@@ -28,17 +28,18 @@ import {
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { DICA } from "@/components/casca/estilo";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
-import { CAMPO, CONTORNO_DESLIGADO, SELO, Secao, Vazio } from "./partes";
+
+import { CONTORNO_DESLIGADO, SELO, Secao, Vazio } from "./partes";
 
 const NOME_VAZIO = "Escreva o nome da categoria.";
 const TODAS = "todas";
@@ -142,7 +143,7 @@ function CampoDoNome({
           aria-label={rotulo}
           autoComplete="off"
           autoFocus={focarAoAbrir}
-          className={cn(CAMPO, "h-10")}
+          className={CAMPO}
           defaultValue={inicial}
           maxLength={CARACTERES.categoria}
           name="nome"
@@ -192,7 +193,7 @@ function NovaCategoria({ aoCriar }: { aoCriar: (id: CategoriaId) => void }) {
     >
       <Button
         aria-busy={nome.pendente}
-        className={cn(BOTAO, PEQUENO, "h-10")}
+        className={BOTAO}
         disabled={nome.pendente}
         focusableWhenDisabled
         type="submit"
@@ -360,7 +361,7 @@ function LinhaDaCategoria({
         >
           <Button
             aria-busy={nome.pendente}
-            className={cn(BOTAO_CONTORNO, PEQUENO, "h-10")}
+            className={BOTAO_CONTORNO}
             disabled={nome.pendente}
             focusableWhenDisabled
             type="submit"
@@ -371,8 +372,7 @@ function LinhaDaCategoria({
           <Button
             className={cn(
               BOTAO_CONTORNO,
-              PEQUENO,
-              "h-10 border-transparent dark:border-transparent"
+              "border-transparent dark:border-transparent"
             )}
             disabled={nome.pendente}
             onClick={sair}

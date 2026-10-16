@@ -156,10 +156,17 @@ const htmlDe = (q: (typeof ESTADOS)[number]) =>
   );
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+// A alternativa marcada só existe depois do clique: as classes dela vêm à mão.
 const css = await cssDoApp(
   ESTADOS.flatMap((q) =>
     [...htmlDe(q).matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
-  ).concat(["text-destructive", "aria-disabled:opacity-50"])
+  ).concat([
+    "text-destructive",
+    "aria-disabled:opacity-50",
+    "border-sol",
+    "bg-sol/8",
+    "bg-sol",
+  ])
 );
 
 let enviar: Enviar;
@@ -222,6 +229,32 @@ const marcados = () =>
     `document.querySelectorAll('input[type="radio"]:checked').length`
   );
 
+interface Marcada {
+  borda: string;
+  fundo: string;
+  letra: { cor: string; fundo: string };
+  raio: string;
+}
+
+const OITO_POR_CENTO = / \/ 0\.08\)$/;
+
+// Depois da transição de 150 ms das cores.
+const marcada = () =>
+  avaliar<Marcada>(
+    enviar,
+    `new Promise((r) => setTimeout(r, 250)).then(() => {
+      const rotulo = document.querySelector('input[type="radio"]:checked').closest("label");
+      const letra = getComputedStyle(rotulo.querySelector('[aria-hidden="true"]'));
+      const caixa = getComputedStyle(rotulo);
+      return {
+        borda: caixa.borderTopColor,
+        fundo: caixa.backgroundColor,
+        letra: { cor: letra.color, fundo: letra.backgroundColor },
+        raio: caixa.borderTopLeftRadius,
+      };
+    })`
+  );
+
 interface Caixa {
   esquerda: number;
   largura: number;
@@ -278,6 +311,14 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     expect(await textoDe('[aria-disabled="true"]')).toBe("Enviar respostas");
     await marcarAsCertas();
     expect(await marcados()).toBe(3);
+    // A escolha é Sol; o Céu fica para o foco e para a correção.
+    expect(await marcada()).toEqual({
+      borda: "rgb(255, 204, 1)",
+      // O Chromium escreve o Sol a 8% em oklab.
+      fundo: expect.stringMatching(OITO_POR_CENTO),
+      letra: { cor: "rgb(34, 38, 43)", fundo: "rgb(255, 204, 1)" },
+      raio: "23px",
+    });
     expect(await textoDe("button:not([aria-disabled])")).toBe(
       "Enviar respostas"
     );

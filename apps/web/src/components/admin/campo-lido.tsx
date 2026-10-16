@@ -17,14 +17,11 @@ import {
   useCallback,
   useContext,
 } from "react";
-
+import { AREA, CAMPO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
-
 import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { CAMPO, ROTULO } from "./partes";
 
-const AREA =
-  "min-h-0 rounded-[12px] px-3.5 py-2.5 text-sm leading-normal md:text-sm";
+import { ROTULO } from "./partes";
 
 export function CampoDeTexto({
   ajuda,
@@ -53,7 +50,7 @@ export function CampoDeTexto({
         {...input}
         {...aria}
         autoComplete="off"
-        className={cn(CAMPO, "h-11", input.className)}
+        className={cn(CAMPO, input.className)}
         id={id}
       />
       {ajuda ? (
@@ -122,7 +119,7 @@ export function CampoLido({
         aria-describedby={mensagem ? `${id}-erro` : undefined}
         aria-invalid={mensagem ? true : undefined}
         autoComplete="off"
-        className={cn(CAMPO, "h-11 md:h-10", input.className)}
+        className={cn(CAMPO, input.className)}
         id={id}
         onBlur={sair}
         onChange={mudar}
@@ -176,7 +173,7 @@ export function AreaDeTexto({
       <Textarea
         {...area}
         {...aria}
-        className={cn(CAMPO, AREA, area.className)}
+        className={cn(AREA, area.className)}
         id={id}
         maxLength={maximo}
         onBlur={sair}

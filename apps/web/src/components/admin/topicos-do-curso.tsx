@@ -9,12 +9,13 @@ import { Check, Plus, X } from "lucide-react";
 import { type ChangeEvent, type Dispatch, useCallback } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { focarDepois, vizinhoQueFica } from "@/lib/editor";
 import { plural } from "@/lib/formato";
-
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import type { Mudanca } from "./estado-do-editor";
-import { CAMPO, ICONE, ROTULO, Secao } from "./partes";
+
+import { ICONE, ROTULO, Secao } from "./partes";
 import { ID } from "./rascunho-do-curso";
 
 const NOVO_TOPICO = "topico-novo";
@@ -55,7 +56,7 @@ function LinhaDoTopico({
           <Input
             {...aria}
             autoComplete="off"
-            className={cn(CAMPO, "h-11 md:h-10")}
+            className={CAMPO}
             id={id}
             maxLength={CARACTERES.topico}
             onChange={editar}

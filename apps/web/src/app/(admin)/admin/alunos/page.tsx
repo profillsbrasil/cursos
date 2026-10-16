@@ -1,11 +1,13 @@
 import { Button } from "@cursos/ui/components/button";
 import { Input } from "@cursos/ui/components/input";
+import { cn } from "@cursos/ui/lib/utils";
 import { Search } from "lucide-react";
 import type { Metadata } from "next";
 import Form from "next/form";
 
 import { TelaDeAlunos } from "@/components/admin/tela-de-alunos";
 import { BOTAO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { carregarCatalogo, carregarPessoas } from "@/server/api";
 
 export const metadata: Metadata = { title: "Alunos · Admin" };
@@ -43,7 +45,7 @@ export default async function Alunos({
             />
             <Input
               autoComplete="off"
-              className="h-11 rounded-full border-muted-foreground bg-card pr-4 pl-10 text-sm md:text-sm dark:border-muted-foreground dark:bg-card"
+              className={cn(CAMPO, "pr-4 pl-10")}
               defaultValue={termo}
               id="busca-de-alunos"
               key={termo}

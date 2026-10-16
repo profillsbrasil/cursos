@@ -8,14 +8,12 @@ export const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
 export const CELULA = "px-5 py-3.5 text-sm";
 export const NUMERO = "text-right tabular-nums";
 
-export const CAMPO =
-  "rounded-[12px] border-muted-foreground bg-background px-3.5 text-sm md:text-sm dark:border-muted-foreground dark:bg-background";
 /**
  * O gatilho da Selecao. A borda Céu do foco e do cursor vem do index.css pelo
  * data-slot="select-trigger"; a seta gira com o data-popup-open do Base UI.
  */
 export const SELECAO =
-  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-[12px] border border-muted-foreground bg-background px-3.5 text-left text-foreground text-sm transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
+  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-full border border-muted-foreground bg-background px-3.5 text-left text-foreground text-sm transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
 
 export const GATILHO_DA_SELECAO = {
   campo: SELECAO,

@@ -32,6 +32,7 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { ALAVANCA, CAMPO } from "@/components/casca/campos";
 import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
@@ -64,7 +65,7 @@ import {
   REGRAS_DO_CURSO,
 } from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
-import { CAMPO, ICONE, ROTULO, Secao } from "./partes";
+import { ICONE, ROTULO, Secao } from "./partes";
 import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,
@@ -150,6 +151,7 @@ function Publicacao({
         <Field className="w-auto" orientation="horizontal">
           <Switch
             checked={rascunho.precoTroca !== null}
+            className={ALAVANCA}
             id={`${id}-troca`}
             onCheckedChange={ligarTroca}
           />
@@ -237,7 +239,7 @@ function LinhaDoNivel({
           <Input
             {...aria}
             autoComplete="off"
-            className={cn(CAMPO, "h-11 min-w-0 flex-1 md:h-10")}
+            className={cn(CAMPO, "min-w-0 flex-1")}
             id={id}
             maxLength={CARACTERES.nomeDoNivel}
             onChange={renomear}

@@ -119,7 +119,7 @@ export function Vitrine({
           <CampoDeTexto
             ajuda={<EnderecoDoCurso slug={slug} titulo={rascunho.titulo} />}
             campoClasse="gap-2"
-            className="h-[52px] font-bold text-titulo text-xl tracking-tight"
+            className="font-bold text-titulo text-xl tracking-tight"
             id={ID.curso("titulo")}
             maxLength={CARACTERES.titulo}
             name="titulo"

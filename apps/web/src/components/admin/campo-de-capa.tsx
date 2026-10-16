@@ -28,10 +28,11 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
-
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { CAMPO, ROTULO } from "./partes";
+
+import { ROTULO } from "./partes";
 import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];
@@ -287,7 +288,7 @@ export function CampoDeCapa({
         <Input
           {...daDescricao.aria}
           autoComplete="off"
-          className={cn(CAMPO, "h-11 md:h-10")}
+          className={CAMPO}
           id={descricao}
           maxLength={CARACTERES.capaAlt}
           name="capaAlt"

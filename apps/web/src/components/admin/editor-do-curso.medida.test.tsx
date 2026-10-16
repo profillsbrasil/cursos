@@ -7,8 +7,9 @@ import {
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
 import type { AlternativaId, PerguntaId } from "@cursos/api/dominio/tipos";
+import { Switch } from "@cursos/ui/components/switch";
 import { renderToStaticMarkup } from "react-dom/server";
-
+import { ALAVANCA } from "../casca/campos";
 import {
   abrirChromium,
   avaliar,
@@ -92,11 +93,21 @@ const modulos = renderToStaticMarkup(
   />
 );
 
+const alavancas = renderToStaticMarkup(
+  <div id="alavancas">
+    <Switch checked className={ALAVANCA} />
+    <Switch checked={false} className={ALAVANCA} />
+  </div>
+);
+
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
 const css = await cssDoApp(
-  [vitrine, modulos].flatMap((html) =>
-    [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
+  [vitrine, modulos, alavancas].flatMap((html) =>
+    // O renderToStaticMarkup escreve o & do seletor da alavanca como &amp;.
+    [...html.matchAll(CLASSES)].flatMap(([, c = ""]) =>
+      c.replaceAll("&amp;", "&").split(ESPACO)
+    )
   )
 );
 
@@ -112,7 +123,7 @@ async function abrirPagina(janela: number, conteudo: number) {
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
-      `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><main style="width:${conteudo}px;display:grid;gap:40px">${vitrine}${modulos}</main></body></html>`
+      `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><main style="width:${conteudo}px;display:grid;gap:40px">${vitrine}${modulos}${alavancas}</main></body></html>`
     )}); document.close();`
   );
   await avaliar(
@@ -121,7 +132,18 @@ async function abrirPagina(janela: number, conteudo: number) {
   );
 }
 
+interface Alavanca {
+  altura: number;
+  borda: string;
+  fundo: string;
+  largura: number;
+  polegar: { fundo: string; lado: number; recuo: number; topo: number };
+}
+
 interface Medida {
+  alavancas: [Alavanca, Alavanca];
+  area: { altura: number; raio: string };
+  campo: { altura: number; raio: string };
   capa: DOMRect;
   edicao: DOMRect;
   lista: DOMRect;
@@ -144,7 +166,23 @@ const medir = () =>
           transborda = x.tagName + "#" + x.id + "/" + Math.round(x.getBoundingClientRect().right - limite);
         }
       });
+      const forma = (el) => ({ altura: el.getBoundingClientRect().height, raio: getComputedStyle(el).borderTopLeftRadius });
+      const alavancas = [...document.querySelectorAll('#alavancas [data-slot="switch"]')].map((el) => {
+        const r = el.getBoundingClientRect();
+        const p = el.querySelector('[data-slot="switch-thumb"]');
+        const q = p.getBoundingClientRect();
+        return {
+          altura: r.height,
+          borda: getComputedStyle(el).borderTopColor,
+          fundo: getComputedStyle(el).backgroundColor,
+          largura: r.width,
+          polegar: { fundo: getComputedStyle(p).backgroundColor, lado: q.width, recuo: q.left - r.left, topo: q.top - r.top },
+        };
+      });
       return {
+        alavancas,
+        area: forma(document.getElementById("curso-descricao")),
+        campo: forma(document.getElementById("curso-titulo")),
         capa: caixa(document.getElementById("curso-capa").closest(".grid")),
         edicao: caixa(document.getElementById("pergunta-${EDICAO.P1}-enunciado").closest(".grid")),
         lista: caixa(document.querySelector('ol[aria-label^="Aulas do módulo"]').parentElement),
@@ -189,6 +227,31 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
 
     test("nada transborda o painel da aula", () => {
       expect(m.transborda).toBeNull();
+    });
+
+    test("o campo é a pílula de 44 px, e a área de texto tem raio de 20 px", () => {
+      expect(m.campo.altura).toBe(44);
+      expect(Number.parseFloat(m.campo.raio)).toBeGreaterThanOrEqual(22);
+      expect(m.area.raio).toBe("20px");
+    });
+
+    test("a alavanca tem 40 por 24 px, com o polegar de 18 px a 3 px da borda", () => {
+      const [ligada, desligada] = m.alavancas;
+      for (const a of m.alavancas) {
+        expect([a.largura, a.altura, a.polegar.lado, a.polegar.topo]).toEqual([
+          40, 24, 18, 3,
+        ]);
+      }
+      expect(desligada.polegar.recuo).toBe(3);
+      expect(ligada.polegar.recuo).toBe(40 - 3 - 18);
+    });
+
+    test("ligada é Sol com o polegar sobre-cor; desligada, o trilho com anel texto-apagado", () => {
+      const [ligada, desligada] = m.alavancas;
+      expect(ligada.fundo).toBe("rgb(255, 204, 1)");
+      expect(ligada.polegar.fundo).toBe("rgb(34, 38, 43)");
+      expect(desligada.fundo).toBe("rgb(77, 82, 87)");
+      expect(desligada.borda).toBe("rgb(168, 172, 176)");
     });
   });
 

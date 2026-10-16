@@ -390,7 +390,6 @@ function Alternativas({
             <AreaDeTexto
               aoMudar={editar(x.id)}
               campoClasse="col-start-2 gap-1"
-              className="min-h-10 py-2 leading-[1.4]"
               id={ID.alternativa(x.id)}
               maxLength={CARACTERES.alternativa}
               onKeyDown={ENTER_NAO_QUEBRA}
