@@ -89,9 +89,10 @@ Os mesmos HTML estão em `arquivos/` e abrem direto no browser.
 |---|---|---|
 | Tirar a trilha do catálogo | `feat/catalogo-sem-trilha`, PR #64 | Na main. As migrações no cloud ficam com o dono. |
 | Curso no formato Udemy: dados | `feat/curso-formato-udemy` | Pronto: categoria em tabela, descrição, tópicos, descrição da aula, endereço automático, `curso.pagina` e `admin.categorias` |
-| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy`, PR #66 | Na main, provado no browser (`prova-curso-udemy/`). O dono aceitou os desvios listados abaixo. |
-| Curso no formato Udemy: editor (Vitrine, tópicos e aulas) | `feat/curso-formato-udemy` | Protótipo aprovado (rodada 3). Não começou. |
-| Questionário, conclusão e certificado | PR seguinte | Não começou |
+| Curso no formato Udemy: página do curso e tela de categorias | `feat/curso-formato-udemy`, PR #66 | Provado no browser (`prova-curso-udemy/`). Espera o merge. O dono aceitou os desvios listados abaixo. |
+| Curso no formato Udemy: editor (Vitrine, tópicos, aulas e questionário) | `feat/udemy-editor`, PR #71 | Provado no browser. Espera o merge. |
+| Questionário do aluno, pontos e conclusão | `feat/udemy-questionario`, PR #76 | Provado no browser. Espera o merge. |
+| Certificado: página, PDF e conferência | `feat/udemy-certificado`, PR #75, junto do questionário no PR #77 | Provado no browser. Espera o merge. |
 
 ## Página do curso e categorias: entregue
 
@@ -133,9 +134,9 @@ O detector do `/impeccable`, rodado na página renderizada, deixou só falsos po
 
 O banco cloud é dividido entre a main e os worktrees abertos. Siga esta ordem:
 
-1. O dono faz o merge do #64 e depois o do #66.
+1. O dono faz o merge do #66 e, em seguida, dos PRs empilhados nele: #70 a #77.
 2. Os worktrees abertos juntam a main.
-3. O dono aplica as migrações na ordem `catalogo_sem_trilha`, `formato_udemy` e `categoria`, e zera o banco no mesmo momento.
+3. O dono aplica as migrações na ordem `catalogo_sem_trilha`, `formato_udemy`, `categoria`, `questionario` e `questionario_do_aluno`, e zera o banco no mesmo momento.
 
 Aplicar antes quebra a main e os outros worktrees, porque eles ainda leem trilha.
 
