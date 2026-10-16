@@ -565,7 +565,7 @@ export function EditorDoCurso({
                 aoEscolher={escolherCapa}
                 arquivo={capa}
                 atual={edicao.capa}
-                geracao={geracao}
+                key={geracao}
               />
             }
             categorias={categorias}

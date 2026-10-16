@@ -58,9 +58,7 @@ const CAPA = {
 
 const vitrine = renderToStaticMarkup(
   <Vitrine
-    capa={
-      <CampoDeCapa aoEscolher={nada} arquivo={null} atual={CAPA} geracao={0} />
-    }
+    capa={<CampoDeCapa aoEscolher={nada} arquivo={null} atual={CAPA} />}
     categorias={[{ cursos: [], id: EDICAO.CATEGORIA, nome: "Vendas" }]}
     despachar={nada}
     mudarTexto={nada}

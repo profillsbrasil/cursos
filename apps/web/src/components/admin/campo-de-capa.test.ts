@@ -14,36 +14,28 @@ describe("capaNoCampo: quando o campo da capa zera", () => {
       medida: { altura: 720, largura: 1280 },
       url: "blob:x",
     },
-    geracao: 0,
   });
-  const ZERADO: EstadoDaCapa = { erro: null, escolhida: null, geracao: 0 };
+  const ZERADO: EstadoDaCapa = { erro: null, escolhida: null };
 
   test("o salvar que enviou a capa devolve o arquivo do editor a null, e o campo zera", () => {
-    expect(capaNoCampo(com(foto), null, 0)).toEqual(ZERADO);
+    expect(capaNoCampo(com(foto), null)).toEqual(ZERADO);
   });
 
   test("a capa escolhida durante o salvar fica", () => {
     const comOutra = com(outra);
-    expect(capaNoCampo(comOutra, outra, 0)).toBe(comOutra);
+    expect(capaNoCampo(comOutra, outra)).toBe(comOutra);
   });
 
   test("a imagem recusada deixa o aviso, porque o editor já não guarda arquivo", () => {
     const recusada: EstadoDaCapa = { ...ZERADO, erro: "Use uma imagem JPG." };
-    expect(capaNoCampo(recusada, null, 0)).toBe(recusada);
-  });
-
-  test("o recomeço do editor zera o campo, aviso inclusive", () => {
-    const recusada: EstadoDaCapa = { ...ZERADO, erro: "Use uma imagem JPG." };
-    expect(capaNoCampo(recusada, null, 1)).toEqual({ ...ZERADO, geracao: 1 });
-    expect(capaNoCampo(com(foto), null, 1)).toEqual({ ...ZERADO, geracao: 1 });
+    expect(capaNoCampo(recusada, null)).toBe(recusada);
   });
 });
 
 const CAMPO_DE_CAPA = /<CampoDeCapa\b[^>]*>/g;
-const KEY = /\bkey=/;
 
-// Remontar o campo tira o foco do texto alternativo, que mora nele.
-describe("o editor do curso monta o campo da capa sem key", () => {
+// O recomeço do editor zera o campo, aviso inclusive, pela key da geração.
+describe("o editor do curso monta o campo da capa pela geração", () => {
   test("editor-do-curso.tsx", () => {
     const editor = readFileSync(
       join(import.meta.dir, "editor-do-curso.tsx"),
@@ -51,6 +43,6 @@ describe("o editor do curso monta o campo da capa sem key", () => {
     );
     const campos = [...editor.matchAll(CAMPO_DE_CAPA)];
     expect(campos).toHaveLength(1);
-    expect(campos[0]?.[0]).not.toMatch(KEY);
+    expect(campos[0]?.[0]).toContain("key={geracao}");
   });
 });
