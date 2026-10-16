@@ -1,10 +1,10 @@
+import { diaLocal } from "@cursos/api/dominio/sequencia";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { TopoDoAluno } from "@/components/aluno/topo";
 import { MigalhaDoCurso } from "@/components/curso/migalha-do-curso";
 import { TelaDoCurso } from "@/components/curso/tela-do-curso";
-import { diaEmSaoPaulo } from "@/lib/formato";
 import { carregarPaginaDoCurso } from "@/server/api";
 
 interface Props {
@@ -24,10 +24,7 @@ export default async function Curso({ params }: Props) {
   return (
     <>
       <TopoDoAluno esquerda={<MigalhaDoCurso titulo={pagina.titulo} />} />
-      <TelaDoCurso
-        hoje={diaEmSaoPaulo(new Date().toISOString())}
-        pagina={pagina}
-      />
+      <TelaDoCurso hoje={diaLocal(new Date())} pagina={pagina} />
     </>
   );
 }

@@ -1,7 +1,3 @@
-// A sanfona de "Conteúdo do curso" no Chromium headless: o HTML do servidor,
-// hidratado pelo componente de verdade, e os cliques da pessoa. Sem Chromium na
-// máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -16,12 +12,10 @@ import {
   fecharChromium,
 } from "../chromium-de-teste";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
-import { comercial } from "./exemplo";
+import { comercial } from "./exemplo-de-teste";
 
 const PAGINA = comercial.emAndamento;
 
-// O next/link vira um <a>, porque fora do App Router ele não tem roteador. Os
-// dois arquivos só existem na memória do empacotador.
 const ENTRADA = join(import.meta.dir, "conteudo-do-curso.entrada.tsx");
 const LINK = join(import.meta.dir, "link-sem-roteador.js");
 const NEXT_LINK = /^next\/link$/;

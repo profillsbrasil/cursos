@@ -1,4 +1,5 @@
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
+import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   Award,
@@ -35,21 +36,16 @@ const ICONE_DO_BOTAO: Record<Cartao["botao"]["icone"], LucideIcon> = {
   rever: RotateCcw,
 };
 
-/**
- * O cartão preso à direita: capa, progresso, a aula da vez e o botão principal.
- * Abaixo de 1081 px ele vem logo depois do cabeçalho, sem ficar preso, e em
- * container de 32rem ou mais a capa vai para o lado do texto.
- */
 export function CartaoDoCurso({
   className,
   hoje,
   pagina,
 }: {
   className?: string;
-  hoje: string;
+  hoje: DiaISO;
   pagina: PaginaDoCurso;
 }) {
-  const { agora, botao, inclui } = cartaoDoCurso(pagina, hoje);
+  const { botao, inclui, situacao } = cartaoDoCurso(pagina, hoje);
   const IconeDoBotao = ICONE_DO_BOTAO[botao.icone];
   return (
     <aside
@@ -87,10 +83,10 @@ export function CartaoDoCurso({
           <div className="-mx-5 my-0.5 h-px bg-border" />
           <div className="grid gap-0.5">
             <span className="text-[13px] text-muted-foreground">
-              {agora.rotulo}
+              {situacao.rotulo}
             </span>
             <strong className="font-semibold text-base text-titulo leading-normal">
-              {agora.titulo}
+              {situacao.titulo}
             </strong>
           </div>
           <Link

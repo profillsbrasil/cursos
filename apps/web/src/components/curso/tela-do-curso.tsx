@@ -1,15 +1,11 @@
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
+import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { Check, Tag } from "lucide-react";
 
 import { CartaoDoCurso } from "./cartao-do-curso";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { paragrafos, resumoDoCurso } from "./textos";
 
-/**
- * A grade da página e do esqueleto. A ordem no DOM é cabeçalho, cartão e resto:
- * abaixo de 1081 px, a mesma quebra da coluna do player, o cartão vem logo depois
- * do cabeçalho; acima, ele ocupa as duas linhas da coluna da direita, preso a 24 px.
- */
 export const GRADE_DO_CURSO =
   "grid items-start gap-x-9 gap-y-10 min-[1081px]:grid-cols-[minmax(0,1fr)_300px]";
 export const LUGAR_DO_CARTAO =
@@ -22,7 +18,7 @@ export function TelaDoCurso({
   hoje,
   pagina,
 }: {
-  hoje: string;
+  hoje: DiaISO;
   pagina: PaginaDoCurso;
 }) {
   const [lead, ...sobre] = paragrafos(pagina.descricao);

@@ -1,14 +1,9 @@
-// A grade da página do curso no Chromium headless, com o CSS real do app: em
-// 1280 px o cartão fica na coluna de 300 px e preso a 24 px do topo enquanto a
-// página rola; abaixo de 1081 px ele vem logo depois do cabeçalho, na largura
-// toda e sem ficar preso. O esqueleto do loading.tsx põe o cartão no mesmo
-// lugar. Sem Chromium na máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import CarregandoCurso from "@/app/(aluno)/cursos/[slug]/loading";
+import { LARGURAS_DA_SIDEBAR } from "@/components/casca/nav";
 
 import {
   abrirChromium,
@@ -18,7 +13,7 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium-de-teste";
-import { fabrica, HOJE } from "./exemplo";
+import { fabrica, HOJE } from "./exemplo-de-teste";
 import { TelaDoCurso } from "./tela-do-curso";
 
 const PAGINA = renderToStaticMarkup(
@@ -34,8 +29,7 @@ const css = await cssDoApp(
   )
 );
 
-/** A área do conteúdo como a casca a deixa em 1280 px: a sidebar aberta e o padding de 48 px. */
-const CONTEUDO = "margin-left:248px;padding:32px 48px 64px";
+const CONTEUDO = `margin-left:${LARGURAS_DA_SIDEBAR["--sidebar-width"]};padding:32px 48px 64px`;
 
 let enviar: Enviar;
 

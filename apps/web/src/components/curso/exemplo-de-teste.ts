@@ -1,10 +1,8 @@
-// Só dos testes: dois cursos com valores literais, em cada estado da página.
-
 import type {
   AulaDaPagina,
   PaginaDoCurso,
 } from "@cursos/api/dominio/pagina-do-curso";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
 
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}` as AulaId;
@@ -27,7 +25,6 @@ export const BLOQUEIO = id(12);
 export const ESTRUTURA = id(21);
 export const ESQUEMA = id(31);
 
-/** Fábrica e montagem: 3 módulos, 4 aulas, 42 min, sem níveis. */
 const FABRICA: PaginaDoCurso = {
   acao: {
     aulaId: RISCOS,
@@ -95,7 +92,6 @@ export const CONFIANCA = id(131);
 const VENDEDOR = { nome: "Vendedor Profills Certificado", ordem: 1 };
 const CONSULTOR = { nome: "Consultor Comercial Profills", ordem: 2 };
 
-/** Comercial: 4 módulos (0 a 3) em 2 níveis, 7 aulas, uma descrição de um parágrafo só. */
 const COMERCIAL: PaginaDoCurso = {
   acao: {
     aulaId: AUTO_1,
@@ -256,5 +252,4 @@ export const comercial = {
   },
 } satisfies Record<string, PaginaDoCurso>;
 
-/** O dia de São Paulo em que os testes rodam a página. */
-export const HOJE = "2026-10-15";
+export const HOJE = "2026-10-15" as DiaISO;

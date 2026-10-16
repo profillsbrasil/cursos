@@ -9,7 +9,6 @@ import {
 
 const PULSO = "bg-card motion-reduce:animate-none";
 
-// O esqueleto na grade da página: o cabeçalho, o cartão no lugar dele e as seções.
 export default function CarregandoCurso() {
   return (
     <>

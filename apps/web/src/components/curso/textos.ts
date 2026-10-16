@@ -3,7 +3,7 @@ import type {
   ModuloDaPagina,
   PaginaDoCurso,
 } from "@cursos/api/dominio/pagina-do-curso";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
 import type { Route } from "next";
 
 import {
@@ -17,7 +17,6 @@ import {
 } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
 
-/** Os parágrafos da descrição, sem linha vazia. O primeiro abre a página; o resto vai para "Sobre o curso". */
 export const paragrafos = (descricao: string): string[] =>
   descricao
     .split("\n")
@@ -30,7 +29,6 @@ const aulasDe = (modulos: readonly ModuloDaPagina[]) =>
 const duracaoDe = (aulas: readonly AulaDaPagina[]) =>
   aulas.reduce((soma, a) => soma + a.duracaoSeg, 0);
 
-/** "16 módulos", "90 aulas", "15 h 51 min" e, no curso com níveis, "3 níveis". */
 export function resumoDoCurso(p: PaginaDoCurso): string[] {
   const aulas = aulasDe(p.modulos);
   const partes = [
@@ -44,8 +42,7 @@ export function resumoDoCurso(p: PaginaDoCurso): string[] {
   return partes;
 }
 
-/** "3:42", ou "1:02:05" depois de uma hora. */
-export function tempo(seg: number): string {
+export function tempoDaPosicao(seg: number): string {
   const s = Math.max(0, Math.floor(seg));
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -53,22 +50,16 @@ export function tempo(seg: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
-/** A aula em que a pessoa está: a do Continuar. Antes da primeira aula, e na prova e no concluído, nenhuma. */
 export const aulaAtual = (p: PaginaDoCurso): AulaId | null =>
   p.acao.tipo === "continuar" ? p.acao.aulaId : null;
 
-/** Onde a pessoa parou na aula atual, só com posição acima de 0. */
 export const parouEm = (p: PaginaDoCurso): string | null =>
   p.acao.tipo === "continuar" && p.acao.posicaoSeg > 0
-    ? `Você parou em ${tempo(p.acao.posicaoSeg)}`
+    ? `Você parou em ${tempoDaPosicao(p.acao.posicaoSeg)}`
     : null;
 
 const ATE_TODOS_ABERTOS = 3;
 
-/**
- * Os módulos que a sanfona abre de saída: todos no curso de até 3 módulos; nos
- * outros, o da aula para onde o botão principal leva, e nenhum na prova e no concluído.
- */
 export function abertosDeSaida(p: PaginaDoCurso): number[] {
   if (p.modulos.length <= ATE_TODOS_ABERTOS) {
     return p.modulos.map((m) => m.numero);
@@ -94,28 +85,20 @@ export function marcaDoModulo(
   return m.aulas.some((a) => a.id === atual) ? "atual" : "pendente";
 }
 
-/** A linha sob o título do módulo: o nível dele ou, sem nível, o tamanho. */
-export const linhaDoModulo = (m: ModuloDaPagina): string =>
-  m.nivel
-    ? `Nível ${m.nivel.ordem} · ${m.nivel.nome}`
-    : `${plural(m.aulas.length, "aula", "aulas")} · ${fmtHoras(duracaoDe(m.aulas))}`;
-
-/**
- * A contagem à direita do módulo. Com o curso começado, "3 de 8 · 1 h 25 min".
- * Antes, o tamanho, a não ser que a linha sob o título já o diga.
- */
-export function contagemDoModulo(
+export function linhasDoModulo(
   m: ModuloDaPagina,
   comecou: boolean
-): string | null {
-  const duracao = fmtHoras(duracaoDe(m.aulas));
+): { direita: string | null; sob: string } {
+  const tamanho = `${plural(m.aulas.length, "aula", "aulas")} · ${fmtHoras(duracaoDe(m.aulas))}`;
+  const sob = m.nivel ? `Nível ${m.nivel.ordem} · ${m.nivel.nome}` : tamanho;
   if (comecou) {
     const feitas = m.aulas.filter((a) => a.assistida).length;
-    return `${feitas} de ${m.aulas.length} · ${duracao}`;
+    return {
+      direita: `${feitas} de ${m.aulas.length} · ${fmtHoras(duracaoDe(m.aulas))}`,
+      sob,
+    };
   }
-  return m.nivel
-    ? `${plural(m.aulas.length, "aula", "aulas")} · ${duracao}`
-    : null;
+  return { direita: m.nivel ? tamanho : null, sob };
 }
 
 export const aulasAssistidas = ({
@@ -132,8 +115,6 @@ export interface LinhaDoCartao {
 }
 
 export interface CartaoDoCurso {
-  /** A aula da vez, ou o que falta no curso. */
-  agora: { rotulo: string; titulo: string };
   botao: {
     href: Route;
     icone: "play" | "rever";
@@ -141,6 +122,7 @@ export interface CartaoDoCurso {
     variante: "contorno" | "principal";
   };
   inclui: readonly LinhaDoCartao[];
+  situacao: { rotulo: string; titulo: string };
 }
 
 function localizar(p: PaginaDoCurso, aulaId: AulaId) {
@@ -159,7 +141,6 @@ const PROVA_NO_FIM: LinhaDoCartao = {
   texto: "Prova e certificado no fim do curso",
 };
 
-/** O próximo nível ou, no curso sem níveis, que ele não tem; nada com todos os níveis obtidos. */
 function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
   if (p.proximoNivel) {
     return [{ icone: "nivel", texto: `Próximo nível: ${p.proximoNivel.nome}` }];
@@ -175,17 +156,12 @@ function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
   return [];
 }
 
-/** O que o cartão preso diz em cada estado. `hoje` é o dia de São Paulo, para a data do certificado. */
-export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
+export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
   const { acao } = p;
   switch (acao.tipo) {
     case "comecar": {
       const { aula } = localizar(p, acao.aulaId);
       return {
-        agora: {
-          rotulo: `Comece por: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
-          titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
-        },
         botao: {
           href: acao.href as Route,
           icone: "play",
@@ -200,22 +176,22 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
           ...linhaDosNiveis(p),
           PROVA_NO_FIM,
         ],
+        situacao: {
+          rotulo: `Comece por: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
+          titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
+        },
       };
     }
     case "continuar": {
       const { aula } = localizar(p, acao.aulaId);
       const resta = minutos(aula.duracaoSeg - acao.posicaoSeg);
       return {
-        agora: {
-          rotulo: `Agora: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
-          titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
-        },
         botao: {
           href: acao.href as Route,
           icone: "play",
           texto:
             acao.posicaoSeg > 0
-              ? `Continuar em ${tempo(acao.posicaoSeg)}`
+              ? `Continuar em ${tempoDaPosicao(acao.posicaoSeg)}`
               : "Continuar",
           variante: "principal",
         },
@@ -227,6 +203,10 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
           ...linhaDosNiveis(p),
           PROVA_NO_FIM,
         ],
+        situacao: {
+          rotulo: `Agora: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
+          titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
+        },
       };
     }
     case "prova": {
@@ -235,10 +215,6 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
         throw new Error(`Curso ${p.slug} na prova sem aulas`);
       }
       return {
-        agora: {
-          rotulo: "Você assistiu a todas as aulas",
-          titulo: "Prova e certificado",
-        },
         botao: {
           href: caminhoDaAula(p.slug, primeira.id),
           icone: "rever",
@@ -248,6 +224,10 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
         inclui: [
           { icone: "trofeu", texto: "A prova abre em breve nesta página" },
         ],
+        situacao: {
+          rotulo: "Você assistiu a todas as aulas",
+          titulo: "Prova e certificado",
+        },
       };
     }
     case "rever": {
@@ -256,10 +236,6 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
       }
       const { certificado } = p.estado;
       return {
-        agora: {
-          rotulo: "Curso concluído",
-          titulo: `Certificado emitido em ${diaCurto(diaEmSaoPaulo(certificado.emitidoEm), hoje)}`,
-        },
         botao: {
           href: acao.href as Route,
           icone: "rever",
@@ -272,6 +248,10 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: string): CartaoDoCurso {
             texto: `Código do certificado: ${certificado.codigo}`,
           },
         ],
+        situacao: {
+          rotulo: "Curso concluído",
+          titulo: `Certificado emitido em ${diaCurto(diaEmSaoPaulo(certificado.emitidoEm), hoje)}`,
+        },
       };
     }
     default:

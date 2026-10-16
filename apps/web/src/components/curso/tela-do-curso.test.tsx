@@ -9,7 +9,7 @@ import {
   fabrica,
   HOJE,
   RISCOS,
-} from "./exemplo";
+} from "./exemplo-de-teste";
 import { TelaDoCurso } from "./tela-do-curso";
 
 const CARTAO = /<aside aria-label="Seu progresso".*?<\/aside>/;
@@ -28,16 +28,14 @@ const texto = (html: string) =>
 
 const cartao = (html: string) => texto(html.match(CARTAO)?.[0] ?? "");
 
-/** O texto que o leitor de tela lê: sem o que tem aria-hidden="true". */
-const legivel = (html: string) =>
+const textoDoLeitorDeTela = (html: string) =>
   texto(html.replace(/<(\w+)[^>]*aria-hidden="true"[^>]*>.*?<\/\1>/g, " "));
 
-/** Cada módulo da sanfona: o título do resumo e se ele está aberto. */
 const modulos = (html: string) =>
   [...html.matchAll(/<details([^>]*)><summary[^>]*>(.*?)<\/summary>/g)].map(
     ([, atributos = "", resumo = ""]) => ({
       aberto: atributos.includes("open"),
-      resumo: legivel(resumo),
+      resumo: textoDoLeitorDeTela(resumo),
     })
   );
 
@@ -171,7 +169,7 @@ describe("a página", () => {
     const linha = comPosicao.match(
       new RegExp(`<li[\\s>](?:(?!</li>).)*${BLOQUEIO}.*?</li>`)
     )?.[0];
-    expect(legivel(linha ?? "")).toBe(
+    expect(textoDoLeitorDeTela(linha ?? "")).toBe(
       "2. Bloqueio antes de mexer Você parou em 3:42 10 min"
     );
     expect(texto(comPosicao).match(/Você parou em/g)).toHaveLength(1);

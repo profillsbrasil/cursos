@@ -17,12 +17,14 @@ import { caminhoDaAula } from "@/lib/rotas";
 import {
   abertosDeSaida,
   aulaAtual,
-  contagemDoModulo,
-  linhaDoModulo,
+  linhasDoModulo,
   type MarcaDoModulo,
   marcaDoModulo,
   parouEm,
 } from "./textos";
+
+const LINK_QUE_COBRE_A_LINHA =
+  "decoration-muted-foreground underline-offset-4 after:absolute after:inset-0 after:rounded-xl hover:text-titulo hover:underline";
 
 const COR_DA_MARCA: Record<MarcaDoModulo, string> = {
   atual: "bg-sol/14 text-sol",
@@ -88,7 +90,6 @@ function MarcaDaAula({
   );
 }
 
-/** O índice de livro do módulo: cada aula com a descrição inteira, e o nome leva à aula. */
 function Livro({
   atual,
   modulo,
@@ -125,10 +126,9 @@ function Livro({
                 <span className="mr-2 font-medium text-muted-foreground tabular-nums">
                   {i + 1}.
                 </span>
-                {/* O ::after cobre a linha inteira: a aula abre de qualquer ponto dela. */}
                 <Link
                   aria-current={aqui ? "step" : undefined}
-                  className="decoration-muted-foreground underline-offset-4 after:absolute after:inset-0 after:rounded-xl hover:text-titulo hover:underline"
+                  className={LINK_QUE_COBRE_A_LINHA}
                   href={caminhoDaAula(slug, a.id)}
                 >
                   {a.titulo}
@@ -180,7 +180,7 @@ function ModuloDaSanfona({
       alternar(numero, e.currentTarget.open),
     [alternar, numero]
   );
-  const contagem = contagemDoModulo(modulo, comecou);
+  const { direita, sob } = linhasDoModulo(modulo, comecou);
   return (
     <details
       className="group border-border border-t first:border-t-0"
@@ -192,12 +192,12 @@ function ModuloDaSanfona({
         <span className="font-semibold text-foreground group-hover/modulo:text-titulo">
           Módulo {numero} · {modulo.titulo}
           <small className="mt-px block font-normal text-muted-foreground text-xs">
-            {linhaDoModulo(modulo)}
+            {sob}
           </small>
         </span>
-        {contagem ? (
+        {direita ? (
           <span className="text-[13px] text-muted-foreground tabular-nums max-sm:col-start-2 max-sm:row-start-2 sm:text-right">
-            {contagem}
+            {direita}
           </span>
         ) : null}
         <ChevronDown
@@ -212,7 +212,6 @@ function ModuloDaSanfona({
   );
 }
 
-/** "Conteúdo do curso": a sanfona dos módulos, com o "Abrir todos" no cabeçalho. */
 export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
   const [abertos, setAbertos] = useState<ReadonlySet<number>>(
     () => new Set(abertosDeSaida(pagina))

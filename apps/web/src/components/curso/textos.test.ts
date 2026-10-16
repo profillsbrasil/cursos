@@ -8,25 +8,20 @@ import {
   fabrica,
   HOJE,
   RISCOS,
-} from "./exemplo";
+} from "./exemplo-de-teste";
 import {
   abertosDeSaida,
   cartaoDoCurso,
-  contagemDoModulo,
-  linhaDoModulo,
+  linhasDoModulo,
   paragrafos,
   parouEm,
   resumoDoCurso,
-  tempo,
+  tempoDaPosicao,
 } from "./textos";
 
 describe("o cartão preso", () => {
   test("antes da primeira aula, sem níveis: começa pela aula 1 e diz que o curso não tem níveis", () => {
     expect(cartaoDoCurso(fabrica.naoIniciado, HOJE)).toEqual({
-      agora: {
-        rotulo: "Comece por: Módulo 1, Segurança do posto",
-        titulo: "Aula 1 · Riscos do posto de montagem",
-      },
       botao: {
         href: `/cursos/fabrica-e-montagem/aulas/${RISCOS}`,
         icone: "play",
@@ -38,12 +33,16 @@ describe("o cartão preso", () => {
         { icone: "niveis", texto: "3 módulos, sem níveis" },
         { icone: "trofeu", texto: "Prova e certificado no fim do curso" },
       ],
+      situacao: {
+        rotulo: "Comece por: Módulo 1, Segurança do posto",
+        titulo: "Aula 1 · Riscos do posto de montagem",
+      },
     });
   });
 
   test("antes da primeira aula, com níveis: o próximo nível é o primeiro", () => {
     const c = cartaoDoCurso(comercial.naoIniciado, HOJE);
-    expect(c.agora.rotulo).toBe(
+    expect(c.situacao.rotulo).toBe(
       "Comece por: Módulo 0, Autoavaliação comercial"
     );
     expect(c.inclui.map((l) => l.texto)).toEqual([
@@ -55,10 +54,6 @@ describe("o cartão preso", () => {
 
   test("em andamento, com posição: continua no segundo em que a pessoa parou", () => {
     expect(cartaoDoCurso(fabrica.emAndamento, HOJE)).toEqual({
-      agora: {
-        rotulo: "Agora: Módulo 1, Segurança do posto",
-        titulo: "Aula 2 · Bloqueio antes de mexer",
-      },
       botao: {
         href: `/cursos/fabrica-e-montagem/aulas/${BLOQUEIO}`,
         icone: "play",
@@ -70,6 +65,10 @@ describe("o cartão preso", () => {
         { icone: "niveis", texto: "3 módulos, sem níveis" },
         { icone: "trofeu", texto: "Prova e certificado no fim do curso" },
       ],
+      situacao: {
+        rotulo: "Agora: Módulo 1, Segurança do posto",
+        titulo: "Aula 2 · Bloqueio antes de mexer",
+      },
     });
   });
 
@@ -88,10 +87,6 @@ describe("o cartão preso", () => {
 
   test("na prova: rever as aulas em contorno, e a prova abre em breve", () => {
     expect(cartaoDoCurso(fabrica.prova, HOJE)).toEqual({
-      agora: {
-        rotulo: "Você assistiu a todas as aulas",
-        titulo: "Prova e certificado",
-      },
       botao: {
         href: `/cursos/fabrica-e-montagem/aulas/${RISCOS}`,
         icone: "rever",
@@ -101,6 +96,10 @@ describe("o cartão preso", () => {
       inclui: [
         { icone: "trofeu", texto: "A prova abre em breve nesta página" },
       ],
+      situacao: {
+        rotulo: "Você assistiu a todas as aulas",
+        titulo: "Prova e certificado",
+      },
     });
   });
 
@@ -112,10 +111,6 @@ describe("o cartão preso", () => {
 
   test("concluído: a data do certificado no dia de São Paulo, com o ano fora do ano de hoje", () => {
     expect(cartaoDoCurso(comercial.concluido, HOJE)).toEqual({
-      agora: {
-        rotulo: "Curso concluído",
-        titulo: "Certificado emitido em 28 de dez. de 2025",
-      },
       botao: {
         href: `/cursos/comercial/aulas/${AUTO_1}`,
         icone: "rever",
@@ -123,8 +118,12 @@ describe("o cartão preso", () => {
         variante: "principal",
       },
       inclui: [{ icone: "trofeu", texto: "Código do certificado: CERT-COM-7" }],
+      situacao: {
+        rotulo: "Curso concluído",
+        titulo: "Certificado emitido em 28 de dez. de 2025",
+      },
     });
-    expect(cartaoDoCurso(fabrica.concluido, HOJE).agora.titulo).toBe(
+    expect(cartaoDoCurso(fabrica.concluido, HOJE).situacao.titulo).toBe(
       "Certificado emitido em 8 de out."
     );
   });
@@ -155,11 +154,11 @@ describe("os textos da página", () => {
   });
 
   test("o tempo da posição: m:ss, e h:mm:ss depois de uma hora", () => {
-    expect([tempo(222), tempo(59), tempo(3725)]).toEqual([
-      "3:42",
-      "0:59",
-      "1:02:05",
-    ]);
+    expect([
+      tempoDaPosicao(222),
+      tempoDaPosicao(59),
+      tempoDaPosicao(3725),
+    ]).toEqual(["3:42", "0:59", "1:02:05"]);
   });
 
   test("'Você parou em' só com posição acima de 0", () => {
@@ -171,14 +170,18 @@ describe("os textos da página", () => {
   test("o módulo mostra o nível ou o tamanho, e a contagem de aulas depois de começar", () => {
     const [m1] = fabrica.emAndamento.modulos;
     const [, , urgencia] = comercial.emAndamento.modulos;
-    expect(m1 && [linhaDoModulo(m1), contagemDoModulo(m1, true)]).toEqual([
-      "2 aulas · 21 min",
-      "1 de 2 · 21 min",
-    ]);
-    expect(m1 && contagemDoModulo(m1, false)).toBeNull();
-    expect(
-      urgencia && [linhaDoModulo(urgencia), contagemDoModulo(urgencia, false)]
-    ).toEqual(["Nível 2 · Consultor Comercial Profills", "3 aulas · 30 min"]);
+    expect(m1 && linhasDoModulo(m1, true)).toEqual({
+      direita: "1 de 2 · 21 min",
+      sob: "2 aulas · 21 min",
+    });
+    expect(m1 && linhasDoModulo(m1, false)).toEqual({
+      direita: null,
+      sob: "2 aulas · 21 min",
+    });
+    expect(urgencia && linhasDoModulo(urgencia, false)).toEqual({
+      direita: "3 aulas · 30 min",
+      sob: "Nível 2 · Consultor Comercial Profills",
+    });
   });
 });
 
