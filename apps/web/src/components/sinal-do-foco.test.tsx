@@ -541,13 +541,11 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       "seta"
     );
     expect(noFoco(seta)).toContain("color: var(--ceu)");
-    // A seta acende pelo grupo do link dela, que precisa existir.
     const linkDaSeta = unico(
       daLista.filter((e) => e.atributos["aria-label"] === "Abrir Ana Exemplo"),
       "link da seta"
     );
     expect(linkDaSeta.classes).toContain("group/seta");
-    // A caixa de seleção ganha a borda Céu pelo data-slot, na regra do index.css.
     const caixa = unico(
       daLista.filter((e) => e.atributos["aria-label"] === "Marcar Ana Exemplo"),
       "caixa"

@@ -90,7 +90,6 @@ const PAGINA = `
         const BUSCAS = ${JSON.stringify(BUSCAS)};
         const CURSOS = ${JSON.stringify(CURSOS)};
 
-        // Uma busca nova troca a página e não o layout, como no app.
         function Pagina() {
           const [termo, setTermo] = useState("lima");
           window.buscar = (t) => flushSync(() => setTermo(t));
@@ -175,8 +174,7 @@ async function empacotar() {
   return saida.text();
 }
 
-// As classes que a tela pode usar: o Tailwind ignora o que não for classe.
-const FONTES = [
+const ARQUIVOS_COM_CLASSES = [
   "tela-de-alunos.tsx",
   "lista-de-pessoas.tsx",
   "coluna-do-lote.tsx",
@@ -192,18 +190,17 @@ const FONTES = [
 ].map((f) => join(AQUI, f));
 const PALAVRA = /[\s"'`{}]+/;
 const css = await cssDoApp(
-  [PAGINA, ...FONTES.map((f) => readFileSync(f, "utf8"))].flatMap((t) =>
-    t.split(PALAVRA)
+  [PAGINA, ...ARQUIVOS_COM_CLASSES.map((f) => readFileSync(f, "utf8"))].flatMap(
+    (t) => t.split(PALAVRA)
   )
 );
 
-// Só para as fotos: a Geist de um diretório local, embutida, como o next/font a serve.
-const GEIST = process.env.GEIST_DO_LOTE;
-const fonte = GEIST
+const GEIST_DAS_FOTOS = process.env.GEIST_DO_LOTE;
+const fonteDasFotos = GEIST_DAS_FOTOS
   ? ["Regular", "Medium", "SemiBold", "Bold"]
       .map(
         (peso, i) =>
-          `@font-face{font-family:Geist;font-weight:${400 + i * 100};src:url(data:font/woff2;base64,${readFileSync(join(GEIST, `Geist-${peso}.woff2`)).toString("base64")}) format("woff2")}`
+          `@font-face{font-family:Geist;font-weight:${400 + i * 100};src:url(data:font/woff2;base64,${readFileSync(join(GEIST_DAS_FOTOS, `Geist-${peso}.woff2`)).toString("base64")}) format("woff2")}`
       )
       .join("")
   : "";
@@ -225,7 +222,7 @@ async function abrirTela(largura: number) {
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
-      `<!doctype html><html class="dark" lang="pt-BR" style="--font-geist-sans:Geist"><head><meta name="viewport" content="width=device-width"><style>${fonte}${css}</style></head><body class="bg-background font-sans text-foreground" style="margin:0"><main style="${conteudo}"><div id="raiz"></div></main></body></html>`
+      `<!doctype html><html class="dark" lang="pt-BR" style="--font-geist-sans:Geist"><head><meta name="viewport" content="width=device-width"><style>${fonteDasFotos}${css}</style></head><body class="bg-background font-sans text-foreground" style="margin:0"><main style="${conteudo}"><div id="raiz"></div></main></body></html>`
     )}); document.close();`
   );
   await avaliar(enviar, pacote);
@@ -273,12 +270,12 @@ const focado = () =>
   );
 
 const FOTOS = process.env.FOTOS_DO_LOTE;
+const DEPOIS_DAS_TRANSICOES_MS = 300;
 async function foto(nome: string) {
   if (!FOTOS) {
     return;
   }
-  // As transições de cor da tela duram até 200 ms.
-  await sleep(300);
+  await sleep(DEPOIS_DAS_TRANSICOES_MS);
   const { data } = (await enviar("Page.captureScreenshot", {
     captureBeyondViewport: true,
     format: "png",
@@ -307,7 +304,6 @@ const MEDIR = `(() => {
 const medir = () =>
   avaliar<{ coluna: Caixa; lista: Caixa; posicao: string }>(enviar, MEDIR);
 
-/** Marca três pessoas em duas buscas e escolhe o Comercial. */
 async function prontoParaLiberar() {
   await marcar("Ana Beatriz Lima");
   await marcar("Roberto Lima");

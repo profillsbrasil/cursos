@@ -154,7 +154,7 @@ export function montarAcesso(
  */
 export const TETO_DO_LOTE = 50;
 
-/** O que a liberação em lote fez com cada pessoa. Nada mudou para quem não liberou. */
+/** Nada mudou para quem não liberou. */
 export type LiberacaoNaPessoa =
   | { tipo: "liberada_agora" }
   | { liberadaEm: DiaISO; origem: OrigemDaLiberacao; tipo: "ja_tinha" }
@@ -163,7 +163,7 @@ export type LiberacaoNaPessoa =
 export type ResultadoNaPessoa = LiberacaoNaPessoa & { userId: string };
 
 export interface ResultadoDoLote {
-  /** O dia de São Paulo da liberação, para a tela pôr o ano na data de outro ano. */
+  /** O dia de São Paulo da liberação. */
   hoje: DiaISO;
   /** Na ordem dos userIds pedidos, sem repetir. */
   pessoas: readonly ResultadoNaPessoa[];

@@ -1,7 +1,3 @@
-// A liberação de um curso para várias pessoas, na tela de Alunos: quem está
-// marcado, o curso escolhido e o resultado por pessoa. Sem "use client": o
-// reducer e as frases são puros, e o teste os chama sem React.
-
 import type { PessoaComSituacao } from "@cursos/api/dominio/acompanhamento";
 import {
   type LiberacaoNaPessoa,
@@ -22,11 +18,6 @@ export interface LinhaDoResultado {
   pessoa: Pessoa;
 }
 
-/**
- * A coluna mostra o formulário (as marcadas e o curso) ou o resultado da última
- * liberação. As marcadas valem nas duas: o admin marca a próxima leva enquanto lê
- * o resultado.
- */
 export type FaseDoLote =
   | { curso: CursoDoLote | null; tipo: "marcando" }
   | {
@@ -38,7 +29,6 @@ export type FaseDoLote =
 
 export interface EstadoDoLote {
   fase: FaseDoLote;
-  /** Na ordem em que o admin marcou, de qualquer busca. */
   marcadas: readonly Pessoa[];
 }
 
@@ -130,7 +120,6 @@ export function lote(estado: EstadoDoLote, e: EventoDoLote): EstadoDoLote {
   }
 }
 
-/** Por que o Liberar está desligado, ou o curso e as pessoas que ele manda. */
 export type ProntoParaLiberar =
   | { curso: CursoDoLote; pessoas: readonly Pessoa[]; tipo: "pronto" }
   | { tipo: "falta_marcar" }
@@ -165,11 +154,9 @@ const ORDEM: Record<LiberacaoNaPessoa["tipo"], number> = {
   nao_liberou: 0,
 };
 
-/** Quem não liberou primeiro, para o Tentar de novo ficar à vista; depois as liberadas e as que já tinham. */
 export const emOrdemDoResultado = (linhas: readonly LinhaDoResultado[]) =>
   [...linhas].sort((a, b) => ORDEM[a.liberacao.tipo] - ORDEM[b.liberacao.tipo]);
 
-/** "2 liberadas agora, 1 já tinha, 1 não liberou". */
 export function resumoDoResultado(linhas: readonly LinhaDoResultado[]) {
   const conta = (tipo: LiberacaoNaPessoa["tipo"]) =>
     linhas.filter((l) => l.liberacao.tipo === tipo).length;
@@ -191,7 +178,6 @@ export function resumoDoResultado(linhas: readonly LinhaDoResultado[]) {
     .join(", ");
 }
 
-/** A linha de baixo de cada pessoa no resultado. */
 export function detalheDoResultado(l: LinhaDoResultado, hoje: DiaISO): string {
   const { liberacao, pessoa } = l;
   switch (liberacao.tipo) {
@@ -210,7 +196,6 @@ export function detalheDoResultado(l: LinhaDoResultado, hoje: DiaISO): string {
   }
 }
 
-/** Com o curso escolhido, a linha de quem já o tem perde a caixa e diz como chegou. */
 export function jaTem(
   pessoa: PessoaComSituacao,
   curso: CursoDoLote | null

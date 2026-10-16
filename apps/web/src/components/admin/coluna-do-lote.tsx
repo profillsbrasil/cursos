@@ -43,7 +43,6 @@ const TITULO_DA_COLUNA =
 
 const ERRO = "Não deu para liberar. Tente de novo em instantes.";
 
-/** O foco vai para quem fica no lugar do que sumiu: o render roda antes, no flushSync. */
 function useDespacharEFocar() {
   const { despachar } = useLote();
   return useCallback(
@@ -272,8 +271,6 @@ function OpcaoDeCurso({
       despachar({ curso: { id: c.id, titulo: c.titulo }, tipo: "escolher" }),
     [despachar, c.id, c.titulo]
   );
-  // Sob o cursor e com o foco no rádio, o label ganha o fundo branco a 8%; o
-  // escolhido fica em Sol a 14%.
   return (
     <label className="grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8 has-checked:bg-sol/14 motion-reduce:transition-none">
       <input
@@ -393,11 +390,6 @@ function Formulario({
   );
 }
 
-/**
- * A coluna da liberação para várias pessoas: as marcadas, os cursos e Liberar;
- * depois de liberar, o resultado por pessoa no mesmo lugar. Presa ao topo ao
- * lado da lista; em conteúdo abaixo de 760 px, vem antes dela.
- */
 export function ColunaDoLote({
   className,
   cursos,

@@ -15,10 +15,6 @@ const Lote = createContext<{
   estado: EstadoDoLote;
 } | null>(null);
 
-/**
- * Mora no layout de /admin/alunos, que fica montado de uma busca para outra e
- * quando o admin abre uma pessoa e volta: a seleção vai junto.
- */
 export function ProvedorDoLote({ children }: { children: ReactNode }) {
   const [estado, despachar] = useReducer(lote, LOTE_VAZIO);
   return <Lote value={{ despachar, estado }}>{children}</Lote>;

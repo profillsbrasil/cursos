@@ -145,7 +145,7 @@ export async function liberar(
 
 const NAO_LIBEROU = "Não deu para liberar agora. Nada mudou para esta pessoa.";
 
-function naoLiberou(erro: unknown, userId: string): LiberacaoNaPessoa {
+function falhaNoLog(erro: unknown, userId: string): LiberacaoNaPessoa {
   if (erro instanceof ErroParaAPessoa) {
     return { mensagem: erro.message, tipo: "nao_liberou" };
   }
@@ -153,25 +153,23 @@ function naoLiberou(erro: unknown, userId: string): LiberacaoNaPessoa {
   if (doBanco) {
     return { mensagem: doBanco.message, tipo: "nao_liberou" };
   }
-  // O lote responde 200 com a falha dentro, e o onError do tRPC não a vê.
   console.error(`liberarVarios: ${userId} não liberou`, erro);
   return { mensagem: NAO_LIBEROU, tipo: "nao_liberou" };
 }
 
-/** A resposta do Clerk para um userId do lote. */
-type Procura =
+type PessoaNoClerk =
   | { pessoa: Pessoa | null; userId: string }
   | { erro: unknown; userId: string };
 
 async function liberarNaPessoa(
   db: Database,
   admin: AdminId,
-  procura: Procura,
+  procura: PessoaNoClerk,
   cursoId: CursoId,
   agora: Date
 ): Promise<LiberacaoNaPessoa> {
   if ("erro" in procura) {
-    return naoLiberou(procura.erro, procura.userId);
+    return falhaNoLog(procura.erro, procura.userId);
   }
   if (procura.pessoa === null) {
     return { mensagem: PESSOA_SUMIU, tipo: "nao_liberou" };
@@ -186,15 +184,10 @@ async function liberarNaPessoa(
           tipo: "ja_tinha",
         };
   } catch (erro) {
-    return naoLiberou(erro, procura.userId);
+    return falhaNoLog(erro, procura.userId);
   }
 }
 
-/**
- * O mesmo curso para várias pessoas, cada uma pelo liberar, com a trava e a
- * transação dela: a falha de uma não desfaz nem impede as outras. O curso que
- * não existe recusa o lote inteiro antes de qualquer pessoa.
- */
 export async function liberarVarios(
   db: Database,
   porId: (userId: string) => Promise<Pessoa | null>,
@@ -209,8 +202,8 @@ export async function liberarVarios(
   const procuras = await Promise.all(
     [...new Set(userIds)].map((userId) =>
       porId(userId).then(
-        (pessoa): Procura => ({ pessoa, userId }),
-        (erro: unknown): Procura => ({ erro, userId })
+        (pessoa): PessoaNoClerk => ({ pessoa, userId }),
+        (erro: unknown): PessoaNoClerk => ({ erro, userId })
       )
     )
   );

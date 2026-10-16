@@ -79,14 +79,12 @@ export type SituacaoDaPessoa =
   | { tipo: "concluiu_tudo"; numeros: NumerosDaPessoa; ultimoEstudo: DiaISO }
   | { tipo: "estudando"; numeros: NumerosDaPessoa; ultimoEstudo: DiaISO };
 
-/** Um curso que a pessoa alcança por liberação ativa, e de onde veio. */
 export interface CursoQueAPessoaTem {
   cursoId: CursoId;
   origem: OrigemDaLiberacao;
 }
 
 export interface PessoaComSituacao extends Pessoa {
-  /** Na liberação para várias pessoas, a linha de quem já tem o curso escolhido diz "Já tem". */
   ativas: readonly CursoQueAPessoaTem[];
   situacao: SituacaoDaPessoa;
 }

@@ -10,8 +10,6 @@ import { carregarCatalogo, carregarPessoas } from "@/server/api";
 
 export const metadata: Metadata = { title: "Alunos · Admin" };
 
-// A busca é um form GET pelo next/form: navega no cliente, a página relê ?q= e
-// chama o Clerk, e o endereço guarda a busca. A seleção do lote mora no layout.
 export default async function Alunos({
   searchParams,
 }: {
