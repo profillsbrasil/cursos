@@ -111,6 +111,12 @@ interface MensagemDoBanco {
  * raiz dele (salvarCurso): duas criações não chegam ao mesmo endereço.
  */
 export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
+  "alternativa_certa_unica",
+  "alternativa_pergunta_id_pergunta_id_fkey",
+  "alternativa_pkey",
+  "alternativa_posicao_positiva",
+  "alternativa_posicao_unica",
+  "alternativa_texto_formato",
   "aula_assistida_aula_id_aula_id_fkey",
   "aula_descricao_tamanho",
   "aula_duracao_positiva",
@@ -148,6 +154,11 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "nivel_curso_id_curso_id_fkey",
   "nivel_ordem_positiva",
   "nivel_pkey",
+  "pergunta_aula_id_aula_id_fkey",
+  "pergunta_enunciado_formato",
+  "pergunta_pkey",
+  "pergunta_posicao_positiva",
+  "pergunta_posicao_unica",
   "ponto_liberacao_fk",
   "posicao_aula_aula_id_aula_id_fkey",
 ]);

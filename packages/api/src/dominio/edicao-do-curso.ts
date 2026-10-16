@@ -7,12 +7,15 @@
 import { ID_DO_YOUTUBE, STATUS_DO_CURSO } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
+import { ALTERNATIVAS } from "./questionario";
 import type {
+  AlternativaId,
   AulaId,
   Capa,
   CategoriaId,
   CursoId,
   ModuloId,
+  PerguntaId,
   Versao,
   VideoDaAula,
   VideoId,
@@ -27,21 +30,20 @@ export const LIMITES = {
   modulos: 200,
   niveis: 50,
   numeroDeModulo: 999,
+  perguntasPorAula: 20,
   /** O check curso_topicos_validos repete este teto. */
   topicos: 10,
 } as const;
 
-/**
- * categoria (o nome da Categoria), descricao, descricaoDaAula e topico se repetem
- * nos checks do banco. slug é o teto do endereço que o servidor gera.
- */
 export const CARACTERES = {
+  alternativa: 200,
   capaAlt: 300,
   categoria: 80,
   codigo: 40,
   descricao: 2000,
   descricaoDaAula: 2000,
   destaque: 60,
+  enunciado: 500,
   nomeDoNivel: 60,
   slug: 80,
   titulo: 120,
@@ -49,6 +51,8 @@ export const CARACTERES = {
   tituloDoModulo: 160,
   topico: 120,
 } as const;
+
+export const SEM_CERTA = "Marque a alternativa certa: clique na letra dela.";
 
 export const DURACAO_MAXIMA_SEG = 24 * 60 * 60;
 export const PRECO_MAXIMO = 1_000_000;
@@ -77,11 +81,37 @@ const video = z
     (v): VideoDaAula => ({ id: v.id as VideoId, provedor: v.provedor })
   );
 
+const alternativa = z.object({
+  certa: z.boolean(),
+  id: uuid.transform((id) => id as AlternativaId),
+  texto: texto(CARACTERES.alternativa),
+});
+
+const pergunta = z
+  .object({
+    alternativas: z
+      .array(alternativa)
+      .min(ALTERNATIVAS.min)
+      .max(ALTERNATIVAS.max),
+    enunciado: texto(CARACTERES.enunciado),
+    id: uuid.transform((id) => id as PerguntaId),
+  })
+  .superRefine((p, ctx) => {
+    if (p.alternativas.filter((a) => a.certa).length !== 1) {
+      ctx.addIssue({
+        code: "custom",
+        message: SEM_CERTA,
+        path: ["alternativas"],
+      });
+    }
+  });
+
 const aula = z.object({
   descricao: livre(CARACTERES.descricaoDaAula),
   duracaoSeg: z.int().positive().max(DURACAO_MAXIMA_SEG),
   /** Aula nova: o editor gera o id. A posição é o índice no módulo mais 1. */
   id: uuid.transform((id) => id as AulaId),
+  perguntas: z.array(pergunta).max(LIMITES.perguntasPorAula),
   titulo: texto(CARACTERES.tituloDaAula),
   video: video.nullable(),
 });
@@ -150,9 +180,17 @@ export const documentoDoCurso = z
     for (const id of repetidos(d.modulos.map((m) => m.id))) {
       falha(`Módulo ${id} aparece duas vezes.`, ["modulos"]);
     }
-    const aulas = d.modulos.flatMap((m) => m.aulas.map((a) => a.id));
-    for (const id of repetidos(aulas)) {
+    const aulas = d.modulos.flatMap((m) => m.aulas);
+    for (const id of repetidos(aulas.map((a) => a.id))) {
       falha(`Aula ${id} aparece duas vezes.`, ["modulos"]);
+    }
+    const perguntas = aulas.flatMap((a) => a.perguntas);
+    for (const id of repetidos(perguntas.map((p) => p.id))) {
+      falha(`Pergunta ${id} aparece duas vezes.`, ["modulos"]);
+    }
+    const alternativas = perguntas.flatMap((p) => p.alternativas);
+    for (const id of repetidos(alternativas.map((a) => a.id))) {
+      falha(`Alternativa ${id} aparece duas vezes.`, ["modulos"]);
     }
     for (const o of repetidos(d.niveis.map((n) => n.ordem))) {
       falha(`Dois níveis com a ordem ${o}.`, ["niveis"]);
@@ -177,6 +215,9 @@ export const documentoDoCurso = z
 export type DocumentoDoCurso = z.output<typeof documentoDoCurso>;
 export type ModuloDoDocumento = DocumentoDoCurso["modulos"][number];
 export type AulaDoDocumento = ModuloDoDocumento["aulas"][number];
+export type PerguntaDoDocumento = AulaDoDocumento["perguntas"][number];
+export type AlternativaDoDocumento =
+  PerguntaDoDocumento["alternativas"][number];
 
 /** Nome dos campos do FormData de admin.catalogo.salvarCurso. */
 const CAMPO = { capa: "capa", documento: "documento" } as const;

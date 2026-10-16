@@ -1,9 +1,10 @@
-// Único escritor de curso, nivel, modulo e aula no app (o seed só planta árvores
-// novas). A ordem de gravarCurso é o único lugar que conhece os uniques não
-// deferrable modulo_numero_unico e aula_posicao_unica.
+// A ordem de gravarCurso é o único lugar que conhece os uniques não deferrable
+// modulo_numero_unico, aula_posicao_unica, pergunta_posicao_unica,
+// alternativa_posicao_unica e alternativa_certa_unica.
 
 import type { Database } from "@cursos/db";
 import {
+  alternativa,
   aula,
   aulaAssistida,
   categoria,
@@ -12,6 +13,7 @@ import {
   liberacao,
   modulo,
   nivel,
+  pergunta,
 } from "@cursos/db/schema/index";
 import { and, count, eq, inArray, like, or, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
@@ -34,11 +36,13 @@ import {
   versaoDoCurso,
 } from "../dominio/plano-do-curso";
 import {
+  type AlternativaId,
   type AulaId,
   type CategoriaId,
   type CursoId,
   capaDe,
   type ModuloId,
+  type PerguntaId,
   type Versao,
 } from "../dominio/tipos";
 import { videoDaAula } from "../dominio/video";
@@ -55,8 +59,8 @@ import { comTrava, travarTambem } from "./trava";
  */
 const TETO_FINAL = Math.max(LIMITES.numeroDeModulo, LIMITES.aulasPorModulo);
 
-/** Aulas por INSERT: 8 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
-const AULAS_POR_LOTE = 1000;
+/** Linhas por INSERT: 8 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
+const LINHAS_POR_LOTE = 1000;
 
 /**
  * O curso como o editor abre: documento (com versão), capa e uso. Três
@@ -97,6 +101,18 @@ export async function abrirCurso(
               videoProvedor: true,
             },
             orderBy: { posicao: "asc" },
+            with: {
+              perguntas: {
+                columns: { enunciado: true, id: true },
+                orderBy: { posicao: "asc" },
+                with: {
+                  alternativas: {
+                    columns: { certa: true, id: true, texto: true },
+                    orderBy: { posicao: "asc" },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -135,6 +151,15 @@ export async function abrirCurso(
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
+        perguntas: a.perguntas.map((p) => ({
+          alternativas: p.alternativas.map((x) => ({
+            certa: x.certa,
+            id: x.id as AlternativaId,
+            texto: x.texto,
+          })),
+          enunciado: p.enunciado,
+          id: p.id as PerguntaId,
+        })),
         titulo: a.titulo,
         video: videoDaAula(a.videoProvedor, a.videoId),
       })),
@@ -367,13 +392,21 @@ function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
  *   6. módulos: upsert por id com o número final.
  *   7. aulas: upsert por id com módulo e posição finais, em lotes. Aula que troca
  *      de módulo muda aqui e mantém o id.
- *   8. módulos que saem: DELETE (já vazios depois dos passos 3 e 7).
- *   9. níveis que saem: DELETE (nenhum módulo aponta para eles depois do passo 6).
+ *   8. perguntas e alternativas que saem: DELETE. As da aula que saiu caíram em
+ *      cascade no passo 3.
+ *   9. todas as perguntas das aulas do curso: posicao + deslocamento; todas as
+ *      alternativas delas: posicao + deslocamento e certa = false, porque o
+ *      índice parcial alternativa_certa_unica também confere linha a linha, e a
+ *      certa nova entraria antes de a velha sair.
+ *  10. perguntas: upsert por id com aula e posição finais.
+ *  11. alternativas: upsert por id com pergunta, posição e certa finais.
+ *  12. módulos que saem: DELETE (já vazios depois dos passos 3 e 7).
+ *  13. níveis que saem: DELETE (nenhum módulo aponta para eles depois do passo 6).
  *
- * Depois dos passos 4 e 5, todo valor antigo fica acima de TETO_FINAL e todo
+ * Depois dos passos 4, 5 e 9, todo valor antigo fica acima de TETO_FINAL e todo
  * valor final abaixo dele, então o upsert não colide com linha nova nem mantida.
- * Os finais são únicos porque o schema recusa número de módulo repetido e a
- * posição da aula é o índice. O upsert só atualiza linha deste curso: id de outro
+ * Os finais são únicos porque o schema recusa número de módulo repetido e as
+ * posições são o índice. O upsert só atualiza linha deste curso: id de outro
  * curso volta fora do returning, e a contagem recusa o documento inteiro.
  */
 async function gravarCurso(
@@ -398,6 +431,14 @@ async function gravarCurso(
   const nosModulosDoCurso = inArray(
     aula.moduloId,
     tx.select({ id: modulo.id }).from(modulo).where(doCurso)
+  );
+  const nasAulasDoCurso = inArray(
+    pergunta.aulaId,
+    tx.select({ id: aula.id }).from(aula).where(nosModulosDoCurso)
+  );
+  const nasPerguntasDoCurso = inArray(
+    alternativa.perguntaId,
+    tx.select({ id: pergunta.id }).from(pergunta).where(nasAulasDoCurso)
   );
 
   // O slug só entra na criação: depois dela, o endereço do aluno não muda.
@@ -475,7 +516,7 @@ async function gravarCurso(
       videoProvedor: a.video?.provedor ?? null,
     }))
   );
-  for (const lote of lotes(aulas, AULAS_POR_LOTE)) {
+  for (const lote of lotes(aulas, LINHAS_POR_LOTE)) {
     // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(aula)
@@ -499,6 +540,8 @@ async function gravarCurso(
     }
   }
 
+  await gravarQuestionario(tx, plano, nasAulasDoCurso, nasPerguntasDoCurso);
+
   if (plano.tipo === "atualizar") {
     if (plano.apagar.modulos.length > 0) {
       await tx.delete(modulo).where(umDe(modulo.id, plano.apagar.modulos));
@@ -512,6 +555,105 @@ async function gravarCurso(
             inArray(nivel.ordem, [...plano.apagar.niveis])
           )
         );
+    }
+  }
+}
+
+async function gravarQuestionario(
+  tx: Transacao,
+  plano: PlanoDeGravacao,
+  nasAulasDoCurso: SQL,
+  nasPerguntasDoCurso: SQL
+) {
+  const { documento: d } = plano;
+  if (plano.tipo === "atualizar") {
+    if (plano.apagar.perguntas.length > 0) {
+      await tx
+        .delete(pergunta)
+        .where(umDe(pergunta.id, plano.apagar.perguntas));
+    }
+    if (plano.apagar.alternativas.length > 0) {
+      await tx
+        .delete(alternativa)
+        .where(umDe(alternativa.id, plano.apagar.alternativas));
+    }
+    await tx
+      .update(pergunta)
+      .set({ posicao: deslocado(pergunta, pergunta.posicao, nasAulasDoCurso) })
+      .where(nasAulasDoCurso);
+    await tx
+      .update(alternativa)
+      .set({
+        certa: false,
+        posicao: deslocado(
+          alternativa,
+          alternativa.posicao,
+          nasPerguntasDoCurso
+        ),
+      })
+      .where(nasPerguntasDoCurso);
+  }
+  const perguntas = d.modulos.flatMap((m) =>
+    m.aulas.flatMap((a) =>
+      a.perguntas.map((p, i) => ({
+        aulaId: a.id,
+        enunciado: p.enunciado,
+        id: p.id,
+        posicao: i + 1,
+      }))
+    )
+  );
+  for (const lote of lotes(perguntas, LINHAS_POR_LOTE)) {
+    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    const gravadas = await tx
+      .insert(pergunta)
+      .values(lote)
+      .onConflictDoUpdate({
+        set: {
+          aulaId: proposto(pergunta.aulaId),
+          enunciado: proposto(pergunta.enunciado),
+          posicao: proposto(pergunta.posicao),
+        },
+        setWhere: nasAulasDoCurso,
+        target: pergunta.id,
+      })
+      .returning({ id: pergunta.id });
+    if (gravadas.length !== lote.length) {
+      throw new Error("O documento traz pergunta de outro curso.");
+    }
+  }
+
+  const alternativas = d.modulos.flatMap((m) =>
+    m.aulas.flatMap((a) =>
+      a.perguntas.flatMap((p) =>
+        p.alternativas.map((x, i) => ({
+          certa: x.certa,
+          id: x.id,
+          perguntaId: p.id,
+          posicao: i + 1,
+          texto: x.texto,
+        }))
+      )
+    )
+  );
+  for (const lote of lotes(alternativas, LINHAS_POR_LOTE)) {
+    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    const gravadas = await tx
+      .insert(alternativa)
+      .values(lote)
+      .onConflictDoUpdate({
+        set: {
+          certa: proposto(alternativa.certa),
+          perguntaId: proposto(alternativa.perguntaId),
+          posicao: proposto(alternativa.posicao),
+          texto: proposto(alternativa.texto),
+        },
+        setWhere: nasPerguntasDoCurso,
+        target: alternativa.id,
+      })
+      .returning({ id: alternativa.id });
+    if (gravadas.length !== lote.length) {
+      throw new Error("O documento traz alternativa de outro curso.");
     }
   }
 }
