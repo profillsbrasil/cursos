@@ -37,6 +37,7 @@ function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
   return {
     anterior: null,
     aula: {
+      descricao: "",
       duracaoSeg: 660,
       id: atual,
       modulo: { numero: modulo, titulo: `Módulo ${modulo}` },

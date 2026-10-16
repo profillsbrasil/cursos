@@ -37,7 +37,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 - O aluno tem um Início separado da tela "Meus cursos".
 - Não há prazo de conclusão em liberação nenhuma.
 - O Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
-- Existe gamificação individual: pontos, sequência de dias, medalhas e níveis. Não existe ranking nem comparação entre colegas.
+- Existe gamificação individual: pontos, sequência de dias e medalhas. Não existe ranking nem comparação entre colegas.
 - Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no quiz de fixação na primeira tentativa, 50 por prova aprovada, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula ou refazer prova não pontua de novo.
 - A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
 - Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
@@ -66,12 +66,17 @@ Decisões abertas:
 - Preços, planos de assinatura e o meio de pagamento.
 - Como compra e assinatura viram liberação de curso (quais cursos cada plano libera).
 - Quando os clientes e o público aberto entram depois do lançamento interno.
-- Se o certificado tem valor formal (carga horária, validação externa) ou é só comprovante interno.
+- Se o certificado tem validação externa (órgão, entidade de classe) além da conferência pelo código.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
-- A nota mínima e o limite de tentativas da prova.
-- Os níveis e as medalhas exatos (o protótipo anterior tinha os níveis Vendedor, Consultor e Especialista e 8 medalhas).
-- Se ponto vence e se existe teto diário de pontos vindos de vídeo.
 - Os perfis de acesso exatos além de aluno e admin. Curso, liberação, admin e o resto do vocabulário estão no `GLOSSARY.md` da raiz.
+
+Decididas pelo dono em 2026-10-16:
+
+- O questionário de cada aula aprova com 70%, igual em todo curso, e a pessoa tenta de novo quantas vezes quiser. A regra completa está em `docs/specs/curso-formato-udemy/README.md`.
+- O certificado é uma página do app e um PDF para baixar, com nome, curso, data, carga horária e código. A carga horária é a soma da duração dos vídeos, arredondada para cima em horas. Uma página pública confere o certificado pelo código.
+- Conquistas são medalhas por marco que o app já registra (primeira aula, primeiro curso concluído, sequência de 7 dias, primeira troca, certificados). Não há níveis de aluno.
+- Ponto não vence, e não há teto diário para os pontos de vídeo. O limite de taxa do player já barra abuso.
+- O menu do aluno não tem Início: Meus cursos é a primeira tela.
 
 ## Brand Commitments
 

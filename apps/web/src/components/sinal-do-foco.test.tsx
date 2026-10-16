@@ -69,6 +69,7 @@ const coluna = renderToStaticMarkup(
       {
         anterior: null,
         aula: {
+          descricao: "",
           duracaoSeg: 300,
           id: PRIMEIRA.id,
           modulo: { numero: 1, titulo: "Primeiros passos" },

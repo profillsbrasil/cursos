@@ -14,6 +14,7 @@ const URL_TESTE = urlDeTeste();
 /** As tabelas que o admin escreve, nesta área e nos PRs seguintes. */
 const TABELAS_DO_ADMIN = [
   "aula",
+  "categoria",
   "comunicado",
   "curso",
   "liberacao",

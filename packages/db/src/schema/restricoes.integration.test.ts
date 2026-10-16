@@ -18,6 +18,7 @@ const sufixo = () => randomBytes(4).toString("hex");
 interface Base {
   aluno: string;
   aulaId: string;
+  categoriaId: string;
   cursoId: string;
   moduloId: string;
 }
@@ -25,10 +26,15 @@ interface Base {
 async function montarBase(c: Client): Promise<Base> {
   const s = sufixo();
   const aluno = `user_teste${s}`;
+  const categoria = await c.query<{ id: string }>(
+    "insert into categoria (nome) values ($1) returning id",
+    [`Categoria ${s}`]
+  );
+  const categoriaId = categoria.rows[0]?.id ?? "";
   const curso = await c.query<{ id: string }>(
-    `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
-     values ($1, 'Curso teste', 'teste', '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
-    [`teste-${s}`]
+    `insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura, status)
+     values ($1, 'Curso teste', $2, '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
+    [`teste-${s}`, categoriaId]
   );
   const cursoId = curso.rows[0]?.id ?? "";
   await c.query(
@@ -44,7 +50,13 @@ async function montarBase(c: Client): Promise<Base> {
     "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Aula teste', 600) returning id",
     [moduloId]
   );
-  return { aluno, aulaId: aula.rows[0]?.id ?? "", cursoId, moduloId };
+  return {
+    aluno,
+    aulaId: aula.rows[0]?.id ?? "",
+    categoriaId,
+    cursoId,
+    moduloId,
+  };
 }
 
 interface Caso {
@@ -151,9 +163,9 @@ const CASOS: Caso[] = [
     nome: "módulo apontando para nível de outro curso",
     violar: async (c, b) => {
       const outro = await c.query<{ id: string }>(
-        `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura)
-         values ($1, 'Outro', 'teste', '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
-        [`teste-${sufixo()}`]
+        `insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura)
+         values ($1, 'Outro', $2, '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
+        [`teste-${sufixo()}`, b.categoriaId]
       );
       await c.query(
         "insert into nivel (curso_id, ordem, nome) values ($1, 2, 'Nível do outro')",
@@ -331,11 +343,104 @@ const CASOS: Caso[] = [
     apagar: "alter table curso drop constraint curso_capa_alt_preenchido",
     constraint: "curso_capa_alt_preenchido",
     nome: "capa sem texto alternativo",
+    violar: (c, b) =>
+      c.query(
+        "insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura) values ($1, 'Curso', $2, '/capas/x.jpg', '   ', 1280, 720)",
+        [`teste-${sufixo()}`, b.categoriaId]
+      ),
+  },
+  {
+    apagar: "alter table categoria drop constraint categoria_nome_unico",
+    constraint: "categoria_nome_unico",
+    nome: "duas categorias com o mesmo nome",
     violar: (c) =>
       c.query(
-        "insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura) values ($1, 'Curso', 'teste', '/capas/x.jpg', '   ', 1280, 720)",
-        [`teste-${sufixo()}`]
+        "insert into categoria (nome) values ('Vendas repetida'), ('Vendas repetida')"
       ),
+  },
+  {
+    apagar: "alter table categoria drop constraint categoria_nome_formato",
+    constraint: "categoria_nome_formato",
+    nome: "categoria com espaço nas pontas",
+    violar: (c) => c.query("insert into categoria (nome) values (' Vendas ')"),
+  },
+  {
+    apagar: "alter table categoria drop constraint categoria_nome_formato",
+    constraint: "categoria_nome_formato",
+    nome: "categoria vazia",
+    violar: (c) => c.query("insert into categoria (nome) values ('')"),
+  },
+  {
+    apagar: "alter table categoria drop constraint categoria_nome_formato",
+    constraint: "categoria_nome_formato",
+    nome: "categoria com 81 caracteres",
+    violar: (c) =>
+      c.query("insert into categoria (nome) values (repeat('a', 81))"),
+  },
+  {
+    apagar:
+      "alter table curso drop constraint curso_categoria_id_categoria_id_fkey",
+    constraint: "curso_categoria_id_categoria_id_fkey",
+    nome: "categoria em uso apagada",
+    violar: (c, b) =>
+      c.query("delete from categoria where id = $1", [b.categoriaId]),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_descricao_tamanho",
+    constraint: "curso_descricao_tamanho",
+    nome: "descrição do curso com 2001 caracteres",
+    violar: (c, b) =>
+      c.query("update curso set descricao = repeat('a', 2001) where id = $1", [
+        b.cursoId,
+      ]),
+  },
+  {
+    apagar: "alter table aula drop constraint aula_descricao_tamanho",
+    constraint: "aula_descricao_tamanho",
+    nome: "descrição da aula com 2001 caracteres",
+    violar: (c, b) =>
+      c.query("update aula set descricao = repeat('a', 2001) where id = $1", [
+        b.aulaId,
+      ]),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "11 tópicos",
+    violar: (c, b) =>
+      c.query(
+        "update curso set topicos = array_fill('Tópico'::text, array[11]) where id = $1",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "tópico só com espaços",
+    violar: (c, b) =>
+      c.query(
+        "update curso set topicos = array['Envase', '   '] where id = $1",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "tópico com 121 caracteres",
+    violar: (c, b) =>
+      c.query(
+        "update curso set topicos = array[repeat('a', 121)] where id = $1",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar: "alter table curso drop constraint curso_topicos_validos",
+    constraint: "curso_topicos_validos",
+    nome: "tópico nulo",
+    violar: (c, b) =>
+      c.query("update curso set topicos = array[null::text] where id = $1", [
+        b.cursoId,
+      ]),
   },
   {
     apagar: "alter table curso drop constraint curso_capa_dimensoes_positivas",
@@ -438,6 +543,28 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
       expect(constraintDoErro(erro)).toBe(caso.constraint);
     });
   }
+
+  test("aceita a descrição de 2000 caracteres e 10 tópicos de 120", async () => {
+    const lido = await emTransacao(async () => {
+      const b = await montarBase(c);
+      await c.query(
+        "update curso set descricao = repeat('a', 2000), topicos = array_fill(repeat('b', 120), array[10]) where id = $1",
+        [b.cursoId]
+      );
+      await c.query(
+        "update aula set descricao = repeat('c', 2000) where id = $1",
+        [b.aulaId]
+      );
+      const r = await c.query<{ aula: number; curso: number; topicos: number }>(
+        `select char_length(c.descricao) as curso, cardinality(c.topicos) as topicos,
+                char_length(a.descricao) as aula
+           from curso c join aula a on a.id = $2 where c.id = $1`,
+        [b.cursoId, b.aulaId]
+      );
+      return r.rows[0];
+    });
+    expect(lido).toEqual({ aula: 2000, curso: 2000, topicos: 10 });
+  });
 
   test("aceita liberar de novo depois de revogar", async () => {
     await emTransacao(async () => {

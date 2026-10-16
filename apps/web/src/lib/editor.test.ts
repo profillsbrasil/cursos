@@ -80,8 +80,7 @@ function camposEmOrdem(...ids: string[]): Record<string, Campo> {
 describe("primeiroNaPagina", () => {
   const c = camposEmOrdem(
     "curso-titulo",
-    "curso-slug",
-    "curso-tema",
+    "curso-categoriaId",
     "curso-capaAlt",
     "aula-duracao"
   );
@@ -90,8 +89,7 @@ describe("primeiroNaPagina", () => {
     expect(
       primeiroNaPagina([
         c["curso-capaAlt"],
-        c["curso-slug"],
-        c["curso-tema"],
+        c["curso-categoriaId"],
         c["curso-titulo"],
       ])?.id
     ).toBe("curso-titulo");

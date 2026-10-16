@@ -34,6 +34,7 @@ function edicao(
     capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA_ATUAL },
     documento: doc,
     podeApagar: false,
+    slug: "curso-teste",
     uso: { assistidasPorAula, certificados: 0, liberacoes: 0 },
   };
 }
@@ -117,7 +118,7 @@ describe("planejarCurso", () => {
 
   test("a capa do banco que volta com o pedido não é capa nova", () => {
     const d = documento();
-    const meu = { ...d, tema: "meu tema" };
+    const meu = { ...d, descricao: "Minha descrição." };
     expect(planejarCurso(edicao(d), meu, capa(CAPA_ATUAL))).toMatchObject({
       capa: null,
       tipo: "atualizar",
@@ -132,7 +133,7 @@ describe("planejarCurso", () => {
       ...outroAdmin,
       versao: versaoDoCurso(outroAdmin, CAPA_ATUAL),
     });
-    const meu = editar(d, (x) => ({ ...x, tema: "meu tema" }));
+    const meu = editar(d, (x) => ({ ...x, descricao: "Minha descrição." }));
     const recusa = {
       recusa: { tipo: "versao_mudou" },
       tipo: "recusa",

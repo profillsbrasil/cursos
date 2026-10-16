@@ -148,7 +148,7 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
     case "aula_nova":
       return comAulas(r, m.moduloId, (aulas) => [
         ...aulas,
-        { duracao: "", id: m.id, titulo: "", video: "" },
+        { descricao: "", duracao: "", id: m.id, titulo: "", video: "" },
       ]);
     case "aula_editada": {
       const de = moduloDaAula(r, m.id);

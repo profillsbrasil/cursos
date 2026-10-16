@@ -1,0 +1,830 @@
+<title>Editor do curso, rodada 3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --sol: #ffcc01; --sol-hover: #ffd633; --ceu: #aad2ea; --canela: #e5977a; --erro: #ff8f86;
+  --sobre-cor: #22262b; --titulo: #f4f5f7; --texto: #e9ecef; --apagado: #a8acb0;
+  --fundo: #1a1d22; --sidebar: #282d33; --realce: #2f343a; --cartao: #33383e; --popover: #3a3f45;
+  --borda: #40454a; --trilho: #4d5257; --grafico: #61656a;
+  --sol-14: rgb(255 204 1 / 0.14); --sol-8: rgb(255 204 1 / 0.08); --ceu-14: rgb(170 210 234 / 0.14); --ceu-8: rgb(170 210 234 / 0.08);
+  --erro-14: rgb(255 143 134 / 0.14);
+  --muted-30: rgb(58 63 69 / 0.3); --branco-8: rgb(255 255 255 / 0.08);
+  --pagina: #121417;
+  --fonte: Geist, ui-sans-serif, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+  --ease-forte: cubic-bezier(0.23, 1, 0.32, 1);
+  --brilho: 0 6px 18px rgb(255 204 1 / 0.28);
+  --sombra-painel: 0 10px 30px rgb(0 0 0 / 0.35);
+  --sombra-flutuante: 0 10px 30px rgb(0 0 0 / 0.45);
+}
+* { box-sizing: border-box; scrollbar-color: var(--grafico) transparent; scrollbar-width: thin; }
+::selection { color: var(--sobre-cor); background: var(--ceu); }
+:focus-visible { outline: none; }
+html, body { margin: 0; }
+body {
+  background: var(--pagina); color: var(--texto); font: 400 14px/1.43 var(--fonte);
+  overflow-x: clip; -webkit-font-smoothing: antialiased; caret-color: var(--ceu);
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+input::placeholder, textarea::placeholder { color: var(--apagado); }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+h1, h2, h3, h4 { margin: 0; }
+a { color: inherit; }
+
+/* ---------- a página do protótipo ---------- */
+.doc { max-width: 1840px; margin: 0 auto; padding: 40px max(16px, 3vw) 96px; display: grid; gap: 32px; }
+.abertura { display: grid; gap: 10px; max-width: 33em; }
+.abertura h1 { color: var(--titulo); font-size: 30px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
+.abertura p { color: var(--apagado); text-wrap: pretty; }
+.abertura p b { color: var(--texto); font-weight: 600; }
+.palco { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: start; }
+@media (max-width: 1100px) { .palco { grid-template-columns: minmax(0, 1fr); } }
+.versao { display: grid; gap: 14px; min-width: 0; }
+.versao > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.versao > header h2 { color: var(--titulo); font-size: 18px; font-weight: 600; line-height: 1.3; }
+.versao > header p { color: var(--apagado); font-size: 13px; margin-top: 2px; }
+.escala { position: relative; overflow: hidden; }
+.quadro { position: sticky; top: 24px; display: grid; gap: 22px; }
+@media (max-width: 1100px) { .quadro { position: static; } }
+.quadro h2 { color: var(--titulo); font-size: 18px; font-weight: 600; line-height: 1.3; }
+.quadro section { display: grid; gap: 12px; }
+.mudou { display: grid; gap: 12px; counter-reset: m; }
+.mudou li { display: grid; gap: 2px; padding-top: 12px; border-top: 1px solid var(--borda); }
+.mudou li:first-child { border-top: 0; padding-top: 0; }
+.mudou b { color: var(--titulo); font-weight: 600; }
+.mudou span { color: var(--apagado); text-wrap: pretty; }
+.estados { display: grid; gap: 8px; }
+.estados .contorno { justify-content: flex-start; width: 100%; }
+.estados p { color: var(--apagado); font-size: 13px; text-wrap: pretty; }
+
+/* ---------- a janela: o app em 1280 px ---------- */
+.janela {
+  position: absolute; top: 0; left: 0; width: 1280px; height: 860px; transform-origin: 0 0;
+  display: grid; grid-template-columns: 248px minmax(0, 1fr); background: var(--sidebar);
+  border-radius: 20px; overflow: hidden; box-shadow: 0 0 0 1px #2c3036;
+}
+.janela.inteira { height: auto; min-height: 860px; }
+.sb { position: relative; min-width: 0; }
+.sb-fixa { height: 860px; display: flex; flex-direction: column; }
+.sb-cab { height: 68px; flex: none; display: flex; align-items: center; padding: 0 14px; position: relative; }
+.lockup { width: 120px; height: 34px; background: url(__LOCKUP__) left center / contain no-repeat; }
+.selo-area {
+  position: absolute; left: 115px; top: 34px; height: 15px; padding: 0 5px; border-radius: 999px;
+  background: var(--ceu-14); color: var(--ceu); font-size: 10px; font-weight: 600; letter-spacing: 0.025em;
+  text-transform: uppercase; line-height: 15px;
+}
+.recolher {
+  margin-left: auto; width: 32px; height: 32px; border-radius: 9px; border: 0; background: transparent;
+  color: var(--apagado); display: grid; place-items: center; cursor: pointer; transition: background 150ms, color 150ms;
+}
+.recolher:is(:hover, :focus-visible) { background: var(--popover); color: var(--titulo); }
+.sb nav { padding: 4px 14px; flex: 1; }
+.sb ul { display: grid; gap: 4px; position: relative; }
+.pilula { position: absolute; left: 0; top: 0; height: 40px; width: 100%; border-radius: 10px; background: var(--sol); transition: background 150ms, box-shadow 150ms; }
+.item {
+  position: relative; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 11px;
+  border-radius: 10px; color: var(--texto); font-weight: 500; text-decoration: none; white-space: nowrap;
+  transition: background 150ms, color 150ms;
+}
+.item .nome { flex: 1; }
+.item:not(.ativo):is(:hover, :focus-visible) { background: var(--realce); color: var(--titulo); }
+.item.ativo { color: var(--sobre-cor); font-weight: 600; }
+.sb ul:has(.ativo:is(:hover, :focus-visible)) .pilula { background: var(--sol-hover); box-shadow: var(--brilho); }
+.sb-pe { padding: 14px; display: grid; gap: 10px; flex: none; }
+.conta {
+  border: 1px solid var(--borda); border-radius: 22px; padding: 8px; display: flex; align-items: center; gap: 10px;
+  background: transparent; text-align: left; cursor: pointer; transition: background 150ms, border-color 150ms;
+}
+.conta:is(:hover, :focus-visible) { background: var(--realce); border-color: var(--trilho); }
+.avatar { width: 36px; height: 36px; border-radius: 999px; flex: none; display: grid; place-items: center; background: var(--canela); color: var(--sobre-cor); font-weight: 600; font-size: 13px; }
+.conta .quem { flex: 1; min-width: 0; }
+.conta strong { display: block; color: var(--titulo); font-size: 14px; font-weight: 600; line-height: 1.3; }
+.conta .pts { display: flex; align-items: center; gap: 4px; color: var(--sol); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.conta .pts .ic { width: 12px; height: 12px; }
+.conta > .ic { width: 16px; height: 16px; color: var(--apagado); }
+
+.painel {
+  margin: 10px 10px 10px 0; height: 840px; background: var(--fundo); border-radius: 24px;
+  box-shadow: 0 0 0 1px var(--borda), var(--sombra-painel); overflow-y: auto; overflow-x: hidden; position: relative; min-width: 0;
+}
+.inteira .painel { height: auto; overflow: visible; }
+.inteira .fixo { position: static !important; }
+.painel-in { padding: 32px 48px 64px; }
+
+/* ---------- peças comuns do app ---------- */
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+.tab { font-variant-numeric: tabular-nums; }
+h1.pg { color: var(--titulo); font-size: 30px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
+.sec-cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 14px; }
+.sec-cab h2 { color: var(--titulo); font-size: 24px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.33; }
+.sec-cab > p { color: var(--apagado); font-variant-numeric: tabular-nums; }
+.cartao { background: var(--cartao); border-radius: 20px; box-shadow: 0 0 0 1px var(--borda); }
+
+.botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px;
+  border-radius: 999px; background: var(--sol); color: var(--sobre-cor); font-weight: 600; font-size: 14px;
+  border: 0; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background 150ms, box-shadow 150ms;
+}
+.botao:is(:hover, :focus-visible) { background: var(--sol-hover); box-shadow: var(--brilho); }
+.contorno {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px;
+  border-radius: 999px; background: transparent; color: var(--texto); font-weight: 600; font-size: 14px;
+  border: 1px solid var(--apagado); cursor: pointer; white-space: nowrap; transition: border-color 150ms, color 150ms;
+}
+.contorno:is(:hover, :focus-visible) { border-color: var(--titulo); }
+.contorno .ic { width: 16px; height: 16px; }
+.contorno.desligado { opacity: 0.5; cursor: not-allowed; }
+.contorno.desligado:is(:hover, :focus-visible) { opacity: 0.8; border-color: var(--apagado); }
+.peq { height: 36px; padding: 0 14px; font-size: 13px; }
+.icone-btn {
+  width: 36px; height: 36px; border-radius: 999px; border: 0; background: transparent; color: var(--apagado);
+  display: inline-grid; place-items: center; cursor: pointer; flex: none; transition: background 150ms, color 150ms;
+}
+.icone-btn .ic { width: 16px; height: 16px; }
+.icone-btn:is(:hover, :focus-visible) { background: var(--popover); color: var(--texto); }
+.icone-btn.olho { color: var(--ceu); }
+.icone-btn.desl { opacity: 0.45; cursor: not-allowed; }
+.icone-btn.desl:is(:hover, :focus-visible) { background: transparent; opacity: 0.8; }
+.link-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 2px; border-radius: 6px; color: var(--ceu); font-size: 13px; font-weight: 600; cursor: pointer; flex: none; transition: color 150ms; text-decoration: none; }
+.link-btn:is(:hover, :focus-visible) { color: var(--titulo); }
+.link-btn .ic { width: 14px; height: 14px; }
+[data-dica] { position: relative; }
+[data-dica]:is(:hover, :focus-visible)::after {
+  content: attr(data-dica); position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 20; width: max-content; max-width: 260px;
+  padding: 6px 10px; border-radius: 7px; background: var(--titulo); color: var(--sobre-cor); font-size: 12px; font-weight: 600;
+  line-height: 1.4; white-space: normal; text-align: left; pointer-events: none;
+}
+[data-dica].dica-esq:is(:hover, :focus-visible)::after { right: auto; left: 0; }
+
+.selo { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.selo .ic { width: 12px; height: 12px; }
+.selo.assistidas { background: var(--popover); color: var(--texto); }
+.selo.assistidas .ic { color: var(--ceu); }
+
+.checks { display: grid; gap: 12px; }
+.checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; text-wrap: pretty; }
+.checks .ic { color: var(--ceu); width: 18px; height: 18px; margin-top: 1px; stroke-width: 2.5; }
+.checks.duas { grid-template-columns: 1fr 1fr; gap: 14px 28px; }
+.capa { background-size: cover; background-position: center; border-radius: 14px; box-shadow: 0 0 0 1px var(--borda); }
+.capa-comercial { background-image: url(__CAPA_COMERCIAL__); }
+
+.mod-num {
+  width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; font-weight: 600;
+  background: var(--popover); color: var(--texto); font-variant-numeric: tabular-nums; flex: none;
+}
+.mod-num.atual { background: var(--sol-14); color: var(--sol); }
+.mod-num.erro, .indice b.erro { background: transparent; box-shadow: inset 0 0 0 1px var(--erro); color: var(--erro); }
+.seta { color: var(--apagado); width: 18px; height: 18px; }
+
+/* ---------- editor ---------- */
+.voltar { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding-right: 8px; border-radius: 999px; color: var(--apagado); font-weight: 500; text-decoration: none; margin-bottom: 12px; transition: color 150ms; }
+.voltar:is(:hover, :focus-visible) { color: var(--texto); }
+.voltar .ic { width: 16px; height: 16px; }
+.ed { display: grid; gap: 40px; }
+.ed-cab p { margin-top: 6px; color: var(--apagado); font-variant-numeric: tabular-nums; }
+.cw { display: grid; gap: 8px; align-content: start; min-width: 0; position: relative; }
+.rotulo { font-weight: 600; font-size: 14px; color: var(--texto); display: flex; align-items: center; gap: 8px; }
+.rotulo-linha { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.campo {
+  width: 100%; height: 44px; border: 1px solid var(--apagado); border-radius: 12px; background: var(--fundo);
+  padding: 0 14px; color: var(--texto); font-size: 14px; transition: border-color 150ms; min-width: 0;
+}
+textarea.campo { height: auto; padding: 10px 14px; line-height: 1.5; resize: none; display: block; field-sizing: content; }
+.campo:is(:hover, :focus-visible) { border-color: var(--ceu); }
+.campo.c40 { height: 40px; }
+.campo.erro, .campo.erro:is(:hover, :focus-visible) { border-color: var(--erro); }
+select.campo {
+  appearance: none; padding-right: 36px; cursor: pointer; text-align: left; background: var(--fundo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8acb0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center / 16px no-repeat;
+}
+.ajuda { font-size: 12px; color: var(--apagado); text-wrap: pretty; }
+.msg-erro { font-size: 12px; color: var(--erro); display: flex; gap: 6px; align-items: start; text-wrap: pretty; }
+.msg-erro .ic { width: 14px; height: 14px; margin-top: 1px; }
+.pe-campo { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--apagado); font-variant-numeric: tabular-nums; }
+.pe-campo > span:last-child { white-space: nowrap; }
+.contexto { opacity: 0.62; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.barra-salvar {
+  position: sticky; bottom: 16px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 10px 10px 20px; border-radius: 20px; background: rgb(51 56 62 / 0.92); backdrop-filter: blur(8px);
+  box-shadow: 0 0 0 1px var(--borda), var(--sombra-flutuante);
+}
+.barra-salvar p { color: var(--texto); display: flex; align-items: center; gap: 8px; }
+.barra-salvar p span { color: var(--apagado); }
+.barra-salvar p.falhou { color: var(--erro); }
+.barra-salvar p .ic { width: 16px; height: 16px; }
+.barra-salvar p.ok .ic { color: var(--ceu); }
+
+/* vitrine */
+.ec-vitrine { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 28px; padding: 24px; }
+.capa-lado { display: grid; gap: 12px; align-content: start; justify-items: start; }
+.capa-lado .capa { aspect-ratio: 900 / 604; width: 100%; }
+.titulo-grande { height: 52px !important; font-size: 20px !important; font-weight: 700; letter-spacing: -0.02em; color: var(--titulo) !important; }
+.v-form { display: grid; gap: 22px; }
+.slug { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 13px; color: var(--apagado); align-items: center; }
+.slug code { font-family: var(--mono); font-size: 12px; color: var(--texto); }
+.slug .ic { width: 13px; height: 13px; }
+.topicos-c { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; padding: 20px 24px; }
+
+/* módulos */
+.indice {
+  position: sticky; top: 12px; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px;
+  border-radius: 20px; background: rgb(51 56 62 / 0.95); backdrop-filter: blur(4px); box-shadow: 0 0 0 1px var(--borda); margin-bottom: 14px;
+}
+.indice::before { content: ""; position: absolute; left: 0; right: 0; top: -13px; height: 13px; background: var(--fundo); }
+.indice > span { font-size: 12px; color: var(--apagado); flex: none; }
+.indice div { display: flex; flex-wrap: wrap; gap: 4px; }
+.indice b { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; background: var(--popover); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; transition: background 150ms; }
+.indice b:hover { background: var(--trilho); color: var(--titulo); }
+.indice b.aberto { background: var(--sol-14); color: var(--sol); }
+.bloco + .bloco { border-top: 1px solid var(--borda); }
+.bloco-cab {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) 18px; gap: 4px 12px; padding: 14px 20px; align-items: center;
+  width: 100%; text-align: left; background: transparent; border: 0; cursor: pointer; transition: background 150ms; border-radius: 20px;
+}
+.bloco-cab:is(:hover, :focus-visible) { background: var(--branco-8); }
+.bloco-cab:is(:hover, :focus-visible) .t { color: var(--titulo); }
+.bloco-cab .t { font-size: 16px; font-weight: 600; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bloco-cab .s { grid-column: 2 / 4; font-size: 12px; color: var(--apagado); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-variant-numeric: tabular-nums; }
+.bloco-cab .s .erros { color: var(--erro); font-weight: 600; }
+.bloco.aberto { background: var(--muted-30); }
+.bloco.nota { padding: 12px 20px; color: var(--apagado); font-size: 13px; }
+.mod-campos { display: grid; grid-template-columns: 96px minmax(0, 1fr) 256px; gap: 12px; padding: 4px 20px 16px; }
+
+/* mestre e detalhe */
+.ed-mestre { display: grid; grid-template-columns: 272px minmax(0, 1fr); border-top: 1px solid var(--borda); align-items: stretch; }
+.lista { border-right: 1px solid var(--borda); }
+.lista li[data-aula] > button {
+  width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px; gap: 10px; padding: 12px 14px 12px 16px; align-items: start;
+  background: transparent; border: 0; border-top: 1px solid var(--borda); text-align: left; cursor: pointer; transition: background 150ms;
+}
+.lista li[data-aula]:first-child > button { border-top: 0; }
+.lista li[data-aula] > button:is(:hover, :focus-visible) { background: var(--branco-8); }
+.lista li[data-aula] > button:is(:hover, :focus-visible) .nome { color: var(--titulo); }
+.lista li.sel > button, .lista li.sel > button:is(:hover, :focus-visible) { background: var(--sol-8); }
+.lista .n-aula { color: var(--apagado); font-weight: 600; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.lista li.sel .n-aula { color: var(--sol); }
+.lista .nome { font-size: 13px; font-weight: 600; color: var(--texto); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; line-height: 1.35; }
+.lista li.sel .nome { color: var(--titulo); }
+.lista .sub { font-size: 12px; color: var(--apagado); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.lista li.sel .sub { color: var(--texto); }
+.lista .sub > span { display: inline-flex; align-items: center; gap: 5px; }
+.lista .sub .ic { width: 13px; height: 13px; }
+.lista .sub .tem { color: var(--ceu); }
+.lista .sub .erros { color: var(--erro); font-weight: 600; }
+.lista .vista { color: var(--ceu); width: 15px; height: 15px; margin-top: 2px; }
+.lista .rodape { border-top: 1px solid var(--borda); padding: 12px 16px; }
+
+.detalhe { padding: 20px 22px 24px; display: grid; gap: 16px; min-width: 0; align-content: start; }
+.d-cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 36px; }
+.d-cab h3, .q-cab h3 { color: var(--titulo); font-size: 16px; font-weight: 600; line-height: 1.5; display: flex; gap: 8px; align-items: center; }
+.d-cab h3 small { color: var(--apagado); font-weight: 400; font-size: 13px; }
+.d-cab .acoes { display: flex; margin-right: -8px; }
+.titulo-aula { height: 46px; font-size: 17px; font-weight: 600; color: var(--titulo); }
+.par2 { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
+.corte { height: 1px; background: var(--borda); margin: 10px -22px 6px; }
+
+/* questionário */
+.q-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.q-cab h3 .ic { width: 18px; height: 18px; color: var(--ceu); }
+.q-cab > span { font-size: 13px; color: var(--apagado); font-variant-numeric: tabular-nums; }
+.regra { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: center; padding: 12px 16px; border-radius: 14px; background: var(--ceu-8); box-shadow: inset 0 0 0 1px rgb(170 210 234 / 0.3); }
+.regra b { color: var(--titulo); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+.regra .exp { grid-column: 1 / -1; max-width: 35em; font-size: 12px; color: var(--texto); text-wrap: pretty; }
+.pips { display: flex; gap: 4px; }
+.pips i { width: 12px; height: 12px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px var(--ceu); }
+.pips i.precisa { background: var(--ceu); }
+.q-duas { display: grid; grid-template-columns: 200px minmax(0, 1fr); border-radius: 14px; box-shadow: inset 0 0 0 1px var(--borda); overflow: hidden; }
+.q-lista { border-right: 1px solid var(--borda); background: var(--muted-30); display: grid; align-content: start; }
+.q-lista button.qp {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--borda);
+  background: transparent; text-align: left; cursor: pointer; transition: background 150ms;
+}
+.q-lista button.qp:is(:hover, :focus-visible) { background: var(--branco-8); }
+.q-lista button.qp:is(:hover, :focus-visible) .t { color: var(--titulo); }
+.q-lista button.qp[aria-current="true"] { background: var(--sol-8); }
+.q-lista button.qp[aria-current="true"] .t { color: var(--titulo); }
+.q-lista button.qp[aria-current="true"] .s { color: var(--texto); }
+.q-lista .num { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; background: var(--popover); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.q-lista [aria-current="true"] .num { background: var(--sol-14); color: var(--sol); }
+.q-lista .num.erro { background: transparent; box-shadow: inset 0 0 0 1px var(--erro); color: var(--erro); }
+.q-lista .t { font-size: 13px; font-weight: 600; color: var(--texto); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
+.q-lista .t.vazia { color: var(--apagado); font-weight: 500; font-style: italic; }
+.q-lista .s { font-size: 12px; color: var(--apagado); margin-top: 3px; display: block; font-variant-numeric: tabular-nums; }
+.q-lista .s.erros { color: var(--erro); font-weight: 600; }
+.q-lista .tirada { display: grid; gap: 2px; padding: 10px 14px; border-bottom: 1px solid var(--borda); font-size: 12px; color: var(--apagado); }
+.q-lista .pe { padding: 10px 12px; }
+.q-edicao { padding: 16px 18px 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.p-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: -4px; }
+.alts-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.alts { display: grid; gap: 8px; }
+.alt { display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; gap: 4px 8px; align-items: center; }
+.alt .msg-erro { grid-column: 2 / 3; }
+.letra {
+  width: 36px; height: 36px; border-radius: 999px; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; padding: 0;
+  transition: background 150ms;
+}
+.letra > span {
+  width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font-size: 12px; font-weight: 600;
+  box-shadow: inset 0 0 0 1.5px var(--apagado); color: var(--texto); transition: background 150ms, box-shadow 150ms, color 150ms;
+}
+.letra:is(:hover, :focus-visible) { background: var(--popover); }
+.letra:is(:hover, :focus-visible) > span { box-shadow: inset 0 0 0 1.5px var(--ceu); color: var(--titulo); }
+.letra[aria-checked="true"] > span, .letra[aria-checked="true"]:is(:hover, :focus-visible) > span { background: var(--ceu); box-shadow: none; color: var(--sobre-cor); }
+.alts.sem-certa .letra > span { box-shadow: inset 0 0 0 1.5px var(--erro); }
+.alt.certa .campo { border-color: var(--ceu); }
+.certa-linha { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ceu); font-weight: 600; min-width: 0; }
+.certa-linha .ic { width: 14px; height: 14px; stroke-width: 2.5; }
+.certa-linha span { color: var(--texto); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.mais { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.q-vazio { border: 1px dashed var(--trilho); border-radius: 14px; padding: 22px; display: grid; gap: 12px; justify-items: start; color: var(--apagado); }
+.q-vazio b { color: var(--titulo); font-weight: 600; display: block; margin-bottom: 2px; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0ms !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+  <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+  <symbol id="i-panel-left" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+  <symbol id="i-chevrons-up-down" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+  <symbol id="i-list-checks" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+</svg>
+
+<div class="doc">
+  <section class="abertura">
+    <h1>Editor do curso, rodada 3</h1>
+    <p>A versão C da rodada 2, refinada. A janela é o app em 1280 px, reduzido para caber, e abre rolada até o painel da aula 4 do módulo 8; role para cima para ver a Vitrine, ou use <b>Página inteira</b>.</p>
+    <p>Tudo funciona: escrever, marcar a certa (clique na letra, ou as setas do teclado), acrescentar e tirar alternativas e perguntas, desfazer a pergunta tirada, trocar de aula e salvar. O Salvar recusa o questionário incompleto e mostra cada campo a corrigir.</p>
+  </section>
+
+  <div class="palco">
+    <article class="versao" data-versao="C">
+      <header><div><h2>Versão C refinada</h2><p>Profills School Comercial, módulo 8, aula 4 com 3 perguntas</p></div>
+        <button class="contorno peq alternar">Página inteira</button></header>
+      <div class="escala" id="janela-c"></div>
+    </article>
+
+    <aside class="quadro" aria-label="O que mudou">
+      <section>
+        <h2>O que mudou desde a rodada 2</h2>
+        <ol class="mudou">
+          <li><b>Lista das aulas mais larga</b><span>272 px em vez de 236, e o título quebra em duas linhas em vez de cortar. Cada aula mostra a duração e, quando tem, "3 perguntas"; o "sem questionário" repetido em cinco linhas saiu.</span></li>
+          <li><b>Duas partes no painel</b><span>"Aula 4 de 8" e "Questionário" são dois títulos do mesmo degrau, separados por uma linha de borda a borda. O título da aula é o primeiro campo, maior, e não se repete no cabeçalho.</span></li>
+          <li><b>A regra da nota em destaque</b><span>"Para passar: 3 de 3 acertos", com um marcador por pergunta, e a conta ao lado: 70% de 3 é 2,1, e a nota arredonda para cima. A frase diz quantas perguntas deixam o aluno errar uma.</span></li>
+          <li><b>A letra é o botão da certa</b><span>Cada alternativa mostra a letra num círculo. A certa fica cheia em Céu, o campo ganha a borda Céu e a linha "Certa: B" confirma. As setas trocam a certa, como num grupo de rádio.</span></li>
+          <li><b>Erros e vazios</b><span>A pergunta nova nasce sem certa. Pergunta sem texto, alternativa vazia e nenhuma certa viram erro ao sair do campo ou no Salvar recusado, e o erro aparece na pergunta, na lista de perguntas, na lista de aulas, no módulo e na barra de salvar.</span></li>
+          <li><b>Desfazer</b><span>Tirar uma pergunta deixa "Pergunta 2 tirada" e Desfazer no lugar dela.</span></li>
+          <li><b>Vitrine</b><span>O link muda enquanto o título é escrito. A categoria ganha "Gerenciar categorias", que leva à tela Categorias, agora no menu do admin (versão A aprovada). A descrição cresce com o texto, sem rolagem interna.</span></li>
+          <li><b>Ícone do questionário</b><span>A lista com checks no lugar do ponto de interrogação, que lia como ajuda.</span></li>
+        </ol>
+      </section>
+      <section>
+        <h2>Ver os estados</h2>
+        <div class="estados">
+          <button class="contorno peq" data-estado="vazio">Aula sem questionário</button>
+          <button class="contorno peq" data-estado="erro">Pergunta incompleta e Salvar</button>
+          <button class="contorno peq" data-estado="inicio">Recomeçar</button>
+          <p>Cada botão leva a janela até o painel da aula.</p>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+const ic = (n, c = "") => `<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const plural = (n, s, p) => `${n} ${n === 1 ? s : p}`;
+const durMin = (m) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`);
+const durAulas = (n) => durMin(Math.round((n * 634) / 60));
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const NUMERO = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+
+/* ---------- dados do seed, com o texto inventado de descrição e questionário ---------- */
+const NIVEIS = ["Vendedor Profills Certificado", "Consultor Comercial Profills", "Especialista Comercial"];
+const MODS = [
+  [0, "Autoavaliação comercial", 2], [1, "História, posicionamento e responsabilidade", 5], [2, "Cultura comercial Profills", 4],
+  [3, "Portfólio, aplicações e limites técnicos", 7], [4, "Prospecção e abertura de oportunidades", 6], [5, "Diagnóstico consultivo e qualificação", 6],
+  [6, "Pilar Condição de Pagamento", 7], [7, "Pilar Necessidade", 6], [8, "Pilar Urgência", 8], [9, "Pilar Confiança", 7], [10, "Pilar Desejo", 6],
+  [11, "Valor, retorno e proposta comercial", 7], [12, "Negociação, objeções e fechamento", 8], [13, "CRM Profills e acompanhamento", 5],
+  [14, "Handoff e experiência pós-venda", 5], [15, "Avaliação final e certificação", 1],
+];
+const M8 = [
+  ["Urgência não se cria, se descobre", "Por que pressionar o cliente afasta a venda, e onde a urgência de verdade aparece na conversa."],
+  ["Ficha de diagnóstico de urgência", "As perguntas da ficha e como anotar as respostas durante a visita à fábrica."],
+  ["O custo do atraso para o cliente", "Calcular quanto a fábrica deixa de produzir por mês sem a máquina nova."],
+  ["Cronograma reverso", "Partir da data em que a linha precisa rodar e voltar, etapa por etapa, até o pedido."],
+  ["Responsabilidades do cliente", "O que depende da fábrica: obra, energia, ar comprimido e produto para o teste."],
+  ["Datas que não fecham", "Como avisar o cliente quando o prazo que ele pede não cabe na fabricação."],
+  ["Urgência e condição de pagamento", "Quando a pressa muda a forma de pagamento, e quando ela não deve mudar."],
+  ["Casos reais de urgência", "Três vendas da Profills em que a data de início da produção decidiu o pedido."],
+];
+const nivelDe = (n) => (n <= 5 ? 1 : n <= 10 ? 2 : 3);
+const MODULOS = MODS.map(([numero, titulo, qtd]) => ({ numero, titulo, nivel: nivelDe(numero), qtd, assistidas: numero < 8 ? qtd : numero === 8 ? 3 : 0 }));
+const DESCRICAO = [
+  "O método comercial da Profills, do primeiro contato com a fábrica ao pós-venda. Você aprende a diagnosticar o que o cliente precisa, a ler os cinco pilares da decisão de compra e a montar uma proposta que mostra o retorno da máquina.",
+  "Os 16 módulos se dividem em três níveis: Vendedor Profills Certificado, Consultor Comercial Profills e Especialista Comercial. Cada módulo traz casos de envasadoras, embaladoras e enfardadeiras vendidas pela Profills, e o módulo 15 fecha o curso com a avaliação final e o certificado.",
+].join("\n\n");
+const TOPICOS = [
+  "Qualificar uma oportunidade com o diagnóstico consultivo",
+  "Usar os cinco pilares: pagamento, necessidade, urgência, confiança e desejo",
+  "Explicar as aplicações e os limites técnicos de cada linha de máquinas",
+  "Montar uma proposta que mostra o retorno do investimento",
+  "Responder objeções e conduzir o fechamento",
+  "Registrar cada etapa no CRM Profills e passar o cliente ao pós-venda",
+];
+const CATEGORIAS = ["Fábrica e montagem", "Processo de envase", "Produção e montagem", "Produtos e aplicações", "Vendas e negócios"];
+
+const pergunta = (e, alts, certa) => ({ e, alts: alts.map((t) => ({ t, saiu: false })), certa, saiu: { e: false } });
+const QUIZ = () => ({
+  0: [
+    pergunta("O que costuma acontecer quando o vendedor pressiona o cliente por um prazo?", ["O cliente decide mais rápido", "O cliente adia a decisão ou procura outro fornecedor", "Nada muda na negociação"], 1),
+    pergunta("Onde a urgência de verdade aparece?", ["Na data em que a fábrica do cliente precisa produzir mais", "No desconto que o vendedor oferece"], 0),
+  ],
+  3: [
+    pergunta("Por onde o cronograma reverso começa?", ["Pela data do pedido", "Pela data em que a linha do cliente precisa rodar", "Pelo prazo de fabricação da Profills", "Pela data da próxima visita"], 1),
+    pergunta("A linha do cliente precisa rodar em 1º de março, e a fabricação leva 90 dias. O que o cronograma reverso mostra?", ["Que o pedido pode sair em fevereiro", "Que o pedido precisa sair antes de 1º de dezembro, e ainda faltam instalação e teste", "Que o prazo só depende da Profills"], 1),
+    pergunta("Qual etapa do cronograma depende do cliente, e não da Profills?", ["A fabricação da máquina", "A obra, a energia e o ar comprimido no local", "A montagem dos bicos de dosagem"], 1),
+  ],
+  5: [
+    pergunta("O prazo que o cliente pede não cabe na fabricação. O que fazer primeiro?", ["Prometer a data e tentar acelerar depois", "Mostrar o cronograma reverso com a data que cabe", "Esperar o cliente perguntar de novo"], 1),
+    pergunta("Quando o cliente precisa saber que a data não fecha?", ["Depois que o pedido sair", "Antes de fechar o pedido"], 1),
+  ],
+});
+const LETRAS = "ABCDE";
+const MIN_ALT = 2;
+const MAX_ALT = 5;
+const paraPassar = (n) => Math.ceil(n * 0.7 - 1e-9);
+
+const novoEstado = () => ({ sel: 3, pSel: 0, quizzes: QUIZ(), tentou: false, salvo: false, tirada: null, titulo: "Profills School Comercial" });
+let S = novoEstado();
+const perguntasDe = (aula) => (S.quizzes[aula] ??= []);
+
+/* ---------- regras do questionário ---------- */
+function problemas(p) {
+  const r = [];
+  if (!p.e.trim()) r.push({ campo: "e", msg: "Escreva a pergunta." });
+  p.alts.forEach((a, i) => { if (!a.t.trim()) r.push({ campo: `a${i}`, msg: `Escreva a alternativa ${LETRAS[i]} ou tire ela pelo X.` }); });
+  if (p.certa === null) r.push({ campo: "certa", msg: "Marque a alternativa certa: clique na letra dela." });
+  return r;
+}
+const saiuDe = (p, campo) => {
+  if (campo === "e") return p.saiu.e;
+  if (campo === "certa") return p.saiu.e && p.alts.every((a) => a.saiu);
+  return p.alts[Number(campo.slice(1))].saiu;
+};
+const visiveis = (p) => problemas(p).filter((x) => S.tentou || saiuDe(p, x.campo));
+const erroDe = (p, campo) => visiveis(p).find((x) => x.campo === campo)?.msg ?? null;
+const errosDaAula = (aula) => perguntasDe(aula).reduce((n, p) => n + visiveis(p).length, 0);
+const errosDoModulo = () => M8.reduce((n, _, i) => n + errosDaAula(i), 0);
+const todosOsProblemas = () => M8.flatMap((_, aula) => perguntasDe(aula).flatMap((p, pi) => problemas(p).map((x) => ({ aula, pi, ...x }))));
+
+function regra(n) {
+  const k = paraPassar(n);
+  const conta = `70% de ${n} é ${NUMERO.format(n * 0.7)}`;
+  const exp = k === n
+    ? `Com ${plural(n, "pergunta", "perguntas")}, o aluno precisa acertar ${n === 1 ? "a pergunta" : `as ${n}`}: ${conta}, e a nota mínima arredonda para cima. Com 4 perguntas, ele pode errar uma.`
+    : `Com ${n} perguntas, o aluno passa com ${k} acertos e pode errar ${n - k === 1 ? "uma" : n - k}: ${conta}, arredondado para cima.`;
+  return `<div class="regra" role="note">
+    <span class="pips" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i < k ? "precisa" : ""}"></i>`).join("")}</span>
+    <b>Para passar: ${k} de ${n} ${k === 1 ? "acerto" : "acertos"}</b>
+    <p class="exp">${exp} A nota mínima é 70% em todo curso, e quem não passa tenta de novo.</p></div>`;
+}
+
+/* ---------- a casca ---------- */
+function casca(conteudo) {
+  const itens = [["users", "Alunos"], ["library", "Catálogo"], ["tag", "Categorias"], ["megaphone", "Comunicados"]];
+  const lis = itens.map(([i, n]) => `<li><a class="item${n === "Catálogo" ? " ativo" : ""}" href="#" ${n === "Catálogo" ? 'aria-current="page"' : ""}>${ic(i)}<span class="nome">${n}</span></a></li>`).join("");
+  return `<div class="janela">
+    <aside class="sb"><div class="sb-fixa">
+      <div class="sb-cab"><span class="lockup" role="img" aria-label="Profills Cursos"></span><span class="selo-area">Admin</span>
+        <button class="recolher" aria-label="Recolher menu">${ic("panel-left")}</button></div>
+      <nav aria-label="Principal"><ul><li class="pilula" aria-hidden="true" style="transform:translateY(44px)"></li>${lis}</ul></nav>
+      <div class="sb-pe"><button class="conta"><span class="avatar">OQ</span><span class="quem"><strong>Othavio Quiliao</strong><span class="pts">${ic("star")}610 pts</span></span>${ic("chevrons-up-down")}</button></div>
+    </div></aside>
+    <main class="painel"><div class="painel-in">${conteudo}</div></main>
+  </div>`;
+}
+
+/* ---------- vitrine ---------- */
+const slugDe = (t) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const linhaDoSlug = (t) => slugDe(t)
+  ? `${ic("link")}<code>/cursos/${slugDe(t)}</code><span>gerado a partir do título</span>`
+  : `<span class="msg-erro">${ic("alerta")}Escreva o título; o link sai dele.</span>`;
+const vitrine = () => `<section aria-labelledby="t-vitrine">
+  <div class="sec-cab"><h2 id="t-vitrine">Vitrine</h2><p>O topo da página do curso</p></div>
+  <div class="cartao ec-vitrine">
+    <div class="capa-lado"><div class="capa capa-comercial" role="img" aria-label="Capa atual: Profills School, treinamento comercial"></div>
+      <button class="contorno peq">${ic("image")}Trocar capa</button><p class="ajuda">JPG, PNG ou WebP, com 640 px de largura ou mais.</p></div>
+    <div class="v-form">
+      <div class="cw"><label class="rotulo" for="v-titulo">Título</label><input id="v-titulo" class="campo titulo-grande" value="${esc(S.titulo)}" data-vitrine="titulo">
+        <p class="slug" data-slug>${linhaDoSlug(S.titulo)}</p></div>
+      <div class="cw"><div class="rotulo-linha"><label class="rotulo" for="v-cat">Categoria</label>
+        <a class="link-btn" href="#" data-dica="Abre a tela Categorias, onde a lista é criada, renomeada e apagada.">Gerenciar categorias${ic("arrow-up-right")}</a></div>
+        <select id="v-cat" class="campo">${CATEGORIAS.map((k) => `<option ${k === "Vendas e negócios" ? "selected" : ""}>${k}</option>`).join("")}</select></div>
+      <div class="cw"><label class="rotulo" for="v-desc">Descrição</label><textarea id="v-desc" class="campo" data-vitrine="descricao">${esc(DESCRICAO)}</textarea>
+        <p class="pe-campo"><span>Linha em branco separa parágrafos.</span><span data-conta-desc>${DESCRICAO.length} de 2000</span></p></div>
+    </div>
+  </div></section>`;
+const topicos = () => `<section class="contexto" aria-labelledby="t-top"><div class="sec-cab"><h2 id="t-top">O que você vai aprender</h2><p>6 de 10 tópicos</p></div>
+  <div class="cartao"><ul class="checks duas topicos-c">${TOPICOS.map((t) => `<li>${ic("check")}<span>${t}</span></li>`).join("")}</ul></div></section>`;
+
+/* ---------- módulos ---------- */
+const blocoFechado = (m) => `<div class="bloco"><button class="bloco-cab" aria-expanded="false"><span class="mod-num">${m.numero}</span><span class="t">${m.titulo}</span>${ic("chevron-down", "seta")}
+  <span class="s"><span>${plural(m.qtd, "aula", "aulas")} · ${durAulas(m.qtd)} · ${NIVEIS[m.nivel - 1]}</span>${m.assistidas ? `<span class="selo assistidas">${ic("eye")}${plural(m.assistidas, "aula assistida", "aulas assistidas")}</span>` : ""}</span></button></div>`;
+const cabModulo8 = () => {
+  const n = errosDoModulo();
+  return `<button class="bloco-cab" aria-expanded="true"><span class="mod-num ${n ? "erro" : "atual"}">8</span><span class="t">Pilar Urgência</span>${ic("chevron-up", "seta")}
+    <span class="s"><span>8 aulas · 1 h 25 min · ${NIVEIS[1]}</span><span class="selo assistidas">${ic("eye")}3 aulas assistidas</span>${n ? `<span class="erros">${plural(n, "campo para corrigir", "campos para corrigir")}</span>` : ""}</span></button>`;
+};
+const modulos = () => `<section aria-labelledby="t-mod">
+  <div class="sec-cab"><h2 id="t-mod">Módulos e aulas</h2><p>16 módulos, 90 aulas</p></div>
+  <div class="indice fixo"><span>Ir para</span><div>${MODS.map(([n]) => `<b class="${n === 8 ? "aberto" : ""}" ${n === 8 ? "data-indice8" : ""}>${n}</b>`).join("")}</div></div>
+  <div class="cartao">
+    ${MODULOS.slice(6, 8).map(blocoFechado).join("")}
+    <div class="bloco aberto" data-rolar><div data-cab8>${cabModulo8()}</div>
+      <div class="mod-campos"><div class="cw"><label class="rotulo">Número</label><input class="campo c40" value="8"></div><div class="cw"><label class="rotulo">Título do módulo</label><input class="campo c40" value="Pilar Urgência" style="font-weight:600"></div>
+        <div class="cw"><label class="rotulo">Nível</label><select class="campo c40"><option>${NIVEIS[1]}</option></select></div></div>
+      <div data-mestre></div></div>
+    ${MODULOS.slice(9, 10).map(blocoFechado).join("")}
+    <div class="bloco nota">Módulos 0 a 5 acima e 10 a 15 abaixo, fechados</div>
+  </div></section>`;
+
+/* ---------- a lista das aulas ---------- */
+const listaAulas = () => `<ol class="lista" aria-label="Aulas do módulo 8">${M8.map(([titulo], i) => {
+  const n = perguntasDe(i).length;
+  const erros = errosDaAula(i);
+  const vista = i < 3;
+  return `<li class="${i === S.sel ? "sel" : ""}" data-aula="${i}"><button data-q="aula" data-i="${i}" data-k="aula-${i}" ${i === S.sel ? 'aria-current="true"' : ""}>
+    <span class="n-aula">${i + 1}</span>
+    <span><span class="nome">${titulo}</span><span class="sub"><span class="tab">10:34</span>${n ? `<span>${ic("list-checks", "tem")}${plural(n, "pergunta", "perguntas")}</span>` : ""}${erros ? `<span class="erros">${plural(erros, "campo para corrigir", "campos para corrigir")}</span>` : ""}</span></span>
+    ${vista ? `${ic("eye", "vista")}<span class="sr">assistida por alunos</span>` : "<span></span>"}</button></li>`;
+}).join("")}<li class="rodape"><button class="contorno peq" data-k="por-aula">${ic("plus")}Adicionar aula</button></li></ol>`;
+
+/* ---------- o painel da aula ---------- */
+const acoesAula = (i) => `<span class="acoes">
+  <button class="icone-btn ${i === 0 ? "desl" : ""}" data-k="subir" ${i === 0 ? 'aria-disabled="true"' : ""} data-dica="Subir a aula" aria-label="Subir a aula">${ic("chevron-up")}</button>
+  <button class="icone-btn ${i === 7 ? "desl" : ""}" data-k="descer" ${i === 7 ? 'aria-disabled="true"' : ""} data-dica="Descer a aula" aria-label="Descer a aula">${ic("chevron-down")}</button>
+  ${i < 3 ? `<button class="icone-btn olho" data-k="olho" data-dica="Assistida por alunos: dá para trocar o vídeo e o título, mas ela não se apaga." aria-label="Assistida por alunos">${ic("eye")}</button>`
+    : `<button class="icone-btn" data-k="tirar-aula" data-dica="Remover a aula" aria-label="Remover a aula">${ic("trash")}</button>`}</span>`;
+const camposAula = () => {
+  const [titulo, desc] = M8[S.sel];
+  return `<div class="cw"><label class="rotulo" for="a-titulo">Título da aula</label><input id="a-titulo" class="campo titulo-aula" value="${esc(titulo)}" data-k="a-titulo"></div>
+    <div class="par2"><div class="cw"><label class="rotulo" for="a-dur">Duração</label><input id="a-dur" class="campo c40 tab" value="10:34" data-k="a-dur"></div>
+      <div class="cw"><label class="rotulo" for="a-vid">Vídeo</label><input id="a-vid" class="campo c40" value="youtu.be/aqz-KE-bpKQ" data-k="a-vid"></div></div>
+    <div class="cw"><label class="rotulo" for="a-desc">Descrição</label><textarea id="a-desc" class="campo" data-k="a-desc" placeholder="Uma ou duas frases sobre o que a aula ensina">${esc(desc)}</textarea>
+      <p class="pe-campo"><span>Aparece sob o título no player e na página do curso.</span><span>${desc.length} de 2000</span></p></div>`;
+};
+const msg = (t) => (t ? `<p class="msg-erro">${ic("alerta")}${t}</p>` : "");
+const alternativas = (pi, p) => {
+  const tabDe = (ai) => (p.certa === null ? ai === 0 : ai === p.certa) ? 0 : -1;
+  const erroCerta = erroDe(p, "certa");
+  return `<div class="alts-cab"><span class="rotulo">Alternativas</span><span class="ajuda">A letra marca a certa</span></div>
+  <div class="alts ${erroCerta ? "sem-certa" : ""}" role="radiogroup" aria-label="Alternativa certa da pergunta ${pi + 1}" ${erroCerta ? 'aria-invalid="true"' : ""}>${p.alts.map((a, ai) => {
+    const err = erroDe(p, `a${ai}`);
+    const certa = ai === p.certa;
+    return `<div class="alt ${certa ? "certa" : ""}">
+      <button class="letra dica-esq" role="radio" aria-checked="${certa}" tabindex="${tabDe(ai)}" data-q="certa" data-p="${pi}" data-a="${ai}" data-k="certa-${pi}-${ai}" aria-label="${LETRAS[ai]}" ${certa ? "" : `data-dica="Marcar ${LETRAS[ai]} como a certa"`}><span>${LETRAS[ai]}</span></button>
+      <textarea class="campo c40 ${err ? "erro" : ""}" rows="1" data-campo="alt" data-p="${pi}" data-a="${ai}" data-k="alt-${pi}-${ai}" placeholder="Alternativa ${LETRAS[ai]}" aria-label="Alternativa ${LETRAS[ai]}" style="height:auto;min-height:40px;padding:9px 14px;line-height:1.4">${esc(a.t)}</textarea>
+      <button class="icone-btn ${p.alts.length <= MIN_ALT ? "desl" : ""}" data-q="tirar-alt" data-p="${pi}" data-a="${ai}" data-k="tirar-alt-${pi}-${ai}" ${p.alts.length <= MIN_ALT ? 'aria-disabled="true" data-dica="Toda pergunta tem pelo menos 2 alternativas."' : `data-dica="Tirar a alternativa ${LETRAS[ai]}"`} aria-label="Tirar a alternativa ${LETRAS[ai]}">${ic("x")}</button>
+      ${msg(err)}</div>`;
+  }).join("")}</div>
+  ${erroCerta ? msg(erroCerta) : p.certa === null ? '<p class="ajuda">Nenhuma certa marcada ainda.</p>' : `<p class="certa-linha">${ic("check")}Certa: ${LETRAS[p.certa]}<span>· ${p.alts[p.certa].t.trim() ? esc(p.alts[p.certa].t) : "sem texto"}</span></p>`}
+  <div class="mais">${p.alts.length < MAX_ALT ? `<button class="link-btn" data-q="por-alt" data-p="${pi}" data-k="por-alt">${ic("plus")}Alternativa</button>` : "<span></span>"}<span class="ajuda tab">${p.alts.length} de 5 alternativas</span></div>`;
+};
+const itemDaLista = (p, i, pi) => {
+  const n = visiveis(p).length;
+  const t = p.e.trim();
+  return `<button class="qp" data-q="p" data-p="${i}" data-k="qp-${i}" aria-current="${i === pi}">
+    <span class="num ${n ? "erro" : ""}">${i + 1}</span>
+    <span><span class="t ${t ? "" : "vazia"}">${t ? esc(t) : "Pergunta sem texto"}</span>
+      <span class="s ${n ? "erros" : ""}">${n ? plural(n, "campo para corrigir", "campos para corrigir") : `${plural(p.alts.length, "alternativa", "alternativas")} · ${p.certa === null ? "sem certa" : `certa ${LETRAS[p.certa]}`}`}</span></span></button>`;
+};
+const tirada = () => (S.tirada && S.tirada.aula === S.sel
+  ? `<div class="tirada" data-tirada-pos="${S.tirada.idx}"><span>Pergunta ${S.tirada.idx + 1} tirada.</span><button class="link-btn" data-q="desfazer" data-k="desfazer" style="justify-self:start">${ic("undo")}Desfazer</button></div>` : "");
+function questionario() {
+  const ps = perguntasDe(S.sel);
+  const cab = `<div class="q-cab"><h3 id="t-quiz">${ic("list-checks")}Questionário</h3><span>${ps.length ? plural(ps.length, "pergunta", "perguntas") : ""}</span></div>`;
+  if (!ps.length) {
+    return `${cab}${tirada()}<div class="q-vazio"><p><b>Esta aula ainda não tem questionário.</b>O aluno assiste e segue para a próxima aula.</p>
+      <button class="contorno peq" data-q="por-p" data-k="por-p">${ic("plus")}Criar questionário</button></div>`;
+  }
+  const pi = Math.min(S.pSel, ps.length - 1);
+  const p = ps[pi];
+  const itens = ps.map((x, i) => itemDaLista(x, i, pi));
+  if (S.tirada && S.tirada.aula === S.sel) itens.splice(S.tirada.idx, 0, tirada());
+  const errE = erroDe(p, "e");
+  return `${cab}${regra(ps.length)}
+    <div class="q-duas">
+      <div class="q-lista" aria-label="Perguntas">${itens.join("")}<div class="pe"><button class="link-btn" data-q="por-p" data-k="por-p">${ic("plus")}Pergunta</button></div></div>
+      <div class="q-edicao">
+        <div class="p-cab"><label class="rotulo" for="enun-${pi}">Pergunta ${pi + 1} de ${ps.length}</label>
+          <button class="icone-btn" data-q="tirar-p" data-p="${pi}" data-k="tirar-p" data-dica="Tirar a pergunta ${pi + 1}" aria-label="Tirar a pergunta ${pi + 1}">${ic("trash")}</button></div>
+        <textarea id="enun-${pi}" class="campo ${errE ? "erro" : ""}" data-campo="enunciado" data-p="${pi}" data-k="enun-${pi}" placeholder="Escreva a pergunta" style="min-height:4.2lh">${esc(p.e)}</textarea>
+        ${msg(errE)}
+        ${alternativas(pi, p)}
+      </div>
+    </div>`;
+}
+const mestre = () => `<div class="ed-mestre">${listaAulas()}
+  <div class="detalhe" aria-label="Aula escolhida">
+    <div class="d-cab"><h3>Aula ${S.sel + 1} de 8 ${S.sel < 3 ? "<small>· assistida por alunos</small>" : ""}</h3>${acoesAula(S.sel)}</div>
+    ${camposAula()}
+    <div class="corte"></div>
+    ${questionario()}
+  </div></div>`;
+
+/* ---------- barra de salvar ---------- */
+function barra() {
+  const n = todosOsProblemas().length;
+  if (S.salvo) return `<p class="ok" id="situacao">${ic("check")}Tudo salvo.</p><button class="contorno desligado" aria-disabled="true" aria-describedby="situacao" data-k="salvar">Salvar</button>`;
+  if (S.tentou && n) return `<p class="falhou">${ic("alerta")}Não salvou: ${plural(n, "campo para corrigir", "campos para corrigir")} no módulo 8.</p><button class="botao" data-salvar data-k="salvar">Salvar</button>`;
+  return `<p>Mudanças não salvas. <span>O aluno vê depois de salvar.</span></p><button class="botao" data-salvar data-k="salvar">Salvar</button>`;
+}
+
+const conteudo = () => `<a class="voltar" href="#">${ic("arrow-left")}Catálogo</a>
+  <header class="ed-cab"><h1 class="pg">Profills School Comercial</h1><p>16 módulos, 90 aulas, 15 h 51 min</p></header>
+  <div class="ed" style="margin-top:32px">${vitrine()}${topicos()}${modulos()}<div class="barra-salvar fixo" data-barra>${barra()}</div></div>`;
+
+const raiz = document.getElementById("janela-c");
+raiz.innerHTML = casca(conteudo());
+const janela = raiz.querySelector(".janela");
+
+let redesenhando = false;
+function redesenhar(foco, caret) {
+  redesenhando = true;
+  try { janela.querySelector("[data-mestre]").innerHTML = mestre(); } finally { redesenhando = false; }
+  janela.querySelector("[data-cab8]").innerHTML = cabModulo8();
+  janela.querySelector("[data-barra]").innerHTML = barra();
+  janela.querySelector("[data-indice8]").className = errosDoModulo() ? "erro" : "aberto";
+  if (!foco) return;
+  const el = janela.querySelector(`[data-k="${foco}"]`);
+  el?.focus({ preventScroll: true });
+  if (el && caret && el.setSelectionRange) el.setSelectionRange(caret[0], caret[1]);
+}
+redesenhar();
+
+/* ---------- escala da janela ---------- */
+const escala = raiz;
+function ajustar() {
+  const s = escala.clientWidth / 1280;
+  janela.style.transform = `scale(${s})`;
+  escala.style.height = `${Math.ceil(janela.offsetHeight * s)}px`;
+}
+const ro = new ResizeObserver(ajustar);
+ro.observe(escala); ro.observe(janela);
+ajustar();
+const painel = janela.querySelector(".painel");
+const rolarAte = (el, folga) => {
+  if (janela.classList.contains("inteira")) { el.scrollIntoView({ block: "start" }); return; }
+  const s = escala.clientWidth / 1280;
+  painel.scrollTop += (el.getBoundingClientRect().top - painel.getBoundingClientRect().top) / s - folga;
+};
+rolarAte(janela.querySelector(".ed-mestre"), 60);
+
+/* ---------- interações ---------- */
+const mudou = () => { S.salvo = false; };
+document.addEventListener("click", (ev) => {
+  const alt = ev.target.closest(".alternar");
+  if (alt) {
+    const inteira = janela.classList.toggle("inteira");
+    alt.textContent = inteira ? "Janela de 860 px" : "Página inteira";
+    ajustar();
+    return;
+  }
+  const est = ev.target.closest("[data-estado]");
+  if (est) {
+    const qual = est.dataset.estado;
+    S = novoEstado();
+    if (qual === "vazio") S.sel = 2;
+    if (qual === "erro") {
+      const ps = perguntasDe(3);
+      ps.push(pergunta("", ["Na data do pedido", ""], null));
+      S.pSel = ps.length - 1;
+      S.tentou = true;
+    }
+    janela.querySelector("[data-vitrine=titulo]").value = S.titulo;
+    janela.querySelector("[data-slug]").innerHTML = linhaDoSlug(S.titulo);
+    redesenhar();
+    rolarAte(janela.querySelector(qual === "erro" ? ".q-duas" : ".ed-mestre"), qual === "erro" ? 84 : 60);
+    return;
+  }
+  if (ev.target.closest("a[href='#']")) ev.preventDefault();
+
+  const salvar = ev.target.closest("[data-salvar]");
+  if (salvar) {
+    const todos = todosOsProblemas();
+    if (todos.length) {
+      S.tentou = true;
+      const prim = todos[0];
+      S.sel = prim.aula; S.pSel = prim.pi; S.tirada = null;
+      const k = prim.campo === "e" ? `enun-${prim.pi}` : prim.campo === "certa" ? `certa-${prim.pi}-0` : `alt-${prim.pi}-${prim.campo.slice(1)}`;
+      redesenhar(k);
+      rolarAte(janela.querySelector(`[data-k="${k}"]`), 140);
+    } else {
+      S.salvo = true; S.tentou = false;
+      redesenhar("salvar");
+    }
+    return;
+  }
+
+  const q = ev.target.closest("[data-q]");
+  if (!q || !q.closest("[data-mestre]")) return;
+  if (q.getAttribute("aria-disabled") === "true") return;
+  const ps = perguntasDe(S.sel);
+  const pi = Number(q.dataset.p);
+  const ai = Number(q.dataset.a);
+  const acao = q.dataset.q;
+  if (acao === "aula") { S.sel = Number(q.dataset.i); S.pSel = 0; S.tirada = null; redesenhar(`aula-${S.sel}`); return; }
+  if (acao === "p") { S.pSel = pi; redesenhar(`qp-${pi}`); return; }
+  mudou();
+  if (acao === "certa") { ps[pi].certa = ai; redesenhar(`certa-${pi}-${ai}`); return; }
+  if (acao === "por-alt") { ps[pi].alts.push({ t: "", saiu: false }); S.tirada = null; redesenhar(`alt-${pi}-${ps[pi].alts.length - 1}`); return; }
+  if (acao === "tirar-alt") {
+    const p = ps[pi];
+    p.alts.splice(ai, 1);
+    if (p.certa === ai) p.certa = null; else if (p.certa !== null && p.certa > ai) p.certa -= 1;
+    redesenhar(`alt-${pi}-${Math.min(ai, p.alts.length - 1)}`);
+    return;
+  }
+  if (acao === "por-p") {
+    ps.push(pergunta("", ["", ""], null));
+    S.pSel = ps.length - 1; S.tirada = null;
+    redesenhar(`enun-${S.pSel}`);
+    return;
+  }
+  if (acao === "tirar-p") {
+    const [p] = ps.splice(pi, 1);
+    S.tirada = { aula: S.sel, idx: pi, p };
+    S.pSel = Math.max(0, Math.min(pi, ps.length - 1));
+    redesenhar("desfazer");
+    return;
+  }
+  if (acao === "desfazer" && S.tirada) {
+    ps.splice(S.tirada.idx, 0, S.tirada.p);
+    S.pSel = S.tirada.idx; S.tirada = null;
+    redesenhar(`qp-${S.pSel}`);
+  }
+});
+
+document.addEventListener("input", (ev) => {
+  const t = ev.target;
+  if (t.dataset.vitrine === "titulo") { janela.querySelector("[data-slug]").innerHTML = linhaDoSlug(t.value); mudou(); janela.querySelector("[data-barra]").innerHTML = barra(); return; }
+  if (t.dataset.vitrine === "descricao") { janela.querySelector("[data-conta-desc]").textContent = `${t.value.length} de 2000`; return; }
+  if (!t.closest("[data-mestre]") || !t.dataset.campo) return;
+  const p = perguntasDe(S.sel)[Number(t.dataset.p)];
+  if (t.dataset.campo === "enunciado") p.e = t.value;
+  if (t.dataset.campo === "alt") p.alts[Number(t.dataset.a)].t = t.value;
+  mudou();
+  redesenhar(t.dataset.k, [t.selectionStart, t.selectionEnd]);
+});
+
+document.addEventListener("focusout", (ev) => {
+  if (redesenhando) return;
+  const t = ev.target;
+  if (!t.closest?.("[data-mestre]") || !t.dataset.campo) return;
+  const p = perguntasDe(S.sel)[Number(t.dataset.p)];
+  if (!p) return;
+  if (t.dataset.campo === "enunciado") p.saiu.e = true;
+  if (t.dataset.campo === "alt" && p.alts[Number(t.dataset.a)]) p.alts[Number(t.dataset.a)].saiu = true;
+  const destino = ev.relatedTarget;
+  if (destino && destino.closest("[data-mestre]") && destino.matches("button")) return;
+  const k = destino?.dataset?.k && destino.closest("[data-mestre]") ? destino.dataset.k : null;
+  redesenhar(k);
+});
+
+document.addEventListener("keydown", (ev) => {
+  const t = ev.target;
+  if (ev.key === "Enter" && t.matches("[data-campo=alt]")) { ev.preventDefault(); return; }
+  if (t.matches?.(".letra[role=radio]") && ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"].includes(ev.key)) {
+    ev.preventDefault();
+    const pi = Number(t.dataset.p);
+    const p = perguntasDe(S.sel)[pi];
+    const d = ev.key === "ArrowDown" || ev.key === "ArrowRight" ? 1 : -1;
+    const ai = (Number(t.dataset.a) + d + p.alts.length) % p.alts.length;
+    p.certa = ai; mudou();
+    redesenhar(`certa-${pi}-${ai}`);
+  }
+});
+</script>

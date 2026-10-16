@@ -4,24 +4,19 @@
 // plano-do-curso.ts.
 
 // formatos.ts, não comum.ts: este módulo vai para o bundle do browser.
-import {
-  ID_DO_YOUTUBE,
-  SLUG,
-  STATUS_DO_CURSO,
-} from "@cursos/db/schema/formatos";
+import { ID_DO_YOUTUBE, STATUS_DO_CURSO } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
 import type {
   AulaId,
   Capa,
+  CategoriaId,
   CursoId,
   ModuloId,
   Versao,
   VideoDaAula,
   VideoId,
 } from "./tipos";
-
-export const FORMATO_DO_SLUG = SLUG;
 
 /**
  * Tetos do documento. gravarCurso deriva deles o deslocamento que regrava números
@@ -32,24 +27,35 @@ export const LIMITES = {
   modulos: 200,
   niveis: 50,
   numeroDeModulo: 999,
+  /** O check curso_topicos_validos repete este teto. */
+  topicos: 10,
 } as const;
 
+/**
+ * categoria (o nome da Categoria), descricao, descricaoDaAula e topico se repetem
+ * nos checks do banco. slug é o teto do endereço que o servidor gera.
+ */
 export const CARACTERES = {
   capaAlt: 300,
+  categoria: 80,
   codigo: 40,
+  descricao: 2000,
+  descricaoDaAula: 2000,
   destaque: 60,
   nomeDoNivel: 60,
   slug: 80,
-  tema: 80,
   titulo: 120,
   tituloDaAula: 160,
   tituloDoModulo: 160,
+  topico: 120,
 } as const;
 
 export const DURACAO_MAXIMA_SEG = 24 * 60 * 60;
 export const PRECO_MAXIMO = 1_000_000;
 
 const texto = (max: number) => z.string().trim().min(1).max(max);
+/** Texto que pode ficar vazio: a descrição do curso e a da aula. */
+const livre = (max: number) => z.string().trim().max(max);
 /** "" vira null: campo opcional apagado no formulário. */
 const opcional = (max: number) =>
   z
@@ -72,6 +78,7 @@ const video = z
   );
 
 const aula = z.object({
+  descricao: livre(CARACTERES.descricaoDaAula),
   duracaoSeg: z.int().positive().max(DURACAO_MAXIMA_SEG),
   /** Aula nova: o editor gera o id. A posição é o índice no módulo mais 1. */
   id: uuid.transform((id) => id as AulaId),
@@ -115,16 +122,19 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
 export const documentoDoCurso = z
   .object({
     capaAlt: texto(CARACTERES.capaAlt),
+    /** Uma categoria de admin.categorias.lista; o servidor recusa a que sumiu. */
+    categoriaId: uuid.transform((id) => id as CategoriaId),
     codigo: opcional(CARACTERES.codigo),
+    descricao: livre(CARACTERES.descricao),
     destaque: opcional(CARACTERES.destaque),
     id: uuid.transform((id) => id as CursoId),
     modulos: z.array(modulo).max(LIMITES.modulos),
     niveis: z.array(nivel).max(LIMITES.niveis),
     precoTroca: z.int().positive().max(PRECO_MAXIMO).nullable(),
-    slug: z.string().regex(new RegExp(SLUG)).max(CARACTERES.slug),
     status: z.enum(STATUS_DO_CURSO),
-    tema: texto(CARACTERES.tema),
     titulo: texto(CARACTERES.titulo),
+    /** "O que você vai aprender", na ordem em que o aluno lê. */
+    topicos: z.array(texto(CARACTERES.topico)).max(LIMITES.topicos),
     /** null: o editor acha que o curso é novo. Senão, a versão que ele abriu. */
     versao: z
       .string()
@@ -229,6 +239,11 @@ export interface EdicaoDoCurso {
   capa: Capa | null;
   documento: DocumentoDoCurso;
   podeApagar: boolean;
+  /**
+   * O endereço que o servidor escolheu no primeiro salvamento, a partir do título,
+   * e que não muda depois. null no curso novo.
+   */
+  slug: string | null;
   uso: UsoDoCurso;
 }
 
@@ -244,6 +259,9 @@ export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   u.liberacoes === 0 &&
   Object.values(u.assistidasPorAula).every((n) => n === 0);
 
+/** O curso novo ainda sem categoria escolhida; o schema recusa o id vazio. */
+const SEM_CATEGORIA = "" as CategoriaId;
+
 /**
  * O rascunho de um curso que ainda não existe. O id vem de quem chama e não pode
  * mudar enquanto o rascunho vive: a trava curso:<id> e o reenvio sem duplicar
@@ -254,19 +272,21 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
     capa: null,
     documento: {
       capaAlt: "",
+      categoriaId: SEM_CATEGORIA,
       codigo: null,
+      descricao: "",
       destaque: null,
       id,
       modulos: [],
       niveis: [],
       precoTroca: null,
-      slug: "",
       status: "em_producao",
-      tema: "",
       titulo: "",
+      topicos: [],
       versao: null,
     },
     podeApagar: false,
+    slug: null,
     uso: SEM_USO,
   };
 }

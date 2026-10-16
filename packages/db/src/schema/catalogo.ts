@@ -13,6 +13,23 @@ import {
 import { cursoStatus, momento, tabela, videoProvedor } from "./comum";
 import { SLUG } from "./formatos";
 
+export const categoria = tabela(
+  "categoria",
+  {
+    criadaEm: momento(),
+    id: uuid().primaryKey().defaultRandom(),
+    nome: text().notNull(),
+  },
+  (t) => [
+    unique("categoria_nome_unico").on(t.nome),
+    // O teto repete CARACTERES.categoria de edicao-do-curso.ts.
+    check(
+      "categoria_nome_formato",
+      sql`${t.nome} = trim(${t.nome}) and char_length(${t.nome}) between 1 and 80`
+    ),
+  ]
+);
+
 export const curso = tabela(
   "curso",
   {
@@ -21,18 +38,27 @@ export const curso = tabela(
     capaAltura: smallint().notNull(),
     capaLargura: smallint().notNull(),
     capaUrl: text().notNull(),
+    categoriaId: uuid()
+      .notNull()
+      .references(() => categoria.id, { onDelete: "restrict" }),
     codigo: text().unique(), // ex.: POP-COM-001
     criadoEm: momento(),
+    descricao: text().notNull().default(""),
     destaque: text(), // ex.: "Regra 5x4"
     id: uuid().primaryKey().defaultRandom(),
     precoTroca: integer(),
     slug: text().notNull().unique(),
     status: cursoStatus().notNull().default("em_producao"),
-    tema: text().notNull(),
     titulo: text().notNull(),
+    topicos: text().array().notNull().default(sql`'{}'`),
   },
   (t) => [
     check("curso_slug_formato", sql`${t.slug} ~ ${SLUG}`),
+    // Os tetos repetem CARACTERES e LIMITES de edicao-do-curso.ts, e o
+    // edicao.integration.test.ts confere os dois lados.
+    check("curso_descricao_tamanho", sql`char_length(${t.descricao}) <= 2000`),
+    // A função vem da migração formato_udemy: um check não pode ter subconsulta.
+    check("curso_topicos_validos", sql`topicos_validos(${t.topicos})`),
     check("curso_capa_alt_preenchido", sql`length(trim(${t.capaAlt})) > 0`),
     check(
       "curso_capa_dimensoes_positivas",
@@ -87,6 +113,7 @@ export const modulo = tabela(
 export const aula = tabela(
   "aula",
   {
+    descricao: text().notNull().default(""),
     duracaoSeg: integer().notNull(),
     id: uuid().primaryKey().defaultRandom(),
     moduloId: uuid()
@@ -101,6 +128,7 @@ export const aula = tabela(
     unique("aula_posicao_unica").on(t.moduloId, t.posicao),
     check("aula_posicao_positiva", sql`${t.posicao} >= 1`),
     check("aula_duracao_positiva", sql`${t.duracaoSeg} > 0`),
+    check("aula_descricao_tamanho", sql`char_length(${t.descricao}) <= 2000`),
     check(
       "aula_video_completo",
       sql`(${t.videoProvedor} is null) = (${t.videoId} is null)`

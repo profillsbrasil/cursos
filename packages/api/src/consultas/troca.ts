@@ -35,7 +35,6 @@ export async function linhasDosCursos(
       precoTroca: true,
       slug: true,
       status: true,
-      tema: true,
       titulo: true,
     },
     where:
@@ -48,6 +47,7 @@ export async function linhasDosCursos(
           }
         : { id: filtro.cursoId },
     with: {
+      categoria: { columns: { nome: true } },
       liberacoes: {
         columns: { origem: true },
         where: ativas,

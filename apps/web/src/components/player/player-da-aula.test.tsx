@@ -22,6 +22,7 @@ const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
 const DADOS: AulaNoPlayer = {
   anterior: { id: "a3" as AulaId, titulo: "O custo do atraso para o cliente" },
   aula: {
+    descricao: "",
     duracaoSeg: 634,
     id: "a4" as AulaId,
     modulo: { numero: 8, titulo: "Pilar Urgência" },

@@ -5,6 +5,8 @@ import { createHash } from "node:crypto";
 // Alunos, progresso, datas e pontos são exemplo e não descrevem pessoa real.
 
 export interface AulaSeed {
+  /** Só nas aulas de título próprio. As geradas ficam sem descrição. */
+  descricao?: string;
   titulo: string;
 }
 
@@ -21,15 +23,17 @@ export interface CursoSeed {
   capaAltura: number;
   capaLargura: number;
   capaUrl: string;
+  categoria: string;
   chave: string;
   codigo: string | null;
+  descricao: string;
   destaque: string | null;
   modulos: ModuloSeed[];
   niveis: { nome: string; ordem: number }[];
   precoTroca?: number;
   status: "em_producao" | "publicado";
-  tema: string;
   titulo: string;
+  topicos: string[];
 }
 
 /**
@@ -77,23 +81,55 @@ const MODULOS_COMERCIAL: [number, string, number][] = [
 ];
 
 const AULAS_M8: AulaSeed[] = [
-  { titulo: "Urgência não se cria, se descobre" },
-  { titulo: "Ficha de diagnóstico de urgência" },
-  { titulo: "O custo do atraso para o cliente" },
-  { titulo: "Cronograma reverso" },
-  { titulo: "Responsabilidades do cliente" },
-  { titulo: "Datas que não fecham" },
-  { titulo: "Urgência e condição de pagamento" },
-  { titulo: "Casos reais de urgência" },
+  {
+    descricao:
+      "Por que a urgência do cliente já existe antes da visita e como encontrá-la nas perguntas certas.",
+    titulo: "Urgência não se cria, se descobre",
+  },
+  {
+    descricao:
+      "Como preencher a ficha que registra prazos, gargalos e datas de produção do cliente.",
+    titulo: "Ficha de diagnóstico de urgência",
+  },
+  {
+    descricao:
+      "Como calcular com o cliente quanto custa cada mês sem a máquina funcionando.",
+    titulo: "O custo do atraso para o cliente",
+  },
+  {
+    descricao:
+      "Como montar o cronograma de trás para a frente, da data de produção até o pedido.",
+    titulo: "Cronograma reverso",
+  },
+  {
+    descricao:
+      "O que o cliente precisa entregar (layout, energia, ar comprimido) para a data valer.",
+    titulo: "Responsabilidades do cliente",
+  },
+  {
+    descricao:
+      "Como agir quando a data que o cliente quer não cabe no prazo de fabricação.",
+    titulo: "Datas que não fecham",
+  },
+  {
+    descricao:
+      "Como a urgência muda a conversa sobre entrada, parcelas e financiamento.",
+    titulo: "Urgência e condição de pagamento",
+  },
+  {
+    descricao:
+      "Três negociações reais em que a urgência decidiu o fechamento, e o que aprender com cada uma.",
+    titulo: "Casos reais de urgência",
+  },
 ];
 
 const umModulo = (
   numero: number,
   titulo: string,
-  aulas: string[]
+  aulas: (string | AulaSeed)[]
 ): ModuloSeed[] => [
   {
-    aulas: aulas.map((t) => ({ titulo: t })),
+    aulas: aulas.map((a) => (typeof a === "string" ? { titulo: a } : a)),
     nivelOrdem: null,
     numero,
     titulo,
@@ -107,8 +143,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 604,
     capaLargura: 900,
     capaUrl: "/capas/comercial.jpg",
+    categoria: "Vendas e negócios",
     chave: "comercial",
     codigo: null,
+    descricao:
+      "A formação comercial completa da Profills, da autoavaliação ao pós-venda. Você aprende o método dos cinco pilares para diagnosticar o cliente, montar uma proposta de valor e conduzir a negociação até o fechamento, com o CRM como apoio em cada etapa.",
     destaque: null,
     modulos: MODULOS_COMERCIAL.map(([numero, titulo, qtd]) => ({
       aulas: numero === 8 ? AULAS_M8 : geradas(titulo, qtd),
@@ -122,36 +161,80 @@ export const CURSOS: CursoSeed[] = [
       { nome: "Especialista Comercial", ordem: 3 },
     ],
     status: "publicado",
-    tema: "Vendas e negócios",
     titulo: "Profills School Comercial",
+    topicos: [
+      "Diagnosticar o cliente pelos cinco pilares da venda consultiva",
+      "Prospectar e qualificar oportunidades de envase",
+      "Montar uma proposta que mostra valor e retorno",
+      "Conduzir objeções e negociar o fechamento",
+      "Registrar e acompanhar a negociação no CRM",
+      "Passar o cliente para o pós-venda sem perder informação",
+    ],
   },
   {
     capaAlt: "Ilustração de um posto de montagem com equipamento de proteção",
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/seguranca.jpg",
+    categoria: "Produção e montagem",
     chave: "fabrica-montagem",
     codigo: null,
+    descricao:
+      "O básico para trabalhar na montagem das máquinas Profills com segurança. O curso começa pelos riscos do posto, apresenta a envasadora conjunto por conjunto e termina com a montagem pneumática a partir do esquema.",
     destaque: null,
     modulos: [
       ...umModulo(1, "Segurança do posto", [
-        "Riscos do posto de montagem",
-        "Bloqueio antes de mexer",
-        "Ferramentas e EPI",
+        {
+          descricao:
+            "Os riscos de esmagamento, choque e ar comprimido em cada etapa da montagem.",
+          titulo: "Riscos do posto de montagem",
+        },
+        {
+          descricao:
+            "Como bloquear e etiquetar energia e ar antes de qualquer intervenção na máquina.",
+          titulo: "Bloqueio antes de mexer",
+        },
+        {
+          descricao:
+            "Quais ferramentas e equipamentos de proteção cada tarefa do posto exige.",
+          titulo: "Ferramentas e EPI",
+        },
       ]),
       ...umModulo(2, "Envasadora: conhecendo a máquina", [
-        "Estrutura e conjuntos",
-        "Bicos e dosagem",
+        {
+          descricao:
+            "Os conjuntos da envasadora, do tanque ao transportador, e a função de cada um.",
+          titulo: "Estrutura e conjuntos",
+        },
+        {
+          descricao:
+            "Como os bicos dosam o volume e o que muda de um produto para outro.",
+          titulo: "Bicos e dosagem",
+        },
       ]),
       ...umModulo(3, "Montagem pneumática", [
-        "Leitura do esquema",
-        "Montando o conjunto",
+        {
+          descricao:
+            "Como ler o esquema pneumático e achar cada válvula e cilindro na máquina.",
+          titulo: "Leitura do esquema",
+        },
+        {
+          descricao:
+            "A montagem do conjunto pneumático passo a passo, com o teste de vazamento no fim.",
+          titulo: "Montando o conjunto",
+        },
       ]),
     ],
     niveis: [],
     status: "publicado",
-    tema: "Produção e montagem",
     titulo: "Fábrica e montagem",
+    topicos: [
+      "Reconhecer os riscos do posto de montagem",
+      "Bloquear energia e ar antes de mexer na máquina",
+      "Identificar os conjuntos de uma envasadora",
+      "Ler um esquema pneumático",
+      "Montar e testar um conjunto pneumático",
+    ],
   },
   {
     capaAlt:
@@ -159,8 +242,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 604,
     capaLargura: 900,
     capaUrl: "/capas/nova-rotina.jpg",
+    categoria: "Vendas e negócios",
     chave: "nova-rotina",
     codigo: "POP-COM-001",
+    descricao:
+      "A rotina de fechamento que a equipe comercial passou a seguir neste ano. Cada aula cobre um passo da semana, do funil à reunião de previsão, e o curso fecha com o checklist do fim do mês.",
     destaque: null,
     modulos: umModulo(1, "Rotina de fechamento", [
       "Por que a rotina mudou",
@@ -175,8 +261,13 @@ export const CURSOS: CursoSeed[] = [
     ]),
     niveis: [],
     status: "publicado",
-    tema: "Vendas e negócios",
     titulo: "Nova Rotina de Fechamento",
+    topicos: [
+      "Organizar o funil da semana",
+      "Preparar a reunião de previsão",
+      "Fazer o follow-up em até 48 horas",
+      "Registrar perdas e os motivos no CRM",
+    ],
   },
   {
     capaAlt:
@@ -184,8 +275,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 507,
     capaLargura: 900,
     capaUrl: "/capas/gravacao.jpg",
+    categoria: "Produtos e aplicações",
     chave: "gravacao",
     codigo: null,
+    descricao:
+      "Como gravar vídeos das máquinas Profills que mostram o equipamento com clareza para o cliente, só com o celular.",
     destaque: "Regra 5x4",
     modulos: umModulo(1, "Curso de gravação técnica", [
       "A regra 5x4",
@@ -194,8 +288,12 @@ export const CURSOS: CursoSeed[] = [
     ]),
     niveis: [],
     status: "em_producao",
-    tema: "Produtos e aplicações",
     titulo: "Gravação de Máquinas",
+    topicos: [
+      "Aplicar a regra 5x4 em cada gravação",
+      "Escolher ângulo e luz na fábrica",
+      "Filmar a máquina em funcionamento sem tremer",
+    ],
   },
   {
     capaAlt:
@@ -203,8 +301,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 437,
     capaLargura: 900,
     capaUrl: "/capas/autoavaliacao.jpg",
+    categoria: "Vendas e negócios",
     chave: "autoavaliacao",
     codigo: null,
+    descricao:
+      "Trinta afirmações sobre o seu jeito de vender, agrupadas em seis competências. O resultado mostra por onde começar a formação comercial.",
     destaque: "30 afirmações · 6 competências",
     modulos: umModulo(0, "Autoavaliação", [
       "Como responder",
@@ -212,8 +313,12 @@ export const CURSOS: CursoSeed[] = [
     ]),
     niveis: [],
     status: "publicado",
-    tema: "Vendas e negócios",
     titulo: "Autoavaliação Comercial",
+    topicos: [
+      "Responder à autoavaliação com sinceridade",
+      "Entender as seis competências do vendedor Profills",
+      "Escolher a competência para desenvolver primeiro",
+    ],
   },
   {
     capaAlt:
@@ -221,8 +326,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/pos-venda.jpg",
+    categoria: "Vendas e negócios",
     chave: "pos-venda",
     codigo: null,
+    descricao:
+      "O que acontece depois que a máquina chega ao cliente. O curso mostra como acompanhar a instalação, responder chamados e manter o cliente por perto para a próxima compra.",
     destaque: null,
     modulos: [
       {
@@ -235,8 +343,13 @@ export const CURSOS: CursoSeed[] = [
     niveis: [],
     precoTroca: 300,
     status: "publicado",
-    tema: "Vendas e negócios",
     titulo: "Atendimento pós-venda",
+    topicos: [
+      "Acompanhar a instalação e a partida da máquina",
+      "Responder chamados no prazo combinado",
+      "Registrar o atendimento no CRM",
+      "Transformar o pós-venda em nova oportunidade",
+    ],
   },
   {
     capaAlt:
@@ -244,8 +357,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/bpf.jpg",
+    categoria: "Processo de envase",
     chave: "bpf",
     codigo: null,
+    descricao:
+      "As boas práticas de fabricação que o cliente de alimentos, bebidas e cosméticos cobra da linha de envase.",
     destaque: null,
     modulos: [
       {
@@ -258,8 +374,12 @@ export const CURSOS: CursoSeed[] = [
     niveis: [],
     precoTroca: 200,
     status: "publicado",
-    tema: "Processo de envase",
     titulo: "Boas práticas de fabricação",
+    topicos: [
+      "Entender o que a vigilância sanitária exige da linha",
+      "Manter higiene de pessoas, área e equipamento",
+      "Registrar a produção para a rastreabilidade",
+    ],
   },
   {
     capaAlt:
@@ -267,8 +387,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/portfolio.jpg",
+    categoria: "Produtos e aplicações",
     chave: "portfolio",
     codigo: null,
+    descricao:
+      "Um passeio pelo portfólio da Profills: que máquina resolve cada etapa da linha e para qual cliente ela serve.",
     destaque: null,
     modulos: [
       {
@@ -284,8 +407,13 @@ export const CURSOS: CursoSeed[] = [
     niveis: [],
     precoTroca: 500,
     status: "publicado",
-    tema: "Produtos e aplicações",
     titulo: "Portfólio: envasadoras, embaladoras e enfardadeiras",
+    topicos: [
+      "Diferenciar os modelos de envasadora",
+      "Indicar a embaladora certa para cada produto",
+      "Saber quando a linha precisa de enfardadeira",
+      "Montar uma linha completa com o cliente",
+    ],
   },
   {
     capaAlt:
@@ -293,8 +421,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/fundamentos.jpg",
+    categoria: "Processo de envase",
     chave: "fundamentos",
     codigo: null,
+    descricao:
+      "Os conceitos que explicam por que um líquido se envasa de um jeito e não de outro: viscosidade, espuma, temperatura e o princípio de dosagem de cada máquina.",
     destaque: null,
     modulos: [
       {
@@ -307,8 +438,13 @@ export const CURSOS: CursoSeed[] = [
     niveis: [],
     precoTroca: 800,
     status: "publicado",
-    tema: "Processo de envase",
     titulo: "Fundamentos do envase de líquidos",
+    topicos: [
+      "Reconhecer como a viscosidade muda o envase",
+      "Comparar envase volumétrico, por gravidade e por pistão",
+      "Evitar espuma e respingo no frasco",
+      "Escolher o bico pelo tipo de produto",
+    ],
   },
   {
     capaAlt:
@@ -316,8 +452,11 @@ export const CURSOS: CursoSeed[] = [
     capaAltura: 720,
     capaLargura: 1280,
     capaUrl: "/capas/limpeza.jpg",
+    categoria: "Fábrica e montagem",
     chave: "limpeza",
     codigo: null,
+    descricao:
+      "Como limpar a linha sem desmontar e trocar de frasco no menor tempo, com a sequência que a fábrica usa.",
     destaque: null,
     modulos: [
       {
@@ -330,8 +469,12 @@ export const CURSOS: CursoSeed[] = [
     niveis: [],
     precoTroca: 1000,
     status: "publicado",
-    tema: "Fábrica e montagem",
     titulo: "Limpeza CIP e troca de formato",
+    topicos: [
+      "Rodar o ciclo de limpeza CIP do começo ao fim",
+      "Conferir a limpeza antes de liberar a linha",
+      "Trocar o formato do frasco com o checklist",
+    ],
   },
 ];
 

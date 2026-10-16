@@ -1,0 +1,11 @@
+# Explorer banco e escritores, resumo gravado ao chegar
+- trilha (catalogo.ts:15-25): sem capa, categoria, tópicos, preço. curso (27-57): capa, codigo, destaque, preco_troca, slug, status, tema, titulo.
+- trilha_curso PK curso_id (1 curso em <=1 trilha); curso restrict, trilha cascade.
+- nivel/modulo pendurados em curso (cascade); modulo_nivel_do_mesmo_curso restrict; aula.modulo_id cascade; aula sem descrição.
+- liberacao (acesso.ts:15-69): alvo curso XOR trilha, troca exige curso (48-51), troca não revoga, únicos parciais por alvo ativo.
+- comunicado.curso_id cascade. certificado.curso_id restrict, unique por curso; estudo.ts:76-79 promete prova_tentativa_id.
+- ponto_lancamento: curso_id via FK composta ao certificado; trilha_id restrict; motivos curso_concluido/trilha_concluida; enum motivo_ponto exige recriar tipo para remover valor.
+- aula_assistida.aula_id restrict: migração precisa re-parentar aulas, nunca recriar.
+- Nenhum código do app insere certificado: só seed e testes. Prova não tem tabela.
+- Curso solto em: inserirLiberacao/cursosDoAlvo/alvoDa (consultas/liberacao.ts), troca.ts, catalogo.ts:62-90, meus-cursos.ts statement 5, acompanhamento.ts:56-68, edicao-do-curso.ts (trava 262/484, gravarCurso 326-466, uso 119-154), edicao-da-trilha.ts (232-271, comecaramSoPelaTrilha 82-125), erros.ts (97, 133-163) + erros.integration.test.ts.
+- 199 linhas não-teste em consultas/ citam curso.

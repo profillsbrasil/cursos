@@ -68,13 +68,13 @@ describe("o rascunho apoiado do curso", () => {
       estadoApoiadoEm(REGRAS_DO_CURSO, documentoDeExemplo()),
       campos({ titulo: "Curso   " })
     );
-    const depois = passo(enviando, campos({ tema: "Outro tema" }), {
+    const depois = passo(enviando, campos({ descricao: "Outra descrição" }), {
       enviado: enviando.rascunho,
       gravado: gravado(enviando),
       tipo: "salvo",
     });
-    expect([depois.rascunho.tema, depois.rascunho.titulo]).toEqual([
-      "Outro tema",
+    expect([depois.rascunho.descricao, depois.rascunho.titulo]).toEqual([
+      "Outra descrição",
       "Curso   ",
     ]);
     expect(depois.apoio.base.versao).toBe(V2);
@@ -161,7 +161,7 @@ describe("o rascunho apoiado do curso", () => {
       { motivo: "versao_mudou", tipo: "recusado" }
     );
     const durante = passo(avisado, digitar("XY"), {
-      motivo: "slug_repetido",
+      motivo: "codigo_repetido",
       tipo: "recusado",
     });
     expect(durante.apoio.versaoDeFora).toBe(true);
@@ -178,7 +178,7 @@ describe("o rascunho apoiado do curso", () => {
   test("recusa por outro motivo não liga o aviso", () => {
     const depois = passo(
       estadoApoiadoEm(REGRAS_DO_CURSO, doc()),
-      { motivo: "slug_repetido", tipo: "recusado" },
+      { motivo: "codigo_repetido", tipo: "recusado" },
       { motivo: null, tipo: "recusado" }
     );
     expect(depois.apoio.versaoDeFora).toBe(false);

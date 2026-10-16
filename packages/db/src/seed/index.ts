@@ -13,6 +13,7 @@ import { createDb, type Database } from "../index";
 import {
   aula,
   aulaAssistida,
+  categoria,
   certificado,
   comunicado,
   cotaVideo,
@@ -128,21 +129,49 @@ function lerArgs() {
 
 type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
+/**
+ * As categorias que os cursos de exemplo usam. A que já existe pelo nome, criada
+ * pelo admin ou por outra execução, fica com o id dela. Devolve o id por nome.
+ */
+async function plantarCategorias(
+  tx: Transacao
+): Promise<ReadonlyMap<string, string>> {
+  const nomes = [...new Set(CURSOS.map((c) => c.categoria))];
+  await tx
+    .insert(categoria)
+    .values(nomes.map((nome) => ({ nome })))
+    .onConflictDoNothing({ target: categoria.nome });
+  const linhas = await tx
+    .select({ id: categoria.id, nome: categoria.nome })
+    .from(categoria)
+    .where(inArray(categoria.nome, nomes));
+  return new Map(linhas.map((l) => [l.nome, l.id]));
+}
+
 /** Linhas do conteúdo de exemplo, com ids fixos. */
-function linhasDeConteudo() {
+function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
+  const idDaCategoria = (nome: string) => {
+    const id = categorias.get(nome);
+    if (!id) {
+      throw new Error(`Categoria ${nome} não foi plantada.`);
+    }
+    return id;
+  };
   const cursos = CURSOS.map((c) => ({
     capaAlt: c.capaAlt,
     capaAltura: c.capaAltura,
     capaLargura: c.capaLargura,
     capaUrl: c.capaUrl,
+    categoriaId: idDaCategoria(c.categoria),
     codigo: c.codigo,
+    descricao: c.descricao,
     destaque: c.destaque,
     id: idCurso(c.chave),
     precoTroca: c.precoTroca ?? null,
     slug: c.chave,
     status: c.status,
-    tema: c.tema,
     titulo: c.titulo,
+    topicos: c.topicos,
   }));
   const niveis = CURSOS.flatMap((c) =>
     c.niveis.map((n) => ({
@@ -163,6 +192,7 @@ function linhasDeConteudo() {
   const aulas = CURSOS.flatMap((c) =>
     c.modulos.flatMap((m) =>
       m.aulas.map((a, i) => ({
+        descricao: a.descricao ?? "",
         duracaoSeg: VIDEO_EXEMPLO.duracaoSeg,
         id: idAula(c.chave, m.numero, i + 1),
         moduloId: idModulo(c.chave, m.numero),
@@ -181,7 +211,7 @@ function linhasDeConteudo() {
  * curso que nasceu nesta execução.
  */
 async function plantarConteudo(tx: Transacao) {
-  const l = linhasDeConteudo();
+  const l = linhasDeConteudo(await plantarCategorias(tx));
   const cursosNovos = new Set(
     (
       await tx

@@ -1,55 +1,30 @@
+import { diaLocal } from "@cursos/api/dominio/sequencia";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
-import { caminhoDaAula } from "@/lib/rotas";
-import { carregarEntrada } from "@/server/api";
+import { TopoDoAluno } from "@/components/aluno/topo";
+import { MigalhaDoCurso } from "@/components/curso/migalha-do-curso";
+import { TelaDoCurso } from "@/components/curso/tela-do-curso";
+import { carregarPaginaDoCurso } from "@/server/api";
 
-export const metadata: Metadata = { title: "Curso" };
-
-export default async function Curso({
-  params,
-}: {
+interface Props {
   params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const entrada = await carregarEntrada(slug);
-  if (!entrada) {
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const pagina = await carregarPaginaDoCurso((await params).slug);
+  return { title: pagina?.titulo ?? "Curso" };
+}
+
+export default async function Curso({ params }: Props) {
+  const pagina = await carregarPaginaDoCurso((await params).slug);
+  if (!pagina) {
     notFound();
-  }
-  if (entrada.tipo === "aula") {
-    redirect(caminhoDaAula(slug, entrada.aulaId));
   }
   return (
     <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
-      <div className="grid gap-3">
-        <h1 className="font-bold text-3xl text-titulo tracking-tight">
-          {entrada.tipo === "prova"
-            ? "Você assistiu a todas as aulas"
-            : "Curso concluído"}
-        </h1>
-        <p className="text-muted-foreground">
-          {entrada.tipo === "prova"
-            ? "A prova chega no próximo PR."
-            : "Seu certificado já foi emitido."}
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <Link
-            className="text-ceu underline underline-offset-4 hover:text-titulo"
-            href={caminhoDaAula(slug, entrada.primeira)}
-          >
-            Rever aulas
-          </Link>
-          <Link
-            className="text-ceu underline underline-offset-4 hover:text-titulo"
-            href="/meus-cursos"
-          >
-            Voltar para Meus cursos
-          </Link>
-        </div>
-      </div>
+      <TopoDoAluno esquerda={<MigalhaDoCurso titulo={pagina.titulo} />} />
+      <TelaDoCurso hoje={diaLocal(new Date())} pagina={pagina} />
     </>
   );
 }

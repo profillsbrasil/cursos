@@ -166,10 +166,10 @@ describe("Meus cursos com curso em produção que tem código", () => {
     })
   );
 
-  test('a capa diz "Em produção", nunca "Em breve", e a linha mostra o tema e o código, sem o tamanho', () => {
+  test('a capa diz "Em produção", nunca "Em breve", e a linha mostra a categoria e o código, sem o tamanho', () => {
     const cursos = texto(secaoDe(html, "cursos"));
     expect(cursos).toContain("Em produção");
-    expect(cursos).toContain("Tema · POP-FAB-002");
+    expect(cursos).toContain("Categoria · POP-FAB-002");
     expect(cursos).not.toContain("aulas");
     expect(html).not.toContain("Em breve");
     expect(texto(html)).toContain("1 curso liberado para você");

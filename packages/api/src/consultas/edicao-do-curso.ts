@@ -6,17 +6,19 @@ import type { Database } from "@cursos/db";
 import {
   aula,
   aulaAssistida,
+  categoria,
   certificado,
   curso,
   liberacao,
   modulo,
   nivel,
 } from "@cursos/db/schema/index";
-import { and, count, eq, inArray, type SQL, sql } from "drizzle-orm";
+import { and, count, eq, inArray, like, or, type SQL, sql } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 
 import type { Servicos } from "../context";
 import type { ImagemDaCapa, RecusaDaCapa } from "../dominio/capa";
+import { CATEGORIA_SUMIU } from "../dominio/categoria";
 import {
   type DocumentoDoCurso,
   type EdicaoDoCurso,
@@ -24,6 +26,7 @@ import {
   lerFormularioDoCurso,
   podeApagarCurso,
 } from "../dominio/edicao-do-curso";
+import { raizDoSlug, slugDoTitulo, slugLivre } from "../dominio/endereco";
 import {
   type PlanoDeGravacao,
   planejarCurso,
@@ -32,6 +35,7 @@ import {
 } from "../dominio/plano-do-curso";
 import {
   type AulaId,
+  type CategoriaId,
   type CursoId,
   capaDe,
   type ModuloId,
@@ -41,7 +45,7 @@ import { videoDaAula } from "../dominio/video";
 import { ErroParaAPessoa } from "../index";
 import { COLUNAS_DA_CAPA, type Executor, type Transacao } from "./comum";
 import { CURSO_EM_USO, violacaoDe } from "./erros";
-import { comTrava } from "./trava";
+import { comTrava, travarTambem } from "./trava";
 
 /**
  * Teto dos valores finais. O deslocamento de cada regravação é
@@ -51,7 +55,7 @@ import { comTrava } from "./trava";
  */
 const TETO_FINAL = Math.max(LIMITES.numeroDeModulo, LIMITES.aulasPorModulo);
 
-/** Aulas por INSERT: 7 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
+/** Aulas por INSERT: 8 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
 const AULAS_POR_LOTE = 1000;
 
 /**
@@ -66,14 +70,16 @@ export async function abrirCurso(
   const linha = await exec.query.curso.findFirst({
     columns: {
       ...COLUNAS_DA_CAPA,
+      categoriaId: true,
       codigo: true,
+      descricao: true,
       destaque: true,
       id: true,
       precoTroca: true,
       slug: true,
       status: true,
-      tema: true,
       titulo: true,
+      topicos: true,
     },
     where: { id },
     with: {
@@ -83,6 +89,7 @@ export async function abrirCurso(
         with: {
           aulas: {
             columns: {
+              descricao: true,
               duracaoSeg: true,
               id: true,
               titulo: true,
@@ -118,11 +125,14 @@ export async function abrirCurso(
 
   const semVersao: DocumentoDoCurso = {
     capaAlt: linha.capaAlt,
+    categoriaId: linha.categoriaId as CategoriaId,
     codigo: linha.codigo,
+    descricao: linha.descricao,
     destaque: linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
+        descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id as AulaId,
         titulo: a.titulo,
@@ -135,10 +145,9 @@ export async function abrirCurso(
     })),
     niveis: linha.niveis,
     precoTroca: linha.precoTroca,
-    slug: linha.slug,
     status: linha.status,
-    tema: linha.tema,
     titulo: linha.titulo,
+    topicos: linha.topicos,
     versao: null,
   };
   const uso = {
@@ -155,6 +164,7 @@ export async function abrirCurso(
       versao: versaoDoCurso(semVersao, linha.capaUrl),
     },
     podeApagar: podeApagarCurso(uso),
+    slug: linha.slug,
     uso,
   };
 }
@@ -230,6 +240,37 @@ function mensagemDaCapa(r: RecusaDaCapa): string {
 }
 
 /**
+ * A categoria do documento fica travada (key share) até o commit: apagarCategoria,
+ * que pega FOR UPDATE, espera e depois conta este curso.
+ */
+async function exigirCategoria(tx: Transacao, id: CategoriaId) {
+  const [alvo] = await tx
+    .select({ id: categoria.id })
+    .from(categoria)
+    .where(eq(categoria.id, id))
+    .for("key share");
+  if (!alvo) {
+    throw new ErroParaAPessoa({ code: "NOT_FOUND", message: CATEGORIA_SUMIU });
+  }
+}
+
+/**
+ * O endereço do curso novo: o slug do título, ou ele com o menor sufixo livre. A
+ * trava da raiz serializa as criações que disputam o mesmo endereço, e a leitura
+ * vem depois dela, para ver o curso que a outra acabou de criar.
+ */
+async function slugParaCursoNovo(tx: Transacao, titulo: string) {
+  const base = slugDoTitulo(titulo);
+  await travarTambem(tx, `slug:${raizDoSlug(base)}`);
+  // O slug só tem [a-z0-9-], então nem "_" nem "%" escapam do like.
+  const ocupados = await tx
+    .select({ slug: curso.slug })
+    .from(curso)
+    .where(or(eq(curso.slug, base), like(curso.slug, `${base}-%`)));
+  return slugLivre(base, new Set(ocupados.map((c) => c.slug)));
+}
+
+/**
  * admin.catalogo.salvarCurso. A capa sobe antes da transação (rede); objeto que
  * sobe e não chega a ser gravado fica no bucket, e reenviar reusa o mesmo nome.
  * A trava curso:<id> serializa dois salvamentos do mesmo curso, inclusive a
@@ -252,18 +293,22 @@ export async function salvarCurso(
   try {
     return await comTrava(s.db, `curso:${documento.id}`, async (tx) => {
       const atual = await abrirCurso(tx, documento.id);
+      await exigirCategoria(tx, documento.categoriaId);
       const plano = planejarCurso(atual, documento, capa);
       if (plano.tipo === "recusa") {
         throw erroDaEdicao(plano.recusa);
       }
-      if (plano.tipo !== "nada_mudou") {
-        await gravarCurso(tx, plano);
+      const slug =
+        plano.tipo === "criar"
+          ? await slugParaCursoNovo(tx, documento.titulo)
+          : atual?.slug;
+      if (!slug) {
+        throw new Error(`Curso ${documento.id} salvo sem endereço.`);
       }
-      return {
-        cursoId: documento.id,
-        slug: documento.slug,
-        versao: plano.versao,
-      };
+      if (plano.tipo !== "nada_mudou") {
+        await gravarCurso(tx, plano, slug);
+      }
+      return { cursoId: documento.id, slug, versao: plano.versao };
     });
   } catch (erro) {
     // O aluno não pega a trava do curso: a aula assistida que entra entre a conta
@@ -331,18 +376,23 @@ function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
  * posição da aula é o índice. O upsert só atualiza linha deste curso: id de outro
  * curso volta fora do returning, e a contagem recusa o documento inteiro.
  */
-async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
+async function gravarCurso(
+  tx: Transacao,
+  plano: PlanoDeGravacao,
+  slug: string
+) {
   const { documento: d } = plano;
   const cursoId = d.id;
   const campos = {
     capaAlt: d.capaAlt,
+    categoriaId: d.categoriaId,
     codigo: d.codigo,
+    descricao: d.descricao,
     destaque: d.destaque,
     precoTroca: d.precoTroca,
-    slug: d.slug,
     status: d.status,
-    tema: d.tema,
     titulo: d.titulo,
+    topicos: d.topicos,
   };
   const doCurso = eq(modulo.cursoId, cursoId);
   const nosModulosDoCurso = inArray(
@@ -350,10 +400,11 @@ async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
     tx.select({ id: modulo.id }).from(modulo).where(doCurso)
   );
 
+  // O slug só entra na criação: depois dela, o endereço do aluno não muda.
   if (plano.tipo === "criar") {
     await tx
       .insert(curso)
-      .values({ ...campos, ...colunasDaCapa(plano.capa), id: cursoId });
+      .values({ ...campos, ...colunasDaCapa(plano.capa), id: cursoId, slug });
   } else {
     await tx
       .update(curso)
@@ -414,6 +465,7 @@ async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
 
   const aulas = d.modulos.flatMap((m) =>
     m.aulas.map((a, i) => ({
+      descricao: a.descricao,
       duracaoSeg: a.duracaoSeg,
       id: a.id,
       moduloId: m.id,
@@ -430,6 +482,7 @@ async function gravarCurso(tx: Transacao, plano: PlanoDeGravacao) {
       .values(lote)
       .onConflictDoUpdate({
         set: {
+          descricao: proposto(aula.descricao),
           duracaoSeg: proposto(aula.duracaoSeg),
           moduloId: proposto(aula.moduloId),
           posicao: proposto(aula.posicao),

@@ -15,6 +15,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { AdminId, CursoId, LiberacaoId, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { categoriaDeTeste } from "./categoria-de-teste";
 import {
   esperas as esperasNoBanco,
   seguraATabela,
@@ -70,10 +71,10 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         capaAltura: 720,
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
+        categoriaId: await categoriaDeTeste(db),
         precoTroca,
         slug: `teste-${s}`,
         status: "publicado",
-        tema: "teste",
         titulo: `Curso ${s}`,
       })
       .returning({ id: curso.id });

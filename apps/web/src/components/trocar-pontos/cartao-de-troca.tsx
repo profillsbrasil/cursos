@@ -290,7 +290,9 @@ export function CartaoDeTroca({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-1.5 pt-3.5">
-        <span className="text-[13px] text-muted-foreground">{curso.tema}</span>
+        <span className="text-[13px] text-muted-foreground">
+          {curso.categoria}
+        </span>
         <h3
           className="font-semibold text-lg text-titulo leading-[1.3]"
           id={tituloId}

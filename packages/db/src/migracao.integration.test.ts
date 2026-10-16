@@ -367,3 +367,91 @@ migracaoComLinhas(
     });
   }
 );
+
+migracaoComLinhas(
+  "migração do formato Udemy",
+  "formato_udemy",
+  async (c) => {
+    const curso = await c.query<{ id: string }>(
+      `insert into curso (slug, titulo, tema, capa_url, capa_alt, capa_largura, capa_altura, status)
+       values ('comercial', 'Curso', 'tema', '/capas/c.jpg', 'Capa', 1280, 720, 'publicado') returning id`
+    );
+    const modulo = await c.query<{ id: string }>(
+      "insert into modulo (curso_id, numero, titulo) values ($1, 1, 'Abertura') returning id",
+      [curso.rows[0]?.id]
+    );
+    await c.query(
+      "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Boas-vindas', 300)",
+      [modulo.rows[0]?.id]
+    );
+  },
+  (banco) => {
+    test("o tema vira a categoria, e curso e aula ganham descrição e tópicos vazios", async () => {
+      const c = banco();
+      const curso = await c.query(
+        `select categoria.nome as categoria, descricao, topicos::text as topicos
+           from curso join categoria on categoria.id = curso.categoria_id`
+      );
+      expect(curso.rows).toEqual([
+        { categoria: "tema", descricao: "", topicos: "{}" },
+      ]);
+      const aula = await c.query("select descricao from aula");
+      expect(aula.rows).toEqual([{ descricao: "" }]);
+    });
+
+    test("o check dos tópicos vale para as linhas depois da migração", async () => {
+      const erro = await banco()
+        .query("update curso set topicos = array['']")
+        .then(() => null, codigoDoErro);
+      expect(erro).toBe("curso_topicos_validos");
+    });
+  }
+);
+
+migracaoComLinhas(
+  "migração da categoria",
+  "categoria",
+  async (c) => {
+    const curso = (slug: string, categoria: string) =>
+      c.query(
+        `insert into curso (slug, titulo, categoria, capa_url, capa_alt, capa_largura, capa_altura)
+         values ($1, 'Curso', $2, '/capas/c.jpg', 'Capa', 1280, 720)`,
+        [slug, categoria]
+      );
+    await curso("comercial", "Vendas e negócios");
+    await curso("tecnicas", "Vendas e negócios");
+    await curso("envase", "  Processo de envase ");
+    await curso("sem", "");
+  },
+  (banco) => {
+    test("cada texto distinto vira uma categoria, aparada, e o vazio vira Sem categoria", async () => {
+      const r = await banco().query("select nome from categoria order by nome");
+      expect(r.rows).toEqual([
+        { nome: "Processo de envase" },
+        { nome: "Sem categoria" },
+        { nome: "Vendas e negócios" },
+      ]);
+    });
+
+    test("cada curso aponta para a categoria do texto que tinha", async () => {
+      const r = await banco().query(
+        `select curso.slug, categoria.nome from curso
+           join categoria on categoria.id = curso.categoria_id
+          order by curso.slug`
+      );
+      expect(r.rows).toEqual([
+        { nome: "Vendas e negócios", slug: "comercial" },
+        { nome: "Processo de envase", slug: "envase" },
+        { nome: "Sem categoria", slug: "sem" },
+        { nome: "Vendas e negócios", slug: "tecnicas" },
+      ]);
+    });
+
+    test("a categoria em uso não se apaga", async () => {
+      const erro = await banco()
+        .query("delete from categoria where nome = 'Processo de envase'")
+        .then(() => null, codigoDoErro);
+      expect(erro).toBe("curso_categoria_id_categoria_id_fkey");
+    });
+  }
+);

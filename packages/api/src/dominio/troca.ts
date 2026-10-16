@@ -24,16 +24,17 @@ export interface CursoDaTroca {
   acesso: Acesso;
   aulas: number;
   capa: Capa;
+  categoria: string;
   duracaoSeg: number;
   id: CursoId;
   precoTroca: number | null;
   slug: string;
   status: StatusDoCurso;
-  tema: string;
   titulo: string;
 }
 
 export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
+  categoria: { nome: string };
   id: string;
   liberacoes: readonly {
     origem: OrigemDaLiberacao;
@@ -43,7 +44,6 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
   precoTroca: number | null;
   slug: string;
   status: StatusDoCurso;
-  tema: string;
   titulo: string;
 }
 
@@ -71,12 +71,12 @@ export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
     acesso: acessoDe(linha),
     aulas: aulas.length,
     capa: capaDe(linha),
+    categoria: linha.categoria.nome,
     duracaoSeg: aulas.reduce((s, a) => s + a.duracaoSeg, 0),
     id: linha.id as CursoId,
     precoTroca: linha.precoTroca,
     slug: linha.slug,
     status: linha.status,
-    tema: linha.tema,
     titulo: linha.titulo,
   };
 }
@@ -119,7 +119,7 @@ export const temCursoTrocavelNaVitrine = (
 
 type CursoNoCartao = Pick<
   CursoDaTroca,
-  "aulas" | "capa" | "duracaoSeg" | "id" | "slug" | "tema" | "titulo"
+  "aulas" | "capa" | "categoria" | "duracaoSeg" | "id" | "slug" | "titulo"
 >;
 
 export type CartaoDeTroca =
@@ -137,10 +137,10 @@ export type CartaoDeTroca =
 const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
   aulas: c.aulas,
   capa: c.capa,
+  categoria: c.categoria,
   duracaoSeg: c.duracaoSeg,
   id: c.id,
   slug: c.slug,
-  tema: c.tema,
   titulo: c.titulo,
 });
 

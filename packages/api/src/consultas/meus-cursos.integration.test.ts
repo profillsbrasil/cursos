@@ -21,6 +21,7 @@ import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "../routers/index";
+import { categoriaDeTeste } from "./categoria-de-teste";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
 import {
   carregarPainelDeTroca,
@@ -71,6 +72,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   /** `n` cursos publicados de 1 módulo e 2 aulas cada. */
   async function criarCursos(n: number) {
     const sufixo = hex();
+    const categoriaId = await categoriaDeTeste(db);
     const novos = await db
       .insert(curso)
       .values(
@@ -79,9 +81,9 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
           capaAltura: 720,
           capaLargura: 1280,
           capaUrl: "/capas/teste.jpg",
+          categoriaId,
           slug: `teste-${sufixo}-${i}`,
           status: "publicado" as const,
-          tema: "teste",
           titulo: `Curso ${i}`,
         }))
       )

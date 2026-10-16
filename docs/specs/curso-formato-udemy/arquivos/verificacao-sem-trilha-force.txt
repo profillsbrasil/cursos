@@ -1,0 +1,10 @@
+@cursos/ui:test:  32 pass
+@cursos/ui:test:  0 fail
+@cursos/db:test:  59 pass
+@cursos/db:test:  0 fail
+web:test:  359 pass
+web:test:  0 fail
+@cursos/api:test:  339 pass
+@cursos/api:test:  0 fail
+ Tasks:    8 successful, 8 total
+Cached:    0 cached, 8 total

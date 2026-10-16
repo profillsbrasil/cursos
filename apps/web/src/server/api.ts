@@ -64,8 +64,8 @@ export const carregarAula = cache(async (slug: string, aulaId: string) =>
   (await caller()).aula.abrir({ aulaId, slug })
 );
 
-export const carregarEntrada = cache(async (slug: string) =>
-  (await caller()).aula.entrada({ slug })
+export const carregarPaginaDoCurso = cache(async (slug: string) =>
+  (await caller()).curso.pagina({ slug })
 );
 
 export const carregarPainelDeTroca = cache(async () =>
@@ -83,6 +83,10 @@ export const carregarCatalogo = cache(async () =>
 
 export const carregarCurso = cache(async (id: string) =>
   (await exigirAdmin()).admin.catalogo.abrirCurso({ id })
+);
+
+export const carregarCategorias = cache(async () =>
+  (await exigirAdmin()).admin.categorias.lista()
 );
 
 export const carregarPessoas = cache(async (termo: string) =>

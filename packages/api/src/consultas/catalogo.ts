@@ -10,20 +10,23 @@ export const COM_CONTEUDO = {
   columns: {
     ...COLUNAS_DA_CAPA,
     codigo: true,
+    descricao: true,
     destaque: true,
     id: true,
     slug: true,
     status: true,
-    tema: true,
     titulo: true,
+    topicos: true,
   },
   with: {
+    categoria: { columns: { nome: true } },
     modulos: {
       columns: { nivelOrdem: true, numero: true, titulo: true },
       orderBy: { numero: "asc" },
       with: {
         aulas: {
           columns: {
+            descricao: true,
             duracaoSeg: true,
             id: true,
             posicao: true,

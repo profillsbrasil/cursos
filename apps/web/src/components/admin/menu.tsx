@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Library, Megaphone, Users } from "lucide-react";
+import { ArrowLeftRight, Library, Megaphone, Tag, Users } from "lucide-react";
 
 import type { ItemDoMenu, LinkDaArea } from "@/components/casca/nav";
 
@@ -14,6 +14,13 @@ export const ITENS_DO_ADMIN: readonly ItemDoMenu[] = [
     href: "/admin/catalogo",
     icone: <Library />,
     nome: "Catálogo",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
+  {
+    href: "/admin/categorias",
+    icone: <Tag />,
+    nome: "Categorias",
     outrosPrefixos: [],
     tipo: "link",
   },

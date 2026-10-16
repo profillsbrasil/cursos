@@ -3,6 +3,11 @@ import { z } from "zod";
 import { linhasDaBusca } from "../consultas/acompanhamento";
 import { visaoDoCatalogo } from "../consultas/catalogo";
 import {
+  apagarCategoria,
+  listarCategorias,
+  salvarCategoria,
+} from "../consultas/categoria";
+import {
   apagarComunicado,
   linhasDosComunicados,
   salvarComunicado,
@@ -14,6 +19,7 @@ import {
 } from "../consultas/edicao-do-curso";
 import { liberar, linhasDoAcesso, revogar } from "../consultas/liberacao";
 import { montarBusca } from "../dominio/acompanhamento";
+import { nomeDaCategoria } from "../dominio/categoria";
 import {
   montarComunicados,
   TEXTO_MAX,
@@ -21,7 +27,12 @@ import {
 } from "../dominio/comunicado";
 import { montarAcesso } from "../dominio/liberacao";
 import { diaLocal } from "../dominio/sequencia";
-import type { ComunicadoId, CursoId, LiberacaoId } from "../dominio/tipos";
+import type {
+  CategoriaId,
+  ComunicadoId,
+  CursoId,
+  LiberacaoId,
+} from "../dominio/tipos";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
 // O mesmo formato do check liberacao_user_id_clerk.
@@ -29,6 +40,7 @@ const USER_ID = /^user_[A-Za-z0-9]+$/;
 const userId = z.string().regex(USER_ID);
 
 const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
+const categoriaId = z.uuid().transform((id) => id.toLowerCase() as CategoriaId);
 
 const doCurso = z.object({ id: cursoId });
 
@@ -97,6 +109,16 @@ export const adminRouter = router({
       .input(z.instanceof(FormData))
       .mutation(({ ctx, input }) => salvarCurso(ctx, input)),
     visao: adminProcedure.query(({ ctx }) => visaoDoCatalogo(ctx.db)),
+  }),
+  categorias: router({
+    apagar: adminProcedure
+      .input(z.object({ id: categoriaId }))
+      .mutation(({ ctx, input }) => apagarCategoria(ctx.db, input.id)),
+    lista: adminProcedure.query(({ ctx }) => listarCategorias(ctx.db)),
+    /** Upsert pelo id que nasce no cliente, como em comunicados. */
+    salvar: adminProcedure
+      .input(z.object({ id: categoriaId, nome: nomeDaCategoria }))
+      .mutation(({ ctx, input }) => salvarCategoria(ctx.db, input)),
   }),
   comunicados: router({
     apagar: adminProcedure

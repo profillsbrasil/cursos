@@ -1,12 +1,12 @@
 "use client";
 
+import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import {
   CARACTERES,
   type EdicaoDoCurso,
-  FORMATO_DO_SLUG,
   formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
-import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
+import type { CategoriaId, StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
   Field,
@@ -20,7 +20,7 @@ import {
 } from "@cursos/ui/components/native-select";
 import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
-import { ArrowLeft, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -63,7 +63,7 @@ import {
   REGRAS_DO_CURSO,
 } from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
-import { AVISO, CAMPO, ICONE, ROTULO, SELECAO, Secao } from "./partes";
+import { CAMPO, ICONE, ROTULO, SELECAO, Secao } from "./partes";
 import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,
@@ -87,91 +87,78 @@ const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
   },
 };
 
-type CampoDeTextoDoCurso =
-  | "capaAlt"
-  | "codigo"
-  | "destaque"
-  | "slug"
-  | "tema"
-  | "titulo";
+type CampoDeTextoDoCurso = "capaAlt" | "codigo" | "destaque" | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
-function CampoDoSlug({
-  mudarTexto,
-  slug,
-  slugSalvo,
-}: {
-  mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
-  slug: string;
-  slugSalvo: string | null;
-}) {
-  const id = ID.curso("slug");
-  const { aria, mensagem } = useErroDoCampo(id, `${id}-regra`);
-  const slugMudou = slugSalvo !== null && slug !== slugSalvo;
+/** O servidor escolhe o endereço no primeiro salvamento, e ele não muda depois. */
+function EnderecoDoCurso({ slug }: { slug: string | null }) {
   return (
-    <Field className="md:col-span-2" data-invalid={mensagem ? true : undefined}>
+    <p className="text-muted-foreground text-sm md:col-span-2">
+      {slug === null
+        ? "O link do curso sai do título quando você salvar pela primeira vez."
+        : `Link do curso: /cursos/${slug}`}
+    </p>
+  );
+}
+
+function CampoDaCategoria({
+  categorias,
+  despachar,
+  valor,
+}: {
+  categorias: readonly CategoriaNaLista[];
+  despachar: Despachar;
+  valor: string;
+}) {
+  const id = ID.curso("categoriaId");
+  const { aria, mensagem } = useErroDoCampo(id);
+  const mudar = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) =>
+      despachar({
+        mudanca: { categoriaId: e.target.value as CategoriaId },
+        tipo: "campos",
+      }),
+    [despachar]
+  );
+  return (
+    <Field data-invalid={mensagem ? true : undefined}>
       <FieldLabel className={ROTULO} htmlFor={id}>
-        Endereço
+        Categoria
       </FieldLabel>
-      {/* data-campo: a moldura ganha a borda Céu do campo pela regra do index.css. */}
-      <div
-        className="flex min-w-0 items-center rounded-[12px] border border-muted-foreground bg-background has-aria-invalid:border-destructive"
-        data-campo
+      <NativeSelect
+        {...aria}
+        className={SELECAO}
+        id={id}
+        onChange={mudar}
+        required
+        value={valor}
       >
-        <span
-          aria-hidden="true"
-          className="shrink-0 pl-3.5 text-muted-foreground text-sm"
-        >
-          /cursos/
-        </span>
-        <Input
-          {...aria}
-          autoCapitalize="none"
-          autoComplete="off"
-          className="h-11 min-w-0 border-0 bg-transparent pl-0.5 text-sm aria-invalid:ring-0 md:text-sm dark:bg-transparent dark:aria-invalid:ring-0"
-          id={id}
-          maxLength={CARACTERES.slug}
-          name="slug"
-          onChange={mudarTexto}
-          pattern={FORMATO_DO_SLUG}
-          placeholder="operacao-envasadora"
-          required
-          spellCheck={false}
-          value={slug}
-        />
-      </div>
-      <FieldDescription className="text-xs" id={`${id}-regra`}>
-        Letras minúsculas, números e hífen, sem espaço. É o link do curso para o
-        aluno.
-      </FieldDescription>
+        <NativeSelectOption disabled value="">
+          Escolha a categoria
+        </NativeSelectOption>
+        {categorias.map((c) => (
+          <NativeSelectOption key={c.id} value={c.id}>
+            {c.nome}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
       <ErroDoCampo id={id} mensagem={mensagem} />
-      {slugMudou ? (
-        <p className={AVISO} role="status">
-          <TriangleAlert
-            aria-hidden="true"
-            className="mt-0.5 size-4 shrink-0 text-sol"
-          />
-          <span>
-            Ao salvar, o link antigo{" "}
-            <span className="font-semibold">/cursos/{slugSalvo}</span> deixa de
-            abrir. Quem guardou esse link cai na página de não encontrado.
-          </span>
-        </p>
-      ) : null}
     </Field>
   );
 }
 
 function CamposDoCurso({
+  categorias,
   despachar,
   mudarTexto,
   rascunho,
-  slugSalvo,
+  slug,
 }: {
+  categorias: readonly CategoriaNaLista[];
   despachar: Despachar;
   mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
   rascunho: RascunhoDoCurso;
-  slugSalvo: string | null;
+  slug: string | null;
 }) {
   const id = useId();
   const mudarStatus = useCallback(
@@ -208,20 +195,11 @@ function CamposDoCurso({
         rotulo="Título"
         value={rascunho.titulo}
       />
-      <CampoDoSlug
-        mudarTexto={mudarTexto}
-        slug={rascunho.slug}
-        slugSalvo={slugSalvo}
-      />
-      <CampoDeTexto
-        id={ID.curso("tema")}
-        maxLength={CARACTERES.tema}
-        name="tema"
-        onChange={mudarTexto}
-        placeholder="Máquinas"
-        required
-        rotulo="Tema"
-        value={rascunho.tema}
+      <EnderecoDoCurso slug={slug} />
+      <CampoDaCategoria
+        categorias={categorias}
+        despachar={despachar}
+        valor={rascunho.categoriaId}
       />
       <Field>
         <FieldLabel className={ROTULO} htmlFor={`${id}-status`}>
@@ -471,7 +449,14 @@ const SEM_CAPA: Problema = {
   mensagem: "Escolha a imagem da capa.",
 };
 
-export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
+export function EditorDoCurso({
+  categorias,
+  edicao,
+}: {
+  /** admin.categorias.lista, por nome. */
+  categorias: readonly CategoriaNaLista[];
+  edicao: EdicaoDoCurso;
+}) {
   const [capaGuardada, guardarCapa] = useState<{
     arquivo: File | null;
     geracao: number;
@@ -645,10 +630,11 @@ export function EditorDoCurso({ edicao }: { edicao: EdicaoDoCurso }) {
             titulo="Curso"
           >
             <CamposDoCurso
+              categorias={categorias}
               despachar={despachar}
               mudarTexto={mudarTexto}
               rascunho={rascunho}
-              slugSalvo={novo ? null : base.slug}
+              slug={edicao.slug}
             />
           </Secao>
 

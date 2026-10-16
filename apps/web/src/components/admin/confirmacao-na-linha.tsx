@@ -53,7 +53,7 @@ export function ConfirmacaoNaLinha({
   confirmar: () => void;
   enviando: boolean;
   /** O botão que abre a confirmação. */
-  gatilho: { nome: string; rotulo: string };
+  gatilho: { nome: string; rotulo: ReactNode };
   linhaAberta: LinhaAberta;
   pergunta: ReactNode;
 }) {
