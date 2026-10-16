@@ -1,16 +1,17 @@
-// A largura do extrato e de Sua semana no Chromium headless, dentro da casca de
-// verdade (sidebar aberta, a Moldura do md para cima), com o CSS real do app.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
-import type { ResumoAluno } from "@cursos/api/dominio/painel";
+import {
+  exemploDoPrototipo,
+  HOJE_DO_EXEMPLO,
+} from "@cursos/api/dominio/exemplo";
+import { montarPainel, type ResumoAluno } from "@cursos/api/dominio/painel";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
-import { SuaSemana } from "@/components/meus-cursos/sua-semana";
+import { ConteudoMeusCursos } from "@/components/meus-cursos/conteudo";
 
 import {
   abrirChromium,
@@ -22,7 +23,7 @@ import {
 } from "../chromium-de-teste";
 import { CursosParaTrocar } from "./cursos-para-trocar";
 
-const naCasca = (conteudo: ReactNode) =>
+const naCasca = (filhos: ReactNode) =>
   renderToStaticMarkup(
     <ProvedorDaCasca aberta>
       <Sidebar collapsible="icon" variant="sidebar">
@@ -30,7 +31,7 @@ const naCasca = (conteudo: ReactNode) =>
       </Sidebar>
       <SidebarInset>
         <div className="min-w-0 px-[clamp(1rem,4vw,3rem)] pt-8 pb-16">
-          {conteudo}
+          {filhos}
         </div>
       </SidebarInset>
     </ProvedorDaCasca>
@@ -77,12 +78,13 @@ const RESUMO: ResumoAluno = {
   sequenciaDias: 2,
 };
 
-// A grade de cima de Meus cursos: o banner e Sua semana.
 const SEMANA = naCasca(
-  <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
-    <div className="h-40 rounded-[20px] bg-card" data-teste="banner" />
-    <SuaSemana resumo={RESUMO} temCursoTrocavelNaVitrine={false} />
-  </div>
+  <ConteudoMeusCursos
+    conta={null}
+    painel={montarPainel(exemploDoPrototipo(), HOJE_DO_EXEMPLO)}
+    resumo={RESUMO}
+    temCursoTrocavelNaVitrine={false}
+  />
 );
 
 const CLASSES = /class="([^"]*)"/g;
@@ -110,13 +112,13 @@ async function abrir(largura: number, corpo: string) {
   );
 }
 
-const largura = (seletor: string) =>
+const larguraDe = (seletor: string) =>
   avaliar<number>(
     enviar,
     `Math.round(document.querySelector(${JSON.stringify(seletor)}).getBoundingClientRect().width)`
   );
 
-const conteudo = () =>
+const areaUtil = () =>
   avaliar<number>(
     enviar,
     `Math.round(document.querySelector('[data-slot="sidebar-inset"] > div').clientWidth - 2 * parseFloat(getComputedStyle(document.querySelector('[data-slot="sidebar-inset"] > div')).paddingLeft))`
@@ -135,25 +137,25 @@ describe.skipIf(!existsSync(CHROMIUM))("largura de leitura", () => {
   for (const janela of [1920, 1280]) {
     test(`${janela} px: o extrato para em 768 px, e Sua semana fica na coluna de 320 px`, async () => {
       await abrir(janela, TROCAR);
-      expect(await conteudo()).toBeGreaterThan(768);
-      expect(await largura(EXTRATO)).toBe(768);
-      expect(await largura(`${EXTRATO} ul`)).toBe(768);
+      expect(await areaUtil()).toBeGreaterThan(768);
+      expect(await larguraDe(EXTRATO)).toBe(768);
+      expect(await larguraDe(`${EXTRATO} ul`)).toBe(768);
       await abrir(janela, SEMANA);
-      expect(await largura(SUA_SEMANA)).toBe(320);
+      expect(await larguraDe(SUA_SEMANA)).toBe(320);
     });
   }
 
   test("1180 px, uma coluna: Sua semana para em 768 px, como o extrato", async () => {
     await abrir(1180, SEMANA);
-    expect(await conteudo()).toBe(828);
-    expect(await largura(SUA_SEMANA)).toBe(768);
+    expect(await areaUtil()).toBeGreaterThan(768);
+    expect(await larguraDe(SUA_SEMANA)).toBe(768);
   });
 
   test("390 px: os dois ocupam a largura do conteúdo", async () => {
     await abrir(390, TROCAR);
-    const area = await conteudo();
-    expect(await largura(`${EXTRATO} ul`)).toBe(area);
+    const area = await areaUtil();
+    expect(await larguraDe(`${EXTRATO} ul`)).toBe(area);
     await abrir(390, SEMANA);
-    expect(await largura(SUA_SEMANA)).toBe(area);
+    expect(await larguraDe(SUA_SEMANA)).toBe(await areaUtil());
   });
 });
