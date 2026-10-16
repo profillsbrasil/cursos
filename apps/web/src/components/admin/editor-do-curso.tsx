@@ -8,11 +8,7 @@ import {
 } from "@cursos/api/dominio/edicao-do-curso";
 import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@cursos/ui/components/field";
+import { Field, FieldLabel } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
 import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
@@ -38,9 +34,11 @@ import { useAcao } from "@/lib/use-acao";
 import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
 import { trpcClient } from "@/utils/trpc";
 
-import { BarraDeSalvar } from "./barra-de-salvar";
+import { antesDePublicar, secoesDoEditor } from "./antes-de-publicar";
+import { BarraDeSalvar, type EstadoDoSalvar } from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
+import { ColunaDePublicacao, STATUS } from "./coluna-de-publicacao";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import {
   ErroDoCampo,
@@ -74,26 +72,10 @@ import {
   recusaDoMotivo,
   segundosDas,
 } from "./rascunho-do-curso";
-import { type OpcaoDaSelecao, Selecao } from "./selecao";
 import { TopicosDoCurso } from "./topicos-do-curso";
 import { Vitrine } from "./vitrine";
 
 type Despachar = Dispatch<Mudanca>;
-
-const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
-  em_producao: {
-    descricao: "Fora do ar para quem não tem certificado.",
-    rotulo: "Em produção",
-  },
-  publicado: {
-    descricao: "Aberto para quem tem o curso liberado.",
-    rotulo: "Publicado",
-  },
-};
-
-const OPCOES_DO_STATUS: readonly OpcaoDaSelecao[] = Object.entries(STATUS).map(
-  ([valor, { descricao, rotulo }]) => ({ descricao, rotulo, valor })
-);
 
 type CampoDeTextoDoCurso = "codigo" | "destaque" | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
@@ -108,14 +90,6 @@ function Publicacao({
   rascunho: RascunhoDoCurso;
 }) {
   const id = useId();
-  const mudarStatus = useCallback(
-    (status: string) =>
-      despachar({
-        mudanca: { status: status as StatusDoCurso },
-        tipo: "campos",
-      }),
-    [despachar]
-  );
   const ligarTroca = useCallback(
     (ligado: boolean) =>
       despachar({
@@ -131,21 +105,6 @@ function Publicacao({
   );
   return (
     <div className="grid gap-5 p-5 md:grid-cols-2">
-      <Field>
-        <FieldLabel className={ROTULO} htmlFor={`${id}-status`}>
-          Status
-        </FieldLabel>
-        <Selecao
-          aoMudar={mudarStatus}
-          aria-describedby={`${id}-status-descricao`}
-          id={`${id}-status`}
-          opcoes={OPCOES_DO_STATUS}
-          valor={rascunho.status}
-        />
-        <FieldDescription className="text-xs" id={`${id}-status-descricao`}>
-          {STATUS[rascunho.status].descricao}
-        </FieldDescription>
-      </Field>
       <div className="grid gap-3">
         <Field className="w-auto" orientation="horizontal">
           <Switch
@@ -521,6 +480,20 @@ export function EditorDoCurso({
     [capa, lido, rascunho, salvar, semCapa, setRecusa, setTentou]
   );
 
+  const mudarStatus = useCallback(
+    (status: StatusDoCurso) =>
+      despachar({ mudanca: { status }, tipo: "campos" }),
+    [despachar]
+  );
+  const estadoDoSalvar: EstadoDoSalvar = {
+    novo,
+    pendente,
+    problemas,
+    recarregar: descartar,
+    sujo,
+    versaoMudou,
+  };
+
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
   const duracao = rascunho.modulos.reduce(
     (s, m) => s + segundosDas(m.aulas),
@@ -529,86 +502,96 @@ export function EditorDoCurso({
   return (
     <ErrosDoEditor value={erros}>
       <SaiuDoCampo value={saiuDoCampo}>
-        <form className="grid gap-10" noValidate onSubmit={enviar}>
-          <header className="grid gap-1.5">
-            <h1
-              className="text-balance font-bold text-3xl text-titulo tracking-tight"
-              ref={titulo}
-              tabIndex={-1}
-            >
-              {rascunho.titulo.trim() || "Curso novo"}
-            </h1>
-            <p className="text-muted-foreground tabular-nums">
-              {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
-              {plural(aulas, "aula", "aulas")}
-              {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
-            </p>
-          </header>
+        <form className="@container grid gap-10" noValidate onSubmit={enviar}>
+          <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
+            <div className="grid min-w-0 gap-10">
+              <header className="grid gap-1.5">
+                <h1
+                  className="text-balance font-bold text-3xl text-titulo tracking-tight"
+                  ref={titulo}
+                  tabIndex={-1}
+                >
+                  {rascunho.titulo.trim() || "Curso novo"}
+                </h1>
+                <p className="text-muted-foreground tabular-nums">
+                  {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
+                  {plural(aulas, "aula", "aulas")}
+                  {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
+                </p>
+              </header>
 
-          <Vitrine
-            capa={
-              <CampoDeCapa
-                aoEscolher={escolherCapa}
-                arquivo={capa}
-                atual={edicao.capa}
-                key={geracao}
+              <Vitrine
+                capa={
+                  <CampoDeCapa
+                    aoEscolher={escolherCapa}
+                    arquivo={capa}
+                    atual={edicao.capa}
+                    key={geracao}
+                  />
+                }
+                categorias={categorias}
+                despachar={despachar}
+                mudarTexto={mudarTexto}
+                rascunho={rascunho}
+                slug={edicao.slug}
               />
-            }
-            categorias={categorias}
-            despachar={despachar}
-            mudarTexto={mudarTexto}
-            rascunho={rascunho}
-            slug={edicao.slug}
-          />
 
-          <TopicosDoCurso despachar={despachar} topicos={rascunho.topicos} />
+              <TopicosDoCurso
+                despachar={despachar}
+                topicos={rascunho.topicos}
+              />
 
-          <Secao
-            id="publicacao"
-            resumo={STATUS[rascunho.status].rotulo}
-            titulo="Publicação"
-          >
-            <Publicacao
-              despachar={despachar}
-              mudarTexto={mudarTexto}
-              rascunho={rascunho}
+              <Secao
+                id="publicacao"
+                resumo={STATUS[rascunho.status].rotulo}
+                titulo="Publicação"
+              >
+                <Publicacao
+                  despachar={despachar}
+                  mudarTexto={mudarTexto}
+                  rascunho={rascunho}
+                />
+              </Secao>
+
+              <Secao
+                id="niveis"
+                resumo={plural(rascunho.niveis.length, "nível", "níveis")}
+                titulo="Níveis"
+              >
+                <Niveis despachar={despachar} niveis={rascunho.niveis} />
+              </Secao>
+
+              <ModulosDoCurso
+                abertos={abertos}
+                assistidasPorAula={edicao.uso.assistidasPorAula}
+                despachar={despachar}
+                escolhas={escolhidas}
+                linhaAberta={linhaAberta}
+                marcados={erros}
+                mudarBlocos={mudarBlocos}
+                mudarEscolhas={mudarEscolhas}
+                rascunho={rascunho}
+              />
+
+              {novo ? null : (
+                <Secao id="apagar" resumo="" titulo="Apagar">
+                  <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
+                </Secao>
+              )}
+            </div>
+            <ColunaDePublicacao
+              antes={antesDePublicar(
+                rascunho,
+                edicao.capa !== null || capa !== null
+              )}
+              aoMudarStatus={mudarStatus}
+              descartar={descartar}
+              estado={estadoDoSalvar}
+              secoes={secoesDoEditor(rascunho, novo)}
+              status={rascunho.status}
             />
-          </Secao>
-
-          <Secao
-            id="niveis"
-            resumo={plural(rascunho.niveis.length, "nível", "níveis")}
-            titulo="Níveis"
-          >
-            <Niveis despachar={despachar} niveis={rascunho.niveis} />
-          </Secao>
-
-          <ModulosDoCurso
-            abertos={abertos}
-            assistidasPorAula={edicao.uso.assistidasPorAula}
-            despachar={despachar}
-            escolhas={escolhidas}
-            linhaAberta={linhaAberta}
-            marcados={erros}
-            mudarBlocos={mudarBlocos}
-            mudarEscolhas={mudarEscolhas}
-            rascunho={rascunho}
-          />
-
-          {novo ? null : (
-            <Secao id="apagar" resumo="" titulo="Apagar">
-              <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
-            </Secao>
-          )}
-
-          <BarraDeSalvar
-            novo={novo}
-            pendente={pendente}
-            problemas={problemas}
-            recarregar={descartar}
-            sujo={sujo}
-            versaoMudou={versaoMudou}
-          />
+          </div>
+          <BarraDeSalvar className="@min-[960px]:hidden" {...estadoDoSalvar} />
         </form>
       </SaiuDoCampo>
     </ErrosDoEditor>

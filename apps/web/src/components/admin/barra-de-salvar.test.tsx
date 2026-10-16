@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { ComponentProps } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { BarraDeSalvar } from "./barra-de-salvar";
+import { BarraDeSalvar, SituacaoESalvar } from "./barra-de-salvar";
 
 const TAG = /<[^>]+>/g;
 const BOTAO = /<button[^>]*>/;
@@ -11,6 +11,15 @@ const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
 
 const nada = () => undefined;
+
+const ESTADO = {
+  novo: false,
+  pendente: false,
+  problemas: [],
+  recarregar: nada,
+  sujo: false,
+  versaoMudou: false,
+};
 
 const barra = (props: Partial<ComponentProps<typeof BarraDeSalvar>> = {}) =>
   texto(
@@ -47,7 +56,7 @@ describe("BarraDeSalvar", () => {
     expect(barra({ novo: true })).toContain(
       "Rascunho. Os alunos não veem nada até você salvar."
     );
-    expect(barra({ sujo: true })).toContain("Alterações não salvas.");
+    expect(barra({ sujo: true })).toContain("Mudanças não salvas.");
     expect(barra()).toContain("Tudo salvo.");
   });
 
@@ -104,10 +113,17 @@ describe("BarraDeSalvar", () => {
     expect(barra()).not.toContain("Outra pessoa salvou");
   });
 
-  test("os avisos de quem chama entram acima da situação", () => {
-    const t = barra({ children: <p>Aviso de quem chama</p>, sujo: true });
-    expect(t.indexOf("Aviso de quem chama")).toBeLessThan(
-      t.indexOf("Alterações não salvas.")
+  test("com o envio pendente, a situação diz Salvando…", () => {
+    expect(barra({ pendente: true, sujo: true })).toContain("Salvando…");
+  });
+
+  test("a coluna e a barra leem a mesma situação e o mesmo Salvar", () => {
+    const estado = { ...ESTADO, sujo: true };
+    const coluna = renderToStaticMarkup(
+      <SituacaoESalvar coluna estado={estado} />
     );
+    const naBarra = renderToStaticMarkup(<BarraDeSalvar {...estado} />);
+    expect(texto(coluna)).toBe(texto(naBarra));
+    expect(BOTAO.exec(coluna)?.[0]).toContain("hover:bg-sol-hover");
   });
 });

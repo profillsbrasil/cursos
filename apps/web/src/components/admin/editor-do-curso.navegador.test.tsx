@@ -298,6 +298,11 @@ async function abrirCategoriaEDigitar(nome: string) {
   await avaliar(enviar, `document.querySelector("${GATILHO}").click()`);
   await esperar(`document.querySelector('${BUSCA}')`);
   await enviar("Input.insertText", { text: nome });
+  if (nome) {
+    await esperar(
+      `[...document.querySelectorAll('[role="option"]')].some((o) => o.textContent.includes(${JSON.stringify(`"${nome}"`)}))`
+    );
+  }
 }
 
 const FOTOS = process.env.FOTOS_DO_EDITOR;
@@ -384,6 +389,86 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
           `(() => { const g = document.querySelector("${GATILHO}"); return [g.getAttribute("aria-invalid"), g.getAttribute("aria-describedby")]; })()`
         )
       ).toEqual(["true", "curso-categoriaId-erro"]);
+    });
+  });
+
+  describe("coluna de publicação", () => {
+    interface Disposicao {
+      barra: string;
+      coluna: { esquerda: number; largura: number; topo: number };
+      conteudo: { direita: number; fundo: number };
+      lista: boolean;
+    }
+    const disposicao = () =>
+      avaliar<Disposicao>(
+        enviar,
+        `(() => {
+          const coluna = document.querySelector('aside[aria-label="Publicação do curso"]').getBoundingClientRect();
+          const conteudo = document.querySelector("h1").parentElement.parentElement.getBoundingClientRect();
+          const barra = document.querySelector(".sticky.bottom-3");
+          const lista = [...document.querySelectorAll("h2")].find((h) => h.textContent === "Antes de publicar");
+          return {
+            barra: getComputedStyle(barra).display,
+            coluna: { esquerda: coluna.left, largura: coluna.width, topo: coluna.top },
+            conteudo: { direita: conteudo.right, fundo: conteudo.bottom },
+            lista: lista ? lista.getClientRects().length > 0 : false,
+          };
+        })()`
+      );
+
+    test("com 960 px de editor ou mais, a coluna de 300 px fica à direita, a 32 px, e a barra do pé some", async () => {
+      // 1920 px de janela: 1576 px de editor.
+      await abrirEditor(1920);
+      const d = await disposicao();
+      expect(Math.round(d.coluna.largura)).toBe(300);
+      expect(Math.round(d.coluna.esquerda - d.conteudo.direita)).toBe(32);
+      expect(d.barra).toBe("none");
+      expect(d.lista).toBe(true);
+      await foto("limpo-1920");
+    });
+
+    test("ao rolar, a coluna fica presa a 24 px do topo", async () => {
+      await abrirEditor(1920);
+      await avaliar(enviar, "window.scrollTo(0, 1200)");
+      await avaliar(
+        enviar,
+        "new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"
+      );
+      expect(Math.round((await disposicao()).coluna.topo)).toBe(24);
+    });
+
+    test("abaixo de 960 px de editor, a barra do pé volta e a coluna desce sem a lista", async () => {
+      // 1280 px de janela com a sidebar aberta: 936 px de editor.
+      await abrirEditor(1280);
+      const d = await disposicao();
+      expect(d.barra).not.toBe("none");
+      expect(d.coluna.topo).toBeGreaterThanOrEqual(d.conteudo.fundo);
+      expect(d.lista).toBe(false);
+      await foto("limpo-1280");
+    });
+
+    test("Antes de publicar lê o rascunho: a descrição apagada passa a faltar", async () => {
+      await abrirEditor(1920);
+      const marca = () =>
+        avaliar<string>(
+          enviar,
+          `[...document.querySelectorAll("li")].find((l) => l.textContent.startsWith("Descrição")).textContent`
+        );
+      expect(await marca()).toBe("Descrição: pronto.");
+      await escrever("#curso-descricao", "");
+      await enviar("Input.dispatchKeyEvent", {
+        code: "Backspace",
+        key: "Backspace",
+        type: "keyDown",
+        windowsVirtualKeyCode: 8,
+      });
+      await esperar(
+        `[...document.querySelectorAll("li")].find((l) => l.textContent.startsWith("Descrição")).textContent === "Descrição: falta."`
+      );
+      expect(await textoDe('aside [aria-live="polite"]')).toBe(
+        "Mudanças não salvas."
+      );
+      await foto("sujo-1920");
     });
   });
 });
