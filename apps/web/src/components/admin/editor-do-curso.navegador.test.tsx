@@ -506,4 +506,38 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       });
     }
   });
+
+  describe.skipIf(!FOTOS)("fotos", () => {
+    const rolarAoFim = () =>
+      avaliar(enviar, "window.scrollTo(0, document.body.scrollHeight)");
+    for (const janela of [1280, 1920, 390]) {
+      test(`em ${janela} px, limpo e sujo`, async () => {
+        await abrirEditor(janela);
+        await foto(`${janela}-limpo-topo`);
+        await rolarAoFim();
+        await foto(`${janela}-limpo-fim`);
+        await escrever("#curso-titulo", "Curso de Filmagem revisto");
+        await avaliar(
+          enviar,
+          "document.activeElement.blur(); window.scrollTo(0, 0)"
+        );
+        await foto(`${janela}-sujo-topo`);
+        await rolarAoFim();
+        await foto(`${janela}-sujo-fim`);
+      });
+    }
+
+    test("a lista da categoria com Criar categoria e a categoria criada", async () => {
+      await abrirEditor(1280);
+      await abrirCategoriaEDigitar("Filmagem");
+      await foto("1280-categoria-criar");
+      await teclar("ArrowDown");
+      await teclar("Enter");
+      await esperar(`document.getElementById("curso-categoriaId-criada")`);
+      await avaliar(enviar, "document.activeElement.blur()");
+      await foto("1280-categoria-criada");
+      await abrirCategoriaEDigitar("");
+      await foto("1280-categoria-lista");
+    });
+  });
 });

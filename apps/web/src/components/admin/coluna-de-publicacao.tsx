@@ -69,7 +69,7 @@ function SeletorDoStatus({
   return (
     <fieldset
       aria-describedby={`${id}-descricao`}
-      className="m-0 grid min-w-0 gap-2 border-0 p-0"
+      className="m-0 grid min-w-0 max-w-80 gap-2 border-0 p-0"
     >
       <legend className={cn(ROTULO, "mb-2 p-0")}>Status</legend>
       <div className="grid grid-cols-2 gap-1 rounded-full bg-background p-1 ring-1 ring-muted-foreground ring-inset">
@@ -222,7 +222,7 @@ export function ColunaDePublicacao({
   return (
     <aside
       aria-label="Publicação do curso"
-      className="@min-[960px]:sticky @min-[960px]:top-6 grid gap-3.5"
+      className="@min-[960px]:sticky @min-[960px]:top-6 @min-[960px]:row-span-2 grid gap-3.5"
     >
       <div className={CARTAO}>
         <div className={cn("grid gap-2", largo)}>

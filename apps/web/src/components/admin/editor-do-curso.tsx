@@ -516,7 +516,7 @@ export function EditorDoCurso({
           onSubmit={enviar}
           ref={formulario}
         >
-          <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
+          <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-x-8 gap-y-10">
             <div className="grid min-w-0 gap-10">
               <header className="grid gap-1.5">
                 <h1
@@ -585,12 +585,6 @@ export function EditorDoCurso({
                 mudarEscolhas={mudarEscolhas}
                 rascunho={rascunho}
               />
-
-              {novo ? null : (
-                <Secao id="apagar" resumo="" titulo="Apagar">
-                  <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
-                </Secao>
-              )}
             </div>
             <ColunaDePublicacao
               antes={antesDePublicar(
@@ -603,6 +597,14 @@ export function EditorDoCurso({
               secoes={secoesDoEditor(rascunho, novo)}
               status={rascunho.status}
             />
+            {/* Na coluna estreita, o Apagar vem depois do status; na larga, embaixo dos módulos. */}
+            {novo ? null : (
+              <div className="min-w-0">
+                <Secao id="apagar" resumo="" titulo="Apagar">
+                  <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />
+                </Secao>
+              </div>
+            )}
           </div>
           <BarraDeSalvar className="@min-[960px]:hidden" {...estadoDoSalvar} />
         </form>
