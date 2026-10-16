@@ -75,6 +75,7 @@ function CampoDaCategoria({
         opcoes={categorias.map((c) => ({ rotulo: c.nome, valor: c.id }))}
         placeholder="Escolha a categoria"
         required
+        semOpcoes="Nenhuma categoria ainda. Crie em Gerenciar categorias."
         valor={valor}
       />
       <ErroDoCampo id={id} mensagem={mensagem} />

@@ -13,6 +13,7 @@ import {
   GRUPO_DA_SELECAO,
   ITEM_DA_SELECAO,
   LISTA_DA_SELECAO,
+  SEM_OPCAO_DA_SELECAO,
 } from "./partes";
 
 export interface OpcaoDaSelecao {
@@ -90,10 +91,11 @@ export function Selecao({
   opcoes,
   placeholder,
   required,
+  semOpcoes = "Nenhuma opção.",
   tamanho = "campo",
   valor,
   ...aria
-}: PropsDaSelecao) {
+}: PropsDaSelecao & { semOpcoes?: string }) {
   const lista = todasAsOpcoes(opcoes);
   const escolhida = lista.some((o) => o.valor === valor) ? valor : null;
   const mudar = useCallback(
@@ -128,7 +130,13 @@ export function Selecao({
           className="z-50"
           sideOffset={6}
         >
-          <Select.Popup className={LISTA_DA_SELECAO}>
+          <Select.Popup
+            className={LISTA_DA_SELECAO}
+            data-slot="lista-da-selecao"
+          >
+            {lista.length === 0 ? (
+              <p className={SEM_OPCAO_DA_SELECAO}>{semOpcoes}</p>
+            ) : null}
             <Select.List>
               {opcoes.map((item, i) =>
                 ehGrupo(item) ? (

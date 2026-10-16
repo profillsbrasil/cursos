@@ -35,6 +35,9 @@ export const ITEM_DA_SELECAO =
 export const GRUPO_DA_SELECAO =
   "px-2.5 pt-2.5 pb-1 font-semibold text-muted-foreground text-xs";
 
+export const SEM_OPCAO_DA_SELECAO =
+  "px-2.5 py-2 text-[13px] text-muted-foreground";
+
 export const DIVISOR_DA_SELECAO = "-mx-1.5 my-1.5 h-px bg-border";
 
 export const BUSCA_DA_SELECAO =

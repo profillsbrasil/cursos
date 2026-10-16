@@ -45,6 +45,14 @@ const TELA = `
       <form id="formulario" style={{ display: "grid", gap: 24, width: 360 }}>
         <Selecao aoMudar={setStatus} id="status" opcoes={STATUS} valor={status} />
         <output id="status-escolhido">{status}</output>
+        <Selecao
+          aoMudar={setStatus}
+          id="vazia"
+          opcoes={[]}
+          placeholder="Escolha a categoria"
+          semOpcoes="Nenhuma categoria ainda."
+          valor=""
+        />
         <SelecaoComBusca
           aoMudar={setPara}
           id="para"
@@ -194,6 +202,22 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       ],
       seta: "180deg",
     });
+  });
+
+  test("sem opção, a lista aberta diz que não há nenhuma", async () => {
+    await abrirTela();
+    await avaliar(enviar, `document.getElementById("vazia").click()`);
+    await esperar(fechada("vazia").replace("false", "true"));
+    await transicoesTerminadas();
+    expect(
+      await avaliar<string | undefined>(
+        enviar,
+        `document.querySelector('[data-slot="lista-da-selecao"]')?.textContent`
+      )
+    ).toBe("Nenhuma categoria ainda.");
+    await teclar("Escape");
+    await esperar(fechada("vazia"));
+    await transicoesTerminadas();
   });
 
   test("setas e Enter escolhem a outra opção, e a lista fecha", async () => {
