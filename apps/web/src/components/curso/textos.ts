@@ -16,6 +16,8 @@ import {
   minutos,
   plural,
 } from "@/lib/formato";
+import { caminhoDoCertificado } from "@/lib/rotas";
+
 export const paragrafos = (descricao: string): string[] =>
   descricao
     .split("\n")
@@ -178,6 +180,7 @@ export type IconeDoCartao =
   | "trofeu";
 
 export interface LinhaDoCartao {
+  href?: Route;
   icone: IconeDoCartao;
   texto: string;
 }
@@ -323,6 +326,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         },
         inclui: [
           {
+            href: caminhoDoCertificado(p.slug),
             icone: "trofeu",
             texto: `Código do certificado: ${certificado.codigo}`,
           },

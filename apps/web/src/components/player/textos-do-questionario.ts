@@ -38,22 +38,16 @@ export interface FraseDoResultado {
 }
 
 /** O topo do cartão depois do envio. Na reprovação, as perguntas erradas vêm primeiro. */
-export function fraseDoResultado(
-  r: ResultadoDoQuestionario,
-  concluiuOCurso: boolean
-): FraseDoResultado {
-  const concluiu = concluiuOCurso
-    ? " Você concluiu o curso: o certificado já está na página dele."
-    : "";
+export function fraseDoResultado(r: ResultadoDoQuestionario): FraseDoResultado {
   if (r.aprovada && r.tentativa === 1) {
     return {
-      texto: `${ganhoDe(r.pontos)}, ${POR_ACERTO}. O questionário desta aula está feito.${concluiu}`,
+      texto: `${ganhoDe(r.pontos)}, ${POR_ACERTO}. O questionário desta aula está feito.`,
       titulo: `Aprovado: ${nota(r)}`,
     };
   }
   if (r.aprovada) {
     return {
-      texto: `Esta tentativa não vale pontos: eles contam só na primeira, em que você ganhou ${ganhoDe(r.pontosDaPrimeira)}.${concluiu}`,
+      texto: `Esta tentativa não vale pontos: eles contam só na primeira, em que você ganhou ${ganhoDe(r.pontosDaPrimeira)}.`,
       titulo: `Aprovado na ${r.tentativa}ª tentativa: ${nota(r)}`,
     };
   }
