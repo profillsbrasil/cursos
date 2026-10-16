@@ -28,7 +28,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 ## Operating Context
 
-- Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), fazem prova no fim do curso e recebem certificado.
+- Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), respondem ao questionário de cada aula e recebem certificado.
 - Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para o perfil ou a empresa dela.
 - O catálogo tem um tipo só de coisa: o curso, no formato da Udemy, com módulos como seções e aulas em sequência. Não existe ordem entre cursos: um curso liberado abre sem esperar outro (`docs/adr/0001-catalogo-so-de-cursos.md`).
 - Um admin cria os cursos e os libera por pessoa (por exemplo, cursos X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
@@ -38,10 +38,10 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 - Não há prazo de conclusão em liberação nenhuma.
 - O Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
 - Existe gamificação individual: pontos, sequência de dias e medalhas. Não existe ranking nem comparação entre colegas.
-- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no quiz de fixação na primeira tentativa, 50 por prova aprovada, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula ou refazer prova não pontua de novo.
+- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no questionário da aula na primeira tentativa, aprovada ou não, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula não pontua de novo, e o questionário pontua só na primeira tentativa.
 - A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
 - Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
-- Cada aula pode ter um quiz de fixação com pontos só na primeira tentativa.
+- Cada aula pode ter um questionário, com pontos só na primeira tentativa.
 - O admin publica comunicados (por exemplo, "Módulo 13 atualizado").
 - O protótipo anterior da plataforma é o artifact "Profills School Academia" (https://claude.ai/artifact/U7ySDnhvgN72ky4MgTgbu2). Ele serve de referência de funções, não de regra: o obrigatório, o prazo, o ranking e a paleta dele foram descartados.
 - O acesso é misto: curso pago avulso, assinatura, curso gratuito para certos usuários e acesso 100% gratuito para outros.
@@ -51,8 +51,8 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 Confirmado:
 
-- Formatos de aula: vídeo gravado, material para ler, prova e certificado.
-- O certificado de um curso sai quando a pessoa assiste a todas as aulas e passa na prova.
+- Formatos de aula: vídeo gravado, material para ler, questionário e certificado.
+- O certificado de um curso sai quando a pessoa assiste a todas as aulas e é aprovada em todos os questionários.
 - Temas: máquinas da Profills, processo de envase e embalagem, vendas e atendimento, rotinas internas.
 - Uma plataforma com controle de acesso por perfil e por empresa cliente. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz).
 - Cobrança em dois modelos: compra avulsa e assinatura, além de liberação gratuita por usuário.
@@ -74,9 +74,12 @@ Decididas pelo dono em 2026-10-16:
 
 - O questionário de cada aula aprova com 70%, igual em todo curso, e a pessoa tenta de novo quantas vezes quiser. A regra completa está em `docs/specs/curso-formato-udemy/README.md`.
 - O certificado é uma página do app e um PDF para baixar, com nome, curso, data, carga horária e código. A carga horária é a soma da duração dos vídeos, arredondada para cima em horas. Uma página pública confere o certificado pelo código.
-- Conquistas são medalhas por marco que o app já registra (primeira aula, primeiro curso concluído, sequência de 7 dias, primeira troca, certificados). Não há níveis de aluno.
+- Conquistas são medalhas por marco que o app já registra: primeira aula, 10, 50 e 100 aulas assistidas, sequência de 7 dias, primeira troca, primeiro curso concluído e um certificado por curso. Não há níveis de aluno.
 - Ponto não vence, e não há teto diário para os pontos de vídeo. O limite de taxa do player já barra abuso.
 - O menu do aluno não tem Início: Meus cursos é a primeira tela.
+- A sidebar recolhe sozinha na página da aula e volta como a pessoa a deixou quando ela sai. O app não tem migalha (breadcrumb).
+- A aula sem pergunta não tem questionário a aprovar.
+- O certificado é uma página do app (A), com a folha do PDF (A) e a conferência pública num recibo (D), das versões do protótipo.
 
 ## Brand Commitments
 

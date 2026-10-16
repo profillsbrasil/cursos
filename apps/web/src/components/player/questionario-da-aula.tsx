@@ -27,9 +27,17 @@ import {
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import {
+  BOTAO,
+  BOTAO_CONTORNO,
+  LINK_NO_TEXTO,
+} from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
-import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
+import {
+  caminhoDaAula,
+  caminhoDoCertificado,
+  caminhoDoCurso,
+} from "@/lib/rotas";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -290,7 +298,7 @@ function Pergunta({
   );
 }
 
-function Resultado({
+export function Resultado({
   concluiuOCurso,
   proxima,
   resultado,
@@ -305,7 +313,7 @@ function Resultado({
   temVideo: boolean;
   tentarDeNovo: () => void;
 }) {
-  const { texto, titulo } = fraseDoResultado(resultado, concluiuOCurso);
+  const { texto, titulo } = fraseDoResultado(resultado);
   const { aprovada, pontos } = resultado;
   return (
     <div
@@ -341,6 +349,16 @@ function Resultado({
       </span>
       <p className="col-start-2 col-end-[-1] text-pretty text-foreground max-sm:col-start-1">
         {texto}
+        {concluiuOCurso ? (
+          <>
+            {" "}
+            Você concluiu o curso:{" "}
+            <Link className={LINK_NO_TEXTO} href={caminhoDoCertificado(slug)}>
+              o certificado já está na página dele
+            </Link>
+            .
+          </>
+        ) : null}
       </p>
       <div className="col-start-2 col-end-[-1] mt-2.5 flex flex-wrap gap-2 max-sm:col-start-1 max-sm:*:flex-1">
         {aprovada ? (

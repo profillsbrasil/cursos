@@ -15,7 +15,11 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import {
+  BOTAO,
+  BOTAO_CONTORNO,
+  LINK_NO_TEXTO,
+} from "@/components/casca/botoes";
 import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { SeloEstado } from "@/components/meus-cursos/selo-estado";
 
@@ -115,7 +119,7 @@ export function CartaoDoCurso({
           </Link>
           {inclui.length > 0 ? (
             <ul className="grid gap-2 text-[13px] text-muted-foreground">
-              {inclui.map(({ icone, texto }) => {
+              {inclui.map(({ href, icone, texto }) => {
                 const Icone = ICONE[icone];
                 return (
                   <li className="flex items-center gap-2" key={texto}>
@@ -126,7 +130,13 @@ export function CartaoDoCurso({
                         COR_DO_ICONE[icone]
                       )}
                     />
-                    {texto}
+                    {href ? (
+                      <Link className={LINK_NO_TEXTO} href={href}>
+                        {texto}
+                      </Link>
+                    ) : (
+                      texto
+                    )}
                   </li>
                 );
               })}

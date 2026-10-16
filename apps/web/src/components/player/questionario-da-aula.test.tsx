@@ -24,7 +24,9 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));
 
-const { QuestionarioDaAula } = await import("./questionario-da-aula");
+const { QuestionarioDaAula, Resultado } = await import(
+  "./questionario-da-aula"
+);
 
 const AULA = "00000000-0000-4000-8000-00000000aaaa" as AulaId;
 const PROXIMA = {
@@ -166,21 +168,12 @@ describe("os textos", () => {
 
   test("reprovado de novo: sem pontos na frase, e tente quantas vezes quiser", () => {
     expect(
-      fraseDoResultado(
-        { ...REPROVADO_NA_PRIMEIRA, pontos: 0, tentativa: 2 },
-        false
-      )
+      fraseDoResultado({ ...REPROVADO_NA_PRIMEIRA, pontos: 0, tentativa: 2 })
     ).toEqual({
       texto:
         "Você errou as perguntas 2 e 3. Para passar, 3 de 4. Tente de novo quantas vezes quiser.",
       titulo: "Ainda não: 2 de 4 (50%)",
     });
-  });
-
-  test("o questionário que concluiu o curso diz isso na frase", () => {
-    expect(fraseDoResultado(APROVADO_NA_PRIMEIRA, true).texto).toBe(
-      "+15 pts, 5 por acerto. O questionário desta aula está feito. Você concluiu o curso: o certificado já está na página dele."
-    );
   });
 
   test("a ajuda do envio conta o que falta, e o envio que falhou tem a frase do protótipo", () => {
@@ -196,5 +189,37 @@ describe("os textos", () => {
     expect(ENVIO_FALHOU).toBe(
       "Não deu para enviar. Suas respostas continuam marcadas; tente de novo."
     );
+  });
+});
+
+const LINK_DO_CERTIFICADO =
+  /<a[^>]*href="\/cursos\/comercial\/certificado"[^>]*>o certificado já está na página dele<\/a>/;
+const nada = () => undefined;
+
+describe("o resultado que concluiu o curso", () => {
+  const resultado = (concluiuOCurso: boolean) =>
+    renderToStaticMarkup(
+      <Resultado
+        concluiuOCurso={concluiuOCurso}
+        proxima={PROXIMA}
+        resultado={APROVADO_NA_PRIMEIRA}
+        slug="comercial"
+        temVideo
+        tentarDeNovo={nada}
+      />
+    );
+
+  test("diz que concluiu e leva à página do certificado", () => {
+    const html = resultado(true);
+    expect(texto(html)).toContain(
+      "+15 pts, 5 por acerto. O questionário desta aula está feito. Você concluiu o curso: o certificado já está na página dele ."
+    );
+    expect(html).toMatch(LINK_DO_CERTIFICADO);
+  });
+
+  test("sem concluir, nem a frase nem o link", () => {
+    const html = resultado(false);
+    expect(texto(html)).not.toContain("concluiu o curso");
+    expect(html).not.toContain("/certificado");
   });
 });

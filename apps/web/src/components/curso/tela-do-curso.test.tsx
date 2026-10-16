@@ -41,6 +41,9 @@ const modulos = (html: string) =>
 
 const botaoDosModulos = (html: string) => texto(html.match(BOTAO)?.[1] ?? "");
 
+const LINK_DO_CERTIFICADO =
+  /<a[^>]*href="\/cursos\/comercial\/certificado"[^>]*>Código do certificado: CERT-COM-7<\/a>/;
+
 describe("o cartão em cada estado", () => {
   const casos: [string, PaginaDoCurso, string][] = [
     [
@@ -90,6 +93,9 @@ describe("o cartão em cada estado", () => {
       expect(cartao(render(pagina))).toBe(esperado);
     });
   }
+  test("concluído: o código do certificado leva à página do certificado", () => {
+    expect(render(comercial.concluido)).toMatch(LINK_DO_CERTIFICADO);
+  });
 });
 
 describe("a página", () => {

@@ -18,3 +18,6 @@ export const BOTAO_CONTORNO = cn(
 );
 
 export const PEQUENO = "h-9 px-3.5 text-[13px]";
+
+export const LINK_NO_TEXTO =
+  "underline decoration-muted-foreground underline-offset-4 transition-colors hover:text-titulo hover:decoration-titulo";

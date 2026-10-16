@@ -72,6 +72,14 @@ export const carregarPaginaDoCurso = cache(async (slug: string) =>
   (await caller()).curso.pagina({ slug })
 );
 
+export const carregarPaginaDoCertificado = cache(async (slug: string) =>
+  (await caller()).certificado.pagina({ slug })
+);
+
+export const conferirCertificado = cache((codigo: string) =>
+  createCaller(contextoDe(null, servicos)).certificado.conferir({ codigo })
+);
+
 export const carregarPainelDeTroca = cache(async () =>
   (await caller()).troca.painel()
 );

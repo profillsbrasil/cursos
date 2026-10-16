@@ -144,7 +144,13 @@ describe("o cartão preso", () => {
         texto: "Rever o curso",
         variante: "principal",
       },
-      inclui: [{ icone: "trofeu", texto: "Código do certificado: CERT-COM-7" }],
+      inclui: [
+        {
+          href: rota("/cursos/comercial/certificado"),
+          icone: "trofeu",
+          texto: "Código do certificado: CERT-COM-7",
+        },
+      ],
       situacao: {
         rotulo: "Curso concluído",
         titulo: "Certificado emitido em 28 de dez. de 2025",
