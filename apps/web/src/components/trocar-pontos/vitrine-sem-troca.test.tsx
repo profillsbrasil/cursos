@@ -4,6 +4,8 @@ import type { DiaISO } from "@cursos/api/dominio/tipos";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { caminhoDaAula } from "@/lib/rotas";
+
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 mock.module("next/navigation", () => ({
@@ -32,7 +34,7 @@ const curso = {
   titulo: "Curso de envase",
 } as CartaoDeTroca["curso"];
 
-const AULA = "/cursos/x/aulas/00000000-0000-4000-8000-000000000001";
+const AULA = caminhoDaAula("x", "00000000-0000-4000-8000-000000000001");
 
 const vitrineEmHtml = (
   cartoes: CartaoDeTroca[],
