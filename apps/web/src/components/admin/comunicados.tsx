@@ -47,6 +47,8 @@ interface Rascunho {
 
 const VAZIO: Rascunho = { cursoId: "", texto: "", titulo: "" };
 
+const PUBLICADOS = "publicados";
+
 function Formulario({
   aoCancelar,
   aoEnviar,
@@ -267,11 +269,9 @@ function ItemDoComunicado({
       remocao.executar(
         () => trpcClient.admin.comunicados.apagar.mutate({ id: c.id }),
         {
-          // O item some: o foco vai para o título da lista, se não estiver em outra linha.
+          // Na resposta o foco ainda está no Confirmar, que some com o item.
           depois: () => {
-            if (document.activeElement === document.body) {
-              document.getElementById("publicados")?.focus();
-            }
+            document.getElementById(PUBLICADOS)?.focus();
           },
           sucesso: (r) =>
             r.apagado
@@ -383,7 +383,7 @@ export function Comunicados({ comunicados, cursos }: ComunicadosDoAdmin) {
         <NovoComunicado cursos={cursos} />
       </Secao>
       <Secao
-        id="publicados"
+        id={PUBLICADOS}
         resumo={plural(comunicados.length, "comunicado", "comunicados")}
         titulo="Publicados"
       >
