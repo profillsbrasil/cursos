@@ -31,10 +31,6 @@ const gravarPreferencia = (aberta: boolean) => {
 };
 
 /**
- * O SidebarProvider do packages/ui, controlado pela Abertura (abertura.ts): o
- * cookie fora da aula, recolhida em cada aula nova. A troca de caminho que muda a
- * largura anima como o botão de recolher.
- *
  * O atributo data-animando no wrapper liga a animação: a largura muda na hora por
  * padrão, e o CSS de index.css só anima com ele. O prazo apaga o atributo, e não o
  * transitionend: com movimento reduzido a transição não roda, o evento não chega,
@@ -52,9 +48,8 @@ export function ProvedorDaCasca({
   const [animacao, setAnimacao] = useState<number | null>(null);
   const animar = useCallback(() => setAnimacao((n) => (n ?? 0) + 1), []);
 
-  // No mesmo render da página nova: o atributo e a largura chegam no mesmo commit.
   const seguinte = navegar(abertura, caminho);
-  if (seguinte !== abertura) {
+  if (seguinte !== "mesmo_lugar") {
     if (estaAberta(seguinte) !== estaAberta(abertura)) {
       animar();
     }

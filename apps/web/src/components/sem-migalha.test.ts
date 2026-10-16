@@ -7,8 +7,6 @@ const SRC = join(import.meta.dir, "..");
 const ESTE = "components/sem-migalha.test.ts";
 const MIGALHA = /migalha|breadcrumb/i;
 
-// Decisão do dono (2026-10-16): o app não tem migalha. A da aula virou o link no
-// título do curso, na coluna do player; a do curso saiu, e o menu leva a Meus cursos.
 describe("nenhuma migalha no app", () => {
   test("nenhum arquivo de src fala em migalha ou breadcrumb", () => {
     const com = [...new Glob("**/*").scanSync(SRC)].filter(

@@ -7,22 +7,23 @@ import { aberturaEm, alternar, estaAberta, navegar } from "./abertura";
 const AULA_1 = caminhoDaAula("comercial", "a1");
 const AULA_2 = caminhoDaAula("comercial", "a2");
 
-/** A pessoa passa pelos caminhos, alternando onde o passo pede, e a lista diz se a sidebar ficou aberta em cada um. */
 function percorrer(
   preferida: boolean,
   passos: readonly (string | { alterna: boolean })[]
 ) {
   const [primeiro, ...resto] = passos;
   let a = aberturaEm(primeiro as string, preferida);
-  const vistas = [estaAberta(a)];
+  const abertaEmCada = [estaAberta(a)];
   for (const passo of resto) {
-    a =
-      typeof passo === "string"
-        ? navegar(a, passo)
-        : alternar(a, passo.alterna);
-    vistas.push(estaAberta(a));
+    if (typeof passo === "string") {
+      const seguinte = navegar(a, passo);
+      a = seguinte === "mesmo_lugar" ? a : seguinte;
+    } else {
+      a = alternar(a, passo.alterna);
+    }
+    abertaEmCada.push(estaAberta(a));
   }
-  return { abertura: a, vistas };
+  return { abertaEmCada, abertura: a };
 }
 
 describe("a sidebar na aula", () => {
@@ -40,23 +41,23 @@ describe("a sidebar na aula", () => {
   test("entrar na aula recolhe, e sair volta ao que a pessoa tinha deixado", () => {
     expect(
       percorrer(true, ["/meus-cursos", AULA_1, caminhoDoCurso("comercial")])
-        .vistas
+        .abertaEmCada
     ).toEqual([true, false, true]);
   });
 
   test("aberta na aula, fica aberta até a próxima aula", () => {
     expect(
-      percorrer(true, [AULA_1, { alterna: true }, AULA_1, AULA_2]).vistas
+      percorrer(true, [AULA_1, { alterna: true }, AULA_1, AULA_2]).abertaEmCada
     ).toEqual([false, true, true, false]);
   });
 
   test("abrir na aula não muda a preferência: com o cookie recolhido, sair recolhe", () => {
-    const { abertura, vistas } = percorrer(false, [
+    const { abertura, abertaEmCada } = percorrer(false, [
       AULA_1,
       { alterna: true },
       "/trocar-pontos",
     ]);
-    expect(vistas).toEqual([false, true, false]);
+    expect(abertaEmCada).toEqual([false, true, false]);
     expect(abertura.preferida).toBe(false);
   });
 

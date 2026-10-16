@@ -28,8 +28,6 @@ describe("cookie da sidebar", () => {
     expect(gravado?.[1]).toBe(COOKIE_DA_SIDEBAR);
   });
 
-  // Na aula, a casca regrava a preferência por cima do que o SidebarProvider gravou:
-  // com outra validade, abrir a sidebar numa aula encurtaria a vida da preferência.
   test("a casca regrava o cookie com a validade do SidebarProvider", () => {
     const expressao = readFileSync(SIDEBAR_DO_UI, "utf8").match(VALIDADE)?.[1];
     const segundos = expressao

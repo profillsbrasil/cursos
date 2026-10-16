@@ -84,7 +84,6 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
       >
         <div className="grid gap-2.5 border-border border-b px-5 pt-[18px] pb-4">
           <h2 className="font-semibold text-base text-titulo">
-            {/* O único caminho da aula de volta à página do curso: sublinhado já em repouso. */}
             <Link
               className="underline decoration-muted-foreground underline-offset-4 hover:decoration-titulo"
               href={caminhoDoCurso(slug)}

@@ -18,7 +18,7 @@ mock.module("next/navigation", () => ({
 const { CartaoContinuar } = await import("./cartao-continuar");
 
 const AULA = "/cursos/comercial/aulas/a1" as Route;
-const CURSO = "/cursos/comercial" as Route;
+const DESTINO_FORA_DA_AULA = "/cursos/comercial" as Route;
 
 const CONTINUAR: Continuar = {
   chamada: "Continuar · faltam 7 min",
@@ -30,12 +30,10 @@ const CONTINUAR: Continuar = {
   titulo: "Pilar Urgência · Aula 4",
 };
 
-// O destino dos testes é a página do curso: na aula a sidebar sempre chega
-// recolhida do servidor, e o modo aberto não apareceria.
-const PROVA: Continuar = {
+const PROVA_FORA_DA_AULA: Continuar = {
   chamada: "Falta a prova",
   chamadaAqui: "Falta só a prova",
-  href: CURSO,
+  href: DESTINO_FORA_DA_AULA,
   pct: 100,
   rotulo: "Falta a prova: Comercial, 100% do curso",
   tipo: "prova",
@@ -78,10 +76,10 @@ describe("o Continuar é um elemento só", () => {
     });
 
     test(`${modo}, no destino: aria-current uma vez, sem link`, () => {
-      const h = html(CURSO, aberta, PROVA);
+      const h = html(DESTINO_FORA_DA_AULA, aberta, PROVA_FORA_DA_AULA);
       expect(vezes(h, "<a ")).toBe(0);
       expect(vezes(h, 'aria-current="page"')).toBe(1);
-      expect(vezes(h, PROVA.chamadaAqui)).toBe(1);
+      expect(vezes(h, PROVA_FORA_DA_AULA.chamadaAqui)).toBe(1);
     });
   }
 });
@@ -104,11 +102,15 @@ const classesDoContinuar = (h: string) => {
 describe("a troca de modo não anima o Continuar", () => {
   for (const [caso, caminho] of [
     ["com link", "/meus-cursos"],
-    ["no destino", CURSO],
+    ["no destino", DESTINO_FORA_DA_AULA],
   ] as const) {
     test(`${caso}: nenhuma transição fora do ::before`, () => {
       const transicoes = classesDoContinuar(
-        html(caminho, true, caso === "no destino" ? PROVA : CONTINUAR)
+        html(
+          caminho,
+          true,
+          caso === "no destino" ? PROVA_FORA_DA_AULA : CONTINUAR
+        )
       ).filter((c) => c.includes("transition"));
       expect(
         transicoes.filter(

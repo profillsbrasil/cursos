@@ -49,8 +49,6 @@ const DADOS: AulaNoPlayer = {
 const LINK = /<a\b[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/g;
 const TITULO = /<h2\b[^>]*>(.*?)<\/h2>/;
 
-// Decisão do dono (2026-10-16): o caminho da aula de volta à página do curso é o
-// título dele, no cabeçalho da coluna.
 describe("o título do curso na coluna leva à página do curso", () => {
   test("o título é o link, com o endereço da página do curso", () => {
     const html = renderToStaticMarkup(<ColunaDoCurso dados={DADOS} />);

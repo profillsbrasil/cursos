@@ -5,7 +5,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
-// Fora do App Router o usePathname não tem de onde ler; o teste diz o caminho.
 let caminhoAtual = "/meus-cursos";
 const navegacao = await import("next/navigation");
 mock.module("next/navigation", () => ({
@@ -82,7 +81,6 @@ describe("useModoDaCasca lê o modo do cookie no servidor", () => {
 
 const ESTADO = /data-state="(\w+)"/;
 
-/** O data-state que a sidebar do computador escreve no HTML do servidor. */
 function estadoNoServidor(caminho: string, cookieAberta: boolean) {
   caminhoAtual = caminho;
   const html = renderToStaticMarkup(

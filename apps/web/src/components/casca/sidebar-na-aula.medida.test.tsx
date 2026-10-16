@@ -1,8 +1,3 @@
-// A sidebar na página da aula, no Chromium headless, com o CSS real do app e o
-// cabeçalho de verdade: recolhe ao abrir a aula, volta ao cookie ao sair dela, e
-// nada disso grava o cookie. O usePathname vem de um roteador falso que o teste
-// troca, e o cookie mora numa origem http local. Sem Chromium, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -127,6 +122,7 @@ async function empacotar() {
         };
       `,
     },
+    format: "iife",
     plugins: [
       {
         name: "next-sem-roteador",
@@ -143,9 +139,8 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da casca não saiu: ${pacote.logs.join("\n")}`);
   }
-  // Cada teste reavalia o pacote no mesmo documento: a função isola as declarações
-  // dele. O next/image lê a configuração do process.env, que o Next define no build.
-  return `window.process ??= { env: {} }; (() => {${await saida.text()}})()`;
+  // O next/image lê a configuração do process.env, que o Next define no build.
+  return `window.process ??= { env: {} }; ${await saida.text()}`;
 }
 
 let enviar: Enviar;
@@ -158,8 +153,7 @@ const servidor = serve({
   port: 0,
 });
 
-/** O HTML do servidor na página, com o cookie que a pessoa tinha deixado. */
-async function carregar(caminho: string, cookieAberta: boolean) {
+async function carregarHtmlDoServidor(caminho: string, cookieAberta: boolean) {
   await avaliar(
     enviar,
     `document.cookie = "sidebar_state=${cookieAberta}; path=/"; document.open(); document.write(${JSON.stringify(
@@ -169,7 +163,7 @@ async function carregar(caminho: string, cookieAberta: boolean) {
 }
 
 async function hidratar(caminho: string, cookieAberta: boolean) {
-  await carregar(caminho, cookieAberta);
+  await carregarHtmlDoServidor(caminho, cookieAberta);
   await avaliar(enviar, pacote);
   await avaliar(
     enviar,
@@ -200,9 +194,17 @@ const navegar = (caminho: string) =>
   avaliar(enviar, `window.casca.navegar(${JSON.stringify(caminho)})`);
 const clicar = (rotulo: string) =>
   avaliar(enviar, `document.querySelector('[aria-label="${rotulo}"]').click()`);
-/** Depois dos 200 ms da transição e do prazo de 260 ms que apaga o data-animando. */
 const esperarAnimacao = () =>
-  avaliar(enviar, "new Promise((r) => setTimeout(r, 400))");
+  avaliar(
+    enviar,
+    `new Promise((r) => {
+      const ver = () =>
+        document.querySelector('[data-slot="sidebar-wrapper"]').hasAttribute("data-animando")
+          ? setTimeout(ver, 20)
+          : r();
+      ver();
+    })`
+  );
 const proximoQuadro = () =>
   avaliar(enviar, "new Promise((r) => requestAnimationFrame(() => r()))");
 
@@ -235,7 +237,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a sidebar na aula, a 1280 px", () => {
   });
 
   test("na carga direta da aula, chega recolhida antes do JS, com o cookie aberto", async () => {
-    await carregar(AULA_1, true);
+    await carregarHtmlDoServidor(AULA_1, true);
     expect((await medir()).largura).toBe(RECOLHIDA);
     await avaliar(enviar, pacote);
     await avaliar(
