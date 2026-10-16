@@ -15,6 +15,7 @@ import {
   fecharChromium,
 } from "../chromium-de-teste";
 import { ALUNA, NOVO } from "./exemplo-de-teste";
+import { pontoNaTrilha } from "./geometria";
 import { TelaDeConquistas } from "./tela-de-conquistas";
 
 const naCasca = (filhos: ReactNode) =>
@@ -32,14 +33,14 @@ const naCasca = (filhos: ReactNode) =>
   );
 
 const TELAS = {
-  aluna: naCasca(<TelaDeConquistas conquistas={ALUNA} />),
-  novo: naCasca(<TelaDeConquistas conquistas={NOVO} />),
+  aluna: { feitas: 49, html: naCasca(<TelaDeConquistas conquistas={ALUNA} />) },
+  novo: { feitas: 0, html: naCasca(<TelaDeConquistas conquistas={NOVO} />) },
 };
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
 const css = await cssDoApp(
-  Object.values(TELAS).flatMap((html) =>
+  Object.values(TELAS).flatMap(({ html }) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
   )
 );
@@ -63,24 +64,72 @@ async function abrir(largura: number, corpo: string) {
 
 interface Caixa {
   altura: number;
+  baixo: number;
+  direita: number;
   esquerda: number;
-  fundo: number;
   largura: number;
   topo: number;
 }
 
-const linhasDe = (idDoTitulo: string) =>
-  avaliar<{ estado: Caixa; figura: Caixa; nome: Caixa }[]>(
-    enviar,
-    `[...document.querySelectorAll('[aria-labelledby="${idDoTitulo}"] ol > li')].map((li) => {
-      const caixa = (el) => {
-        const r = el.getBoundingClientRect();
-        return { altura: Math.round(r.height), esquerda: Math.round(r.left), fundo: Math.round(r.bottom), largura: Math.round(r.width), topo: Math.round(r.top) };
-      };
-      const [figura, nome, estado] = li.children;
-      return { estado: caixa(estado), figura: caixa(figura), nome: caixa(nome) };
-    })`
-  );
+const CAIXA = `const caixa = (el) => {
+  const r = el.getBoundingClientRect();
+  return { altura: r.height, baixo: r.bottom, direita: r.right, esquerda: r.left, largura: r.width, topo: r.top };
+};`;
+
+const medir = <T,>(corpo: string) =>
+  avaliar<T>(enviar, `(() => { ${CAIXA} ${corpo} })()`);
+
+const trilha = () =>
+  medir<{
+    medalhas: Caixa[];
+    preenchido: Caixa;
+    trilho: Caixa;
+    voce: Caixa;
+  }>(`
+    const voce = document.querySelector("[data-voce]");
+    const trilho = voce.nextElementSibling;
+    return {
+      medalhas: [...document.querySelectorAll("[data-trilha] ol > li > [data-medalha]")].map(caixa),
+      preenchido: caixa(trilho.firstElementChild),
+      trilho: caixa(trilho),
+      voce: caixa(voce),
+    };
+  `);
+
+const centro = (c: Caixa) => c.esquerda + c.largura / 2;
+
+const semana = () =>
+  medir<{ circulos: Caixa[]; colunas: Caixa[] }>(`
+    const circulos = [...document.querySelectorAll("[data-dia]")];
+    return { circulos: circulos.map(caixa), colunas: circulos.map((c) => caixa(c.parentElement)) };
+  `);
+
+const cartoes = () =>
+  medir<
+    {
+      cartao: Caixa;
+      capa: Caixa;
+      cabe: boolean;
+      grade: Caixa;
+      lacre: Caixa;
+    }[]
+  >(`
+    return [...document.querySelectorAll('[aria-labelledby="conquistas-certificados"] ol > li > a')].map((a) => ({
+      cartao: caixa(a),
+      capa: caixa(a.firstElementChild),
+      cabe: [...a.querySelectorAll("*")].every((el) => el.getBoundingClientRect().right <= a.getBoundingClientRect().right + 0.5 || el.closest("[aria-hidden]")),
+      grade: caixa(a.closest("ol")),
+      lacre: caixa(a.querySelector("[data-medalha]")),
+    }));
+  `);
+
+const blocos = () =>
+  medir<{ caixa: Caixa; cabe: boolean }[]>(`
+    return [...document.querySelector("[data-sequencia]").parentElement.children].map((b) => ({
+      caixa: caixa(b),
+      cabe: b.scrollWidth <= b.clientWidth,
+    }));
+  `);
 
 const rolaDeLado = () =>
   avaliar<boolean>(
@@ -95,39 +144,104 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
 
   afterAll(fecharChromium);
 
-  for (const [nome, tela] of Object.entries(TELAS)) {
-    test(`1280 px, ${nome}: medalha de 48 px, nome no meio e o estado na coluna de 220 px`, async () => {
-      await abrir(1280, tela);
-      const marcos = await linhasDe("conquistas-marcos");
-      expect(marcos).toHaveLength(7);
-      for (const l of marcos) {
-        expect([l.figura.largura, l.figura.altura]).toEqual([48, 48]);
-        expect(l.estado.largura).toBe(220);
-        expect(l.estado.esquerda).toBeGreaterThanOrEqual(
-          l.nome.esquerda + l.nome.largura
-        );
-      }
-      for (const l of await linhasDe("conquistas-certificados")) {
-        expect([l.figura.largura, l.figura.altura]).toEqual([72, 48]);
-        expect(l.estado.largura).toBe(220);
-      }
-      expect(await rolaDeLado()).toBe(false);
-    });
-
-    test(`390 px, ${nome}: o estado desce para baixo do nome, sem rolar de lado`, async () => {
-      await abrir(390, tela);
-      for (const idDoTitulo of [
-        "conquistas-marcos",
-        "conquistas-certificados",
-      ]) {
-        for (const l of await linhasDe(idDoTitulo)) {
-          expect(l.estado.topo).toBeGreaterThanOrEqual(l.nome.fundo);
-          expect(l.estado.esquerda).toBe(l.nome.esquerda);
+  for (const [nome, { feitas, html }] of Object.entries(TELAS)) {
+    for (const largura of [1280, 390]) {
+      test(`${largura} px, ${nome}: a pílula Você no ponto da trilha, e o preenchimento até ele`, async () => {
+        await abrir(largura, html);
+        const t = await trilha();
+        const p = pontoNaTrilha(feitas, [10, 50, 100]);
+        const ponto =
+          t.trilho.esquerda + (p.porcento / 100) * t.trilho.largura - p.recuoPx;
+        if (feitas === 0) {
+          expect(t.voce.esquerda).toBeCloseTo(t.trilho.esquerda, 0);
+        } else {
+          expect(centro(t.voce)).toBeCloseTo(ponto, 0);
         }
-      }
-      const [capa] = await linhasDe("conquistas-certificados");
-      expect(capa?.figura.largura).toBe(56);
-      expect(await rolaDeLado()).toBe(false);
-    });
+        expect(t.preenchido.direita).toBeCloseTo(ponto, 0);
+        expect(t.medalhas.map((m) => [m.largura, m.altura])).toEqual([
+          [56, 56],
+          [56, 56],
+          [56, 56],
+        ]);
+        const naMeta = pontoNaTrilha(10, [10, 50, 100]);
+        expect(centro(t.medalhas[0] as Caixa)).toBeCloseTo(
+          t.trilho.esquerda +
+            (naMeta.porcento / 100) * t.trilho.largura -
+            naMeta.recuoPx,
+          0
+        );
+        expect(centro(t.medalhas[2] as Caixa)).toBeCloseTo(
+          t.trilho.direita - 28,
+          0
+        );
+      });
+
+      test(`${largura} px, ${nome}: os sete dias em colunas iguais`, async () => {
+        await abrir(largura, html);
+        const { circulos, colunas } = await semana();
+        expect(circulos).toHaveLength(7);
+        const lado = largura === 1280 ? 36 : 32;
+        for (const c of circulos) {
+          expect([c.largura, c.altura]).toEqual([lado, lado]);
+        }
+        const [primeira] = colunas;
+        for (const c of colunas) {
+          expect(c.largura).toBeCloseTo(primeira?.largura ?? 0, 1);
+          expect(centro(circulos[colunas.indexOf(c)] as Caixa)).toBeCloseTo(
+            centro(c),
+            0
+          );
+        }
+      });
+
+      test(`${largura} px, ${nome}: os cartões cabem na coluna, e o lacre fica na borda da capa`, async () => {
+        await abrir(largura, html);
+        const cs = await cartoes();
+        expect(cs.length).toBeGreaterThan(0);
+        for (const c of cs) {
+          expect(c.cabe).toBe(true);
+          expect(c.cartao.direita).toBeLessThanOrEqual(c.grade.direita + 0.5);
+          expect(c.lacre.topo + c.lacre.altura / 2).toBeCloseTo(
+            c.capa.baixo,
+            0
+          );
+          expect([c.lacre.largura, c.lacre.altura]).toEqual([56, 56]);
+          expect(c.lacre.direita).toBeCloseTo(c.cartao.direita - 18, 0);
+        }
+        for (const b of await blocos()) {
+          expect(b.cabe).toBe(true);
+        }
+        expect(await rolaDeLado()).toBe(false);
+      });
+    }
   }
+
+  test("1280 px: os dois cartões lado a lado, e cinco cursos em 3 colunas", async () => {
+    await abrir(1280, TELAS.aluna.html);
+    const [sequencia, primeiras] = await blocos();
+    expect(sequencia?.caixa.topo).toBe(primeiras?.caixa.topo);
+    expect(sequencia?.caixa.largura).toBeCloseTo(
+      primeiras?.caixa.largura ?? 0,
+      0
+    );
+    const cs = await cartoes();
+    expect(new Set(cs.slice(0, 3).map((c) => c.cartao.topo)).size).toBe(1);
+    expect(cs[3]?.cartao.topo).toBeGreaterThan(cs[0]?.cartao.baixo ?? 0);
+    expect(cs[3]?.cartao.esquerda).toBe(cs[0]?.cartao.esquerda);
+  });
+
+  test("1280 px: o curso único para em 360 px", async () => {
+    await abrir(1280, TELAS.novo.html);
+    const [c] = await cartoes();
+    expect(c?.cartao.largura).toBe(360);
+  });
+
+  test("390 px: tudo numa coluna", async () => {
+    await abrir(390, TELAS.aluna.html);
+    const [sequencia, primeiras] = await blocos();
+    expect(primeiras?.caixa.topo).toBeGreaterThan(sequencia?.caixa.baixo ?? 0);
+    const cs = await cartoes();
+    expect(new Set(cs.map((c) => c.cartao.esquerda)).size).toBe(1);
+    expect(cs[0]?.cartao.largura).toBe(cs[0]?.grade.largura);
+  });
 });
