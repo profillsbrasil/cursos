@@ -56,7 +56,7 @@ export function CartaoDoCurso({
       )}
     >
       <div className="grid @lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-        <div className="relative @lg:aspect-auto aspect-[900/604] @lg:min-h-full bg-sidebar">
+        <div className="relative aspect-[900/604] @lg:self-start bg-sidebar">
           <Image
             alt={pagina.capa.alt}
             className="object-cover"

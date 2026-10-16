@@ -23,9 +23,22 @@ const ESQUELETO = renderToStaticMarkup(<CarregandoCurso />);
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+const ENTIDADES: Record<string, string> = {
+  "&#x27;": "'",
+  "&amp;": "&",
+  "&gt;": ">",
+  "&lt;": "<",
+  "&quot;": '"',
+};
+const ENTIDADE = /&(?:#x27|amp|gt|lt|quot);/g;
+// O renderToStaticMarkup escapa a classe, e o Tailwind precisa dela como o browser a lê.
+const semEntidades = (c: string) =>
+  c.replace(ENTIDADE, (e) => ENTIDADES[e] ?? e);
 const css = await cssDoApp(
   [PAGINA, ESQUELETO].flatMap((html) =>
-    [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
+    [...html.matchAll(CLASSES)].flatMap(([, c = ""]) =>
+      semEntidades(c).split(ESPACO)
+    )
   )
 );
 
@@ -129,6 +142,38 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
     expect(m.capa.esquerda).toBe(m.cartao.esquerda);
     expect(m.capa.largura).toBeLessThan(m.cartao.largura / 2);
     expect(m.capa.topo).toBe(m.cartao.topo);
+    expect(m.capa.largura / (m.capa.pe - m.capa.topo)).toBeCloseTo(
+      900 / 604,
+      2
+    );
+  });
+
+  test("resumo estreito: a linha que quebra começa no texto, sem o separador na frente", async () => {
+    await abrir(560, PAGINA);
+    const linhas = await avaliar<{ esquerda: number; inicio: number }[]>(
+      enviar,
+      `(() => {
+        const p = [...document.querySelectorAll("header p")].find((x) => x.textContent.includes("módulo"));
+        const esquerda = p.getBoundingClientRect().left;
+        const andar = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+        const inicios = [];
+        let topo = null;
+        while (andar.nextNode()) {
+          const faixa = document.createRange();
+          faixa.selectNodeContents(andar.currentNode);
+          const r = faixa.getClientRects()[0];
+          if (r && topo !== null && r.top > topo + 2) {
+            inicios.push({ esquerda: Math.round(esquerda), inicio: Math.round(r.left) });
+          }
+          if (r) topo = r.top;
+        }
+        return inicios;
+      })()`
+    );
+    expect(linhas.length).toBeGreaterThan(0);
+    for (const { esquerda, inicio } of linhas) {
+      expect(inicio).toBe(esquerda);
+    }
   });
 
   test("o esqueleto põe o cartão no mesmo lugar da página, nas duas grades", async () => {
