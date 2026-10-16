@@ -284,10 +284,13 @@ function LinhaDaCategoria({
       remocao.executar(
         () => trpcClient.admin.categorias.apagar.mutate({ id: c.id }),
         {
+          aoRecusar: () => {
+            voltou.current = true;
+            fechar(chaveDoApagar);
+          },
           depois: () => {
-            if (document.activeElement === document.body) {
-              document.getElementById(TODAS)?.focus();
-            }
+            fechar(chaveDoApagar);
+            document.getElementById(TODAS)?.focus();
           },
           sucesso: (r) =>
             r.apagado
@@ -295,7 +298,7 @@ function LinhaDaCategoria({
               : `"${c.nome}" já tinha sido apagada.`,
         }
       ),
-    [remocao.executar, c.id, c.nome]
+    [remocao.executar, c.id, c.nome, fechar, chaveDoApagar]
   );
 
   let estado: EstadoDaLinha = "lendo";
