@@ -28,6 +28,8 @@ const { EditorDoCurso } = await import("./editor-do-curso");
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
+const PARAGRAFO = /<\/?p[\s>]/g;
+
 const SELECT_DA_CATEGORIA =
   /<select[^>]*id="curso-categoriaId"[^>]*>(.*?)<\/select>/;
 const OPCAO = /<option([^>]*)>([^<]*)<\/option>/g;
@@ -92,6 +94,23 @@ describe("editor do curso: endereço e categoria", () => {
       [EDICAO.CATEGORIA, "Processo de envase", true],
       [OUTRA, "Vendas e negócios", false],
     ]);
+  });
+
+  test("nenhum <p> dentro de outro <p>, que o navegador desfaz e quebra a hidratação", () => {
+    const novo = edicaoDeCursoNovo(EDICAO.CURSO);
+    for (const html of [render(salvo), render(novo)]) {
+      let abertos = 0;
+      let aninhados = 0;
+      for (const [tag] of html.matchAll(PARAGRAFO)) {
+        if (tag.startsWith("</")) {
+          abertos -= 1;
+        } else {
+          aninhados += abertos > 0 ? 1 : 0;
+          abertos += 1;
+        }
+      }
+      expect(aninhados).toBe(0);
+    }
   });
 
   test("o curso novo diz que o link sai do título e começa sem categoria", () => {
