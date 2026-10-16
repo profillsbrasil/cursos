@@ -11,6 +11,7 @@ export const liberacaoOrigem = pgEnum("liberacao_origem", ORIGEM_DA_LIBERACAO);
 export const motivoPonto = pgEnum("motivo_ponto", [
   "aula_assistida",
   "curso_concluido",
+  "questionario",
   "sequencia_7_dias",
   "troca",
 ]);

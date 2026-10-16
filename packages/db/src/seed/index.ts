@@ -7,7 +7,7 @@
 
 import { createHash } from "node:crypto";
 import { parseArgs } from "node:util";
-import { inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 
 import { createDb, type Database } from "../index";
 import {
@@ -368,10 +368,19 @@ async function semearNoBanco(db: Database, alunoA: string) {
     }
 
     const emitidoEm = diasAtras(hoje, 20, 16);
+    // A carga horária fica congelada no certificado: a soma dos vídeos do curso como está no banco.
+    const [carga] = await tx
+      .select({
+        segundos: sql<number>`coalesce(sum(${aula.duracaoSeg}), 0)::int`,
+      })
+      .from(aula)
+      .innerJoin(modulo, eq(modulo.id, aula.moduloId))
+      .where(eq(modulo.cursoId, idCurso(CERTIFICADO_A.curso)));
     await tx.insert(certificado).values({
-      codigo: codigoCertificado(CERTIFICADO_A.prefixo, alunoA),
+      codigo: codigoCertificado(alunoA),
       cursoId: idCurso(CERTIFICADO_A.curso),
       emitidoEm,
+      segundosDeVideo: carga?.segundos ?? 0,
       userId: alunoA,
     });
 

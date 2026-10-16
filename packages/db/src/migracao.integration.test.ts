@@ -345,9 +345,9 @@ migracaoComLinhas(
       const r = await banco().query<{ valores: string }>(
         "select enum_range(null::motivo_ponto)::text as valores"
       );
-      expect(r.rows[0]?.valores).toBe(
-        "{aula_assistida,curso_concluido,sequencia_7_dias,troca}"
-      );
+      // As migrações seguintes também rodam: a lista cresce, e trilha_concluida não volta.
+      expect(r.rows[0]?.valores).not.toContain("trilha_concluida");
+      expect(r.rows[0]?.valores).toContain("troca");
     });
 
     test("liberação sem curso é recusada", async () => {
@@ -452,6 +452,85 @@ migracaoComLinhas(
         .query("delete from categoria where nome = 'Processo de envase'")
         .then(() => null, codigoDoErro);
       expect(erro).toBe("curso_categoria_id_categoria_id_fkey");
+    });
+  }
+);
+
+migracaoComLinhas(
+  "migração do questionário do aluno",
+  "questionario_do_aluno",
+  async (c) => {
+    const categoria = await c.query<{ id: string }>(
+      "insert into categoria (nome) values ('Teste') returning id"
+    );
+    const curso = await c.query<{ id: string }>(
+      `insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura)
+       values ('curso', 'Curso', $1, '/capas/c.jpg', 'Capa', 1280, 720) returning id`,
+      [categoria.rows[0]?.id]
+    );
+    const modulo = await c.query<{ id: string }>(
+      "insert into modulo (curso_id, numero, titulo) values ($1, 1, 'Módulo') returning id",
+      [curso.rows[0]?.id]
+    );
+    const aula = await c.query<{ id: string }>(
+      "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Aula', 300) returning id",
+      [modulo.rows[0]?.id]
+    );
+    await c.query(
+      "insert into aula_assistida (user_id, aula_id) values ('user_a', $1)",
+      [aula.rows[0]?.id]
+    );
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, aula_id) values ('user_a', 'aula_assistida', 10, $1)",
+      [aula.rows[0]?.id]
+    );
+    await c.query(
+      "insert into certificado (user_id, curso_id, codigo) values ('user_a', $1, 'PS-M0-2026-ABCDEF')",
+      [curso.rows[0]?.id]
+    );
+  },
+  (banco) => {
+    test("o certificado antigo ganha a carga horária do curso como está", async () => {
+      const r = await banco().query(
+        "select segundos_de_video from certificado"
+      );
+      expect(r.rows).toEqual([{ segundos_de_video: 300 }]);
+    });
+
+    test("o lançamento antigo fica com o motivo dele, e o enum ganha questionario", async () => {
+      const c = banco();
+      const antigo = await c.query(
+        "select motivo::text as motivo, pontos, tentativa_id from ponto_lancamento"
+      );
+      expect(antigo.rows).toEqual([
+        { motivo: "aula_assistida", pontos: 10, tentativa_id: null },
+      ]);
+      const valores = await c.query<{ v: string }>(
+        "select enumlabel as v from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'motivo_ponto' order by enumsortorder"
+      );
+      expect(valores.rows.map((r) => r.v)).toEqual([
+        "aula_assistida",
+        "curso_concluido",
+        "questionario",
+        "sequencia_7_dias",
+        "troca",
+      ]);
+    });
+
+    test("os checks recriados valem: questionário sem tentativa e troca positiva são recusados", async () => {
+      const c = banco();
+      const semTentativa = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos) values ('user_a', 'questionario', 5)"
+        )
+        .then(() => null, codigoDoErro);
+      expect(semTentativa).toBe("ponto_lancamento_referencia");
+      const trocaPositiva = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos, liberacao_id) values ('user_a', 'troca', 5, gen_random_uuid())"
+        )
+        .then(() => null, codigoDoErro);
+      expect(trocaPositiva).toBe("ponto_lancamento_sinal");
     });
   }
 );

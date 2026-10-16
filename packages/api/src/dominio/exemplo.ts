@@ -276,7 +276,7 @@ export function exemploDoPrototipo(): LinhasPainel {
     assistidas,
     certificados: [
       {
-        codigo: codigoCertificado(CERTIFICADO_A.prefixo, "user_seedA"),
+        codigo: codigoCertificado("user_seedA"),
         cursoId: CERTIFICADO_A.curso,
         emitidoEm: em("2026-09-20T12:00:00Z"),
       },
