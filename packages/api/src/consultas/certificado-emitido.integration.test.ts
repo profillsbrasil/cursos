@@ -53,6 +53,7 @@ const SLUG = `teste-${S}-fabrica`;
 describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   let cursoId = "";
+  let moduloId = "";
 
   const como = (userId: string | null) =>
     createCaller(contextoDeTeste({ db, pessoas: PESSOAS, userId }));
@@ -77,13 +78,14 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
       .insert(modulo)
       .values({ cursoId, numero: 1, titulo: "Segurança do posto" })
       .returning({ id: modulo.id });
+    moduloId = mod?.id ?? "";
     // 7 aulas de 10:34: 1 h 14 min, que arredonda para 2 horas.
     const aulas = await db
       .insert(aula)
       .values(
         Array.from({ length: 7 }, (_, i) => ({
           duracaoSeg: 634,
-          moduloId: mod?.id ?? "",
+          moduloId,
           posicao: i + 1,
           titulo: `Aula ${i + 1}`,
         }))
@@ -207,6 +209,16 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     expect((await como(ANA).certificado.pagina({ slug: SLUG }))?.tipo).toBe(
       "emitido"
     );
+  });
+
+  test("a carga horária fica a da emissão quando o curso ganha aula depois", async () => {
+    await db
+      .insert(aula)
+      .values({ duracaoSeg: 3600, moduloId, posicao: 8, titulo: "Aula nova" });
+    const anonimo = como(null).certificado;
+    expect((await anonimo.conferir({ codigo: CODIGO_DA_ANA }))?.horas).toBe(2);
+    const pagina = await como(ANA).certificado.pagina({ slug: SLUG });
+    expect(pagina?.tipo === "emitido" && pagina.certificado.horas).toBe(2);
   });
 
   test("sem login, a página do aluno lança UNAUTHORIZED", async () => {

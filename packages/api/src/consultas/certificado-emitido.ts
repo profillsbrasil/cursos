@@ -1,6 +1,6 @@
 import type { Database } from "@cursos/db";
 import { categoria, certificado, curso } from "@cursos/db/schema/index";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import type { Servicos } from "../context";
 import { montarCursoAberto } from "../dominio/aula";
@@ -26,11 +26,7 @@ export async function linhaDoCertificado(
       categoria: categoria.nome,
       codigo: certificado.codigo,
       emitidoEm: certificado.emitidoEm,
-      segundosDeVideo: sql<number>`(
-        select coalesce(sum(a.duracao_seg), 0)
-        from aula a join modulo m on m.id = a.modulo_id
-        where m.curso_id = ${curso.id}
-      )`.mapWith(Number),
+      segundosDeVideo: certificado.segundosDeVideo,
       slug: curso.slug,
       tituloDoCurso: curso.titulo,
       userId: certificado.userId,
