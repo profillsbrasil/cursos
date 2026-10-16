@@ -8,6 +8,7 @@ import Form from "next/form";
 import Image from "next/image";
 
 import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { diaCurto, diaEmSaoPaulo } from "@/lib/formato";
 import { ICONE, PRODUTO } from "@/lib/marca";
 import { caminhoDaConferencia } from "@/lib/rotas";
@@ -95,7 +96,7 @@ export function ConferirOutro({ digitado }: { digitado: string }) {
       <Input
         autoCapitalize="characters"
         autoComplete="off"
-        className="h-11 min-w-0 flex-1 rounded-[12px] border-muted-foreground bg-background px-3.5 text-sm tracking-[0.04em] md:text-sm dark:border-muted-foreground dark:bg-background"
+        className={cn(CAMPO, "h-11 min-w-0 flex-1 tracking-[0.04em]")}
         defaultValue={digitado}
         id="codigo-do-certificado"
         maxLength={40}

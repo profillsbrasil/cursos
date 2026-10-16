@@ -32,12 +32,12 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { focarDepois, focarOPrimeiro } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
 import { trpcClient } from "@/utils/trpc";
-
 import { BarraDeSalvar } from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
@@ -64,7 +64,8 @@ import {
   REGRAS_DO_CURSO,
 } from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
-import { CAMPO, ICONE, ROTULO, Secao } from "./partes";
+
+import { ICONE, ROTULO, Secao } from "./partes";
 import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,

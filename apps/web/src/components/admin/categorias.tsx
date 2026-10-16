@@ -28,17 +28,18 @@ import {
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { DICA } from "@/components/casca/estilo";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
-import { CAMPO, CONTORNO_DESLIGADO, SELO, Secao, Vazio } from "./partes";
+
+import { CONTORNO_DESLIGADO, SELO, Secao, Vazio } from "./partes";
 
 const NOME_VAZIO = "Escreva o nome da categoria.";
 const TODAS = "todas";

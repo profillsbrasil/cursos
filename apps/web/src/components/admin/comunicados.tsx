@@ -23,16 +23,17 @@ import {
 } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CAMPO } from "@/components/casca/campos";
 import { fmtData, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import {
   Carregando,
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
-import { CAMPO, ROTULO, SELO, Secao, Vazio } from "./partes";
+
+import { ROTULO, SELO, Secao, Vazio } from "./partes";
 import { type ItemDaSelecao, SelecaoComBusca } from "./selecao";
 
 /** O que o formulário envia; cursoId vazio é o comunicado geral. */

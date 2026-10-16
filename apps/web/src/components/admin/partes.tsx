@@ -8,8 +8,6 @@ export const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
 export const CELULA = "px-5 py-3.5 text-sm";
 export const NUMERO = "text-right tabular-nums";
 
-export const CAMPO =
-  "rounded-[12px] border-muted-foreground bg-background px-3.5 text-sm md:text-sm dark:border-muted-foreground dark:bg-background";
 /**
  * O gatilho da Selecao. A borda Céu do foco e do cursor vem do index.css pelo
  * data-slot="select-trigger"; a seta gira com o data-popup-open do Base UI.
