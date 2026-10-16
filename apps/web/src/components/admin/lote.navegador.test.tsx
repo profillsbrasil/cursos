@@ -85,6 +85,10 @@ const PAGINA = `
         import { flushSync } from "react-dom";
         import { createRoot } from "react-dom/client";
         import { ProvedorDoLote } from "./provedor-do-lote";
+        import { Input } from "@cursos/ui/components/input";
+        import { cn } from "@cursos/ui/lib/utils";
+        import { Search } from "lucide-react";
+        import { CAMPO } from "../casca/campos";
         import { TelaDeAlunos } from "./tela-de-alunos";
 
         const BUSCAS = ${JSON.stringify(BUSCAS)};
@@ -99,7 +103,7 @@ const PAGINA = `
                 <h1 className="font-bold text-3xl text-titulo tracking-tight">Alunos</h1>
                 <p className="text-muted-foreground">Marque pessoas para liberar um curso, ou abra uma para ver o acesso</p>
               </header>
-              <div className="mb-8 h-11 rounded-full bg-card ring-1 ring-muted-foreground" />
+              <div className="relative mb-8"><Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" /><Input className={cn(CAMPO, "pr-4 pl-10")} defaultValue="lima" placeholder="Nome ou e-mail" /></div>
               <TelaDeAlunos cursos={CURSOS} resultado={BUSCAS[termo]} termo={termo} />
             </>
           );
@@ -175,6 +179,8 @@ async function empacotar() {
 }
 
 const ARQUIVOS_COM_CLASSES = [
+  "../casca/campos.ts",
+  "../../../../../packages/ui/src/components/input.tsx",
   "tela-de-alunos.tsx",
   "lista-de-pessoas.tsx",
   "coluna-do-lote.tsx",
