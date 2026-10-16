@@ -32,6 +32,8 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Prova | Avaliação final do curso. Abre quando todas as aulas estão assistidas. |
 | Certificado | Comprovante emitido quando o aluno assistiu a todas as aulas e passou na prova. Tem código único e continua valendo se o curso ganhar aula nova. |
 | Curso concluído | Curso em que o aluno tem certificado. |
+| Carga horária | A soma da duração dos vídeos do curso, arredondada para cima em horas ("2 horas"). Vai no certificado. |
+| Conferência | A página pública que confirma um certificado pelo código, sem login: o QR da folha leva a ela. Evite "validação", que a PRODUCT.md reserva para órgão externo. |
 | Curso começado | Curso em que o aluno tem pelo menos uma aula assistida ou uma posição acima de 0 s. Só volta a fechar como `em_breve`, quando o admin o põe em produção. |
 | Ponto | Valor inteiro de um lançamento. O saldo é a soma dos lançamentos do aluno. |
 | Lançamento | Fato imutável de pontos, ligado ao fato que o gerou. Entrada é positiva; saída é negativa, e hoje só a troca sai. O mesmo fato não gera dois lançamentos. |
