@@ -5,11 +5,13 @@ import {
 } from "@cursos/api/dominio/rotas";
 import type { Route } from "next";
 
+export const caminhoDoCurso = (slug: string) => curso(slug) as Route;
+
 export const caminhoDaAula = (slug: string, aulaId: string) =>
   aula(slug, aulaId) as Route;
 
 /** Para onde a retomada leva: a aula, ou a página do curso quando falta a prova. O banner e o cartão do rodapé usam a mesma regra. */
 export const hrefDaRetomada = (r: Retomada): Route =>
   r.tipo === "prova"
-    ? (curso(r.curso.slug) as Route)
+    ? caminhoDoCurso(r.curso.slug)
     : caminhoDaAula(r.curso.slug, r.aula.id);

@@ -2,10 +2,8 @@ import { inicioDaAula } from "@cursos/api/dominio/aula";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { TopoDoAluno } from "@/components/aluno/topo";
 import { AulaSemVideo } from "@/components/player/aula-sem-video";
 import { ColunaDoCurso } from "@/components/player/coluna-do-curso";
-import { MigalhaDaAula } from "@/components/player/migalha-da-aula";
 import { PlayerDaAula } from "@/components/player/player-da-aula";
 import { carregarAula } from "@/server/api";
 
@@ -31,21 +29,18 @@ export default async function PaginaDaAula({ params }: Props) {
     notFound();
   }
   return (
-    <>
-      <TopoDoAluno esquerda={<MigalhaDaAula dados={dados} />} />
-      <div className="grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]">
-        {dados.aula.video ? (
-          <PlayerDaAula
-            dados={dados}
-            inicioSeg={inicioDaAula(dados.estudo, dados.aula.duracaoSeg)}
-            key={dados.aula.id}
-            video={dados.aula.video}
-          />
-        ) : (
-          <AulaSemVideo dados={dados} />
-        )}
-        <ColunaDoCurso dados={dados} />
-      </div>
-    </>
+    <div className="grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]">
+      {dados.aula.video ? (
+        <PlayerDaAula
+          dados={dados}
+          inicioSeg={inicioDaAula(dados.estudo, dados.aula.duracaoSeg)}
+          key={dados.aula.id}
+          video={dados.aula.video}
+        />
+      ) : (
+        <AulaSemVideo dados={dados} />
+      )}
+      <ColunaDoCurso dados={dados} />
+    </div>
   );
 }
