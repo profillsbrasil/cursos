@@ -48,7 +48,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
     <article className="group relative grid min-w-0 content-start gap-3">
       <div className="relative aspect-[900/604] overflow-hidden rounded-[14px] bg-sidebar ring-1 ring-border transition-shadow group-has-hover:ring-ceu">
         <Image
-          alt={curso.capa.alt}
+          alt=""
           className={cn(
             "object-cover transition-transform duration-200 ease-forte group-has-hover:scale-[1.03] motion-reduce:transition-none",
             apagada && "brightness-70 grayscale-60"
