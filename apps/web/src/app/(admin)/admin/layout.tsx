@@ -19,6 +19,7 @@ export default async function LayoutDoAdmin({
     <Casca
       itens={ITENS_DO_ADMIN}
       outraArea={VER_COMO_ALUNO}
+      placar={null}
       rotulo="Navegação do admin"
       selo="Admin"
     >

@@ -115,17 +115,17 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
 }
 
 /**
- * O cartão de conta do rodapé, igual nas duas áreas. Nome e foto vêm do Clerk no
- * navegador, então a troca feita em "Minha conta" aparece sem refresh. Saldo e
- * sequência vêm da Promise que a Casca cria no servidor: o refresh que toda escrita
- * de pontos já pede traz outra Promise, e os números trocam sem esqueleto.
+ * O cartão de conta do rodapé. Nome e foto vêm do Clerk no navegador, então a troca
+ * feita em "Minha conta" aparece sem refresh. Saldo e sequência vêm da Promise que a
+ * área do aluno cria no servidor: o refresh que toda escrita de pontos já pede traz
+ * outra Promise, e os números trocam sem esqueleto. O admin não tem placar.
  */
 export function CartaoDeConta({
   outraArea,
   placar,
 }: {
   outraArea: LinkDaArea | null;
-  placar: Promise<Placar | null>;
+  placar: Promise<Placar | null> | null;
 }) {
   const { isLoaded, user } = useUser();
   const { openUserProfile, signOut } = useClerk();
@@ -163,11 +163,13 @@ export function CartaoDeConta({
           ) : (
             <span className={cn(LINHA_ESQUELETO, "h-3.5 w-28")} />
           )}
-          <Suspense
-            fallback={<span className={cn(LINHA_ESQUELETO, "h-3 w-24")} />}
-          >
-            <NumerosDoGatilho placar={placar} />
-          </Suspense>
+          {placar ? (
+            <Suspense
+              fallback={<span className={cn(LINHA_ESQUELETO, "h-3 w-24")} />}
+            >
+              <NumerosDoGatilho placar={placar} />
+            </Suspense>
+          ) : null}
         </span>
         <ChevronsUpDown
           aria-hidden="true"
@@ -183,9 +185,11 @@ export function CartaoDeConta({
         side={recolhida ? "right" : "top"}
         sideOffset={recolhida ? 14 : 8}
       >
-        <Suspense fallback={null}>
-          <PlacarDoMenu placar={placar} />
-        </Suspense>
+        {placar ? (
+          <Suspense fallback={null}>
+            <PlacarDoMenu placar={placar} />
+          </Suspense>
+        ) : null}
         <DropdownMenuItem className={ITEM} onClick={abrirMinhaConta}>
           <UserRound aria-hidden="true" />
           Minha conta
