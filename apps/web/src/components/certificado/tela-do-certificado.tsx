@@ -19,13 +19,32 @@ const TITULO_DO_CARTAO = "font-semibold text-lg text-titulo leading-[1.3]";
 export const GRADE_DO_CERTIFICADO =
   "mt-6 grid items-start gap-8 min-[1081px]:grid-cols-[minmax(0,1fr)_300px]";
 
+function ItemQueFalta({
+  children,
+  cumprido,
+}: {
+  children: React.ReactNode;
+  cumprido: boolean;
+}) {
+  return (
+    <li className="flex items-center gap-2.5">
+      {cumprido ? (
+        <Check aria-hidden="true" className="size-4 text-ceu" />
+      ) : (
+        <ListChecks aria-hidden="true" className="size-4 text-canela" />
+      )}
+      {children}
+    </li>
+  );
+}
+
 function Pendente({
   pagina,
 }: {
   pagina: Extract<PaginaDoCertificado, { tipo: "falta" }>;
 }) {
   const { feitas, total } = pagina.aulas;
-  const assistiuTudo = feitas === total;
+  const { aprovados, total: questionarios } = pagina.questionarios;
   return (
     <section
       aria-labelledby="certificado-pendente"
@@ -46,14 +65,19 @@ function Pendente({
         </p>
       </div>
       <ul className="grid gap-2 tabular-nums">
-        <li className="flex items-center gap-2.5">
-          {assistiuTudo ? (
-            <Check aria-hidden="true" className="size-4 text-ceu" />
-          ) : (
-            <ListChecks aria-hidden="true" className="size-4 text-canela" />
-          )}
+        <ItemQueFalta cumprido={feitas === total}>
           {feitas} de {plural(total, "aula assistida", "aulas assistidas")}
-        </li>
+        </ItemQueFalta>
+        {questionarios > 0 ? (
+          <ItemQueFalta cumprido={aprovados === questionarios}>
+            {aprovados} de{" "}
+            {plural(
+              questionarios,
+              "questionário aprovado",
+              "questionários aprovados"
+            )}
+          </ItemQueFalta>
+        ) : null}
       </ul>
       <Link className={BOTAO} href={caminhoDoCurso(pagina.curso.slug)}>
         <ListChecks aria-hidden="true" />

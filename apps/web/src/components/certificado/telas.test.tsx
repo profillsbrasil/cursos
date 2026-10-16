@@ -68,14 +68,45 @@ describe("a página do aluno", () => {
     const html = tela({
       aulas: { feitas: 3, total: 7 },
       curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+      questionarios: { aprovados: 0, total: 0 },
       tipo: "falta",
     });
     expect(texto(html)).toContain(
       "O certificado sai quando você concluir o curso"
     );
     expect(texto(html)).toContain("3 de 7 aulas assistidas");
+    expect(texto(html)).not.toContain("aprovado");
     expect(html).toContain('href="/cursos/fabrica-e-montagem"');
     expect(html).not.toContain("<figure");
+  });
+
+  test("sem certificado, conta os questionários aprovados ao lado das aulas", () => {
+    const lido = texto(
+      tela({
+        aulas: { feitas: 7, total: 7 },
+        curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+        questionarios: { aprovados: 4, total: 7 },
+        tipo: "falta",
+      })
+    );
+    expect(lido).toContain("7 de 7 aulas assistidas");
+    expect(lido).toContain("4 de 7 questionários aprovados");
+    expect(lido.indexOf("aulas assistidas")).toBeLessThan(
+      lido.indexOf("questionários aprovados")
+    );
+  });
+
+  test("um questionário só fica no singular", () => {
+    expect(
+      texto(
+        tela({
+          aulas: { feitas: 2, total: 3 },
+          curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+          questionarios: { aprovados: 0, total: 1 },
+          tipo: "falta",
+        })
+      )
+    ).toContain("0 de 1 questionário aprovado");
   });
 });
 

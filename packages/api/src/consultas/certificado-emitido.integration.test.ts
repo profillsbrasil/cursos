@@ -3,7 +3,7 @@
 // apaga tudo no afterAll.
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -12,6 +12,8 @@ import {
   curso,
   liberacao,
   modulo,
+  pergunta,
+  questionarioTentativa,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
@@ -102,6 +104,24 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     await db
       .insert(aulaAssistida)
       .values(aulas.slice(0, 3).map((a) => ({ aulaId: a.id, userId: BRUNO })));
+    await db.insert(pergunta).values(
+      aulas.slice(0, 3).map((a) => ({
+        aulaId: a.id,
+        enunciado: "Qual é o EPI do posto?",
+        posicao: 1,
+      }))
+    );
+    await db.insert(questionarioTentativa).values(
+      [true, false].map((aprovada, i) => ({
+        acertos: aprovada ? 1 : 0,
+        aprovada,
+        aulaId: aulas[i]?.id ?? "",
+        id: randomUUID(),
+        numero: 1,
+        total: 1,
+        userId: BRUNO,
+      }))
+    );
     await db.insert(certificado).values([
       {
         codigo: CODIGO_DA_ANA,
@@ -126,6 +146,9 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
   });
 
   afterAll(async () => {
+    await db
+      .delete(questionarioTentativa)
+      .where(inArray(questionarioTentativa.userId, ALUNOS));
     await db.delete(certificado).where(inArray(certificado.userId, ALUNOS));
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
@@ -193,6 +216,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     expect(await como(BRUNO).certificado.pagina({ slug: SLUG })).toEqual({
       aulas: { feitas: 3, total: 7 },
       curso: { slug: SLUG, titulo: "Fábrica e montagem" },
+      questionarios: { aprovados: 1, total: 3 },
       tipo: "falta",
     });
   });

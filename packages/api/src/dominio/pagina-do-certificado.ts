@@ -1,5 +1,5 @@
 import type { CursoAberto } from "./aula";
-import { progresso } from "./curso";
+import { progresso, questionariosDoCurso } from "./curso";
 import type { Pessoa } from "./tipos";
 
 export interface CertificadoEmitido {
@@ -22,6 +22,8 @@ export type PaginaDoCertificado =
       tipo: "falta";
       aulas: { feitas: number; total: number };
       curso: { slug: string; titulo: string };
+      /** total 0 no curso sem questionário. */
+      questionarios: { aprovados: number; total: number };
     };
 
 export interface LinhaDoCertificado {
@@ -69,9 +71,11 @@ export const paginaEmitida = (
 
 export function paginaQueFalta(c: CursoAberto): PaginaDoCertificado {
   const { feitas, total } = progresso(c.curso, c.historico.assistidas);
+  const q = questionariosDoCurso(c.curso, c.historico);
   return {
     aulas: { feitas, total },
     curso: { slug: c.curso.slug, titulo: c.curso.titulo },
+    questionarios: { aprovados: q.aprovados, total: q.total },
     tipo: "falta",
   };
 }

@@ -65,6 +65,7 @@ describe("o PDF da página do aluno", () => {
     daSessao = {
       aulas: { feitas: 3, total: 7 },
       curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+      questionarios: { aprovados: 0, total: 2 },
       tipo: "falta",
     };
     expect((await pdfDoAluno()).status).toBe(404);
