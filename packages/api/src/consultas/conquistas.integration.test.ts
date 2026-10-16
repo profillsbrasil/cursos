@@ -210,7 +210,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await db.$client.end();
   });
 
-  test("a aluna: medalhas pelos fatos do banco, em 6 statements", async () => {
+  test("a aluna: medalhas pelos fatos do banco, em 7 statements", async () => {
     statements = 0;
     const c = resumo(await carregarConquistas(db, ALUNA, SEXTA_15H));
     expect(statements).toBe(7);
