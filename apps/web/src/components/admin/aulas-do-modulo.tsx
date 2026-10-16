@@ -315,7 +315,7 @@ function PainelDaAula({
       </div>
       <CampoDeTexto
         campoClasse="gap-1.5"
-        className="font-semibold text-lg text-titulo"
+        className="font-semibold text-lg text-titulo md:text-lg"
         id={ID.aula(id, "titulo")}
         maxLength={CARACTERES.tituloDaAula}
         onChange={mudarTitulo}

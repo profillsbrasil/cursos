@@ -144,6 +144,7 @@ interface Medida {
   campo: { altura: number; raio: string };
   capa: DOMRect;
   edicao: DOMRect;
+  fontes: { aula: [string, string]; curso: [string, string] };
   lista: DOMRect;
   painel: DOMRect;
   perguntas: DOMRect;
@@ -177,8 +178,10 @@ const medir = () =>
           polegar: { fundo: getComputedStyle(p).backgroundColor, lado: q.width, recuo: q.left - r.left, topo: q.top - r.top },
         };
       });
+      const fonte = (el) => [getComputedStyle(el).fontSize, getComputedStyle(el).fontWeight];
       return {
         alavancas,
+        fontes: { aula: fonte(document.getElementById("aula-${EDICAO.A1}-titulo")), curso: fonte(document.getElementById("curso-titulo")) },
         area: { ...forma(document.getElementById("curso-descricao")), rola: (() => { const a = document.getElementById("curso-descricao"); return a.scrollHeight > a.clientHeight; })() },
         camada: getComputedStyle(document.getElementById("curso-capa").closest("label").querySelector("[aria-hidden]")).opacity,
         campo: forma(document.getElementById("curso-titulo")),
@@ -247,6 +250,13 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
       const focado = await avaliar<string>(enviar, "document.activeElement.id");
       await avaliar(enviar, "new Promise((r) => setTimeout(r, 300))");
       expect([focado, (await medir()).camada]).toEqual(["curso-capa", "1"]);
+    });
+
+    test("o título do curso fica em 700 e 20 px, e o da aula em 600 e 18 px", () => {
+      expect(m.fontes).toEqual({
+        aula: ["18px", "600"],
+        curso: ["20px", "700"],
+      });
     });
 
     test("o campo é a pílula de 44 px, e a área de texto tem raio de 20 px", () => {
