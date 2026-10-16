@@ -22,7 +22,6 @@ export type PaginaDoCertificado =
       tipo: "falta";
       aulas: { feitas: number; total: number };
       curso: { slug: string; titulo: string };
-      /** total 0 no curso sem questionário. */
       questionarios: { aprovados: number; total: number };
     };
 
