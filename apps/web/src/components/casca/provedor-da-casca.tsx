@@ -13,19 +13,32 @@ import {
   useState,
 } from "react";
 
-import { LARGURAS_DA_SIDEBAR } from "./nav";
+import { aberturaEm, alternar, estaAberta, navegar } from "./abertura";
+import {
+  COOKIE_DA_SIDEBAR,
+  LARGURAS_DA_SIDEBAR,
+  VALIDADE_DO_COOKIE_S,
+} from "./nav";
 
 /** A transição de largura de index.css dura 200 ms; a folga cobre o último quadro. */
 const PRAZO_DA_ANIMACAO_MS = 260;
 
-const Animar = createContext<((desde: number) => void) | null>(null);
+const Animar = createContext<(() => void) | null>(null);
+
+const gravarPreferencia = (aberta: boolean) => {
+  // biome-ignore lint/suspicious/noDocumentCookie: o mesmo cookie e o mesmo formato que o setOpen do packages/ui grava.
+  document.cookie = `${COOKIE_DA_SIDEBAR}=${aberta}; path=/; max-age=${VALIDADE_DO_COOKIE_S}`;
+};
 
 /**
- * O SidebarProvider do packages/ui, mais o atributo data-animando no wrapper. A
- * largura muda na hora por padrão; só useAlternarNavegacao liga o atributo, e o CSS
- * de index.css só anima com ele. O prazo apaga o atributo, e não o transitionend:
- * com movimento reduzido a transição não roda, o evento não chega, e o atributo
- * ficaria preso, fazendo o próximo Ctrl+B animar.
+ * O SidebarProvider do packages/ui, controlado pela Abertura (abertura.ts): o
+ * cookie fora da aula, recolhida em cada aula nova. A troca de caminho que muda a
+ * largura anima como o botão de recolher.
+ *
+ * O atributo data-animando no wrapper liga a animação: a largura muda na hora por
+ * padrão, e o CSS de index.css só anima com ele. O prazo apaga o atributo, e não o
+ * transitionend: com movimento reduzido a transição não roda, o evento não chega,
+ * e o atributo ficaria preso, fazendo o próximo Ctrl+B animar.
  */
 export function ProvedorDaCasca({
   aberta,
@@ -34,25 +47,50 @@ export function ProvedorDaCasca({
   aberta: boolean;
   children: ReactNode;
 }) {
-  const [animandoDesde, setAnimandoDesde] = useState<number | null>(null);
+  const caminho = usePathname();
+  const [abertura, setAbertura] = useState(() => aberturaEm(caminho, aberta));
+  const [animacao, setAnimacao] = useState<number | null>(null);
+  const animar = useCallback(() => setAnimacao((n) => (n ?? 0) + 1), []);
+
+  // No mesmo render da página nova: o atributo e a largura chegam no mesmo commit.
+  const seguinte = navegar(abertura, caminho);
+  if (seguinte !== abertura) {
+    if (estaAberta(seguinte) !== estaAberta(abertura)) {
+      animar();
+    }
+    setAbertura(seguinte);
+  }
+
   useEffect(() => {
-    if (animandoDesde === null) {
+    if (animacao === null) {
       return;
     }
-    const id = window.setTimeout(
-      () => setAnimandoDesde(null),
-      PRAZO_DA_ANIMACAO_MS
-    );
+    const id = window.setTimeout(() => setAnimacao(null), PRAZO_DA_ANIMACAO_MS);
     return () => window.clearTimeout(id);
-  }, [animandoDesde]);
+  }, [animacao]);
+
+  const aoAlternar = useCallback(
+    (nova: boolean) => {
+      if (abertura.lugar === "aula") {
+        // Workaround: o setOpen do packages/ui grava o cookie logo depois de chamar
+        // esta função. Na aula a preferência não muda, e a microtarefa a regrava.
+        const { preferida } = abertura;
+        queueMicrotask(() => gravarPreferencia(preferida));
+      }
+      setAbertura((a) => alternar(a, nova));
+    },
+    [abertura]
+  );
+
   return (
     <SidebarProvider
-      data-animando={animandoDesde === null ? undefined : ""}
-      defaultOpen={aberta}
+      data-animando={animacao === null ? undefined : ""}
+      onOpenChange={aoAlternar}
+      open={estaAberta(abertura)}
       style={LARGURAS_DA_SIDEBAR as CSSProperties}
     >
       <FecharGavetaAoNavegar />
-      <Animar value={setAnimandoDesde}>{children}</Animar>
+      <Animar value={animar}>{children}</Animar>
     </SidebarProvider>
   );
 }
@@ -96,13 +134,13 @@ export function useAlternarNavegacao() {
     throw new Error("useAlternarNavegacao fora do ProvedorDaCasca.");
   }
   const { setOpenMobile, toggleSidebar } = useSidebar();
-  const alternar = useCallback(() => {
-    animar(performance.now());
+  const alternarComAnimacao = useCallback(() => {
+    animar();
     toggleSidebar();
   }, [animar, toggleSidebar]);
   const fecharNoCelular = useCallback(
     () => setOpenMobile(false),
     [setOpenMobile]
   );
-  return { alternar, fecharNoCelular };
+  return { alternar: alternarComAnimacao, fecharNoCelular };
 }
