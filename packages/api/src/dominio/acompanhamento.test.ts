@@ -9,7 +9,7 @@ import {
 } from "./acompanhamento";
 import { cursoCat, idAula } from "./exemplo";
 import type { LinhasHistorico } from "./historico";
-import type { DiaISO } from "./tipos";
+import type { CursoId, DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 
@@ -149,6 +149,7 @@ describe("montarBusca", () => {
   const ativa = (cursoId: string, iso: string) => ({
     cursoId,
     liberadaEm: em(iso),
+    origem: "admin" as const,
     revogadaEm: null,
   });
   const curso = (id: string, aulas: number, status = "publicado" as const) => ({
@@ -301,6 +302,34 @@ describe("montarBusca", () => {
       busca.total,
       busca.pessoas.map((p) => p.userId),
     ]).toEqual([HOJE, 7, ["user_b", "user_a"]]);
+  });
+
+  test("os cursos que a pessoa tem, com a origem; o revogado fica fora", () => {
+    const busca = montarBusca(
+      { pessoas: [pessoa("user_a")], total: 1 },
+      {
+        ...catalogo,
+        pessoas: [
+          {
+            ...linhas({}),
+            liberacoes: [
+              ativa("x", "2026-08-08T15:00:00Z"),
+              { ...ativa("y", "2026-08-09T15:00:00Z"), origem: "troca" },
+              {
+                ...ativa("w", "2026-08-10T15:00:00Z"),
+                revogadaEm: em("2026-09-02T15:00:00Z"),
+              },
+            ],
+            userId: "user_a",
+          },
+        ],
+      },
+      HOJE
+    );
+    expect(busca.pessoas[0]?.ativas).toEqual([
+      { cursoId: "x" as CursoId, origem: "admin" },
+      { cursoId: "y" as CursoId, origem: "troca" },
+    ]);
   });
 
   test("curso liberado fora do catálogo do statement é erro, não silêncio", () => {

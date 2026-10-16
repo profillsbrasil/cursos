@@ -25,7 +25,7 @@ export const AVISO =
  * O desligado segura o foco de teclado e neutraliza o próprio hover, então sobe de
  * 50% para 80% no foco e sob o cursor (#30): sem isso, ficaria sem sinal de foco.
  */
-const NAO_PODE =
+export const NAO_PODE =
   "data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:opacity-80";
 
 export const ICONE = cn(
