@@ -14,8 +14,8 @@ export const nomeDaCategoria = z
   .max(CARACTERES.categoria);
 
 export interface CategoriaNaLista {
-  /** Cursos que apontam para ela. Com algum, ela não se apaga. */
-  cursos: number;
+  /** Títulos dos cursos que apontam para ela, em ordem pt-BR. Com algum, ela não se apaga. */
+  cursos: readonly string[];
   id: CategoriaId;
   nome: string;
 }

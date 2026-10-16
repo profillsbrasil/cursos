@@ -46,7 +46,11 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
     return id;
   };
 
-  async function cursoNa(categoriaId: CategoriaId, n: number) {
+  async function cursoNa(
+    categoriaId: CategoriaId,
+    n: number,
+    titulo = `Curso ${S} ${n}`
+  ) {
     const [c] = await db
       .insert(curso)
       .values({
@@ -56,7 +60,7 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
         capaUrl: "/capas/teste.jpg",
         categoriaId,
         slug: `categoria-${S}-${n}`,
-        titulo: `Curso ${S} ${n}`,
+        titulo,
       })
       .returning({ id: curso.id });
     if (!c) {
@@ -80,7 +84,7 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
     });
     await admin.salvar({ id, nome: `Processo de envase ${S}` });
     expect(await minhas()).toEqual([
-      { cursos: 0, id, nome: `Processo de envase ${S}` },
+      { cursos: [], id, nome: `Processo de envase ${S}` },
     ]);
   });
 
@@ -94,17 +98,17 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
     });
   });
 
-  test("lista por nome com a contagem de cursos", async () => {
+  test("lista por nome com os títulos dos cursos, os dois em ordem pt-BR", async () => {
     const a = novoId();
     const b = novoId();
-    await admin.salvar({ id: b, nome: `B lista ${S}` });
+    await admin.salvar({ id: b, nome: `Ética lista ${S}` });
     await admin.salvar({ id: a, nome: `A lista ${S}` });
-    await cursoNa(b, 1);
-    await cursoNa(b, 2);
+    await cursoNa(b, 1, `Zinco ${S}`);
+    await cursoNa(b, 2, `Ácido ${S}`);
     const lista = (await admin.lista()).filter((c) => [a, b].includes(c.id));
     expect(lista).toEqual([
-      { cursos: 0, id: a, nome: `A lista ${S}` },
-      { cursos: 2, id: b, nome: `B lista ${S}` },
+      { cursos: [], id: a, nome: `A lista ${S}` },
+      { cursos: [`Ácido ${S}`, `Zinco ${S}`], id: b, nome: `Ética lista ${S}` },
     ]);
   });
 

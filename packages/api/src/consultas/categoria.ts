@@ -11,21 +11,30 @@ import { type CategoriaNaLista, categoriaEmUso } from "../dominio/categoria";
 import type { CategoriaId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 
-/** Por nome, com a contagem de cursos. Um statement. */
+const PT_BR = new Intl.Collator("pt-BR");
+
+/** Por nome, com os títulos dos cursos de cada uma, os dois em ordem pt-BR. Um statement. */
 export async function listarCategorias(
   db: Database
 ): Promise<CategoriaNaLista[]> {
   const linhas = await db
     .select({
-      cursos: sql<number>`count(${curso.id})::int`,
+      cursos: sql<
+        string[]
+      >`coalesce(array_agg(${curso.titulo}) filter (where ${curso.id} is not null), '{}')`,
       id: categoria.id,
       nome: categoria.nome,
     })
     .from(categoria)
     .leftJoin(curso, eq(curso.categoriaId, categoria.id))
-    .groupBy(categoria.id)
-    .orderBy(categoria.nome, categoria.id);
-  return linhas.map((l) => ({ ...l, id: l.id as CategoriaId }));
+    .groupBy(categoria.id);
+  return linhas
+    .map((l) => ({
+      cursos: l.cursos.toSorted(PT_BR.compare),
+      id: l.id as CategoriaId,
+      nome: l.nome,
+    }))
+    .toSorted((a, b) => PT_BR.compare(a.nome, b.nome));
 }
 
 /**

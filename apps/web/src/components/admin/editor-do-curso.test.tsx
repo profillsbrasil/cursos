@@ -45,8 +45,12 @@ function opcoesDaCategoria(html: string) {
 
 const OUTRA = uuidDeExemplo(32) as CategoriaId;
 const CATEGORIAS: CategoriaNaLista[] = [
-  { cursos: 1, id: EDICAO.CATEGORIA, nome: "Processo de envase" },
-  { cursos: 0, id: OUTRA, nome: "Vendas e negócios" },
+  {
+    cursos: ["Fábrica e montagem"],
+    id: EDICAO.CATEGORIA,
+    nome: "Processo de envase",
+  },
+  { cursos: [], id: OUTRA, nome: "Vendas e negócios" },
 ];
 
 const salvo: EdicaoDoCurso = {
