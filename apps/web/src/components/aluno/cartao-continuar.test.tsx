@@ -30,13 +30,13 @@ const CONTINUAR: Continuar = {
   titulo: "Pilar Urgência · Aula 4",
 };
 
-const PROVA_FORA_DA_AULA: Continuar = {
-  chamada: "Falta a prova",
-  chamadaAqui: "Falta só a prova",
+const QUESTIONARIO_FORA_DA_AULA: Continuar = {
+  chamada: "Faltam 2 questionários",
+  chamadaAqui: "Você está no questionário",
   href: DESTINO_FORA_DA_AULA,
   pct: 100,
-  rotulo: "Falta a prova: Comercial, 100% do curso",
-  tipo: "prova",
+  rotulo: "Faltam 2 questionários: Comercial, 100% do curso",
+  tipo: "questionario",
   titulo: "Comercial",
 };
 
@@ -76,10 +76,10 @@ describe("o Continuar é um elemento só", () => {
     });
 
     test(`${modo}, no destino: aria-current uma vez, sem link`, () => {
-      const h = html(DESTINO_FORA_DA_AULA, aberta, PROVA_FORA_DA_AULA);
+      const h = html(DESTINO_FORA_DA_AULA, aberta, QUESTIONARIO_FORA_DA_AULA);
       expect(vezes(h, "<a ")).toBe(0);
       expect(vezes(h, 'aria-current="page"')).toBe(1);
-      expect(vezes(h, PROVA_FORA_DA_AULA.chamadaAqui)).toBe(1);
+      expect(vezes(h, QUESTIONARIO_FORA_DA_AULA.chamadaAqui)).toBe(1);
     });
   }
 });
@@ -109,7 +109,7 @@ describe("a troca de modo não anima o Continuar", () => {
         html(
           caminho,
           true,
-          caso === "no destino" ? PROVA_FORA_DA_AULA : CONTINUAR
+          caso === "no destino" ? QUESTIONARIO_FORA_DA_AULA : CONTINUAR
         )
       ).filter((c) => c.includes("transition"));
       expect(

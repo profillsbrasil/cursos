@@ -41,6 +41,8 @@ export interface LinhasDasConquistas {
   }[];
   liberacoes: LinhasPainel["liberacoes"];
   posicoes: LinhasPainel["posicoes"];
+  /** Os questionários do aluno por aula, os mesmos do painel de Meus cursos. */
+  questionarios: LinhasPainel["questionarios"];
   /** A vitrine de Trocar pontos, para o preço do curso trocável mais barato. */
   vitrine: readonly CursoDaTroca[];
 }
@@ -165,7 +167,7 @@ function certificados(
 const ABREM_AULA: ReadonlySet<TipoEstado> = new Set([
   "nao_iniciado",
   "em_andamento",
-  "prova",
+  "questionarios",
 ]);
 
 function primeiraAula(
@@ -184,7 +186,7 @@ function primeiraAula(
       : {
           estado: "por_ganhar",
           proxima:
-            r && r.tipo !== "prova"
+            r && r.tipo !== "questionario"
               ? { aula: r.aula.titulo, curso: r.curso.titulo, tipo: r.tipo }
               : null,
         },
@@ -316,6 +318,7 @@ export function montarConquistas(
       comunicados: [],
       liberacoes: linhas.liberacoes,
       posicoes: linhas.posicoes,
+      questionarios: linhas.questionarios,
     },
     hoje
   );

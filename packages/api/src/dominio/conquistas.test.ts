@@ -57,6 +57,7 @@ const NADA: LinhasDasConquistas = {
   lancamentos: [],
   liberacoes: [],
   posicoes: [],
+  questionarios: [],
   vitrine: [],
 };
 
@@ -108,6 +109,7 @@ const ALUNA: LinhasDasConquistas = {
     liberado(GRAVACAO, 4),
   ],
   posicoes: [],
+  questionarios: [],
   vitrine: [vitrine(500, "Portfólio")],
 };
 
