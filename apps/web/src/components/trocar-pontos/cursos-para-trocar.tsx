@@ -2,10 +2,13 @@
 
 import type { ItemDoExtrato } from "@cursos/api/dominio/pontos";
 import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
-import { Check } from "lucide-react";
+import { cn } from "@cursos/ui/lib/utils";
+import { Check, Play } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { sizesDaCapa } from "@/components/meus-cursos/capa-curso";
 import { Secao } from "@/components/meus-cursos/secao";
 
@@ -45,11 +48,13 @@ export function CursosParaTrocar({
   extrato,
   hoje,
   temCursoTrocavelNaVitrine,
+  voltarAEstudar,
 }: {
   cartoes: readonly Cartao[];
   extrato: readonly ItemDoExtrato[];
   hoje: string;
   temCursoTrocavelNaVitrine: boolean;
+  voltarAEstudar: Route;
 }) {
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -112,18 +117,26 @@ export function CursosParaTrocar({
             ))}
           </div>
         )}
+        {temCursoTrocavelNaVitrine ? null : (
+          <Link className={cn(BOTAO_CONTORNO, "mt-5")} href={voltarAEstudar}>
+            <Play aria-hidden="true" />
+            Voltar a estudar
+          </Link>
+        )}
       </Secao>
-      <Secao
-        id="extrato-recente"
-        subtitulo="Pontos que entraram e saíram"
-        titulo="Extrato recente"
-      >
-        <Extrato
-          hoje={hoje}
-          itens={extrato}
-          lancamentoNovoId={lancamentoNovoId}
-        />
-      </Secao>
+      <div className="max-w-3xl">
+        <Secao
+          id="extrato-recente"
+          subtitulo="Pontos que entraram e saíram"
+          titulo="Extrato recente"
+        >
+          <Extrato
+            hoje={hoje}
+            itens={extrato}
+            lancamentoNovoId={lancamentoNovoId}
+          />
+        </Secao>
+      </div>
     </>
   );
 }

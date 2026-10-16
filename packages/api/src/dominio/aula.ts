@@ -9,7 +9,6 @@ import {
 import { atividadeDe, historicoDe, posicaoComecada } from "./historico";
 import { type CursoLinha, paraCatalogo } from "./painel";
 import { MARGEM_REINICIO_SEG } from "./regras";
-import { aulaDeRetomada } from "./retomada";
 import type {
   AulaCatalogo,
   AulaId,
@@ -191,28 +190,6 @@ export function montarAulaNoPlayer(
     })),
     proxima: vizinha(ordem[i + 1]),
   };
-}
-
-export type EntradaDoCurso =
-  | { aulaId: AulaId; tipo: "aula" }
-  | { primeira: AulaId; tipo: "prova" | "concluido" };
-
-export function entradaDoCurso(c: CursoAberto): EntradaDoCurso {
-  const { estado } = c;
-  if (estado.tipo === "em_andamento" || estado.tipo === "nao_iniciado") {
-    const { aulaId } = aulaDeRetomada(
-      c.curso,
-      estado,
-      c.historico,
-      c.atividade
-    );
-    return { aulaId, tipo: "aula" };
-  }
-  const primeira = aulasEmOrdem(c.curso)[0]?.aula.id;
-  if (!primeira) {
-    throw new Error(`Curso ${c.curso.slug} aberto sem aulas`);
-  }
-  return { primeira, tipo: estado.tipo };
 }
 
 export function inicioDaAula(
