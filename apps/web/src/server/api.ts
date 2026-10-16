@@ -64,11 +64,6 @@ export const carregarAula = cache(async (slug: string, aulaId: string) =>
   (await caller()).aula.abrir({ aulaId, slug })
 );
 
-export const carregarEntrada = cache(async (slug: string) =>
-  (await caller()).aula.entrada({ slug })
-);
-
-/** A página do curso no formato da Udemy. Ainda sem rota: /cursos/[slug] lê a entrada. */
 export const carregarPaginaDoCurso = cache(async (slug: string) =>
   (await caller()).curso.pagina({ slug })
 );
