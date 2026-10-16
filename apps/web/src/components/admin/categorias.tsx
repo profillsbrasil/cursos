@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
-import { Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
   type FormEvent,
   type KeyboardEvent,
@@ -228,6 +228,7 @@ function ApagarEmUso({ categoria }: { categoria: CategoriaNaLista }) {
           />
         }
       >
+        <Trash2 aria-hidden />
         Apagar
       </TooltipTrigger>
       <TooltipContent className={DICA}>{motivo}</TooltipContent>
@@ -391,6 +392,7 @@ function LinhaDaCategoria({
               className={cn(BOTAO_CONTORNO, PEQUENO)}
               onClick={abrir}
             >
+              <Pencil aria-hidden />
               Renomear
             </Button>
           ) : null}
@@ -403,7 +405,15 @@ function LinhaDaCategoria({
               className="flex flex-1 flex-wrap items-center gap-2.5 rounded-[12px] bg-muted/30 px-3 py-2.5 [&>:first-child]:flex-1"
               confirmar={apagar}
               enviando={remocao.pendente}
-              gatilho={{ nome: `Apagar ${c.nome}`, rotulo: "Apagar" }}
+              gatilho={{
+                nome: `Apagar ${c.nome}`,
+                rotulo: (
+                  <>
+                    <Trash2 aria-hidden />
+                    Apagar
+                  </>
+                ),
+              }}
               linhaAberta={linhaAberta}
               pergunta={
                 <p className="text-foreground text-sm">
