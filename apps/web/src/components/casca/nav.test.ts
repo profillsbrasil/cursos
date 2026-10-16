@@ -51,7 +51,7 @@ describe("o menu do aluno", () => {
       ["Meus cursos", "link"],
       ["Trocar pontos", "link"],
       ["Conquistas", "link"],
-      ["Comunicados", "em_breve"],
+      ["Comunicados", "link"],
     ]);
   });
 });

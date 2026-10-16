@@ -1,15 +1,58 @@
 import type { Database } from "@cursos/db";
-import { comunicado, curso } from "@cursos/db/schema/index";
-import { desc, eq, sql } from "drizzle-orm";
+import { comunicado, curso, liberacao } from "@cursos/db/schema/index";
+import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import type {
   CursoDoComunicado,
+  LinhaDoComunicadoDoAluno,
   LinhasDosComunicados,
 } from "../dominio/comunicado";
 import type { AdminId, ComunicadoId, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 
-// Único escritor de comunicado no app; o leitor do aluno é o statement 5 de linhasDoPainel.
+export const comunicadoVisivelPara = (db: Database, userId: string) =>
+  or(
+    isNull(comunicado.cursoId),
+    inArray(
+      comunicado.cursoId,
+      db
+        .select({ id: liberacao.cursoId })
+        .from(liberacao)
+        .where(and(eq(liberacao.userId, userId), isNull(liberacao.revogadaEm)))
+    )
+  );
+
+export const DO_MAIS_NOVO = [
+  desc(comunicado.publicadoEm),
+  desc(comunicado.id),
+] as const;
+
+export async function linhasDosComunicadosDoAluno(
+  db: Database,
+  userId: string
+): Promise<LinhaDoComunicadoDoAluno[]> {
+  const linhas = await db
+    .select({
+      curso: {
+        capaAlt: curso.capaAlt,
+        capaAltura: curso.capaAltura,
+        capaLargura: curso.capaLargura,
+        capaUrl: curso.capaUrl,
+        slug: curso.slug,
+        titulo: curso.titulo,
+      },
+      id: comunicado.id,
+      publicadoEm: comunicado.publicadoEm,
+      publicadoPor: comunicado.publicadoPor,
+      texto: comunicado.texto,
+      titulo: comunicado.titulo,
+    })
+    .from(comunicado)
+    .leftJoin(curso, eq(curso.id, comunicado.cursoId))
+    .where(comunicadoVisivelPara(db, userId))
+    .orderBy(...DO_MAIS_NOVO);
+  return linhas.map((l) => ({ ...l, id: l.id as ComunicadoId }));
+}
 
 export async function linhasDosComunicados(
   db: Database
@@ -27,7 +70,7 @@ export async function linhasDosComunicados(
       })
       .from(comunicado)
       .leftJoin(curso, eq(curso.id, comunicado.cursoId))
-      .orderBy(desc(comunicado.publicadoEm), desc(comunicado.id)),
+      .orderBy(...DO_MAIS_NOVO),
     db
       .select({ id: curso.id, titulo: curso.titulo })
       .from(curso)
