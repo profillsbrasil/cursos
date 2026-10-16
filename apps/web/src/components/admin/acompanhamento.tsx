@@ -66,7 +66,7 @@ export function BarraDeAulas({
     >
       <span
         aria-hidden="true"
-        className="h-1 min-w-16 overflow-hidden rounded-full bg-trilho"
+        className="h-1 min-w-16 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset"
       >
         <span
           className="block h-full rounded-full bg-sol"

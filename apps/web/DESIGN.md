@@ -344,7 +344,7 @@ O rodapé das duas áreas. Avatar de 36 px (iniciais em Canela), nome em 600 e 1
 Só no aluno, acima do cartão de conta. Fundo `sidebar-realce`, raio de 14 px, padding de 12 px: o botão redondo de 32 px em Sol (play, ou o troféu na prova), o título da aula em 600 e 13 px, a chamada em 12 px e uma barra de progresso de 4 px. Sob o cursor e com o foco de teclado, o fundo vira `popover`. Recolhido, vira o botão redondo de 40 px com dica à direita, que clareia e brilha como o botão principal. Na página para onde aponta, mostra "Assistindo agora" ("Falta só a prova" na prova) e perde o link.
 
 ### Barra de progresso
-Pílula com trilho em `trilho` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar e no acompanhamento do admin. No admin, o texto ao lado ("46 de 90 aulas") carrega o número, e a barra fica `aria-hidden`.
+Pílula com trilho em `trilho`, borda interna de 1 px em `texto-apagado` e preenchimento em Sol: 10 px no banner, 8 px na troca, 4 px no Continuar e no acompanhamento do admin. As duas bordas passam de 3:1: o Sol sobre o trilho mede 5,2:1, e a borda contra o cartão 5,2:1, contra o fundo 7,4:1 e contra o realce da sidebar 5,5:1. O trilho sozinho mede 1,5:1 contra o cartão, e nenhum cinza passa de 3:1 contra o cartão e contra o Sol ao mesmo tempo (o melhor empata em 2,8:1), por isso a borda; `barra-de-progresso.test.ts` acusa o trilho sem ela. No admin, o texto ao lado ("46 de 90 aulas") carrega o número, e a barra fica `aria-hidden`.
 
 ### Página do curso
 Em `/cursos/[slug]`. O topo leva a migalha: "Meus cursos" em Céu, sublinhado sob o cursor e com o foco, e o título do curso em `texto-apagado`.
