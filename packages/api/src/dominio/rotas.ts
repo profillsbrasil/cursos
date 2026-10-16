@@ -5,3 +5,9 @@ export const caminhoDoCurso = (slug: string) => `/cursos/${slug}`;
 
 export const caminhoDaAula = (slug: string, aulaId: string) =>
   `${caminhoDoCurso(slug)}/aulas/${aulaId}`;
+
+export const caminhoDoCertificado = (slug: string) =>
+  `${caminhoDoCurso(slug)}/certificado`;
+
+export const caminhoDaConferencia = (codigo: string) =>
+  `/certificado/${codigo}`;
