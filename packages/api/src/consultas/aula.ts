@@ -107,7 +107,6 @@ export async function carregarAula(
   return aberto && aula ? montarAulaNoPlayer(aberto, aula) : null;
 }
 
-/** curso.pagina: null quando montarCursoAberto recusa, a mesma porta do player. */
 export async function carregarPaginaDoCurso(
   db: Database,
   userId: string,

@@ -54,7 +54,6 @@ export function CursosParaTrocar({
   extrato: readonly ItemDoExtrato[];
   hoje: string;
   temCursoTrocavelNaVitrine: boolean;
-  /** A aula da retomada, ou Meus cursos sem ela: a saída da vitrine sem troca. */
   voltarAEstudar: Route;
 }) {
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
@@ -125,7 +124,6 @@ export function CursosParaTrocar({
           </Link>
         )}
       </Secao>
-      {/* Lista de leitura: na janela larga, a data e os pontos não se afastam do texto. */}
       <div className="max-w-3xl">
         <Secao
           id="extrato-recente"

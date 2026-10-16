@@ -21,7 +21,6 @@ export default async function LayoutDoAluno({
     "continuar",
     carregarPainel().then((p) => continuarDe(p.retomada))
   );
-  // O cartão de conta recebe só o placar, não o resumo inteiro.
   const placar = paraACasca(
     "placar",
     carregarResumo().then(({ saldo, sequenciaDias }) => ({

@@ -269,7 +269,6 @@ function ItemDoComunicado({
       remocao.executar(
         () => trpcClient.admin.comunicados.apagar.mutate({ id: c.id }),
         {
-          // Na resposta o foco ainda está no Confirmar, que some com o item.
           depois: () => {
             document.getElementById(PUBLICADOS)?.focus();
           },

@@ -114,12 +114,6 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
   );
 }
 
-/**
- * O cartão de conta do rodapé. Nome e foto vêm do Clerk no navegador, então a troca
- * feita em "Minha conta" aparece sem refresh. Saldo e sequência vêm da Promise que a
- * área do aluno cria no servidor: o refresh que toda escrita de pontos já pede traz
- * outra Promise, e os números trocam sem esqueleto. O admin não tem placar.
- */
 export function CartaoDeConta({
   outraArea,
   placar,

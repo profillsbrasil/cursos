@@ -9,7 +9,6 @@ import { carregarPainel, carregarPainelDeTroca } from "@/server/api";
 export const metadata: Metadata = { title: "Trocar pontos" };
 
 export default async function TrocarPontos() {
-  // O painel de Meus cursos já roda no layout (o Continuar): React.cache divide a execução.
   const [painel, { retomada }] = await Promise.all([
     carregarPainelDeTroca(),
     carregarPainel(),
