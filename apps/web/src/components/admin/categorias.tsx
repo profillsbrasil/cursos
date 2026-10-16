@@ -242,7 +242,7 @@ function ApagarEmUso({ categoria }: { categoria: CategoriaNaLista }) {
 const SELO_DE_USO = cn(SELO, "bg-popover text-foreground tabular-nums");
 const SELO_LIVRE = cn(
   SELO,
-  "bg-transparent text-muted-foreground ring-1 ring-trilho ring-inset"
+  "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset"
 );
 
 function LinhaDaCategoria({

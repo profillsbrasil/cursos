@@ -40,7 +40,7 @@ export function TelaDoCurso({
         <p className="overflow-hidden text-muted-foreground tabular-nums">
           <span className="-ml-7 flex flex-wrap items-center gap-y-2">
             <span className={cn(SEPARADO, "inline-flex items-center gap-3")}>
-              <span className="inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 font-medium text-foreground text-xs ring-1 ring-trilho ring-inset">
+              <span className="inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 font-medium text-foreground text-xs ring-1 ring-muted-foreground ring-inset">
                 <Tag
                   aria-hidden="true"
                   className="size-3 text-muted-foreground"
