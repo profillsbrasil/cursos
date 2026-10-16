@@ -289,6 +289,37 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     ).toContain("Nenhum curso com esse nome.");
   });
 
+  test("o clique do mouse no Para quem põe o foco na busca", async () => {
+    await abrirTela();
+    const { x, y } = await avaliar<{ x: number; y: number }>(
+      enviar,
+      `(() => {
+        const r = document.getElementById("para").getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      })()`
+    );
+    for (const type of ["mousePressed", "mouseReleased"]) {
+      await enviar("Input.dispatchMouseEvent", {
+        button: "left",
+        clickCount: 1,
+        type,
+        x,
+        y,
+      });
+    }
+    await esperar(listaAberta);
+    await transicoesTerminadas();
+    expect(
+      await avaliar<string | null>(
+        enviar,
+        `document.activeElement?.getAttribute("aria-label")`
+      )
+    ).toBe("Buscar curso");
+    await teclar("Escape");
+    await esperar(fechada("para"));
+    await transicoesTerminadas();
+  });
+
   test("escolher pelo teclado na busca põe o curso no formulário", async () => {
     await abrirTela();
     await avaliar(enviar, `document.getElementById("para").click()`);
