@@ -1,13 +1,26 @@
 import type { Database } from "@cursos/db";
 import { liberacao } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { acaoNaLiberacao, type LinhasDoAcesso } from "../dominio/liberacao";
+import {
+  acaoNaLiberacao,
+  type LiberacaoNaPessoa,
+  type LinhasDoAcesso,
+  type ResultadoDoLote,
+  type ResultadoNaPessoa,
+} from "../dominio/liberacao";
 import { paraCatalogo } from "../dominio/painel";
-import type { AdminId, CursoId, LiberacaoId, Pessoa } from "../dominio/tipos";
+import { diaLocal } from "../dominio/sequencia";
+import type {
+  AdminId,
+  CursoId,
+  LiberacaoId,
+  OrigemDaLiberacao,
+  Pessoa,
+} from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { COM_CONTEUDO } from "./catalogo";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
-import { violacaoDe } from "./erros";
+import { mensagemDoBanco, violacaoDe } from "./erros";
 import { linhasDoHistorico } from "./meus-cursos";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
@@ -49,20 +62,42 @@ async function cursoExiste(exec: Executor, id: CursoId): Promise<boolean> {
   return c !== undefined;
 }
 
+interface LiberacaoAtiva {
+  liberacaoId: LiberacaoId;
+  liberadaEm: Date;
+  origem: OrigemDaLiberacao;
+}
+
 /** A liberação ativa do curso, de qualquer origem. O índice liberacao_curso_ativa_unica garante uma no máximo. */
 async function ativaDoCurso(
   exec: Executor,
   userId: string,
   cursoId: CursoId
-): Promise<LiberacaoId | null> {
+): Promise<LiberacaoAtiva | null> {
   const l = await exec.query.liberacao.findFirst({
-    columns: { id: true },
+    columns: { id: true, liberadaEm: true, origem: true },
     where: { ...filtroLiberacaoAtiva(userId), cursoId },
   });
-  return l ? (l.id as LiberacaoId) : null;
+  return l
+    ? {
+        liberacaoId: l.id as LiberacaoId,
+        liberadaEm: l.liberadaEm,
+        origem: l.origem,
+      }
+    : null;
 }
 
 const FK_DO_CURSO = "liberacao_curso_id_curso_id_fkey";
+
+export const PESSOA_SUMIU =
+  "Esta pessoa não existe mais no login da plataforma.";
+
+const cursoSumiu = (cause?: unknown) =>
+  new ErroParaAPessoa({
+    cause,
+    code: "NOT_FOUND",
+    message: "Este curso não existe mais.",
+  });
 
 /**
  * Admin libera um curso. Com a trava do aluno, uma troca concorrente espera, lê
@@ -76,22 +111,16 @@ export async function liberar(
   pessoa: Pessoa,
   cursoId: CursoId,
   agora: Date
-): Promise<{ liberacaoId: LiberacaoId; nova: boolean }> {
-  const sumiu = (cause?: unknown) =>
-    new ErroParaAPessoa({
-      cause,
-      code: "NOT_FOUND",
-      message: "Este curso não existe mais.",
-    });
+): Promise<LiberacaoAtiva & { nova: boolean }> {
   try {
     return await comAlunoTravado(db, pessoa.userId, async (aluno) => {
       // Em série: a transação tem um client só (consultas/aula.ts).
       if (!(await cursoExiste(aluno.tx, cursoId))) {
-        throw sumiu();
+        throw cursoSumiu();
       }
       const existente = await ativaDoCurso(aluno.tx, aluno.userId, cursoId);
       if (existente) {
-        return { liberacaoId: existente, nova: false };
+        return { ...existente, nova: false };
       }
       return {
         liberacaoId: await inserirLiberacao(
@@ -99,17 +128,92 @@ export async function liberar(
           { cursoId, origem: "admin", por: admin },
           agora
         ),
+        liberadaEm: agora,
         nova: true,
+        origem: "admin",
       };
     });
   } catch (erro) {
     // O curso foi lido antes de o DELETE dele comitar: liberar trava o aluno,
     // não o curso, e o INSERT espera a linha e para no FK.
     if (violacaoDe(erro)?.restricao === FK_DO_CURSO) {
-      throw sumiu(erro);
+      throw cursoSumiu(erro);
     }
     throw erro;
   }
+}
+
+const NAO_LIBEROU = "Não deu para liberar agora. Nada mudou para esta pessoa.";
+
+function mensagemDaFalha(erro: unknown, userId: string): string {
+  if (erro instanceof ErroParaAPessoa) {
+    return erro.message;
+  }
+  const doBanco = mensagemDoBanco(erro);
+  if (doBanco) {
+    return doBanco.message;
+  }
+  // O lote responde 200 com a falha dentro, e o onError do tRPC não a vê.
+  console.error(`liberarVarios: ${userId} não liberou`, erro);
+  return NAO_LIBEROU;
+}
+
+async function liberarNaPessoa(
+  db: Database,
+  admin: AdminId,
+  userId: string,
+  achada: PromiseSettledResult<Pessoa | null>,
+  cursoId: CursoId,
+  agora: Date
+): Promise<LiberacaoNaPessoa> {
+  try {
+    if (achada.status === "rejected") {
+      throw achada.reason;
+    }
+    if (achada.value === null) {
+      return { mensagem: PESSOA_SUMIU, tipo: "nao_liberou" };
+    }
+    const r = await liberar(db, admin, achada.value, cursoId, agora);
+    return r.nova
+      ? { tipo: "liberada_agora" }
+      : {
+          liberadaEm: diaLocal(r.liberadaEm),
+          origem: r.origem,
+          tipo: "ja_tinha",
+        };
+  } catch (erro) {
+    return { mensagem: mensagemDaFalha(erro, userId), tipo: "nao_liberou" };
+  }
+}
+
+/**
+ * O mesmo curso para várias pessoas, cada uma pelo liberar, com a trava e a
+ * transação dela: a falha de uma não desfaz nem impede as outras. O curso que
+ * não existe recusa o lote inteiro antes de qualquer pessoa.
+ */
+export async function liberarVarios(
+  db: Database,
+  porId: (userId: string) => Promise<Pessoa | null>,
+  admin: AdminId,
+  userIds: readonly string[],
+  cursoId: CursoId,
+  agora: Date
+): Promise<ResultadoDoLote> {
+  if (!(await cursoExiste(db, cursoId))) {
+    throw cursoSumiu();
+  }
+  const unicos = [...new Set(userIds)];
+  const achadas = await Promise.allSettled(unicos.map(porId));
+  const pessoas: ResultadoNaPessoa[] = [];
+  for (const [i, uid] of unicos.entries()) {
+    const achada = achadas[i] as PromiseSettledResult<Pessoa | null>;
+    pessoas.push({
+      userId: uid,
+      // biome-ignore lint/performance/noAwaitInLoops: uma pessoa por vez, para o lote ocupar uma conexão do pool, não todas.
+      ...(await liberarNaPessoa(db, admin, uid, achada, cursoId, agora)),
+    });
+  }
+  return { hoje: diaLocal(agora), pessoas };
 }
 
 /**
