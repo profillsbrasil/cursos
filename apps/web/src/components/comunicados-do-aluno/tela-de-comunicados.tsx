@@ -14,6 +14,7 @@ import {
   LINK_NO_TEXTO,
   PEQUENO,
 } from "@/components/casca/botoes";
+import { paragrafos } from "@/components/curso/textos";
 import { Secao } from "@/components/meus-cursos/secao";
 import { fmtData } from "@/lib/formato";
 
@@ -21,7 +22,6 @@ import {
   contagemDoMes,
   diaNaLinha,
   nomeDoMes,
-  paragrafos,
   subtituloDaTela,
 } from "./textos";
 
@@ -58,9 +58,8 @@ function LinkDoCurso({
 function Texto({ className, texto }: { className?: string; texto: string }) {
   return (
     <div className={cn("grid max-w-[64ch] gap-2 text-pretty", className)}>
-      {paragrafos(texto).map((p, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: parágrafos repetidos são legítimos
-        <p key={i}>{p}</p>
+      {paragrafos(texto).map((p) => (
+        <p key={p}>{p}</p>
       ))}
     </div>
   );

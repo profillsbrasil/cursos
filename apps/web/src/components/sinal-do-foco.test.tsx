@@ -50,15 +50,17 @@ const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
 const { ColunaDoCurso } = await import("./player/coluna-do-curso");
 const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
 
-// O HTML de cada controle, como o app o renderiza. Nenhum item do menu está "Em
-// breve" hoje: o do fim existe para o teste do estado continuar valendo.
+const ITEM_EM_BREVE_DE_TESTE = {
+  icone: <Sparkles />,
+  nome: "Novidade",
+  tipo: "em_breve",
+} as const;
+
+// O HTML de cada controle, como o app o renderiza.
 const nav = renderToStaticMarkup(
   <ProvedorDaCasca aberta>
     <NavPrincipal
-      itens={[
-        ...ITENS_DO_ALUNO,
-        { icone: <Sparkles />, nome: "Novidade", tipo: "em_breve" },
-      ]}
+      itens={[...ITENS_DO_ALUNO, ITEM_EM_BREVE_DE_TESTE]}
       rotulo="Navegação"
     />
   </ProvedorDaCasca>

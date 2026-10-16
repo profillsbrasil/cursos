@@ -1,6 +1,3 @@
-// A lista de comunicados do aluno contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
-// Outros testes plantam comunicados gerais no mesmo banco: as conferências olham só os ids daqui.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
@@ -62,8 +59,7 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
       })
     ).aluno.comunicados();
 
-  /** Os ids daqui, na ordem da tela: o destaque e depois os anteriores. */
-  const ordem = (r: ComunicadosDoAluno) =>
+  const osDesteTesteNaOrdemDaTela = (r: ComunicadosDoAluno) =>
     (r.tipo === "vazio"
       ? []
       : [r.destaque, ...r.anteriores.flatMap((m) => m.comunicados)]
@@ -144,7 +140,11 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
 
   test("o aluno vê os gerais e o do curso liberado, do mais novo para o mais velho; nunca o de curso não liberado ou revogado", async () => {
     expect(
-      ordem(await lista(ALUNO)).map((c) => [c.titulo, c.dia, c.alvo.tipo])
+      osDesteTesteNaOrdemDaTela(await lista(ALUNO)).map((c) => [
+        c.titulo,
+        c.dia,
+        c.alvo.tipo,
+      ])
     ).toEqual([
       ["Geral novo", "2020-03-12", "geral"],
       ["Do curso liberado", "2020-03-10", "curso"],
@@ -153,7 +153,7 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
   });
 
   test("o do curso leva o título, o link e a capa do curso, e o autor sai pelo nome do Clerk", async () => {
-    const doCurso = ordem(await lista(ALUNO)).find(
+    const doCurso = osDesteTesteNaOrdemDaTela(await lista(ALUNO)).find(
       (c) => c.id === ids.deCursoLiberado
     );
     expect(doCurso).toMatchObject({
@@ -166,14 +166,15 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
       publicadoPor: "Marina Duarte",
       texto: "Do curso liberado.",
     });
-    const geral = ordem(await lista(ALUNO)).find((c) => c.id === ids.geralNovo);
+    const geral = osDesteTesteNaOrdemDaTela(await lista(ALUNO)).find(
+      (c) => c.id === ids.geralNovo
+    );
     expect(geral?.publicadoPor).toBeNull();
   });
 
   test("quem não tem liberação vê só os gerais", async () => {
-    expect(ordem(await lista(SEM_NADA)).map((c) => c.titulo)).toEqual([
-      "Geral novo",
-      "Geral velho",
-    ]);
+    expect(
+      osDesteTesteNaOrdemDaTela(await lista(SEM_NADA)).map((c) => c.titulo)
+    ).toEqual(["Geral novo", "Geral velho"]);
   });
 });

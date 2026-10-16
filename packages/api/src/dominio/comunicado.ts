@@ -52,7 +52,6 @@ export interface ComunicadosDoAdmin {
   cursos: readonly CursoDoComunicado[];
 }
 
-/** Sem nome, usuário nem e-mail no Clerk, `nome` é o próprio userId: fica sem autor. */
 function nomesDosAutores(
   autores: readonly (Pessoa | null)[]
 ): ReadonlyMap<string, string> {
@@ -81,7 +80,6 @@ export function montarComunicados(
   };
 }
 
-/** Uma linha da lista do aluno: o curso vem com o slug e a capa, para o link e a imagem. */
 export interface LinhaDoComunicadoDoAluno {
   curso: (LinhaDaCapa & { slug: string; titulo: string }) | null;
   id: ComunicadoId;
@@ -101,7 +99,6 @@ export interface ComunicadoDoAluno {
   dia: DiaISO;
   id: ComunicadoId;
   publicadoEm: string;
-  /** O nome do Clerk; null quando o Clerk não conhece a pessoa. */
   publicadoPor: string | null;
   texto: string;
   titulo: string;
@@ -116,13 +113,11 @@ export interface MesDeComunicados {
 export type ComunicadosDoAluno =
   | { tipo: "vazio" }
   | {
-      /** Do mais novo para o mais velho, agrupados por mês. */
       anteriores: readonly MesDeComunicados[];
       destaque: ComunicadoDoAluno;
       tipo: "com_comunicados";
     };
 
-/** `linhas` já vem do mais novo para o mais velho; o destaque é só o primeiro, não marca de lido. */
 export function montarComunicadosDoAluno(
   linhas: readonly LinhaDoComunicadoDoAluno[],
   autores: readonly (Pessoa | null)[]

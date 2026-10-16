@@ -10,14 +10,6 @@ import type {
 import type { AdminId, ComunicadoId, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 
-// Único escritor de comunicado no app. O aluno lê por comunicadoVisivelPara, no
-// statement 6 de linhasDoPainel e em linhasDosComunicadosDoAluno.
-
-/**
- * O que o aluno vê: o comunicado geral e o de curso com liberação ativa dele. O
- * filtro fica no SQL para que comunicados de cursos fora do alcance não empurrem
- * o dele para fora do limit de Meus cursos.
- */
 export const comunicadoVisivelPara = (db: Database, userId: string) =>
   or(
     isNull(comunicado.cursoId),
@@ -30,7 +22,6 @@ export const comunicadoVisivelPara = (db: Database, userId: string) =>
     )
   );
 
-/** O mais novo primeiro; no empate, o id, para Meus cursos e a lista do aluno escolherem o mesmo. */
 export const DO_MAIS_NOVO = [
   desc(comunicado.publicadoEm),
   desc(comunicado.id),
@@ -42,7 +33,6 @@ export async function linhasDosComunicadosDoAluno(
 ): Promise<LinhaDoComunicadoDoAluno[]> {
   const linhas = await db
     .select({
-      // Um objeto do left join volta null inteiro no comunicado geral.
       curso: {
         capaAlt: curso.capaAlt,
         capaAltura: curso.capaAltura,

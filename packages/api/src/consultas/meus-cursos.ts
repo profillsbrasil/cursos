@@ -107,7 +107,6 @@ export async function linhasDoPainel(db: Database, userId: string) {
     }),
     // 2 a 5
     linhasDoHistorico(db, userId),
-    // 6. o comunicado mais recente que o aluno pode ver
     db
       .select({
         cursoId: comunicado.cursoId,
