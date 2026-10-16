@@ -11,9 +11,14 @@ import {
   VIDEO_EXEMPLO,
 } from "@cursos/db/seed/dados";
 
-import type { DocumentoDoCurso } from "./edicao-do-curso";
+import type {
+  AulaDoDocumento,
+  DocumentoDoCurso,
+  PerguntaDoDocumento,
+} from "./edicao-do-curso";
 import type { CursoLinha, LinhasPainel } from "./painel";
 import {
+  type AlternativaId,
   type AulaId,
   type CategoriaId,
   type CursoCatalogo,
@@ -22,6 +27,7 @@ import {
   type DiaISO,
   type Historico,
   type ModuloId,
+  type PerguntaId,
   type StatusDoCurso,
   type Versao,
 } from "./tipos";
@@ -38,14 +44,31 @@ export const EDICAO = {
   CURSO: uuidDeExemplo(1) as CursoId,
   M1: uuidDeExemplo(11) as ModuloId,
   M2: uuidDeExemplo(12) as ModuloId,
+  P1: uuidDeExemplo(41) as PerguntaId,
+  P1A: uuidDeExemplo(51) as AlternativaId,
+  P1B: uuidDeExemplo(52) as AlternativaId,
 } as const;
 
-export const aulaDeExemplo = (id: AulaId, titulo: string) => ({
+export const aulaDeExemplo = (id: AulaId, titulo: string): AulaDoDocumento => ({
   descricao: "",
   duracaoSeg: 300,
   id,
+  perguntas: [],
   titulo,
   video: null,
+});
+
+export const perguntaDeExemplo = (
+  id: PerguntaId,
+  alternativas: readonly [AlternativaId, AlternativaId],
+  enunciado = "Qual é a pergunta?"
+): PerguntaDoDocumento => ({
+  alternativas: [
+    { certa: false, id: alternativas[0], texto: "Errada" },
+    { certa: true, id: alternativas[1], texto: "Certa" },
+  ],
+  enunciado,
+  id,
 });
 
 /** Dois módulos (0: A1, A2; 1: A3), dois níveis, na forma canônica do schema. */

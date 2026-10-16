@@ -7,12 +7,14 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import {
+  alternativa,
   aula,
   aulaAssistida,
   curso,
   liberacao,
   modulo,
   nivel,
+  pergunta,
   posicaoAula,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -27,8 +29,16 @@ import {
   formularioDoCurso,
   LIMITES,
   type ModuloDoDocumento,
+  type PerguntaDoDocumento,
 } from "../dominio/edicao-do-curso";
-import type { AulaId, CategoriaId, CursoId, ModuloId } from "../dominio/tipos";
+import type {
+  AlternativaId,
+  AulaId,
+  CategoriaId,
+  CursoId,
+  ModuloId,
+  PerguntaId,
+} from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
@@ -100,8 +110,23 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     descricao: "",
     duracaoSeg: 120,
     id: randomUUID() as AulaId,
+    perguntas: [],
     titulo,
     video: null,
+  });
+
+  const novaPergunta = (
+    enunciado: string,
+    textos: string[],
+    certa: number
+  ): PerguntaDoDocumento => ({
+    alternativas: textos.map((texto, i) => ({
+      certa: i === certa,
+      id: randomUUID() as AlternativaId,
+      texto,
+    })),
+    enunciado,
+    id: randomUUID() as PerguntaId,
   });
 
   const novoModulo = (
@@ -262,6 +287,122 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     ]);
   });
 
+  test("o questionário volta do banco como foi salvo, e cada mudança mantém os ids", async () => {
+    const { documento } = await cursoSalvo();
+    const [a] = modulos(documento);
+    const [a1] = a.aulas;
+    if (!a1) {
+      throw new Error("sem A1");
+    }
+    const p1 = novaPergunta(
+      "Por onde começa?",
+      ["Pedido", "Data", "Visita"],
+      2
+    );
+    const p2 = novaPergunta("Quem cuida da obra?", ["Profills", "Cliente"], 1);
+    a1.perguntas = [p1, p2];
+    const salvo = await salvar(documento);
+
+    const aberto = await abrir(documento.id);
+    expect(aberto.documento.modulos[0]?.aulas[0]?.perguntas).toEqual([p1, p2]);
+    expect(aberto.documento.versao).toBe(salvo.versao);
+
+    const editado = structuredClone(aberto.documento);
+    const aula1 = editado.modulos[0]?.aulas[0];
+    if (!aula1) {
+      throw new Error("sem A1");
+    }
+    const [q1] = aula1.perguntas;
+    if (!q1) {
+      throw new Error("sem P1");
+    }
+    q1.alternativas = q1.alternativas.slice(0, 2).map((x, i) => ({
+      ...x,
+      certa: i === 0,
+    }));
+    const p3 = novaPergunta(
+      "Qual etapa é do cliente?",
+      ["Obra", "Montagem"],
+      0
+    );
+    aula1.perguntas = [q1, p3];
+    const salvoDeNovo = await salvar(editado);
+
+    const reaberto = await abrir(documento.id);
+    expect(reaberto.documento.modulos[0]?.aulas[0]?.perguntas).toEqual([
+      q1,
+      p3,
+    ]);
+    expect(reaberto.documento.versao).toBe(salvoDeNovo.versao);
+    const linhas = await db
+      .select({
+        certa: alternativa.certa,
+        id: alternativa.id,
+        posicao: alternativa.posicao,
+      })
+      .from(alternativa)
+      .where(eq(alternativa.perguntaId, p1.id))
+      .orderBy(asc(alternativa.posicao));
+    expect(
+      linhas.map((l) => [l.id === p1.alternativas[0]?.id, l.certa, l.posicao])
+    ).toEqual([
+      [true, true, 1],
+      [false, false, 2],
+    ]);
+    expect(linhas[1]?.id).toBe(p1.alternativas[1]?.id ?? "");
+    expect(
+      await db
+        .select({ id: pergunta.id })
+        .from(pergunta)
+        .where(eq(pergunta.id, p2.id))
+    ).toEqual([]);
+  });
+
+  test("pergunta ou alternativa de outro curso é recusada", async () => {
+    const outro = await cursoSalvo();
+    const aulaDeFora = outro.documento.modulos[0]?.aulas[0];
+    if (!aulaDeFora) {
+      throw new Error("sem aula no outro");
+    }
+    aulaDeFora.perguntas = [novaPergunta("De fora", ["Sim", "Não"], 0)];
+    await salvar(outro.documento);
+    const [deFora] =
+      (await abrir(outro.documento.id)).documento.modulos[0]?.aulas[0]
+        ?.perguntas ?? [];
+    if (!deFora) {
+      throw new Error("sem pergunta no outro");
+    }
+
+    const { documento } = await cursoSalvo();
+    const comPergunta = structuredClone(documento);
+    comPergunta.modulos[0]?.aulas[0]?.perguntas.push(deFora);
+    const comAlternativa = structuredClone(documento);
+    comAlternativa.modulos[0]?.aulas[0]?.perguntas.push({
+      ...novaPergunta("Minha", ["Sim"], 0),
+      alternativas: [
+        { certa: true, id: randomUUID() as AlternativaId, texto: "Sim" },
+        {
+          ...(deFora
+            .alternativas[0] as PerguntaDoDocumento["alternativas"][number]),
+          certa: false,
+        },
+      ],
+    });
+    expect([
+      await resultado(salvar(comPergunta)),
+      await resultado(salvar(comAlternativa)),
+    ]).toEqual([
+      {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "O documento traz pergunta de outro curso.",
+      },
+      {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "O documento traz alternativa de outro curso.",
+      },
+    ]);
+  });
+
   test("o banco aceita os tetos do schema e recusa um a mais", async () => {
     const { documento } = await cursoSalvo();
     const { id } = documento;
@@ -287,6 +428,33 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const topicos = (n: number, tamanho: number) =>
       Array.from({ length: n }, () => "t".repeat(tamanho));
     const { descricao, descricaoDaAula, topico } = CARACTERES;
+    const perguntaDeTeste = await db
+      .insert(pergunta)
+      .values({ aulaId, enunciado: "Pergunta", posicao: 1 })
+      .returning({ id: pergunta.id })
+      .then(([p]) => p?.id ?? "");
+    const gravarPergunta = (enunciado: string) =>
+      db
+        .update(pergunta)
+        .set({ enunciado })
+        .where(eq(pergunta.id, perguntaDeTeste))
+        .then(
+          () => "ok",
+          (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
+        );
+    const gravarAlternativa = (texto: string) =>
+      db
+        .insert(alternativa)
+        .values({
+          certa: false,
+          perguntaId: perguntaDeTeste,
+          posicao: 1,
+          texto,
+        })
+        .then(
+          () => "ok",
+          (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
+        );
 
     expect([
       await gravar({ descricao: "d".repeat(descricao) }),
@@ -297,6 +465,10 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       await gravar({ topicos: [" "] }),
       await gravarAula("d".repeat(descricaoDaAula)),
       await gravarAula("d".repeat(descricaoDaAula + 1)),
+      await gravarPergunta("p".repeat(CARACTERES.enunciado)),
+      await gravarPergunta("p".repeat(CARACTERES.enunciado + 1)),
+      await gravarAlternativa("a".repeat(CARACTERES.alternativa + 1)),
+      await gravarAlternativa("a".repeat(CARACTERES.alternativa)),
     ]).toEqual([
       "ok",
       "curso_descricao_tamanho",
@@ -306,6 +478,10 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       "curso_topicos_validos",
       "ok",
       "aula_descricao_tamanho",
+      "ok",
+      "pergunta_enunciado_formato",
+      "alternativa_texto_formato",
+      "ok",
     ]);
   });
 

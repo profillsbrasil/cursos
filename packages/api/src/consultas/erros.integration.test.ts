@@ -13,6 +13,7 @@ const URL_TESTE = urlDeTeste();
 
 /** As tabelas que o admin escreve, nesta área e nos PRs seguintes. */
 const TABELAS_DO_ADMIN = [
+  "alternativa",
   "aula",
   "categoria",
   "comunicado",
@@ -20,6 +21,7 @@ const TABELAS_DO_ADMIN = [
   "liberacao",
   "modulo",
   "nivel",
+  "pergunta",
 ];
 
 describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {

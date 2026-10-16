@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   foreignKey,
   integer,
@@ -7,6 +8,7 @@ import {
   smallint,
   text,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -140,6 +142,53 @@ export const aula = tabela(
             when 'youtube' then ${t.videoId} ~ '^[A-Za-z0-9_-]{11}$'
             else false
           end`
+    ),
+  ]
+);
+
+// "De 2 a 5 alternativas" e "uma certa" são regras entre linhas: ficam no schema
+// zod do único escritor (salvarCurso). O banco segura o que cabe numa linha e,
+// pelo índice parcial, "no máximo uma certa".
+export const pergunta = tabela(
+  "pergunta",
+  {
+    aulaId: uuid()
+      .notNull()
+      .references(() => aula.id, { onDelete: "cascade" }),
+    enunciado: text().notNull(),
+    id: uuid().primaryKey().defaultRandom(),
+    posicao: smallint().notNull(),
+  },
+  (t) => [
+    unique("pergunta_posicao_unica").on(t.aulaId, t.posicao),
+    check("pergunta_posicao_positiva", sql`${t.posicao} >= 1`),
+    check(
+      "pergunta_enunciado_formato",
+      sql`${t.enunciado} = trim(${t.enunciado}) and char_length(${t.enunciado}) between 1 and 500`
+    ),
+  ]
+);
+
+export const alternativa = tabela(
+  "alternativa",
+  {
+    certa: boolean().notNull().default(false),
+    id: uuid().primaryKey().defaultRandom(),
+    perguntaId: uuid()
+      .notNull()
+      .references(() => pergunta.id, { onDelete: "cascade" }),
+    posicao: smallint().notNull(),
+    texto: text().notNull(),
+  },
+  (t) => [
+    unique("alternativa_posicao_unica").on(t.perguntaId, t.posicao),
+    uniqueIndex("alternativa_certa_unica")
+      .on(t.perguntaId)
+      .where(sql`${t.certa}`),
+    check("alternativa_posicao_positiva", sql`${t.posicao} >= 1`),
+    check(
+      "alternativa_texto_formato",
+      sql`${t.texto} = trim(${t.texto}) and char_length(${t.texto}) between 1 and 200`
     ),
   ]
 );

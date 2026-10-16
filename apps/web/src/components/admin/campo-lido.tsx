@@ -6,18 +6,25 @@ import {
   FieldLabel,
 } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
+import { Textarea } from "@cursos/ui/components/textarea";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   type ChangeEvent,
   type FocusEvent,
   type InputHTMLAttributes,
   type ReactNode,
+  type TextareaHTMLAttributes,
   useCallback,
   useContext,
 } from "react";
 
+import { fmtNum } from "@/lib/formato";
+
 import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { CAMPO, ROTULO } from "./partes";
+
+const AREA =
+  "min-h-0 rounded-[12px] px-3.5 py-2.5 text-sm leading-normal md:text-sm";
 
 export function CampoDeTexto({
   ajuda,
@@ -121,6 +128,74 @@ export function CampoLido({
         onChange={mudar}
         value={texto}
       />
+      <ErroDoCampo id={id} mensagem={mensagem} />
+    </Field>
+  );
+}
+
+export function AreaDeTexto({
+  ajuda,
+  aoMudar,
+  campoClasse,
+  id,
+  maximo,
+  rotulo,
+  rotuloClasse,
+  texto,
+  ...area
+}: {
+  ajuda?: ReactNode;
+  aoMudar: (texto: string) => void;
+  campoClasse?: string;
+  id: string;
+  maximo?: number;
+  rotulo: ReactNode;
+  rotuloClasse?: string;
+  texto: string;
+} & Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "defaultValue" | "id" | "onBlur" | "onChange" | "value"
+>) {
+  const saiuDoCampo = useContext(SaiuDoCampo);
+  const pe = ajuda || maximo !== undefined;
+  const { aria, mensagem } = useErroDoCampo(id, pe ? `${id}-pe` : undefined);
+  const mudar = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => aoMudar(e.target.value),
+    [aoMudar]
+  );
+  const sair = useCallback(() => saiuDoCampo(id), [id, saiuDoCampo]);
+  return (
+    <Field
+      // relative: o rótulo sr-only é absolute e, sem isto, escapa para fora do painel.
+      className={cn("relative gap-1.5", campoClasse)}
+      data-invalid={mensagem ? true : undefined}
+    >
+      <FieldLabel className={cn(ROTULO, rotuloClasse)} htmlFor={id}>
+        {rotulo}
+      </FieldLabel>
+      <Textarea
+        {...area}
+        {...aria}
+        className={cn(CAMPO, AREA, area.className)}
+        id={id}
+        maxLength={maximo}
+        onBlur={sair}
+        onChange={mudar}
+        value={texto}
+      />
+      {pe ? (
+        <FieldDescription
+          className="flex justify-between gap-3 text-xs tabular-nums"
+          id={`${id}-pe`}
+        >
+          <span>{ajuda}</span>
+          {maximo === undefined ? null : (
+            <span className="whitespace-nowrap">
+              {fmtNum(texto.length)} de {fmtNum(maximo)}
+            </span>
+          )}
+        </FieldDescription>
+      ) : null}
       <ErroDoCampo id={id} mensagem={mensagem} />
     </Field>
   );

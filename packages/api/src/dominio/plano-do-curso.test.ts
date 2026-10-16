@@ -6,12 +6,21 @@ import {
   aulaDeExemplo,
   documentoDeExemplo,
   EDICAO,
+  perguntaDeExemplo,
   uuidDeExemplo,
 } from "./exemplo";
 import { planejarCurso, versaoDoCurso } from "./plano-do-curso";
-import type { AulaId, ModuloId } from "./tipos";
+import type { AlternativaId, AulaId, ModuloId, PerguntaId } from "./tipos";
 
-const { A1, A2, A3, M2 } = EDICAO;
+const { A1, A2, A3, M2, P1, P1A, P1B } = EDICAO;
+
+const NADA_SAI = {
+  alternativas: [],
+  aulas: [],
+  modulos: [],
+  niveis: [],
+  perguntas: [],
+};
 
 const CAPA_ATUAL = "/capas/atual.jpg";
 const capa = (url: string): ImagemDaCapa => ({
@@ -164,7 +173,7 @@ describe("planejarCurso", () => {
       return x;
     });
     expect(planejarCurso(edicao(d, { [A2]: 3 }), movida, null)).toMatchObject({
-      apagar: { aulas: [], modulos: [], niveis: [] },
+      apagar: NADA_SAI,
       tipo: "atualizar",
     });
   });
@@ -177,7 +186,7 @@ describe("planejarCurso", () => {
       niveis: x.niveis.slice(0, 1),
     }));
     expect(planejarCurso(edicao(d, { [A1]: 1 }), enxuto, null)).toEqual({
-      apagar: { aulas: [A3], modulos: [M2], niveis: [2] },
+      apagar: { ...NADA_SAI, aulas: [A3], modulos: [M2], niveis: [2] },
       capa: null,
       documento: enxuto,
       tipo: "atualizar",
@@ -201,7 +210,36 @@ describe("planejarCurso", () => {
       return x;
     });
     expect(planejarCurso(edicao(d), maior, null)).toMatchObject({
-      apagar: { aulas: [], modulos: [], niveis: [] },
+      apagar: NADA_SAI,
+      tipo: "atualizar",
+    });
+  });
+
+  test("pergunta e alternativa que saem entram no apagar; as que ficam, não", () => {
+    const P2 = uuidDeExemplo(42) as PerguntaId;
+    const P2A = uuidDeExemplo(53) as AlternativaId;
+    const P2B = uuidDeExemplo(54) as AlternativaId;
+    const P1C = uuidDeExemplo(55) as AlternativaId;
+    const d = editar(documento(), (x) => {
+      const a1 = x.modulos[0]?.aulas[0];
+      if (a1) {
+        const p1 = perguntaDeExemplo(P1, [P1A, P1B]);
+        p1.alternativas.push({ certa: false, id: P1C, texto: "Terceira" });
+        a1.perguntas = [p1, perguntaDeExemplo(P2, [P2A, P2B])];
+      }
+      return x;
+    });
+    const atual = edicao({ ...d, versao: versaoDoCurso(d, CAPA_ATUAL) });
+    const enxuto = editar(atual.documento, (x) => {
+      const a1 = x.modulos[0]?.aulas[0];
+      const q1 = a1?.perguntas[0];
+      if (a1 && q1) {
+        a1.perguntas = [{ ...q1, alternativas: q1.alternativas.slice(0, 2) }];
+      }
+      return x;
+    });
+    expect(planejarCurso(atual, enxuto, null)).toMatchObject({
+      apagar: { ...NADA_SAI, alternativas: [P1C, P2A, P2B], perguntas: [P2] },
       tipo: "atualizar",
     });
   });

@@ -10,7 +10,13 @@ import {
   LIMITES,
   PRECO_MAXIMO,
 } from "@cursos/api/dominio/edicao-do-curso";
-import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
+import { ALTERNATIVAS } from "@cursos/api/dominio/questionario";
+import type {
+  AlternativaId,
+  AulaId,
+  ModuloId,
+  PerguntaId,
+} from "@cursos/api/dominio/tipos";
 import { linkCurtoDoVideo, videoDoTexto } from "@cursos/api/dominio/video";
 import type { z } from "zod";
 
@@ -26,11 +32,23 @@ import {
   semRepetir,
 } from "./problemas";
 
+export interface AlternativaDoRascunho {
+  certa: boolean;
+  id: AlternativaId;
+  texto: string;
+}
+
+export interface PerguntaDoRascunho {
+  alternativas: AlternativaDoRascunho[];
+  enunciado: string;
+  id: PerguntaId;
+}
+
 export interface AulaDoRascunho {
-  /** Sem campo na tela ainda: passa de volta como veio, para o salvar não apagá-la. */
   descricao: string;
   duracao: string;
   id: AulaId;
+  perguntas: PerguntaDoRascunho[];
   titulo: string;
   video: string;
 }
@@ -68,6 +86,11 @@ export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
         descricao: a.descricao,
         duracao: a.duracaoSeg > 0 ? mmss(a.duracaoSeg) : "",
         id: a.id,
+        perguntas: a.perguntas.map((p) => ({
+          alternativas: p.alternativas.map((x) => ({ ...x })),
+          enunciado: p.enunciado,
+          id: p.id,
+        })),
         titulo: a.titulo,
         video: linkDoVideo(a.video),
       })),
@@ -100,7 +123,18 @@ function emOrdem(r: RascunhoDoCurso) {
       m.nivelOrdem,
       m.numero,
       m.titulo,
-      m.aulas.map((a) => [a.id, a.titulo, a.descricao, a.duracao, a.video]),
+      m.aulas.map((a) => [
+        a.id,
+        a.titulo,
+        a.descricao,
+        a.duracao,
+        a.video,
+        a.perguntas.map((p) => [
+          p.id,
+          p.enunciado,
+          p.alternativas.map((x) => [x.id, x.texto, x.certa]),
+        ]),
+      ]),
     ]),
     r.niveis.map((n) => [n.ordem, n.nome]),
     r.precoTroca,
@@ -160,17 +194,24 @@ type CampoDoCursoComId =
   | "capaAlt"
   | "categoriaId"
   | "codigo"
+  | "descricao"
   | "destaque"
   | "precoTroca"
   | "titulo";
 
+export type CampoDaAula = "descricao" | "duracao" | "titulo" | "video";
+export type CampoDaPergunta = "alternativas" | "enunciado";
+
 export const ID = {
-  aula: (id: AulaId, campo: "duracao" | "titulo" | "video") =>
-    `aula-${id}-${campo}`,
+  alternativa: (id: AlternativaId) => `alternativa-${id}`,
+  aula: (id: AulaId, campo: CampoDaAula) => `aula-${id}-${campo}`,
   curso: (campo: CampoDoCursoComId | "capa") => `curso-${campo}`,
   modulo: (id: ModuloId, campo: "nivel" | "numero" | "titulo") =>
     `modulo-${id}-${campo}`,
   nivel: (ordem: number) => `nivel-${ordem}`,
+  pergunta: (id: PerguntaId, campo: CampoDaPergunta) =>
+    `pergunta-${id}-${campo}`,
+  topico: (indice: number) => `topico-${indice}`,
 };
 
 export type RascunhoLido =
@@ -203,6 +244,7 @@ const CAMPOS_DO_CURSO = new Set<string>([
   "capaAlt",
   "categoriaId",
   "codigo",
+  "descricao",
   "destaque",
   "precoTroca",
   "titulo",
@@ -212,9 +254,12 @@ function campoDoCaminho(
   r: RascunhoDoCurso,
   caminho: readonly PropertyKey[]
 ): string | null {
-  const [a, b, c, d, e] = caminho;
+  const [a, b, c, d] = caminho;
   if (caminho.length === 1 && CAMPOS_DO_CURSO.has(String(a))) {
     return ID.curso(a as CampoDoCursoComId);
+  }
+  if (a === "topicos" && typeof b === "number" && caminho.length === 2) {
+    return ID.topico(b);
   }
   if (a === "niveis" && typeof b === "number" && c === "nome") {
     const nivel = r.niveis[b];
@@ -230,8 +275,33 @@ function campoDoCaminho(
     return campo ? ID.modulo(modulo.id, campo) : null;
   }
   const aula = c === "aulas" && typeof d === "number" ? modulo.aulas[d] : null;
-  const campo = CAMPO_DA_AULA[String(e)];
-  return aula && campo && caminho.length === 5 ? ID.aula(aula.id, campo) : null;
+  return aula ? campoNaAula(aula, caminho.slice(4)) : null;
+}
+
+function campoNaAula(
+  aula: AulaDoRascunho,
+  resto: readonly PropertyKey[]
+): string | null {
+  const [e, f, g, h, i] = resto;
+  if (resto.length === 1) {
+    const campo = CAMPO_DA_AULA[String(e)];
+    return campo ? ID.aula(aula.id, campo) : null;
+  }
+  const pergunta =
+    e === "perguntas" && typeof f === "number" ? aula.perguntas[f] : null;
+  if (!pergunta) {
+    return null;
+  }
+  if (resto.length === 3 && (g === "alternativas" || g === "enunciado")) {
+    return ID.pergunta(pergunta.id, g);
+  }
+  const alternativa =
+    g === "alternativas" && typeof h === "number"
+      ? pergunta.alternativas[h]
+      : null;
+  return alternativa && resto.length === 5 && i === "texto"
+    ? ID.alternativa(alternativa.id)
+    : null;
 }
 
 const CAMPO_DO_MODULO: Record<string, "nivel" | "numero" | "titulo"> = {
@@ -241,17 +311,23 @@ const CAMPO_DO_MODULO: Record<string, "nivel" | "numero" | "titulo"> = {
   titulo: "titulo",
 };
 
-const CAMPO_DA_AULA: Record<string, "duracao" | "titulo" | "video"> = {
+const CAMPO_DA_AULA: Record<string, CampoDaAula> = {
+  descricao: "descricao",
   duracaoSeg: "duracao",
   titulo: "titulo",
   video: "video",
 };
 
 const NOME_DA_LISTA: Record<string, string> = {
+  alternativas: "alternativas",
   aulas: "aulas por módulo",
   modulos: "módulos",
   niveis: "níveis",
+  perguntas: "perguntas por aula",
+  topicos: "tópicos",
 };
+
+export const MINIMO_DE_ALTERNATIVAS = `Toda pergunta tem pelo menos ${ALTERNATIVAS.min} alternativas.`;
 
 function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   if (i.code === "custom") {
@@ -264,6 +340,9 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   if (i.code === "too_big" && i.origin === "array") {
     const lista = NOME_DA_LISTA[String(i.path.at(-1))] ?? "itens";
     return `O limite é de ${fmtNum(Number(i.maximum))} ${lista}.`;
+  }
+  if (i.code === "too_small" && i.path.at(-1) === "alternativas") {
+    return MINIMO_DE_ALTERNATIVAS;
   }
   if (temCampo) {
     return "Confira este campo.";
@@ -290,6 +369,7 @@ export function lerRascunho(
         descricao: a.descricao,
         duracaoSeg: ler(lerDuracao(a.duracao), ID.aula(a.id, "duracao"), 1),
         id: a.id,
+        perguntas: a.perguntas,
         titulo: a.titulo,
         video: ler(lerVideo(a.video), ID.aula(a.id, "video"), null),
       })),

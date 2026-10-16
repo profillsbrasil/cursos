@@ -4,7 +4,13 @@
 
 import type { ImagemDaCapa } from "./capa";
 import type { DocumentoDoCurso, EdicaoDoCurso } from "./edicao-do-curso";
-import type { AulaId, ModuloId, Versao } from "./tipos";
+import type {
+  AlternativaId,
+  AulaId,
+  ModuloId,
+  PerguntaId,
+  Versao,
+} from "./tipos";
 import { versaoDe } from "./versao";
 
 /** A capa entra na versão: duas trocas de capa concorrentes dão CONFLICT. */
@@ -23,9 +29,11 @@ export type RecusaDaEdicao =
   | { tipo: "aula_assistida"; titulo: string; alunos: number };
 
 export interface Apagar {
+  alternativas: readonly AlternativaId[];
   aulas: readonly AulaId[];
   modulos: readonly ModuloId[];
   niveis: readonly number[];
+  perguntas: readonly PerguntaId[];
 }
 
 /** `versao` é a do estado depois do salvamento, a que abrirCurso vai ler. */
@@ -52,8 +60,14 @@ export type PlanoDeGravacao = Extract<Plano, { tipo: "criar" | "atualizar" }>;
 const recusa = (r: RecusaDaEdicao): Plano => ({ recusa: r, tipo: "recusa" });
 
 const idsDosModulos = (d: DocumentoDoCurso) => d.modulos.map((m) => m.id);
-const idsDasAulas = (d: DocumentoDoCurso) =>
-  d.modulos.flatMap((m) => m.aulas.map((a) => a.id));
+const aulasDe = (d: DocumentoDoCurso) => d.modulos.flatMap((m) => m.aulas);
+const idsDasAulas = (d: DocumentoDoCurso) => aulasDe(d).map((a) => a.id);
+const perguntasDe = (d: DocumentoDoCurso) =>
+  aulasDe(d).flatMap((a) => a.perguntas);
+const idsDasPerguntas = (d: DocumentoDoCurso) =>
+  perguntasDe(d).map((p) => p.id);
+const idsDasAlternativas = (d: DocumentoDoCurso) =>
+  perguntasDe(d).flatMap((p) => p.alternativas.map((a) => a.id));
 const fora = <T>(lista: readonly T[], de: readonly T[]) => {
   const conjunto = new Set(de);
   return lista.filter((x) => !conjunto.has(x));
@@ -110,11 +124,19 @@ export function planejarCurso(
   }
   return {
     apagar: {
+      alternativas: fora(
+        idsDasAlternativas(atual.documento),
+        idsDasAlternativas(desejado)
+      ),
       aulas: aulasQueSaem,
       modulos: fora(idsDosModulos(atual.documento), idsDosModulos(desejado)),
       niveis: fora(
         atual.documento.niveis.map((n) => n.ordem),
         desejado.niveis.map((n) => n.ordem)
+      ),
+      perguntas: fora(
+        idsDasPerguntas(atual.documento),
+        idsDasPerguntas(desejado)
       ),
     },
     capa,

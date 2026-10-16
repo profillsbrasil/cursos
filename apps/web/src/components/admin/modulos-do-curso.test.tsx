@@ -12,7 +12,12 @@ import {
 } from "@/lib/use-rascunho-apoiado";
 
 import { ErrosDoEditor } from "./erros-do-editor";
-import { type Bloco, NENHUM_ABERTO, REGRAS_DO_CURSO } from "./estado-do-editor";
+import {
+  type Bloco,
+  NADA_ESCOLHIDO,
+  NENHUM_ABERTO,
+  REGRAS_DO_CURSO,
+} from "./estado-do-editor";
 import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
 import {
   ID,
@@ -51,11 +56,14 @@ const blocoDoExemplo = (bloco: Bloco) => {
       assistidasPorAula={{ [EDICAO.A1]: 3 }}
       bloco={bloco}
       despachar={nada}
+      escolhas={NADA_ESCOLHIDO}
       indice={0}
       linhaAberta={LINHA_FECHADA}
+      marcados={new Set()}
       modulo={modulos[0]}
       modulos={modulos}
       mudarBlocos={nada}
+      mudarEscolhas={nada}
       niveis={niveis}
     />
   );
@@ -118,11 +126,14 @@ describe("campo de vídeo da aula salva", () => {
       assistidasPorAula={{}}
       bloco={{ tipo: "aberto" }}
       despachar={nada}
+      escolhas={NADA_ESCOLHIDO}
       indice={0}
       linhaAberta={LINHA_FECHADA}
+      marcados={new Set()}
       modulo={rascunho.modulos[0]}
       modulos={rascunho.modulos}
       mudarBlocos={nada}
+      mudarEscolhas={nada}
       niveis={rascunho.niveis}
     />
   );
@@ -208,9 +219,11 @@ describe("lista de módulos fechados", () => {
       abertos={NENHUM_ABERTO}
       assistidasPorAula={{}}
       despachar={nada}
+      escolhas={NADA_ESCOLHIDO}
       linhaAberta={LINHA_FECHADA}
       marcados={new Set()}
       mudarBlocos={nada}
+      mudarEscolhas={nada}
       rascunho={rascunhoDoCurso(documentoDeExemplo())}
     />
   );
@@ -238,9 +251,11 @@ describe("erro num módulo que o admin não abriu", () => {
         abertos={NENHUM_ABERTO}
         assistidasPorAula={{}}
         despachar={nada}
+        escolhas={NADA_ESCOLHIDO}
         linhaAberta={LINHA_FECHADA}
         marcados={erros}
         mudarBlocos={nada}
+        mudarEscolhas={nada}
         rascunho={rascunhoDoCurso(documentoDeExemplo())}
       />
     </ErrosDoEditor>

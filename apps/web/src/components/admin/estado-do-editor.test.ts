@@ -1,24 +1,41 @@
 import { describe, expect, test } from "bun:test";
-import { documentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
+import {
+  documentoDoCurso,
+  SEM_CERTA,
+} from "@cursos/api/dominio/edicao-do-curso";
 import {
   documentoDeExemplo,
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { AulaId, CategoriaId, ModuloId } from "@cursos/api/dominio/tipos";
+import type {
+  AlternativaId,
+  AulaId,
+  CategoriaId,
+  ModuloId,
+  PerguntaId,
+} from "@cursos/api/dominio/tipos";
 
 import {
   type Abertos,
   type AcaoNosBlocos,
   abertosAoAbrir,
   abrirOsComErro,
+  aulaEscolhida,
   blocoDoModulo,
   blocosAbertos,
+  comGrupoDasLetrasTocado,
   despacharNosDois,
+  donoDoCampo,
+  errosNaAula,
+  errosNaPergunta,
+  escolhas,
   type Mudanca,
   modulosComErro,
   mudar,
+  NADA_ESCOLHIDO,
   NENHUM_ABERTO,
+  perguntaEscolhida,
   problemasNaTela,
   proximaOrdem,
 } from "./estado-do-editor";
@@ -28,6 +45,7 @@ import {
   lerNumeroDoModulo,
   lerPreco,
   lerRascunho as lerRascunhoSalvo,
+  MINIMO_DE_ALTERNATIVAS,
   type RascunhoDoCurso,
   rascunhoDoCurso,
   recusaDoMotivo,
@@ -182,6 +200,7 @@ describe("aulas", () => {
       descricao: "",
       duracao: "",
       id: A4,
+      perguntas: [],
       titulo: "",
       video: "",
     });
@@ -194,11 +213,19 @@ describe("aulas", () => {
       tipo: "aula_editada",
     });
     expect(r.modulos[0]?.aulas).toEqual([
-      { descricao: "", duracao: "05:00", id: A1, titulo: "Aula 1", video: "" },
+      {
+        descricao: "",
+        duracao: "05:00",
+        id: A1,
+        perguntas: [],
+        titulo: "Aula 1",
+        video: "",
+      },
       {
         descricao: "",
         duracao: "12:34",
         id: A2,
+        perguntas: [],
         titulo: "Ajuste da válvula",
         video: "",
       },
@@ -255,6 +282,7 @@ describe("aulas", () => {
       descricao: "",
       duracao: "12:3",
       id: A1,
+      perguntas: [],
       titulo: "Aula 1",
       video: "youtu.be/x",
     });
@@ -711,5 +739,252 @@ describe("nenhum erro fica num bloco fechado", () => {
     );
     expect(t.abertos).toBe(NENHUM_ABERTO);
     expect(t.blocos).toEqual([{ tipo: "fechado" }, { tipo: "fechado" }]);
+  });
+});
+
+describe("questionário da aula", () => {
+  const P1 = uuidDeExemplo(41) as PerguntaId;
+  const P2 = uuidDeExemplo(42) as PerguntaId;
+  const X1 = uuidDeExemplo(51) as AlternativaId;
+  const X2 = uuidDeExemplo(52) as AlternativaId;
+  const X3 = uuidDeExemplo(53) as AlternativaId;
+  const Y1 = uuidDeExemplo(61) as AlternativaId;
+  const Y2 = uuidDeExemplo(62) as AlternativaId;
+  const nova = (
+    aulaId: AulaId,
+    id: PerguntaId,
+    alternativas: [AlternativaId, AlternativaId]
+  ): Mudanca => ({ alternativas, aulaId, id, tipo: "pergunta_nova" });
+  const perguntas = (r: RascunhoDoCurso) => aula(r, A1)?.perguntas ?? [];
+  const completa = (r: RascunhoDoCurso) =>
+    aplicar(
+      r,
+      { enunciado: "Por onde começa?", id: P1, tipo: "pergunta_editada" },
+      { id: X1, texto: "Pelo pedido", tipo: "alternativa_editada" },
+      { id: X2, texto: "Pela data", tipo: "alternativa_editada" },
+      { alternativaId: X2, perguntaId: P1, tipo: "certa_marcada" }
+    );
+
+  test("a pergunta nova nasce no fim da aula, com duas alternativas vazias e nenhuma certa", () => {
+    const r = mudar(exemplo(), nova(A1, P1, [X1, X2]));
+    expect(perguntas(r)).toEqual([
+      {
+        alternativas: [
+          { certa: false, id: X1, texto: "" },
+          { certa: false, id: X2, texto: "" },
+        ],
+        enunciado: "",
+        id: P1,
+      },
+    ]);
+    expect(aula(r, A2)?.perguntas).toEqual([]);
+  });
+
+  test("marcar a certa desmarca a outra; a alternativa nova entra até 5 e a tirada sai até 2", () => {
+    const r = completa(mudar(exemplo(), nova(A1, P1, [X1, X2])));
+    expect(perguntas(r)[0]?.alternativas.map((x) => x.certa)).toEqual([
+      false,
+      true,
+    ]);
+    const comTres = mudar(r, {
+      id: X3,
+      perguntaId: P1,
+      tipo: "alternativa_nova",
+    });
+    expect(perguntas(comTres)[0]?.alternativas.map((x) => x.id)).toEqual([
+      X1,
+      X2,
+      X3,
+    ]);
+    const cheia = [54, 55, 56].reduce(
+      (acc, n) =>
+        mudar(acc, {
+          id: uuidDeExemplo(n) as AlternativaId,
+          perguntaId: P1,
+          tipo: "alternativa_nova",
+        }),
+      comTres
+    );
+    expect(perguntas(cheia)[0]?.alternativas.length).toBe(5);
+    const semA = mudar(r, { id: X1, tipo: "alternativa_removida" });
+    expect(semA).toEqual(r);
+    const semC = mudar(comTres, { id: X2, tipo: "alternativa_removida" });
+    expect(perguntas(semC)[0]?.alternativas).toEqual([
+      { certa: false, id: X1, texto: "Pelo pedido" },
+      { certa: false, id: X3, texto: "" },
+    ]);
+  });
+
+  test("tirar a pergunta e desfazer a devolve ao mesmo lugar", () => {
+    const r = aplicar(
+      exemplo(),
+      nova(A1, P1, [X1, X2]),
+      nova(A1, P2, [Y1, Y2])
+    );
+    const [p1] = perguntas(r);
+    if (!p1) {
+      throw new Error("sem P1");
+    }
+    const tirada = mudar(r, { id: P1, tipo: "pergunta_removida" });
+    expect(perguntas(tirada).map((p) => p.id)).toEqual([P2]);
+    const devolvida = mudar(tirada, {
+      aulaId: A1,
+      indice: 0,
+      pergunta: p1,
+      tipo: "pergunta_restaurada",
+    });
+    expect(devolvida).toEqual(r);
+  });
+
+  test("a pergunta incompleta marca o enunciado, as alternativas vazias e o grupo sem certa", () => {
+    const r = mudar(exemplo(), nova(A1, P1, [X1, X2]));
+    expect(problemas(r)).toEqual([
+      { campo: ID.alternativa(X1), mensagem: "Preencha este campo." },
+      { campo: ID.alternativa(X2), mensagem: "Preencha este campo." },
+      { campo: ID.pergunta(P1, "enunciado"), mensagem: "Preencha este campo." },
+      { campo: ID.pergunta(P1, "alternativas"), mensagem: SEM_CERTA },
+    ]);
+    expect(problemas(completa(r))).toEqual([]);
+  });
+
+  test("uma alternativa só, vinda de fora do editor, marca o grupo com a regra do mínimo", () => {
+    const r = completa(mudar(exemplo(), nova(A1, P1, [X1, X2])));
+    const [p] = perguntas(r);
+    const quebrado = {
+      ...r,
+      modulos: r.modulos.map((m) => ({
+        ...m,
+        aulas: m.aulas.map((a) =>
+          a.id === A1 && p
+            ? {
+                ...a,
+                perguntas: [{ ...p, alternativas: p.alternativas.slice(1) }],
+              }
+            : a
+        ),
+      })),
+    };
+    expect(problemas(quebrado)).toEqual([
+      {
+        campo: ID.pergunta(P1, "alternativas"),
+        mensagem: MINIMO_DE_ALTERNATIVAS,
+      },
+    ]);
+  });
+
+  test("a lista de aulas e a de perguntas contam os campos marcados, e o módulo soma tudo", () => {
+    const r = mudar(exemplo(), nova(A1, P1, [X1, X2]));
+    const marcados = errosPorCampo(problemas(r));
+    const a1 = aula(r, A1);
+    const a2 = aula(r, A2);
+    const [m1] = r.modulos;
+    if (!(a1 && a2 && m1)) {
+      throw new Error("sem o exemplo");
+    }
+    expect([
+      errosNaAula(a1, marcados),
+      errosNaAula(a2, marcados),
+      errosNaPergunta(
+        a1.perguntas[0] as NonNullable<(typeof a1.perguntas)[0]>,
+        marcados
+      ),
+      blocoDoModulo(m1, NENHUM_ABERTO, marcados),
+    ]).toEqual([4, 0, 4, { campos: 4, tipo: "com_erro" }]);
+  });
+
+  test("o grupo das letras conta como deixado quando o enunciado e todas as alternativas foram deixados", () => {
+    const r = mudar(exemplo(), nova(A1, P1, [X1, X2]));
+    const parcial = new Set([ID.pergunta(P1, "enunciado"), ID.alternativa(X1)]);
+    expect(comGrupoDasLetrasTocado(parcial, r)).toBe(parcial);
+    const todos = new Set([...parcial, ID.alternativa(X2)]);
+    expect([...comGrupoDasLetrasTocado(todos, r)]).toEqual([
+      ...todos,
+      ID.pergunta(P1, "alternativas"),
+    ]);
+  });
+
+  test("o painel mostra a primeira aula e a primeira pergunta até o admin escolher, e segue a nova e a restaurada", () => {
+    const r = aplicar(
+      exemplo(),
+      nova(A1, P1, [X1, X2]),
+      nova(A1, P2, [Y1, Y2])
+    );
+    const [m1] = r.modulos;
+    const a1 = aula(r, A1);
+    if (!(m1 && a1)) {
+      throw new Error("sem o exemplo");
+    }
+    expect([
+      aulaEscolhida(m1, NADA_ESCOLHIDO)?.id,
+      perguntaEscolhida(a1, NADA_ESCOLHIDO)?.id,
+    ]).toEqual([A1, P1]);
+    const e1 = escolhas(NADA_ESCOLHIDO, {
+      aulaId: A2,
+      moduloId: M1,
+      tipo: "aula_escolhida",
+    });
+    const e2 = escolhas(e1, {
+      aulaId: A1,
+      perguntaId: P2,
+      tipo: "pergunta_escolhida",
+    });
+    expect([aulaEscolhida(m1, e2)?.id, perguntaEscolhida(a1, e2)?.id]).toEqual([
+      A2,
+      P2,
+    ]);
+    const e3 = escolhas(e2, {
+      mudanca: nova(A1, uuidDeExemplo(43) as PerguntaId, [
+        uuidDeExemplo(71) as AlternativaId,
+        uuidDeExemplo(72) as AlternativaId,
+      ]),
+      tipo: "mudou",
+    });
+    expect(e3.perguntaPorAula.get(A1)).toBe(uuidDeExemplo(43) as PerguntaId);
+    const e4 = escolhas(e3, {
+      mudanca: { id: A4, moduloId: M2, tipo: "aula_nova" },
+      tipo: "mudou",
+    });
+    expect(e4.aulaPorModulo.get(M2)).toBe(A4);
+    expect(aulaEscolhida({ ...m1, aulas: [a1] }, e2)?.id).toBe(A1);
+  });
+
+  test("o Salvar recusado leva o painel até o dono do primeiro campo marcado", () => {
+    const r = mudar(exemplo(), nova(A2, P1, [X1, X2]));
+    expect([
+      donoDoCampo(r, ID.alternativa(X2)),
+      donoDoCampo(r, ID.aula(A3, "video")),
+      donoDoCampo(r, ID.modulo(M1, "titulo")),
+    ]).toEqual([
+      { aulaId: A2, moduloId: M1, perguntaId: P1 },
+      { aulaId: A3, moduloId: M2, perguntaId: null },
+      null,
+    ]);
+    const e = escolhas(NADA_ESCOLHIDO, {
+      dono: { aulaId: A2, moduloId: M1, perguntaId: P1 },
+      tipo: "campo_mostrado",
+    });
+    expect([e.aulaPorModulo.get(M1), e.perguntaPorAula.get(A2)]).toEqual([
+      A2,
+      P1,
+    ]);
+  });
+
+  test("o rascunho com questionário vira um documento que o servidor aceita, com as perguntas na ordem", () => {
+    const r = completa(mudar(exemplo(), nova(A1, P1, [X1, X2])));
+    const lido = lerRascunho(r);
+    expect(lido.tipo).toBe("lido");
+    if (lido.tipo === "lido") {
+      expect(documentoDoCurso.safeParse(lido.documento).success).toBe(true);
+      expect(lido.documento.modulos[0]?.aulas[0]?.perguntas).toEqual([
+        {
+          alternativas: [
+            { certa: false, id: X1, texto: "Pelo pedido" },
+            { certa: true, id: X2, texto: "Pela data" },
+          ],
+          enunciado: "Por onde começa?",
+          id: P1,
+        },
+      ]);
+    }
   });
 });

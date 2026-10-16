@@ -10,6 +10,8 @@ type Marca<T, M extends string> = T & { readonly [marca]: M };
 export type CursoId = Marca<string, "CursoId">;
 export type AulaId = Marca<string, "AulaId">;
 export type ModuloId = Marca<string, "ModuloId">;
+export type PerguntaId = Marca<string, "PerguntaId">;
+export type AlternativaId = Marca<string, "AlternativaId">;
 /** Impressão do conteúdo de um documento do admin (dominio/versao.ts). */
 export type Versao = Marca<string, "Versao">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;

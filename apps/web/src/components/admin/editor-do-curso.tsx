@@ -6,7 +6,7 @@ import {
   type EdicaoDoCurso,
   formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
-import type { CategoriaId, StatusDoCurso } from "@cursos/api/dominio/tipos";
+import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
   Field,
@@ -53,11 +53,16 @@ import {
   useErroDoCampo,
 } from "./erros-do-editor";
 import {
+  type AcaoNosBlocos,
   abertosAoAbrir,
   abrirOsComErro,
   blocosAbertos,
+  comGrupoDasLetrasTocado,
   despacharNosDois,
+  donoDoCampo,
+  escolhas,
   type Mudanca,
+  NADA_ESCOLHIDO,
   problemasNaTela,
   proximaOrdem,
   REGRAS_DO_CURSO,
@@ -73,6 +78,8 @@ import {
   recusaDoMotivo,
   segundosDas,
 } from "./rascunho-do-curso";
+import { TopicosDoCurso } from "./topicos-do-curso";
+import { Vitrine } from "./vitrine";
 
 type Despachar = Dispatch<Mudanca>;
 
@@ -90,75 +97,14 @@ const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
 type CampoDeTextoDoCurso = "capaAlt" | "codigo" | "destaque" | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
-/** O servidor escolhe o endereço no primeiro salvamento, e ele não muda depois. */
-function EnderecoDoCurso({ slug }: { slug: string | null }) {
-  return (
-    <p className="text-muted-foreground text-sm md:col-span-2">
-      {slug === null
-        ? "O link do curso sai do título quando você salvar pela primeira vez."
-        : `Link do curso: /cursos/${slug}`}
-    </p>
-  );
-}
-
-function CampoDaCategoria({
-  categorias,
-  despachar,
-  valor,
-}: {
-  categorias: readonly CategoriaNaLista[];
-  despachar: Despachar;
-  valor: string;
-}) {
-  const id = ID.curso("categoriaId");
-  const { aria, mensagem } = useErroDoCampo(id);
-  const mudar = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) =>
-      despachar({
-        mudanca: { categoriaId: e.target.value as CategoriaId },
-        tipo: "campos",
-      }),
-    [despachar]
-  );
-  return (
-    <Field data-invalid={mensagem ? true : undefined}>
-      <FieldLabel className={ROTULO} htmlFor={id}>
-        Categoria
-      </FieldLabel>
-      <NativeSelect
-        {...aria}
-        className={SELECAO}
-        id={id}
-        onChange={mudar}
-        required
-        value={valor}
-      >
-        <NativeSelectOption disabled value="">
-          Escolha a categoria
-        </NativeSelectOption>
-        {categorias.map((c) => (
-          <NativeSelectOption key={c.id} value={c.id}>
-            {c.nome}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-      <ErroDoCampo id={id} mensagem={mensagem} />
-    </Field>
-  );
-}
-
-function CamposDoCurso({
-  categorias,
+function Publicacao({
   despachar,
   mudarTexto,
   rascunho,
-  slug,
 }: {
-  categorias: readonly CategoriaNaLista[];
   despachar: Despachar;
   mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
   rascunho: RascunhoDoCurso;
-  slug: string | null;
 }) {
   const id = useId();
   const mudarStatus = useCallback(
@@ -184,23 +130,6 @@ function CamposDoCurso({
   );
   return (
     <div className="grid gap-5 p-5 md:grid-cols-2">
-      <CampoDeTexto
-        campoClasse="md:col-span-2"
-        id={ID.curso("titulo")}
-        maxLength={CARACTERES.titulo}
-        name="titulo"
-        onChange={mudarTexto}
-        placeholder="Operação da envasadora volumétrica"
-        required
-        rotulo="Título"
-        value={rascunho.titulo}
-      />
-      <EnderecoDoCurso slug={slug} />
-      <CampoDaCategoria
-        categorias={categorias}
-        despachar={despachar}
-        valor={rascunho.categoriaId}
-      />
       <Field>
         <FieldLabel className={ROTULO} htmlFor={`${id}-status`}>
           Status
@@ -223,6 +152,31 @@ function CamposDoCurso({
           {STATUS[rascunho.status].descricao}
         </FieldDescription>
       </Field>
+      <div className="grid gap-3">
+        <Field className="w-auto" orientation="horizontal">
+          <Switch
+            checked={rascunho.precoTroca !== null}
+            id={`${id}-troca`}
+            onCheckedChange={ligarTroca}
+          />
+          <FieldLabel className={ROTULO} htmlFor={`${id}-troca`}>
+            Aceita troca por pontos
+          </FieldLabel>
+        </Field>
+        {rascunho.precoTroca === null ? null : (
+          <div className="max-w-60">
+            <CampoLido
+              aoMudar={mudarPreco}
+              id={ID.curso("precoTroca")}
+              inputMode="numeric"
+              placeholder="300"
+              required
+              rotulo="Preço em pontos"
+              texto={rascunho.precoTroca}
+            />
+          </div>
+        )}
+      </div>
       <CampoDeTexto
         id={ID.curso("codigo")}
         maxLength={CARACTERES.codigo}
@@ -256,31 +210,6 @@ function CamposDoCurso({
         }
         value={rascunho.destaque ?? ""}
       />
-      <div className="grid gap-3 md:col-span-2">
-        <Field className="w-auto" orientation="horizontal">
-          <Switch
-            checked={rascunho.precoTroca !== null}
-            id={`${id}-troca`}
-            onCheckedChange={ligarTroca}
-          />
-          <FieldLabel className={ROTULO} htmlFor={`${id}-troca`}>
-            Aceita troca por pontos
-          </FieldLabel>
-        </Field>
-        {rascunho.precoTroca === null ? null : (
-          <div className="max-w-60">
-            <CampoLido
-              aoMudar={mudarPreco}
-              id={ID.curso("precoTroca")}
-              inputMode="numeric"
-              placeholder="300"
-              required
-              rotulo="Preço em pontos"
-              texto={rascunho.precoTroca}
-            />
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -480,15 +409,22 @@ export function EditorDoCurso({
     sujoAlem: (g) =>
       capaGuardada.geracao === g && capaGuardada.arquivo !== null,
   });
-  // Fica entre gerações: o Recarregar não fecha o módulo em que o admin estava.
   const [abertos, mudarBlocos] = useReducer(
     blocosAbertos,
     rascunho,
     abertosAoAbrir
   );
+  const [escolhidas, mudarEscolhas] = useReducer(escolhas, NADA_ESCOLHIDO);
+  const mudarTela = useCallback(
+    (a: Extract<AcaoNosBlocos, { tipo: "mudou" }>) => {
+      mudarBlocos(a);
+      mudarEscolhas(a);
+    },
+    []
+  );
   const despachar = useMemo(
-    () => despacharNosDois(mudarRascunho, mudarBlocos),
-    [mudarRascunho]
+    () => despacharNosDois(mudarRascunho, mudarTela),
+    [mudarRascunho, mudarTela]
   );
   const capa = capaGuardada.geracao === geracao ? capaGuardada.arquivo : null;
   const escolherCapa = useCallback(
@@ -520,7 +456,7 @@ export function EditorDoCurso({
     achados: [...(lido.tipo === "problemas" ? lido.problemas : []), ...semCapa],
     recusa: recusaNaTela(recusa, rascunho, ID.curso),
     tentou,
-    tocados,
+    tocados: comGrupoDasLetrasTocado(tocados, rascunho),
   });
   const erros = errosPorCampo(problemas);
   // Nenhum erro fica num bloco fechado: o bloco abre no render em que o erro
@@ -552,10 +488,13 @@ export function EditorDoCurso({
         ...semCapa,
       ];
       if (lido.tipo === "problemas" || achados.length > 0) {
-        // O bloco de cada campo marcado abre no próximo render, e o foco vai
-        // depois dele.
         setTentou(true);
-        focarOPrimeiro(achados.flatMap((p) => (p.campo ? [p.campo] : [])));
+        const campos = achados.flatMap((p) => (p.campo ? [p.campo] : []));
+        const dono = campos[0] ? donoDoCampo(rascunho, campos[0]) : null;
+        if (dono) {
+          mudarEscolhas({ dono, tipo: "campo_mostrado" });
+        }
+        focarOPrimeiro(campos);
         return;
       }
       setTentou(false);
@@ -624,32 +563,35 @@ export function EditorDoCurso({
             </header>
           </div>
 
+          <Vitrine
+            capa={
+              <CampoDeCapa
+                alt={rascunho.capaAlt}
+                aoEscolher={escolherCapa}
+                arquivo={capa}
+                atual={edicao.capa}
+                geracao={geracao}
+                mudarAlt={mudarTexto}
+              />
+            }
+            categorias={categorias}
+            despachar={despachar}
+            mudarTexto={mudarTexto}
+            rascunho={rascunho}
+            slug={edicao.slug}
+          />
+
+          <TopicosDoCurso despachar={despachar} topicos={rascunho.topicos} />
+
           <Secao
-            id="curso"
+            id="publicacao"
             resumo={STATUS[rascunho.status].rotulo}
-            titulo="Curso"
+            titulo="Publicação"
           >
-            <CamposDoCurso
-              categorias={categorias}
+            <Publicacao
               despachar={despachar}
               mudarTexto={mudarTexto}
               rascunho={rascunho}
-              slug={edicao.slug}
-            />
-          </Secao>
-
-          <Secao
-            id="capa"
-            resumo={novo && !capa ? "Obrigatória" : "JPG, PNG ou WebP"}
-            titulo="Capa"
-          >
-            <CampoDeCapa
-              alt={rascunho.capaAlt}
-              aoEscolher={escolherCapa}
-              arquivo={capa}
-              atual={edicao.capa}
-              geracao={geracao}
-              mudarAlt={mudarTexto}
             />
           </Secao>
 
@@ -665,9 +607,11 @@ export function EditorDoCurso({
             abertos={abertos}
             assistidasPorAula={edicao.uso.assistidasPorAula}
             despachar={despachar}
+            escolhas={escolhidas}
             linhaAberta={linhaAberta}
             marcados={erros}
             mudarBlocos={mudarBlocos}
+            mudarEscolhas={mudarEscolhas}
             rascunho={rascunho}
           />
 

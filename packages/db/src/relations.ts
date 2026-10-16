@@ -4,6 +4,9 @@ import { defineRelations } from "drizzle-orm";
 import * as schema from "./schema";
 
 export const relations = defineRelations(schema, (r) => ({
+  aula: {
+    perguntas: r.many.pergunta({ from: r.aula.id, to: r.pergunta.aulaId }),
+  },
   categoria: {
     cursos: r.many.curso({ from: r.categoria.id, to: r.curso.categoriaId }),
   },
@@ -30,6 +33,12 @@ export const relations = defineRelations(schema, (r) => ({
   },
   modulo: {
     aulas: r.many.aula({ from: r.modulo.id, to: r.aula.moduloId }),
+  },
+  pergunta: {
+    alternativas: r.many.alternativa({
+      from: r.pergunta.id,
+      to: r.alternativa.perguntaId,
+    }),
   },
   pontoLancamento: {
     aula: r.one.aula({ from: r.pontoLancamento.aulaId, to: r.aula.id }),

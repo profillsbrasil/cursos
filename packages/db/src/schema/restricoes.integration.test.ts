@@ -498,7 +498,94 @@ const CASOS: Caso[] = [
         "insert into cota_video (user_id, segundos, atualizada_em) values ('marina@x.com', 0, now())"
       ),
   },
+  {
+    apagar: "alter table pergunta drop constraint pergunta_posicao_unica",
+    constraint: "pergunta_posicao_unica",
+    nome: "duas perguntas na mesma posição da aula",
+    violar: async (c, b) => {
+      await perguntar(c, b.aulaId, 1);
+      await perguntar(c, b.aulaId, 1);
+    },
+  },
+  {
+    apagar: "alter table pergunta drop constraint pergunta_enunciado_formato",
+    constraint: "pergunta_enunciado_formato",
+    nome: "pergunta com 501 caracteres",
+    violar: (c, b) => perguntar(c, b.aulaId, 1, "p".repeat(501)),
+  },
+  {
+    apagar: "alter table pergunta drop constraint pergunta_enunciado_formato",
+    constraint: "pergunta_enunciado_formato",
+    nome: "pergunta só com espaços",
+    violar: (c, b) => perguntar(c, b.aulaId, 1, "  "),
+  },
+  {
+    apagar: "alter table pergunta drop constraint pergunta_posicao_positiva",
+    constraint: "pergunta_posicao_positiva",
+    nome: "pergunta na posição 0",
+    violar: (c, b) => perguntar(c, b.aulaId, 0),
+  },
+  {
+    apagar: "drop index alternativa_certa_unica",
+    constraint: "alternativa_certa_unica",
+    nome: "duas alternativas certas na mesma pergunta",
+    violar: async (c, b) => {
+      const p = await perguntar(c, b.aulaId, 1);
+      await alternar(c, p, 1, true);
+      await alternar(c, p, 2, true);
+    },
+  },
+  {
+    apagar: "alter table alternativa drop constraint alternativa_posicao_unica",
+    constraint: "alternativa_posicao_unica",
+    nome: "duas alternativas na mesma posição",
+    violar: async (c, b) => {
+      const p = await perguntar(c, b.aulaId, 1);
+      await alternar(c, p, 1, true);
+      await alternar(c, p, 1, false);
+    },
+  },
+  {
+    apagar: "alter table alternativa drop constraint alternativa_texto_formato",
+    constraint: "alternativa_texto_formato",
+    nome: "alternativa com 201 caracteres",
+    violar: async (c, b) =>
+      alternar(c, await perguntar(c, b.aulaId, 1), 1, true, "a".repeat(201)),
+  },
+  {
+    apagar:
+      "alter table alternativa drop constraint alternativa_posicao_positiva",
+    constraint: "alternativa_posicao_positiva",
+    nome: "alternativa na posição 0",
+    violar: async (c, b) =>
+      alternar(c, await perguntar(c, b.aulaId, 1), 0, true),
+  },
 ];
+
+async function perguntar(
+  c: Client,
+  aulaId: string,
+  posicao: number,
+  enunciado = "Qual é a pergunta?"
+) {
+  const r = await c.query<{ id: string }>(
+    "insert into pergunta (aula_id, posicao, enunciado) values ($1, $2, $3) returning id",
+    [aulaId, posicao, enunciado]
+  );
+  return r.rows[0]?.id ?? "";
+}
+
+const alternar = (
+  c: Client,
+  perguntaId: string,
+  posicao: number,
+  certa: boolean,
+  texto = "Uma alternativa"
+) =>
+  c.query(
+    "insert into alternativa (pergunta_id, posicao, texto, certa) values ($1, $2, $3, $4)",
+    [perguntaId, posicao, texto, certa]
+  );
 
 const constraintDoErro = (e: unknown) =>
   typeof e === "object" && e !== null && "constraint" in e
