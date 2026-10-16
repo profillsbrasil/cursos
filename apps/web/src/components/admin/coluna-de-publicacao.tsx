@@ -1,15 +1,13 @@
 "use client";
 
 import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
-import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Clock, Eye, Undo2 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useId, useState } from "react";
 
-import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-
 import type { ItemAntesDePublicar, SecaoDoIndice } from "./antes-de-publicar";
 import { type EstadoDoSalvar, SituacaoESalvar } from "./barra-de-salvar";
+import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ROTULO } from "./partes";
 
 export const STATUS: Record<
@@ -197,6 +195,42 @@ function IndiceDasSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] }) {
   );
 }
 
+/** Um clique sem querer não perde o rascunho: o Descartar pergunta antes. */
+function Descartar({
+  chave,
+  descartar,
+  linha,
+}: {
+  chave: string;
+  descartar: () => void;
+  linha: LinhaAberta;
+}) {
+  const confirmar = useCallback(() => {
+    linha.fechar(chave);
+    descartar();
+  }, [chave, descartar, linha]);
+  return (
+    <ConfirmacaoNaLinha
+      botao={{ rotulo: "Descartar" }}
+      chave={chave}
+      className="grid gap-2 rounded-xl bg-muted/30 p-3 text-[13px]"
+      confirmar={confirmar}
+      enviando={false}
+      gatilho={{
+        nome: "Descartar mudanças",
+        rotulo: (
+          <>
+            <Undo2 aria-hidden="true" className="size-3.5" />
+            Descartar mudanças
+          </>
+        ),
+      }}
+      linhaAberta={linha}
+      pergunta="Voltar ao último salvamento e perder as mudanças?"
+    />
+  );
+}
+
 /**
  * A coluna à direita do editor, presa a 24 px do topo, de 960 px de editor
  * para cima (container query do formulário). Abaixo, ela desce para o fim do
@@ -219,6 +253,12 @@ export function ColunaDePublicacao({
   status: StatusDoCurso;
 }) {
   const largo = "@max-[960px]:hidden";
+  const [aberta, setAberta] = useState<string | null>(null);
+  const linha: LinhaAberta = {
+    chave: aberta,
+    fechar: (chave) => setAberta((a) => (a === chave ? null : a)),
+    pedir: setAberta,
+  };
   return (
     <aside
       aria-label="Publicação do curso"
@@ -228,32 +268,14 @@ export function ColunaDePublicacao({
         <div className={cn("grid gap-2", largo)}>
           <SituacaoESalvar coluna estado={estado} />
           {estado.sujo ? (
-            <Button
-              className={cn(
-                BOTAO_CONTORNO,
-                PEQUENO,
-                "w-full border-transparent dark:border-transparent"
-              )}
-              onClick={descartar}
-            >
-              <Undo2 aria-hidden="true" className="size-3.5" />
-              Descartar mudanças
-            </Button>
+            <Descartar chave="largo" descartar={descartar} linha={linha} />
           ) : null}
         </div>
         <SeletorDoStatus aoMudar={aoMudarStatus} status={status} />
         {estado.sujo ? (
-          <Button
-            className={cn(
-              BOTAO_CONTORNO,
-              PEQUENO,
-              "@min-[960px]:hidden justify-self-start"
-            )}
-            onClick={descartar}
-          >
-            <Undo2 aria-hidden="true" className="size-3.5" />
-            Descartar mudanças
-          </Button>
+          <div className="@min-[960px]:hidden justify-self-start">
+            <Descartar chave="estreito" descartar={descartar} linha={linha} />
+          </div>
         ) : null}
       </div>
       <div className={cn("grid gap-3.5", largo)}>
