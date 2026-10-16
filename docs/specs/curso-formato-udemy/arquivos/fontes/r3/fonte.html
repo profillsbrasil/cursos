@@ -207,6 +207,7 @@ select.campo {
 .pe-campo { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--apagado); font-variant-numeric: tabular-nums; }
 .pe-campo > span:last-child { white-space: nowrap; }
 .contexto { opacity: 0.62; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .barra-salvar {
   position: sticky; bottom: 16px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -235,6 +236,7 @@ select.campo {
   position: sticky; top: 12px; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px;
   border-radius: 20px; background: rgb(51 56 62 / 0.95); backdrop-filter: blur(4px); box-shadow: 0 0 0 1px var(--borda); margin-bottom: 14px;
 }
+.indice::before { content: ""; position: absolute; left: 0; right: 0; top: -13px; height: 13px; background: var(--fundo); }
 .indice > span { font-size: 12px; color: var(--apagado); flex: none; }
 .indice div { display: flex; flex-wrap: wrap; gap: 4px; }
 .indice b { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; background: var(--popover); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; transition: background 150ms; }
@@ -373,7 +375,7 @@ select.campo {
 <div class="doc">
   <section class="abertura">
     <h1>Editor do curso, rodada 3</h1>
-    <p>A versão C da rodada 2, refinada. A janela é o app em 1280 px, reduzido para caber, e abre rolada até o módulo 8 com a aula 4 escolhida; role para cima para ver a Vitrine, ou use <b>Página inteira</b>.</p>
+    <p>A versão C da rodada 2, refinada. A janela é o app em 1280 px, reduzido para caber, e abre rolada até o painel da aula 4 do módulo 8; role para cima para ver a Vitrine, ou use <b>Página inteira</b>.</p>
     <p>Tudo funciona: escrever, marcar a certa (clique na letra, ou as setas do teclado), acrescentar e tirar alternativas e perguntas, desfazer a pergunta tirada, trocar de aula e salvar. O Salvar recusa o questionário incompleto e mostra cada campo a corrigir.</p>
   </section>
 
@@ -502,7 +504,7 @@ function regra(n) {
   const k = paraPassar(n);
   const conta = `70% de ${n} é ${NUMERO.format(n * 0.7)}`;
   const exp = k === n
-    ? `Com ${plural(n, "pergunta", "perguntas")}, o aluno precisa acertar ${n === 1 ? "ela" : `as ${n}`}: ${conta}, e a nota mínima arredonda para cima. Com 4 perguntas, ele pode errar uma.`
+    ? `Com ${plural(n, "pergunta", "perguntas")}, o aluno precisa acertar ${n === 1 ? "a pergunta" : `as ${n}`}: ${conta}, e a nota mínima arredonda para cima. Com 4 perguntas, ele pode errar uma.`
     : `Com ${n} perguntas, o aluno passa com ${k} acertos e pode errar ${n - k === 1 ? "uma" : n - k}: ${conta}, arredondado para cima.`;
   return `<div class="regra" role="note">
     <span class="pips" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i < k ? "precisa" : ""}"></i>`).join("")}</span>
@@ -577,7 +579,7 @@ const listaAulas = () => `<ol class="lista" aria-label="Aulas do módulo 8">${M8
   return `<li class="${i === S.sel ? "sel" : ""}" data-aula="${i}"><button data-q="aula" data-i="${i}" data-k="aula-${i}" ${i === S.sel ? 'aria-current="true"' : ""}>
     <span class="n-aula">${i + 1}</span>
     <span><span class="nome">${titulo}</span><span class="sub"><span class="tab">10:34</span>${n ? `<span>${ic("list-checks", "tem")}${plural(n, "pergunta", "perguntas")}</span>` : ""}${erros ? `<span class="erros">${plural(erros, "campo para corrigir", "campos para corrigir")}</span>` : ""}</span></span>
-    ${vista ? `${ic("eye", "vista")}<span class="sr" hidden>assistida por alunos</span>` : "<span></span>"}</button></li>`;
+    ${vista ? `${ic("eye", "vista")}<span class="sr">assistida por alunos</span>` : "<span></span>"}</button></li>`;
 }).join("")}<li class="rodape"><button class="contorno peq" data-k="por-aula">${ic("plus")}Adicionar aula</button></li></ol>`;
 
 /* ---------- o painel da aula ---------- */
@@ -603,7 +605,7 @@ const alternativas = (pi, p) => {
     const err = erroDe(p, `a${ai}`);
     const certa = ai === p.certa;
     return `<div class="alt ${certa ? "certa" : ""}">
-      <button class="letra dica-esq" role="radio" aria-checked="${certa}" tabindex="${tabDe(ai)}" data-q="certa" data-p="${pi}" data-a="${ai}" data-k="certa-${pi}-${ai}" aria-label="${LETRAS[ai]}, a certa" ${certa ? "" : `data-dica="Marcar ${LETRAS[ai]} como a certa"`}><span>${LETRAS[ai]}</span></button>
+      <button class="letra dica-esq" role="radio" aria-checked="${certa}" tabindex="${tabDe(ai)}" data-q="certa" data-p="${pi}" data-a="${ai}" data-k="certa-${pi}-${ai}" aria-label="${LETRAS[ai]}" ${certa ? "" : `data-dica="Marcar ${LETRAS[ai]} como a certa"`}><span>${LETRAS[ai]}</span></button>
       <textarea class="campo c40 ${err ? "erro" : ""}" rows="1" data-campo="alt" data-p="${pi}" data-a="${ai}" data-k="alt-${pi}-${ai}" placeholder="Alternativa ${LETRAS[ai]}" aria-label="Alternativa ${LETRAS[ai]}" style="height:auto;min-height:40px;padding:9px 14px;line-height:1.4">${esc(a.t)}</textarea>
       <button class="icone-btn ${p.alts.length <= MIN_ALT ? "desl" : ""}" data-q="tirar-alt" data-p="${pi}" data-a="${ai}" data-k="tirar-alt-${pi}-${ai}" ${p.alts.length <= MIN_ALT ? 'aria-disabled="true" data-dica="Toda pergunta tem pelo menos 2 alternativas."' : `data-dica="Tirar a alternativa ${LETRAS[ai]}"`} aria-label="Tirar a alternativa ${LETRAS[ai]}">${ic("x")}</button>
       ${msg(err)}</div>`;
@@ -658,7 +660,7 @@ function barra() {
   const n = todosOsProblemas().length;
   if (S.salvo) return `<p class="ok" id="situacao">${ic("check")}Tudo salvo.</p><button class="contorno desligado" aria-disabled="true" aria-describedby="situacao" data-k="salvar">Salvar</button>`;
   if (S.tentou && n) return `<p class="falhou">${ic("alerta")}Não salvou: ${plural(n, "campo para corrigir", "campos para corrigir")} no módulo 8.</p><button class="botao" data-salvar data-k="salvar">Salvar</button>`;
-  return `<p>Mudanças na aula 4. <span>O aluno vê depois de salvar.</span></p><button class="botao" data-salvar data-k="salvar">Salvar</button>`;
+  return `<p>Mudanças não salvas. <span>O aluno vê depois de salvar.</span></p><button class="botao" data-salvar data-k="salvar">Salvar</button>`;
 }
 
 const conteudo = () => `<a class="voltar" href="#">${ic("arrow-left")}Catálogo</a>
@@ -669,8 +671,10 @@ const raiz = document.getElementById("janela-c");
 raiz.innerHTML = casca(conteudo());
 const janela = raiz.querySelector(".janela");
 
+let redesenhando = false;
 function redesenhar(foco, caret) {
-  janela.querySelector("[data-mestre]").innerHTML = mestre();
+  redesenhando = true;
+  try { janela.querySelector("[data-mestre]").innerHTML = mestre(); } finally { redesenhando = false; }
   janela.querySelector("[data-cab8]").innerHTML = cabModulo8();
   janela.querySelector("[data-barra]").innerHTML = barra();
   janela.querySelector("[data-indice8]").className = errosDoModulo() ? "erro" : "aberto";
@@ -697,7 +701,7 @@ const rolarAte = (el, folga) => {
   const s = escala.clientWidth / 1280;
   painel.scrollTop += (el.getBoundingClientRect().top - painel.getBoundingClientRect().top) / s - folga;
 };
-rolarAte(janela.querySelector("[data-rolar]"), 76);
+rolarAte(janela.querySelector(".ed-mestre"), 60);
 
 /* ---------- interações ---------- */
 const mudou = () => { S.salvo = false; };
@@ -723,7 +727,7 @@ document.addEventListener("click", (ev) => {
     janela.querySelector("[data-vitrine=titulo]").value = S.titulo;
     janela.querySelector("[data-slug]").innerHTML = linhaDoSlug(S.titulo);
     redesenhar();
-    rolarAte(janela.querySelector(".ed-mestre"), 60);
+    rolarAte(janela.querySelector(qual === "erro" ? ".q-duas" : ".ed-mestre"), qual === "erro" ? 84 : 60);
     return;
   }
   if (ev.target.closest("a[href='#']")) ev.preventDefault();
@@ -797,6 +801,7 @@ document.addEventListener("input", (ev) => {
 });
 
 document.addEventListener("focusout", (ev) => {
+  if (redesenhando) return;
   const t = ev.target;
   if (!t.closest?.("[data-mestre]") || !t.dataset.campo) return;
   const p = perguntasDe(S.sel)[Number(t.dataset.p)];
