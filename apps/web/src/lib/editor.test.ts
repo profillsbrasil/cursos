@@ -81,14 +81,14 @@ describe("primeiroNaPagina", () => {
   const c = camposEmOrdem(
     "curso-titulo",
     "curso-categoriaId",
-    "curso-capaAlt",
+    "curso-descricao",
     "aula-duracao"
   );
 
   test("escolhe o campo que vem antes na página, não o primeiro da lista", () => {
     expect(
       primeiroNaPagina([
-        c["curso-capaAlt"],
+        c["curso-descricao"],
         c["curso-categoriaId"],
         c["curso-titulo"],
       ])?.id

@@ -341,13 +341,12 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
   test("texto só com espaços marca o campo dele", () => {
     const r = aplicar(
       exemplo(),
-      { mudanca: { capaAlt: "  ", titulo: "   " }, tipo: "campos" },
+      { mudanca: { titulo: "   " }, tipo: "campos" },
       { id: A3, mudanca: { titulo: " " }, tipo: "aula_editada" },
       { id: M1, mudanca: { titulo: "\t" }, tipo: "modulo_editado" },
       { nome: "  ", ordem: 2, tipo: "nivel_renomeado" }
     );
     expect(problemas(r)).toEqual([
-      { campo: ID.curso("capaAlt"), mensagem: "Preencha este campo." },
       { campo: ID.modulo(M1, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.aula(A3, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.nivel(2), mensagem: "Preencha este campo." },

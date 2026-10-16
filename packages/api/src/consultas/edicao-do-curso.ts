@@ -152,7 +152,6 @@ export async function abrirCurso(
       (select count(*)::int from ${liberacao} where ${liberacao.cursoId} = ${id}) as liberacoes`);
 
   const semVersao: DocumentoDoCurso = {
-    capaAlt: linha.capaAlt,
     categoriaId: linha.categoriaId as CategoriaId,
     codigo: linha.codigo,
     descricao: linha.descricao,
@@ -386,6 +385,12 @@ export async function salvarCurso(
   }
 }
 
+/**
+ * O texto alternativo da capa, a única fonte dele: o admin não escreve, e cada
+ * salvamento o refaz do título, então o curso renomeado não fica com o nome velho.
+ */
+const altDaCapa = (titulo: string) => `Capa do curso ${titulo}`;
+
 const colunasDaCapa = (c: ImagemDaCapa) => ({
   capaAltura: c.altura,
   capaLargura: c.largura,
@@ -451,7 +456,7 @@ async function gravarCurso(
   const { documento: d } = plano;
   const cursoId = d.id;
   const campos = {
-    capaAlt: d.capaAlt,
+    capaAlt: altDaCapa(d.titulo),
     categoriaId: d.categoriaId,
     codigo: d.codigo,
     descricao: d.descricao,

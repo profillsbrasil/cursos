@@ -485,7 +485,6 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const aulaId = randomUUID() as AulaId;
     const perguntaId = randomUUID() as PerguntaId;
     const documento: DocumentoDoCurso = {
-      capaAlt: "Capa",
       categoriaId,
       codigo: null,
       descricao: "",
@@ -566,7 +565,6 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const p1 = randomUUID() as PerguntaId;
     const certa = randomUUID() as AlternativaId;
     const documento: DocumentoDoCurso = {
-      capaAlt: "Capa",
       categoriaId,
       codigo: null,
       descricao: "",

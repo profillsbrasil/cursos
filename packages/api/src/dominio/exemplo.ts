@@ -77,7 +77,6 @@ export function documentoDeExemplo(
   versao: Versao | null = null
 ): DocumentoDoCurso {
   return {
-    capaAlt: "Capa",
     categoriaId: EDICAO.CATEGORIA,
     codigo: null,
     descricao: "",

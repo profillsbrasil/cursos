@@ -75,7 +75,6 @@ const linkDoVideo = (v: AulaDoDocumento["video"]) =>
 
 export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
   return {
-    capaAlt: d.capaAlt,
     categoriaId: d.categoriaId,
     codigo: d.codigo,
     descricao: d.descricao,
@@ -112,7 +111,6 @@ export const mesmoRascunho = (a: RascunhoDoCurso, b: RascunhoDoCurso) =>
 
 function emOrdem(r: RascunhoDoCurso) {
   return [
-    r.capaAlt,
     r.categoriaId,
     r.codigo,
     r.descricao,
@@ -191,7 +189,6 @@ export const lerPreco = lerInteiro(
 );
 
 type CampoDoCursoComId =
-  | "capaAlt"
   | "categoriaId"
   | "codigo"
   | "descricao"
@@ -241,7 +238,6 @@ export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
   }, 0);
 
 const CAMPOS_DO_CURSO = new Set<string>([
-  "capaAlt",
   "categoriaId",
   "codigo",
   "descricao",

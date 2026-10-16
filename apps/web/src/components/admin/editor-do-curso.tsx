@@ -96,7 +96,7 @@ const OPCOES_DO_STATUS: readonly OpcaoDaSelecao[] = Object.entries(STATUS).map(
   ([valor, { descricao, rotulo }]) => ({ descricao, rotulo, valor })
 );
 
-type CampoDeTextoDoCurso = "capaAlt" | "codigo" | "destaque" | "titulo";
+type CampoDeTextoDoCurso = "codigo" | "destaque" | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
 function Publicacao({
@@ -562,12 +562,10 @@ export function EditorDoCurso({
           <Vitrine
             capa={
               <CampoDeCapa
-                alt={rascunho.capaAlt}
                 aoEscolher={escolherCapa}
                 arquivo={capa}
                 atual={edicao.capa}
                 geracao={geracao}
-                mudarAlt={mudarTexto}
               />
             }
             categorias={categorias}

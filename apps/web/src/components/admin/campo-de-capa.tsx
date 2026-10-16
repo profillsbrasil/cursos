@@ -6,15 +6,9 @@ import {
   recusaDaMedida,
   recusaDoTamanho,
 } from "@cursos/api/dominio/capa";
-import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import type { Capa } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@cursos/ui/components/field";
-import { Input } from "@cursos/ui/components/input";
+import { Field, FieldDescription } from "@cursos/ui/components/field";
 import { cn } from "@cursos/ui/lib/utils";
 import { ImageUp } from "lucide-react";
 import Image from "next/image";
@@ -28,11 +22,9 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 
-import { ROTULO } from "./partes";
 import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];
@@ -115,18 +107,16 @@ const MOLDURA =
   "relative grid aspect-[900/604] w-full place-items-center overflow-hidden rounded-[14px] bg-background ring-1 ring-border";
 
 function Previa({
-  alt,
   atual,
   escolhida,
 }: {
-  alt: string;
   atual: Capa | null;
   escolhida: Escolhida | null;
 }) {
   if (escolhida) {
     return (
       <Image
-        alt={alt}
+        alt="Nova capa"
         className="object-cover"
         fill
         sizes="(max-width: 768px) 100vw, 280px"
@@ -154,20 +144,16 @@ function Previa({
 }
 
 export function CampoDeCapa({
-  alt,
   aoEscolher,
   arquivo: guardado,
   atual,
   geracao,
-  mudarAlt,
 }: {
-  alt: string;
   aoEscolher: (arquivo: File | null) => void;
   /** O arquivo que o editor guarda para enviar no próximo salvar. */
   arquivo: File | null;
   atual: Capa | null;
   geracao: number;
-  mudarAlt: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   const id = useId();
   const [estado, guardar] = useState<EstadoDaCapa>({
@@ -228,13 +214,11 @@ export function CampoDeCapa({
   const arquivo = ID.curso("capa");
   const daImagem = useErroDoCampo(arquivo, `${id}-regra`);
   const mensagemDaImagem = erro ?? daImagem.mensagem;
-  const descricao = ID.curso("capaAlt");
-  const daDescricao = useErroDoCampo(descricao, `${id}-alt-ajuda`);
   return (
     <div className="grid content-start gap-4">
       <div className="grid gap-2">
         <div className={MOLDURA}>
-          <Previa alt={alt} atual={atual} escolhida={escolhida} />
+          <Previa atual={atual} escolhida={escolhida} />
         </div>
         {medida ? (
           <p className="text-muted-foreground text-xs tabular-nums">
@@ -280,27 +264,6 @@ export function CampoDeCapa({
           pelo menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
         </FieldDescription>
         <ErroDoCampo id={arquivo} mensagem={mensagemDaImagem} />
-      </Field>
-      <Field data-invalid={daDescricao.mensagem ? true : undefined}>
-        <FieldLabel className={ROTULO} htmlFor={descricao}>
-          Descrição da capa
-        </FieldLabel>
-        <Input
-          {...daDescricao.aria}
-          autoComplete="off"
-          className={CAMPO}
-          id={descricao}
-          maxLength={CARACTERES.capaAlt}
-          name="capaAlt"
-          onChange={mudarAlt}
-          placeholder="Envasadora de líquidos com o painel aberto"
-          required
-          value={alt}
-        />
-        <FieldDescription className="text-xs" id={`${id}-alt-ajuda`}>
-          Quem usa leitor de tela ouve este texto no lugar da imagem.
-        </FieldDescription>
-        <ErroDoCampo id={descricao} mensagem={daDescricao.mensagem} />
       </Field>
     </div>
   );

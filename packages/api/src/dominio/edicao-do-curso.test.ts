@@ -177,10 +177,9 @@ describe("documentoDoCurso", () => {
     ]);
   });
 
-  test("o documento do curso novo não passa sem alt, categoria e título", () => {
+  test("o documento do curso novo não passa sem categoria e título", () => {
     const lido = documentoDoCurso.safeParse(edicaoDeCursoNovo(CURSO).documento);
     expect(lido.error?.issues.map((i) => i.path.join("."))).toEqual([
-      "capaAlt",
       "categoriaId",
       "titulo",
     ]);
