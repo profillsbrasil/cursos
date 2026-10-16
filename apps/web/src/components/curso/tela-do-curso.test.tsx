@@ -46,32 +46,32 @@ describe("o cartão em cada estado", () => {
     [
       "não iniciado, sem níveis",
       fabrica.naoIniciado,
-      "Não iniciado 0% 0 de 4 aulas assistidas Comece por: Módulo 1, Segurança do posto Aula 1 · Riscos do posto de montagem Começar o curso 11 min na primeira aula 3 módulos, sem níveis Prova e certificado no fim do curso",
+      "Não iniciado 0% 0 de 4 aulas assistidas Comece por: Módulo 1, Segurança do posto Aula 1 · Riscos do posto de montagem Começar o curso 11 min na primeira aula 3 módulos, sem níveis Certificado no fim do curso",
     ],
     [
       "não iniciado, com níveis",
       comercial.naoIniciado,
-      "Não iniciado 0% 0 de 7 aulas assistidas Comece por: Módulo 0, Autoavaliação comercial Aula 1 · Autoavaliação, parte 1 Começar o curso 10 min na primeira aula Próximo nível: Vendedor Profills Certificado Prova e certificado no fim do curso",
+      "Não iniciado 0% 0 de 7 aulas assistidas Comece por: Módulo 0, Autoavaliação comercial Aula 1 · Autoavaliação, parte 1 Começar o curso 10 min na primeira aula Próximo nível: Vendedor Profills Certificado Certificado no fim do curso",
     ],
     [
       "em andamento, sem níveis",
       fabrica.emAndamento,
-      "Em andamento 25% 1 de 4 aulas assistidas Agora: Módulo 1, Segurança do posto Aula 2 · Bloqueio antes de mexer Continuar em 3:42 Faltam 6 min desta aula 3 módulos, sem níveis Prova e certificado no fim do curso",
+      "Em andamento 25% 1 de 4 aulas assistidas Agora: Módulo 1, Segurança do posto Aula 2 · Bloqueio antes de mexer Continuar em 3:42 Faltam 6 min desta aula 3 módulos, sem níveis Certificado no fim do curso",
     ],
     [
       "em andamento, com níveis",
       comercial.emAndamento,
-      "Em andamento 57% 4 de 7 aulas assistidas Agora: Módulo 2, Pilar Urgência Aula 2 · Cronograma reverso Continuar Faltam 11 min desta aula Próximo nível: Consultor Comercial Profills Prova e certificado no fim do curso",
+      "Em andamento 57% 4 de 7 aulas assistidas Agora: Módulo 2, Pilar Urgência Aula 2 · Cronograma reverso Continuar Faltam 11 min desta aula Próximo nível: Consultor Comercial Profills Certificado no fim do curso",
     ],
     [
-      "prova, sem níveis",
-      fabrica.prova,
-      "Falta a prova 100% 4 de 4 aulas assistidas Você assistiu a todas as aulas Prova e certificado Rever aulas A prova abre em breve nesta página",
+      "questionários pendentes, com um reprovado",
+      fabrica.questionarios,
+      "Faltam questionários 33% 1 de 3 questionários aprovados Próximo questionário Módulo 1, aula 2 · Bloqueio antes de mexer 2 de 3 na última tentativa Tentar de novo 4 de 4 aulas assistidas Faltam 2 questionários, um por aula Certificado quando todos passarem",
     ],
     [
-      "prova, com níveis",
-      comercial.prova,
-      "Falta a prova 100% 7 de 7 aulas assistidas Você assistiu a todas as aulas Prova e certificado Rever aulas A prova abre em breve nesta página",
+      "um questionário por fazer, com níveis",
+      comercial.questionarios,
+      "Faltam questionários 85% 6 de 7 questionários aprovados Próximo questionário Módulo 2, aula 2 · Cronograma reverso Fazer o questionário 7 de 7 aulas assistidas Falta 1 questionário Certificado quando todos passarem",
     ],
     [
       "concluído, sem níveis",

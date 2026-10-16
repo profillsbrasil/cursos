@@ -1,12 +1,12 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
 import type { Route } from "next";
 
-import { faltam, fmtMin, minutos } from "@/lib/formato";
+import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
 import { hrefDaRetomada } from "@/lib/rotas";
 
 /** O cartão "Continuar" do rodapé, montado no servidor: o cliente recebe só texto, um número e o href. */
 export interface Continuar {
-  /** "Continuar · faltam 7 min", "Começar curso", "Falta a prova". */
+  /** "Continuar · faltam 7 min", "Começar curso", "Faltam 3 questionários". */
   chamada: string;
   /** A linha no lugar da chamada quando a pessoa já está no destino. */
   chamadaAqui: string;
@@ -15,9 +15,9 @@ export interface Continuar {
   pct: number | null;
   /** Nome acessível do link e tooltip da sidebar recolhida. */
   rotulo: string;
-  /** Escolhe o ícone do botão redondo: Award na prova, Play no resto. */
+  /** Escolhe o ícone do botão redondo: a lista de checks no questionário, Play no resto. */
   tipo: Retomada["tipo"];
-  /** "Pilar Urgência · Aula 4"; na prova, o título do curso. */
+  /** "Pilar Urgência · Aula 4"; no questionário, "Questionário · título da aula". */
   titulo: string;
 }
 
@@ -37,14 +37,15 @@ function textos(r: Retomada) {
         pct: null,
         titulo: `${r.modulo.titulo} · Aula ${r.aula.numeroNoModulo}`,
       };
-    case "prova":
+    case "questionario": {
+      const faltamN = r.questionarios.total - r.questionarios.feitas;
       return {
-        chamada: "Falta a prova",
-        // A página do curso ainda diz que a prova não existe: "Você está na prova" mentiria.
-        chamadaAqui: "Falta só a prova",
-        pct: r.progresso.pct,
-        titulo: r.curso.titulo,
+        chamada: `${faltam(faltamN)} ${plural(faltamN, "questionário", "questionários")}`,
+        chamadaAqui: "Você está no questionário",
+        pct: r.questionarios.pct,
+        titulo: `Questionário · ${r.aula.titulo}`,
       };
+    }
     default: {
       const nenhum: never = r;
       return nenhum;

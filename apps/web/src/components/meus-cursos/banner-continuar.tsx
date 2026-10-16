@@ -1,7 +1,7 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
 import type { Capa as CapaDoCurso } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import { Award, Play } from "lucide-react";
+import { Award, ListChecks, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -103,10 +103,10 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
           className="font-bold text-[clamp(24px,2.6vw,32px)] text-titulo leading-[1.15] tracking-tight"
           id="banner-titulo"
         >
-          {retomada.tipo === "prova" ? (
+          {retomada.tipo === "questionario" ? (
             <>
-              Falta a prova
-              <span className="block text-sol">{retomada.curso.titulo}</span>
+              Questionário · Aula {retomada.aula.numeroNoModulo}
+              <span className="block text-sol">{retomada.aula.titulo}</span>
             </>
           ) : (
             <>
@@ -147,22 +147,51 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             {onde} · Módulo {retomada.modulo.numero}. Primeira aula do curso.
           </p>
         )}
-        {retomada.tipo === "prova" && (
+        {retomada.tipo === "questionario" && (
           <>
             <p>
-              {onde}. Você assistiu a todas as aulas; a prova libera o
-              certificado.
+              {onde} · Módulo {retomada.modulo.numero}. Você assistiu a todas as
+              aulas;{" "}
+              {faltam(
+                retomada.questionarios.total - retomada.questionarios.feitas
+              ).toLowerCase()}{" "}
+              <b className="whitespace-nowrap font-semibold text-titulo">
+                {plural(
+                  retomada.questionarios.total - retomada.questionarios.feitas,
+                  "questionário",
+                  "questionários"
+                )}
+              </b>{" "}
+              para o certificado.
             </p>
-            <Progresso {...retomada.progresso} titulo={retomada.curso.titulo} />
+            <BarraProgresso
+              className="h-2.5"
+              pct={retomada.questionarios.pct}
+              rotulo={`Questionários aprovados do curso ${retomada.curso.titulo}`}
+            />
+            <p className="text-muted-foreground text-sm tabular-nums">
+              <b className="font-semibold text-titulo">
+                {retomada.questionarios.pct}%
+              </b>{" "}
+              dos questionários, {retomada.questionarios.feitas} de{" "}
+              {retomada.questionarios.total} aprovados
+            </p>
           </>
         )}
         <Link className={cn(BOTAO_DO_BANNER, "mt-1")} href={href}>
-          <Play aria-hidden="true" className="fill-current" />
+          {retomada.tipo === "questionario" ? (
+            <ListChecks aria-hidden="true" />
+          ) : (
+            <Play aria-hidden="true" className="fill-current" />
+          )}
           {
             {
               comecar: "Começar curso",
               continuar: "Continuar aula",
-              prova: "Ir para a prova",
+              questionario:
+                retomada.tipo === "questionario" && retomada.ultima
+                  ? "Tentar de novo"
+                  : "Fazer o questionário",
             }[retomada.tipo]
           }
         </Link>

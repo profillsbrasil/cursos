@@ -4,8 +4,8 @@ import { cn } from "@cursos/ui/lib/utils";
 import {
   BookOpen,
   Check,
-  ClipboardCheck,
   Clock,
+  ListChecks,
   type LucideIcon,
   Play,
 } from "lucide-react";
@@ -30,11 +30,11 @@ function aparencia(estado: EstadoCurso): Aparencia {
         icone: Play,
         rotulo: "Em andamento",
       };
-    case "prova":
+    case "questionarios":
       return {
         classe: "bg-canela text-sobre-cor",
-        icone: ClipboardCheck,
-        rotulo: "Falta a prova",
+        icone: ListChecks,
+        rotulo: "Faltam questionários",
       };
     case "nao_iniciado":
       return {

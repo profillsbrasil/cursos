@@ -1,3 +1,4 @@
+import type { Progresso } from "@cursos/api/dominio/curso";
 import type {
   AulaDaPagina,
   ModuloDaPagina,
@@ -15,8 +16,6 @@ import {
   minutos,
   plural,
 } from "@/lib/formato";
-import { caminhoDaAula } from "@/lib/rotas";
-
 export const paragrafos = (descricao: string): string[] =>
   descricao
     .split("\n")
@@ -60,11 +59,27 @@ export const parouEm = (p: PaginaDoCurso): string | null =>
 
 const ATE_TODOS_ABERTOS = 3;
 
+/** O questionário que a aula ainda deve: por fazer ou reprovado. */
+export const questionarioPendente = (a: AulaDaPagina) =>
+  a.questionario.tipo === "a_fazer" || a.questionario.tipo === "reprovado";
+
+const questionariosPendentes = (m: ModuloDaPagina) =>
+  m.aulas.filter(questionarioPendente).length;
+
+/**
+ * Os módulos abertos de saída: todos até 3; acima, o da aula de começar ou
+ * continuar, ou, com as aulas assistidas, os que ainda devem questionário.
+ */
 export function abertosDeSaida(p: PaginaDoCurso): number[] {
   if (p.modulos.length <= ATE_TODOS_ABERTOS) {
     return p.modulos.map((m) => m.numero);
   }
   const { acao } = p;
+  if (acao.tipo === "questionario") {
+    return p.modulos
+      .filter((m) => questionariosPendentes(m) > 0)
+      .map((m) => m.numero);
+  }
   if (acao.tipo !== "comecar" && acao.tipo !== "continuar") {
     return [];
   }
@@ -73,14 +88,15 @@ export function abertosDeSaida(p: PaginaDoCurso): number[] {
     .map((m) => m.numero);
 }
 
-export type MarcaDoModulo = "feito" | "atual" | "pendente";
+export type MarcaDoModulo = "feito" | "atual" | "pendente" | "questionario";
 
+/** Com as aulas do módulo assistidas, o que falta é o questionário de alguma delas. */
 export function marcaDoModulo(
   m: ModuloDaPagina,
   atual: AulaId | null
 ): MarcaDoModulo {
   if (m.aulas.length > 0 && m.aulas.every((a) => a.assistida)) {
-    return "feito";
+    return questionariosPendentes(m) > 0 ? "questionario" : "feito";
   }
   return m.aulas.some((a) => a.id === atual) ? "atual" : "pendente";
 }
@@ -88,20 +104,45 @@ export function marcaDoModulo(
 export function linhasDoModulo(
   m: ModuloDaPagina,
   comecou: boolean
-): { direita: string | null; sob: string } {
+): { direita: string | null; questionarios: string | null; sob: string } {
   if (m.aulas.length === 0) {
-    return { direita: null, sob: "Nenhuma aula ainda" };
+    return { direita: null, questionarios: null, sob: "Nenhuma aula ainda" };
   }
   const tamanho = `${plural(m.aulas.length, "aula", "aulas")} · ${fmtHoras(duracaoDe(m.aulas))}`;
   const sob = m.nivel ? `Nível ${m.nivel.ordem} · ${m.nivel.nome}` : tamanho;
+  const pendentes = questionariosPendentes(m);
+  const questionarios =
+    marcaDoModulo(m, null) === "questionario"
+      ? plural(pendentes, "questionário", "questionários")
+      : null;
   if (comecou) {
     const feitas = m.aulas.filter((a) => a.assistida).length;
     return {
       direita: `${feitas} de ${m.aulas.length} · ${fmtHoras(duracaoDe(m.aulas))}`,
+      questionarios,
       sob,
     };
   }
-  return { direita: m.nivel ? tamanho : null, sob };
+  return { direita: m.nivel ? tamanho : null, questionarios, sob };
+}
+
+/** O selo da aula no índice de livro, quando o questionário dela ainda falta. */
+export function seloDoQuestionario(
+  a: AulaDaPagina
+): { tipo: "a_fazer" | "reprovado"; texto: string } | null {
+  switch (a.questionario.tipo) {
+    case "reprovado":
+      return {
+        texto: `Questionário: ${a.questionario.ultima.acertos} de ${a.questionario.ultima.total} na última tentativa`,
+        tipo: "reprovado",
+      };
+    case "a_fazer":
+      return a.assistida
+        ? { texto: "Falta o questionário", tipo: "a_fazer" }
+        : null;
+    default:
+      return null;
+  }
 }
 
 export const aulasAssistidas = ({
@@ -110,7 +151,31 @@ export const aulasAssistidas = ({
 }: PaginaDoCurso["progresso"]) =>
   `${feitas} de ${plural(total, "aula assistida", "aulas assistidas")}`;
 
-export type IconeDoCartao = "nivel" | "niveis" | "relogio" | "trofeu";
+/**
+ * A barra do cartão: as aulas assistidas e, com todas assistidas e questionário
+ * por aprovar, os questionários aprovados.
+ */
+export function progressoDoCartao(p: PaginaDoCurso): {
+  linha: string;
+  progresso: Progresso;
+} {
+  if (p.acao.tipo === "questionario") {
+    const { questionarios } = p.acao;
+    return {
+      linha: `${questionarios.feitas} de ${plural(questionarios.total, "questionário aprovado", "questionários aprovados")}`,
+      progresso: questionarios,
+    };
+  }
+  return { linha: aulasAssistidas(p.progresso), progresso: p.progresso };
+}
+
+export type IconeDoCartao =
+  | "check"
+  | "nivel"
+  | "niveis"
+  | "questionario"
+  | "relogio"
+  | "trofeu";
 
 export interface LinhaDoCartao {
   icone: IconeDoCartao;
@@ -120,12 +185,13 @@ export interface LinhaDoCartao {
 export interface CartaoDoCurso {
   botao: {
     href: Route;
-    icone: "play" | "rever";
+    icone: "play" | "questionario" | "rever";
     texto: string;
     variante: "contorno" | "principal";
   };
   inclui: readonly LinhaDoCartao[];
-  situacao: { rotulo: string; titulo: string };
+  /** `nota`: a última tentativa do questionário da vez, em Canela sob o título. */
+  situacao: { nota: string | null; rotulo: string; titulo: string };
 }
 
 function localizar(p: PaginaDoCurso, aulaId: AulaId) {
@@ -139,9 +205,9 @@ function localizar(p: PaginaDoCurso, aulaId: AulaId) {
   throw new Error(`Aula ${aulaId} fora da página do curso ${p.slug}`);
 }
 
-const PROVA_NO_FIM: LinhaDoCartao = {
+const CERTIFICADO_NO_FIM: LinhaDoCartao = {
   icone: "trofeu",
-  texto: "Prova e certificado no fim do curso",
+  texto: "Certificado no fim do curso",
 };
 
 function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
@@ -177,9 +243,10 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
             texto: `${fmtMin(aula.duracaoSeg)} na primeira aula`,
           },
           ...linhaDosNiveis(p),
-          PROVA_NO_FIM,
+          CERTIFICADO_NO_FIM,
         ],
         situacao: {
+          nota: null,
           rotulo: `Comece por: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
           titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
         },
@@ -204,32 +271,42 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
             texto: `${faltam(resta)} ${resta} min desta aula`,
           },
           ...linhaDosNiveis(p),
-          PROVA_NO_FIM,
+          CERTIFICADO_NO_FIM,
         ],
         situacao: {
+          nota: null,
           rotulo: `Agora: Módulo ${acao.onde.modulo.numero}, ${acao.onde.modulo.titulo}`,
           titulo: `Aula ${acao.onde.aula} · ${aula.titulo}`,
         },
       };
     }
-    case "prova": {
-      const [primeira] = p.modulos.flatMap((m) => m.aulas);
-      if (!primeira) {
-        throw new Error(`Curso ${p.slug} na prova sem aulas`);
-      }
+    case "questionario": {
+      const { aula } = localizar(p, acao.aulaId);
+      const faltamN = acao.questionarios.total - acao.questionarios.feitas;
       return {
         botao: {
-          href: caminhoDaAula(p.slug, primeira.id),
-          icone: "rever",
-          texto: "Rever aulas",
-          variante: "contorno",
+          href: acao.href as Route,
+          icone: "questionario",
+          texto: acao.ultima ? "Tentar de novo" : "Fazer o questionário",
+          variante: "principal",
         },
         inclui: [
-          { icone: "trofeu", texto: "A prova abre em breve nesta página" },
+          { icone: "check", texto: aulasAssistidas(p.progresso) },
+          {
+            icone: "questionario",
+            texto:
+              faltamN === 1
+                ? "Falta 1 questionário"
+                : `Faltam ${faltamN} questionários, um por aula`,
+          },
+          { icone: "trofeu", texto: "Certificado quando todos passarem" },
         ],
         situacao: {
-          rotulo: "Você assistiu a todas as aulas",
-          titulo: "Prova e certificado",
+          nota: acao.ultima
+            ? `${acao.ultima.acertos} de ${acao.ultima.total} na última tentativa`
+            : null,
+          rotulo: "Próximo questionário",
+          titulo: `Módulo ${acao.onde.modulo.numero}, aula ${acao.onde.aula} · ${aula.titulo}`,
         },
       };
     }
@@ -252,6 +329,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
           },
         ],
         situacao: {
+          nota: null,
           rotulo: "Curso concluído",
           titulo: `Certificado emitido em ${diaCurto(diaEmSaoPaulo(certificado.emitidoEm), hoje)}`,
         },

@@ -58,7 +58,12 @@ const salvo: EdicaoDoCurso = {
   documento: documentoDeExemplo("v1" as Versao),
   podeApagar: false,
   slug: "operacao-da-envasadora",
-  uso: { assistidasPorAula: {}, certificados: 0, liberacoes: 0 },
+  uso: {
+    assistidasPorAula: {},
+    certificados: 0,
+    liberacoes: 0,
+    tentativasPorAula: {},
+  },
 };
 
 const render = (edicao: EdicaoDoCurso) =>

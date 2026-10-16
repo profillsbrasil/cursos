@@ -127,16 +127,24 @@ describe("fraseDoCurso", () => {
     ]);
   });
 
-  test("curso na prova conta as aulas vistas", () => {
+  test("curso com questionário pendente conta as aulas vistas e os questionários aprovados", () => {
     const a = curso(
-      { tipo: "falta_prova", ultimoEstudo: dia("2026-09-30") },
+      {
+        aprovados: 1,
+        tipo: "faltam_questionarios",
+        total: 2,
+        ultimoEstudo: dia("2026-09-30"),
+      },
       2,
       2
     );
     expect(fraseDoCurso(a, HOJE)).toEqual({
       quando: "último estudo em 30 de set.",
-      texto: "Viu as 2 aulas. Falta a prova",
+      texto: "Viu as 2 aulas. 1 de 2 questionários aprovados",
     });
+    expect(seloDoCurso("faltam_questionarios").rotulo).toBe(
+      "Faltam questionários"
+    );
   });
 
   test("curso em produção e nunca aberto", () => {

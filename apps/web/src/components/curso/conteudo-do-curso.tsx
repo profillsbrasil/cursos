@@ -7,7 +7,7 @@ import type {
 } from "@cursos/api/dominio/pagina-do-curso";
 import type { AulaId } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, ListChecks, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { type SyntheticEvent, useCallback, useState } from "react";
 
@@ -21,6 +21,7 @@ import {
   type MarcaDoModulo,
   marcaDoModulo,
   parouEm,
+  seloDoQuestionario,
 } from "./textos";
 
 const LINK_QUE_COBRE_A_LINHA =
@@ -30,7 +31,33 @@ const COR_DA_MARCA: Record<MarcaDoModulo, string> = {
   atual: "bg-sol/14 text-sol",
   feito: "bg-ceu text-sobre-cor",
   pendente: "bg-popover text-foreground",
+  questionario:
+    "bg-transparent text-canela ring-[1.5px] ring-canela ring-inset",
 };
+
+const SELO_DO_QUESTIONARIO = {
+  a_fazer: "bg-canela/14 text-canela",
+  reprovado: "bg-transparent text-canela ring-1 ring-canela ring-inset",
+} as const;
+
+function SeloDoQuestionario({ aula }: { aula: AulaDaPagina }) {
+  const selo = seloDoQuestionario(aula);
+  if (!selo) {
+    return null;
+  }
+  const Icone = selo.tipo === "reprovado" ? RotateCcw : ListChecks;
+  return (
+    <span
+      className={cn(
+        "col-start-2 mt-1.5 inline-flex h-[22px] w-fit items-center gap-1.5 rounded-full px-2 font-semibold text-xs",
+        SELO_DO_QUESTIONARIO[selo.tipo]
+      )}
+    >
+      <Icone aria-hidden="true" className="size-3" strokeWidth={2.4} />
+      {selo.texto}
+    </span>
+  );
+}
 
 function NumeroDoModulo({
   marca,
@@ -148,6 +175,7 @@ function Livro({
               ) : null}
               {fmtMin(a.duracaoSeg)}
             </span>
+            <SeloDoQuestionario aula={a} />
           </li>
         );
       })}
@@ -180,7 +208,7 @@ function ModuloDaSanfona({
       alternar(numero, e.currentTarget.open),
     [alternar, numero]
   );
-  const { direita, sob } = linhasDoModulo(modulo, comecou);
+  const { direita, questionarios, sob } = linhasDoModulo(modulo, comecou);
   return (
     <details
       className="group border-border border-t first:border-t-0"
@@ -197,6 +225,9 @@ function ModuloDaSanfona({
         </span>
         {direita ? (
           <span className="text-[13px] text-muted-foreground tabular-nums max-sm:col-start-2 max-sm:row-start-2 sm:text-right">
+            {questionarios ? (
+              <b className="mr-3 font-semibold text-canela">{questionarios}</b>
+            ) : null}
             {direita}
           </span>
         ) : null}

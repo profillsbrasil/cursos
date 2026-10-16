@@ -8,7 +8,7 @@
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
-import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
+import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import type {
   AulaId,
@@ -55,11 +55,12 @@ const nav = renderToStaticMarkup(
   </ProvedorDaCasca>
 );
 
-const aula = (id: string, titulo: string, atual: boolean) => ({
+const aula = (id: string, titulo: string, atual: boolean): AulaNaColuna => ({
   assistida: false,
   atual,
   duracaoSeg: 300,
   id: id as AulaId,
+  questionario: { tipo: "sem" },
   titulo,
 });
 const PRIMEIRA = aula("11111111-1111-4111-8111-111111111111", "Abertura", true);
@@ -103,6 +104,7 @@ const coluna = renderToStaticMarkup(
           },
         ],
         proxima: null,
+        questionario: null,
       } satisfies AulaNoPlayer
     }
   />

@@ -1,7 +1,9 @@
 import type {
   AulaDaPagina,
+  ModuloDaPagina,
   PaginaDoCurso,
 } from "@cursos/api/dominio/pagina-do-curso";
+import type { MarcaDoQuestionario } from "@cursos/api/dominio/questionario";
 import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
 
 const id = (n: number) =>
@@ -17,6 +19,7 @@ const aula = (
   descricao,
   duracaoSeg,
   id: id(n),
+  questionario: { tipo: "sem" },
   titulo,
 });
 
@@ -156,6 +159,18 @@ const assistidas = (p: PaginaDoCurso, ids: readonly AulaId[]) =>
     aulas: m.aulas.map((a) => ({ ...a, assistida: ids.includes(a.id) })),
   }));
 
+const comQuestionarios = (
+  modulos: readonly ModuloDaPagina[],
+  marcas: Readonly<Record<string, MarcaDoQuestionario>>
+) =>
+  modulos.map((m) => ({
+    ...m,
+    aulas: m.aulas.map((a) => ({
+      ...a,
+      questionario: marcas[a.id] ?? a.questionario,
+    })),
+  }));
+
 const TODAS_FABRICA = [RISCOS, BLOQUEIO, ESTRUTURA, ESQUEMA];
 const TODAS_COMERCIAL = [
   AUTO_1,
@@ -199,11 +214,28 @@ export const fabrica = {
     progresso: { feitas: 1, pct: 25, total: 4 },
   },
   naoIniciado: FABRICA,
-  prova: {
+  /** Tudo assistido; o questionário de Riscos aprovado, o de Bloqueio reprovado (2 de 3), o de Estrutura por fazer; Esquema sem questionário. */
+  questionarios: {
     ...FABRICA,
-    acao: { href: "/cursos/fabrica-e-montagem", tipo: "prova" },
-    estado: { tipo: "prova" },
-    modulos: assistidas(FABRICA, TODAS_FABRICA),
+    acao: {
+      aulaId: BLOQUEIO,
+      href: `/cursos/fabrica-e-montagem/aulas/${BLOQUEIO}#questionario`,
+      onde: { aula: 2, modulo: { numero: 1, titulo: "Segurança do posto" } },
+      questionarios: { feitas: 1, pct: 33, total: 3 },
+      tipo: "questionario",
+      ultima: { acertos: 2, total: 3 },
+    },
+    estado: {
+      aprovados: 1,
+      proximaAula: BLOQUEIO,
+      tipo: "questionarios",
+      total: 3,
+    },
+    modulos: comQuestionarios(assistidas(FABRICA, TODAS_FABRICA), {
+      [RISCOS]: { tipo: "aprovado" },
+      [BLOQUEIO]: { tipo: "reprovado", ultima: { acertos: 2, total: 3 } },
+      [ESTRUTURA]: { tipo: "a_fazer" },
+    }),
     progresso: { feitas: 4, pct: 100, total: 4 },
   },
 } satisfies Record<string, PaginaDoCurso>;
@@ -242,11 +274,32 @@ export const comercial = {
     proximoNivel: CONSULTOR,
   },
   naoIniciado: COMERCIAL,
-  prova: {
+  /** Tudo assistido e um questionário por aula; só o de Cronograma reverso falta, sem tentativa. */
+  questionarios: {
     ...COMERCIAL,
-    acao: { href: "/cursos/comercial", tipo: "prova" },
-    estado: { tipo: "prova" },
-    modulos: assistidas(COMERCIAL, TODAS_COMERCIAL),
+    acao: {
+      aulaId: CRONOGRAMA,
+      href: `/cursos/comercial/aulas/${CRONOGRAMA}#questionario`,
+      onde: { aula: 2, modulo: { numero: 2, titulo: "Pilar Urgência" } },
+      questionarios: { feitas: 6, pct: 85, total: 7 },
+      tipo: "questionario",
+      ultima: null,
+    },
+    estado: {
+      aprovados: 6,
+      proximaAula: CRONOGRAMA,
+      tipo: "questionarios",
+      total: 7,
+    },
+    modulos: comQuestionarios(
+      assistidas(COMERCIAL, TODAS_COMERCIAL),
+      Object.fromEntries(
+        TODAS_COMERCIAL.map((a) => [
+          a,
+          a === CRONOGRAMA ? { tipo: "a_fazer" } : { tipo: "aprovado" },
+        ])
+      )
+    ),
     progresso: { feitas: 7, pct: 100, total: 7 },
     proximoNivel: null,
   },
