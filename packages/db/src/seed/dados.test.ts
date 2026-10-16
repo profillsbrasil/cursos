@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { CERTIFICADO_A, codigoCertificado } from "./dados";
+import { CERTIFICADO_A, CURSOS, codigoCertificado } from "./dados";
 
 const FORMATO = /^PS-M0-2026-[0-9A-F]{6}$/;
 
@@ -24,5 +24,17 @@ describe("codigoCertificado", () => {
     expect(codigoCertificado(CERTIFICADO_A.prefixo, "user_seedA")).toMatch(
       FORMATO
     );
+  });
+});
+
+describe("as categorias do seed", () => {
+  test("nenhuma categoria tem o nome de um curso", () => {
+    const titulos = new Set(CURSOS.map((c) => c.titulo));
+    expect(
+      CURSOS.filter((c) => titulos.has(c.categoria)).map((c) => [
+        c.titulo,
+        c.categoria,
+      ])
+    ).toEqual([]);
   });
 });
