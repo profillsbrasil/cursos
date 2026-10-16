@@ -69,6 +69,7 @@ export function PlayerDaAula({
       <section
         aria-label="Player da aula"
         className="overflow-hidden rounded-[20px] border border-border bg-background [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
+        id="video"
         ref={p.refContainer}
         tabIndex={-1}
       >

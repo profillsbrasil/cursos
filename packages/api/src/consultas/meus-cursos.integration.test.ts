@@ -500,7 +500,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   // O resumo alimenta o placar da casca, que roda em toda página do aluno e do
   // admin. A vitrine fica fora dele.
-  test("painel faz 5 statements e resumo 2, com 1 e com 40 cursos", async () => {
+  test("painel faz 6 statements e resumo 2, com 1 e com 40 cursos", async () => {
     const grande = await criarCursos(40);
     await liberar(ALUNO_B, grande.cursos);
     const contar = async (f: () => Promise<unknown>) => {
@@ -519,7 +519,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const painelB = await carregarPainel(db, ALUNO_B, AGORA);
     const doGrande = new Set(grande.cursos);
     expect(painelB.cursos.filter((c) => doGrande.has(c.id))).toHaveLength(40);
-    expect(comUm).toEqual({ painel: 5, resumo: 2 });
-    expect(comQuarenta).toEqual({ painel: 5, resumo: 2 });
+    expect(comUm).toEqual({ painel: 6, resumo: 2 });
+    expect(comQuarenta).toEqual({ painel: 6, resumo: 2 });
   });
 });

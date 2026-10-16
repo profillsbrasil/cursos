@@ -12,6 +12,7 @@ const linha = (mudar: Partial<LinhaDoExtrato>): LinhaDoExtrato => ({
   liberacao: null,
   motivo: "sequencia_7_dias",
   pontos: 30,
+  tentativa: null,
   ...mudar,
 });
 
@@ -66,12 +67,11 @@ describe("comoGanhar", () => {
     expect(comoGanhar()).toEqual([
       { emBreve: false, pontos: 10, rotulo: "Aula assistida (90% do vídeo)" },
       {
-        emBreve: true,
+        emBreve: false,
         pontos: 5,
-        rotulo: "Acerto no quiz de fixação, primeira tentativa",
+        rotulo: "Acerto no questionário da aula, primeira tentativa",
       },
-      { emBreve: true, pontos: 50, rotulo: "Prova aprovada" },
-      { emBreve: true, pontos: 100, rotulo: "Curso concluído" },
+      { emBreve: false, pontos: 100, rotulo: "Curso concluído" },
       { emBreve: false, pontos: 30, rotulo: "7 dias úteis seguidos" },
     ]);
     expect(comoGanhar()).toHaveLength(Object.keys(PONTOS).length);

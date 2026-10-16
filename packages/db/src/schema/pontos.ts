@@ -12,7 +12,7 @@ import {
 
 import { liberacao } from "./acesso";
 import { momento, motivoPonto, tabela } from "./comum";
-import { aulaAssistida, certificado } from "./estudo";
+import { aulaAssistida, certificado, questionarioTentativa } from "./estudo";
 
 // Livro-razão imutável. Cada lançamento aponta para exatamente um fato do mesmo aluno.
 export const pontoLancamento = tabela(
@@ -26,15 +26,17 @@ export const pontoLancamento = tabela(
     liberacaoId: uuid(),
     motivo: motivoPonto().notNull(),
     pontos: integer().notNull(),
+    tentativaId: uuid(),
     userId: text().notNull(),
   },
   (t) => [
     check(
       "ponto_lancamento_referencia",
-      sql`num_nonnulls(${t.aulaId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}) = 1
+      sql`num_nonnulls(${t.aulaId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}, ${t.tentativaId}) = 1
           and case ${t.motivo}
             when 'aula_assistida' then ${t.aulaId} is not null
             when 'curso_concluido' then ${t.cursoId} is not null
+            when 'questionario' then ${t.tentativaId} is not null
             when 'sequencia_7_dias' then ${t.diaMarco} is not null
             when 'troca' then ${t.liberacaoId} is not null
             else false
@@ -49,6 +51,7 @@ export const pontoLancamento = tabela(
     unique("ponto_curso_uma_vez").on(t.userId, t.cursoId),
     unique("ponto_sequencia_uma_vez").on(t.userId, t.diaMarco),
     unique("ponto_troca_uma_vez").on(t.userId, t.liberacaoId),
+    unique("ponto_questionario_uma_vez").on(t.userId, t.tentativaId),
     foreignKey({
       columns: [t.userId, t.aulaId],
       foreignColumns: [aulaAssistida.userId, aulaAssistida.aulaId],
@@ -63,6 +66,11 @@ export const pontoLancamento = tabela(
       columns: [t.userId, t.liberacaoId],
       foreignColumns: [liberacao.userId, liberacao.id],
       name: "ponto_liberacao_fk",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [t.userId, t.tentativaId],
+      foreignColumns: [questionarioTentativa.userId, questionarioTentativa.id],
+      name: "ponto_tentativa_fk",
     }).onDelete("restrict"),
     index("ponto_lancamento_por_data").on(t.userId, t.criadoEm),
   ]

@@ -13,8 +13,8 @@ import { cn } from "@cursos/ui/lib/utils";
 import {
   BookOpen,
   Check,
-  ClipboardCheck,
   Clock,
+  ListChecks,
   type LucideIcon,
   Minus,
   Play,
@@ -102,11 +102,11 @@ export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]): Selo {
       return NUNCA_ABRIU;
     case "estudando":
       return ESTUDANDO;
-    case "falta_prova":
+    case "faltam_questionarios":
       return {
         classe: CHEIO_CANELA,
-        icone: ClipboardCheck,
-        rotulo: "Falta a prova",
+        icone: ListChecks,
+        rotulo: "Faltam questionários",
       };
     case "concluido":
       return { classe: CHEIO_CEU, icone: Check, rotulo: "Concluído" };
@@ -162,10 +162,10 @@ export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase {
         quando: ultimoEstudo(s.ultimoEstudo, hoje),
         texto: `Módulo ${s.onde.modulo}, aula ${s.onde.aula}`,
       };
-    case "falta_prova":
+    case "faltam_questionarios":
       return {
         quando: ultimoEstudo(s.ultimoEstudo, hoje),
-        texto: `${aulasVistas(c.progresso.total)}. Falta a prova`,
+        texto: `${aulasVistas(c.progresso.total)}. ${s.aprovados} de ${plural(s.total, "questionário aprovado", "questionários aprovados")}`,
       };
     case "concluido":
       return { quando: null, texto: `Concluído ${noDia(s.em, hoje)}` };

@@ -18,7 +18,9 @@ import {
   marcaDoModulo,
   paragrafos,
   parouEm,
+  progressoDoCartao,
   resumoDoCurso,
+  seloDoQuestionario,
   tempoDaPosicao,
 } from "./textos";
 
@@ -36,11 +38,12 @@ describe("o cartão preso", () => {
       inclui: [
         { icone: "relogio", texto: "11 min na primeira aula" },
         { icone: "niveis", texto: "3 módulos, sem níveis" },
-        { icone: "trofeu", texto: "Prova e certificado no fim do curso" },
+        { icone: "trofeu", texto: "Certificado no fim do curso" },
       ],
       situacao: {
         rotulo: "Comece por: Módulo 1, Segurança do posto",
         titulo: "Aula 1 · Riscos do posto de montagem",
+        ultimaTentativa: null,
       },
     });
   });
@@ -53,7 +56,7 @@ describe("o cartão preso", () => {
     expect(c.inclui.map((l) => l.texto)).toEqual([
       "10 min na primeira aula",
       "Próximo nível: Vendedor Profills Certificado",
-      "Prova e certificado no fim do curso",
+      "Certificado no fim do curso",
     ]);
   });
 
@@ -68,11 +71,12 @@ describe("o cartão preso", () => {
       inclui: [
         { icone: "relogio", texto: "Faltam 6 min desta aula" },
         { icone: "niveis", texto: "3 módulos, sem níveis" },
-        { icone: "trofeu", texto: "Prova e certificado no fim do curso" },
+        { icone: "trofeu", texto: "Certificado no fim do curso" },
       ],
       situacao: {
         rotulo: "Agora: Módulo 1, Segurança do posto",
         titulo: "Aula 2 · Bloqueio antes de mexer",
+        ultimaTentativa: null,
       },
     });
   });
@@ -86,32 +90,50 @@ describe("o cartão preso", () => {
     expect(c.inclui.map((l) => l.texto)).toEqual([
       "Faltam 11 min desta aula",
       "Próximo nível: Consultor Comercial Profills",
-      "Prova e certificado no fim do curso",
+      "Certificado no fim do curso",
     ]);
   });
 
-  test("na prova: rever as aulas em contorno, e a prova abre em breve", () => {
-    expect(cartaoDoCurso(fabrica.prova, HOJE)).toEqual({
+  test("com as aulas assistidas e questionário por aprovar: o reprovado primeiro, com a nota e Tentar de novo", () => {
+    expect(cartaoDoCurso(fabrica.questionarios, HOJE)).toEqual({
       botao: {
-        href: rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`),
-        icone: "rever",
-        texto: "Rever aulas",
-        variante: "contorno",
+        href: rota(`/cursos/fabrica-e-montagem/aulas/${BLOQUEIO}#questionario`),
+        icone: "questionario",
+        texto: "Tentar de novo",
+        variante: "principal",
       },
       inclui: [
-        { icone: "trofeu", texto: "A prova abre em breve nesta página" },
+        { icone: "check", texto: "4 de 4 aulas assistidas" },
+        { icone: "questionario", texto: "Faltam 2 questionários, um por aula" },
+        { icone: "trofeu", texto: "Certificado quando todos passarem" },
       ],
       situacao: {
-        rotulo: "Você assistiu a todas as aulas",
-        titulo: "Prova e certificado",
+        rotulo: "Próximo questionário",
+        titulo: "Módulo 1, aula 2 · Bloqueio antes de mexer",
+        ultimaTentativa: "2 de 3 na última tentativa",
       },
+    });
+    expect(progressoDoCartao(fabrica.questionarios)).toEqual({
+      linha: "1 de 3 questionários aprovados",
+      progresso: { feitas: 1, pct: 33, total: 3 },
     });
   });
 
-  test("na prova com todos os níveis obtidos, nenhuma linha de nível", () => {
-    expect(
-      cartaoDoCurso(comercial.prova, HOJE).inclui.map((l) => l.texto)
-    ).toEqual(["A prova abre em breve nesta página"]);
+  test("com um questionário por fazer: sem última tentativa, Fazer o questionário e Falta 1", () => {
+    const c = cartaoDoCurso(comercial.questionarios, HOJE);
+    expect([c.botao.texto, c.situacao.ultimaTentativa]).toEqual([
+      "Fazer o questionário",
+      null,
+    ]);
+    expect(c.inclui.map((l) => l.texto)).toEqual([
+      "7 de 7 aulas assistidas",
+      "Falta 1 questionário",
+      "Certificado quando todos passarem",
+    ]);
+    expect(progressoDoCartao(comercial.emAndamento)).toEqual({
+      linha: "4 de 7 aulas assistidas",
+      progresso: { feitas: 4, pct: 57, total: 7 },
+    });
   });
 
   test("concluído: a data do certificado no dia de São Paulo, com o ano fora do ano de hoje", () => {
@@ -126,6 +148,7 @@ describe("o cartão preso", () => {
       situacao: {
         rotulo: "Curso concluído",
         titulo: "Certificado emitido em 28 de dez. de 2025",
+        ultimaTentativa: null,
       },
     });
     expect(cartaoDoCurso(fabrica.concluido, HOJE).situacao.titulo).toBe(
@@ -177,22 +200,50 @@ describe("os textos da página", () => {
     const [, , urgencia] = comercial.emAndamento.modulos;
     expect(m1 && linhasDoModulo(m1, true)).toEqual({
       direita: "1 de 2 · 21 min",
+      questionarios: null,
       sob: "2 aulas · 21 min",
     });
     expect(m1 && linhasDoModulo(m1, false)).toEqual({
       direita: null,
+      questionarios: null,
       sob: "2 aulas · 21 min",
     });
     expect(urgencia && linhasDoModulo(urgencia, false)).toEqual({
       direita: "3 aulas · 30 min",
+      questionarios: null,
       sob: "Nível 2 · Consultor Comercial Profills",
     });
+  });
+
+  test("com as aulas do módulo assistidas e questionário por aprovar, a marca é questionario e a linha conta os pendentes", () => {
+    const [seguranca, envasadora, pneumatica] = fabrica.questionarios.modulos;
+    if (!(seguranca && envasadora && pneumatica)) {
+      throw new Error("o exemplo tem três módulos");
+    }
+    expect(marcaDoModulo(seguranca, null)).toBe("questionario");
+    expect(linhasDoModulo(seguranca, true).questionarios).toBe(
+      "1 questionário"
+    );
+    expect(marcaDoModulo(pneumatica, null)).toBe("feito");
+    expect(linhasDoModulo(pneumatica, true).questionarios).toBeNull();
+    expect(seguranca.aulas.map(seloDoQuestionario)).toEqual([
+      null,
+      {
+        texto: "Questionário: 2 de 3 na última tentativa",
+        tipo: "reprovado",
+      },
+    ]);
+    expect(envasadora.aulas.map(seloDoQuestionario)).toEqual([
+      { texto: "Falta o questionário", tipo: "a_fazer" },
+    ]);
+    const [primeiro] = comercial.emAndamento.modulos;
+    expect(primeiro?.aulas.map(seloDoQuestionario)).toEqual([null, null]);
   });
 });
 
 describe("os módulos abertos de saída", () => {
   test("no curso de até 3 módulos, todos", () => {
-    expect(abertosDeSaida(fabrica.prova)).toEqual([1, 2, 3]);
+    expect(abertosDeSaida(fabrica.questionarios)).toEqual([1, 2, 3]);
   });
 
   test("com mais de 3, o da aula para onde o botão leva", () => {
@@ -200,8 +251,8 @@ describe("os módulos abertos de saída", () => {
     expect(abertosDeSaida(comercial.naoIniciado)).toEqual([0]);
   });
 
-  test("com mais de 3, na prova e no concluído, nenhum", () => {
-    expect(abertosDeSaida(comercial.prova)).toEqual([]);
+  test("com mais de 3 e questionário por aprovar, os módulos que o devem; no concluído, nenhum", () => {
+    expect(abertosDeSaida(comercial.questionarios)).toEqual([2]);
     expect(abertosDeSaida(comercial.concluido)).toEqual([]);
   });
 });
@@ -214,8 +265,11 @@ describe("o módulo ainda sem aula", () => {
     titulo: "Boas-vindas",
   };
 
-  test("na frente do curso, a prova ainda leva à primeira aula que existe", () => {
-    const p = { ...fabrica.prova, modulos: [vazio, ...fabrica.prova.modulos] };
+  test("na frente do curso, o concluído ainda leva à primeira aula que existe", () => {
+    const p = {
+      ...fabrica.concluido,
+      modulos: [vazio, ...fabrica.concluido.modulos],
+    };
     expect(cartaoDoCurso(p, HOJE).botao.href).toBe(
       rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`)
     );
@@ -225,10 +279,12 @@ describe("o módulo ainda sem aula", () => {
     expect(marcaDoModulo(vazio, null)).toBe("pendente");
     expect(linhasDoModulo(vazio, false)).toEqual({
       direita: null,
+      questionarios: null,
       sob: "Nenhuma aula ainda",
     });
     expect(linhasDoModulo(vazio, true)).toEqual({
       direita: null,
+      questionarios: null,
       sob: "Nenhuma aula ainda",
     });
   });

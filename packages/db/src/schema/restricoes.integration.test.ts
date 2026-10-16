@@ -81,7 +81,7 @@ const assistir = (c: Client, b: Base) =>
 
 const certificar = (c: Client, b: Base) =>
   c.query(
-    "insert into certificado (user_id, curso_id, codigo) values ($1, $2, $3)",
+    "insert into certificado (user_id, curso_id, codigo, segundos_de_video) values ($1, $2, $3, 600)",
     [b.aluno, b.cursoId, `TESTE-${sufixo()}`]
   );
 
@@ -196,6 +196,17 @@ const CASOS: Caso[] = [
       await certificar(c, b);
       await certificar(c, b);
     },
+  },
+  {
+    apagar:
+      "alter table certificado drop constraint certificado_segundos_nao_negativos",
+    constraint: "certificado_segundos_nao_negativos",
+    nome: "certificado com carga horária negativa",
+    violar: (c, b) =>
+      c.query(
+        "insert into certificado (user_id, curso_id, codigo, segundos_de_video) values ($1, $2, $3, -1)",
+        [b.aluno, b.cursoId, `TESTE-${sufixo()}`]
+      ),
   },
   {
     apagar: "alter table ponto_lancamento drop constraint ponto_aula_uma_vez",
@@ -560,6 +571,88 @@ const CASOS: Caso[] = [
     violar: async (c, b) =>
       alternar(c, await perguntar(c, b.aulaId, 1), 0, true),
   },
+  {
+    apagar:
+      "alter table questionario_tentativa drop constraint tentativa_acertos_no_total",
+    constraint: "tentativa_acertos_no_total",
+    nome: "tentativa com mais acertos que perguntas",
+    violar: (c, b) => tentar(c, b.aluno, b.aulaId, { acertos: 4, total: 3 }),
+  },
+  {
+    apagar:
+      "alter table questionario_tentativa drop constraint tentativa_numero_unico",
+    constraint: "tentativa_numero_unico",
+    nome: "duas tentativas com o mesmo número na mesma aula",
+    violar: async (c, b) => {
+      await tentar(c, b.aluno, b.aulaId, { numero: 1 });
+      await tentar(c, b.aluno, b.aulaId, { numero: 1 });
+    },
+  },
+  {
+    apagar: "drop index tentativa_aprovada_unica",
+    constraint: "tentativa_aprovada_unica",
+    nome: "segunda tentativa aprovada na mesma aula",
+    violar: async (c, b) => {
+      await tentar(c, b.aluno, b.aulaId, { aprovada: true, numero: 1 });
+      await tentar(c, b.aluno, b.aulaId, { aprovada: true, numero: 2 });
+    },
+  },
+  {
+    apagar:
+      "alter table questionario_tentativa drop constraint tentativa_user_id_clerk",
+    constraint: "tentativa_user_id_clerk",
+    nome: "tentativa com e-mail no lugar do userId",
+    violar: (c, b) => tentar(c, "marina@x.com", b.aulaId, {}),
+  },
+  {
+    apagar:
+      "alter table questionario_tentativa drop constraint questionario_tentativa_aula_id_aula_id_fkey",
+    constraint: "questionario_tentativa_aula_id_aula_id_fkey",
+    nome: "apagar a aula de uma tentativa",
+    violar: async (c, b) => {
+      await tentar(c, b.aluno, b.aulaId, {});
+      await c.query("delete from aula where id = $1", [b.aulaId]);
+    },
+  },
+  {
+    apagar: "alter table ponto_lancamento drop constraint ponto_tentativa_fk",
+    constraint: "ponto_tentativa_fk",
+    nome: "ponto de questionário de tentativa de outro aluno",
+    violar: async (c, b) => {
+      const id = await tentar(c, b.aluno, b.aulaId, {});
+      await c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, tentativa_id) values ('user_outro', 'questionario', 5, $1)",
+        [id]
+      );
+    },
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_questionario_uma_vez",
+    constraint: "ponto_questionario_uma_vez",
+    nome: "mesma tentativa pontuada duas vezes",
+    violar: async (c, b) => {
+      const id = await tentar(c, b.aluno, b.aulaId, {});
+      const pontuar = () =>
+        c.query(
+          "insert into ponto_lancamento (user_id, motivo, pontos, tentativa_id) values ($1, 'questionario', 5, $2)",
+          [b.aluno, id]
+        );
+      await pontuar();
+      await pontuar();
+    },
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_referencia",
+    constraint: "ponto_lancamento_referencia",
+    nome: "ponto de questionário sem a tentativa",
+    violar: (c, b) =>
+      c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, aula_id) values ($1, 'questionario', 5, $2)",
+        [b.aluno, b.aulaId]
+      ),
+  },
 ];
 
 async function perguntar(
@@ -586,6 +679,27 @@ const alternar = (
     "insert into alternativa (pergunta_id, posicao, texto, certa) values ($1, $2, $3, $4)",
     [perguntaId, posicao, texto, certa]
   );
+
+async function tentar(
+  c: Client,
+  aluno: string,
+  aulaId: string,
+  o: { acertos?: number; aprovada?: boolean; numero?: number; total?: number }
+) {
+  const r = await c.query<{ id: string }>(
+    `insert into questionario_tentativa (id, user_id, aula_id, numero, acertos, total, aprovada)
+     values (gen_random_uuid(), $1, $2, $3, $4, $5, $6) returning id`,
+    [
+      aluno,
+      aulaId,
+      o.numero ?? 1,
+      o.acertos ?? 1,
+      o.total ?? 3,
+      o.aprovada ?? false,
+    ]
+  );
+  return r.rows[0]?.id ?? "";
+}
 
 const constraintDoErro = (e: unknown) =>
   typeof e === "object" && e !== null && "constraint" in e

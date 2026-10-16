@@ -18,6 +18,7 @@ const SEM_HISTORICO: LinhasHistorico = {
   assistidas: [],
   certificados: [],
   posicoes: [],
+  questionarios: [],
 };
 
 /** Curso de uma aula, o mínimo que a liberação lê. */

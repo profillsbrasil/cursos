@@ -21,7 +21,6 @@ const aula = {
   titulo: "Gatilhos",
 };
 const NA_AULA = "/cursos/comercial/aulas/11111111-1111-4111-8111-111111111111";
-const NO_CURSO = "/cursos/comercial";
 
 const continuar = (faltaSeg: number): Retomada => ({
   aula: { ...aula, faltaSeg, posicaoSeg: aula.duracaoSeg - faltaSeg },
@@ -32,11 +31,16 @@ const continuar = (faltaSeg: number): Retomada => ({
   tipo: "continuar",
 });
 const comecar: Retomada = { aula, curso, modulo, tipo: "comecar" };
-const prova: Retomada = {
-  curso,
-  progresso: { feitas: 20, pct: 100, total: 20 },
-  tipo: "prova",
-};
+const questionario = (ultima: { acertos: number; total: number } | null) =>
+  ({
+    aula,
+    curso,
+    modulo,
+    questionarios: { feitas: 17, pct: 85, total: 20 },
+    tipo: "questionario",
+    ultima,
+  }) satisfies Retomada;
+const NO_QUESTIONARIO = `${NA_AULA}#questionario`;
 
 describe("continuarDe", () => {
   test("continuar: módulo e aula, minutos que faltam, barra e link da aula", () => {
@@ -67,15 +71,15 @@ describe("continuarDe", () => {
     });
   });
 
-  test("prova: título do curso e link para a página do curso", () => {
-    expect<unknown>(continuarDe(prova)).toEqual({
-      chamada: "Falta a prova",
-      chamadaAqui: "Falta só a prova",
-      href: NO_CURSO,
-      pct: 100,
-      rotulo: "Falta a prova: Comercial, 100% do curso",
-      tipo: "prova",
-      titulo: "Comercial",
+  test("questionário: quantos faltam, a aula e o link para o questionário dela", () => {
+    expect<unknown>(continuarDe(questionario(null))).toEqual({
+      chamada: "Faltam 3 questionários",
+      chamadaAqui: "Você está no questionário",
+      href: NO_QUESTIONARIO,
+      pct: 85,
+      rotulo: "Faltam 3 questionários: Questionário · Gatilhos, 85% do curso",
+      tipo: "questionario",
+      titulo: "Questionário · Gatilhos",
     });
   });
 
@@ -84,16 +88,16 @@ describe("continuarDe", () => {
   });
 
   test("o cartão e o banner levam ao mesmo lugar nos três tipos", () => {
-    for (const r of [continuar(420), comecar, prova]) {
+    for (const r of [continuar(420), comecar, questionario(null)]) {
       expect(continuarDe(r)?.href).toBe(hrefDaRetomada(r));
     }
   });
 });
 
 describe("hrefDaRetomada", () => {
-  test("aula nos tipos com aula, página do curso na prova", () => {
+  test("a aula nos tipos com aula, e o questionário dela quando só ele falta", () => {
     expect<string>(hrefDaRetomada(comecar)).toBe(NA_AULA);
-    expect<string>(hrefDaRetomada(prova)).toBe(NO_CURSO);
+    expect<string>(hrefDaRetomada(questionario(null))).toBe(NO_QUESTIONARIO);
   });
 });
 

@@ -56,6 +56,10 @@ export function linhasDoExtrato(
         columns: {},
         with: { curso: { columns: { titulo: true } } },
       },
+      tentativa: {
+        columns: {},
+        with: { aula: { columns: { titulo: true } } },
+      },
     },
   });
 }

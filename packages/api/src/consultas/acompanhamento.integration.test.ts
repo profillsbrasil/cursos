@@ -48,7 +48,7 @@ const NA_PALAVRA_DO_ADMIN: Record<
   em_andamento: "estudando",
   em_breve: "em_producao",
   nao_iniciado: "nunca_abriu",
-  prova: "falta_prova",
+  questionarios: "faltam_questionarios",
 };
 
 describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
@@ -156,6 +156,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       codigo: `TESTE-${S}`,
       cursoId: a,
       emitidoEm: new Date("2026-10-07T15:00:00Z"),
+      segundosDeVideo: 1200,
       userId: ESTUDA,
     });
     // 01:00 UTC de 13/10 ainda é 12/10 em São Paulo.

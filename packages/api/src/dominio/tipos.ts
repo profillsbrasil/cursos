@@ -12,6 +12,8 @@ export type AulaId = Marca<string, "AulaId">;
 export type ModuloId = Marca<string, "ModuloId">;
 export type PerguntaId = Marca<string, "PerguntaId">;
 export type AlternativaId = Marca<string, "AlternativaId">;
+/** Uma tentativa do questionário de uma aula. O id nasce no cliente. */
+export type TentativaId = Marca<string, "TentativaId">;
 /** Impressão do conteúdo de um documento do admin (dominio/versao.ts). */
 export type Versao = Marca<string, "Versao">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;
@@ -50,6 +52,8 @@ export interface AulaCatalogo {
   descricao: string;
   duracaoSeg: number;
   id: AulaId;
+  /** Quantas perguntas o questionário da aula tem; 0 é aula sem questionário. */
+  perguntas: number;
   posicao: number;
   titulo: string;
   /** null: aula ainda sem vídeo publicado. */
@@ -110,17 +114,33 @@ export interface CursoCatalogo {
   topicos: readonly string[];
 }
 
+/** O que ficou das tentativas da pessoa no questionário de uma aula. */
+export interface EstudoDoQuestionario {
+  aprovada: boolean;
+  tentativas: number;
+  /** A nota da última tentativa. */
+  ultima: { acertos: number; total: number };
+}
+
 export interface Historico {
   assistidas: ReadonlySet<AulaId>;
   certificados: ReadonlyMap<CursoId, { codigo: string; emitidoEm: string }>;
   posicoes: ReadonlyMap<AulaId, { posicaoSeg: number; atualizadaEm: string }>;
+  /** Só as aulas em que a pessoa já enviou alguma tentativa. */
+  questionarios: ReadonlyMap<AulaId, EstudoDoQuestionario>;
 }
 
+/** `questionarios`: todas as aulas assistidas e questionário por aprovar; a regra é estadoDoCurso. */
 export type EstadoCurso =
   | { tipo: "em_breve" }
   | { tipo: "nao_iniciado"; primeiraAula: AulaId }
   | { tipo: "em_andamento"; proximaAula: AulaId }
-  | { tipo: "prova" }
+  | {
+      tipo: "questionarios";
+      aprovados: number;
+      proximaAula: AulaId;
+      total: number;
+    }
   | { tipo: "concluido"; certificado: { codigo: string; emitidoEm: string } };
 
 export type TipoEstado = EstadoCurso["tipo"];

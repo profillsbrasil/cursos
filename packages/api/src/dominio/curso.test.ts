@@ -1,7 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
-import { estadoDoCurso, niveis, progresso } from "./curso";
-import { cursoCat, historico, idAula } from "./exemplo";
+import {
+  cursoCompleto,
+  estadoDoCurso,
+  niveis,
+  progresso,
+  questionariosDoCurso,
+} from "./curso";
+import { cursoCat, historico, idAula, questionario } from "./exemplo";
 import { historicoDe } from "./historico";
 import type { AulaId } from "./tipos";
 
@@ -41,10 +47,47 @@ describe("estadoDoCurso", () => {
     expect(estadoDoCurso(vazioDeAulas, historico({})).tipo).toBe("em_breve");
   });
 
-  test("todas as aulas assistidas sem certificado é prova", () => {
-    const c = cursoCat("c", { aulas: [2, 1] });
-    const h = historico({ assistidas: todas("c", [2, 1]) });
-    expect(estadoDoCurso(c, h)).toEqual({ tipo: "prova" });
+  test("todas as aulas assistidas e questionário por aprovar: questionarios, reprovado primeiro", () => {
+    const c = cursoCat("c", { aulas: [2, 1], perguntas: 3 });
+    const a1 = idAula("c", 0, 1) as AulaId;
+    const a2 = idAula("c", 0, 2) as AulaId;
+    const a3 = idAula("c", 1, 1) as AulaId;
+    const h = historico({
+      assistidas: [a1, a2, a3],
+      questionarios: [
+        [a1, questionario(true)],
+        [a3, questionario(false, { acertos: 1, total: 3 })],
+      ],
+    });
+    expect(estadoDoCurso(c, h)).toEqual({
+      aprovados: 1,
+      proximaAula: a3,
+      tipo: "questionarios",
+      total: 3,
+    });
+    expect(questionariosDoCurso(c, h).pendentes).toEqual([a3, a2]);
+  });
+
+  test("só as aulas com pergunta contam questionário: sem nenhuma, tudo assistido fica em questionarios com 0 de 0", () => {
+    const c = cursoCat("c", { aulas: [2] });
+    const h = historico({ assistidas: todas("c", [2]) });
+    expect(estadoDoCurso(c, h)).toEqual({
+      aprovados: 0,
+      proximaAula: idAula("c", 0, 1) as AulaId,
+      tipo: "questionarios",
+      total: 0,
+    });
+  });
+
+  test("tentativa sem aula assistida já conta como em_andamento", () => {
+    const c = cursoCat("c", { aulas: [2], perguntas: 1 });
+    const h = historico({
+      questionarios: [[idAula("c", 0, 2), questionario(false)]],
+    });
+    expect(estadoDoCurso(c, h)).toEqual({
+      proximaAula: idAula("c", 0, 1) as AulaId,
+      tipo: "em_andamento",
+    });
   });
 
   test("posição salva sem aula assistida já conta como em_andamento", () => {
@@ -170,9 +213,62 @@ describe("historicoDe", () => {
           posicaoSeg: 12,
         },
       ],
+      questionarios: [],
     });
     expect([...h.posicoes.keys()]).toEqual([idAula("c", 0, 1) as AulaId]);
     const b = cursoCat("b", { aulas: [2] });
     expect(estadoDoCurso(b, h).tipo).toBe("nao_iniciado");
+  });
+});
+
+describe("cursoCompleto", () => {
+  const c = cursoCat("c", { aulas: [2], perguntas: 2 });
+  const a1 = idAula("c", 0, 1);
+  const a2 = idAula("c", 0, 2);
+
+  test("todas assistidas e todo questionário aprovado", () => {
+    const h = historico({
+      assistidas: [a1, a2],
+      questionarios: [
+        [a1, questionario(true)],
+        [a2, questionario(true)],
+      ],
+    });
+    expect(cursoCompleto(c, h)).toBe(true);
+  });
+
+  test("falta uma aula, ou um questionário reprovado, ou o curso não tem aula", () => {
+    const aprovados: [string, ReturnType<typeof questionario>][] = [
+      [a1, questionario(true)],
+      [a2, questionario(true)],
+    ];
+    expect(
+      cursoCompleto(
+        c,
+        historico({ assistidas: [a1], questionarios: aprovados })
+      )
+    ).toBe(false);
+    expect(
+      cursoCompleto(
+        c,
+        historico({
+          assistidas: [a1, a2],
+          questionarios: [
+            [a1, questionario(true)],
+            [a2, questionario(false)],
+          ],
+        })
+      )
+    ).toBe(false);
+    expect(cursoCompleto(cursoCat("v", { aulas: [] }), historico({}))).toBe(
+      false
+    );
+  });
+
+  test("aula sem pergunta não pede questionário", () => {
+    const semQuiz = cursoCat("s", { aulas: [1] });
+    expect(
+      cursoCompleto(semQuiz, historico({ assistidas: [idAula("s", 0, 1)] }))
+    ).toBe(true);
   });
 });

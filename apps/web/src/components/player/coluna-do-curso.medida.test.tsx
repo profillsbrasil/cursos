@@ -59,6 +59,7 @@ function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
         atual: m === modulo && a === aula,
         duracaoSeg: 660,
         id: idDaAula(m, a),
+        questionario: { tipo: "sem" },
         titulo: `Aula ${m}.${a + 1}`,
       })),
       feitas: 0,
@@ -66,6 +67,7 @@ function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
       titulo: `Módulo ${m}`,
     })),
     proxima: null,
+    questionario: null,
   };
 }
 

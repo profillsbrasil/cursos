@@ -161,6 +161,9 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "pergunta_posicao_unica",
   "ponto_liberacao_fk",
   "posicao_aula_aula_id_aula_id_fkey",
+  "questionario_resposta_alternativa_id_alternativa_id_fkey",
+  "questionario_resposta_pergunta_id_pergunta_id_fkey",
+  "questionario_tentativa_aula_id_aula_id_fkey",
 ]);
 
 /**

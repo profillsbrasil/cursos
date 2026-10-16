@@ -2,7 +2,7 @@
 
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check } from "lucide-react";
+import { Check, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { useLayoutEffect, useRef } from "react";
 
@@ -69,6 +69,32 @@ function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
     >
       {numero}
     </span>
+  );
+}
+
+/** A lista de checks antes da duração: Céu com o questionário aprovado, apagada com ele por fazer. */
+function MarcaDoQuestionario({
+  marca,
+}: {
+  marca: AulaNaColuna["questionario"];
+}) {
+  if (marca.tipo === "sem") {
+    return null;
+  }
+  const aprovado = marca.tipo === "aprovado";
+  return (
+    <>
+      <ListChecks
+        aria-hidden="true"
+        className={cn(
+          "size-3.5",
+          aprovado ? "text-ceu" : "text-muted-foreground"
+        )}
+      />
+      <span className="sr-only">
+        {aprovado ? "Questionário aprovado." : "Questionário a fazer."}
+      </span>
+    </>
   );
 }
 
@@ -139,7 +165,8 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
                   >
                     <Estado aula={a} numero={i + 1} />
                     <span>{a.titulo}</span>
-                    <span className="font-mono text-muted-foreground text-xs tabular-nums">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-muted-foreground text-xs tabular-nums">
+                      <MarcaDoQuestionario marca={a.questionario} />
                       {fmtMin(a.duracaoSeg)}
                     </span>
                   </Link>

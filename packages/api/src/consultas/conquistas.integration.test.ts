@@ -155,12 +155,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         codigo: `PS-TESTE-${S}-1`,
         cursoId: auto.id,
         emitidoEm: new Date("2026-09-02T12:00:00Z"),
+        segundosDeVideo: 0,
         userId: ALUNA,
       },
       {
         codigo: `PS-TESTE-${S}-2`,
         cursoId: revogado.id,
         emitidoEm: new Date("2026-09-10T12:00:00Z"),
+        segundosDeVideo: 0,
         userId: ALUNA,
       },
     ]);
@@ -211,7 +213,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
   test("a aluna: medalhas pelos fatos do banco, em 6 statements", async () => {
     statements = 0;
     const c = resumo(await carregarConquistas(db, ALUNA, SEXTA_15H));
-    expect(statements).toBe(6);
+    expect(statements).toBe(7);
     expect(c.marcos).toEqual({
       aulas_10: { estado: "por_ganhar", feitas: 4 },
       aulas_50: { estado: "por_ganhar", feitas: 4 },

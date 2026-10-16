@@ -3,8 +3,10 @@ import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   Award,
+  Check,
   Clock,
   Layers,
+  ListChecks,
   type LucideIcon,
   Play,
   RotateCcw,
@@ -18,21 +20,29 @@ import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { SeloEstado } from "@/components/meus-cursos/selo-estado";
 
 import {
-  aulasAssistidas,
   type CartaoDoCurso as Cartao,
   cartaoDoCurso,
   type IconeDoCartao,
+  progressoDoCartao,
 } from "./textos";
 
 const ICONE: Record<IconeDoCartao, LucideIcon> = {
+  check: Check,
   niveis: Layers,
   nivel: Award,
+  questionario: ListChecks,
   relogio: Clock,
   trofeu: Trophy,
 };
 
+/** As aulas assistidas em Céu: a linha que já está feita. */
+const COR_DO_ICONE: Partial<Record<IconeDoCartao, string>> = {
+  check: "text-ceu",
+};
+
 const ICONE_DO_BOTAO: Record<Cartao["botao"]["icone"], LucideIcon> = {
   play: Play,
+  questionario: ListChecks,
   rever: RotateCcw,
 };
 
@@ -46,6 +56,7 @@ export function CartaoDoCurso({
   pagina: PaginaDoCurso;
 }) {
   const { botao, inclui, situacao } = cartaoDoCurso(pagina, hoje);
+  const { linha, progresso } = progressoDoCartao(pagina);
   const IconeDoBotao = ICONE_DO_BOTAO[botao.icone];
   return (
     <aside
@@ -70,16 +81,14 @@ export function CartaoDoCurso({
           <p className="flex flex-wrap items-center gap-x-3 gap-y-2 tabular-nums">
             <SeloEstado estado={pagina.estado} />
             <span className="font-semibold text-foreground">
-              {pagina.progresso.pct}%
+              {progresso.pct}%
             </span>
           </p>
           <BarraProgresso
-            pct={pagina.progresso.pct}
+            pct={progresso.pct}
             rotulo={`Progresso no curso ${pagina.titulo}`}
           />
-          <p className="text-muted-foreground tabular-nums">
-            {aulasAssistidas(pagina.progresso)}
-          </p>
+          <p className="text-muted-foreground tabular-nums">{linha}</p>
           <div className="-mx-5 my-0.5 h-px bg-border" />
           <div className="grid gap-0.5">
             <span className="text-[13px] text-muted-foreground">
@@ -88,6 +97,11 @@ export function CartaoDoCurso({
             <strong className="font-semibold text-base text-titulo leading-normal">
               {situacao.titulo}
             </strong>
+            {situacao.ultimaTentativa ? (
+              <span className="font-semibold text-[13px] text-canela">
+                {situacao.ultimaTentativa}
+              </span>
+            ) : null}
           </div>
           <Link
             className={cn(
@@ -107,7 +121,10 @@ export function CartaoDoCurso({
                   <li className="flex items-center gap-2" key={texto}>
                     <Icone
                       aria-hidden="true"
-                      className="size-[15px] shrink-0"
+                      className={cn(
+                        "size-[15px] shrink-0",
+                        COR_DO_ICONE[icone]
+                      )}
                     />
                     {texto}
                   </li>

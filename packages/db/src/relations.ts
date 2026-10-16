@@ -47,5 +47,20 @@ export const relations = defineRelations(schema, (r) => ({
       from: [r.pontoLancamento.userId, r.pontoLancamento.liberacaoId],
       to: [r.liberacao.userId, r.liberacao.id],
     }),
+    tentativa: r.one.questionarioTentativa({
+      from: [r.pontoLancamento.userId, r.pontoLancamento.tentativaId],
+      to: [r.questionarioTentativa.userId, r.questionarioTentativa.id],
+    }),
+  },
+  questionarioTentativa: {
+    aula: r.one.aula({
+      from: r.questionarioTentativa.aulaId,
+      optional: false,
+      to: r.aula.id,
+    }),
+    respostas: r.many.questionarioResposta({
+      from: r.questionarioTentativa.id,
+      to: r.questionarioResposta.tentativaId,
+    }),
   },
 }));

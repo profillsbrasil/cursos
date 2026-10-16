@@ -1,18 +1,22 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   doublePrecision,
+  foreignKey,
   index,
   integer,
   primaryKey,
+  smallint,
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { aula, curso } from "./catalogo";
+import { alternativa, aula, curso, pergunta } from "./catalogo";
 import { momento, tabela } from "./comum";
 import { faixasDeSegundos } from "./tipos-pg";
 
@@ -75,10 +79,61 @@ export const cotaVideo = tabela(
   ]
 );
 
-// O PR da prova acrescenta prova_tentativa_id (FK composta para a tentativa aprovada).
-// O seed com --cloud já cria um certificado de exemplo para o aluno A, sem tentativa.
-// Por isso a coluna nova tem de nascer anulável (ou o PR apaga antes esse certificado
-// e o ponto_lancamento que o referencia, por causa do ON DELETE RESTRICT).
+// Uma tentativa do questionário de uma aula. O id nasce no cliente, então reenviar
+// a mesma tentativa não cria outra. acertos, total e aprovada são o fato no momento
+// do envio: o admin pode mudar as perguntas depois, e a aprovação fica.
+export const questionarioTentativa = tabela(
+  "questionario_tentativa",
+  {
+    acertos: smallint().notNull(),
+    aprovada: boolean().notNull(),
+    aulaId: uuid()
+      .notNull()
+      .references(() => aula.id, { onDelete: "restrict" }),
+    enviadaEm: momento(),
+    id: uuid().primaryKey(),
+    numero: smallint().notNull(),
+    total: smallint().notNull(),
+    userId: text().notNull(),
+  },
+  (t) => [
+    check("tentativa_user_id_clerk", sql`${t.userId} ~ '^user_[A-Za-z0-9]+$'`),
+    check("tentativa_numero_positivo", sql`${t.numero} >= 1`),
+    check(
+      "tentativa_acertos_no_total",
+      sql`${t.total} >= 1 and ${t.acertos} between 0 and ${t.total}`
+    ),
+    unique("tentativa_numero_unico").on(t.userId, t.aulaId, t.numero),
+    unique("tentativa_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento
+    // Uma aprovação por aula; parar de tentar depois dela é regra do responder.
+    uniqueIndex("tentativa_aprovada_unica")
+      .on(t.userId, t.aulaId)
+      .where(sql`${t.aprovada}`),
+  ]
+);
+
+export const questionarioResposta = tabela(
+  "questionario_resposta",
+  {
+    alternativaId: uuid()
+      .notNull()
+      .references(() => alternativa.id, { onDelete: "cascade" }),
+    certa: boolean().notNull(),
+    perguntaId: uuid()
+      .notNull()
+      .references(() => pergunta.id, { onDelete: "cascade" }),
+    tentativaId: uuid().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.tentativaId, t.perguntaId] }),
+    foreignKey({
+      columns: [t.tentativaId],
+      foreignColumns: [questionarioTentativa.id],
+      name: "resposta_da_tentativa",
+    }).onDelete("cascade"),
+  ]
+);
+
 export const certificado = tabela(
   "certificado",
   {
@@ -88,7 +143,12 @@ export const certificado = tabela(
       .references(() => curso.id, { onDelete: "restrict" }),
     emitidoEm: momento(),
     id: uuid().primaryKey().defaultRandom(),
+    /** A soma dos vídeos do curso no momento da emissão. */
+    segundosDeVideo: integer().notNull(),
     userId: text().notNull(),
   },
-  (t) => [unique("certificado_um_por_curso").on(t.userId, t.cursoId)]
+  (t) => [
+    unique("certificado_um_por_curso").on(t.userId, t.cursoId),
+    check("certificado_segundos_nao_negativos", sql`${t.segundosDeVideo} >= 0`),
+  ]
 );

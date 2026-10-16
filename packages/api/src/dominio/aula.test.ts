@@ -36,7 +36,10 @@ const linhas = (
   certificados: o.certificados ?? [],
   curso,
   posicoes: o.posicoes ?? [],
+  questionarios: o.questionarios ?? [],
 });
+
+const SEM_QUESTIONARIO = { perguntas: [], tentativas: [] };
 
 const assistida = (aulaId: string, dia = "2026-10-06") => ({
   assistidaEm: em(`${dia}T15:00:00Z`),
@@ -90,6 +93,7 @@ describe("montarCursoAberto", () => {
         certificados: exemplo.certificados,
         curso: comAcesso(linha, { liberado: true }),
         posicoes: exemplo.posicoes.map((p) => ({ ...p, trechosVistos: [] })),
+        questionarios: [],
       });
       expect(aberto?.estado ?? null).toEqual(
         podeAbrir(vm.estado) ? vm.estado : null
@@ -124,7 +128,7 @@ describe("montarAulaNoPlayer", () => {
     if (!aula) {
       throw new Error(`aula ${id} fora do curso`);
     }
-    return montarAulaNoPlayer(aberto, aula);
+    return montarAulaNoPlayer(aberto, aula, SEM_QUESTIONARIO);
   };
 
   test("anterior e próxima atravessam módulos", () => {
@@ -168,7 +172,9 @@ describe("montarAulaNoPlayer", () => {
     );
     const descricao = (id: string) => {
       const aula = e && aulaPorId(e, id);
-      return e && aula ? montarAulaNoPlayer(e, aula).aula.descricao : null;
+      return e && aula
+        ? montarAulaNoPlayer(e, aula, SEM_QUESTIONARIO).aula.descricao
+        : null;
     };
     expect([
       descricao(idAula("c", 1, 1)),
@@ -197,7 +203,7 @@ describe("montarAulaNoPlayer", () => {
     if (!(d && ultima)) {
       throw new Error("curso d não abriu");
     }
-    expect(montarAulaNoPlayer(d, ultima).aula).toMatchObject({
+    expect(montarAulaNoPlayer(d, ultima, SEM_QUESTIONARIO).aula).toMatchObject({
       numeroNoModulo: 3,
       totalNoModulo: 3,
     });

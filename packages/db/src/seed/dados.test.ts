@@ -1,29 +1,25 @@
 import { describe, expect, test } from "bun:test";
 
-import { CERTIFICADO_A, CURSOS, codigoCertificado } from "./dados";
+import { CODIGO_DO_CERTIFICADO } from "../schema/formatos";
+import { CURSOS, codigoCertificado } from "./dados";
 
-const FORMATO = /^PS-M0-2026-[0-9A-F]{6}$/;
+const FORMATO = new RegExp(CODIGO_DO_CERTIFICADO);
 
 describe("codigoCertificado", () => {
   test("dois alunos de exemplo recebem códigos diferentes", () => {
-    const a = codigoCertificado(CERTIFICADO_A.prefixo, "user_seedA");
-    const b = codigoCertificado(
-      CERTIFICADO_A.prefixo,
-      "user_3KKZ9kqaJkEYGzVNbHNZdHSepd3"
+    expect(codigoCertificado("user_seedA")).not.toBe(
+      codigoCertificado("user_3KKZ9kqaJkEYGzVNbHNZdHSepd3")
     );
-    expect(a).not.toBe(b);
   });
 
   test("o mesmo aluno recebe o mesmo código em toda execução", () => {
-    expect(codigoCertificado(CERTIFICADO_A.prefixo, "user_seedA")).toBe(
-      codigoCertificado(CERTIFICADO_A.prefixo, "user_seedA")
+    expect(codigoCertificado("user_seedA")).toBe(
+      codigoCertificado("user_seedA")
     );
   });
 
-  test("o código mantém o prefixo do protótipo", () => {
-    expect(codigoCertificado(CERTIFICADO_A.prefixo, "user_seedA")).toMatch(
-      FORMATO
-    );
+  test("o código sai no formato que o servidor emite e a conferência pública lê", () => {
+    expect(codigoCertificado("user_seedA")).toMatch(FORMATO);
   });
 });
 

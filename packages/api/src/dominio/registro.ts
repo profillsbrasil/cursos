@@ -1,6 +1,6 @@
 import { COTA_VIDEO, META_SEQUENCIA, PONTOS } from "./regras";
 import { ehDiaUtil, sequenciaDiasUteis } from "./sequencia";
-import type { AulaId, DiaISO } from "./tipos";
+import type { AulaId, DiaISO, TentativaId } from "./tipos";
 import {
   atingiuMeta,
   type Cobertura,
@@ -89,10 +89,17 @@ export function aplicarRegistro(
 
 export type LancamentoNovo =
   | { aulaId: AulaId; motivo: "aula_assistida"; pontos: number }
-  | { diaMarco: DiaISO; motivo: "sequencia_7_dias"; pontos: number };
+  | { diaMarco: DiaISO; motivo: "sequencia_7_dias"; pontos: number }
+  | { motivo: "questionario"; pontos: number; tentativaId: TentativaId };
 
-const MOTIVOS_GRAVADOS: Record<LancamentoNovo["motivo"], true> = {
+/** Todo motivo de PONTOS que alguma escrita do app grava hoje. */
+const MOTIVOS_GRAVADOS: Record<
+  LancamentoNovo["motivo"] | "curso_concluido",
+  true
+> = {
   aula_assistida: true,
+  curso_concluido: true,
+  questionario: true,
   sequencia_7_dias: true,
 };
 

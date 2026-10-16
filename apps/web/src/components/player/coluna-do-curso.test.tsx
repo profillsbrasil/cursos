@@ -35,6 +35,7 @@ const DADOS: AulaNoPlayer = {
           atual: true,
           duracaoSeg: 300,
           id: AULA,
+          questionario: { tipo: "sem" },
           titulo: "Abertura",
         },
       ],
@@ -44,6 +45,7 @@ const DADOS: AulaNoPlayer = {
     },
   ],
   proxima: null,
+  questionario: null,
 };
 
 const LINK = /<a\b[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/g;

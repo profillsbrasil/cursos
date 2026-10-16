@@ -26,7 +26,8 @@ export type RecusaDaEdicao =
   | { tipo: "versao_mudou" }
   | { tipo: "sumiu" }
   | { tipo: "sem_capa" }
-  | { tipo: "aula_assistida"; titulo: string; alunos: number };
+  | { tipo: "aula_assistida"; titulo: string; alunos: number }
+  | { tipo: "questionario_respondido"; titulo: string; alunos: number };
 
 export interface Apagar {
   alternativas: readonly AlternativaId[];
@@ -77,7 +78,8 @@ const fora = <T>(lista: readonly T[], de: readonly T[]) => {
  * `atual` é o que abrirCurso leu com o curso travado; `capaRecebida`, a capa que
  * subiu com este pedido. O plano descreve o estado final. Aqui só se decide o que
  * some e se pode sumir. Aula que muda de módulo mantém o id, então mantém
- * assistidas e posição do aluno.
+ * assistidas, posição e tentativas do aluno. Pergunta e alternativa somem com as
+ * respostas delas; a tentativa fica, com a nota e a aprovação.
  */
 export function planejarCurso(
   atual: EdicaoDoCurso | null,
@@ -114,12 +116,20 @@ export function planejarCurso(
     idsDasAulas(desejado)
   );
   for (const id of aulasQueSaem) {
-    const alunos = atual.uso.assistidasPorAula[id] ?? 0;
-    if (alunos > 0) {
-      const titulo =
-        atual.documento.modulos.flatMap((m) => m.aulas).find((a) => a.id === id)
-          ?.titulo ?? id;
-      return recusa({ alunos, tipo: "aula_assistida", titulo });
+    const titulo =
+      atual.documento.modulos.flatMap((m) => m.aulas).find((a) => a.id === id)
+        ?.titulo ?? id;
+    const assistiram = atual.uso.assistidasPorAula[id] ?? 0;
+    if (assistiram > 0) {
+      return recusa({ alunos: assistiram, tipo: "aula_assistida", titulo });
+    }
+    const responderam = atual.uso.tentativasPorAula[id] ?? 0;
+    if (responderam > 0) {
+      return recusa({
+        alunos: responderam,
+        tipo: "questionario_respondido",
+        titulo,
+      });
     }
   }
   return {

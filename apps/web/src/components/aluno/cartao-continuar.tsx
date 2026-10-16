@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
-import { Award, Play } from "lucide-react";
+import { ListChecks, Play } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, use } from "react";
@@ -44,8 +44,8 @@ const REDONDO =
   "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:[&_svg]:size-4";
 
 function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
-  return tipo === "prova" ? (
-    <Award aria-hidden="true" />
+  return tipo === "questionario" ? (
+    <ListChecks aria-hidden="true" />
   ) : (
     <Play aria-hidden="true" />
   );

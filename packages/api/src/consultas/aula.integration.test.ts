@@ -5,6 +5,7 @@ import { createDb } from "@cursos/db";
 import {
   aula,
   aulaAssistida,
+  certificado,
   cotaVideo,
   curso,
   liberacao,
@@ -164,6 +165,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, ALUNOS));
+    await db.delete(certificado).where(inArray(certificado.userId, ALUNOS));
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
     await db.delete(cotaVideo).where(inArray(cotaVideo.userId, ALUNOS));
@@ -618,7 +620,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(avisosDoPg).toEqual([]);
   });
 
-  test("contagem de statements: abrir 4, envio comum 8 e com conquista 10 (o lock_timeout é um deles), mais begin e commit", async () => {
+  // Abrir: os 5 do curso e os 2 do questionário. O envio comum: begin, commit,
+  // o lock_timeout, a cota, os 5 do curso, posição e cota (9). Com conquista, mais
+  // a aula assistida e o lançamento, e a conferência da conclusão do curso (a
+  // trava do aluno, as aulas, a liberação, o certificado, as assistidas e os
+  // questionários aprovados), que aqui não emite: falta a outra aula.
+  test("contagem de statements: abrir 7, envio comum 9 e com conquista 17, mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
     const abrir = await contar(() => carregarAula(db, aluno, c.slug, aulaId));
@@ -630,6 +637,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       abrir: abrir.n,
       comConquista: comConquista.n,
       comum: comum.n,
-    }).toEqual({ abrir: 4, comConquista: 2 + 10, comum: 2 + 8 });
+    }).toEqual({ abrir: 7, comConquista: 2 + 11 + 6, comum: 2 + 9 });
   });
 });

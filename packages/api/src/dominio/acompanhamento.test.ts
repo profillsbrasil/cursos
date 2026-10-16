@@ -18,6 +18,7 @@ const linhas = (o: Partial<LinhasHistorico>): LinhasHistorico => ({
   assistidas: [],
   certificados: [],
   posicoes: [],
+  questionarios: [],
   ...o,
 });
 
@@ -98,7 +99,8 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
     });
   });
 
-  test("todas as aulas vistas e sem certificado: falta a prova", () => {
+  test("todas as aulas vistas e questionário por aprovar: faltam questionários, e a tentativa conta como estudo", () => {
+    const comQuiz = cursoCat("a", { aulas: [2, 1], perguntas: 2 });
     const e = estudoDe(
       linhas({
         assistidas: [
@@ -106,11 +108,26 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
           assistida(idAula("a", 0, 2), "2026-09-29T15:00:00Z"),
           assistida(idAula("a", 1, 1), "2026-09-30T15:00:00Z"),
         ],
+        questionarios: [
+          {
+            aprovada: true,
+            aulaId: idAula("a", 0, 1),
+            tentativas: 1,
+            ultimaEm: em("2026-10-02T15:00:00Z"),
+            ultimosAcertos: 2,
+            ultimoTotal: 2,
+          },
+        ],
       })
     );
-    expect(acompanharCurso(A, e)).toMatchObject({
+    expect(acompanharCurso(comQuiz, e)).toMatchObject({
       progresso: { feitas: 3, pct: 100, total: 3 },
-      situacao: { tipo: "falta_prova", ultimoEstudo: "2026-09-30" },
+      situacao: {
+        aprovados: 1,
+        tipo: "faltam_questionarios",
+        total: 3,
+        ultimoEstudo: "2026-10-02",
+      },
     });
   });
 
@@ -158,6 +175,7 @@ describe("montarBusca", () => {
       {
         aulas: Array.from({ length: aulas }, (_, i) => ({
           id: idAula(id, 0, i + 1),
+          perguntas: 0,
         })),
       },
     ],
