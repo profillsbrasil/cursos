@@ -132,7 +132,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         enviar,
         `(() => {
           const titulo = document.querySelector('[id$="-titulo"]').getBoundingClientRect();
-          const nivel = document.querySelector('select[id$="-nivel"]').getBoundingClientRect();
+          const nivel = document.querySelector('button[id$="-nivel"]').getBoundingClientRect();
           return { nivelNaLinhaDoTitulo: nivel.top === titulo.top, titulo: titulo.width };
         })()`
       );

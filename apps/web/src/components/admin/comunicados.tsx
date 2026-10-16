@@ -10,13 +10,9 @@ import {
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
-import {
-  NativeSelect,
-  NativeSelectOptGroup,
-  NativeSelectOption,
-} from "@cursos/ui/components/native-select";
 import { Textarea } from "@cursos/ui/components/textarea";
 import { cn } from "@cursos/ui/lib/utils";
+import { Megaphone } from "lucide-react";
 import {
   type FormEvent,
   type KeyboardEvent,
@@ -36,7 +32,8 @@ import {
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
-import { CAMPO, ROTULO, SELECAO, SELO, Secao, Vazio } from "./partes";
+import { CAMPO, ROTULO, SELO, Secao, Vazio } from "./partes";
+import { type ItemDaSelecao, SelecaoComBusca } from "./selecao";
 
 /** O que o formulário envia; cursoId vazio é o comunicado geral. */
 interface Rascunho {
@@ -48,6 +45,24 @@ interface Rascunho {
 const VAZIO: Rascunho = { cursoId: "", texto: "", titulo: "" };
 
 const PUBLICADOS = "publicados";
+
+const TODOS_OS_ALUNOS: ItemDaSelecao = {
+  icone: <Megaphone aria-hidden="true" className="text-muted-foreground" />,
+  rotulo: "Todos os alunos",
+  valor: "",
+};
+
+function paraQuem(cursos: readonly CursoDoComunicado[]): ItemDaSelecao[] {
+  return cursos.length > 0
+    ? [
+        TODOS_OS_ALUNOS,
+        {
+          grupo: "Quem tem acesso ao curso",
+          opcoes: cursos.map((c) => ({ rotulo: c.titulo, valor: c.id })),
+        },
+      ]
+    : [TODOS_OS_ALUNOS];
+}
 
 function Formulario({
   aoCancelar,
@@ -68,6 +83,7 @@ function Formulario({
 }) {
   const id = useId();
   const [faltando, setFaltando] = useState(false);
+  const [para, setPara] = useState(inicial.cursoId);
   const enviar = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -131,23 +147,15 @@ function Formulario({
         <FieldLabel className={ROTULO} htmlFor={`${id}-para`}>
           Para quem
         </FieldLabel>
-        <NativeSelect
-          className={SELECAO}
-          defaultValue={inicial.cursoId}
+        <SelecaoComBusca
+          aoMudar={setPara}
           id={`${id}-para`}
           name="cursoId"
-        >
-          <NativeSelectOption value="">Todos os alunos</NativeSelectOption>
-          {cursos.length > 0 ? (
-            <NativeSelectOptGroup label="Quem tem acesso ao curso">
-              {cursos.map((c) => (
-                <NativeSelectOption key={c.id} value={c.id}>
-                  {c.titulo}
-                </NativeSelectOption>
-              ))}
-            </NativeSelectOptGroup>
-          ) : null}
-        </NativeSelect>
+          opcoes={paraQuem(cursos)}
+          rotuloDaBusca="Buscar curso"
+          semResultado="Nenhum curso com esse nome."
+          valor={para}
+        />
       </Field>
       {faltando ? (
         <FieldError className="text-sm">

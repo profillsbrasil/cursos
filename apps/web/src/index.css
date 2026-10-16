@@ -117,7 +117,6 @@
 :is(
   [data-slot="input"],
   [data-slot="textarea"],
-  [data-slot="native-select"],
   [data-slot="select-trigger"],
   [data-slot="input-group"],
   [data-slot="combobox-chips"],
@@ -139,7 +138,6 @@
   :is(
     [data-slot="input"],
     [data-slot="textarea"],
-    [data-slot="native-select"],
     [data-slot="select-trigger"],
     [data-slot="input-group"],
     [data-slot="combobox-chips"],

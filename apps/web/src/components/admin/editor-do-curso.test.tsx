@@ -30,19 +30,17 @@ const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
 const PARAGRAFO = /<\/?p[\s>]/g;
 
-const SELECT_DA_CATEGORIA =
-  /<select[^>]*id="curso-categoriaId"[^>]*>(.*?)<\/select>/;
-const OPCAO = /<option([^>]*)>([^<]*)<\/option>/g;
-const VALOR = /value="([^"]*)"/;
+const GATILHO_DA_CATEGORIA =
+  /<button([^>]*id="curso-categoriaId"[^>]*)>(.*?)<\/button>/;
 
-/** [valor, texto, marcada] de cada opção do select da categoria. */
-function opcoesDaCategoria(html: string) {
-  const select = SELECT_DA_CATEGORIA.exec(html)?.[1] ?? "";
-  return [...select.matchAll(OPCAO)].map(([, atributos = "", rotulo]) => [
-    VALOR.exec(atributos)?.[1],
-    rotulo,
-    atributos.includes(' selected=""'),
-  ]);
+/**
+ * O que o gatilho da categoria mostra, e se é o placeholder. A lista aberta só
+ * existe no browser, e o selecao.navegador.test.tsx a confere.
+ */
+function categoriaNoGatilho(html: string) {
+  const [, atributos = "", conteudo = ""] =
+    GATILHO_DA_CATEGORIA.exec(html) ?? [];
+  return [texto(conteudo).trim(), atributos.includes(' data-placeholder=""')];
 }
 
 const OUTRA = uuidDeExemplo(32) as CategoriaId;
@@ -93,11 +91,10 @@ describe("editor do curso: endereço e categoria", () => {
     );
   });
 
-  test("o select da categoria lista as categorias e marca a do curso", () => {
-    expect(opcoesDaCategoria(render(salvo))).toEqual([
-      ["", "Escolha a categoria", false],
-      [EDICAO.CATEGORIA, "Processo de envase", true],
-      [OUTRA, "Vendas e negócios", false],
+  test("a seleção da categoria mostra a categoria do curso", () => {
+    expect(categoriaNoGatilho(render(salvo))).toEqual([
+      "Processo de envase",
+      false,
     ]);
   });
 
@@ -121,10 +118,6 @@ describe("editor do curso: endereço e categoria", () => {
   test("o curso novo diz que o link sai do título e começa sem categoria", () => {
     const html = render(edicaoDeCursoNovo(EDICAO.CURSO));
     expect(texto(html)).toContain("O link do curso sai do título.");
-    expect(opcoesDaCategoria(html)).toEqual([
-      ["", "Escolha a categoria", true],
-      [EDICAO.CATEGORIA, "Processo de envase", false],
-      [OUTRA, "Vendas e negócios", false],
-    ]);
+    expect(categoriaNoGatilho(html)).toEqual(["Escolha a categoria", true]);
   });
 });

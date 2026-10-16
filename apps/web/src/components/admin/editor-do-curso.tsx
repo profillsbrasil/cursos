@@ -14,10 +14,6 @@ import {
   FieldLabel,
 } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@cursos/ui/components/native-select";
 import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
@@ -68,7 +64,7 @@ import {
   REGRAS_DO_CURSO,
 } from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
-import { CAMPO, ICONE, ROTULO, SELECAO, Secao } from "./partes";
+import { CAMPO, ICONE, ROTULO, Secao } from "./partes";
 import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   ID,
@@ -78,6 +74,7 @@ import {
   recusaDoMotivo,
   segundosDas,
 } from "./rascunho-do-curso";
+import { type OpcaoDaSelecao, Selecao } from "./selecao";
 import { TopicosDoCurso } from "./topicos-do-curso";
 import { Vitrine } from "./vitrine";
 
@@ -94,6 +91,10 @@ const STATUS: Record<StatusDoCurso, { descricao: string; rotulo: string }> = {
   },
 };
 
+const OPCOES_DO_STATUS: readonly OpcaoDaSelecao[] = Object.entries(STATUS).map(
+  ([valor, { descricao, rotulo }]) => ({ descricao, rotulo, valor })
+);
+
 type CampoDeTextoDoCurso = "capaAlt" | "codigo" | "destaque" | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
@@ -108,9 +109,9 @@ function Publicacao({
 }) {
   const id = useId();
   const mudarStatus = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) =>
+    (status: string) =>
       despachar({
-        mudanca: { status: e.target.value as StatusDoCurso },
+        mudanca: { status: status as StatusDoCurso },
         tipo: "campos",
       }),
     [despachar]
@@ -134,20 +135,13 @@ function Publicacao({
         <FieldLabel className={ROTULO} htmlFor={`${id}-status`}>
           Status
         </FieldLabel>
-        <NativeSelect
+        <Selecao
+          aoMudar={mudarStatus}
           aria-describedby={`${id}-status-descricao`}
-          className={SELECAO}
           id={`${id}-status`}
-          onChange={mudarStatus}
-          value={rascunho.status}
-        >
-          <NativeSelectOption value="em_producao">
-            {STATUS.em_producao.rotulo}
-          </NativeSelectOption>
-          <NativeSelectOption value="publicado">
-            {STATUS.publicado.rotulo}
-          </NativeSelectOption>
-        </NativeSelect>
+          opcoes={OPCOES_DO_STATUS}
+          valor={rascunho.status}
+        />
         <FieldDescription className="text-xs" id={`${id}-status-descricao`}>
           {STATUS[rascunho.status].descricao}
         </FieldDescription>

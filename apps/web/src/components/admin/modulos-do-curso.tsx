@@ -5,10 +5,6 @@ import type { ModuloId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@cursos/ui/components/native-select";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -47,20 +43,14 @@ import {
   type Marcados,
   type Mudanca,
 } from "./estado-do-editor";
-import {
-  CONTORNO_DESLIGADO,
-  ICONE,
-  ROTULO,
-  SELECAO,
-  SELO,
-  Vazio,
-} from "./partes";
+import { CONTORNO_DESLIGADO, ICONE, ROTULO, SELO, Vazio } from "./partes";
 import {
   ID,
   type ModuloDoRascunho,
   type RascunhoDoCurso,
   segundosDas,
 } from "./rascunho-do-curso";
+import { Selecao } from "./selecao";
 
 type Despachar = Dispatch<Mudanca>;
 type MudarBlocos = Dispatch<AcaoNosBlocos>;
@@ -111,7 +101,7 @@ function NivelDoModulo({
   valor,
 }: {
   id: string;
-  mudar: (e: ChangeEvent<HTMLSelectElement>) => void;
+  mudar: (valor: string) => void;
   niveis: Niveis;
   valor: number | null;
 }) {
@@ -124,20 +114,20 @@ function NivelDoModulo({
       <FieldLabel className={ROTULO} htmlFor={id}>
         Nível
       </FieldLabel>
-      <NativeSelect
+      <Selecao
         {...aria}
-        className={cn(SELECAO, "md:*:data-[slot=native-select]:h-10")}
+        aoMudar={mudar}
+        className="md:h-10"
         id={id}
-        onChange={mudar}
-        value={valor === null ? "" : String(valor)}
-      >
-        <NativeSelectOption value="">Sem nível</NativeSelectOption>
-        {niveis.map((n) => (
-          <NativeSelectOption key={n.ordem} value={String(n.ordem)}>
-            {n.nome || `Nível ${n.ordem}`}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
+        opcoes={[
+          { rotulo: "Sem nível", valor: "" },
+          ...niveis.map((n) => ({
+            rotulo: n.nome || `Nível ${n.ordem}`,
+            valor: String(n.ordem),
+          })),
+        ]}
+        valor={valor === null ? "" : String(valor)}
+      />
       <ErroDoCampo id={id} mensagem={mensagem} />
     </Field>
   );
@@ -294,10 +284,8 @@ export function BlocoDoModulo({
     [editarModulo]
   );
   const mudarNivel = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) =>
-      editarModulo({
-        nivelOrdem: e.target.value === "" ? null : Number(e.target.value),
-      }),
+    (nivel: string) =>
+      editarModulo({ nivelOrdem: nivel === "" ? null : Number(nivel) }),
     [editarModulo]
   );
   const subir = useCallback(() => {

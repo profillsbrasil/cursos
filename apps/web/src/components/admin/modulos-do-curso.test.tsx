@@ -75,7 +75,7 @@ describe("bloco fechado", () => {
   test("mostra só o resumo, sem nenhum campo", () => {
     expect(html).toContain('aria-expanded="false"');
     expect(html).not.toContain("<input");
-    expect(html).not.toContain("<select");
+    expect(html).not.toContain('data-slot="select-trigger"');
   });
 
   test("o resumo tem o número, o título, as aulas com a duração, o nível e as aulas assistidas", () => {
@@ -230,7 +230,7 @@ describe("lista de módulos fechados", () => {
 
   test("não põe nenhum campo na página", () => {
     expect(html).not.toContain("<input");
-    expect(html).not.toContain("<select");
+    expect(html).not.toContain('data-slot="select-trigger"');
   });
 
   test("o índice tem um link por módulo, que aponta para o bloco dele", () => {
