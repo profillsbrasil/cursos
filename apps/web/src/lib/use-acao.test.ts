@@ -101,6 +101,30 @@ describe("rodarAcao", () => {
     expect(motivos).toEqual(["codigo_repetido"]);
   });
 
+  test("a recusa entrega a mensagem escrita para a pessoa, e só ela", async () => {
+    const recebidas: unknown[] = [];
+    await Promise.all(
+      [
+        erroDoServidor(
+          "CONFLICT",
+          "Já existe uma categoria com este nome.",
+          true
+        ),
+        erroDoServidor("BAD_REQUEST", "Invalid input", false),
+        erroDeRede(),
+      ].map((e) =>
+        rodar(() => Promise.reject(e), {
+          aoRecusar: (_motivo, mensagem) => recebidas.push(mensagem),
+        })
+      )
+    );
+    expect(recebidas).toEqual([
+      "Já existe uma categoria com este nome.",
+      null,
+      null,
+    ]);
+  });
+
   test("em versao_mudou recarrega, e o Recarregar já encontra a página nova", async () => {
     const recusa = erroDoServidor(
       "CONFLICT",

@@ -10,7 +10,8 @@ import { toast } from "sonner";
 const ERRO_GENERICO = "Não deu para salvar. Tente de novo em instantes.";
 
 export interface OpcoesDaAcao<T> {
-  aoRecusar?: (motivo: Motivo | null) => void;
+  /** `mensagem` é o texto que o servidor escreveu para a pessoa, ou null. */
+  aoRecusar?: (motivo: Motivo | null, mensagem: string | null) => void;
   depois?: (resultado: T) => void;
   /** Texto do toast quando o erro não traz mensagem escrita para a pessoa. */
   erro?: string;
@@ -47,10 +48,9 @@ export async function rodarAcao<T>(
       isTRPCClientError<AppRouter>(e) && e.data
         ? { ...e.data, mensagem: e.message }
         : null;
-    efeitos.toast.error(
-      recusa?.paraAPessoa ? recusa.mensagem : (opcoes.erro ?? ERRO_GENERICO)
-    );
-    opcoes.aoRecusar?.(recusa?.motivo ?? null);
+    const mensagem = recusa?.paraAPessoa ? recusa.mensagem : null;
+    efeitos.toast.error(mensagem ?? opcoes.erro ?? ERRO_GENERICO);
+    opcoes.aoRecusar?.(recusa?.motivo ?? null, mensagem);
     if (recusa === null) {
       return;
     }
