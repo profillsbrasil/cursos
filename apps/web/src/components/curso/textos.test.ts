@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { Route } from "next";
 
 import {
   AUTO_1,
@@ -19,11 +20,13 @@ import {
   tempoDaPosicao,
 } from "./textos";
 
+const rota = (caminho: string) => caminho as Route;
+
 describe("o cartão preso", () => {
   test("antes da primeira aula, sem níveis: começa pela aula 1 e diz que o curso não tem níveis", () => {
     expect(cartaoDoCurso(fabrica.naoIniciado, HOJE)).toEqual({
       botao: {
-        href: `/cursos/fabrica-e-montagem/aulas/${RISCOS}`,
+        href: rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`),
         icone: "play",
         texto: "Começar o curso",
         variante: "principal",
@@ -55,7 +58,7 @@ describe("o cartão preso", () => {
   test("em andamento, com posição: continua no segundo em que a pessoa parou", () => {
     expect(cartaoDoCurso(fabrica.emAndamento, HOJE)).toEqual({
       botao: {
-        href: `/cursos/fabrica-e-montagem/aulas/${BLOQUEIO}`,
+        href: rota(`/cursos/fabrica-e-montagem/aulas/${BLOQUEIO}`),
         icone: "play",
         texto: "Continuar em 3:42",
         variante: "principal",
@@ -88,7 +91,7 @@ describe("o cartão preso", () => {
   test("na prova: rever as aulas em contorno, e a prova abre em breve", () => {
     expect(cartaoDoCurso(fabrica.prova, HOJE)).toEqual({
       botao: {
-        href: `/cursos/fabrica-e-montagem/aulas/${RISCOS}`,
+        href: rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`),
         icone: "rever",
         texto: "Rever aulas",
         variante: "contorno",
@@ -112,7 +115,7 @@ describe("o cartão preso", () => {
   test("concluído: a data do certificado no dia de São Paulo, com o ano fora do ano de hoje", () => {
     expect(cartaoDoCurso(comercial.concluido, HOJE)).toEqual({
       botao: {
-        href: `/cursos/comercial/aulas/${AUTO_1}`,
+        href: rota(`/cursos/comercial/aulas/${AUTO_1}`),
         icone: "rever",
         texto: "Rever o curso",
         variante: "principal",
