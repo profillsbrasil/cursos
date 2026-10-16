@@ -35,18 +35,29 @@ describe("largura recolhida", () => {
   });
 });
 
+describe("o menu do aluno", () => {
+  test("começa em Meus cursos, sem Início", () => {
+    expect(ITENS_DO_ALUNO.map((i) => [i.nome, i.tipo])).toEqual([
+      ["Meus cursos", "link"],
+      ["Trocar pontos", "link"],
+      ["Conquistas", "em_breve"],
+      ["Comunicados", "em_breve"],
+    ]);
+  });
+});
+
 describe("indiceAtivo", () => {
   test("caminho exato marca page", () => {
     expect(indiceAtivo("/meus-cursos", ITENS_DO_ALUNO)).toEqual({
       ariaCurrent: "page",
-      indice: 1,
+      indice: 0,
     });
   });
 
   test("rota filha por outrosPrefixos marca true", () => {
     expect(indiceAtivo("/cursos/comercial/aulas/x", ITENS_DO_ALUNO)).toEqual({
       ariaCurrent: "true",
-      indice: 1,
+      indice: 0,
     });
   });
 
@@ -61,7 +72,7 @@ describe("indiceAtivo", () => {
     expect(indiceAtivo("/meus-cursos-antigos", ITENS_DO_ALUNO)).toBeNull();
   });
 
-  test("item em breve nunca é ativo", () => {
+  test("a raiz, que redireciona, não marca item nenhum", () => {
     expect(indiceAtivo("/", ITENS_DO_ALUNO)).toBeNull();
   });
 });
