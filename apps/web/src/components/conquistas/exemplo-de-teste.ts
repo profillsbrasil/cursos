@@ -13,6 +13,7 @@ const capa = (nome: string) => ({
 const curso = (id: string, titulo: string) => ({
   capa: capa(id),
   id: id as CursoId,
+  slug: id,
   titulo,
 });
 
@@ -23,26 +24,31 @@ export const ALUNA: Conquistas = {
       curso: curso("autoavaliacao", "Autoavaliação Comercial"),
       dia: dia("2026-09-02"),
       estado: "ganha",
+      horas: 2,
     },
     {
+      categoria: "Vendas",
       curso: curso("comercial", "Comercial"),
       estado: "por_ganhar",
       feitas: 46,
       total: 90,
     },
     {
+      categoria: "Rotinas internas",
       curso: curso("nova-rotina", "Nova Rotina de Fechamento"),
       estado: "por_ganhar",
       feitas: 3,
       total: 9,
     },
     {
+      categoria: "Máquinas",
       curso: curso("fabrica", "Fábrica e montagem"),
       estado: "por_ganhar",
       feitas: 0,
       total: 7,
     },
     {
+      categoria: "Envase e embalagem",
       curso: curso("bpf", "Boas práticas de fabricação"),
       estado: "por_ganhar",
       feitas: 0,
@@ -94,6 +100,7 @@ export const ALUNA: Conquistas = {
 export const NOVO: Conquistas = {
   certificados: [
     {
+      categoria: "Máquinas",
       curso: curso("fabrica", "Fábrica e montagem"),
       estado: "por_ganhar",
       feitas: 0,

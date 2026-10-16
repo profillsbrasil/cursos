@@ -1,3 +1,4 @@
+import { cargaHoraria } from "./pagina-do-certificado";
 import {
   type LinhasPainel,
   montarPainel,
@@ -28,9 +29,11 @@ export interface LinhasDasConquistas {
   /** Todo certificado, também de curso revogado. */
   certificados: readonly {
     codigo: string;
-    curso: LinhaDaCapa & { titulo: string };
+    curso: LinhaDaCapa & { slug: string; titulo: string };
     cursoId: string;
     emitidoEm: Date;
+    /** A soma dos vídeos congelada na emissão, a mesma da folha. */
+    segundosDeVideo: number;
   }[];
   /** Os lançamentos de sequência e de troca; `curso` é o título do curso trocado. */
   lancamentos: readonly {
@@ -101,6 +104,7 @@ export type Marco =
 export interface CursoDoCertificado {
   capa: Capa;
   id: CursoId;
+  slug: string;
   titulo: string;
 }
 
@@ -109,8 +113,8 @@ export interface CursoDoCertificado {
  * de liberação ativa que ainda abre aula e não tem certificado.
  */
 export type CertificadoNaTela = { curso: CursoDoCertificado } & Medalha<
-  { codigo: string },
-  { feitas: number; total: number }
+  { codigo: string; horas: number },
+  { categoria: string; feitas: number; total: number }
 >;
 
 export interface Conquistas {
@@ -148,15 +152,18 @@ function certificados(
       curso: {
         capa: capaDe(c.curso),
         id: c.cursoId as CursoId,
+        slug: c.curso.slug,
         titulo: c.curso.titulo,
       },
       dia: diaLocal(c.emitidoEm),
       estado: "ganha" as const,
+      horas: cargaHoraria(c.segundosDeVideo),
     }));
   const porGanhar = painel.cursos
     .filter((c) => ABREM_AULA.has(c.estado.tipo))
     .map((c) => ({
-      curso: { capa: c.capa, id: c.id, titulo: c.titulo },
+      categoria: c.categoria,
+      curso: { capa: c.capa, id: c.id, slug: c.slug, titulo: c.titulo },
       estado: "por_ganhar" as const,
       feitas: c.progresso.feitas,
       total: c.progresso.total,

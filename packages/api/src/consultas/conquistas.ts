@@ -22,11 +22,12 @@ import { filtroLiberacaoAtiva } from "./comum";
 import { linhasDosQuestionarios } from "./meus-cursos";
 import { linhasDosCursos } from "./troca";
 
-const CAPA_DO_CURSO = {
+const CURSO_DO_CERTIFICADO = {
   capaAlt: curso.capaAlt,
   capaAltura: curso.capaAltura,
   capaLargura: curso.capaLargura,
   capaUrl: curso.capaUrl,
+  slug: curso.slug,
   titulo: curso.titulo,
 };
 
@@ -75,13 +76,14 @@ export async function linhasDasConquistas(
       .where(
         and(eq(posicaoAula.userId, userId), gt(posicaoAula.posicaoSeg, 0))
       ),
-    // 4. todo certificado, com o título e a capa do curso
+    // 4. todo certificado, com o título, o endereço e a capa do curso
     db
       .select({
         codigo: certificado.codigo,
-        curso: CAPA_DO_CURSO,
+        curso: CURSO_DO_CERTIFICADO,
         cursoId: certificado.cursoId,
         emitidoEm: certificado.emitidoEm,
+        segundosDeVideo: certificado.segundosDeVideo,
       })
       .from(certificado)
       .innerJoin(curso, eq(curso.id, certificado.cursoId))
