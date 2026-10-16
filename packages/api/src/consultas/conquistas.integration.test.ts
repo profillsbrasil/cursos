@@ -33,8 +33,8 @@ const SEXTA_15H = new Date("2026-10-16T15:00:00-03:00");
 const resumo = (c: Conquistas) => ({
   certificados: c.certificados.map((x) =>
     x.estado === "ganha"
-      ? [x.curso.titulo, x.dia, x.codigo]
-      : [x.curso.titulo, x.feitas, x.total]
+      ? [x.curso.slug, x.dia, x.codigo, x.horas]
+      : [x.curso.slug, x.categoria, x.feitas, x.total]
   ),
   marcos: Object.fromEntries(
     c.marcos.map((m): [string, object] => [
@@ -155,7 +155,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         codigo: `PS-TESTE-${S}-1`,
         cursoId: auto.id,
         emitidoEm: new Date("2026-09-02T12:00:00Z"),
-        segundosDeVideo: 0,
+        segundosDeVideo: 3601,
         userId: ALUNA,
       },
       {
@@ -238,10 +238,10 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       sequencia: { dia: "2026-09-25", estado: "ganha", vezes: 2 },
     });
     expect(c.certificados).toEqual([
-      [`auto ${sufixo}`, "2026-09-02", `PS-TESTE-${S}-1`],
-      [`revogado ${sufixo}`, "2026-09-10", `PS-TESTE-${S}-2`],
-      [`comercial ${sufixo}`, 1, 3],
-      [`bpf ${sufixo}`, 0, 1],
+      [`teste-${sufixo}-auto`, "2026-09-02", `PS-TESTE-${S}-1`, 2],
+      [`teste-${sufixo}-revogado`, "2026-09-10", `PS-TESTE-${S}-2`, 0],
+      [`teste-${sufixo}-comercial`, "Categoria dos testes", 1, 3],
+      [`teste-${sufixo}-bpf`, "Categoria dos testes", 0, 1],
     ]);
   });
 
@@ -267,7 +267,9 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       estado: "por_ganhar",
       pontosPorAula: 10,
     });
-    expect(c.certificados).toEqual([[`fabrica ${sufixo}`, 0, 4]]);
+    expect(c.certificados).toEqual([
+      [`teste-${sufixo}-fabrica`, "Categoria dos testes", 0, 4],
+    ]);
   });
 
   test("sem login, conquistas lança UNAUTHORIZED", async () => {

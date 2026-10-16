@@ -35,6 +35,7 @@ const capa = (curso: typeof AUTO) => ({
   capaAltura: curso.capaAltura,
   capaLargura: curso.capaLargura,
   capaUrl: curso.capaUrl,
+  slug: curso.slug,
   titulo: curso.titulo,
 });
 
@@ -74,12 +75,14 @@ const ALUNA: LinhasDasConquistas = {
       curso: capa(REVOGADO),
       cursoId: REVOGADO.id,
       emitidoEm: new Date("2026-09-10T12:00:00Z"),
+      segundosDeVideo: 0,
     },
     {
       codigo: "PS-M0-2026-3F9A1C",
       curso: capa(AUTO),
       cursoId: AUTO.id,
       emitidoEm: new Date("2026-09-02T12:00:00Z"),
+      segundosDeVideo: 3601,
     },
   ],
   lancamentos: [
@@ -190,6 +193,21 @@ describe("montarConquistas", () => {
       ["Curso revogado", "2026-09-10", "PS-REV-2026-AAAAAA"],
       ["Curso comercial", 1, 6],
       ["Curso fabrica", 0, 7],
+    ]);
+  });
+
+  test("cada certificado leva o endereço do curso; o emitido, as horas da folha; o por ganhar, a categoria", () => {
+    expect(
+      aluna.certificados.map((c) =>
+        c.estado === "ganha"
+          ? [c.curso.slug, c.horas]
+          : [c.curso.slug, c.categoria]
+      )
+    ).toEqual([
+      [AUTO.slug, 2],
+      [REVOGADO.slug, 0],
+      [COMERCIAL.slug, COMERCIAL.categoria.nome],
+      [FABRICA.slug, FABRICA.categoria.nome],
     ]);
   });
 
