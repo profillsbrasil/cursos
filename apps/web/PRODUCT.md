@@ -34,7 +34,6 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 - Um admin cria os cursos e os libera por pessoa (por exemplo, cursos X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
 - Clientes e público aberto recebem cursos liberados do mesmo jeito; a compra ou a assinatura só libera cursos.
 - A liberação é permanente. Ela só some se o admin revogar.
-- O aluno tem um Início separado da tela "Meus cursos".
 - Não há prazo de conclusão em liberação nenhuma.
 - O Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
 - Existe gamificação individual: pontos, sequência de dias e medalhas. Não existe ranking nem comparação entre colegas.
@@ -76,7 +75,7 @@ Decididas pelo dono em 2026-10-16:
 - O certificado é uma página do app e um PDF para baixar, com nome, curso, data, carga horária e código. A carga horária é a soma da duração dos vídeos, arredondada para cima em horas. Uma página pública confere o certificado pelo código.
 - Conquistas são medalhas por marco que o app já registra: primeira aula, 10, 50 e 100 aulas assistidas, sequência de 7 dias, primeira troca, primeiro curso concluído e um certificado por curso. Não há níveis de aluno.
 - Ponto não vence, e não há teto diário para os pontos de vídeo. O limite de taxa do player já barra abuso.
-- O menu do aluno não tem Início: Meus cursos é a primeira tela.
+- O menu do aluno não tem Início: Meus cursos é a primeira tela. A tela Comunicados lista todos os comunicados do aluno, com o mais recente em destaque e a capa do curso cobrindo o lado direito do cartão.
 - A sidebar recolhe sozinha na página da aula e volta como a pessoa a deixou quando ela sai. O app não tem migalha (breadcrumb).
 - A aula sem pergunta não tem questionário a aprovar.
 - O certificado é uma página do app (A), com a folha do PDF (A) e a conferência pública num recibo (D), das versões do protótipo.
