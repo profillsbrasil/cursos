@@ -17,12 +17,27 @@ const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 
 describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
-  const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+  let statements = 0;
+  const db = createDb(
+    { DATABASE_URL: URL_TESTE ?? "" },
+    {
+      logger: {
+        logQuery: () => {
+          statements += 1;
+        },
+      },
+    }
+  );
   const cursos: CursoId[] = [];
 
   async function novoCurso(
     titulo: string,
-    extra: { precoTroca?: number; status?: "publicado" } = {}
+    extra: {
+      codigo?: string;
+      destaque?: string;
+      precoTroca?: number;
+      status?: "publicado";
+    } = {}
   ) {
     const [c] = await db
       .insert(curso)
@@ -62,11 +77,13 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     url: "/capas/teste.jpg",
   };
 
-  test("admin vê os cursos por título, com a capa e as aulas contadas", async () => {
+  test("admin vê os cursos por título, com a capa, os módulos, as aulas e os vídeos somados, em 1 statement", async () => {
     const comAulas = await novoCurso(`A com aulas ${S}`, {
+      codigo: `POP-${S}`,
       status: "publicado",
     });
     const trocavel = await novoCurso(`B trocável ${S}`, {
+      destaque: "Regra 5x4",
       precoTroca: 300,
       status: "publicado",
     });
@@ -81,7 +98,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     await db.insert(aula).values(
       modulos.flatMap((m, i) =>
         Array.from({ length: i + 1 }, (_, p) => ({
-          duracaoSeg: 60,
+          duracaoSeg: 60 * (p + 1),
           moduloId: m.id,
           posicao: p + 1,
           titulo: "Aula",
@@ -89,29 +106,51 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       )
     );
 
+    await db
+      .insert(modulo)
+      .values({ cursoId: trocavel, numero: 1, titulo: "M1" });
+
     const nossos = new Set([comAulas, trocavel, vazio]);
-    expect((await visao()).cursos.filter((x) => nossos.has(x.id))).toEqual([
+    statements = 0;
+    const cursosNaVisao = (await visao()).cursos;
+    expect(statements).toBe(1);
+    expect(cursosNaVisao.filter((x) => nossos.has(x.id))).toEqual([
       {
         aulas: 3,
         capa: CAPA,
+        categoria: "Categoria dos testes",
+        codigo: `POP-${S}`,
+        destaque: null,
         id: comAulas,
+        modulos: 2,
         precoTroca: null,
+        segundosDeVideo: 60 + 60 + 120,
         status: "publicado",
         titulo: `A com aulas ${S}`,
       },
       {
         aulas: 0,
         capa: CAPA,
+        categoria: "Categoria dos testes",
+        codigo: null,
+        destaque: "Regra 5x4",
         id: trocavel,
+        modulos: 1,
         precoTroca: 300,
+        segundosDeVideo: 0,
         status: "publicado",
         titulo: `B trocável ${S}`,
       },
       {
         aulas: 0,
         capa: CAPA,
+        categoria: "Categoria dos testes",
+        codigo: null,
+        destaque: null,
         id: vazio,
+        modulos: 0,
         precoTroca: null,
+        segundosDeVideo: 0,
         status: "em_producao",
         titulo: `C vazio ${S}`,
       },
