@@ -3,18 +3,18 @@
 # Uso, da raiz do repo: bash docs/marca/rasters.sh apps/web
 set -euo pipefail
 web=$1
-pena=$web/src/app/icon.svg
+favicon=$web/src/app/icon.svg
 icone=$web/public/marca/profills-cursos-icone.svg
 tmp=$(mktemp -d)
 trap 'rm -rf -- "${tmp:?}"' EXIT
 
-# Favicon: a pena sozinha, fundo transparente, em 16, 32 e 48.
+# Favicon: o cubo, fundo transparente, em 16, 32 e 48.
 for n in 16 32 48; do
-  rsvg-convert -w "$n" -h "$n" "$pena" -o "$tmp/pena-$n.png"
+  rsvg-convert -w "$n" -h "$n" "$favicon" -o "$tmp/favicon-$n.png"
 done
-magick "$tmp/pena-16.png" "$tmp/pena-32.png" "$tmp/pena-48.png" "$web/src/app/favicon.ico"
+magick "$tmp/favicon-16.png" "$tmp/favicon-32.png" "$tmp/favicon-48.png" "$web/src/app/favicon.ico"
 
-# Ícone completo (livro e pena) sobre #1A1D22, com a mesma margem dos PNG anteriores:
+# O cubo sobre #1A1D22, com a mesma margem dos PNG anteriores:
 # o quadro de 216 do SVG ocupa <lado> px, centrado na tela de <tela> px.
 quadro() {
   local tela=$1 lado=$2 saida=$3
