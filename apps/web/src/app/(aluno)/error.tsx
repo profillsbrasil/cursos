@@ -1,6 +1,5 @@
 "use client";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
 // Erro das páginas do aluno, dentro da sidebar. Erro do próprio layout cai no app/error.tsx.
@@ -9,10 +8,5 @@ export default function ErroDoAluno(props: {
   error: Error & { digest?: string };
   retry: () => void;
 }) {
-  return (
-    <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
-      <TelaDeErro {...props} titulo="Não deu para carregar seus cursos" />
-    </>
-  );
+  return <TelaDeErro {...props} titulo="Não deu para carregar seus cursos" />;
 }

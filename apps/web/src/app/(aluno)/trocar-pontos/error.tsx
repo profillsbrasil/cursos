@@ -1,6 +1,5 @@
 "use client";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
 export default function ErroDaTroca(props: {
@@ -8,9 +7,6 @@ export default function ErroDaTroca(props: {
   retry: () => void;
 }) {
   return (
-    <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
-      <TelaDeErro {...props} titulo="Não deu para carregar a troca de pontos" />
-    </>
+    <TelaDeErro {...props} titulo="Não deu para carregar a troca de pontos" />
   );
 }

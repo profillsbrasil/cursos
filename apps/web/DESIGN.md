@@ -269,7 +269,7 @@ A casca tem duas colunas: a sidebar à esquerda e o conteúdo. A sidebar aberta 
 
 Do 768 px para cima, a casca é a Moldura. A sidebar não tem borda e é a moldura da janela: o grafite dela cerca o conteúdo, que é um painel em `fundo` com raio de 24 px, anel de 1 px em `borda` e a sombra do painel. O painel fica a 10 px do topo, da direita e do pé da janela, e encosta na sidebar à esquerda. A página rola pela janela, não pelo painel, e a moldura fica parada: uma camada fixa por cima do conteúdo pinta as faixas de 10 px e os quatro cantos de 24 px com o anel, e anda junto com a largura da sidebar quando ela recolhe. Os 10 px e os 24 px são os tokens `--moldura` e `--raio-do-painel` do `index.css`. Abaixo de 768 px não há moldura. O recuo de 14 px vale nos dois modos para o cabeçalho, a lista e o rodapé, e todo ícone fica ancorado à esquerda, nunca centralizado por flex, então nada desliza quando a largura anda.
 
-A sidebar tem três faixas: o cabeçalho de 68 px (lockup, selo da área, botão de recolher), a navegação (itens de 40 px com vão de 4 px) e o rodapé (o Continuar do aluno e o cartão de conta). Pontos e sequência moram só no cartão de conta. O canto direito do topo do conteúdo fica livre para a página.
+A sidebar tem três faixas: o cabeçalho de 68 px (lockup, selo da área, botão de recolher), a navegação (itens de 40 px com vão de 4 px) e o rodapé (o Continuar do aluno e o cartão de conta). Pontos e sequência moram só no cartão de conta. O conteúdo não tem faixa de topo: a página começa pelo título dela. A busca, quando vier, mora na sidebar.
 
 O conteúdo tem padding lateral fluido (clamp de 1 a 3rem), 32 px no topo e 64 px no pé. Seções se separam por 14 px entre título e cartão. Abaixo de 768 px a sidebar vira gaveta, e o conteúdo ganha uma faixa de topo de 56 px com o botão de menu e o ícone da marca de 30 px. O banner de retomada passa a uma coluna em 760 px, com a capa em cima. O conteúdo ocupa a largura toda, com duas exceções de leitura: o Extrato recente de Trocar pontos e Sua semana param em 48rem (768 px), alinhados à esquerda; Sua semana só chega a esse teto em uma coluna, porque em duas fica na coluna de 320 px.
 
@@ -327,7 +327,7 @@ Cheios e redondos, com o peso no amarelo.
 ### Inputs / Fields
 - **Style:** pílula de 44 px (raio cheio), fundo `fundo`, borda de 1 px em `texto-apagado`, padding lateral de 14 px, texto de 14 px. É o `CAMPO` de `casca/campos.ts`, que o admin e a conferência do certificado dividem. A altura mora na constante: nenhum uso acrescenta altura, nem os títulos da Vitrine e da aula, que só trocam o peso e o tamanho do texto, e `casca/campos.test.ts` acusa a volta.
 - **Área de texto:** o mesmo campo com raio de 20 px e 10,5 px de padding vertical, então a de uma linha (as alternativas do editor do questionário) também mede 44 px. É a `AREA` de `casca/campos.ts`, que a `AreaDeTexto` e o texto do comunicado usam.
-- **Busca:** a pílula de 44 px com a lupa de 16 px em `texto-apagado` a 16 px da esquerda, no fundo `fundo`, como o campo. A busca de alunos é o `CAMPO` com o recuo da lupa; a "Busca em breve" do topo do aluno segue a forma, desligada, com a borda em `input`, mais apagada, e o texto sem opacidade reduzida.
+- **Busca:** a pílula de 44 px com a lupa de 16 px em `texto-apagado` a 16 px da esquerda, no fundo `fundo`, como o campo. A busca de alunos é o `CAMPO` com o recuo da lupa.
 - **Alavanca:** o `Switch` em 40 por 24 px com o polegar de 18 px a 3 px da borda (`ALAVANCA` de `casca/campos.ts`). Desligada, o trilho em `trilho` com anel de 1 px em `texto-apagado` e o polegar claro; ligada, Sol com o polegar em `sobre-cor`. Sob o cursor e com o foco, o anel vira Céu, também na ligada.
 - **Focus:** o campo não tem hover para copiar, então a borda de 1 px vira Céu no foco e sob o cursor, sem contorno. A regra mora no `index.css` e pega pelo `data-slot` do shadcn (input, textarea, select, grupo de input, switch, checkbox, radio); a moldura de campo montada no app leva `data-campo`. O desligado não muda.
 - **Error:** a mensagem por campo em `erro`, ligada ao input pelo id. O campo com erro fica com a borda vermelha também no foco e sob o cursor.
@@ -486,6 +486,6 @@ Em `/admin/categorias`. O cabeçalho conta categorias e cursos ("5 categorias, 1
 - **Don't** criar tema claro nem alternância de tema.
 - **Don't** pôr sombra em cartão em repouso.
 - **Don't** redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.
-- **Don't** pôr pontos ou sequência fora do cartão de conta na casca, nem ocupar o canto direito do topo com peça da casca.
+- **Don't** pôr pontos ou sequência fora do cartão de conta na casca.
 - **Don't** usar caixa alta ou linha acima de título fora do selo da área.
 - **Don't** escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`. Os dois `foco.test.ts` acusam a volta.

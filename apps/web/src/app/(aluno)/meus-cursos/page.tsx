@@ -1,7 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { ConteudoMeusCursos } from "@/components/meus-cursos/conteudo";
 import {
   carregarPainel,
@@ -23,14 +22,11 @@ export default async function MeusCursos() {
   const conta =
     usuario?.primaryEmailAddress?.emailAddress ?? usuario?.fullName ?? null;
   return (
-    <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
-      <ConteudoMeusCursos
-        conta={conta}
-        painel={painel}
-        resumo={resumo}
-        temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
-      />
-    </>
+    <ConteudoMeusCursos
+      conta={conta}
+      painel={painel}
+      resumo={resumo}
+      temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
+    />
   );
 }

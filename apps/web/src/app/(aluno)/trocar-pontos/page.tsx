@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { CursosParaTrocar } from "@/components/trocar-pontos/cursos-para-trocar";
 import { SaldoDeTroca } from "@/components/trocar-pontos/saldo-de-troca";
 import { hrefDaRetomada } from "@/lib/rotas";
@@ -15,7 +14,6 @@ export default async function TrocarPontos() {
   ]);
   return (
     <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
       <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
         <h1 className="font-bold text-3xl text-titulo tracking-tight">
           Trocar pontos
