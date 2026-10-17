@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -81,28 +82,52 @@ const medir = <T,>(corpo: string) =>
 
 const trilha = () =>
   medir<{
+    cartao: Caixa;
+    haste: Caixa;
     medalhas: Caixa[];
+    ponto: Caixa;
     preenchido: Caixa;
     trilho: Caixa;
     voce: Caixa;
   }>(`
-    const voce = document.querySelector("[data-voce]");
-    const trilho = voce.nextElementSibling;
+    const t = document.querySelector("[data-trilha]");
+    const trilho = t.querySelector("[data-trilho]");
     return {
-      medalhas: [...document.querySelectorAll("[data-trilha] ol > li > [data-medalha]")].map(caixa),
+      cartao: caixa(t),
+      haste: caixa(t.querySelector("[data-haste]")),
+      medalhas: [...t.querySelectorAll("ol > li > [data-medalha]")].map(caixa),
+      ponto: caixa(t.querySelector("[data-ponto]")),
       preenchido: caixa(trilho.firstElementChild),
       trilho: caixa(trilho),
-      voce: caixa(voce),
+      voce: caixa(t.querySelector("[data-voce]")),
     };
   `);
 
 const centro = (c: Caixa) => c.esquerda + c.largura / 2;
+const meio = (c: Caixa) => c.topo + c.altura / 2;
 
 const semana = () =>
-  medir<{ circulos: Caixa[]; colunas: Caixa[] }>(`
-    const circulos = [...document.querySelectorAll("[data-dia]")];
-    return { circulos: circulos.map(caixa), colunas: circulos.map((c) => caixa(c.parentElement)) };
+  medir<{
+    circulos: Caixa[];
+    faixa: Caixa;
+    fins: Caixa[];
+    lista: Caixa;
+    texto: Caixa;
+  }>(`
+    const faixa = document.querySelector("[data-sequencia]");
+    return {
+      circulos: [...faixa.querySelectorAll("[data-dia]")].map(caixa),
+      faixa: caixa(faixa),
+      fins: [...faixa.querySelectorAll("[data-fim-de-semana]")].map(caixa),
+      lista: caixa(faixa.querySelector("ul")),
+      texto: caixa(faixa.querySelector("h3").parentElement),
+    };
   `);
+
+const primeiras = () =>
+  medir<Caixa[]>(
+    `return [...document.querySelectorAll("[data-primeira-vez]")].map(caixa);`
+  );
 
 const cartoes = () =>
   medir<
@@ -123,19 +148,33 @@ const cartoes = () =>
     }));
   `);
 
-const blocos = () =>
-  medir<{ caixa: Caixa; cabe: boolean }[]>(`
-    return [...document.querySelector("[data-sequencia]").parentElement.children].map((b) => ({
-      caixa: caixa(b),
-      cabe: b.scrollWidth <= b.clientWidth,
-    }));
-  `);
-
 const rolaDeLado = () =>
   avaliar<boolean>(
     enviar,
     "document.documentElement.scrollWidth > document.documentElement.clientWidth"
   );
+
+const FOTOS = process.env.FOTOS_DAS_CONQUISTAS;
+async function foto(nome: string) {
+  if (!FOTOS) {
+    return;
+  }
+  const altura = await avaliar<number>(
+    enviar,
+    "document.documentElement.scrollHeight"
+  );
+  const largura = await avaliar<number>(enviar, "window.innerWidth");
+  await enviar("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: altura,
+    mobile: false,
+    width: largura,
+  });
+  const { data } = (await enviar("Page.captureScreenshot", {
+    format: "png",
+  })) as { data: string };
+  writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
+}
 
 describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
   beforeAll(async () => {
@@ -146,14 +185,28 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
 
   for (const [nome, { feitas, html }] of Object.entries(TELAS)) {
     for (const largura of [1280, 390]) {
-      test(`${largura} px, ${nome}: a pílula Você no ponto da trilha, e o preenchimento até ele`, async () => {
+      test(`${largura} px, ${nome}: o pino liga a pílula ao ponto no trilho, e o preenchimento vai até ele`, async () => {
         await abrir(largura, html);
         const t = await trilha();
         const p = pontoNaTrilha(feitas, [10, 50, 100]);
         const ponto =
           t.trilho.esquerda + (p.porcento / 100) * t.trilho.largura - p.recuoPx;
+        expect(centro(t.ponto)).toBeCloseTo(ponto, 0);
+        expect(meio(t.ponto)).toBeGreaterThanOrEqual(t.trilho.topo);
+        expect(meio(t.ponto)).toBeLessThanOrEqual(t.trilho.baixo);
+        expect(meio(t.ponto)).toBeCloseTo(meio(t.trilho), 0);
+        expect([t.ponto.largura, t.ponto.altura]).toEqual([14, 14]);
+        expect(t.haste.largura).toBe(2);
+        expect(centro(t.haste)).toBeCloseTo(ponto, 0);
+        expect(t.haste.topo).toBeCloseTo(t.voce.baixo, 0);
+        expect(t.haste.baixo).toBeCloseTo(meio(t.ponto), 0);
+        expect(t.haste.esquerda).toBeGreaterThanOrEqual(t.voce.esquerda);
+        expect(t.haste.direita).toBeLessThanOrEqual(t.voce.direita);
+        expect(t.voce.esquerda).toBeGreaterThanOrEqual(t.cartao.esquerda);
+        expect(t.voce.direita).toBeLessThanOrEqual(t.cartao.direita);
         if (feitas === 0) {
-          expect(t.voce.esquerda).toBeCloseTo(t.trilho.esquerda, 0);
+          expect(t.voce.esquerda).toBeLessThan(t.trilho.esquerda);
+          expect(t.voce.esquerda).toBeGreaterThan(t.trilho.esquerda - 10);
         } else {
           expect(centro(t.voce)).toBeCloseTo(ponto, 0);
         }
@@ -163,33 +216,37 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
           [56, 56],
           [56, 56],
         ]);
-        const naMeta = pontoNaTrilha(10, [10, 50, 100]);
-        expect(centro(t.medalhas[0] as Caixa)).toBeCloseTo(
-          t.trilho.esquerda +
-            (naMeta.porcento / 100) * t.trilho.largura -
-            naMeta.recuoPx,
-          0
-        );
         expect(centro(t.medalhas[2] as Caixa)).toBeCloseTo(
           t.trilho.direita - 28,
           0
         );
       });
 
-      test(`${largura} px, ${nome}: os sete dias em colunas iguais`, async () => {
+      test(`${largura} px, ${nome}: a faixa dos sete dias é baixa, e sábado e domingo aparecem entre sexta e segunda`, async () => {
         await abrir(largura, html);
-        const { circulos, colunas } = await semana();
-        expect(circulos).toHaveLength(7);
+        const s = await semana();
+        expect(s.circulos).toHaveLength(7);
         const lado = largura === 1280 ? 36 : 32;
-        for (const c of circulos) {
+        for (const c of s.circulos) {
           expect([c.largura, c.altura]).toEqual([lado, lado]);
         }
-        const [primeira] = colunas;
-        for (const c of colunas) {
-          expect(c.largura).toBeCloseTo(primeira?.largura ?? 0, 1);
-          expect(centro(circulos[colunas.indexOf(c)] as Caixa)).toBeCloseTo(
-            centro(c),
-            0
+        if (largura === 1280) {
+          expect(s.lista.topo).toBeLessThan(s.texto.baixo);
+          expect(s.faixa.altura).toBeLessThan(120);
+        } else {
+          expect(s.lista.topo).toBeGreaterThanOrEqual(s.texto.baixo);
+          expect(s.faixa.altura).toBeLessThan(220);
+        }
+        expect(s.lista.direita).toBeLessThanOrEqual(s.faixa.direita);
+        const sextas = nome === "aluna" ? [3] : [0, 5];
+        expect(s.fins).toHaveLength(sextas.length);
+        for (const [i, sexta] of sextas.entries()) {
+          const fim = s.fins[i] as Caixa;
+          expect(fim.esquerda).toBeGreaterThanOrEqual(
+            (s.circulos[sexta] as Caixa).direita
+          );
+          expect(fim.direita).toBeLessThanOrEqual(
+            (s.circulos[sexta + 1] as Caixa).esquerda
           );
         }
       });
@@ -208,22 +265,19 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
           expect([c.lacre.largura, c.lacre.altura]).toEqual([56, 56]);
           expect(c.lacre.direita).toBeCloseTo(c.cartao.direita - 18, 0);
         }
-        for (const b of await blocos()) {
-          expect(b.cabe).toBe(true);
-        }
         expect(await rolaDeLado()).toBe(false);
+        await foto(`conquistas-${nome}-${largura}`);
       });
     }
   }
 
-  test("1280 px: os dois cartões lado a lado, e cinco cursos em 3 colunas", async () => {
+  test("1280 px: as três primeiras vezes numa linha, e cinco cursos em 3 colunas", async () => {
     await abrir(1280, TELAS.aluna.html);
-    const [sequencia, primeiras] = await blocos();
-    expect(sequencia?.caixa.topo).toBe(primeiras?.caixa.topo);
-    expect(sequencia?.caixa.largura).toBeCloseTo(
-      primeiras?.caixa.largura ?? 0,
-      0
-    );
+    const pv = await primeiras();
+    expect(pv).toHaveLength(3);
+    expect(new Set(pv.map((c) => c.topo)).size).toBe(1);
+    expect(pv[1]?.esquerda).toBeGreaterThan(pv[0]?.direita ?? 0);
+    expect(pv[2]?.esquerda).toBeGreaterThan(pv[1]?.direita ?? 0);
     const cs = await cartoes();
     expect(new Set(cs.slice(0, 3).map((c) => c.cartao.topo)).size).toBe(1);
     expect(cs[3]?.cartao.topo).toBeGreaterThan(cs[0]?.cartao.baixo ?? 0);
@@ -238,8 +292,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
 
   test("390 px: tudo numa coluna", async () => {
     await abrir(390, TELAS.aluna.html);
-    const [sequencia, primeiras] = await blocos();
-    expect(primeiras?.caixa.topo).toBeGreaterThan(sequencia?.caixa.baixo ?? 0);
+    const pv = await primeiras();
+    expect(new Set(pv.map((c) => c.esquerda)).size).toBe(1);
+    expect(pv[1]?.topo).toBeGreaterThan(pv[0]?.baixo ?? 0);
+    expect(pv[2]?.topo).toBeGreaterThan(pv[1]?.baixo ?? 0);
     const cs = await cartoes();
     expect(new Set(cs.map((c) => c.cartao.esquerda)).size).toBe(1);
     expect(cs[0]?.cartao.largura).toBe(cs[0]?.grade.largura);

@@ -1,5 +1,6 @@
 import type { PainelMeusCursos, ResumoAluno } from "@cursos/api/dominio/painel";
 
+import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
 import { plural } from "@/lib/formato";
 
 import { AvisoComunicado, FaixaComunicado } from "./aviso-comunicado";
@@ -12,17 +13,6 @@ import { SuaSemana } from "./sua-semana";
 // "1 curso liberado para você", "3 cursos liberados para você".
 const liberados = ({ cursos }: PainelMeusCursos) =>
   `${plural(cursos.length, "curso liberado", "cursos liberados")} para você`;
-
-function Cabecalho({ painel }: { painel: PainelMeusCursos }) {
-  return (
-    <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
-      <h1 className="font-bold text-3xl text-titulo tracking-tight">
-        Meus cursos
-      </h1>
-      <p className="text-muted-foreground">{liberados(painel)}</p>
-    </header>
-  );
-}
 
 // A página inteira a partir do painel e do resumo. A busca de dados fica na page.tsx.
 export function ConteudoMeusCursos({
@@ -50,7 +40,7 @@ export function ConteudoMeusCursos({
   const { comunicado } = painel;
   return (
     <>
-      <Cabecalho painel={painel} />
+      <CabecalhoDaPagina resumo={liberados(painel)} titulo="Meus cursos" />
       <div className="grid gap-10 max-[760px]:gap-8">
         {/* Em uma coluna, a faixa vem logo depois do banner, antes de Sua semana,
             para caber na primeira tela. Em duas colunas, ela ocupa a linha de baixo

@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { colunasDosCertificados, cssDoPonto, pontoNaTrilha } from "./geometria";
+import {
+  colunasDosCertificados,
+  cssDoPonto,
+  naPontaEsquerda,
+  pontoNaTrilha,
+} from "./geometria";
 
 const METAS = [10, 50, 100] as const;
 
@@ -43,5 +48,13 @@ describe("as colunas dos certificados", () => {
     expect([1, 2, 3, 4, 5, 6, 7, 8, 9, 13].map(colunasDosCertificados)).toEqual(
       [1, 2, 3, 4, 3, 4, 4, 4, 3, 3]
     );
+  });
+});
+
+describe("a pílula na ponta esquerda", () => {
+  test("com 0 e 1 aula, alinha pelo começo; com 2, já centra no ponto", () => {
+    expect(
+      [0, 1, 2, 49].map((n) => naPontaEsquerda(pontoNaTrilha(n, METAS)))
+    ).toEqual([true, true, false, false]);
   });
 });

@@ -2,7 +2,6 @@
 
 import type { ItemDoExtrato } from "@cursos/api/dominio/pontos";
 import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
-import { cn } from "@cursos/ui/lib/utils";
 import { Check, Play } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -41,6 +40,15 @@ function subtitulo(
   return cartoes.length === 0
     ? "Seus pontos continuam no saldo"
     : NENHUM_CURSO_NOVO;
+}
+
+function voltar(href: Route) {
+  return (
+    <Link className={BOTAO_CONTORNO} href={href}>
+      <Play aria-hidden="true" />
+      Voltar a estudar
+    </Link>
+  );
 }
 
 export function CursosParaTrocar({
@@ -101,27 +109,30 @@ export function CursosParaTrocar({
         titulo="Cursos para trocar"
       >
         {cartoes.length === 0 ? (
-          <p className="max-w-[60ch] text-muted-foreground">
-            {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
-          </p>
-        ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-5">
-            {cartoes.map((c) => (
-              <CartaoDeTroca
-                cartao={c}
-                confirmando={confirmando === c.curso.id}
-                grade={{ abrir, fechar, trocou }}
-                key={c.curso.id}
-                sizes={sizes}
-              />
-            ))}
+          // O vazio é um cartão com o botão na mesma linha, não um texto solto.
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-[20px] bg-card px-5 py-4 ring-1 ring-border">
+            <p className="max-w-[60ch] text-muted-foreground">
+              {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
+            </p>
+            {temCursoTrocavelNaVitrine ? null : voltar(voltarAEstudar)}
           </div>
-        )}
-        {temCursoTrocavelNaVitrine ? null : (
-          <Link className={cn(BOTAO_CONTORNO, "mt-5")} href={voltarAEstudar}>
-            <Play aria-hidden="true" />
-            Voltar a estudar
-          </Link>
+        ) : (
+          <>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-5">
+              {cartoes.map((c) => (
+                <CartaoDeTroca
+                  cartao={c}
+                  confirmando={confirmando === c.curso.id}
+                  grade={{ abrir, fechar, trocou }}
+                  key={c.curso.id}
+                  sizes={sizes}
+                />
+              ))}
+            </div>
+            {temCursoTrocavelNaVitrine ? null : (
+              <div className="mt-5">{voltar(voltarAEstudar)}</div>
+            )}
+          </>
         )}
       </Secao>
       <div className="max-w-3xl">
