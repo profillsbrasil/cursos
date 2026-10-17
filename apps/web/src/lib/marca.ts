@@ -27,14 +27,14 @@ export interface ImagemDaMarca {
   src: `/marca/${string}.svg`;
 }
 
-/** Pena, livro e PROFILLS / CURSOS: a sidebar aberta. */
+/** Cubo e PROFILLS / CURSOS: a sidebar aberta. */
 export const LOCKUP: ImagemDaMarca = {
   altura: 120,
   largura: 424,
   src: "/marca/profills-cursos.svg",
 };
 
-/** Pena e livro: a sidebar recolhida e o topo do celular. */
+/** O cubo sozinho: a sidebar recolhida e o topo do celular. */
 export const ICONE: ImagemDaMarca = {
   altura: 216,
   largura: 216,

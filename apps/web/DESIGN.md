@@ -20,7 +20,7 @@ colors:
   trilho: "#4d5257"
   contorno-de-campo: "#7a7e83"
   cinza-grafico: "#61656a"
-  pagina-do-livro: "#F4F5F7"
+  papel: "#F4F5F7"
 typography:
   headline:
     fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
@@ -189,7 +189,7 @@ Profills Cursos é uma sala escura e calma onde a luz amarela marca o lugar da p
 
 A densidade é de ferramenta de estudo, não de landing page. O texto corrido fica em 14 px, os títulos de página em 30 px negrito com letra levemente apertada (24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula), e as formas são arredondadas e cheias: cartões de 20 px, botões em pílula, itens de menu de 10 px. A profundidade vem do degrau de tom e de um anel de 1 px, não de sombra. Sombra aparece no painel do conteúdo sobre a moldura, em quem flutua sobre o conteúdo (menu, barra de salvar presa ao pé), no brilho amarelo do botão principal e da pílula do link ativo sob o cursor e com o foco de teclado, e em duas marcas pequenas em repouso: o selo de saldo e o cursor da barra do player.
 
-A marca é a pena facetada oficial da Profills (azul, vermelho e cinza) sobre um livro de capa dura amarela e páginas claras, com PROFILLS claro e CURSOS em amarelo, na Orbitron em contorno. A marca são os SVG de `public/marca/`, traçados sobre o desenho aprovado, e nunca se redesenha em CSS. O favicon é só a pena.
+A marca é o cubo em camadas da Profills, com a seta saindo da camada do meio: Céu em cima, Sol no meio e Canela embaixo, cada laje com a face da esquerda na sombra. Ao lado, PROFILLS claro e CURSOS em amarelo, na Orbitron em contorno. A marca são os SVG de `public/marca/`, gerados por `docs/marca/cubo.ts`, e nunca se redesenha em CSS. O favicon é o mesmo cubo.
 
 **Key Characteristics:**
 - Tema único, escuro, sem alternância de tema (`color-scheme: dark` fixo).
@@ -226,7 +226,7 @@ Grafite em degraus com três cores de Wada usadas como sinal, nunca como fundo d
 - **Texto apagado** (`texto-apagado`): texto secundário, ícones em repouso, borda do botão em contorno e dos campos.
 - **Sobre a cor** (`sobre-cor`): o texto escuro sobre Sol, Céu, Canela e sobre a dica clara.
 - **Erro** (`erro`): o token `destructive`, um salmão claro legível no escuro.
-- **Página do livro** (`pagina-do-livro`): as páginas do livro na marca; só existe dentro do lockup.
+- **Papel** (`papel`): o papel da folha do certificado, a única superfície clara.
 
 ### Named Rules
 **The Light Marks the Place Rule.** Sol aparece onde a pessoa está ou deve agir: o link ativo, o botão principal, o progresso, o saldo. Cada tela tem um botão principal amarelo por contexto; o resto é contorno.
@@ -377,7 +377,7 @@ Na página da aula, depois de Anterior e Próxima (a versão A do protótipo): u
 
 ### Certificado
 Segue o protótipo aprovado de 2026-10-16: a folha e a página do aluno da versão A, e a conferência da versão D.
-- **Folha:** A4 paisagem, 1123 por 794 px no protótipo, a única superfície clara do app, porque vai para a impressora: papel `pagina-do-livro`, texto `sobre-cor` e o secundário em `trilho`. No topo, a faixa de 112 px em `sidebar` com o lockup de 212 px à esquerda e "Certificado de conclusão" em 500 e 15 px `texto-apagado` à direita. No meio, centrado entre a faixa e o pé: "Certificamos que" (600, 15 px), o nome (700, 58 px, letra a -0,03em; 44 px acima de 30 caracteres), o traço Sol de 96 por 5 px, "concluiu o curso" (19 px), o curso (700, 32 px; 26 px acima de 56 caracteres) e "com carga horária de **2 horas**, em 14 de outubro de 2026.", com a data no formato longo. No pé, depois de uma linha de 1 px, "Profills Brasil" e a frase da plataforma à esquerda; à direita, "Código", o código (700, 18 px, letra a 0,04em), "Confira em" com o endereço e o QR de 84 px. A prévia da tela e o PDF leem as mesmas medidas de `components/certificado/folha.ts`, e a prévia é a folha inteira reduzida, com raio de 6 px e anel de 1 px em `borda`.
+- **Folha:** A4 paisagem, 1123 por 794 px no protótipo, a única superfície clara do app, porque vai para a impressora: papel `papel`, texto `sobre-cor` e o secundário em `trilho`. No topo, a faixa de 112 px em `sidebar` com o lockup de 212 px à esquerda e "Certificado de conclusão" em 500 e 15 px `texto-apagado` à direita. No meio, centrado entre a faixa e o pé: "Certificamos que" (600, 15 px), o nome (700, 58 px, letra a -0,03em; 44 px acima de 30 caracteres), o traço Sol de 96 por 5 px, "concluiu o curso" (19 px), o curso (700, 32 px; 26 px acima de 56 caracteres) e "com carga horária de **2 horas**, em 14 de outubro de 2026.", com a data no formato longo. No pé, depois de uma linha de 1 px, "Profills Brasil" e a frase da plataforma à esquerda; à direita, "Código", o código (700, 18 px, letra a 0,04em), "Confira em" com o endereço e o QR de 84 px. A prévia da tela e o PDF leem as mesmas medidas de `components/certificado/folha.ts`, e a prévia é a folha inteira reduzida, com raio de 6 px e anel de 1 px em `borda`.
 - **Página do aluno:** em `/cursos/[slug]/certificado`, o topo com a busca, como as outras páginas do aluno (o app não tem migalha), "Seu certificado" no degrau Title page e, de 1081 px para cima, a folha e o cartão de 300 px lado a lado, a 32 px; abaixo, um embaixo do outro. O cartão tem 22 px de padding: o curso no degrau Title card com a categoria embaixo, as linhas de Curso, Concluído em (data curta), Carga horária e Código, separadas por 1 px em `borda`, o `BOTAO` "Baixar PDF" e o `BOTAO_CONTORNO` "Copiar link de conferência", os dois na largura cheia, e a nota de 13 px.
 - **Sem certificado:** o cartão de até 560 px com o prêmio em Céu num círculo `popover` de 48 px, "O certificado sai quando você concluir o curso", a linha das aulas e, no curso com questionário, a dos questionários ("4 de 7 questionários aprovados"), cada uma com o check Céu quando está cumprida e a lista em Canela quando falta, e o `BOTAO` "Ver o que falta", que leva à página do curso. Sem nome na conta, a folha dá lugar a "Falta o seu nome na conta", e o cartão fica sem os botões.
 - **Conferência:** em `/certificado/<código>`, sem login e sem a casca: a faixa de topo em `sidebar` (56 px, 68 px a partir de 768 px) com o lockup de 120 px e "Entrar" em Céu, e o recibo centrado, de até 440 px: o ícone da marca de 84 px, "Certificado válido" no selo Concluído (Céu cheio, o título da página), o nome e o curso em 700 e 20 px, as linhas de Concluído em, Carga horária, Código e Emitido por, e "Baixar o PDF" no `BOTAO_CONTORNO` cheio. Embaixo, a frase da plataforma em 13 px. Sem nome, o recibo diz "Nome não disponível" e não oferece o PDF.
@@ -485,7 +485,7 @@ Em `/admin/categorias`. O cabeçalho conta categorias e cursos ("5 categorias, 1
 - **Don't** pôr texto branco sobre Sol, Céu ou Canela cheios.
 - **Don't** criar tema claro nem alternância de tema.
 - **Don't** pôr sombra em cartão em repouso.
-- **Don't** redesenhar a pena ou o livro em CSS ou em SVG à mão no componente, nem usar o livro no favicon.
+- **Don't** redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.
 - **Don't** pôr pontos ou sequência fora do cartão de conta na casca, nem ocupar o canto direito do topo com peça da casca.
 - **Don't** usar caixa alta ou linha acima de título fora do selo da área.
 - **Don't** escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`. Os dois `foco.test.ts` acusam a volta.
