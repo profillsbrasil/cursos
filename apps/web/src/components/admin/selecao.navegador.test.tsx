@@ -298,15 +298,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       })()`
     );
-    for (const type of ["mousePressed", "mouseReleased"]) {
-      await enviar("Input.dispatchMouseEvent", {
-        button: "left",
-        clickCount: 1,
-        type,
-        x,
-        y,
-      });
-    }
+    const clique = { button: "left", clickCount: 1, x, y };
+    await enviar("Input.dispatchMouseEvent", {
+      ...clique,
+      type: "mousePressed",
+    });
+    await enviar("Input.dispatchMouseEvent", {
+      ...clique,
+      type: "mouseReleased",
+    });
     await esperar(listaAberta);
     await transicoesTerminadas();
     expect(
