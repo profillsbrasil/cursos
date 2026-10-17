@@ -1,20 +1,29 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
+import { GRADE_DO_CATALOGO } from "@/components/admin/grade-do-catalogo";
+
 const PULSO = "bg-card motion-reduce:animate-none";
 
-// O título e a seção dos cursos, enquanto o banco responde.
+// O cabeçalho e as capas na mesma grade da página, enquanto o banco responde.
 export default function Carregando() {
   return (
-    <div aria-busy="true" className="grid gap-7">
+    <div aria-busy="true">
       <span className="sr-only">Carregando o catálogo</span>
-      <Skeleton className={`${PULSO} h-9 w-56 rounded-lg`} />
-      <div className="grid gap-4">
-        <Skeleton className={`${PULSO} h-7 w-40 rounded-lg`} />
-        <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
-          {["a", "b", "c"].map((linha) => (
-            <Skeleton className={`${PULSO} h-14 rounded-none`} key={linha} />
-          ))}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-5 gap-y-3.5">
+        <div className="grid gap-2">
+          <Skeleton className={`${PULSO} h-9 w-44 rounded-lg`} />
+          <Skeleton className={`${PULSO} h-5 w-64 rounded-lg`} />
         </div>
+        <Skeleton className={`${PULSO} h-11 w-36 rounded-full`} />
+      </div>
+      <div className={GRADE_DO_CATALOGO}>
+        {["a", "b", "c", "d", "e", "f"].map((capa) => (
+          <div className="grid content-start gap-3" key={capa}>
+            <Skeleton className={`${PULSO} aspect-[900/604] rounded-[14px]`} />
+            <Skeleton className={`${PULSO} h-5 w-3/4 rounded-lg`} />
+            <Skeleton className={`${PULSO} h-4 w-1/2 rounded-lg`} />
+          </div>
+        ))}
       </div>
     </div>
   );
