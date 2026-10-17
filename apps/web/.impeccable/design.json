@@ -213,7 +213,7 @@
       {
         "name": "flutuante",
         "value": "0 10px 30px rgb(0 0 0 / 0.45)",
-        "purpose": "Barra de salvar presa ao pé do editor do curso."
+        "purpose": "Barra de salvar presa ao pé do editor do curso, abaixo de 960 px de editor; de 960 px para cima, a situação e o Salvar ficam na coluna de publicação."
       },
       {
         "name": "menu",

@@ -5,16 +5,26 @@ import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import { slugDoTitulo } from "@cursos/api/dominio/endereco";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
-import { ArrowUpRight, Link2 } from "lucide-react";
+import { ArrowUpRight, Check, Link2 } from "lucide-react";
 import Link from "next/link";
-import { type ChangeEvent, type Dispatch, useCallback } from "react";
+import {
+  type ChangeEvent,
+  type Dispatch,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+
+import { plural } from "@/lib/formato";
+import { useAcao } from "@/lib/use-acao";
+import { trpcClient } from "@/utils/trpc";
 
 import { AreaDeTexto, CampoDeTexto } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import type { Mudanca } from "./estado-do-editor";
 import { ROTULO, Secao } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
-import { Selecao } from "./selecao";
+import { SelecaoComBusca } from "./selecao";
 
 const LINK_DE_APOIO =
   "inline-flex items-center gap-1.5 rounded-md py-1 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo";
@@ -46,6 +56,8 @@ function EnderecoDoCurso({
   );
 }
 
+const novoId = () => crypto.randomUUID() as CategoriaId;
+
 function CampoDaCategoria({
   categorias,
   mudar,
@@ -56,28 +68,95 @@ function CampoDaCategoria({
   valor: string;
 }) {
   const id = ID.curso("categoriaId");
-  const { aria, mensagem } = useErroDoCampo(id);
+  const { executar } = useAcao();
+  // A criada aparece na lista antes de o refresh trazer a página com ela.
+  const [criadas, setCriadas] = useState<readonly CategoriaNaLista[]>([]);
+  const [criada, setCriada] = useState<CategoriaNaLista | null>(null);
+  const [recusa, setRecusa] = useState<string | null>(null);
+  const { aria, mensagem: doEditor } = useErroDoCampo(
+    id,
+    criada?.id === valor ? `${id}-criada` : undefined
+  );
+  const mensagem = recusa ?? doEditor;
+  const todas = [
+    ...categorias,
+    ...criadas.filter((c) => !categorias.some((d) => d.id === c.id)),
+  ];
+  const escolher = useCallback(
+    (v: string) => {
+      setRecusa(null);
+      mudar(v);
+    },
+    [mudar]
+  );
+  const criar = useMemo(
+    () => ({
+      aoCriar: (nome: string) => {
+        const nova: CategoriaNaLista = { cursos: [], id: novoId(), nome };
+        setRecusa(null);
+        executar(
+          () =>
+            trpcClient.admin.categorias.salvar.mutate({
+              id: nova.id,
+              nome,
+            }),
+          {
+            aoRecusar: (_motivo, frase) =>
+              setRecusa(frase ?? "Não deu para criar a categoria."),
+            depois: () => {
+              setCriadas((atual) => [...atual, nova]);
+              setCriada(nova);
+              mudar(nova.id);
+            },
+          }
+        );
+      },
+      rotulo: (nome: string) => `Criar categoria "${nome}"`,
+    }),
+    [executar, mudar]
+  );
   return (
     <Field data-invalid={mensagem ? true : undefined}>
-      <div className="flex items-baseline justify-between gap-3">
-        <FieldLabel className={ROTULO} htmlFor={id}>
-          Categoria
-        </FieldLabel>
-        <Link className={LINK_DE_APOIO} href="/admin/categorias">
-          Gerenciar categorias
-          <ArrowUpRight aria-hidden="true" className="size-3.5" />
-        </Link>
-      </div>
-      <Selecao
+      <FieldLabel className={ROTULO} htmlFor={id}>
+        Categoria
+      </FieldLabel>
+      <SelecaoComBusca
         {...aria}
-        aoMudar={mudar}
+        aoMudar={escolher}
+        aria-describedby={recusa ? `${id}-erro` : aria["aria-describedby"]}
+        aria-invalid={mensagem ? true : undefined}
+        criar={criar}
         id={id}
-        opcoes={categorias.map((c) => ({ rotulo: c.nome, valor: c.id }))}
+        opcoes={todas.map((c) => ({
+          contagem: plural(c.cursos.length, "curso", "cursos"),
+          rotulo: c.nome,
+          valor: c.id,
+        }))}
+        pe={
+          <>
+            <span>Digite para criar uma nova.</span>
+            <Link className={LINK_DE_APOIO} href="/admin/categorias">
+              Gerenciar
+              <ArrowUpRight aria-hidden="true" className="size-3.5" />
+            </Link>
+          </>
+        }
         placeholder="Escolha a categoria"
+        placeholderDaBusca="Buscar ou criar categoria"
         required
-        semOpcoes="Nenhuma categoria ainda. Crie em Gerenciar categorias."
+        rotuloDaBusca="Buscar ou criar categoria"
+        semResultado="Nenhuma categoria ainda. Digite o nome para criar."
         valor={valor}
       />
+      {criada?.id === valor && !mensagem ? (
+        <p
+          className="flex items-center gap-1.5 text-ceu text-xs"
+          id={`${id}-criada`}
+        >
+          <Check aria-hidden="true" className="size-3.5" />
+          Categoria "{criada.nome}" criada.
+        </p>
+      ) : null}
       <ErroDoCampo id={id} mensagem={mensagem} />
     </Field>
   );
@@ -120,7 +199,7 @@ export function Vitrine({
             <CampoDeTexto
               ajuda={<EnderecoDoCurso slug={slug} titulo={rascunho.titulo} />}
               campoClasse="gap-2"
-              className="font-bold text-titulo text-xl tracking-tight"
+              className="font-bold text-titulo text-xl tracking-tight md:text-xl"
               id={ID.curso("titulo")}
               maxLength={CARACTERES.titulo}
               name="titulo"

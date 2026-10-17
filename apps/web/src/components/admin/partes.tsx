@@ -30,6 +30,13 @@ export const LISTA_DA_SELECAO =
 export const ITEM_DA_SELECAO =
   "flex min-h-9 cursor-pointer select-none items-center gap-2.5 rounded-[9px] px-2.5 py-1.5 font-medium text-[13px] text-sidebar-foreground data-highlighted:bg-sidebar-accent data-selected:font-semibold data-highlighted:text-titulo data-selected:text-titulo [&_svg]:size-4 [&_svg]:shrink-0";
 
+/** "Criar categoria" no fim da lista: Céu 600, também com o realce. */
+export const OPCAO_DE_CRIAR =
+  "font-semibold text-ceu data-highlighted:text-ceu [&_svg]:text-ceu";
+
+export const PE_DA_SELECAO =
+  "flex shrink-0 items-center justify-between gap-3 border-border border-t px-3.5 py-2 text-muted-foreground text-xs";
+
 export const GRUPO_DA_SELECAO =
   "px-2.5 pt-2.5 pb-1 font-semibold text-muted-foreground text-xs";
 
