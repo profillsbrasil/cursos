@@ -387,7 +387,7 @@
       "Don't criar tema claro nem alternância de tema.",
       "Don't pôr sombra em cartão em repouso.",
       "Don't redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.",
-      "Don't pôr pontos ou sequência fora do cartão de conta na casca, nem ocupar o canto direito do topo com peça da casca.",
+      "Don't pôr pontos ou sequência fora do cartão de conta na casca.",
       "Don't usar caixa alta ou linha acima de título fora do selo da área.",
       "Don't escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`."
     ]

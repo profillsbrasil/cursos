@@ -1,6 +1,5 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import {
   BAIXO_DA_TRILHA,
   CabecalhoDasConquistas,
@@ -11,7 +10,6 @@ const PULSO = "bg-card motion-reduce:animate-none";
 export default function Carregando() {
   return (
     <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
       <CabecalhoDasConquistas contagem={null} />
       <div aria-busy="true" className="@container grid gap-10">
         <span className="sr-only">Carregando suas medalhas</span>

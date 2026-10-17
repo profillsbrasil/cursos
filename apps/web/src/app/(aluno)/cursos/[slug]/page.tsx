@@ -2,7 +2,6 @@ import { diaLocal } from "@cursos/api/dominio/sequencia";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
 import { TelaDoCurso } from "@/components/curso/tela-do-curso";
 import { carregarPaginaDoCurso } from "@/server/api";
 
@@ -20,10 +19,5 @@ export default async function Curso({ params }: Props) {
   if (!pagina) {
     notFound();
   }
-  return (
-    <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
-      <TelaDoCurso hoje={diaLocal(new Date())} pagina={pagina} />
-    </>
-  );
+  return <TelaDoCurso hoje={diaLocal(new Date())} pagina={pagina} />;
 }

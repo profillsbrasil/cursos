@@ -1,24 +1,19 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-import { BuscaEmBreve, TopoDoAluno } from "@/components/aluno/topo";
-
 const PULSO = "bg-card motion-reduce:animate-none";
 
 export default function Carregando() {
   return (
-    <>
-      <TopoDoAluno esquerda={<BuscaEmBreve />} />
-      <div aria-busy="true" className="grid gap-10">
-        <span className="sr-only">Carregando seu saldo e os cursos</span>
-        <Skeleton className={`${PULSO} h-9 w-56 rounded-lg`} />
-        <Skeleton className={`${PULSO} h-[170px] rounded-[20px]`} />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-5">
-          <Skeleton className={`${PULSO} h-[380px] rounded-[20px]`} />
-          <Skeleton className={`${PULSO} h-[380px] rounded-[20px]`} />
-          <Skeleton className={`${PULSO} h-[380px] rounded-[20px]`} />
-        </div>
-        <Skeleton className={`${PULSO} h-56 rounded-[20px]`} />
+    <div aria-busy="true" className="grid gap-10">
+      <span className="sr-only">Carregando seu saldo e os cursos</span>
+      <Skeleton className={`${PULSO} h-9 w-56 rounded-lg`} />
+      <Skeleton className={`${PULSO} h-[170px] rounded-[20px]`} />
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-5">
+        <Skeleton className={`${PULSO} h-[380px] rounded-[20px]`} />
+        <Skeleton className={`${PULSO} h-[380px] rounded-[20px]`} />
+        <Skeleton className={`${PULSO} h-[380px] rounded-[20px]`} />
       </div>
-    </>
+      <Skeleton className={`${PULSO} h-56 rounded-[20px]`} />
+    </div>
   );
 }
