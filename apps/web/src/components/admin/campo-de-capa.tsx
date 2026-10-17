@@ -6,20 +6,15 @@ import {
   recusaDaMedida,
   recusaDoTamanho,
 } from "@cursos/api/dominio/capa";
-import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import type { Capa } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@cursos/ui/components/field";
-import { Input } from "@cursos/ui/components/input";
+import { Field } from "@cursos/ui/components/field";
 import { cn } from "@cursos/ui/lib/utils";
 import { ImageUp } from "lucide-react";
 import Image from "next/image";
 import {
   type ChangeEvent,
+  type DragEvent,
   useCallback,
   useEffect,
   useId,
@@ -28,11 +23,9 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 
-import { ROTULO } from "./partes";
 import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];
@@ -93,93 +86,51 @@ interface Escolhida {
 export interface EstadoDaCapa {
   erro: string | null;
   escolhida: Escolhida | null;
-  geracao: number;
 }
 
+const VAZIO: EstadoDaCapa = { erro: null, escolhida: null };
+
 /**
- * O campo zera sem remontar, porque o texto alternativo mora nele e perderia
- * o foco. Ele zera no recomeço do editor e quando o editor deixa de guardar o
- * arquivo que o campo mostra, como depois do salvar que o enviou.
+ * O campo zera quando o editor deixa de guardar o arquivo que ele mostra, como
+ * depois do salvar que o enviou. O recomeço do editor o remonta pela key.
  */
 export const capaNoCampo = (
   e: EstadoDaCapa,
-  arquivo: File | null,
-  geracao: number
+  arquivo: File | null
 ): EstadoDaCapa =>
-  e.geracao !== geracao ||
-  (e.escolhida !== null && e.escolhida.arquivo !== arquivo)
-    ? { erro: null, escolhida: null, geracao }
-    : e;
+  e.escolhida !== null && e.escolhida.arquivo !== arquivo ? VAZIO : e;
 
-const MOLDURA =
-  "relative grid aspect-[900/604] w-full place-items-center overflow-hidden rounded-[14px] bg-background ring-1 ring-border";
+const AREA_DA_CAPA =
+  "group relative grid aspect-[900/604] w-full cursor-pointer place-items-center overflow-hidden rounded-[14px] border-[1.5px] bg-background transition-colors data-arrastando:border-ceu";
 
-function Previa({
-  alt,
-  atual,
-  escolhida,
-}: {
-  alt: string;
-  atual: Capa | null;
-  escolhida: Escolhida | null;
-}) {
-  if (escolhida) {
-    return (
-      <Image
-        alt={alt}
-        className="object-cover"
-        fill
-        sizes="(max-width: 768px) 100vw, 280px"
-        src={escolhida.url}
-        unoptimized
-      />
-    );
-  }
-  if (atual) {
-    return (
-      <Image
-        alt={atual.alt}
-        className="object-cover"
-        fill
-        sizes="(max-width: 768px) 100vw, 280px"
-        src={atual.url}
-      />
-    );
-  }
-  return (
-    <p className="px-6 text-center text-muted-foreground text-sm">
-      Sem capa ainda
-    </p>
-  );
-}
+/**
+ * Sob o cursor e com o foco, a camada escura com a pílula no meio; numa tela sem
+ * hover, só a pílula, sempre à vista no canto.
+ */
+const CAMADA =
+  "absolute inset-0 grid place-items-center bg-black/55 opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:place-items-end [@media(hover:none)]:bg-transparent [@media(hover:none)]:p-2.5 [@media(hover:none)]:opacity-100";
+
+const PILULA =
+  "inline-flex h-9 items-center gap-2 rounded-full bg-popover px-3.5 font-semibold text-[13px] text-titulo shadow-sm";
 
 export function CampoDeCapa({
-  alt,
   aoEscolher,
   arquivo: guardado,
   atual,
-  geracao,
-  mudarAlt,
 }: {
-  alt: string;
   aoEscolher: (arquivo: File | null) => void;
   /** O arquivo que o editor guarda para enviar no próximo salvar. */
   arquivo: File | null;
   atual: Capa | null;
-  geracao: number;
-  mudarAlt: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   const id = useId();
-  const [estado, guardar] = useState<EstadoDaCapa>({
-    erro: null,
-    escolhida: null,
-    geracao,
-  });
-  const ajustado = capaNoCampo(estado, guardado, geracao);
+  const [estado, guardar] = useState<EstadoDaCapa>(VAZIO);
+  const ajustado = capaNoCampo(estado, guardado);
   if (ajustado !== estado) {
     guardar(ajustado);
   }
   const { erro, escolhida } = ajustado;
+  const [arrastando, setArrastando] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -191,117 +142,163 @@ export function CampoDeCapa({
     }
   }, [escolhida]);
 
-  const escolher = useCallback(
-    async (e: ChangeEvent<HTMLInputElement>) => {
-      const campo = e.currentTarget;
-      const arquivo = campo.files?.[0];
-      if (!arquivo) {
-        return;
-      }
-      const r = await conferir(arquivo);
+  const receber = useCallback(
+    async (recebido: File) => {
+      const r = await conferir(recebido);
       if ("erro" in r) {
-        campo.value = "";
-        guardar({ erro: r.erro, escolhida: null, geracao });
+        if (input.current) {
+          input.current.value = "";
+        }
+        guardar({ erro: r.erro, escolhida: null });
         aoEscolher(null);
         return;
       }
       guardar({
         erro: null,
         escolhida: {
-          arquivo,
+          arquivo: recebido,
           medida: r.medida,
-          url: URL.createObjectURL(arquivo),
+          url: URL.createObjectURL(recebido),
         },
-        geracao,
       });
-      aoEscolher(arquivo);
+      aoEscolher(recebido);
     },
-    [aoEscolher, geracao]
+    [aoEscolher]
+  );
+
+  const escolher = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const arquivo = e.currentTarget.files?.[0];
+      if (arquivo) {
+        receber(arquivo);
+      }
+    },
+    [receber]
+  );
+
+  const arrastar = useCallback((e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    setArrastando(true);
+  }, []);
+  const sair = useCallback((e: DragEvent<HTMLLabelElement>) => {
+    // O dragleave dispara também ao passar de um filho para outro dentro da área.
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      setArrastando(false);
+    }
+  }, []);
+  const soltar = useCallback(
+    (e: DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      setArrastando(false);
+      const [arquivo] = e.dataTransfer.files;
+      if (arquivo) {
+        receber(arquivo);
+      }
+    },
+    [receber]
   );
 
   const desfazer = useCallback(() => {
-    guardar({ erro: null, escolhida: null, geracao });
+    guardar(VAZIO);
     aoEscolher(null);
-  }, [aoEscolher, geracao]);
+  }, [aoEscolher]);
 
+  const imagem = escolhida
+    ? { alt: "Nova capa", src: escolhida.url, unoptimized: true }
+    : atual && { alt: atual.alt, src: atual.url };
+  const temCapa = imagem !== null;
   const medida = escolhida?.medida ?? atual;
   const arquivo = ID.curso("capa");
   const daImagem = useErroDoCampo(arquivo, `${id}-regra`);
   const mensagemDaImagem = erro ?? daImagem.mensagem;
-  const descricao = ID.curso("capaAlt");
-  const daDescricao = useErroDoCampo(descricao, `${id}-alt-ajuda`);
+  const regra = (
+    <span
+      className="text-muted-foreground text-xs leading-normal"
+      id={`${id}-regra`}
+    >
+      JPG, PNG ou WebP, até {LIMITE_DA_CAPA.bytes / 1024 / 1024} MB, com pelo
+      menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
+    </span>
+  );
   return (
-    <div className="grid content-start gap-4">
-      <div className="grid gap-2">
-        <div className={MOLDURA}>
-          <Previa alt={alt} atual={atual} escolhida={escolhida} />
-        </div>
-        {medida ? (
-          <p className="text-muted-foreground text-xs tabular-nums">
-            {escolhida ? "Nova capa, " : ""}
-            {fmtNum(medida.largura)} × {fmtNum(medida.altura)} px
-          </p>
-        ) : null}
-      </div>
-      <Field
-        className="relative"
-        data-invalid={mensagemDaImagem ? true : undefined}
+    <Field
+      className="relative content-start gap-2"
+      data-invalid={mensagemDaImagem ? true : undefined}
+    >
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: soltar o arquivo é atalho do mouse; o teclado escolhe pelo input dentro do rótulo. */}
+      <label
+        className={cn(
+          AREA_DA_CAPA,
+          temCapa
+            ? "border-border"
+            : "border-trilho border-dashed has-[[aria-invalid=true]]:border-destructive"
+        )}
+        data-arrastando={arrastando ? true : undefined}
+        data-campo={temCapa ? undefined : true}
+        onDragEnter={arrastar}
+        onDragLeave={sair}
+        onDragOver={arrastar}
+        onDrop={soltar}
       >
-        <p className="sr-only">Imagem da capa</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <label
-            className={cn(BOTAO_CONTORNO, PEQUENO, "cursor-pointer")}
-            htmlFor={arquivo}
-          >
-            <ImageUp aria-hidden="true" className="size-4" />
-            {atual || escolhida ? "Trocar capa" : "Escolher capa"}
-            <input
-              accept={TIPOS.join(",")}
-              aria-describedby={
-                mensagemDaImagem ? `${id}-regra ${arquivo}-erro` : `${id}-regra`
-              }
-              aria-invalid={mensagemDaImagem ? true : undefined}
-              className="sr-only"
-              id={arquivo}
-              onChange={escolher}
-              ref={input}
-              required={!(atual || escolhida)}
-              type="file"
-            />
-          </label>
-          {escolhida ? (
-            <Button className={cn(BOTAO_CONTORNO, PEQUENO)} onClick={desfazer}>
-              {atual ? "Manter a capa atual" : "Tirar a imagem"}
-            </Button>
-          ) : null}
-        </div>
-        <FieldDescription className="text-xs" id={`${id}-regra`}>
-          JPG, PNG ou WebP, até {LIMITE_DA_CAPA.bytes / 1024 / 1024} MB, com
-          pelo menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
-        </FieldDescription>
-        <ErroDoCampo id={arquivo} mensagem={mensagemDaImagem} />
-      </Field>
-      <Field data-invalid={daDescricao.mensagem ? true : undefined}>
-        <FieldLabel className={ROTULO} htmlFor={descricao}>
-          Descrição da capa
-        </FieldLabel>
-        <Input
-          {...daDescricao.aria}
-          autoComplete="off"
-          className={CAMPO}
-          id={descricao}
-          maxLength={CARACTERES.capaAlt}
-          name="capaAlt"
-          onChange={mudarAlt}
-          placeholder="Envasadora de líquidos com o painel aberto"
-          required
-          value={alt}
+        <input
+          accept={TIPOS.join(",")}
+          aria-describedby={
+            mensagemDaImagem ? `${id}-regra ${arquivo}-erro` : `${id}-regra`
+          }
+          aria-invalid={mensagemDaImagem ? true : undefined}
+          aria-label={temCapa ? "Trocar capa" : "Escolher capa"}
+          className="sr-only"
+          id={arquivo}
+          onChange={escolher}
+          ref={input}
+          required={!temCapa}
+          type="file"
         />
-        <FieldDescription className="text-xs" id={`${id}-alt-ajuda`}>
-          Quem usa leitor de tela ouve este texto no lugar da imagem.
-        </FieldDescription>
-        <ErroDoCampo id={descricao} mensagem={daDescricao.mensagem} />
-      </Field>
-    </div>
+        {imagem ? (
+          <>
+            <Image
+              {...imagem}
+              className="object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 440px"
+            />
+            <span aria-hidden="true" className={CAMADA}>
+              <span className={PILULA}>
+                <ImageUp className="size-4" />
+                Trocar capa
+              </span>
+            </span>
+          </>
+        ) : (
+          <span className="grid justify-items-center gap-1.5 px-6 text-center">
+            <ImageUp aria-hidden="true" className="mb-1 size-7 text-ceu" />
+            <span
+              aria-hidden="true"
+              className="font-semibold text-sm text-titulo"
+            >
+              Escolher capa
+            </span>
+            {regra}
+          </span>
+        )}
+      </label>
+      {medida ? (
+        <p className="text-muted-foreground text-xs tabular-nums">
+          {escolhida ? "Nova capa, " : ""}
+          {fmtNum(medida.largura)} × {fmtNum(medida.altura)} px
+        </p>
+      ) : null}
+      {temCapa ? regra : null}
+      <ErroDoCampo id={arquivo} mensagem={mensagemDaImagem} />
+      {escolhida ? (
+        <Button
+          className={cn(BOTAO_CONTORNO, PEQUENO, "justify-self-start")}
+          onClick={desfazer}
+        >
+          {atual ? "Manter a capa atual" : "Tirar a imagem"}
+        </Button>
+      ) : null}
+    </Field>
   );
 }

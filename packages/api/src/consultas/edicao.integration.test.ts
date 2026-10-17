@@ -152,7 +152,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const id = randomUUID() as CursoId;
     cursos.push(id);
     return {
-      capaAlt: "Capa de teste",
       categoriaId,
       codigo: null,
       descricao: "",
@@ -810,6 +809,28 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect([renomeado.slug, (await abrir(documento.id)).slug]).toEqual([
       `acao-reacao-${S}-modulo-unico`,
       `acao-reacao-${S}-modulo-unico`,
+    ]);
+  });
+
+  test("o texto alternativo da capa sai do título, na criação e a cada renomeação", async () => {
+    const documento = { ...documentoNovo(), titulo: `Pintura ${S}` };
+    const altNoBanco = async () => {
+      const [linha] = await db
+        .select({ alt: curso.capaAlt })
+        .from(curso)
+        .where(eq(curso.id, documento.id));
+      return linha?.alt;
+    };
+    const salvo = await salvarComCapa(documento);
+    const criado = await altNoBanco();
+    await salvar({
+      ...documento,
+      titulo: `Pintura industrial ${S}`,
+      versao: salvo.versao,
+    });
+    expect([criado, await altNoBanco()]).toEqual([
+      `Capa do curso Pintura ${S}`,
+      `Capa do curso Pintura industrial ${S}`,
     ]);
   });
 

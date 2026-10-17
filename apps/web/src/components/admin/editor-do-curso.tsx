@@ -16,9 +16,8 @@ import {
 import { Input } from "@cursos/ui/components/input";
 import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { Route } from "next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
@@ -96,7 +95,7 @@ const OPCOES_DO_STATUS: readonly OpcaoDaSelecao[] = Object.entries(STATUS).map(
   ([valor, { descricao, rotulo }]) => ({ descricao, rotulo, valor })
 );
 
-type CampoDeTextoDoCurso = "capaAlt" | "codigo" | "destaque" | "titulo";
+type CampoDeTextoDoCurso = "codigo" | "destaque" | "titulo";
 const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
 
 function Publicacao({
@@ -530,44 +529,29 @@ export function EditorDoCurso({
   return (
     <ErrosDoEditor value={erros}>
       <SaiuDoCampo value={saiuDoCampo}>
-        <form
-          className="mx-auto grid max-w-5xl gap-10"
-          noValidate
-          onSubmit={enviar}
-        >
-          <div>
-            <Link
-              className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-              href="/admin/catalogo"
+        <form className="grid gap-10" noValidate onSubmit={enviar}>
+          <header className="grid gap-1.5">
+            <h1
+              className="text-balance font-bold text-3xl text-titulo tracking-tight"
+              ref={titulo}
+              tabIndex={-1}
             >
-              <ArrowLeft aria-hidden="true" className="size-4" />
-              Catálogo
-            </Link>
-            <header className="grid gap-1.5">
-              <h1
-                className="text-balance font-bold text-3xl text-titulo tracking-tight"
-                ref={titulo}
-                tabIndex={-1}
-              >
-                {rascunho.titulo.trim() || "Curso novo"}
-              </h1>
-              <p className="text-muted-foreground tabular-nums">
-                {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
-                {plural(aulas, "aula", "aulas")}
-                {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
-              </p>
-            </header>
-          </div>
+              {rascunho.titulo.trim() || "Curso novo"}
+            </h1>
+            <p className="text-muted-foreground tabular-nums">
+              {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
+              {plural(aulas, "aula", "aulas")}
+              {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
+            </p>
+          </header>
 
           <Vitrine
             capa={
               <CampoDeCapa
-                alt={rascunho.capaAlt}
                 aoEscolher={escolherCapa}
                 arquivo={capa}
                 atual={edicao.capa}
-                geracao={geracao}
-                mudarAlt={mudarTexto}
+                key={geracao}
               />
             }
             categorias={categorias}

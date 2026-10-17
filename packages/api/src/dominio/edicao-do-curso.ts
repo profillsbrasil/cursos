@@ -37,7 +37,6 @@ export const LIMITES = {
 
 export const CARACTERES = {
   alternativa: 200,
-  capaAlt: 300,
   categoria: 80,
   codigo: 40,
   descricao: 2000,
@@ -151,7 +150,6 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
  */
 export const documentoDoCurso = z
   .object({
-    capaAlt: texto(CARACTERES.capaAlt),
     /** Uma categoria de admin.categorias.lista; o servidor recusa a que sumiu. */
     categoriaId: uuid.transform((id) => id as CategoriaId),
     codigo: opcional(CARACTERES.codigo),
@@ -316,7 +314,6 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
   return {
     capa: null,
     documento: {
-      capaAlt: "",
       categoriaId: SEM_CATEGORIA,
       codigo: null,
       descricao: "",
