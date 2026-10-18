@@ -21,10 +21,10 @@ export interface LinhasHistorico {
   questionarios: readonly LinhaDoQuestionario[];
 }
 
-export const posicaoComecada = (p: { posicaoSeg: number }): boolean =>
+const posicaoComecada = (p: { posicaoSeg: number }): boolean =>
   p.posicaoSeg > 0;
 
-export function historicoDe(l: LinhasHistorico): Historico {
+function historicoDe(l: LinhasHistorico): Historico {
   return {
     assistidas: new Set(l.assistidas.map((a) => a.aulaId as AulaId)),
     certificados: new Map(
@@ -55,7 +55,7 @@ export function historicoDe(l: LinhasHistorico): Historico {
   };
 }
 
-export function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
+function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
   const atividade = new Map<AulaId, string>();
   const anotar = (aulaId: string, quando: Date) => {
     const iso = quando.toISOString();
@@ -74,4 +74,19 @@ export function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
     anotar(q.aulaId, q.ultimaEm);
   }
   return atividade;
+}
+
+/** O histórico da pessoa e o último momento de estudo de cada aula. */
+export interface Estudo {
+  atividade: ReadonlyMap<AulaId, string>;
+  historico: Historico;
+}
+
+/** Posição em 0 s não é estudo: nem o histórico nem a atividade a contam. */
+export function estudoDe(l: LinhasHistorico): Estudo {
+  const comecadas = { ...l, posicoes: l.posicoes.filter(posicaoComecada) };
+  return {
+    atividade: atividadeDe(comecadas),
+    historico: historicoDe(comecadas),
+  };
 }

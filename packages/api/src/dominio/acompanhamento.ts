@@ -1,30 +1,20 @@
 // O que o admin vê do estudo de cada pessoa: o acompanhamento de cada liberação,
 // na tela de acesso, e a situação da pessoa, na busca. O estado, o progresso e a
-// aula do Continuar saem das regras de Meus cursos (estadoDoCurso, a regra única
-// do estado, progresso, atividadeDe, ondeNoCurso): nada aqui decide de novo se um
-// curso abre, se foi começado ou se foi concluído.
+// aula do Continuar saem da leitura de Meus cursos (lerCursoDoAluno): nada aqui
+// decide de novo se um curso abre, se foi começado ou se foi concluído.
 
+import type { Progresso } from "./curso";
 import {
   type CursoComAulas,
-  estadoDoCurso,
-  type Progresso,
-  progresso,
-} from "./curso";
-import {
-  atividadeDe,
-  historicoDe,
-  type LinhasHistorico,
-  posicaoComecada,
-} from "./historico";
-import { ondeNoCurso } from "./retomada";
+  type CursoDoAluno,
+  lerCursoDoAluno,
+} from "./curso-do-aluno";
+import { type Estudo, estudoDe, type LinhasHistorico } from "./historico";
 import { diaLocal } from "./sequencia";
 import type {
   AulaId,
-  CursoCatalogo,
   CursoId,
   DiaISO,
-  EstadoCurso,
-  Historico,
   OrigemDaLiberacao,
   Pessoa,
   ResultadoDaBusca,
@@ -104,23 +94,6 @@ export interface BuscaDeAlunos {
 
 // ---------- o estudo da pessoa ----------
 
-/** O histórico da pessoa e o último momento de estudo de cada aula. */
-export interface Estudo {
-  atividade: ReadonlyMap<AulaId, string>;
-  historico: Historico;
-}
-
-/** Posição em 0 s não é estudo: a atividade conta só as posições começadas, como o histórico. */
-export function estudoDe(l: LinhasHistorico): Estudo {
-  return {
-    atividade: atividadeDe({
-      ...l,
-      posicoes: l.posicoes.filter(posicaoComecada),
-    }),
-    historico: historicoDe(l),
-  };
-}
-
 const diaDe = (iso: string): DiaISO => diaLocal(new Date(iso));
 
 const maisRecente = (dias: readonly (DiaISO | null)[]): DiaISO | null =>
@@ -146,7 +119,7 @@ export function ultimoEstudo(curso: CursoComAulas, e: Estudo): DiaISO | null {
   return ultimo ? diaDe(ultimo) : null;
 }
 
-/** Curso em andamento ou com questionário pendente sempre tem estudo: estadoDoCurso só chega lá com aula tocada. */
+/** Curso em andamento ou com questionário pendente sempre tem estudo: a leitura do curso só chega lá com aula tocada. */
 function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
   const dia = ultimoEstudo(curso, e);
   if (!dia) {
@@ -155,9 +128,9 @@ function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
   return dia;
 }
 
-export function situacaoNoCurso(
-  curso: CursoCatalogo,
-  estado: EstadoCurso,
+function situacaoNoCurso(
+  curso: CursoComAulas,
+  { aulaDaVez, estado }: CursoDoAluno,
   e: Estudo
 ): SituacaoNoCurso {
   switch (estado.tipo) {
@@ -166,10 +139,10 @@ export function situacaoNoCurso(
     case "nao_iniciado":
       return { tipo: "nunca_abriu" };
     case "em_andamento": {
-      const onde = ondeNoCurso(curso, estado, e.historico, e.atividade);
-      if (!onde) {
+      if (!aulaDaVez) {
         throw new Error(`Curso ${curso.titulo} em andamento sem aula.`);
       }
+      const { onde } = aulaDaVez;
       return {
         onde: { aula: onde.aula, modulo: onde.modulo.numero },
         tipo: "estudando",
@@ -192,25 +165,28 @@ export function situacaoNoCurso(
 
 // ---------- o acompanhamento de uma liberação ----------
 
-/** O curso pelo mesmo estadoDoCurso de Meus cursos. */
+/** O curso pela mesma leitura de Meus cursos. */
 export function acompanharCurso(
-  curso: CursoCatalogo,
+  curso: CursoComAulas,
   e: Estudo
 ): Acompanhamento {
+  const leitura = lerCursoDoAluno(curso, e);
   return {
-    progresso: progresso(curso, e.historico.assistidas),
-    situacao: situacaoNoCurso(curso, estadoDoCurso(curso, e.historico), e),
+    progresso: leitura.progresso,
+    situacao: situacaoNoCurso(curso, leitura, e),
   };
 }
 
 // ---------- a situação da pessoa na busca ----------
 
-/** Um curso como o statement da busca lê: só o que estado e progresso pedem. */
+/** Um curso como o statement da busca lê: só o que a leitura do curso pede. */
 export interface CursoDaBusca {
   id: string;
   /** Em ordem de número, aulas em ordem de posição. */
   modulos: readonly {
     aulas: readonly { id: string; perguntas: number }[];
+    numero: number;
+    titulo: string;
   }[];
   status: StatusDoCurso;
   titulo: string;
@@ -249,6 +225,8 @@ function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
             id: a.id as AulaId,
             perguntas: a.perguntas,
           })),
+          numero: m.numero,
+          titulo: m.titulo,
         })),
         status: c.status,
         titulo: c.titulo,
@@ -285,7 +263,7 @@ export function situacaoDaPessoa(
   const e = estudoDe(p);
   const naTela = ativas
     .map((l) => curso(l.cursoId))
-    .map((c) => ({ curso: c, estado: estadoDoCurso(c, e.historico) }));
+    .map((c) => ({ curso: c, estado: lerCursoDoAluno(c, e).estado }));
   const contaveis = naTela.filter((x) => x.estado.tipo !== "em_breve");
   const numeros: NumerosDaPessoa = {
     concluidos: contaveis.filter((x) => x.estado.tipo === "concluido").length,

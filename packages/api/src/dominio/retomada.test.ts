@@ -1,29 +1,30 @@
 import { describe, expect, test } from "bun:test";
 
-import type { CursoNaTela } from "./curso";
+import { lerCursoDoAluno } from "./curso-do-aluno";
 import { cursoCat, historico, idAula, questionario } from "./exemplo";
-import { aulaDeRetomada, retomada } from "./retomada";
-import type { AulaId, CursoCatalogo, EstadoCurso, Historico } from "./tipos";
+import type { Estudo } from "./historico";
+import { type EntradaRetomada, retomada } from "./retomada";
+import type { AulaId, CursoCatalogo, Historico } from "./tipos";
 
-const andamento = (_c: CursoCatalogo, proxima: string): EstadoCurso => ({
-  proximaAula: proxima as AulaId,
-  tipo: "em_andamento",
-});
-
-const naTela = (curso: CursoCatalogo, estado: EstadoCurso): CursoNaTela => ({
-  curso,
-  estado,
-});
-
-const entrada = (cursos: CursoNaTela[], h: Historico) => ({
-  atividade: new Map(
+/** Os cursos na ordem da tela, cada um lido do mesmo estudo. A atividade, sem outra, é a das posições. */
+const entrada = (
+  cursos: CursoCatalogo[],
+  h: Historico,
+  atividade: ReadonlyMap<AulaId, string> = new Map(
     [...h.posicoes.entries()].map(
       ([aula, p]) => [aula, p.atualizadaEm] as const
     )
-  ),
-  cursos,
-  historico: h,
-});
+  )
+): EntradaRetomada => {
+  const estudo: Estudo = { atividade, historico: h };
+  return {
+    cursos: cursos.map((curso) => ({
+      curso,
+      leitura: lerCursoDoAluno(curso, estudo),
+    })),
+    estudo,
+  };
+};
 
 const c = cursoCat("c", { aulas: [4], duracaoSeg: 580 });
 
@@ -35,9 +36,7 @@ describe("retomada", () => {
         [idAula("c", 0, 3), 222, "2026-10-07T12:00:00.000Z"],
       ],
     });
-    const r = retomada(
-      entrada([naTela(c, andamento(c, idAula("c", 0, 1)))], h)
-    );
+    const r = retomada(entrada([c], h));
     expect(r?.tipo).toBe("continuar");
     if (r?.tipo !== "continuar") {
       return;
@@ -55,9 +54,7 @@ describe("retomada", () => {
       assistidas: [idAula("c", 0, 1), idAula("c", 0, 2)],
       posicoes: [[idAula("c", 0, 2), 500]],
     });
-    const r = retomada(
-      entrada([naTela(c, andamento(c, idAula("c", 0, 3)))], h)
-    );
+    const r = retomada(entrada([c], h));
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 3), posicaoSeg: 0 },
       tipo: "continuar",
@@ -72,9 +69,7 @@ describe("retomada", () => {
         [idAula("c", 0, 1), 120, "2026-10-07T12:00:00.000Z"],
       ],
     });
-    const r = retomada(
-      entrada([naTela(c, andamento(c, idAula("c", 0, 3)))], h)
-    );
+    const r = retomada(entrada([c], h));
     expect(r).toMatchObject({
       aula: { faltaSeg: 280, id: idAula("c", 0, 3), posicaoSeg: 300 },
       tipo: "continuar",
@@ -87,15 +82,7 @@ describe("retomada", () => {
       assistidas: [idAula("c", 0, 1)],
       posicoes: [[idAula("breve", 0, 1), 50, "2026-10-07T13:00:00.000Z"]],
     });
-    const r = retomada(
-      entrada(
-        [
-          naTela(c, andamento(c, idAula("c", 0, 2))),
-          naTela(breve, { tipo: "em_breve" }),
-        ],
-        h
-      )
-    );
+    const r = retomada(entrada([c, breve], h));
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 2), posicaoSeg: 0 },
       curso: { slug: "c" },
@@ -108,9 +95,7 @@ describe("retomada", () => {
       assistidas: [idAula("c", 0, 1)],
       posicoes: [[idAula("revogado", 0, 1), 90]],
     });
-    const r = retomada(
-      entrada([naTela(c, andamento(c, idAula("c", 0, 2)))], h)
-    );
+    const r = retomada(entrada([c], h));
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 2), posicaoSeg: 0 },
       curso: { slug: "c" },
@@ -122,15 +107,7 @@ describe("retomada", () => {
     const h = historico({
       assistidas: [idAula("c", 0, 1), idAula("outro", 0, 1)],
     });
-    const r = retomada(
-      entrada(
-        [
-          naTela(outro, andamento(outro, idAula("outro", 0, 2))),
-          naTela(c, andamento(c, idAula("c", 0, 2))),
-        ],
-        h
-      )
-    );
+    const r = retomada(entrada([outro, c], h));
     expect(r).toMatchObject({
       aula: { id: idAula("outro", 0, 2), posicaoSeg: 0 },
       curso: { slug: "outro" },
@@ -149,23 +126,7 @@ describe("retomada", () => {
         [pendente, questionario(false, { acertos: 2, total: 3 })],
       ],
     });
-    const r = retomada(
-      entrada(
-        [
-          naTela(novo, {
-            primeiraAula: idAula("novo", 0, 1) as AulaId,
-            tipo: "nao_iniciado",
-          }),
-          naTela(comQuiz, {
-            aprovados: 1,
-            proximaAula: pendente,
-            tipo: "questionarios",
-            total: 4,
-          }),
-        ],
-        h
-      )
-    );
+    const r = retomada(entrada([novo, comQuiz], h));
     expect(r).toEqual({
       aula: {
         duracaoSeg: 600,
@@ -185,22 +146,7 @@ describe("retomada", () => {
     const breve = cursoCat("breve", { aulas: [2], status: "em_producao" });
     const a = cursoCat("a", { aulas: [2] });
     const b = cursoCat("b", { aulas: [2] });
-    const r = retomada(
-      entrada(
-        [
-          naTela(breve, { tipo: "em_breve" }),
-          naTela(a, {
-            primeiraAula: idAula("a", 0, 1) as AulaId,
-            tipo: "nao_iniciado",
-          }),
-          naTela(b, {
-            primeiraAula: idAula("b", 0, 1) as AulaId,
-            tipo: "nao_iniciado",
-          }),
-        ],
-        historico({})
-      )
-    );
+    const r = retomada(entrada([breve, a, b], historico({})));
     expect(r).toMatchObject({
       aula: { id: idAula("a", 0, 1), numeroNoModulo: 1 },
       curso: { slug: "a" },
@@ -210,10 +156,7 @@ describe("retomada", () => {
   });
 
   test("tudo concluído não gera retomada", () => {
-    const certificado = { codigo: "X", emitidoEm: "2026-09-01T00:00:00.000Z" };
-    const r = retomada(
-      entrada([naTela(c, { certificado, tipo: "concluido" })], historico({}))
-    );
+    const r = retomada(entrada([c], historico({ certificados: ["c"] })));
     expect(r).toBeNull();
   });
 });
@@ -229,13 +172,8 @@ describe("retomada pela atividade mais recente (item 24)", () => {
     [idAula("a", 0, 2) as AulaId, "2026-09-10T12:00:00.000Z"],
     [idAula("b", 0, 1) as AulaId, "2026-10-07T15:00:00.000Z"],
   ]);
-  const cursos = [
-    naTela(a, andamento(a, idAula("a", 0, 1))),
-    naTela(b, andamento(b, idAula("b", 0, 2))),
-  ];
-
   test("curso B com aula assistida hoje vence curso A com posição de semanas atrás", () => {
-    const r = retomada({ atividade, cursos, historico: h });
+    const r = retomada(entrada([a, b], h, atividade));
     expect(r?.tipo === "continuar" && r.curso.slug).toBe("b");
     expect(r?.tipo === "continuar" && String(r.aula.id)).toBe(
       idAula("b", 0, 2)
@@ -243,23 +181,17 @@ describe("retomada pela atividade mais recente (item 24)", () => {
   });
 
   test("banner e entrada do curso levam à mesma aula", () => {
-    const r = retomada({ atividade, cursos, historico: h });
-    const daEntrada = aulaDeRetomada(
-      b,
-      andamento(b, idAula("b", 0, 2)) as Extract<
-        EstadoCurso,
-        { tipo: "em_andamento" }
-      >,
-      h,
-      atividade
-    );
-    expect(r?.tipo === "continuar" && r.aula.id).toBe(daEntrada.aulaId);
+    const r = retomada(entrada([a, b], h, atividade));
+    const daEntrada = lerCursoDoAluno(b, { atividade, historico: h });
+    expect(r?.tipo).toBe("continuar");
+    expect(r?.aula.id).toBe(idAula("b", 0, 2) as AulaId);
+    expect(daEntrada.aulaDaVez?.id).toBe(idAula("b", 0, 2) as AulaId);
   });
 });
 
 describe("aula N do módulo no banner", () => {
   const base = cursoCat("d", { aulas: [2] });
-  const posicoes = [1, 3];
+  const posicoes = [2, 3];
   const comBuraco: CursoCatalogo = {
     ...base,
     modulos: base.modulos.map((m) => ({
@@ -271,9 +203,7 @@ describe("aula N do módulo no banner", () => {
 
   test("continuar numera pelo índice no módulo, como a coluna e o player", () => {
     const h = historico({ posicoes: [[segunda, 60]] });
-    const r = retomada(
-      entrada([naTela(comBuraco, andamento(comBuraco, segunda))], h)
-    );
+    const r = retomada(entrada([comBuraco], h));
     expect(r).toMatchObject({
       aula: { id: segunda, numeroNoModulo: 2 },
       tipo: "continuar",
@@ -281,14 +211,9 @@ describe("aula N do módulo no banner", () => {
   });
 
   test("começar numera pelo índice no módulo, como a coluna e o player", () => {
-    const r = retomada(
-      entrada(
-        [naTela(comBuraco, { primeiraAula: segunda, tipo: "nao_iniciado" })],
-        historico({})
-      )
-    );
+    const r = retomada(entrada([comBuraco], historico({})));
     expect(r).toMatchObject({
-      aula: { id: segunda, numeroNoModulo: 2 },
+      aula: { id: idAula("d", 0, 1), numeroNoModulo: 1 },
       tipo: "comecar",
     });
   });

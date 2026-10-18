@@ -2,12 +2,8 @@
 // botão a partir dela e revogar, em consultas/liberacao.ts, recusa a partir dela.
 // O check liberacao_troca_nao_revoga é a última porta, no banco.
 
-import {
-  type Acompanhamento,
-  acompanharCurso,
-  estudoDe,
-} from "./acompanhamento";
-import type { LinhasHistorico } from "./historico";
+import { type Acompanhamento, acompanharCurso } from "./acompanhamento";
+import { estudoDe, type LinhasHistorico } from "./historico";
 import type {
   CursoCatalogo,
   CursoId,
