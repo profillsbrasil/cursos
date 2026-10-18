@@ -1,5 +1,4 @@
 import type { AppRouter } from "@cursos/api/routers/index";
-import { QueryCache, QueryClient } from "@tanstack/react-query";
 import {
   createTRPCClient,
   httpBatchLink,
@@ -7,28 +6,11 @@ import {
   isNonJsonSerializable,
   splitLink,
 } from "@trpc/client";
-import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import { toast } from "sonner";
 
 import {
   getClerkAuthToken,
   getClerkAuthTokenSemEspera,
 } from "@/utils/clerk-auth";
-
-export const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      toast.error(error.message, {
-        action: {
-          label: "Tentar de novo",
-          onClick: () => {
-            query.invalidate();
-          },
-        },
-      });
-    },
-  }),
-});
 
 const comToken = (token: string | null): Record<string, string> =>
   token ? { Authorization: `Bearer ${token}` } : {};
@@ -69,9 +51,4 @@ export const trpcClient = createTRPCClient<AppRouter>({
       }),
     }),
   ],
-});
-
-export const trpc = createTRPCOptionsProxy<AppRouter>({
-  client: trpcClient,
-  queryClient,
 });

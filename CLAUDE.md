@@ -2,7 +2,7 @@
 
 Plataforma de cursos da Profills. Monorepo Bun + Turborepo gerado pelo Better T Stack (`bts.jsonc` guarda o comando de origem; `bunx create-better-t-stack@latest add` acrescenta addons).
 
-Stack: Next.js 16 (App Router, React Compiler, `typedRoutes`), tRPC 11 + TanStack Query, Drizzle 1.0 RC sobre Postgres do Supabase, Clerk para auth, shadcn (estilo `base-lyra`, Base UI), Motion para animação que o CSS não resolve, Biome via Ultracite, varlock para env, deploy na Vercel.
+Stack: Next.js 16 (App Router, React Compiler, `typedRoutes`), tRPC 11 (o browser chama pelo `trpcClient`, sem TanStack Query), Drizzle 1.0 RC sobre Postgres do Supabase, Clerk para auth, shadcn (estilo `base-lyra`, Base UI), Motion para animação que o CSS não resolve, Biome via Ultracite, varlock para env, deploy na Vercel.
 
 ## Mapa
 
@@ -80,7 +80,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 Biome (via Ultracite) cobre formatação e a maior parte do estilo. O que ele não pega:
 
 - Busca assíncrona de dados vai em Server Component, não em Client Component `async`.
-- Erro para o usuário sai como `ErroParaAPessoa` com `code` e `message`; o `queryClient` já mostra em toast a mensagem de qualquer erro de query, sem o filtro de `paraAPessoa` que o `useAcao` aplica às mutações.
+- Erro para o usuário sai como `ErroParaAPessoa` com `code` e `message`. Só essa mensagem chega ao toast do `useAcao`; os outros erros viram o texto genérico.
 - Use o vocabulário do `GLOSSARY.md` em nomes de tabela, procedure e componente.
 - Constante de classe não mora em módulo "use client": num Server Component ela chega como client reference, e o `cn` a descarta sem erro. Ela vai para um módulo sem a diretiva (`casca/botoes.ts`, `casca/campos.ts`, `admin/partes.tsx`); `components/fronteira-do-cliente.test.ts` acusa a volta.
 - O foco de teclado é o hover: a variante `hover:` do `globals.css` também casa com `:focus-visible` (e com o label ou o polegar do slider que envolve o input focado), e `focus-visible:` não pinta nada. Controle sem hover ganha a borda Céu pelo `data-slot` na regra do `index.css`; moldura própria leva `data-campo`. Nenhum contorno de foco, nem no alto contraste do Windows. Os dois `foco.test.ts` (`packages/ui/src/styles/` e `apps/web/src/components/`) acusam anel ou contorno de volta. A pílula do item ativo é irmã do link, então acende pela variante `ativo-aceso` do `index.css`, que lê o cursor e o foco do link. `components/sinal-do-foco.test.tsx` renderiza a navegação, a coluna do player e a busca de pessoas, compila o CSS do app e confere o sinal de foco de cada controle da #44, do item "Em breve", dos `summary` das revogadas e da faixa do comunicado. A pílula e o Revogar em 390 px ele confere no Chromium da máquina, em headless (`/usr/bin/chromium`; a variável `CHROMIUM` aponta outro caminho); sem ele, essas duas suítes pulam e o resto roda. O CSS compilado e o Chromium guiado pelo DevTools moram em `components/chromium-de-teste.ts`, que os testes de medida também usam.
