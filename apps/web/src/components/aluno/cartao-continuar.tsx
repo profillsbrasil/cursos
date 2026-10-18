@@ -54,15 +54,16 @@ function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
 type Linhas = Pick<Continuar, "pct" | "tipo" | "titulo"> & { chamada: string };
 
 /**
- * O miolo do cartão. O trilho da barra existe sempre: em "comecar" (pct null) ele
- * fica invisível e guarda o lugar, então o cartão mede o mesmo nos dois casos, e o
- * esqueleto, que desenha este mesmo miolo invisível, também. Recolhida, o título e a
- * chamada ficam só para o leitor de tela, e a barra some.
+ * O miolo do cartão. Em "comecar" (pct null) não há barra, e a linha leva o lugar
+ * dela (o gap de 8 px e o trilho de 4 px) metade em cima e metade embaixo: o miolo
+ * fica no meio, e o cartão mede o mesmo nos dois casos, como o esqueleto, que
+ * desenha este mesmo miolo invisível. Recolhida, o título e a chamada ficam só para
+ * o leitor de tela, e a barra some.
  */
 function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
   return (
     <>
-      <span className={LINHA}>
+      <span className={cn(LINHA, pct === null && "py-1.5")}>
         <span className={REDONDO}>
           <Icone tipo={tipo} />
         </span>
@@ -73,20 +74,17 @@ function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
           <span className="text-muted-foreground text-xs">{chamada}</span>
         </span>
       </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "h-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset group-data-[collapsible=icon]:hidden",
-          pct === null && "invisible"
-        )}
-      >
-        {pct === null ? null : (
+      {pct === null ? null : (
+        <span
+          aria-hidden="true"
+          className="h-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset group-data-[collapsible=icon]:hidden"
+        >
           <span
             className="block h-full rounded-full bg-sol"
             style={{ width: `${pct}%` }}
           />
-        )}
-      </span>
+        </span>
+      )}
     </>
   );
 }
