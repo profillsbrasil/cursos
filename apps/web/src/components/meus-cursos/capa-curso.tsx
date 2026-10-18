@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { fmtHoras, fmtNum, plural } from "@/lib/formato";
+import { caminhoDoCurso } from "@/lib/rotas";
 
 import { SeloEstado } from "./selo-estado";
 
@@ -167,7 +168,7 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
   }
   return (
     // O foco de teclado acende o cartão como o cursor: anel Céu, capa e título (#30).
-    <Link className={cn(base, "group")} href={`/cursos/${curso.slug}`}>
+    <Link className={cn(base, "group")} href={caminhoDoCurso(curso.slug)}>
       {conteudo}
     </Link>
   );

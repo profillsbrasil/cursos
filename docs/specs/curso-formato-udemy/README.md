@@ -20,7 +20,7 @@ Nenhuma destas decisões se reabre.
 
 6. O curso tem banner (a capa), título, descrição, tópicos ("O que você vai aprender") e categoria.
 7. O endereço (`/cursos/<slug>`) é automático. O servidor gera o slug a partir do título no primeiro salvamento e acrescenta `-2`, `-3` quando o slug já existe. Depois disso o slug não muda, para o link do aluno não quebrar. O editor não tem campo de endereço.
-8. A categoria é um registro que o admin mantém numa tela própria. O editor escolhe a categoria num select. Categoria em uso por algum curso não se apaga.
+8. A categoria é um registro que o admin mantém numa tela própria. O editor escolhe a categoria numa seleção com busca, que também cria a categoria nova. Categoria em uso por algum curso não se apaga.
 9. Cada aula tem vídeo, descrição e questionário.
 
 ### Questionário e conclusão
@@ -101,7 +101,7 @@ Depois de juntar as duas frentes, a prova no browser achou dois defeitos, e uma 
 
 Desvios do protótipo, todos aceitos pelo dono:
 - "Prova e certificado no módulo 15" virou "no fim do curso".
-- A prova mostra "Você assistiu a todas as aulas", "Prova e certificado", o botão "Rever aulas" e "A prova abre em breve nesta página". O concluído mostra "Certificado emitido em <data>", "Rever o curso" e "Código do certificado". Esses textos não estão no protótipo.
+- A prova mostra "Você assistiu a todas as aulas", "Prova e certificado", o botão "Rever aulas" e "A prova abre em breve nesta página". O concluído mostra "Certificado emitido em <data>", "Rever o curso" e "Código do certificado". Esses textos não estão no protótipo. O questionário do #76 substituiu a prova e esses textos.
 - Cada aula do índice de livro é link para a aula.
 - O selo do cartão tem ícone, como o DESIGN.md pede.
 - Abaixo de 1081 px, o cartão ocupa a largura toda, com a capa ao lado do texto.
@@ -157,8 +157,7 @@ Estas notas viviam na memória da máquina antiga.
 Todas as pendências que estavam aqui foram resolvidas no #70. Ficam como sugestão:
 
 - A faixa de comunicado de Meus cursos pode ganhar um link para `/comunicados`.
-- O certificado em Conquistas ainda não tem link para a página do certificado.
-- Nenhum item do menu usa mais o estado "Em breve"; ele só sobrevive no teste de foco.
+- Nenhum item do menu usa mais o estado "Em breve". A navegação ainda o desenha, e só o teste de foco o usa.
 
 ## Como verificar
 

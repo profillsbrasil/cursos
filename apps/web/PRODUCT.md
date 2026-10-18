@@ -37,7 +37,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 - Não há prazo de conclusão em liberação nenhuma.
 - O Profills School Comercial (módulos 0 a 15 do protótipo anterior) é um curso só, com 16 módulos.
 - Existe gamificação individual: pontos, sequência de dias e medalhas. Não existe ranking nem comparação entre colegas.
-- Pontos seguem a tabela do protótipo anterior como ponto de partida, com valores que o admin ajusta: 10 por aula assistida (90% do vídeo), 5 por acerto no questionário da aula na primeira tentativa, aprovada ou não, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula não pontua de novo, e o questionário pontua só na primeira tentativa.
+- Pontos seguem a tabela do protótipo anterior como ponto de partida: 10 por aula assistida (90% do vídeo), 5 por acerto no questionário da aula na primeira tentativa, aprovada ou não, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula não pontua de novo, e o questionário pontua só na primeira tentativa. Os valores ficam fixos em `packages/api/src/dominio/regras.ts` até existir a tela em que o admin os ajusta.
 - A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
 - Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
 - Cada aula pode ter um questionário, com pontos só na primeira tentativa.
@@ -50,10 +50,10 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 Confirmado:
 
-- Formatos de aula: vídeo gravado, material para ler, questionário e certificado.
+- Formatos de aula: vídeo gravado, material para ler, questionário e certificado. Hoje a aula tem vídeo, descrição e questionário; o material para ler ainda não existe.
 - O certificado de um curso sai quando a pessoa assiste a todas as aulas e é aprovada em todos os questionários.
 - Temas: máquinas da Profills, processo de envase e embalagem, vendas e atendimento, rotinas internas.
-- Uma plataforma com controle de acesso por perfil e por empresa cliente. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz).
+- Uma plataforma com controle de acesso por perfil e por empresa cliente. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz). Hoje a liberação é por pessoa; perfil e empresa ainda não existem no código.
 - Cobrança em dois modelos: compra avulsa e assinatura, além de liberação gratuita por usuário.
 
 Fora do escopo confirmado:
@@ -71,7 +71,7 @@ Decisões abertas:
 
 Decididas pelo dono em 2026-10-16:
 
-- O questionário de cada aula aprova com 70%, igual em todo curso, e a pessoa tenta de novo quantas vezes quiser. A regra completa está em `docs/specs/curso-formato-udemy/README.md`.
+- O questionário de cada aula aprova com 70%, igual em todo curso, e a pessoa tenta de novo quantas vezes quiser. A regra completa está no `GLOSSARY.md` (Questionário, Nota mínima e Tentativa).
 - O certificado é uma página do app e um PDF para baixar, com nome, curso, data, carga horária e código. A carga horária é a soma da duração dos vídeos, arredondada para cima em horas. Uma página pública confere o certificado pelo código.
 - Conquistas são medalhas por marco que o app já registra: primeira aula, 10, 50 e 100 aulas assistidas, sequência de 7 dias, primeira troca, primeiro curso concluído e um certificado por curso. Não há níveis de aluno.
 - Ponto não vence, e não há teto diário para os pontos de vídeo. O limite de taxa do player já barra abuso.

@@ -14,8 +14,10 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Documento do curso | O curso inteiro como o admin edita: campos (a categoria, pelo id, a descrição e os tópicos entre eles), capa, níveis, módulos e aulas. O endereço do curso não faz parte do documento. O admin salva o documento de uma vez, e o servidor grava o estado final. |
 | Rascunho | Documento do curso no editor, antes de salvar. Os campos lidos (duração, vídeo, número do módulo e preço) ficam no texto que o admin digitou até o salvar convertê-los. O documento novo é rascunho até o primeiro salvamento, com o id já na URL, e o aluno não vê nada dele. O rascunho só some quando o admin pede "Recarregar" ou sai da página. |
 | Versão | Impressão do conteúdo de um documento do admin, derivada dele e não guardada. No curso, a capa entra no conteúdo. Salvar com a versão velha dá conflito; reenviar o que já está gravado é sucesso. |
-| Capa | Imagem do curso, JPG, PNG ou WebP, com até 4 MB e pelo menos 640 px de largura. Fica no bucket `capas` com o nome igual ao hash dos bytes. |
-| Nível | Grupo nomeado de módulos de um curso. Cada módulo pertence a no máximo um nível. Só o curso Comercial tem níveis hoje. |
+| Capa | Imagem do curso, JPG, PNG ou WebP, com até 4 MB, pelo menos 640 px de largura e no máximo 8000 px no maior lado. Fica no bucket `capas` com o nome igual ao sha256 dos bytes mais a extensão. |
+| Código do curso | Texto opcional e único de até 40 caracteres, como "POP-COM-001", que o aluno vê sob a capa. Não é o código do certificado. |
+| Destaque do curso | Texto opcional de até 60 caracteres, como "Regra 5x4", que o aluno vê sob a capa quando o curso não tem código. Não é o destaque da tela Comunicados, que é o comunicado mais recente. |
+| Nível | Grupo nomeado de módulos de um curso. Cada módulo pertence a no máximo um nível. Qualquer curso pode ter níveis; nos cursos de exemplo do seed, só o Comercial tem. |
 | Aluno | Pessoa logada que estuda. É identificada pelo `userId` do Clerk e não tem tabela própria. |
 | Admin | Pessoa que cria cursos, libera, revoga e publica comunicados. É quem tem o papel `admin`. |
 | Papel | `aluno` ou `admin`, lido do claim `papel` do session token do Clerk, que vem do Public metadata da pessoa. Claim ausente ou com outro valor vale `aluno`. |
@@ -36,24 +38,28 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Curso concluído | Curso em que o aluno tem certificado. |
 | Carga horária | A soma da duração dos vídeos do curso no momento da emissão, gravada no certificado e arredondada para cima em horas ("2 horas"). Não muda se o curso ganhar aula depois. |
 | Conferência | A página pública que confirma um certificado pelo código, sem login: o QR da folha leva a ela. Evite "validação", que a PRODUCT.md reserva para órgão externo. |
-| Curso começado | Curso em que o aluno tem pelo menos uma aula assistida ou uma posição acima de 0 s. Só volta a fechar como `em_breve`, quando o admin o põe em produção. |
+| Curso começado | Curso em que o aluno tem pelo menos uma aula assistida, uma posição acima de 0 s ou uma tentativa de questionário. Só volta a fechar como `em_breve`, quando o admin o põe em produção. |
 | Ponto | Valor inteiro de um lançamento. O saldo é a soma dos lançamentos do aluno. |
 | Lançamento | Fato imutável de pontos, ligado ao fato que o gerou. Entrada é positiva; saída é negativa, e hoje só a troca sai. O mesmo fato não gera dois lançamentos. |
 | Saldo | Soma dos lançamentos do aluno. Toda saída lê o saldo com o aluno travado, e por isso ele nunca fica negativo. |
 | Pontos da semana | Soma das entradas desde segunda. A troca não entra. |
 | Extrato | Os lançamentos mais recentes do aluno, com o fato de cada um em texto. |
 | Troca | Liberação de um curso trocável paga com pontos. Grava, na mesma transação, a liberação do curso e um lançamento negativo que aponta para ela. O valor do lançamento é o preço pago. Curso que a pessoa já tem liberado, pelo admin ou por troca, não se troca de novo. |
-| Curso trocável | Curso publicado, com aula, em que o admin definiu um preço de troca. Some da vitrine de quem já tem liberação ativa dele. |
+| Curso trocável | Curso publicado, com aula, em que o admin definiu um preço de troca. Na vitrine de troca, vira "já tem" para quem o tem liberado pelo admin e mostra a troca feita para quem o trocou. |
+| Vitrine de troca | A lista de cursos trocáveis da tela Trocar pontos. A "Vitrine" do editor do curso é outra coisa: a primeira seção, com capa, título, categoria e descrição. |
 | Preço de troca | Pontos que a próxima troca de um curso custa. Mudar o preço não muda as trocas feitas. |
 | Dia útil | Segunda a sexta no fuso `America/Sao_Paulo`. Feriado conta como dia útil. |
 | Sequência | Dias úteis seguidos com pelo menos uma aula assistida pela primeira vez. Sábado e domingo não contam nem quebram. |
 | Medalha | Conquista individual por um marco que o app já registra: Primeira aula, 10, 50 e 100 aulas, Sete dias seguidos, Primeira troca, Primeiro curso concluído e o certificado de cada curso. Ganha, leva o dia; por ganhar, o que falta. Não há nível de aluno, ranking nem comparação. A tela é "Conquistas". |
-| Comunicado | Aviso publicado pelo admin, geral ou de um curso. O aluno vê os gerais e os dos cursos que tem com liberação ativa: Meus cursos mostra o mais recente, e a tela Comunicados mostra todos, com o mais recente em destaque no topo. Não há marca de lido. |
+| Comunicado | Aviso publicado pelo admin, geral ou de um curso. O aluno vê os gerais e os dos cursos que tem com liberação ativa: Meus cursos mostra o mais recente, numa faixa no topo nos primeiros 14 dias corridos e depois no fim da página, e a tela Comunicados mostra todos, com o mais recente em destaque no topo. Não há marca de lido. |
+| Status do curso | `em_producao` ou `publicado`, o que o admin escolhe no editor. O aluno vê o curso em produção na lista, sem abrir aula. Não é o estado do curso, que o servidor calcula. |
 | Estado do curso | Um de cinco valores calculados no servidor: `em_breve`, `nao_iniciado`, `em_andamento`, `questionarios` (todas as aulas assistidas e algum questionário sem aprovação), `concluido`. O aluno lê `em_breve` como "Em produção". O termo é o do admin, mas o alcance é maior: `em_breve` vale para o curso com status `em_producao` e para o curso publicado ainda sem aula, que o admin vê como publicado. |
 | Último estudo | O dia mais recente, em São Paulo, em que a pessoa assistiu a uma aula, salvou uma posição acima de 0 s ou recebeu um certificado. Entrar no app não conta. |
-| Situação no curso | O estado do curso na palavra do admin: Nunca abriu (o "Não iniciado" do aluno), Estudando, Faltam questionários, Concluído e Em produção (o "Em breve" do aluno). Quem parou de estudar não ganha situação própria: o admin lê o dia do último estudo. Evite "Parado". |
+| Situação no curso | O estado do curso na palavra do admin: Nunca abriu (o "Não iniciado" do aluno), Estudando, Faltam questionários, Concluído e Em produção (o estado `em_breve`, que o aluno também lê como "Em produção"). Quem parou de estudar não ganha situação própria: o admin lê o dia do último estudo. Evite "Parado". |
 | Acompanhamento | O estudo de uma pessoa no curso de uma liberação, como o admin lê: o progresso e a situação no curso. O módulo e a aula são os da aula para onde o Continuar da pessoa leva, os mesmos da capa do curso em "Meus cursos". A liberação revogada mostra o estudo que ficou. |
 | Situação da pessoa | O que a busca do admin diz de cada pessoa, decidido nesta ordem: Sem liberação (nenhuma ativa), Nunca abriu (nenhum estudo nos cursos liberados a ela), Concluiu tudo (todo curso liberado a ela e que não está em produção tem certificado) e Estudando. Evite "resumo": no código, `aluno.resumo` é o placar do aluno. |
 | Retomada | A aula e o segundo para onde o banner de "Meus cursos" e o cartão "Continuar" da sidebar levam: continuar, começar ou fazer o questionário que falta. Os dois leem a mesma retomada, e sem retomada o cartão não aparece. |
 | Placar | Saldo e sequência do aluno no cartão de conta da sidebar, só na área do aluno. É o único lugar da tela que os mostra fora de "Trocar pontos", da semana de "Meus cursos", do marco Sete dias seguidos em "Conquistas" e do aviso de conquista do player. |
-| Casca | A moldura de navegação comum ao aluno e ao admin: a sidebar, que recolhe para ícones, a gaveta do celular e o rodapé com o cartão de conta. Cada área passa só os itens, o selo e o link para a outra área. |
+| Aviso de conquista | O aviso do player quando uma aula vira assistida, com os pontos ganhos e o bônus da sequência. Não é medalha: a medalha mora na tela Conquistas. |
+| Casca | A navegação comum ao aluno e ao admin: a sidebar, que recolhe para ícones, a gaveta do celular e o rodapé com o cartão de conta. Cada área passa os itens, o selo, o link para a outra área e, no aluno, o placar e o Continuar. |
+| Moldura | O painel do conteúdo dentro da casca, do tablet para cima: a margem em volta, o raio e a sombra que o separam da sidebar. |

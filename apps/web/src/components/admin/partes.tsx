@@ -4,10 +4,6 @@ import type { ReactNode } from "react";
 
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 
-export const CABECA = "h-11 px-5 font-semibold text-muted-foreground text-xs";
-export const CELULA = "px-5 py-3.5 text-sm";
-export const NUMERO = "text-right tabular-nums";
-
 /**
  * O gatilho da Selecao. A borda Céu do foco e do cursor vem do index.css pelo
  * data-slot="select-trigger"; a seta gira com o data-popup-open do Base UI.

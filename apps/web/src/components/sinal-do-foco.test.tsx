@@ -4,7 +4,7 @@
 // que casam com o foco de teclado e confere o sinal que o dono escolheu. A pílula
 // acende por um irmão (:has e ~), que só um browser de verdade avalia: a navegação
 // abre no Chromium headless, com o cursor e o foco forçados no link. Sem Chromium
-// na máquina, só a suíte da pílula pula.
+// na máquina, pulam a suíte da pílula e a do Revogar em 390 px.
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
