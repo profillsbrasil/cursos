@@ -1,139 +1,63 @@
 # Profills Cursos
 
-A plataforma de cursos da Profills Brasil (repositório `cursos`). O mapa do código e as regras de trabalho estão em `CLAUDE.md`. O produto está em `apps/web/PRODUCT.md`, o sistema visual em `apps/web/DESIGN.md`, a marca em `docs/marca/README.md` e o vocabulário do domínio em `GLOSSARY.md`.
+A plataforma de cursos da Profills Brasil (repositório `cursos`). O mapa do código e as regras de trabalho estão em `CLAUDE.md`. O produto está em `apps/web/PRODUCT.md`, o sistema visual em `apps/web/DESIGN.md`, a marca em `docs/marca/README.md`, o vocabulário do domínio em `GLOSSARY.md` e as decisões de arquitetura em `docs/adr/`.
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, Self, TRPC, and more.
+O monorepo é Bun e Turborepo, gerado pelo [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack): Next.js 16, tRPC 11, Drizzle sobre o Postgres do Supabase, Clerk e shadcn (Base UI), com deploy na Vercel.
 
-## Features
-
-- **TypeScript** - For type safety and improved developer experience
-- **Next.js** - Full-stack React framework
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **tRPC** - End-to-end type-safe APIs
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Clerk
-- **Motion** - Animation the CSS can't do alone (the sliding pill of the active sidebar item)
-- **PWA** - Progressive Web App support
-- **Turborepo** - Optimized monorepo build system
-
-## Getting Started
-
-First, install the dependencies:
-
-```bash
-bun install
-```
-
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/web/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
-
-```bash
-bun run db:push
-```
-
-## Clerk Authentication Setup
-
-- Follow the guide: [Clerk Quickstart](https://clerk.com/docs/nextjs/getting-started/quickstart)
-- Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` in `apps/web/.env`
-- Set `CLERK_SECRET_KEY` in `apps/web/.env` for Clerk server middleware and server-side Clerk auth
-- Set `CLERK_PUBLISHABLE_KEY` in `apps/web/.env` for server-side Clerk request verification
-
-Then, run the development server:
-
-```bash
-bun run dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
-
-## UI Customization
-
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
-
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
-
-```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
-```
-
-Import shared components like this:
-
-```tsx
-import { Button } from "@cursos/ui/components/button";
-```
-
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
-## Environment Configuration
-
-Each app owns its environment schema in `.env.schema`. Varlock generates `src/env.ts` during installation; run `bun run env:generate` after changing a schema. Commit schemas, and keep secrets in ignored env files or your deployment platform.
-
-Import the generated `ENV` accessor in application code. Shared database and auth packages receive configuration or initialized clients from the application. See [Varlock's monorepo guide](https://varlock.dev/guides/monorepos/).
-
-Bun's automatic env loading is disabled in `bunfig.toml`; the framework integration or server bootstrap loads Varlock. Node deployments must include Varlock and its dependencies alongside the app schema.
-
-Run standalone Node/Bun tools that use Varlock from the owning app directory so they load that app's schema and env files. `env:generate` only generates TypeScript files; it does not initialize environment values in a subsequent command.
-
-## Deployment
-
-### Vercel Services
-
-- Target: web + server
-- Config: `vercel.json`
-- Link the project first: bun run deploy:setup
-- Local Vercel dev: bun run dev:vercel
-- Sync preview env: bun run env:preview
-- Sync production env: bun run env:production
-- Dry-run check (no upload): bun run deploy:check
-- Preview deploy: bun run deploy
-- Production deploy: bun run deploy:prod
-  Vercel Services share project environment variables, but deploys do not upload local `.env` files automatically. Link the project with `vercel link`, then run the env sync command before your first deploy (otherwise the deployment starts with no env vars), or pass one-off envs with `vercel deploy -e KEY=value`.
-  Pass Vercel CLI flags to the env sync command directly, for example: `bun run env:production --scope your-team`.
-
-For more details, see the guide on [Deploying to Vercel](https://www.better-t-stack.dev/docs/guides/vercel).
-
-## Project Structure
+## Estrutura
 
 ```
 cursos/
-├── apps/
-│   └── web/         # Fullstack application (Next.js)
-├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   └── db/          # Database schema & queries
+├── apps/web/          # o app Next.js (porta 3001)
+├── packages/api/      # @cursos/api: routers do tRPC, regras do domínio e consultas
+├── packages/db/       # @cursos/db: schema, migrações e seed do Drizzle
+├── packages/ui/       # @cursos/ui: componentes shadcn e tokens
+├── packages/config/   # @cursos/config: tsconfig compartilhado
+├── scripts/           # sync-vercel-env.ts
+└── docs/              # ADRs, marca e specs
 ```
 
-## Available Scripts
+## Primeiros passos
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
-- `bun run deploy:setup`: Link this repo to a Vercel project (first-time setup)
-- `bun run dev:vercel`: Run the Vercel Services dev environment locally
-- `bun run env:preview`: Sync local env files to the Vercel preview environment
-- `bun run env:production`: Sync local env files to the Vercel production environment
-- `bun run deploy`: Create a Vercel preview deployment
-- `bun run deploy:prod`: Deploy to Vercel production
-- `bun run deploy:check`: Dry-run a deploy to preview framework detection and included files without uploading
+1. Instale as dependências com `bun install`. O `postinstall` gera os `env.ts` pelo varlock.
+2. Preencha o `apps/web/.env` seguindo o contrato de `apps/web/.env.schema`. O `CORS_ORIGIN` precisa ser exatamente a origem do browser (`http://localhost:3001`); com outro valor, o Clerk recusa o token e toda chamada protegida responde `UNAUTHORIZED`.
+3. Suba o app com `bun run dev:web`, ou tudo com `bun run dev`, e abra http://localhost:3001.
+
+O `DATABASE_URL` do `.env` aponta para o banco cloud do Supabase, que é o banco real. `db:push` e `db:migrate` contra ele são escrita em produção: só rode com o OK do dono. Para trabalhar isolado, use o Supabase local:
+
+```bash
+bun run db:start                                   # sobe o Supabase local (porta 54322)
+cd packages/db && bun run db:migrate:local         # aplica as migrações no banco local
+bun run --cwd apps/web dev:local                   # sobe o app contra o banco local
+```
+
+O seed de exemplo roda dentro de `packages/db` com `bun run db:seed -- --aluno <userId do Clerk>` e recusa host que não seja o local.
+
+## Scripts da raiz
+
+| Script | O que faz |
+|---|---|
+| `bun run dev` e `dev:web` | Sobe tudo, ou só o app |
+| `bun run build` | Builda todos os pacotes |
+| `bun run test` | Roda os testes; os de integração pedem `TEST_DATABASE_URL` no banco local |
+| `bun run check-types` | Confere os tipos de todos os pacotes |
+| `bun run check` e `fix` | Lint e formato pelo Ultracite (Biome) |
+| `bun run env:generate` | Regenera os `env.ts` depois de mudar um `.env.schema` |
+| `bun run db:start` e `db:stop` | Sobe e derruba o Supabase local |
+| `bun run db:generate` | Gera a migração SQL a partir do schema (`drizzle-kit generate`) |
+| `bun run db:migrate`, `db:push` e `db:studio` | `drizzle-kit` contra o `DATABASE_URL`; são tasks interativas do turbo, então num shell sem TTY rode `bunx drizzle-kit <comando>` dentro de `packages/db` |
+| `bun run deploy:setup` | Liga o repo a um projeto da Vercel |
+| `bun run env:preview` e `env:production` | Envia o env para a Vercel |
+| `bun run deploy`, `deploy:prod` e `deploy:check` | Deploy de preview, deploy de produção e a simulação sem envio |
+
+## Componentes de UI
+
+Os componentes shadcn moram em `packages/ui` e se importam por caminho, como `@cursos/ui/components/button`. Para acrescentar um, rode o CLI **dentro de `packages/ui`**: `bunx --bun shadcn@latest add <nome>`. Rodado em `apps/web`, o hook do componente cai no app e o componente não compila. Sem TTY, o `add` trava quando pergunta se sobrescreve um arquivo; use `yes n | bunx --bun shadcn@latest add <nome>`.
+
+## Env
+
+Cada pacote tem o próprio `.env.schema`, e o varlock gera o `src/env.ts` dele. O código de servidor do app importa `ENV` de `apps/web/src/env.server.ts`. O carregamento automático de env do Bun está desligado em `bunfig.toml`: quem carrega é a integração do varlock com o Next. Rode ferramentas que usam o varlock de dentro do pacote dono do schema.
+
+## Deploy
+
+O `vercel.json` declara um serviço só, `web`, com raiz em `apps/web` e install na raiz do monorepo. O deploy não envia o `.env` local: rode `bun run env:preview` ou `env:production` antes do primeiro deploy. Sem argumento, o `env:production` envia o `apps/web/.env` de dev, com as chaves `pk_test` e o banco do dev. Para produção, monte um `apps/web/.env.production.local` (ignorado pelo git) e rode `bun run env:production apps/web/.env.production.local`.
