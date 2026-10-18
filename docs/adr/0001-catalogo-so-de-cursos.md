@@ -45,3 +45,11 @@ A main e todos os worktrees usam o mesmo banco cloud. Aplicar a migração antes
 3. O dono aplica a migração no cloud e zera o banco no mesmo momento.
 
 A migração não tem guarda nem opt-in, porque os dados são de teste.
+
+## Depois da decisão
+
+Nota de 18 de outubro de 2026. A decisão continua valendo, e o texto acima fica como foi aceito.
+
+- Os três itens de "Fica para os próximos PRs" entraram na main: descrição, tópicos e categoria no #66 e no #71, a página do curso no #66, e o questionário com o certificado no #76 e no #77.
+- A "prova" do texto virou o questionário por aula. Não existe prova final: o curso com todas as aulas assistidas e algum questionário sem aprovação tem o estado `questionarios`, e a retomada leva a ele antes do primeiro curso não iniciado.
+- A ordem de aplicação foi cumprida em 16 de outubro de 2026. Zerar o banco cloud segue com o dono.
