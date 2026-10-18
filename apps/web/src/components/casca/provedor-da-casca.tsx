@@ -14,19 +14,18 @@ import {
 } from "react";
 
 import { aberturaEm, alternar, estaAberta, navegar } from "./abertura";
-import {
-  COOKIE_DA_SIDEBAR,
-  LARGURAS_DA_SIDEBAR,
-  VALIDADE_DO_COOKIE_S,
-} from "./nav";
+import { COOKIE_DA_SIDEBAR, LARGURAS_DA_SIDEBAR } from "./nav";
 
 /** A transição de largura de index.css dura 200 ms; a folga cobre o último quadro. */
 const PRAZO_DA_ANIMACAO_MS = 260;
 
 const Animar = createContext<(() => void) | null>(null);
 
+const VALIDADE_DO_COOKIE_S = 60 * 60 * 24 * 7;
+
+/** O único escritor do cookie: o setOpen do packages/ui não grava (sidebar.tsx editado, nav.test.ts confere). */
 const gravarPreferencia = (aberta: boolean) => {
-  // biome-ignore lint/suspicious/noDocumentCookie: o mesmo cookie e o mesmo formato que o setOpen do packages/ui grava.
+  // biome-ignore lint/suspicious/noDocumentCookie: casca.tsx lê este cookie no servidor.
   document.cookie = `${COOKIE_DA_SIDEBAR}=${aberta}; path=/; max-age=${VALIDADE_DO_COOKIE_S}`;
 };
 
@@ -66,13 +65,9 @@ export function ProvedorDaCasca({
 
   const aoAlternar = useCallback(
     (nova: boolean) => {
-      if (abertura.lugar === "aula") {
-        // Workaround: o setOpen do packages/ui grava o cookie logo depois de chamar
-        // esta função. Na aula a preferência não muda, e a microtarefa a regrava.
-        const { preferida } = abertura;
-        queueMicrotask(() => gravarPreferencia(preferida));
-      }
-      setAbertura((a) => alternar(a, nova));
+      const alternada = alternar(abertura, nova);
+      gravarPreferencia(alternada.preferida);
+      setAbertura(alternada);
     },
     [abertura]
   );
