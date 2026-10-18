@@ -1,0 +1,35 @@
+import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { Glob } from "bun";
+
+const SRC = join(import.meta.dir, "..");
+const CURVA_PROPRIA = /ease-\[cubic-bezier/;
+const DURACAO = /duration-(\d+)\b/g;
+const DURACAO_MAXIMA_MS = 200;
+
+/**
+ * A regra de movimento do DESIGN.md: a curva é o ease-forte e a transição da
+ * interface dura de 150 a 200 ms. Curva escrita à mão ou duração acima disso
+ * volta a ser acusada aqui, com o arquivo e a linha.
+ */
+describe("movimento da interface", () => {
+  test("nenhum componente escreve curva própria nem passa de 200 ms", () => {
+    const fora: string[] = [];
+    for (const arquivo of new Glob("**/*.{ts,tsx}").scanSync(SRC)) {
+      if (arquivo.includes(".test.")) {
+        continue;
+      }
+      const linhas = readFileSync(join(SRC, arquivo), "utf8").split("\n");
+      linhas.forEach((linha, i) => {
+        const longas = [...linha.matchAll(DURACAO)].filter(
+          (m) => Number(m[1]) > DURACAO_MAXIMA_MS
+        );
+        if (CURVA_PROPRIA.test(linha) || longas.length > 0) {
+          fora.push(`${arquivo}:${i + 1}`);
+        }
+      });
+    }
+    expect(fora).toEqual([]);
+  });
+});

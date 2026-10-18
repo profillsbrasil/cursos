@@ -32,13 +32,13 @@ const apagado = () => false;
 
 const GATILHO = cn(
   "flex w-full items-center gap-2.5 rounded-2xl border border-sidebar-border bg-sidebar p-2 text-left",
-  "transition-[border-color,background-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
+  "transition-[border-color,background-color,box-shadow] duration-150 ease-forte motion-reduce:transition-none",
   "hover:border-trilho hover:bg-sidebar-accent data-popup-open:border-trilho data-popup-open:bg-sidebar-accent",
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px"
 );
 
 // O anel acende quando a conquista chega no player (anelDosPontos).
-const ANEL = "ring-3 ring-sol/35 duration-300";
+const ANEL = "ring-3 ring-sol/35 duration-200";
 
 const ITEM =
   "h-9 gap-2.5 rounded-[9px] px-2.5 font-medium text-[13px] text-sidebar-foreground focus:bg-sidebar-accent focus:text-titulo [&_svg]:text-muted-foreground";
