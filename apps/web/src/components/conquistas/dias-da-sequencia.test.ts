@@ -76,4 +76,32 @@ describe("os sete dias da sequência", () => {
       resumo({ dias: 0, hoje: SEXTA, hojePendente: true, meta: 7 })[0]
     ).toBe("10-16 hoje");
   });
+
+  const fins = (o: Parameters<typeof diasDaSequencia>[0]) =>
+    diasDaSequencia(o).flatMap((d, i) =>
+      d.depoisDoFimDeSemana ? [`${i}: ${d.dia.slice(5)}`] : []
+    );
+
+  test("marca o dia que vem depois de sábado e domingo", () => {
+    expect(fins({ dias: 3, hoje: SEXTA, hojePendente: true, meta: 7 })).toEqual(
+      ["4: 10-19"]
+    );
+  });
+
+  test("sete dias úteis a partir de uma sexta atravessam dois fins de semana", () => {
+    expect(fins({ dias: 0, hoje: SEXTA, hojePendente: true, meta: 7 })).toEqual(
+      ["1: 10-19", "6: 10-26"]
+    );
+  });
+
+  test("de segunda a sexta seguidas, nenhuma marca, e o primeiro dia nunca leva", () => {
+    expect(
+      fins({
+        dias: 0,
+        hoje: "2026-10-19" as DiaISO,
+        hojePendente: true,
+        meta: 5,
+      })
+    ).toEqual([]);
+  });
 });

@@ -182,11 +182,12 @@ export function fraseDaSequencia(
   if (dias === 0) {
     return `Uma aula por dia útil, por ${fmtNum(meta)} dias. ${SEM_QUEBRA}`;
   }
+  const conta = `${fmtNum(dias)} de ${fmtNum(meta)} dias úteis.`;
   if (hojePendente) {
-    return `Assista uma aula hoje para chegar a ${fmtNum(dias + 1)}. ${SEM_QUEBRA}`;
+    return `${conta} Assista uma aula hoje para chegar a ${fmtNum(dias + 1)}. ${SEM_QUEBRA}`;
   }
   const resta = meta - dias;
-  return `${faltam(resta)} ${plural(resta, "dia útil", "dias úteis")}.`;
+  return `${conta} ${faltam(resta)} ${plural(resta, "dia útil", "dias úteis")}.`;
 }
 
 const SIGLAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
@@ -201,6 +202,8 @@ const NOMES = [
 ] as const;
 
 const diaDaSemana = (dia: DiaISO) => new Date(`${dia}T12:00:00Z`).getUTCDay();
+
+export const diaDoMes = (d: DiaDaSequencia) => Number(d.dia.slice(8));
 
 export const siglaDoDia = (d: DiaDaSequencia) =>
   d.estado === "hoje" ? "Hoje" : SIGLAS[diaDaSemana(d.dia)];
@@ -233,11 +236,6 @@ export function contagemDasMedalhas(c: Conquistas): string {
     ? "Nenhuma medalha ainda"
     : `${plural(n, "medalha ganha", "medalhas ganhas")} de ${fmtNum(total)}`;
 }
-
-export const contagemDosMarcos = (
-  marcos: readonly { medalha: { estado: string } }[]
-) =>
-  `${fmtNum(ganhas(marcos.map((m) => m.medalha)))} de ${fmtNum(marcos.length)}`;
 
 export const contagemDosCertificados = (
   certificados: readonly CertificadoNaTela[]

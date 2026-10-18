@@ -6,6 +6,8 @@ import {
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 
 export interface DiaDaSequencia {
+  /** Entre o dia anterior da lista e este houve sábado e domingo. */
+  depoisDoFimDeSemana: boolean;
   dia: DiaISO;
   estado: "feito" | "hoje" | "por_vir";
 }
@@ -35,7 +37,7 @@ export function diasDaSequencia({
   meta: number;
 }): DiaDaSequencia[] {
   const fim = ehDiaUtil(hoje) && !hojePendente ? hoje : diaUtilAnterior(hoje);
-  const semana: DiaDaSequencia[] = [];
+  const semana: Omit<DiaDaSequencia, "depoisDoFimDeSemana">[] = [];
   for (let d = fim; semana.length < dias; d = diaUtilAnterior(d)) {
     semana.unshift({ dia: d, estado: "feito" });
   }
@@ -43,5 +45,9 @@ export function diasDaSequencia({
     semana.push({ dia: d, estado: d === hoje ? "hoje" : "por_vir" });
     d = proximoDiaUtil(d);
   }
-  return semana;
+  return semana.map((d, i) => ({
+    ...d,
+    depoisDoFimDeSemana:
+      i > 0 && somarDias(semana[i - 1]?.dia ?? d.dia, 1) !== d.dia,
+  }));
 }

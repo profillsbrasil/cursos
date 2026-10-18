@@ -32,6 +32,12 @@ export function pontoNaTrilha(
   return { porcento: 100, recuoPx: meia };
 }
 
+/**
+ * Nos primeiros 6% da trilha, a pílula centrada no ponto passaria da borda do
+ * cartão no celular; ali ela se alinha pelo começo, perto do ponto.
+ */
+export const naPontaEsquerda = ({ porcento }: PontoNaTrilha) => porcento < 6;
+
 export const cssDoPonto = ({ porcento, recuoPx }: PontoNaTrilha) =>
   `calc(${porcento}% - ${recuoPx}px)`;
 

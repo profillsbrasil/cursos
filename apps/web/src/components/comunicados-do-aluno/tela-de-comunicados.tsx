@@ -8,7 +8,7 @@ import { BookOpen, Megaphone } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
+import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
 import {
   BOTAO_CONTORNO,
   LINK_NO_TEXTO,
@@ -181,14 +181,7 @@ export function CabecalhoDosComunicados({
 }: {
   subtitulo: string | null;
 }) {
-  return (
-    <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
-      <h1 className="font-bold text-3xl text-titulo tracking-tight">
-        Comunicados
-      </h1>
-      {subtitulo ? <p className="text-muted-foreground">{subtitulo}</p> : null}
-    </header>
-  );
+  return <CabecalhoDaPagina resumo={subtitulo} titulo="Comunicados" />;
 }
 
 export function TelaDeComunicados({

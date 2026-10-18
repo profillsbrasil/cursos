@@ -54,6 +54,13 @@ const tela = (pagina: PaginaDoCertificado) =>
     />
   );
 
+const PENDENTE: PaginaDoCertificado = {
+  aulas: { feitas: 3, total: 7 },
+  curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+  questionarios: { aprovados: 1, total: 3 },
+  tipo: "falta",
+};
+
 const TELAS = {
   emitido: tela(emitido(ANA)),
   longo: tela(emitido(LONGO)),
@@ -62,6 +69,7 @@ const TELAS = {
       <SemCertificado digitado="7K3M-Q9TX" />
     </div>
   ),
+  pendente: tela(PENDENTE),
   recibo: renderToStaticMarkup(
     <div className={CORPO_DA_CONFERENCIA}>
       <ReciboDaConferencia certificado={ANA} hoje={HOJE} />
@@ -162,6 +170,43 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
     expect(m.cartao.esquerda).toBe(16);
     expect(m.cartao.largura).toBe(m.folha.largura);
     expect(m.cartao.topo - m.folha.pe).toBe(32);
+    expect(m.rolagem).toBe(0);
+  });
+
+  const DO_PENDENTE = `
+    const cartao = document.querySelector('[aria-labelledby="certificado-pendente"]');
+    const lugar = cartao.parentElement.firstElementChild;
+    return {
+      cartao: caixa(cartao),
+      lugar: caixa(lugar),
+      lugarAltura: Math.round(lugar.getBoundingClientRect().height),
+      rolagem: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    };`;
+
+  interface DoPendente {
+    cartao: Caixa;
+    lugar: Caixa;
+    lugarAltura: number;
+    rolagem: number;
+  }
+
+  test("1280 px, sem certificado: o lugar da folha em A4 e o cartão do que falta ao lado", async () => {
+    await abrir(1280, TELAS.pendente, DO_ALUNO[1280]);
+    const m = await medir<DoPendente>(DO_PENDENTE);
+    expect(m.cartao.largura).toBe(300);
+    expect(m.cartao.topo).toBe(m.lugar.topo);
+    expect(m.cartao.esquerda - m.lugar.direita).toBe(32);
+    expect(
+      Math.abs(m.lugarAltura - (m.lugar.largura * 794) / 1123)
+    ).toBeLessThan(1);
+  });
+
+  test("390 px, sem certificado: o lugar da folha e o cartão um embaixo do outro, sem rolagem de lado", async () => {
+    await abrir(390, TELAS.pendente, DO_ALUNO[390]);
+    const m = await medir<DoPendente>(DO_PENDENTE);
+    expect(m.lugar.esquerda).toBe(16);
+    expect(m.cartao.largura).toBe(m.lugar.largura);
+    expect(m.cartao.topo - m.lugar.pe).toBe(32);
     expect(m.rolagem).toBe(0);
   });
 

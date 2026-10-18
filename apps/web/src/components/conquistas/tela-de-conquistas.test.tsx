@@ -33,9 +33,14 @@ const itens = (h: string) =>
 
 const trilha = (h: string) => texto(trecho(h, "data-trilha", "</ol>"));
 const sequencia = (h: string) =>
-  texto(trecho(h, "data-sequencia", "</p></div>"));
+  texto(
+    trecho(h, "data-sequencia", '<ol aria-label="Primeiras vezes"').replace(
+      /<li aria-hidden="true"[^>]*>[^<]*<\/li>/g,
+      " | "
+    )
+  );
 const primeirasVezes = (h: string) =>
-  itens(trecho(h, "Primeiras vezes", "</ol>"));
+  itens(trecho(h, 'aria-label="Primeiras vezes"', "</ol>"));
 const certificados = (h: string) =>
   trecho(h, 'aria-labelledby="conquistas-certificados"', "</section>");
 
@@ -44,7 +49,10 @@ const diasDaSemana = (h: string) =>
     ([, rotulo, estado]) => `${estado} ${rotulo}`
   );
 
-const PILULA_VOCE = /<span class="([^"]*)" data-voce="true" style="([^"]*)"/;
+const MARCOS_SEM_TITULO_A_VISTA =
+  /<section aria-labelledby="conquistas-marcos"[^>]*><h2 class="sr-only" id="conquistas-marcos">Marcos<\/h2><div [^>]*data-trilha/;
+
+const PILULA_VOCE = /<b class="([^"]*)" data-voce="true" style="([^"]*)"/;
 
 const comMarco = (
   base: Conquistas,
@@ -61,21 +69,29 @@ describe("a aluna com medalhas", () => {
   const h = html(ALUNA);
 
   test("o cabeçalho conta as medalhas ganhas entre marcos e certificados", () => {
-    expect(texto(h)).toContain("Conquistas 5 medalhas ganhas de 12");
-    expect(texto(h)).toContain("Marcos 4 de 7");
+    expect(texto(h)).toStartWith("Conquistas 5 medalhas ganhas de 12 Marcos");
     expect(texto(h)).toContain("Certificados 1 de 5 cursos");
+  });
+
+  test("Marcos é uma região com nome, sem título nem contagem à vista", () => {
+    expect(h).toMatch(MARCOS_SEM_TITULO_A_VISTA);
+    expect(texto(h)).not.toContain("4 de 7");
   });
 
   test("a trilha diz onde ela está e quanto falta para a próxima medalha", () => {
     expect(trilha(h)).toBe(
       "49 aulas assistidas. Falta 1 para a medalha de 50. Cada aula assistida até o fim conta para as três medalhas. Você, 49 10 aulas Ganha em 9 de set. 50 aulas Falta 1 aula 100 aulas Faltam 51 aulas"
     );
-    expect(h).toContain('style="left:calc(65.83333333333333% - 28px)"');
+    for (const peca of ["data-voce", "data-haste", "data-ponto"]) {
+      expect(h).toContain(
+        `${peca}="true" style="left:calc(65.83333333333333% - 28px)"`
+      );
+    }
   });
 
   test("a sequência são sete dias úteis, com hoje pendente e a frase do próximo passo", () => {
     expect(sequencia(h)).toBe(
-      "Sete dias seguidos 3 de 7 dias úteis Ter Qua Qui Hoje Seg Ter Qua Assista uma aula hoje para chegar a 4. Sábado e domingo não quebram."
+      "Sete dias seguidos 3 de 7 dias úteis. Assista uma aula hoje para chegar a 4. Sábado e domingo não quebram. Ter Qua Qui Hoje 16 | Seg 19 Ter 20 Qua 21"
     );
     expect(diasDaSemana(h)).toEqual([
       "feito terça, 13 de out.: com aula",
@@ -90,11 +106,10 @@ describe("a aluna com medalhas", () => {
 
   test("as primeiras vezes, com o fato e o dia de cada uma", () => {
     expect(primeirasVezes(h)).toEqual([
-      "Primeira aula Como responder, em Autoavaliação Comercial 18 de ago.",
-      "Primeira troca Boas práticas de fabricação, por 200 pts 13 de out.",
-      "Primeiro curso concluído Autoavaliação Comercial 2 de set.",
+      "Ganha Primeira aula Como responder, em Autoavaliação Comercial 18 de ago.",
+      "Ganha Primeira troca Boas práticas de fabricação, por 200 pts 13 de out.",
+      "Ganha Primeiro curso concluído Autoavaliação Comercial 2 de set.",
     ]);
-    expect(texto(h)).toContain("Primeiras vezes 3 de 3");
   });
 
   test("cada certificado é um cartão que leva ao certificado emitido ou ao curso", () => {
@@ -142,7 +157,6 @@ describe("o aluno novo", () => {
 
   test("sem medalha, o cabeçalho diz que ainda não há", () => {
     expect(texto(h)).toContain("Conquistas Nenhuma medalha ainda");
-    expect(texto(h)).toContain("Marcos 0 de 7");
     expect(texto(h)).toContain("Certificados 0 de 1 curso");
   });
 
@@ -153,19 +167,20 @@ describe("o aluno novo", () => {
     const [, classes, estilo] = h.match(PILULA_VOCE) ?? [];
     expect(estilo).toBe("left:calc(0% - 0px)");
     expect(classes).not.toContain("-translate-x-1/2");
+    expect(h).toContain('data-ponto="true" style="left:calc(0% - 0px)"');
   });
 
   test("sem dia feito, a sequência começa hoje e explica a regra", () => {
     expect(sequencia(h)).toBe(
-      "Sete dias seguidos 0 de 7 dias úteis Hoje Seg Ter Qua Qui Sex Seg Uma aula por dia útil, por 7 dias. Sábado e domingo não quebram."
+      "Sete dias seguidos Uma aula por dia útil, por 7 dias. Sábado e domingo não quebram. Hoje 16 | Seg 19 Ter 20 Qua 21 Qui 22 Sex 23 | Seg 26"
     );
   });
 
   test("cada primeira vez diz o próximo passo", () => {
     expect(primeirasVezes(h)).toEqual([
-      "Primeira aula Comece por Riscos do posto de montagem, em Fábrica e montagem. Por ganhar",
-      "Primeira troca Cada aula vale 10 pts; o curso mais barato custa 200 pts. Por ganhar",
-      "Primeiro curso concluído Fábrica e montagem tem 7 aulas. Por ganhar",
+      "Por ganhar Primeira aula Comece por Riscos do posto de montagem, em Fábrica e montagem.",
+      "Por ganhar Primeira troca Cada aula vale 10 pts; o curso mais barato custa 200 pts.",
+      "Por ganhar Primeiro curso concluído Fábrica e montagem tem 7 aulas.",
     ]);
   });
 
@@ -193,7 +208,7 @@ describe("as frases que mudam com o progresso", () => {
           })
         )
       )[0]
-    ).toBe("Primeira aula Termine Aula 2, em Curso. Por ganhar");
+    ).toBe("Por ganhar Primeira aula Termine Aula 2, em Curso.");
   });
 
   test("a sequência com hoje já feito conta o que falta", () => {
@@ -209,7 +224,7 @@ describe("as frases que mudam com o progresso", () => {
         )
       )
     ).toEndWith(
-      "6 de 7 dias úteis Sex Seg Ter Qua Qui Sex Seg Falta 1 dia útil."
+      "6 de 7 dias úteis. Falta 1 dia útil. Sex | Seg Ter Qua Qui Sex | Seg 19"
     );
   });
 
@@ -218,12 +233,12 @@ describe("as frases que mudam com o progresso", () => {
       comMarco(NOVO, 4, { dia: "2026-09-25", estado: "ganha", vezes: 3 })
     );
     expect(sequencia(h)).toBe(
-      "Sete dias seguidos Ganha em 25 de set. 3 vezes até hoje Uma aula nova em 7 dias úteis seguidos. Sábado e domingo não quebram."
+      "Sete dias seguidos Uma aula nova em 7 dias úteis seguidos. Sábado e domingo não quebram. Ganha em 25 de set. 3 vezes até hoje"
     );
     expect(diasDaSemana(h)).toEqual([]);
-    expect(trecho(h, "data-sequencia", "</p></div>")).toContain(
-      'data-medalha="ganha"'
-    );
+    expect(
+      trecho(h, "data-sequencia", '<ol aria-label="Primeiras vezes"')
+    ).toContain('data-medalha="ganha"');
   });
 
   test("a sequência ganha uma vez só não conta as vezes", () => {
@@ -248,7 +263,7 @@ describe("as frases que mudam com o progresso", () => {
         )
       )[1]
     ).toBe(
-      "Primeira troca Cada aula vale 10 pts. Nenhum curso novo para trocar agora. Por ganhar"
+      "Por ganhar Primeira troca Cada aula vale 10 pts. Nenhum curso novo para trocar agora."
     );
   });
 
@@ -263,10 +278,10 @@ describe("as frases que mudam com o progresso", () => {
         )
       )[2];
     expect(perto(5)).toBe(
-      "Primeiro curso concluído Faltam 2 aulas em Fábrica e montagem. Por ganhar"
+      "Por ganhar Primeiro curso concluído Faltam 2 aulas em Fábrica e montagem."
     );
     expect(perto(7)).toBe(
-      "Primeiro curso concluído Só faltam os questionários de Fábrica e montagem. Por ganhar"
+      "Por ganhar Primeiro curso concluído Só faltam os questionários de Fábrica e montagem."
     );
   });
 
