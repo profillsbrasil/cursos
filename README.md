@@ -1,6 +1,6 @@
 # Profills Cursos
 
-A plataforma de cursos da Profills Brasil (repositório `cursos`). O mapa do código e as regras de trabalho estão em `CLAUDE.md`. O produto está em `apps/web/PRODUCT.md`, o sistema visual em `apps/web/DESIGN.md`, a marca em `docs/marca/README.md`, o vocabulário do domínio em `GLOSSARY.md` e as decisões de arquitetura em `docs/adr/`.
+A plataforma de cursos da Profills Brasil (repositório `cursos`). As regras de trabalho estão em `CLAUDE.md`, e o mapa do código arquivo por arquivo em `docs/mapa.md`. O produto está em `apps/web/PRODUCT.md`, o sistema visual em `apps/web/DESIGN.md`, a marca em `docs/marca/README.md`, o vocabulário do domínio em `GLOSSARY.md` e as decisões de arquitetura em `docs/adr/`.
 
 O monorepo é Bun e Turborepo, gerado pelo [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack): Next.js 16, tRPC 11, Drizzle sobre o Postgres do Supabase, Clerk e shadcn (Base UI), com deploy na Vercel.
 
