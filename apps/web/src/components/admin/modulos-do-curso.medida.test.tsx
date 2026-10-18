@@ -23,13 +23,13 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium-de-teste";
-import { NADA_ESCOLHIDO, NENHUM_ABERTO } from "./estado-do-editor";
 import {
   BlocoDoModulo,
   ModulosDoCurso,
   reservarOTopo,
 } from "./modulos-do-curso";
 import { type RascunhoDoCurso, rascunhoDoCurso } from "./rascunho-do-curso";
+import { NADA_ESCOLHIDO, NENHUM_ABERTO } from "./rascunho-do-editor";
 
 const nada = () => undefined;
 const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
@@ -68,8 +68,6 @@ const blocoAberto = renderToStaticMarkup(
     marcados={new Set()}
     modulo={{ ...modelo, titulo: "Limpeza e higienização da envasadora" }}
     modulos={exemplo.modulos}
-    mudarBlocos={nada}
-    mudarEscolhas={nada}
     niveis={[{ nome: "Vendedor Profills Certificado", ordem: 1 }]}
   />
 );
@@ -81,8 +79,6 @@ const listaFechada = renderToStaticMarkup(
     escolhas={NADA_ESCOLHIDO}
     linhaAberta={LINHA_FECHADA}
     marcados={new Set()}
-    mudarBlocos={nada}
-    mudarEscolhas={nada}
     rascunho={dezesseis}
   />
 );

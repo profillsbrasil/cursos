@@ -1,30 +1,20 @@
 import { describe, expect, test } from "bun:test";
-import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
 import type { Versao, VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import {
-  apoiado,
-  type EstadoApoiado,
-  estadoApoiadoEm,
-  rascunhoSujo,
-} from "@/lib/use-rascunho-apoiado";
-
 import { ErrosDoEditor } from "./erros-do-editor";
+import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
+import { ID, lerRascunho, rascunhoDoCurso } from "./rascunho-do-curso";
 import {
   type Bloco,
   NADA_ESCOLHIDO,
   NENHUM_ABERTO,
-  REGRAS_DO_CURSO,
-} from "./estado-do-editor";
-import { BlocoDoModulo, ModulosDoCurso } from "./modulos-do-curso";
-import {
-  ID,
-  lerRascunho,
-  type RascunhoDoCurso,
-  rascunhoDoCurso,
-} from "./rascunho-do-curso";
+  type RascunhoDoEditor,
+  rascunhoDoEditor,
+  rascunhoDoEditorEm,
+  telaDo,
+} from "./rascunho-do-editor";
 
 const BOTAO = /<button[^>]*>[\s\S]*?<\/button>/g;
 
@@ -62,8 +52,6 @@ const blocoDoExemplo = (bloco: Bloco) => {
       marcados={new Set()}
       modulo={modulos[0]}
       modulos={modulos}
-      mudarBlocos={nada}
-      mudarEscolhas={nada}
       niveis={niveis}
     />
   );
@@ -132,8 +120,6 @@ describe("campo de vídeo da aula salva", () => {
       marcados={new Set()}
       modulo={rascunho.modulos[0]}
       modulos={rascunho.modulos}
-      mudarBlocos={nada}
-      mudarEscolhas={nada}
       niveis={rascunho.niveis}
     />
   );
@@ -152,28 +138,21 @@ describe("campo de vídeo da aula salva", () => {
   });
 
   test("o link longo colado e salvo volta ao campo curto, sem deixar o editor sujo", () => {
-    const sujo = (e: EstadoApoiado<DocumentoDoCurso, RascunhoDoCurso>) =>
-      rascunhoSujo(REGRAS_DO_CURSO, e);
-    const inicio = estadoApoiadoEm(
-      REGRAS_DO_CURSO,
-      documentoDeExemplo("v1" as Versao)
-    );
-    const colado = apoiado(REGRAS_DO_CURSO, inicio, {
-      mudanca: {
-        id: EDICAO.A1,
-        mudanca: { video: "https://www.youtube.com/watch?v=aqz-KE-bpKQ" },
-        tipo: "aula_editada",
-      },
-      tipo: "mudou",
+    const sujo = (e: RascunhoDoEditor) => telaDo(e).sujo;
+    const inicio = rascunhoDoEditorEm(documentoDeExemplo("v1" as Versao));
+    const colado = rascunhoDoEditor(inicio, {
+      id: EDICAO.A1,
+      mudanca: { video: "https://www.youtube.com/watch?v=aqz-KE-bpKQ" },
+      tipo: "aula_editada",
     });
-    const lido = lerRascunho(colado.rascunho, { versao: "v1" as Versao });
-    if (lido.tipo !== "lido") {
+    const { envio } = telaDo(colado);
+    if (envio === null) {
       throw new Error("o rascunho colado não leu");
     }
-    const salvo = apoiado(REGRAS_DO_CURSO, colado, {
-      enviado: colado.rascunho,
-      gravado: { ...lido.documento, versao: "v2" as Versao },
+    const salvo = rascunhoDoEditor(colado, {
+      envio,
       tipo: "salvo",
+      versao: "v2" as Versao,
     });
 
     expect(sujo(inicio)).toBe(false);
@@ -222,8 +201,6 @@ describe("lista de módulos fechados", () => {
       escolhas={NADA_ESCOLHIDO}
       linhaAberta={LINHA_FECHADA}
       marcados={new Set()}
-      mudarBlocos={nada}
-      mudarEscolhas={nada}
       rascunho={rascunhoDoCurso(documentoDeExemplo())}
     />
   );
@@ -254,8 +231,6 @@ describe("erro num módulo que o admin não abriu", () => {
         escolhas={NADA_ESCOLHIDO}
         linhaAberta={LINHA_FECHADA}
         marcados={erros}
-        mudarBlocos={nada}
-        mudarEscolhas={nada}
         rascunho={rascunhoDoCurso(documentoDeExemplo())}
       />
     </ErrosDoEditor>

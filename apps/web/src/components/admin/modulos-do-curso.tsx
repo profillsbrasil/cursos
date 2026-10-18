@@ -33,16 +33,6 @@ import { AulasDoModulo } from "./aulas-do-modulo";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import {
-  type Abertos,
-  type AcaoNasEscolhas,
-  type AcaoNosBlocos,
-  type Bloco,
-  blocoDoModulo,
-  type Escolhas,
-  type Marcados,
-  type Mudanca,
-} from "./estado-do-editor";
 import { CONTORNO_DESLIGADO, ICONE, ROTULO, SELO, Vazio } from "./partes";
 import {
   ID,
@@ -50,11 +40,18 @@ import {
   type RascunhoDoCurso,
   segundosDas,
 } from "./rascunho-do-curso";
+import {
+  type Abertos,
+  type AcaoDoAdmin,
+  type Bloco,
+  blocoDoModulo,
+  type Escolhas,
+  type Marcados,
+  type Mudanca,
+} from "./rascunho-do-editor";
 import { Selecao } from "./selecao";
 
-type Despachar = Dispatch<Mudanca>;
-type MudarBlocos = Dispatch<AcaoNosBlocos>;
-type MudarEscolhas = Dispatch<AcaoNasEscolhas>;
+type Despachar = Dispatch<AcaoDoAdmin>;
 type Niveis = RascunhoDoCurso["niveis"];
 
 /** Âncora e alvos de foco do bloco; os campos que o schema marca usam o ID. */
@@ -232,8 +229,6 @@ export function BlocoDoModulo({
   marcados,
   modulo,
   modulos,
-  mudarBlocos,
-  mudarEscolhas,
   niveis,
 }: {
   assistidasPorAula: Readonly<Record<string, number>>;
@@ -245,8 +240,6 @@ export function BlocoDoModulo({
   marcados: Marcados;
   modulo: ModuloDoRascunho;
   modulos: readonly ModuloDoRascunho[];
-  mudarBlocos: MudarBlocos;
-  mudarEscolhas: MudarEscolhas;
   niveis: Niveis;
 }) {
   const { id } = modulo;
@@ -259,12 +252,12 @@ export function BlocoDoModulo({
   // Com erro na tela o bloco não fecha, e a linha diz por quê.
   const alternar = useCallback(() => {
     if (bloco.tipo !== "com_erro") {
-      mudarBlocos({
+      despachar({
         id,
         tipo: bloco.tipo === "fechado" ? "aberto" : "fechado",
       });
     }
-  }, [bloco.tipo, id, mudarBlocos]);
+  }, [bloco.tipo, id, despachar]);
   const editarModulo = useCallback(
     (mudanca: Extract<Mudanca, { tipo: "modulo_editado" }>["mudanca"]) =>
       despachar({ id, mudanca, tipo: "modulo_editado" }),
@@ -425,7 +418,6 @@ export function BlocoDoModulo({
             marcados={marcados}
             modulo={modulo}
             modulos={modulos}
-            mudarEscolhas={mudarEscolhas}
           />
         </div>
       )}
@@ -552,8 +544,6 @@ export function ModulosDoCurso({
   escolhas,
   linhaAberta,
   marcados,
-  mudarBlocos,
-  mudarEscolhas,
   rascunho,
 }: {
   abertos: Abertos;
@@ -562,8 +552,6 @@ export function ModulosDoCurso({
   escolhas: Escolhas;
   linhaAberta: LinhaAberta;
   marcados: Marcados;
-  mudarBlocos: MudarBlocos;
-  mudarEscolhas: MudarEscolhas;
   rascunho: RascunhoDoCurso;
 }) {
   const { modulos, niveis } = rascunho;
@@ -581,7 +569,7 @@ export function ModulosDoCurso({
   // Sem rolagem suave: o salto vem do teclado tanto quanto do mouse.
   const irPara = useCallback(
     (id: ModuloId) => {
-      mudarBlocos({ id, tipo: "aberto" });
+      despachar({ id, tipo: "aberto" });
       requestAnimationFrame(() => {
         document.getElementById(ALVO.bloco(id))?.scrollIntoView();
         document
@@ -589,7 +577,7 @@ export function ModulosDoCurso({
           ?.focus({ preventScroll: true });
       });
     },
-    [mudarBlocos]
+    [despachar]
   );
 
   return (
@@ -633,8 +621,6 @@ export function ModulosDoCurso({
               marcados={marcados}
               modulo={modulo}
               modulos={modulos}
-              mudarBlocos={mudarBlocos}
-              mudarEscolhas={mudarEscolhas}
               niveis={niveis}
             />
           ))

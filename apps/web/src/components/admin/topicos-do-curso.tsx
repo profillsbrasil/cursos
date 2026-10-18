@@ -13,10 +13,9 @@ import { CAMPO } from "@/components/casca/campos";
 import { focarDepois, vizinhoQueFica } from "@/lib/editor";
 import { plural } from "@/lib/formato";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import type { Mudanca } from "./estado-do-editor";
-
 import { ICONE, ROTULO, Secao } from "./partes";
 import { ID } from "./rascunho-do-curso";
+import type { Mudanca } from "./rascunho-do-editor";
 
 const NOVO_TOPICO = "topico-novo";
 
