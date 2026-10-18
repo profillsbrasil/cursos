@@ -21,10 +21,12 @@ import { eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import { FORMATO_DO_CODIGO } from "../dominio/certificado";
+import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
 import {
   type DocumentoDoCurso,
   formularioDoCurso,
 } from "../dominio/edicao-do-curso";
+import { estudoDe } from "../dominio/historico";
 import type {
   AlternativaId,
   AulaId,
@@ -38,6 +40,7 @@ import type { Capas } from "../externos/capas";
 import { createCaller } from "../routers/index";
 import { registrar } from "./aula";
 import { categoriaDeTeste } from "./categoria-de-teste";
+import { linhasDoHistorico } from "./meus-cursos";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -402,6 +405,50 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       .from(questionarioTentativa)
       .where(eq(questionarioTentativa.userId, aluno));
     expect(tentativas).toHaveLength(0);
+  });
+
+  test("o certificado sai se e só se a leitura de Meus cursos diz completo, com a reprovada antes da aprovada", async () => {
+    const c = await plantarCurso([0, 2]);
+    const [a1, a2] = c.aulas;
+    if (!(a1 && a2)) {
+      throw new Error("aulas não plantadas");
+    }
+    const alvo: CursoComAulas = {
+      id: c.id,
+      modulos: [
+        {
+          aulas: c.aulas.map((a) => ({
+            id: a.id,
+            perguntas: a.perguntas.length,
+          })),
+          numero: 1,
+          titulo: "Módulo",
+        },
+      ],
+      status: "publicado",
+      titulo: `Curso ${c.slug}`,
+    };
+    const aluno = novoAluno();
+    const lido = async () => {
+      const leitura = lerCursoDoAluno(
+        alvo,
+        estudoDe(await linhasDoHistorico(db, aluno))
+      );
+      const certificados = await certificadosDe(aluno);
+      return { certificados: certificados.length, completo: leitura.completo };
+    };
+    await liberar(aluno, c.id);
+    await assistir(aluno, a1.id);
+    await assistir(aluno, a2.id);
+
+    const reprovada = await enviar(aluno, a2, 0);
+    expect(reprovada.resultado.aprovada).toBe(false);
+    expect(reprovada.cursoConcluido).toBeNull();
+    expect(await lido()).toEqual({ certificados: 0, completo: false });
+
+    const aprovada = await enviar(aluno, a2, 2);
+    expect(aprovada.cursoConcluido?.codigo).toMatch(FORMATO_DO_CODIGO);
+    expect(await lido()).toEqual({ certificados: 1, completo: true });
   });
 
   test("o último questionário aprovado, com as aulas assistidas, emite o certificado e os 100 pontos uma vez", async () => {

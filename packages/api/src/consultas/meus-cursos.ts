@@ -6,7 +6,7 @@ import {
   posicaoAula,
   questionarioTentativa,
 } from "@cursos/db/schema/index";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 
 import type {
   LinhaDoQuestionario,
@@ -19,11 +19,18 @@ import {
   type ResumoAluno,
 } from "../dominio/painel";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
-import type { DiaISO } from "../dominio/tipos";
+import type { AulaId, CursoId, DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
 import { comunicadoVisivelPara, DO_MAIS_NOVO } from "./comunicado";
 import { linhasDoSaldo } from "./pontos";
+import type { AlunoTravado } from "./trava";
+
+/** A leitura dentro da transação da emissão: as aulas e o certificado de um curso. */
+interface SoNoCurso {
+  aulas: readonly AulaId[];
+  cursoId: CursoId;
+}
 
 /**
  * As tentativas da pessoa somadas por aula: se aprovou, quantas foram, quando foi
@@ -31,7 +38,8 @@ import { linhasDoSaldo } from "./pontos";
  */
 export function linhasDosQuestionarios(
   exec: Executor,
-  userId: string
+  userId: string,
+  aulas?: readonly AulaId[]
 ): Promise<LinhaDoQuestionario[]> {
   const t = questionarioTentativa;
   return exec
@@ -45,8 +53,71 @@ export function linhasDosQuestionarios(
       ultimoTotal: sql<number>`(array_agg(${t.total} order by ${t.numero} desc))[1]`,
     })
     .from(t)
-    .where(eq(t.userId, userId))
+    .where(
+      and(
+        eq(t.userId, userId),
+        aulas === undefined ? undefined : inArray(t.aulaId, [...aulas])
+      )
+    )
     .groupBy(t.aulaId);
+}
+
+/**
+ * Os statements do histórico de estudo da pessoa, ainda sem rodar: a consulta do
+ * drizzle só vai ao banco no await, então quem chama escolhe paralelo ou série.
+ */
+function consultasDoHistorico(
+  exec: Executor,
+  userId: string,
+  noCurso?: SoNoCurso
+) {
+  const aulas = noCurso && [...noCurso.aulas];
+  return [
+    // 2. aulas assistidas (inclusive de curso revogado; a montagem ignora as de fora do catálogo)
+    exec
+      .select({
+        assistidaEm: aulaAssistida.assistidaEm,
+        aulaId: aulaAssistida.aulaId,
+      })
+      .from(aulaAssistida)
+      .where(
+        and(
+          eq(aulaAssistida.userId, userId),
+          aulas && inArray(aulaAssistida.aulaId, aulas)
+        )
+      ),
+    // 3. posições com segundo > 0
+    exec
+      .select({
+        atualizadaEm: posicaoAula.atualizadaEm,
+        aulaId: posicaoAula.aulaId,
+        posicaoSeg: posicaoAula.posicaoSeg,
+      })
+      .from(posicaoAula)
+      .where(
+        and(
+          eq(posicaoAula.userId, userId),
+          gt(posicaoAula.posicaoSeg, 0),
+          aulas && inArray(posicaoAula.aulaId, aulas)
+        )
+      ),
+    // 4. certificados
+    exec
+      .select({
+        codigo: certificado.codigo,
+        cursoId: certificado.cursoId,
+        emitidoEm: certificado.emitidoEm,
+      })
+      .from(certificado)
+      .where(
+        and(
+          eq(certificado.userId, userId),
+          noCurso && eq(certificado.cursoId, noCurso.cursoId)
+        )
+      ),
+    // 5. os questionários tentados
+    linhasDosQuestionarios(exec, userId, aulas),
+  ] as const;
 }
 
 /**
@@ -58,40 +129,28 @@ export async function linhasDoHistorico(
   userId: string
 ): Promise<LinhasHistorico> {
   const [assistidas, posicoes, certificados, questionarios] = await Promise.all(
-    [
-      // 2. aulas assistidas (inclusive de curso revogado; a montagem ignora as de fora do catálogo)
-      db
-        .select({
-          assistidaEm: aulaAssistida.assistidaEm,
-          aulaId: aulaAssistida.aulaId,
-        })
-        .from(aulaAssistida)
-        .where(eq(aulaAssistida.userId, userId)),
-      // 3. posições com segundo > 0
-      db
-        .select({
-          atualizadaEm: posicaoAula.atualizadaEm,
-          aulaId: posicaoAula.aulaId,
-          posicaoSeg: posicaoAula.posicaoSeg,
-        })
-        .from(posicaoAula)
-        .where(
-          and(eq(posicaoAula.userId, userId), gt(posicaoAula.posicaoSeg, 0))
-        ),
-      // 4. certificados
-      db
-        .select({
-          codigo: certificado.codigo,
-          cursoId: certificado.cursoId,
-          emitidoEm: certificado.emitidoEm,
-        })
-        .from(certificado)
-        .where(eq(certificado.userId, userId)),
-      // 5. os questionários tentados
-      linhasDosQuestionarios(db, userId),
-    ]
+    consultasDoHistorico(db, userId)
   );
   return { assistidas, certificados, posicoes, questionarios };
+}
+
+/**
+ * O mesmo histórico, só das aulas e do certificado de um curso, com o aluno
+ * travado: a emissão do certificado decide com a leitura da tela. Dentro da
+ * transação os statements rodam em série, num client só.
+ */
+export async function linhasDoHistoricoNoCurso(
+  aluno: AlunoTravado,
+  noCurso: SoNoCurso
+): Promise<LinhasHistorico> {
+  const [assistidas, posicoes, certificados, questionarios] =
+    consultasDoHistorico(aluno.tx, aluno.userId, noCurso);
+  return {
+    assistidas: await assistidas,
+    certificados: await certificados,
+    posicoes: await posicoes,
+    questionarios: await questionarios,
+  };
 }
 
 // Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita

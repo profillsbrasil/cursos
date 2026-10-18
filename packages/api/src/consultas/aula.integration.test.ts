@@ -623,9 +623,10 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   // Abrir: os 5 do curso e os 2 do questionário. O envio comum: begin, commit,
   // o lock_timeout, a cota, os 5 do curso, posição e cota (9). Com conquista, mais
   // a aula assistida e o lançamento, e a conferência da conclusão do curso (a
-  // trava do aluno, as aulas, a liberação, o certificado, as assistidas e os
-  // questionários aprovados), que aqui não emite: falta a outra aula.
-  test("contagem de statements: abrir 7, envio comum 9 e com conquista 17, mais begin e commit", async () => {
+  // trava do aluno, as aulas, a liberação e o histórico de Meus cursos no curso:
+  // assistidas, posições, certificado e questionários), que aqui não emite:
+  // falta a outra aula.
+  test("contagem de statements: abrir 7, envio comum 9 e com conquista 18, mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
     const abrir = await contar(() => carregarAula(db, aluno, c.slug, aulaId));
@@ -637,6 +638,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       abrir: abrir.n,
       comConquista: comConquista.n,
       comum: comum.n,
-    }).toEqual({ abrir: 7, comConquista: 2 + 11 + 6, comum: 2 + 9 });
+    }).toEqual({ abrir: 7, comConquista: 2 + 11 + 7, comum: 2 + 9 });
   });
 });

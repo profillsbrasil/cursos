@@ -7,15 +7,16 @@ import {
   modulo,
   pergunta,
   pontoLancamento,
-  questionarioTentativa,
 } from "@cursos/db/schema/index";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { gerarCodigo } from "../dominio/certificado";
 import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
+import { estudoDe } from "../dominio/historico";
 import { PONTOS } from "../dominio/regras";
-import type { AulaId, CursoId, Historico } from "../dominio/tipos";
+import type { AulaId, CursoId } from "../dominio/tipos";
 import type { Transacao } from "./comum";
+import { linhasDoHistoricoNoCurso } from "./meus-cursos";
 import { type AlunoTravado, travarAluno } from "./trava";
 
 /** Colidir duas vezes em 31^8 códigos é defeito, não azar. */
@@ -87,52 +88,6 @@ async function cursoParaConcluir(
   };
 }
 
-async function historicoNoCurso(
-  aluno: AlunoTravado,
-  aulas: readonly AulaId[]
-): Promise<Pick<Historico, "assistidas" | "questionarios">> {
-  if (aulas.length === 0) {
-    return { assistidas: new Set(), questionarios: new Map() };
-  }
-  const ids = [...aulas];
-  const assistidas = await aluno.tx
-    .select({ aulaId: aulaAssistida.aulaId })
-    .from(aulaAssistida)
-    .where(
-      and(
-        eq(aulaAssistida.userId, aluno.userId),
-        inArray(aulaAssistida.aulaId, ids)
-      )
-    );
-  const aprovadas = await aluno.tx
-    .select({
-      acertos: questionarioTentativa.acertos,
-      aulaId: questionarioTentativa.aulaId,
-      total: questionarioTentativa.total,
-    })
-    .from(questionarioTentativa)
-    .where(
-      and(
-        eq(questionarioTentativa.userId, aluno.userId),
-        eq(questionarioTentativa.aprovada, true),
-        inArray(questionarioTentativa.aulaId, ids)
-      )
-    );
-  return {
-    assistidas: new Set(assistidas.map((a) => a.aulaId as AulaId)),
-    questionarios: new Map(
-      aprovadas.map((q) => [
-        q.aulaId as AulaId,
-        {
-          aprovada: true,
-          tentativas: 1,
-          ultima: { acertos: q.acertos, total: q.total },
-        },
-      ])
-    ),
-  };
-}
-
 async function temLiberacaoAtiva(aluno: AlunoTravado, cursoId: CursoId) {
   const [ativa] = await aluno.tx
     .select({ id: liberacao.id })
@@ -145,19 +100,6 @@ async function temLiberacaoAtiva(aluno: AlunoTravado, cursoId: CursoId) {
       )
     );
   return ativa !== undefined;
-}
-
-async function jaTemCertificado(aluno: AlunoTravado, cursoId: CursoId) {
-  const [c] = await aluno.tx
-    .select({ codigo: certificado.codigo })
-    .from(certificado)
-    .where(
-      and(
-        eq(certificado.userId, aluno.userId),
-        eq(certificado.cursoId, cursoId)
-      )
-    );
-  return c !== undefined;
 }
 
 /**
@@ -205,23 +147,15 @@ export async function concluirCurso(
   agora: Date
 ): Promise<Conclusao | null> {
   const alvo = await cursoParaConcluir(aluno.tx, cursoId);
-  if (!alvo || alvo.status === "em_producao") {
+  if (!(alvo && (await temLiberacaoAtiva(aluno, cursoId)))) {
     return null;
   }
-  if (!(await temLiberacaoAtiva(aluno, cursoId))) {
-    return null;
-  }
-  if (await jaTemCertificado(aluno, cursoId)) {
-    return null;
-  }
-  const aulas = alvo.modulos.flatMap((m) => m.aulas.map((a) => a.id));
-  const estudo = await historicoNoCurso(aluno, aulas);
-  const historico: Historico = {
-    ...estudo,
-    certificados: new Map(),
-    posicoes: new Map(),
-  };
-  if (!lerCursoDoAluno(alvo, { atividade: new Map(), historico }).completo) {
+  const linhas = await linhasDoHistoricoNoCurso(aluno, {
+    aulas: alvo.modulos.flatMap((m) => m.aulas.map((a) => a.id)),
+    cursoId,
+  });
+  const { completo, estado } = lerCursoDoAluno(alvo, estudoDe(linhas));
+  if (estado.tipo === "concluido" || !completo) {
     return null;
   }
   const codigo = await gravarCertificado(aluno, alvo, agora);
