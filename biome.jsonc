@@ -6,8 +6,8 @@
     "ultracite/biome/next"
   ],
   "files": {
-    // Protótipos arquivados das specs: HTML e JS de referência, que ninguém roda.
-    "includes": ["!!docs/specs/**/arquivos"]
+    // Protótipos aprovados: HTML de referência, que ninguém roda.
+    "includes": ["!!docs/prototipos"]
   },
   "overrides": [
     {
