@@ -4,7 +4,6 @@ import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import {
   CARACTERES,
   type EdicaoDoCurso,
-  formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
 import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
@@ -13,7 +12,6 @@ import { Input } from "@cursos/ui/components/input";
 import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
-import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
@@ -21,19 +19,15 @@ import {
   type FormEvent,
   useCallback,
   useId,
-  useMemo,
-  useReducer,
   useRef,
-  useState,
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { ALAVANCA, CAMPO } from "@/components/casca/campos";
 import { useAtalhoDeSalvar } from "@/lib/atalho-de-salvar";
-import { focarDepois, focarOPrimeiro } from "@/lib/editor";
+import { focarDepois } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
-import { useDaGeracao, useRascunhoApoiado } from "@/lib/use-rascunho-apoiado";
 import { trpcClient } from "@/utils/trpc";
 
 import { antesDePublicar, secoesDoEditor } from "./antes-de-publicar";
@@ -52,33 +46,12 @@ import {
   SaiuDoCampo,
   useErroDoCampo,
 } from "./erros-do-editor";
-import {
-  type AcaoNosBlocos,
-  abertosAoAbrir,
-  abrirOsComErro,
-  blocosAbertos,
-  comGrupoDasLetrasTocado,
-  despacharNosDois,
-  donoDoCampo,
-  escolhas,
-  type Mudanca,
-  NADA_ESCOLHIDO,
-  problemasNaTela,
-  proximaOrdem,
-  REGRAS_DO_CURSO,
-} from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { ICONE, ROTULO, Secao } from "./partes";
-import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
-import {
-  ID,
-  lerRascunho,
-  type RascunhoDoCurso,
-  type RecusaDoCurso,
-  recusaDoMotivo,
-  segundosDas,
-} from "./rascunho-do-curso";
+import { ID, type RascunhoDoCurso, segundosDas } from "./rascunho-do-curso";
+import { type Mudanca, proximaOrdem } from "./rascunho-do-editor";
 import { TopicosDoCurso } from "./topicos-do-curso";
+import { useRascunhoDoEditor } from "./use-rascunho-do-editor";
 import { Vitrine } from "./vitrine";
 
 type Despachar = Dispatch<Mudanca>;
@@ -331,13 +304,6 @@ function ApagarCurso({
   );
 }
 
-const NENHUM_TOCADO: ReadonlySet<string> = new Set();
-
-const SEM_CAPA: Problema = {
-  campo: ID.curso("capa"),
-  mensagem: "Escolha a imagem da capa.",
-};
-
 export function EditorDoCurso({
   categorias,
   edicao,
@@ -346,85 +312,22 @@ export function EditorDoCurso({
   categorias: readonly CategoriaNaLista[];
   edicao: EdicaoDoCurso;
 }) {
-  const [capaGuardada, guardarCapa] = useState<{
-    arquivo: File | null;
-    geracao: number;
-  }>({ arquivo: null, geracao: 0 });
-  const {
-    base,
-    descartar,
-    geracao,
-    mudar: mudarRascunho,
-    novo,
-    pendente,
-    rascunho,
-    salvar,
-    sujo,
-    titulo,
-    versaoMudou,
-  } = useRascunhoApoiado({
-    caminho: `/admin/catalogo/cursos/${edicao.documento.id}` as Route,
-    pagina: edicao.documento,
-    regras: REGRAS_DO_CURSO,
-    sujoAlem: (g) =>
-      capaGuardada.geracao === g && capaGuardada.arquivo !== null,
-  });
-  const [abertos, mudarBlocos] = useReducer(
-    blocosAbertos,
-    rascunho,
-    abertosAoAbrir
-  );
-  const [escolhidas, mudarEscolhas] = useReducer(escolhas, NADA_ESCOLHIDO);
-  const mudarTela = useCallback(
-    (a: Extract<AcaoNosBlocos, { tipo: "mudou" }>) => {
-      mudarBlocos(a);
-      mudarEscolhas(a);
-    },
-    []
-  );
-  const despachar = useMemo(
-    () => despacharNosDois(mudarRascunho, mudarTela),
-    [mudarRascunho, mudarTela]
-  );
-  const capa = capaGuardada.geracao === geracao ? capaGuardada.arquivo : null;
+  const { descartar, despachar, estado, pendente, salvar, tela, titulo } =
+    useRascunhoDoEditor(edicao.documento);
+  const { daGeracao, geracao, rascunho } = estado;
   const escolherCapa = useCallback(
-    (arquivo: File | null) =>
-      guardarCapa((atual) => ({ ...atual, arquivo, geracao })),
-    [geracao]
-  );
-  const [tentou, setTentou] = useDaGeracao<boolean>(geracao, false);
-  const [tocados, setTocados] = useDaGeracao<ReadonlySet<string>>(
-    geracao,
-    NENHUM_TOCADO
+    (arquivo: File | null) => despachar({ arquivo, tipo: "capa_escolhida" }),
+    [despachar]
   );
   const saiuDoCampo = useCallback(
-    (id: string) =>
-      setTocados((atual) => (atual.has(id) ? atual : new Set([...atual, id]))),
-    [setTocados]
+    (id: string) => despachar({ id, tipo: "saiu_do_campo" }),
+    [despachar]
   );
-  const [recusa, setRecusa] = useDaGeracao<RecusaDoCurso | null>(geracao, null);
-  const [chave, pedir] = useDaGeracao<string | null>(geracao, null);
-  const fechar = useCallback(
-    (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
-    [pedir]
-  );
-  const linhaAberta: LinhaAberta = { chave, fechar, pedir };
-
-  const semCapa = novo && capa === null ? [SEM_CAPA] : [];
-  const lido = lerRascunho(rascunho, base);
-  const problemas = problemasNaTela({
-    achados: [...(lido.tipo === "problemas" ? lido.problemas : []), ...semCapa],
-    recusa: recusaNaTela(recusa, rascunho, ID.curso),
-    tentou,
-    tocados: comGrupoDasLetrasTocado(tocados, rascunho),
-  });
-  const erros = errosPorCampo(problemas);
-  // Nenhum erro fica num bloco fechado: o bloco abre no render em que o erro
-  // aparece e continua aberto depois da correção.
-  const abrir = abrirOsComErro(abertos, rascunho, erros);
-  if (abrir) {
-    mudarBlocos(abrir);
-  }
+  const linhaAberta: LinhaAberta = {
+    chave: daGeracao.linha,
+    fechar: (chave) => despachar({ chave, tipo: "linha_fechada" }),
+    pedir: (chave) => despachar({ chave, tipo: "linha_pedida" }),
+  };
 
   const mudarTexto = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -439,65 +342,25 @@ export function EditorDoCurso({
     },
     [despachar]
   );
-
   const enviar = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const achados = [
-        ...(lido.tipo === "problemas" ? lido.problemas : []),
-        ...semCapa,
-      ];
-      if (lido.tipo === "problemas" || achados.length > 0) {
-        setTentou(true);
-        const campos = achados.flatMap((p) => (p.campo ? [p.campo] : []));
-        const dono = campos[0] ? donoDoCampo(rascunho, campos[0]) : null;
-        if (dono) {
-          mudarEscolhas({ dono, tipo: "campo_mostrado" });
-        }
-        focarOPrimeiro(campos);
-        return;
-      }
-      setTentou(false);
-      setRecusa(null);
-      const enviada = capa;
-      salvar(
-        lido.documento,
-        () =>
-          trpcClient.admin.catalogo.salvarCurso.mutate(
-            formularioDoCurso(lido.documento, enviada)
-          ),
-        {
-          aoRecusar: (motivo) => {
-            const r = recusaDoMotivo(motivo, rascunho);
-            setRecusa(r);
-            if (r) {
-              document.getElementById(ID.curso(r.campo))?.focus();
-            }
-          },
-          // A capa escolhida durante o salvar fica para o próximo.
-          aoSalvar: () =>
-            guardarCapa((atual) =>
-              atual.arquivo === enviada ? { ...atual, arquivo: null } : atual
-            ),
-          sucesso: "Curso salvo.",
-        }
-      );
+      salvar();
     },
-    [capa, lido, rascunho, salvar, semCapa, setRecusa, setTentou]
+    [salvar]
   );
-
   const mudarStatus = useCallback(
     (status: StatusDoCurso) =>
       despachar({ mudanca: { status }, tipo: "campos" }),
     [despachar]
   );
   const estadoDoSalvar: EstadoDoSalvar = {
-    novo,
+    novo: tela.novo,
     pendente,
-    problemas,
+    problemas: tela.problemas,
     recarregar: descartar,
-    sujo,
-    versaoMudou,
+    sujo: tela.sujo,
+    versaoMudou: tela.versaoMudou,
   };
   const formulario = useRef<HTMLFormElement>(null);
   useAtalhoDeSalvar(formulario, !nadaASalvar(estadoDoSalvar));
@@ -508,7 +371,7 @@ export function EditorDoCurso({
     0
   );
   return (
-    <ErrosDoEditor value={erros}>
+    <ErrosDoEditor value={tela.erros}>
       <SaiuDoCampo value={saiuDoCampo}>
         <form
           className="@container grid gap-10"
@@ -537,7 +400,7 @@ export function EditorDoCurso({
                 capa={
                   <CampoDeCapa
                     aoEscolher={escolherCapa}
-                    arquivo={capa}
+                    arquivo={daGeracao.capa}
                     atual={edicao.capa}
                     key={geracao}
                   />
@@ -575,30 +438,28 @@ export function EditorDoCurso({
               </Secao>
 
               <ModulosDoCurso
-                abertos={abertos}
+                abertos={estado.abertos}
                 assistidasPorAula={edicao.uso.assistidasPorAula}
                 despachar={despachar}
-                escolhas={escolhidas}
+                escolhas={estado.escolhas}
                 linhaAberta={linhaAberta}
-                marcados={erros}
-                mudarBlocos={mudarBlocos}
-                mudarEscolhas={mudarEscolhas}
+                marcados={tela.erros}
                 rascunho={rascunho}
               />
             </div>
             <ColunaDePublicacao
               antes={antesDePublicar(
                 rascunho,
-                edicao.capa !== null || capa !== null
+                edicao.capa !== null || daGeracao.capa !== null
               )}
               aoMudarStatus={mudarStatus}
               descartar={descartar}
               estado={estadoDoSalvar}
-              secoes={secoesDoEditor(rascunho, novo)}
+              secoes={secoesDoEditor(rascunho, tela.novo)}
               status={rascunho.status}
             />
             {/* Na coluna estreita, o Apagar vem depois do status; na larga, embaixo dos módulos. */}
-            {novo ? null : (
+            {tela.novo ? null : (
               <div className="min-w-0">
                 <Secao id="apagar" resumo="" titulo="Apagar">
                   <ApagarCurso edicao={edicao} linhaAberta={linhaAberta} />

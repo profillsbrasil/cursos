@@ -19,9 +19,9 @@ import {
   fecharChromium,
 } from "../chromium-de-teste";
 import { CampoDeCapa } from "./campo-de-capa";
-import { escolhas, NADA_ESCOLHIDO } from "./estado-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
+import { NADA_ESCOLHIDO } from "./rascunho-do-editor";
 
 // Fora do App Router o useRouter lança; a categoria da Vitrine cria pelo useAcao.
 const navegacao = await import("next/navigation");
@@ -84,15 +84,12 @@ const modulos = renderToStaticMarkup(
     abertos={new Set([m1.id])}
     assistidasPorAula={{}}
     despachar={nada}
-    escolhas={escolhas(NADA_ESCOLHIDO, {
-      aulaId: EDICAO.A1,
-      moduloId: m1.id,
-      tipo: "aula_escolhida",
-    })}
+    escolhas={{
+      ...NADA_ESCOLHIDO,
+      aulaPorModulo: new Map([[m1.id, EDICAO.A1]]),
+    }}
     linhaAberta={LINHA_FECHADA}
     marcados={new Set()}
-    mudarBlocos={nada}
-    mudarEscolhas={nada}
     rascunho={rascunho}
   />
 );

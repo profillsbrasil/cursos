@@ -1,3 +1,6 @@
+// Sem "use client": o editor e os testes importam.
+
+import type { Motivo } from "@cursos/api";
 import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import { ALTERNATIVAS } from "@cursos/api/dominio/questionario";
 import type {
@@ -5,21 +8,31 @@ import type {
   AulaId,
   ModuloId,
   PerguntaId,
+  Versao,
 } from "@cursos/api/dominio/tipos";
 
-import { type Direcao, trocado } from "@/lib/editor";
-import type { RegrasDoRascunho } from "@/lib/use-rascunho-apoiado";
+import {
+  type Apoio,
+  apoioEm,
+  apoioSalvo,
+  type Direcao,
+  sincronizarComAPagina,
+  trocado,
+} from "@/lib/editor";
 
-import type { Problema } from "./problemas";
+import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
 import {
   type AulaDoRascunho,
   ID,
   lerNumeroDoModulo,
+  lerRascunho,
   type ModuloDoRascunho,
   mesmoRascunho,
   type PerguntaDoRascunho,
   type RascunhoDoCurso,
+  type RecusaDoCurso,
   rascunhoDoCurso,
+  recusaDoMotivo,
 } from "./rascunho-do-curso";
 
 type CampoDoCurso = Exclude<
@@ -344,12 +357,6 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
   }
 }
 
-export const REGRAS_DO_CURSO: RegrasDoRascunho<
-  DocumentoDoCurso,
-  RascunhoDoCurso,
-  Mudanca
-> = { deDocumento: rascunhoDoCurso, mesmo: mesmoRascunho, mudar };
-
 /**
  * Os módulos que o admin deixou abertos no editor; fechado é o padrão. Fica
  * fora do rascunho, então não entra no sujo nem no documento salvo.
@@ -362,17 +369,10 @@ export const NENHUM_ABERTO: Abertos = new Set();
  * Os blocos abertos quando o editor monta: o curso de um módulo só abre com ele
  * aberto, porque fechado ele custaria um clique sem esconder nada.
  */
-export function abertosAoAbrir(r: RascunhoDoCurso): Abertos {
+function abertosAoAbrir(r: RascunhoDoCurso): Abertos {
   const [unico, ...outros] = r.modulos;
   return unico && outros.length === 0 ? new Set([unico.id]) : NENHUM_ABERTO;
 }
-
-export type AcaoNosBlocos =
-  | { tipo: "aberto"; id: ModuloId }
-  | { tipo: "fechado"; id: ModuloId }
-  /** O Salvar recusado pelo schema abre os módulos com campo marcado. */
-  | { tipo: "erros_mostrados"; ids: readonly ModuloId[] }
-  | { tipo: "mudou"; mudanca: Mudanca };
 
 /** Os campos com erro na tela, pelo id do input. */
 export type Marcados = Pick<ReadonlySet<string>, "has">;
@@ -400,23 +400,6 @@ function abertosDepoisDe(abertos: Abertos, m: Mudanca): Abertos {
       return semAberto(abertos, m.id);
     default:
       return abertos;
-  }
-}
-
-export function blocosAbertos(abertos: Abertos, a: AcaoNosBlocos): Abertos {
-  switch (a.tipo) {
-    case "aberto":
-      return comAberto(abertos, a.id);
-    case "fechado":
-      return semAberto(abertos, a.id);
-    case "erros_mostrados":
-      return a.ids.reduce(comAberto, abertos);
-    case "mudou":
-      return abertosDepoisDe(abertos, a.mudanca);
-    default: {
-      const nenhuma: never = a;
-      throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
-    }
   }
 }
 
@@ -452,12 +435,6 @@ const camposComErro = (m: ModuloDoRascunho, marcados: Marcados) =>
     marcados
   );
 
-export const modulosComErro = (
-  r: RascunhoDoCurso,
-  marcados: Marcados
-): ModuloId[] =>
-  r.modulos.flatMap((m) => (camposComErro(m, marcados) > 0 ? [m.id] : []));
-
 export function blocoDoModulo(
   m: ModuloDoRascunho,
   abertos: Abertos,
@@ -470,32 +447,8 @@ export function blocoDoModulo(
   return abertos.has(m.id) ? { tipo: "aberto" } : { tipo: "fechado" };
 }
 
-/**
- * Os módulos com erro na tela que ainda não estão entre os abertos. O editor
- * despacha a ação no render em que o erro aparece, e o bloco continua aberto
- * depois da correção. null: nada a abrir.
- */
-export function abrirOsComErro(
-  abertos: Abertos,
-  r: RascunhoDoCurso,
-  marcados: Marcados
-): AcaoNosBlocos | null {
-  const ids = modulosComErro(r, marcados).filter((id) => !abertos.has(id));
-  return ids.length > 0 ? { ids, tipo: "erros_mostrados" } : null;
-}
-
-export const despacharNosDois =
-  (
-    mudarRascunho: (m: Mudanca) => void,
-    mudarTela: (a: { tipo: "mudou"; mudanca: Mudanca }) => void
-  ) =>
-  (mudanca: Mudanca) => {
-    mudarRascunho(mudanca);
-    mudarTela({ mudanca, tipo: "mudou" });
-  };
-
 /** O grupo das letras não tem campo para sair: conta como deixado quando o enunciado e todas as alternativas foram deixados. */
-export function comGrupoDasLetrasTocado(
+function comGrupoDasLetrasTocado(
   tocados: ReadonlySet<string>,
   r: RascunhoDoCurso
 ): ReadonlySet<string> {
@@ -520,18 +473,6 @@ export const NADA_ESCOLHIDO: Escolhas = {
   aulaPorModulo: new Map(),
   perguntaPorAula: new Map(),
 };
-
-export interface DonoDoCampo {
-  aulaId: AulaId;
-  moduloId: ModuloId;
-  perguntaId: PerguntaId | null;
-}
-
-export type AcaoNasEscolhas =
-  | { tipo: "aula_escolhida"; moduloId: ModuloId; aulaId: AulaId }
-  | { tipo: "pergunta_escolhida"; aulaId: AulaId; perguntaId: PerguntaId }
-  | { tipo: "campo_mostrado"; dono: DonoDoCampo }
-  | { tipo: "mudou"; mudanca: Mudanca };
 
 const comAula = (e: Escolhas, moduloId: ModuloId, aulaId: AulaId): Escolhas =>
   e.aulaPorModulo.get(moduloId) === aulaId
@@ -565,27 +506,6 @@ function escolhasDepoisDe(e: Escolhas, m: Mudanca): Escolhas {
   }
 }
 
-export function escolhas(e: Escolhas, a: AcaoNasEscolhas): Escolhas {
-  switch (a.tipo) {
-    case "aula_escolhida":
-      return comAula(e, a.moduloId, a.aulaId);
-    case "pergunta_escolhida":
-      return comPerguntaEscolhida(e, a.aulaId, a.perguntaId);
-    case "campo_mostrado": {
-      const comADoCampo = comAula(e, a.dono.moduloId, a.dono.aulaId);
-      return a.dono.perguntaId
-        ? comPerguntaEscolhida(comADoCampo, a.dono.aulaId, a.dono.perguntaId)
-        : comADoCampo;
-    }
-    case "mudou":
-      return escolhasDepoisDe(e, a.mudanca);
-    default: {
-      const nenhuma: never = a;
-      throw new Error(`Ação sem regra: ${JSON.stringify(nenhuma)}`);
-    }
-  }
-}
-
 export function aulaEscolhida(
   m: ModuloDoRascunho,
   e: Escolhas
@@ -602,43 +522,303 @@ export function perguntaEscolhida(
   return a.perguntas.find((p) => p.id === id) ?? a.perguntas[0] ?? null;
 }
 
-export function donoDoCampo(
+/** Os painéis passam a mostrar a aula e a pergunta donas do campo. */
+function comODonoDoCampo(
+  e: Escolhas,
   r: RascunhoDoCurso,
   campo: string
-): DonoDoCampo | null {
+): Escolhas {
   for (const m of r.modulos) {
     for (const a of m.aulas) {
       if (CAMPOS_DA_AULA.some((c) => ID.aula(a.id, c) === campo)) {
-        return { aulaId: a.id, moduloId: m.id, perguntaId: null };
+        return comAula(e, m.id, a.id);
       }
       const p = a.perguntas.find((x) => idsDaPergunta(x).includes(campo));
       if (p) {
-        return { aulaId: a.id, moduloId: m.id, perguntaId: p.id };
+        return comPerguntaEscolhida(comAula(e, m.id, a.id), a.id, p.id);
       }
     }
   }
-  return null;
+  return e;
+}
+
+/** O que volta ao início a cada recomeço do rascunho. */
+interface DaGeracao {
+  /** A capa escolhida e ainda não salva, que também deixa o editor sujo. */
+  capa: File | null;
+  /** A linha que pede confirmação, como a do Apagar. */
+  linha: string | null;
+  recusa: RecusaDoCurso | null;
+  /** O Salvar foi recusado aqui: a tela marca tudo o que ele recusaria. */
+  tentou: boolean;
+  /** Os campos que o admin já deixou. */
+  tocados: ReadonlySet<string>;
+}
+
+const INICIO_DA_GERACAO: DaGeracao = {
+  capa: null,
+  linha: null,
+  recusa: null,
+  tentou: false,
+  tocados: new Set(),
+};
+
+/**
+ * Tudo o que o editor do curso guarda: o documento e o rascunho apoiado nele,
+ * os blocos abertos, as escolhas dos painéis, o que a tela marca e o foco.
+ */
+export interface RascunhoDoEditor {
+  abertos: Abertos;
+  apoio: Apoio<DocumentoDoCurso>;
+  daGeracao: DaGeracao;
+  escolhas: Escolhas;
+  /** Os campos que disputam o foco depois do render; o primeiro na página leva. */
+  foco: readonly string[] | null;
+  /** Cresce a cada recomeço; a capa remonta com ela. */
+  geracao: number;
+  rascunho: RascunhoDoCurso;
+}
+
+export function rascunhoDoEditorEm(pagina: DocumentoDoCurso): RascunhoDoEditor {
+  const rascunho = rascunhoDoCurso(pagina);
+  return {
+    abertos: abertosAoAbrir(rascunho),
+    apoio: apoioEm(pagina),
+    daGeracao: INICIO_DA_GERACAO,
+    escolhas: NADA_ESCOLHIDO,
+    foco: null,
+    geracao: 0,
+    rascunho,
+  };
+}
+
+/** O que o Salvar manda, e o que a resposta do servidor precisa de volta. */
+export interface Envio {
+  capa: File | null;
+  documento: DocumentoDoCurso;
+  geracao: number;
+  /** O documento novo abre com ?novo=1 e o perde no primeiro salvar. */
+  novo: boolean;
+  rascunho: RascunhoDoCurso;
+}
+
+export type AcaoDoAdmin =
+  | Mudanca
+  | { tipo: "aberto"; id: ModuloId }
+  | { tipo: "fechado"; id: ModuloId }
+  | { tipo: "aula_escolhida"; moduloId: ModuloId; aulaId: AulaId }
+  | { tipo: "pergunta_escolhida"; aulaId: AulaId; perguntaId: PerguntaId }
+  | { tipo: "saiu_do_campo"; id: string }
+  | { tipo: "capa_escolhida"; arquivo: File | null }
+  | { tipo: "linha_pedida"; chave: string | null }
+  | { tipo: "linha_fechada"; chave: string }
+  | { tipo: "salvar" }
+  /** O Recarregar recomeça da última página que chegou, e o refresh traz a seguinte. */
+  | { tipo: "descartado" };
+
+export type RespostaDoServidor =
+  | { tipo: "pagina"; pagina: DocumentoDoCurso }
+  /** O servidor gravou o envio; o que o admin editou depois fica. */
+  | { tipo: "salvo"; envio: Envio; versao: Versao }
+  /**
+   * versao_mudou liga o aviso já, antes de o refresh trazer a página; a página
+   * que chega decide se ele fica.
+   */
+  | { tipo: "recusado"; envio: Envio; motivo: Motivo | null };
+
+export type AcaoDoEditor = AcaoDoAdmin | RespostaDoServidor;
+
+const SEM_CAPA: Problema = {
+  campo: ID.curso("capa"),
+  mensagem: "Escolha a imagem da capa.",
+};
+
+const ehNovo = (e: RascunhoDoEditor) => e.apoio.base.versao === null;
+
+const ehSujo = (e: RascunhoDoEditor) =>
+  e.daGeracao.capa !== null ||
+  !mesmoRascunho(rascunhoDoCurso(e.apoio.base), e.rascunho);
+
+/** O que o Salvar recusa sem ir ao servidor, ou o envio quando não há nada. */
+function leitura(e: RascunhoDoEditor): {
+  achados: Problema[];
+  envio: Envio | null;
+} {
+  const lido = lerRascunho(e.rascunho, e.apoio.base);
+  const { capa } = e.daGeracao;
+  const semCapa = ehNovo(e) && capa === null ? [SEM_CAPA] : [];
+  if (lido.tipo === "problemas") {
+    return { achados: [...lido.problemas, ...semCapa], envio: null };
+  }
+  if (semCapa.length > 0) {
+    return { achados: semCapa, envio: null };
+  }
+  return {
+    achados: [],
+    envio: {
+      capa,
+      documento: lido.documento,
+      geracao: e.geracao,
+      novo: ehNovo(e),
+      rascunho: e.rascunho,
+    },
+  };
+}
+
+export interface Tela {
+  envio: Envio | null;
+  /** A mensagem de cada campo marcado, pelo id do input. */
+  erros: ReadonlyMap<string, string>;
+  novo: boolean;
+  problemas: Problema[];
+  sujo: boolean;
+  versaoMudou: boolean;
 }
 
 /**
- * O que a tela marca. Antes do Salvar, só o erro dos campos que o admin já
- * deixou (`tocados`), como o "abc" na duração; depois do Salvar recusado,
- * tudo o que o Salvar recusaria (`achados`). A recusa do servidor aparece
- * sempre, enquanto o valor recusado continua no campo.
+ * O que a tela mostra. Antes do Salvar, só o erro dos campos que o admin já
+ * deixou, como o "abc" na duração; depois do Salvar recusado, tudo o que o
+ * Salvar recusaria. A recusa do servidor aparece sempre, enquanto o valor
+ * recusado continua no campo.
  */
-export function problemasNaTela({
-  achados,
-  recusa,
-  tentou,
-  tocados,
-}: {
-  achados: readonly Problema[];
-  recusa: readonly Problema[];
-  tentou: boolean;
-  tocados: ReadonlySet<string>;
-}): Problema[] {
+export function telaDo(e: RascunhoDoEditor): Tela {
+  const { achados, envio } = leitura(e);
+  const { recusa, tentou, tocados } = e.daGeracao;
+  const deixados = comGrupoDasLetrasTocado(tocados, e.rascunho);
   const vistos = tentou
     ? achados
-    : achados.filter((p) => p.campo !== null && tocados.has(p.campo));
-  return [...vistos, ...recusa];
+    : achados.filter((p) => p.campo !== null && deixados.has(p.campo));
+  const problemas = [...vistos, ...recusaNaTela(recusa, e.rascunho, ID.curso)];
+  return {
+    envio,
+    erros: errosPorCampo(problemas),
+    novo: ehNovo(e),
+    problemas,
+    sujo: ehSujo(e),
+    versaoMudou: e.apoio.versaoDeFora,
+  };
+}
+
+const naGeracao = (
+  e: RascunhoDoEditor,
+  mudanca: Partial<DaGeracao>
+): RascunhoDoEditor => ({ ...e, daGeracao: { ...e.daGeracao, ...mudanca } });
+
+const recomecado = (
+  e: RascunhoDoEditor,
+  apoio: Apoio<DocumentoDoCurso>
+): RascunhoDoEditor => ({
+  ...e,
+  apoio,
+  daGeracao: INICIO_DA_GERACAO,
+  geracao: e.geracao + 1,
+  rascunho: rascunhoDoCurso(apoio.base),
+});
+
+/** O Salvar com erro leva o painel e o foco ao primeiro campo marcado. */
+function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
+  const { achados, envio } = leitura(e);
+  if (envio) {
+    return naGeracao(e, { recusa: null, tentou: false });
+  }
+  const campos = achados.flatMap((p) => (p.campo ? [p.campo] : []));
+  return {
+    ...naGeracao(e, { tentou: true }),
+    escolhas: campos[0]
+      ? comODonoDoCampo(e.escolhas, e.rascunho, campos[0])
+      : e.escolhas,
+    foco: campos,
+  };
+}
+
+function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
+  switch (a.tipo) {
+    case "aberto":
+      return { ...e, abertos: comAberto(e.abertos, a.id) };
+    case "fechado":
+      return { ...e, abertos: semAberto(e.abertos, a.id) };
+    case "aula_escolhida":
+      return { ...e, escolhas: comAula(e.escolhas, a.moduloId, a.aulaId) };
+    case "pergunta_escolhida":
+      return {
+        ...e,
+        escolhas: comPerguntaEscolhida(e.escolhas, a.aulaId, a.perguntaId),
+      };
+    case "saiu_do_campo": {
+      const { tocados } = e.daGeracao;
+      return tocados.has(a.id)
+        ? e
+        : naGeracao(e, { tocados: new Set([...tocados, a.id]) });
+    }
+    case "capa_escolhida":
+      return naGeracao(e, { capa: a.arquivo });
+    case "linha_pedida":
+      return naGeracao(e, { linha: a.chave });
+    case "linha_fechada":
+      return e.daGeracao.linha === a.chave ? naGeracao(e, { linha: null }) : e;
+    case "salvar":
+      return salvar(e);
+    case "descartado":
+      return recomecado(e, apoioEm(e.apoio.pagina));
+    case "pagina": {
+      const s = sincronizarComAPagina(e.apoio, {
+        limpo: !ehSujo(e),
+        pagina: a.pagina,
+      });
+      return s.recomecar ? recomecado(e, s.apoio) : { ...e, apoio: s.apoio };
+    }
+    case "salvo": {
+      const gravado = { ...a.envio.documento, versao: a.versao };
+      const { capa } = e.daGeracao;
+      return {
+        ...e,
+        apoio: apoioSalvo(e.apoio, gravado),
+        // A capa escolhida durante o salvar fica para o próximo.
+        daGeracao:
+          capa === a.envio.capa ? { ...e.daGeracao, capa: null } : e.daGeracao,
+        rascunho: mesmoRascunho(e.rascunho, a.envio.rascunho)
+          ? rascunhoDoCurso(gravado)
+          : e.rascunho,
+      };
+    }
+    case "recusado": {
+      const apoio =
+        a.motivo === "versao_mudou"
+          ? { ...e.apoio, versaoDeFora: true }
+          : e.apoio;
+      if (a.envio.geracao !== e.geracao) {
+        return { ...e, apoio };
+      }
+      const recusa = recusaDoMotivo(a.motivo, a.envio.rascunho);
+      return {
+        ...naGeracao({ ...e, apoio }, { recusa }),
+        foco: recusa ? [ID.curso(recusa.campo)] : e.foco,
+      };
+    }
+    default:
+      return {
+        ...e,
+        abertos: abertosDepoisDe(e.abertos, a),
+        escolhas: escolhasDepoisDe(e.escolhas, a),
+        rascunho: mudar(e.rascunho, a),
+      };
+  }
+}
+
+/**
+ * Nenhum erro fica num bloco fechado: o bloco abre na ação em que o erro
+ * aparece e continua aberto depois da correção.
+ */
+export function rascunhoDoEditor(
+  antes: RascunhoDoEditor,
+  a: AcaoDoEditor
+): RascunhoDoEditor {
+  const e = passo(antes, a);
+  const { erros } = telaDo(e);
+  const comErro = e.rascunho.modulos.flatMap((m) =>
+    camposComErro(m, erros) > 0 && !e.abertos.has(m.id) ? [m.id] : []
+  );
+  return comErro.length > 0
+    ? { ...e, abertos: comErro.reduce(comAberto, e.abertos) }
+    : e;
 }

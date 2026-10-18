@@ -21,9 +21,9 @@ import { trpcClient } from "@/utils/trpc";
 
 import { AreaDeTexto, CampoDeTexto } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import type { Mudanca } from "./estado-do-editor";
 import { ROTULO, Secao } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
+import type { Mudanca } from "./rascunho-do-editor";
 import { SelecaoComBusca } from "./selecao";
 
 const LINK_DE_APOIO =

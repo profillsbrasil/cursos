@@ -24,15 +24,6 @@ import {
 import { plural } from "@/lib/formato";
 
 import { AreaDeTexto, CampoDeTexto, CampoLido } from "./campo-lido";
-import {
-  type AcaoNasEscolhas,
-  aulaEscolhida,
-  type Escolhas,
-  errosNaAula,
-  type Marcados,
-  type Mudanca,
-  perguntaEscolhida,
-} from "./estado-do-editor";
 import { ICONE } from "./partes";
 import { QuestionarioDaAula, ResumoDoQuiz } from "./questionario-da-aula";
 import {
@@ -40,9 +31,18 @@ import {
   ID,
   type ModuloDoRascunho,
 } from "./rascunho-do-curso";
+import {
+  type AcaoDoAdmin,
+  aulaEscolhida,
+  type Escolhas,
+  errosNaAula,
+  type Marcados,
+  type Mudanca,
+  perguntaEscolhida,
+} from "./rascunho-do-editor";
 import { Selecao } from "./selecao";
 
-type Despachar = Dispatch<Mudanca>;
+type Despachar = Dispatch<AcaoDoAdmin>;
 
 const ALVO_DA_AULA = {
   item: (id: AulaId) => `aula-${id}-item`,
@@ -190,7 +190,6 @@ function PainelDaAula({
   marcados,
   modulo,
   modulos,
-  mudarEscolhas,
   posicao,
   total,
 }: {
@@ -201,7 +200,6 @@ function PainelDaAula({
   marcados: Marcados;
   modulo: ModuloDoRascunho;
   modulos: readonly ModuloDoRascunho[];
-  mudarEscolhas: Dispatch<AcaoNasEscolhas>;
   posicao: number;
   total: number;
 }) {
@@ -252,7 +250,7 @@ function PainelDaAula({
   const remover = useCallback(() => {
     const vizinho = vizinhoQueFica(modulo.aulas, posicao - 1);
     if (vizinho) {
-      mudarEscolhas({
+      despachar({
         aulaId: vizinho.id,
         moduloId: modulo.id,
         tipo: "aula_escolhida",
@@ -262,7 +260,7 @@ function PainelDaAula({
     focarDepois(
       vizinho ? ALVO_DA_AULA.remover(vizinho.id) : ALVO_DA_AULA.nova(modulo.id)
     );
-  }, [despachar, id, modulo.aulas, modulo.id, mudarEscolhas, posicao]);
+  }, [despachar, id, modulo.aulas, modulo.id, posicao]);
 
   return (
     <section
@@ -370,7 +368,6 @@ function PainelDaAula({
         escolhida={perguntaEscolhida(aula, escolhas)}
         key={aula.id}
         marcados={marcados}
-        mudarEscolhas={mudarEscolhas}
       />
     </section>
   );
@@ -383,7 +380,6 @@ export function AulasDoModulo({
   marcados,
   modulo,
   modulos,
-  mudarEscolhas,
 }: {
   assistidasPorAula: Readonly<Record<string, number>>;
   despachar: Despachar;
@@ -391,7 +387,6 @@ export function AulasDoModulo({
   marcados: Marcados;
   modulo: ModuloDoRascunho;
   modulos: readonly ModuloDoRascunho[];
-  mudarEscolhas: Dispatch<AcaoNasEscolhas>;
 }) {
   const escolhida = aulaEscolhida(modulo, escolhas);
   const nome = modulo.titulo.trim()
@@ -399,8 +394,8 @@ export function AulasDoModulo({
     : `Aulas do módulo ${modulo.numero}`;
   const escolher = useCallback(
     (aulaId: AulaId) =>
-      mudarEscolhas({ aulaId, moduloId: modulo.id, tipo: "aula_escolhida" }),
-    [modulo.id, mudarEscolhas]
+      despachar({ aulaId, moduloId: modulo.id, tipo: "aula_escolhida" }),
+    [modulo.id, despachar]
   );
   const adicionar = useCallback(() => {
     const aula = novoId<AulaId>();
@@ -452,7 +447,6 @@ export function AulasDoModulo({
           marcados={marcados}
           modulo={modulo}
           modulos={modulos}
-          mudarEscolhas={mudarEscolhas}
           posicao={modulo.aulas.indexOf(escolhida) + 1}
           total={modulo.aulas.length}
         />

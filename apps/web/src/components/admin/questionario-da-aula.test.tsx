@@ -38,7 +38,6 @@ const render = (perguntas: number, marcados = new Map<string, string>()) => {
         despachar={nada}
         escolhida={aula.perguntas[0] ?? null}
         marcados={marcados}
-        mudarEscolhas={nada}
       />
     </ErrosDoEditor>
   );

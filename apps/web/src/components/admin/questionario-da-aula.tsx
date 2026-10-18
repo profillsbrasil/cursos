@@ -31,12 +31,6 @@ import { fmtNum, plural } from "@/lib/formato";
 
 import { AreaDeTexto } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import {
-  type AcaoNasEscolhas,
-  errosNaPergunta,
-  type Marcados,
-  type Mudanca,
-} from "./estado-do-editor";
 import { ICONE } from "./partes";
 import {
   type AlternativaDoRascunho,
@@ -44,8 +38,13 @@ import {
   ID,
   type PerguntaDoRascunho,
 } from "./rascunho-do-curso";
+import {
+  type AcaoDoAdmin,
+  errosNaPergunta,
+  type Marcados,
+} from "./rascunho-do-editor";
 
-type Despachar = Dispatch<Mudanca>;
+type Despachar = Dispatch<AcaoDoAdmin>;
 
 const ALVO_DO_QUIZ = {
   desfazer: (aula: AulaDoRascunho["id"]) => `aula-${aula}-desfazer`,
@@ -523,24 +522,22 @@ export function QuestionarioDaAula({
   despachar,
   escolhida,
   marcados,
-  mudarEscolhas,
 }: {
   aula: AulaDoRascunho;
   despachar: Despachar;
   escolhida: PerguntaDoRascunho | null;
   marcados: Marcados;
-  mudarEscolhas: Dispatch<AcaoNasEscolhas>;
 }) {
   const [tirada, guardarTirada] = useState<Tirada | null>(null);
   const { perguntas } = aula;
   const escolher = useCallback(
     (perguntaId: PerguntaId) =>
-      mudarEscolhas({
+      despachar({
         aulaId: aula.id,
         perguntaId,
         tipo: "pergunta_escolhida",
       }),
-    [aula.id, mudarEscolhas]
+    [aula.id, despachar]
   );
   const adicionar = useCallback(() => {
     const id = novoId<PerguntaId>();
