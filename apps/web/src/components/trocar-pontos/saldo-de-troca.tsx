@@ -76,7 +76,7 @@ export function SaldoDeTroca({
           <ChevronDown
             aria-hidden="true"
             className={cn(
-              "transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              "transition-transform duration-200 ease-forte motion-reduce:transition-none",
               aberta && "rotate-180"
             )}
           />

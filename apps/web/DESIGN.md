@@ -478,7 +478,7 @@ Em `/admin/categorias`. O cabeçalho conta categorias e cursos ("5 categorias, 1
 - **Do** separar superfícies pelo degrau de tom e pelo anel de 1 px em `borda`.
 - **Do** usar raio de 20 px em cartões e pílula em botões, selos e barras.
 - **Do** desligar toda transição e animação com `prefers-reduced-motion`, e não animar o que a pessoa dispara pelo teclado (Ctrl+B).
-- **Do** usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface.
+- **Do** usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface; `components/movimento.test.ts` acusa curva escrita à mão e duração acima de 200 ms.
 - **Do** usar a marca pelos arquivos de `public/marca/` e o nome por `lib/marca.ts`.
 
 ### Don't:
