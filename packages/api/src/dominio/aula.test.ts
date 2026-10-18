@@ -58,7 +58,8 @@ describe("montarCursoAberto", () => {
 
   test("com liberação ativa, o curso abre no estado dele", () => {
     expect(
-      montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.estado
+      montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.leitura
+        .estado
     ).toEqual({
       primeiraAula: idAula("a", 0, 1) as AulaId,
       tipo: "nao_iniciado",
@@ -95,7 +96,7 @@ describe("montarCursoAberto", () => {
         posicoes: exemplo.posicoes.map((p) => ({ ...p, trechosVistos: [] })),
         questionarios: [],
       });
-      expect(aberto?.estado ?? null).toEqual(
+      expect(aberto?.leitura.estado ?? null).toEqual(
         podeAbrir(vm.estado) ? vm.estado : null
       );
     }

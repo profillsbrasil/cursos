@@ -3,16 +3,9 @@
 // regra de quem vê é a de montarCursoAberto, a mesma do player.
 
 import type { CursoAberto } from "./aula";
-import {
-  type EstadoQueAbre,
-  niveis,
-  type Progresso,
-  progresso,
-  progressoDosQuestionarios,
-  questionariosDoCurso,
-} from "./curso";
+import { type EstadoQueAbre, niveis, type Progresso } from "./curso";
+import type { OndeNoCurso } from "./curso-do-aluno";
 import { type MarcaDoQuestionario, marcaDoQuestionario } from "./questionario";
-import { aulaDeRetomada, type OndeNoCurso, ondeNoCurso } from "./retomada";
 import { caminhoDaAula, caminhoDoQuestionario } from "./rotas";
 import type { AulaId, Capa, NivelCatalogo } from "./tipos";
 
@@ -82,53 +75,49 @@ export interface PaginaDoCurso {
 }
 
 function acaoDe(c: CursoAberto): AcaoDaPagina {
-  const { curso, estado, historico, atividade } = c;
+  const { curso, historico } = c;
+  const { aulaDaVez, estado, questionarios } = c.leitura;
   const { slug } = curso;
+  if (estado.tipo === "concluido") {
+    const [primeira] = curso.modulos.flatMap((m) => m.aulas);
+    if (!primeira) {
+      throw new Error(`Curso ${slug} concluído sem aulas`);
+    }
+    return {
+      aulaId: primeira.id,
+      href: caminhoDaAula(slug, primeira.id),
+      tipo: "rever",
+    };
+  }
+  if (!aulaDaVez) {
+    throw new Error(`Curso ${slug} em ${estado.tipo} sem aula da vez`);
+  }
+  const { id: aulaId, onde, posicaoSeg } = aulaDaVez;
   switch (estado.tipo) {
     case "nao_iniciado":
-    case "em_andamento": {
-      const { aulaId, posicaoSeg } = aulaDeRetomada(
-        curso,
-        estado,
-        historico,
-        atividade
-      );
-      const onde = ondeNoCurso(curso, estado, historico, atividade);
-      if (!onde) {
-        throw new Error(`Curso ${slug} em ${estado.tipo} sem aula de retomada`);
-      }
-      const href = caminhoDaAula(slug, aulaId);
-      return estado.tipo === "nao_iniciado"
-        ? { aulaId, href, onde, tipo: "comecar" }
-        : { aulaId, href, onde, posicaoSeg, tipo: "continuar" };
-    }
-    case "questionarios": {
-      const onde = ondeNoCurso(curso, estado, historico, atividade);
-      if (!onde) {
-        throw new Error(`Curso ${slug} com questionário pendente sem aula`);
-      }
       return {
-        aulaId: estado.proximaAula,
-        href: caminhoDoQuestionario(slug, estado.proximaAula),
+        aulaId,
+        href: caminhoDaAula(slug, aulaId),
         onde,
-        questionarios: progressoDosQuestionarios(
-          questionariosDoCurso(curso, historico)
-        ),
-        tipo: "questionario",
-        ultima: historico.questionarios.get(estado.proximaAula)?.ultima ?? null,
+        tipo: "comecar",
       };
-    }
-    case "concluido": {
-      const [primeira] = curso.modulos.flatMap((m) => m.aulas);
-      if (!primeira) {
-        throw new Error(`Curso ${slug} concluído sem aulas`);
-      }
+    case "em_andamento":
       return {
-        aulaId: primeira.id,
-        href: caminhoDaAula(slug, primeira.id),
-        tipo: "rever",
+        aulaId,
+        href: caminhoDaAula(slug, aulaId),
+        onde,
+        posicaoSeg,
+        tipo: "continuar",
       };
-    }
+    case "questionarios":
+      return {
+        aulaId,
+        href: caminhoDoQuestionario(slug, aulaId),
+        onde,
+        questionarios,
+        tipo: "questionario",
+        ultima: historico.questionarios.get(aulaId)?.ultima ?? null,
+      };
     default: {
       const nenhum: never = estado;
       throw new Error(`Estado sem ação: ${JSON.stringify(nenhum)}`);
@@ -146,7 +135,7 @@ export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
     capa: curso.capa,
     categoria: curso.categoria,
     descricao: curso.descricao,
-    estado: c.estado,
+    estado: c.leitura.estado,
     modulos: curso.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
         assistida: assistidas.has(a.id),
@@ -164,7 +153,7 @@ export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
       titulo: m.titulo,
     })),
     niveis: curso.niveis,
-    progresso: progresso(curso, assistidas),
+    progresso: c.leitura.progresso,
     proximoNivel: proximo && { nome: proximo.nome, ordem: proximo.ordem },
     slug: curso.slug,
     titulo: curso.titulo,

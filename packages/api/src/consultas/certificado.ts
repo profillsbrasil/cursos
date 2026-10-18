@@ -12,7 +12,7 @@ import {
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { gerarCodigo } from "../dominio/certificado";
-import { type CursoComAulas, cursoCompleto } from "../dominio/curso";
+import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
 import { PONTOS } from "../dominio/regras";
 import type { AulaId, CursoId, Historico } from "../dominio/tipos";
 import type { Transacao } from "./comum";
@@ -29,7 +29,7 @@ interface CursoParaConcluir extends CursoComAulas {
   segundosDeVideo: number;
 }
 
-/** Um statement: o curso com as aulas e as perguntas contadas. null sem o curso. */
+/** Um statement: o curso com os módulos, as aulas e as perguntas contadas. null sem o curso. */
 async function cursoParaConcluir(
   tx: Transacao,
   cursoId: CursoId
@@ -38,11 +38,14 @@ async function cursoParaConcluir(
     .select({
       aulaId: aula.id,
       duracaoSeg: aula.duracaoSeg,
+      moduloId: modulo.id,
+      numero: modulo.numero,
       perguntas: sql<
         number | null
       >`(select count(*)::int from ${pergunta} where ${pergunta.aulaId} = ${aula.id})`,
       status: curso.status,
       titulo: curso.titulo,
+      tituloDoModulo: modulo.titulo,
     })
     .from(curso)
     .leftJoin(modulo, eq(modulo.cursoId, curso.id))
@@ -53,17 +56,31 @@ async function cursoParaConcluir(
   if (!primeira) {
     return null;
   }
+  const modulos = new Map<
+    string,
+    {
+      aulas: { id: AulaId; perguntas: number }[];
+      numero: number;
+      titulo: string;
+    }
+  >();
+  for (const l of linhas) {
+    if (l.moduloId === null || l.numero === null || l.tituloDoModulo === null) {
+      continue;
+    }
+    const m = modulos.get(l.moduloId) ?? {
+      aulas: [],
+      numero: l.numero,
+      titulo: l.tituloDoModulo,
+    };
+    modulos.set(l.moduloId, m);
+    if (l.aulaId !== null) {
+      m.aulas.push({ id: l.aulaId as AulaId, perguntas: l.perguntas ?? 0 });
+    }
+  }
   return {
     id: cursoId,
-    modulos: [
-      {
-        aulas: linhas.flatMap((l) =>
-          l.aulaId === null
-            ? []
-            : [{ id: l.aulaId as AulaId, perguntas: l.perguntas ?? 0 }]
-        ),
-      },
-    ],
+    modulos: [...modulos.values()],
     segundosDeVideo: linhas.reduce((s, l) => s + (l.duracaoSeg ?? 0), 0),
     status: primeira.status,
     titulo: primeira.titulo,
@@ -204,7 +221,7 @@ export async function concluirCurso(
     certificados: new Map(),
     posicoes: new Map(),
   };
-  if (!cursoCompleto(alvo, historico)) {
+  if (!lerCursoDoAluno(alvo, { atividade: new Map(), historico }).completo) {
     return null;
   }
   const codigo = await gravarCertificado(aluno, alvo, agora);

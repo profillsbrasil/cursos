@@ -114,6 +114,8 @@ export async function linhasDaBusca(
         'status', c.status,
         'titulo', c.titulo,
         'modulos', coalesce((select json_agg(json_build_object(
+            'numero', m.numero,
+            'titulo', m.titulo,
             'aulas', coalesce((select json_agg(json_build_object(
                   'id', au.id,
                   'perguntas', (select count(*)::int from pergunta pe where pe.aula_id = au.id))

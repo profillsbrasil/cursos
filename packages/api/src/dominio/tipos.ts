@@ -130,7 +130,7 @@ export interface Historico {
   questionarios: ReadonlyMap<AulaId, EstudoDoQuestionario>;
 }
 
-/** `questionarios`: todas as aulas assistidas e questionário por aprovar; a regra é estadoDoCurso. */
+/** `questionarios`: todas as aulas assistidas e questionário por aprovar; a regra é lerCursoDoAluno. */
 export type EstadoCurso =
   | { tipo: "em_breve" }
   | { tipo: "nao_iniciado"; primeiraAula: AulaId }

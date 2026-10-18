@@ -1,17 +1,11 @@
 import {
   type EstadoQueAbre,
-  estadoDoCurso,
   numeroDaAula,
   type Progresso,
   podeAbrir,
-  progresso,
 } from "./curso";
-import {
-  atividadeDe,
-  historicoDe,
-  type LinhaDoQuestionario,
-  posicaoComecada,
-} from "./historico";
+import { type CursoDoAluno, lerCursoDoAluno } from "./curso-do-aluno";
+import { estudoDe, type LinhaDoQuestionario } from "./historico";
 import { type CursoLinha, paraCatalogo } from "./painel";
 import {
   type MarcaDoQuestionario,
@@ -51,11 +45,10 @@ export interface LinhasCurso {
 }
 
 export interface CursoAberto {
-  atividade: ReadonlyMap<AulaId, string>;
   curso: CursoCatalogo;
   diasComAulaAssistida: ReadonlySet<DiaISO>;
-  estado: EstadoQueAbre;
   historico: Historico;
+  leitura: CursoDoAluno & { estado: EstadoQueAbre };
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
 }
 
@@ -65,24 +58,20 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   if (!linha || linha.liberacoes.length === 0) {
     return null;
   }
-  const comPosicao = {
-    ...linhas,
-    posicoes: linhas.posicoes.filter(posicaoComecada),
-  };
-  const historico = historicoDe(comPosicao);
+  const estudo = estudoDe(linhas);
   const curso = paraCatalogo(linha);
-  const estado = estadoDoCurso(curso, historico);
+  const leitura = lerCursoDoAluno(curso, estudo);
+  const { estado } = leitura;
   if (!podeAbrir(estado)) {
     return null;
   }
   return {
-    atividade: atividadeDe(comPosicao),
     curso,
     diasComAulaAssistida: new Set(
       linhas.assistidas.map((a) => a.dia as DiaISO)
     ),
-    estado,
-    historico,
+    historico: estudo.historico,
+    leitura: { ...leitura, estado },
     trechos: new Map(
       linhas.posicoes.map((p) => [p.aulaId as AulaId, p.trechosVistos])
     ),
@@ -195,7 +184,7 @@ export function montarAulaNoPlayer(
       video: aula.video,
     },
     curso: {
-      progresso: progresso(c.curso, assistidas),
+      progresso: c.leitura.progresso,
       slug: c.curso.slug,
       titulo: c.curso.titulo,
     },

@@ -1,16 +1,8 @@
-import {
-  type CursoNaTela,
-  estadoDoCurso,
-  type Progresso,
-  progresso,
-} from "./curso";
-import {
-  atividadeDe,
-  historicoDe,
-  type LinhaDoQuestionario,
-} from "./historico";
+import type { Progresso } from "./curso";
+import { type CursoDoAluno, lerCursoDoAluno } from "./curso-do-aluno";
+import { estudoDe, type LinhaDoQuestionario } from "./historico";
 import { PONTOS } from "./regras";
-import { ondeNoCurso, retomada } from "./retomada";
+import { type CursoNaTela, retomada } from "./retomada";
 import {
   type DiaDaSemana,
   diaLocal,
@@ -27,7 +19,6 @@ import {
   capaDe,
   type DiaISO,
   type EstadoCurso,
-  type Historico,
   type LinhaDaCapa,
   type StatusDoCurso,
   type TipoEstado,
@@ -101,7 +92,7 @@ export interface CursoVM {
   extra: string | null;
   id: CursoId;
   /**
-   * O módulo da aula para onde o Continuar leva (`ondeNoCurso`), o mesmo que o
+   * O módulo da aula para onde o Continuar leva (`aulaDaVez`), o mesmo que o
    * admin lê; null quando o curso não abre aula.
    */
   moduloAtual: { numero: number; titulo: string } | null;
@@ -238,23 +229,18 @@ const ORDEM_DOS_CURSOS: Record<TipoEstado, number> = {
 const somaSeg = (aulas: readonly { duracaoSeg: number }[]) =>
   aulas.reduce((s, a) => s + a.duracaoSeg, 0);
 
-function cursoVM(
-  c: CursoCatalogo,
-  estado: EstadoCurso,
-  h: Historico,
-  atividade: ReadonlyMap<AulaId, string>
-): CursoVM {
+function cursoVM(c: CursoCatalogo, leitura: CursoDoAluno): CursoVM {
   const aulas = c.modulos.flatMap((m) => m.aulas);
   return {
     aulas: aulas.length,
     capa: c.capa,
     categoria: c.categoria,
     duracaoSeg: somaSeg(aulas),
-    estado,
+    estado: leitura.estado,
     extra: c.extra,
     id: c.id,
-    moduloAtual: ondeNoCurso(c, estado, h, atividade)?.modulo ?? null,
-    progresso: progresso(c, h.assistidas),
+    moduloAtual: leitura.aulaDaVez?.onde.modulo ?? null,
+    progresso: leitura.progresso,
     slug: c.slug,
     temNiveis: c.niveis.length > 0,
     titulo: c.titulo,
@@ -266,15 +252,15 @@ export function montarPainel(
   linhas: LinhasPainel,
   hoje: DiaISO
 ): PainelMeusCursos {
-  const h = historicoDe(linhas);
-  const atividade = atividadeDe(linhas);
+  const estudo = estudoDe(linhas);
   const liberados = linhas.liberacoes.map(({ curso }) => paraCatalogo(curso));
   // O sort é estável, então o empate fica na ordem da liberação.
   const telas: CursoNaTela[] = liberados
-    .map((curso) => ({ curso, estado: estadoDoCurso(curso, h) }))
+    .map((curso) => ({ curso, leitura: lerCursoDoAluno(curso, estudo) }))
     .sort(
       (a, b) =>
-        ORDEM_DOS_CURSOS[a.estado.tipo] - ORDEM_DOS_CURSOS[b.estado.tipo]
+        ORDEM_DOS_CURSOS[a.leitura.estado.tipo] -
+        ORDEM_DOS_CURSOS[b.leitura.estado.tipo]
     );
   const acessiveis = new Set<string>(telas.map((x) => x.curso.id));
   const comunicado = linhas.comunicados.find(
@@ -292,8 +278,8 @@ export function montarPainel(
           titulo: comunicado.titulo,
         }
       : null,
-    cursos: telas.map((x) => cursoVM(x.curso, x.estado, h, atividade)),
-    retomada: retomada({ atividade, cursos: telas, historico: h }),
+    cursos: telas.map((x) => cursoVM(x.curso, x.leitura)),
+    retomada: retomada({ cursos: telas, estudo }),
   };
 }
 

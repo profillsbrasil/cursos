@@ -2,13 +2,12 @@ import { describe, expect, test } from "bun:test";
 
 import {
   acompanharCurso,
-  estudoDe,
   type LinhasDaBusca,
   type LinhasDaPessoa,
   montarBusca,
 } from "./acompanhamento";
 import { cursoCat, idAula } from "./exemplo";
-import type { LinhasHistorico } from "./historico";
+import { estudoDe, type LinhasHistorico } from "./historico";
 import type { CursoId, DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
@@ -177,6 +176,8 @@ describe("montarBusca", () => {
           id: idAula(id, 0, i + 1),
           perguntas: 0,
         })),
+        numero: 0,
+        titulo: "Módulo 0",
       },
     ],
     status,
