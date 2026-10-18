@@ -10,6 +10,7 @@ import { type KeyboardEvent, useCallback, useEffect, useRef } from "react";
 
 import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { faltam, fmtMin, fmtNum, fmtPts, plural } from "@/lib/formato";
+import { caminhoDoCurso } from "@/lib/rotas";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -43,7 +44,7 @@ function Acao({
         <>
           <Link
             className={cn(BOTAO, "w-full")}
-            href={`/cursos/${curso.slug}`}
+            href={caminhoDoCurso(curso.slug)}
             ref={alvoDoFoco}
           >
             <Play aria-hidden="true" className="fill-current" />

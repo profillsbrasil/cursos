@@ -41,7 +41,8 @@ export interface Onde {
 
 /**
  * O estado do curso como o admin lê. "Nunca abriu" é o "Não iniciado" do aluno,
- * e "Em produção" é o "Em breve". Quem parou de estudar não ganha estado
+ * e "Em produção" é o `em_breve`, que o aluno também lê como "Em produção".
+ * Quem parou de estudar não ganha estado
  * próprio: a tela mostra o dia do último estudo.
  */
 export type SituacaoNoCurso =

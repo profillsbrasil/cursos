@@ -276,9 +276,9 @@ export async function revogar(
 }
 
 /**
- * Tela /admin/alunos/[userId], em 5 statements paralelos: todas as liberações da
+ * Tela /admin/alunos/[userId], em 6 statements paralelos: todas as liberações da
  * pessoa com o curso (o statement 1 do painel, revogadas inclusive), o histórico
- * de estudo (os statements 2, 3 e 4 do painel) e o catálogo.
+ * de estudo (os statements 2 a 5 do painel) e o catálogo.
  */
 export async function linhasDoAcesso(
   db: Database,
