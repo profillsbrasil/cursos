@@ -5,35 +5,25 @@ import { join } from "node:path";
 import { ITENS_DO_ADMIN } from "../admin/menu";
 import { ITENS_DO_ALUNO } from "../aluno/menu";
 import {
-  COOKIE_DA_SIDEBAR,
   indiceAtivo,
   LARGURAS_DA_SIDEBAR,
   type MovimentoDaPilula,
   movimentoDaPilula,
-  VALIDADE_DO_COOKIE_S,
 } from "./nav";
 
 const SIDEBAR_DO_UI = join(
   import.meta.dir,
   "../../../../../packages/ui/src/components/sidebar.tsx"
 );
-const NOME_DO_COOKIE = /const SIDEBAR_COOKIE_NAME = "([^"]+)"/;
-const VALIDADE = /const SIDEBAR_COOKIE_MAX_AGE = ([\d *]+);/;
 
 describe("cookie da sidebar", () => {
-  // O shadcn add pode regenerar o sidebar.tsx com outro nome: a casca passaria a
-  // abrir sempre e esqueceria o modo recolhido, sem erro nenhum.
-  test("a casca lê o cookie que o SidebarProvider do packages/ui grava", () => {
-    const gravado = readFileSync(SIDEBAR_DO_UI, "utf8").match(NOME_DO_COOKIE);
-    expect(gravado?.[1]).toBe(COOKIE_DA_SIDEBAR);
-  });
-
-  test("a casca regrava o cookie com a validade do SidebarProvider", () => {
-    const expressao = readFileSync(SIDEBAR_DO_UI, "utf8").match(VALIDADE)?.[1];
-    const segundos = expressao
-      ?.split("*")
-      .reduce((produto, fator) => produto * Number(fator), 1);
-    expect(segundos).toBe(VALIDADE_DO_COOKIE_S);
+  // O shadcn add --overwrite devolve a gravação ao setOpen do packages/ui, que
+  // escreveria a abertura da aula por cima da preferência que o provedor grava.
+  test("só o provedor da casca grava o cookie, e o sidebar.tsx não", () => {
+    const gravaNoUi = readFileSync(SIDEBAR_DO_UI, "utf8").includes(
+      "document.cookie"
+    );
+    expect(gravaNoUi).toBe(false);
   });
 });
 
