@@ -21,7 +21,7 @@ describe("garantirBancoLocal", () => {
     ).toThrow(BancoNaoLocalError);
   });
 
-  test("recusa host local fora da porta do Supabase local", () => {
+  test("recusa host local fora da porta do Postgres local", () => {
     expect(() =>
       garantirBancoLocal(
         "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
@@ -55,7 +55,7 @@ describe("garantirBancoLocal", () => {
     ).toThrow(CITA_CLAUDE_MD);
   });
 
-  test("aceita o Supabase local em 127.0.0.1 e localhost", () => {
+  test("aceita o Postgres local em 127.0.0.1 e localhost", () => {
     expect(
       garantirBancoLocal(
         "postgresql://postgres:postgres@127.0.0.1:54322/postgres"

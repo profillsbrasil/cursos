@@ -2,7 +2,7 @@
 
 Plataforma de cursos da Profills. Monorepo Bun + Turborepo gerado pelo Better T Stack (`bts.jsonc` guarda o comando de origem; `bunx create-better-t-stack@latest add` acrescenta addons).
 
-Stack: Next.js 16 (App Router, React Compiler, `typedRoutes`), tRPC 11 (o browser chama pelo `trpcClient`, sem TanStack Query), Drizzle 1.0 RC sobre Postgres do Supabase, Clerk para auth, shadcn (estilo `base-lyra`, Base UI), Motion para animação que o CSS não resolve, Biome via Ultracite, varlock para env, deploy na Vercel.
+Stack: Next.js 16 (App Router, React Compiler, `typedRoutes`), tRPC 11 (o browser chama pelo `trpcClient`, sem TanStack Query), Drizzle 1.0 RC sobre Postgres da Railway, Clerk para auth, shadcn (estilo `base-lyra`, Base UI), Motion para animação que o CSS não resolve, Biome via Ultracite, varlock para env, deploy na Railway.
 
 ## Mapa
 
@@ -38,8 +38,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 
 ### Raiz
 
-- `scripts/sync-vercel-env.ts`: atrás de `bun run env:preview` e `env:production`.
-- `vercel.json`: serviço `web` com raiz em `apps/web` e install na raiz do monorepo.
+- `.railway/railway.ts`: o projeto `cursos` da Railway como código (o serviço `web` em `cursos.profills.com`, o `Postgres` e o bucket `capas`, todos em `iad`, Virgínia). O DNS de `profills.com` fica na KingHost: um CNAME `cursos` para o alvo que a Railway deu e o TXT `_railway-verify.cursos`. `railway config plan` mostra a diferença para o que está no ar; `railway config apply` só com pedido do dono.
 - `AGENTS.md` e `apps/web/AGENTS.md`: blocos que o turbo e o `next dev` reescrevem sozinhos. Commite as mudanças deles junto com o trabalho.
 - `apps/web/PRODUCT.md`: o produto, o público e as decisões do dono. `apps/web/DESIGN.md` (com o sidecar `apps/web/.impeccable/design.json`): o sistema visual tirado do código, com tokens, tipografia, formas, a casca e as regras de movimento. UI nova segue o `DESIGN.md`; mudança que o contradiz atualiza o arquivo no mesmo PR.
 - `docs/marca/`: o que é cada arquivo da marca e de onde veio, e a Orbitron do lockup com a licença OFL (`fontes/orbitron/`). O logo oficial da Profills fica ali como referência, fora do `public/`.
@@ -49,18 +48,17 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 - O contrato fica em `apps/web/.env.schema`; os valores locais, em `apps/web/.env` (fora do git). `packages/db/.env.schema` importa `NODE_ENV` e `DATABASE_*` do app.
 - `@defaultSensitive=true` marca toda variável como segredo. Valor que chega ao browser leva `@public`, senão o varlock acusa `DETECTED LEAKED SENSITIVE CONFIG` e derruba o request. Foi o que aconteceu com `CLERK_PUBLISHABLE_KEY`.
 - Depois de editar o schema: `bun run env:generate` para regenerar os `env.ts`, e reinicie o `next dev`.
-- `SUPABASE_URL` (`@public`, porque a URL da capa leva o host ao browser) e `SUPABASE_SERVICE_ROLE_KEY` são opcionais. Sem uma delas, o envio de capa do admin recusa com "não configurado" e o resto funciona.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` e `S3_SECRET_ACCESS_KEY` apontam o bucket das capas e são opcionais. Sem uma delas, o envio de capa do admin recusa com "não configurado" e o resto funciona. O bucket é privado: a capa sai pela rota `/capa/[chave]` do app. Na Railway elas são referências ao bucket (`${{capas.ENDPOINT}}` e as outras), menos `S3_REGION`, que vale `auto`. Endpoint, região e nome do bucket levam `@sensitive=false`: a palavra `auto` aparece em todo JS, e o varlock derrubava o build acusando vazamento.
+- Na Railway, `CORS_ORIGIN` vale `https://cursos.profills.com`, o domínio do `web`, e `DATABASE_URL` vale `${{Postgres.DATABASE_URL}}`, pela rede interna. As chaves do Clerk são as mesmas `pk_test`/`sk_test` do dev.
 - `CORS_ORIGIN` precisa ser exatamente a origem do browser (`http://localhost:3001` no dev). Com outro valor, o Clerk recusa o token e todo `protectedProcedure` responde `UNAUTHORIZED`.
 
 ## Banco
 
-- O `DATABASE_URL` do `.env` aponta para o projeto **cloud** do Supabase (`lsatugtpqwiylnfutolg`, org profillsbrasil, `sa-east-1`), pelo pooler de transação na porta 6543. É decisão do dono: o dev usa o banco real. Trate `db:push` e `db:migrate` como escrita em produção e confirme antes.
-- `drizzle-kit` contra o cloud usa o mesmo host na porta 5432 (session pooler).
-- A main e todos os worktrees usam esse mesmo banco, então migração que quebra o código antigo (como a `catalogo_sem_trilha`, ADR 0001) espera a ordem: o PR entra na main, os outros worktrees juntam a main, e só então o dono aplica a migração no cloud e zera o banco, no mesmo momento. Aplicar antes quebra a main e os worktrees abertos.
-- O app conecta como `postgres`, que tem `BYPASSRLS`. O projeto cloud tem o event trigger `ensure_rls`, que liga RLS em toda tabela nova do `public`, e a Data API não expõe tabelas novas. RLS só protege acesso via `anon`/`authenticated`; a autorização do app mora nos procedures do tRPC.
-- O Supabase local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- O banco de produção é o serviço `Postgres` do projeto `cursos` na Railway, em `iad` (Virgínia), ao lado do `web`. O app chega nele pela rede interna. Ele não tem proxy TCP, então nada de fora da Railway o alcança; acesso a ele passa por `railway ssh --service web`. A ADR 0002 diz por que tudo fica na Railway e o que isso custa em latência.
+- O dev usa o ambiente `development` do mesmo projeto: o `Postgres-dev` e o bucket `capas-dev`, sem serviço `web`. O `.env` local aponta para eles (`railway bucket credentials --bucket capas-dev --environment development` dá as `S3_*`). O `DATABASE_URL` de dev é o `DATABASE_PUBLIC_URL` do `Postgres-dev`, que só existe com o proxy TCP dele ligado. Migração no dev: `bunx drizzle-kit migrate` dentro de `packages/db`.
+- O `preDeployCommand` do `web` roda `drizzle-kit migrate` antes de cada deploy, então migração que entra na main vai para produção no deploy seguinte. Migração que quebra o código antigo (como a `catalogo_sem_trilha`, ADR 0001) entra no mesmo PR do código que a usa.
+- O Postgres local (`bun run db:start` / `db:stop`, um container `postgres:17-alpine` na porta 54322) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`. O `db:stop` apaga o container e os dados.
 - `bun run db:push` (e `db:generate`, `db:migrate`) da raiz é task interativa do turbo e falha num shell sem TTY. Num agente, rode `bunx drizzle-kit <comando>` dentro de `packages/db`.
-- O MCP `supabase` deste ambiente pode estar logado em outra conta e não enxergar o projeto. Confira com `list_projects` antes de usá-lo; se o projeto não aparecer, use o dashboard.
 
 ## Auth (Clerk)
 
@@ -70,10 +68,10 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 
 ## Comandos
 
-- `bun run dev` sobe tudo; `bun run dev:web` só o app. `bun run --cwd apps/web dev:local` sobe o app contra o Supabase local (o `process.env` vence o `.env` no varlock). Não use `bun --bun next dev`: o Turbopack não resolve o `pg` no runtime do Bun.
+- `bun run dev` sobe tudo; `bun run dev:web` só o app. `bun run --cwd apps/web dev:local` sobe o app contra o Postgres local (o `process.env` vence o `.env` no varlock). Não use `bun --bun next dev`: o Turbopack não resolve o `pg` no runtime do Bun.
 - Testes: `bun run test`. Os de integração só rodam com `TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres` e recusam host que não seja local. Banco local: `bun run db:migrate:local` e `bun run db:seed -- --aluno user_xxx`, dentro de `packages/db`.
 - Antes de commitar: `bun run check-types` e `bun x ultracite check` verdes. Com o `typedRoutes`, o tipo `Route` só fica estrito depois que o `next dev` ou o `next build` gera `apps/web/.next/types`: num worktree novo, o `check-types` passa com href que a branch principal recusa, então rode um dos dois antes. Um hook do Claude Code (`.claude/hooks/formatar-arquivo-editado.ts`) roda o Biome no arquivo editado depois de cada Edit/Write, então o arquivo pode mudar logo após a edição: releia antes do próximo Edit.
-- Deploy: `bun run deploy:setup` linka a Vercel. `bun run env:production` sem argumento envia o `apps/web/.env` (menos `CORS_ORIGIN` e `NODE_ENV`), que tem as chaves `pk_test` e o banco do dev. Para produção, monte um `apps/web/.env.production.local` (já ignorado pelo git) e rode `bun run env:production apps/web/.env.production.local`.
+- Deploy: o serviço `web` da Railway builda com `bun run --cwd apps/web build` (sem turbo: os pacotes do workspace são TS e o modo estrito do turbo esconderia variáveis do build) e sobe com `bun run --cwd apps/web start`. O healthcheck é `/entrar`. `railway up --service web --ci` sobe o diretório atual; `railway logs --service web` lê o log.
 
 ## Código
 

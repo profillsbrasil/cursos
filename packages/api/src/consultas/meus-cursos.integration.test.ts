@@ -1,4 +1,4 @@
-// Consultas contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
+// Consultas contra o Postgres local. Roda só com TEST_DATABASE_URL em host local.
 // Cada execução cria alunos user_teste<hex> e slugs teste-<hex> e apaga tudo no afterAll.
 // Sem db reset nem TRUNCATE: o banco local é compartilhado entre worktrees.
 

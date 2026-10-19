@@ -1,8 +1,10 @@
-// Capas no Supabase Storage (bucket público "capas"). Só o servidor importa este
-// arquivo: node:crypto, image-size e a chave service role, que entra por
-// apps/web/src/services.ts. O que é uma capa aceitável mora em dominio/capa.ts.
+// Capas num bucket S3 (o bucket "capas" da Railway, que é privado: o app serve
+// cada capa em /capa/<chave>). Só o servidor importa este arquivo: node:crypto,
+// image-size e as chaves do bucket, que entram por apps/web/src/services.ts. O que
+// é uma capa aceitável mora em dominio/capa.ts.
 
 import { createHash } from "node:crypto";
+import { AwsClient } from "aws4fetch";
 import { imageSize } from "image-size";
 
 import {
@@ -18,6 +20,8 @@ export type CapaRecebida =
 
 /** Quem chama não sabe de bucket, chave, URL pública nem medida. */
 export interface Capas {
+  /** A capa guardada sob a chave, ou null quando a chave não é de capa ou não existe. */
+  abrir: (chave: string) => Promise<Response | null>;
   receber: (arquivo: Blob) => Promise<CapaRecebida>;
 }
 
@@ -75,20 +79,55 @@ export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
   };
 }
 
-const BUCKET = "capas";
-const BARRAS_NO_FIM = /\/+$/;
+const CHAVE = /^[0-9a-f]{64}\.(jpg|png|webp)$/;
+
+export interface BucketDeCapas {
+  bucket: string;
+  /** Endereço da API S3, como https://t3.storageapi.dev. */
+  endpoint: string;
+  idDaChave: string;
+  regiao: string;
+  segredo: string;
+}
 
 /**
- * O objeto é imutável (nome = hash), então o envio é idempotente: x-upsert
+ * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT
  * reescreve os mesmos bytes e o cache pode durar um ano. Capa trocada deixa o
  * objeto antigo no bucket; não há coleta.
  */
-export function capasDoSupabase(
-  cfg: { chave: string; url: string },
+export function capasNoBucket(
+  cfg: BucketDeCapas,
   enviar: typeof fetch = fetch
 ): Capas {
-  const base = cfg.url.replace(BARRAS_NO_FIM, "");
+  const aws = new AwsClient({
+    accessKeyId: cfg.idDaChave,
+    region: cfg.regiao,
+    secretAccessKey: cfg.segredo,
+    service: "s3",
+  });
+  const endpoint = new URL(cfg.endpoint);
+  const doObjeto = (chave: string) =>
+    `${endpoint.protocol}//${cfg.bucket}.${endpoint.host}/${chave}`;
+
   return {
+    async abrir(chave) {
+      if (!CHAVE.test(chave)) {
+        return null;
+      }
+      const resposta = await enviar(await aws.sign(doObjeto(chave)));
+      if (resposta.status === 404) {
+        return null;
+      }
+      if (!resposta.ok) {
+        console.error(
+          "Bucket recusou a leitura da capa:",
+          resposta.status,
+          await resposta.text()
+        );
+        throw new Error("Não foi possível ler a capa.");
+      }
+      return resposta;
+    },
     async receber(arquivo) {
       const pesada = recusaDoTamanho(arquivo.size);
       if (pesada) {
@@ -99,22 +138,15 @@ export function capasDoSupabase(
         return lida;
       }
       const resposta = await enviar(
-        `${base}/storage/v1/object/${BUCKET}/${lida.chave}`,
-        {
+        await aws.sign(doObjeto(lida.chave), {
           body: lida.bytes,
-          headers: {
-            Authorization: `Bearer ${cfg.chave}`,
-            apikey: cfg.chave,
-            "cache-control": "max-age=31536000",
-            "content-type": lida.contentType,
-            "x-upsert": "true",
-          },
-          method: "POST",
-        }
+          headers: { "content-type": lida.contentType },
+          method: "PUT",
+        })
       );
       if (!resposta.ok) {
         console.error(
-          "Storage recusou a capa:",
+          "Bucket recusou a capa:",
           resposta.status,
           await resposta.text()
         );
@@ -124,7 +156,7 @@ export function capasDoSupabase(
         imagem: {
           altura: lida.altura,
           largura: lida.largura,
-          url: `${base}/storage/v1/object/public/${BUCKET}/${lida.chave}`,
+          url: `/capa/${lida.chave}`,
         },
         tipo: "guardada",
       };
@@ -132,7 +164,8 @@ export function capasDoSupabase(
   };
 }
 
-/** Ambiente sem SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY: o resto do admin funciona. */
+/** Ambiente sem as variáveis S3_*: o resto do admin funciona. */
 export const capasDesligadas: Capas = {
+  abrir: () => Promise.resolve(null),
   receber: () => Promise.resolve(recusa({ tipo: "desligado" })),
 };

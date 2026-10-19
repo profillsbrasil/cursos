@@ -151,13 +151,13 @@ describe("o endereço da conferência", () => {
     const origem = origemDoPedido(
       new Headers({
         host: "interno:3000",
-        "x-forwarded-host": "cursos-git-pr.vercel.app",
+        "x-forwarded-host": "cursos.profills.com",
         "x-forwarded-proto": "https",
       })
     );
     expect(enderecoDaConferencia(origem, "7K3M-Q9TD")).toEqual({
-      exibido: "cursos-git-pr.vercel.app/certificado/7K3M-Q9TD",
-      url: "https://cursos-git-pr.vercel.app/certificado/7K3M-Q9TD",
+      exibido: "cursos.profills.com/certificado/7K3M-Q9TD",
+      url: "https://cursos.profills.com/certificado/7K3M-Q9TD",
     });
   });
 

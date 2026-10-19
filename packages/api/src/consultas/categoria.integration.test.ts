@@ -1,4 +1,4 @@
-// admin.categorias contra o Supabase local, pelo caller como admin. Roda só com
+// admin.categorias contra o Postgres local, pelo caller como admin. Roda só com
 // TEST_DATABASE_URL em host local. Cada nome leva o sufixo da execução, e o
 // afterAll apaga o que o teste criou.
 

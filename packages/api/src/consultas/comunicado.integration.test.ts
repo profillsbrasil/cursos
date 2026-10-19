@@ -1,4 +1,4 @@
-// Comunicados do admin contra o Supabase local. Roda só com TEST_DATABASE_URL em host local.
+// Comunicados do admin contra o Postgres local. Roda só com TEST_DATABASE_URL em host local.
 // Cria cursos com sufixo aleatório; o afterAll apaga os comunicados e os cursos.
 
 import { afterAll, describe, expect, test } from "bun:test";

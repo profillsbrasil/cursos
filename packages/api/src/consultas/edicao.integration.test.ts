@@ -1,4 +1,4 @@
-// Edição do curso inteiro contra o Supabase local, pelo caller do tRPC como admin.
+// Edição do curso inteiro contra o Postgres local, pelo caller do tRPC como admin.
 // Roda só com TEST_DATABASE_URL em host local. Cada teste cria o próprio curso com
 // sufixo aleatório, e o afterAll apaga tudo.
 
@@ -53,6 +53,7 @@ const ALUNO = `user_teste${S}edicao`;
 const urlDaCapa = (n: number) => `/capas/teste-${S}-${n}.jpg`;
 const CAPA = { altura: 720, largura: 1280, url: urlDaCapa(1) };
 const capasDeTeste: Capas = {
+  abrir: () => Promise.resolve(null),
   receber: async (arquivo) => {
     const [n = 0] = new Uint8Array(await arquivo.arrayBuffer());
     return { imagem: { ...CAPA, url: urlDaCapa(n) }, tipo: "guardada" };

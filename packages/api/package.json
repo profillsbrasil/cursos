@@ -18,6 +18,7 @@
     "@cursos/db": "workspace:*",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
+    "aws4fetch": "1.0.20",
     "drizzle-orm": "1.0.0-rc.4",
     "image-size": "^2.0.4",
     "zod": "catalog:"
