@@ -21,6 +21,7 @@ import { Suspense, use, useCallback, useSyncExternalStore } from "react";
 
 import { fmtPts, iniciais, plural } from "@/lib/formato";
 import { anelDosPontos } from "@/lib/player/sinal";
+import { MINHA_CONTA } from "@/lib/rotas";
 
 import type { LinkDaArea } from "./nav";
 import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
@@ -121,15 +122,9 @@ export function CartaoDeConta({
   placar: Promise<Placar | null> | null;
 }) {
   const { isLoaded, user } = useUser();
-  const { openUserProfile, signOut } = useClerk();
+  const { signOut } = useClerk();
   const { fecharNoCelular } = useAlternarNavegacao();
   const { recolhida } = useModoDaCasca();
-  // O modal do Clerk vai para o body, fora da armadilha de foco da gaveta modal:
-  // com ela aberta, os campos dele perderiam o foco.
-  const abrirMinhaConta = useCallback(() => {
-    fecharNoCelular();
-    openUserProfile();
-  }, [fecharNoCelular, openUserProfile]);
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
   const aceso = useSyncExternalStore(
     anelDosPontos.assinar,
@@ -183,7 +178,11 @@ export function CartaoDeConta({
             <PlacarDoMenu placar={placar} />
           </Suspense>
         ) : null}
-        <DropdownMenuItem className={ITEM} onClick={abrirMinhaConta}>
+        <DropdownMenuItem
+          className={ITEM}
+          onClick={fecharNoCelular}
+          render={<Link href={MINHA_CONTA} />}
+        >
           <UserRound aria-hidden="true" />
           Minha conta
         </DropdownMenuItem>

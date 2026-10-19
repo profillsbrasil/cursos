@@ -1,15 +1,12 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { ReactNode } from "react";
+import { cloneElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Sem o ClerkProvider, useUser e useClerk lançam; o resto do módulo fica o de verdade.
 const clerk = await import("@clerk/nextjs");
 mock.module("@clerk/nextjs", () => ({
   ...clerk,
-  useClerk: () => ({
-    openUserProfile: () => undefined,
-    signOut: () => undefined,
-  }),
+  useClerk: () => ({ signOut: () => undefined }),
   useUser: () => ({
     isLoaded: true,
     user: { fullName: "Ana Souza", hasImage: false },
@@ -25,9 +22,13 @@ const EmLinha = ({ children }: { children?: ReactNode }) => (
 mock.module("@cursos/ui/components/dropdown-menu", () => ({
   ...menu,
   DropdownMenuContent: EmLinha,
-  DropdownMenuItem: ({ children }: { children?: ReactNode }) => (
-    <div>{children}</div>
-  ),
+  DropdownMenuItem: ({
+    children,
+    render,
+  }: {
+    children?: ReactNode;
+    render?: ReactElement;
+  }) => (render ? cloneElement(render, {}, children) : <div>{children}</div>),
   DropdownMenuSeparator: () => <hr />,
 }));
 
@@ -103,5 +104,14 @@ describe("o cartão de conta do admin, sem placar", () => {
 
   test("o menu não tem as placas de Saldo e Sequência", () => {
     expect(menuAberto(h)).toBe("Minha conta Sair");
+  });
+});
+
+const LINK_DA_CONTA = /<a [^>]*href="\/minha-conta"[^>]*>.*?Minha conta<\/a>/;
+
+describe("Minha conta no menu", () => {
+  test("é um link para a página da conta, não o modal do Clerk", () => {
+    const h = html(0);
+    expect(h).toMatch(LINK_DA_CONTA);
   });
 });

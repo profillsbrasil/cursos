@@ -1,0 +1,34 @@
+import { Skeleton } from "@cursos/ui/components/skeleton";
+
+import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
+
+const PULSO = "rounded-[20px] bg-card";
+
+export function CabecalhoDaMinhaConta() {
+  return (
+    <CabecalhoDaPagina
+      resumo="Seu nome, como você entra e os aparelhos com a conta aberta."
+      titulo="Minha conta"
+    />
+  );
+}
+
+/** O lugar das seções enquanto a conta chega, na grade da página pronta. */
+export function EsqueletoDaMinhaConta() {
+  return (
+    <>
+      <CabecalhoDaMinhaConta />
+      <div aria-busy="true" className="@container grid gap-[18px]">
+        <span className="sr-only">Carregando sua conta</span>
+        <div className="grid @min-[56rem]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] items-start gap-[18px]">
+          <Skeleton className={`${PULSO} h-[460px]`} />
+          <div className="grid gap-[18px]">
+            <Skeleton className={`${PULSO} h-[230px]`} />
+            <Skeleton className={`${PULSO} h-[150px]`} />
+          </div>
+        </div>
+        <Skeleton className={`${PULSO} h-[260px]`} />
+      </div>
+    </>
+  );
+}

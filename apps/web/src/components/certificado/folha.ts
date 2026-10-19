@@ -5,6 +5,8 @@ import { encode } from "uqr";
 import { fmtData, plural } from "@/lib/formato";
 import { PRODUTO } from "@/lib/marca";
 
+import { COR_DA_FOLHA } from "./cores-da-folha";
+
 export const FOLHA_EM_PX = {
   abre: 15,
   altura: 794,
@@ -17,15 +19,7 @@ export const FOLHA_EM_PX = {
     texto: 13,
     vao: 16,
   },
-  cor: {
-    faixa: "#282d33",
-    faixaTexto: "#a8acb0",
-    linha: "#c9cdd1",
-    papel: "#f4f5f7",
-    tinta: "#22262b",
-    tintaClara: "#4d5257",
-    traco: "#ffcc01",
-  },
+  cor: COR_DA_FOLHA,
   curso: {
     abaixo: 8,
     acima: 6,
