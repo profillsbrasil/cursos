@@ -244,57 +244,60 @@ function Pergunta({
     fase.tipo === "resultado"
       ? fase.resultado.respostas.find((r) => r.perguntaId === pergunta.id)
       : undefined;
+  // A linha é a borda da caixa de fora: no próprio fieldset, o legend senta
+  // em cima da borda e a linha corta o enunciado.
   return (
-    <fieldset
-      className={cn(
-        "grid min-w-0 gap-3 border-border border-t py-[22px]",
-        LADO
-      )}
-    >
-      <legend className="mb-3 flex gap-2.5 text-pretty font-semibold text-base text-titulo leading-[1.45]">
-        <span className="shrink-0 font-medium text-muted-foreground tabular-nums">
-          {numero}.
-        </span>
-        <span>{pergunta.enunciado}</span>
-      </legend>
-      {resposta ? (
-        <p
-          className={cn(
-            "inline-flex items-center gap-1.5 font-semibold text-[13px]",
-            resposta.certa ? "text-ceu" : "text-canela"
+    <div className={cn("border-border border-t py-[22px]", LADO)}>
+      <fieldset className="m-0 grid min-w-0 gap-3 border-0 p-0">
+        <legend className="mb-3 flex gap-2.5 text-pretty p-0 font-semibold text-base text-titulo leading-[1.45]">
+          <span className="shrink-0 font-medium text-muted-foreground tabular-nums">
+            {numero}.
+          </span>
+          <span>{pergunta.enunciado}</span>
+        </legend>
+        {resposta ? (
+          <p
+            className={cn(
+              "inline-flex items-center gap-1.5 font-semibold text-[13px]",
+              resposta.certa ? "text-ceu" : "text-canela"
+            )}
+          >
+            {resposta.certa ? (
+              <Check
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.5}
+              />
+            ) : (
+              <X aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
+            )}
+            {resposta.certa ? "Certa" : "Você errou esta"}
+          </p>
+        ) : null}
+        <div className="grid gap-2">
+          {pergunta.alternativas.map((a, i) =>
+            fase.tipo === "respondendo" ? (
+              <AlternativaParaMarcar
+                alternativaId={a.id}
+                indice={i}
+                key={a.id}
+                marcada={fase.marcadas[pergunta.id] === a.id}
+                marcar={marcar}
+                perguntaId={pergunta.id}
+                texto={a.texto}
+              />
+            ) : (
+              <AlternativaCorrigida
+                indice={i}
+                key={a.id}
+                texto={a.texto}
+                veredito={vereditoDe(a.id, resposta)}
+              />
+            )
           )}
-        >
-          {resposta.certa ? (
-            <Check aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
-          ) : (
-            <X aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
-          )}
-          {resposta.certa ? "Certa" : "Você errou esta"}
-        </p>
-      ) : null}
-      <div className="grid gap-2">
-        {pergunta.alternativas.map((a, i) =>
-          fase.tipo === "respondendo" ? (
-            <AlternativaParaMarcar
-              alternativaId={a.id}
-              indice={i}
-              key={a.id}
-              marcada={fase.marcadas[pergunta.id] === a.id}
-              marcar={marcar}
-              perguntaId={pergunta.id}
-              texto={a.texto}
-            />
-          ) : (
-            <AlternativaCorrigida
-              indice={i}
-              key={a.id}
-              texto={a.texto}
-              veredito={vereditoDe(a.id, resposta)}
-            />
-          )
-        )}
-      </div>
-    </fieldset>
+        </div>
+      </fieldset>
+    </div>
   );
 }
 
