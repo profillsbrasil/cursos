@@ -24,10 +24,11 @@ export default defineRailway(() => {
       buildEnvironment: "V3",
       builder: "RAILPACK",
     },
+    domains: ["cursos.profills.com"],
     env: {
       CLERK_PUBLISHABLE_KEY: preserve(),
       CLERK_SECRET_KEY: preserve(),
-      CORS_ORIGIN: preserve(),
+      CORS_ORIGIN: "https://cursos.profills.com",
       DATABASE_URL: preserve(),
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: preserve(),
       S3_ACCESS_KEY_ID: preserve(),

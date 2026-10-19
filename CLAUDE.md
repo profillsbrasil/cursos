@@ -38,7 +38,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 
 ### Raiz
 
-- `.railway/railway.ts`: o projeto `cursos` da Railway como código (o serviço `web`, o `Postgres` e o bucket `capas`, todos em `iad`, Virgínia). `railway config plan` mostra a diferença para o que está no ar; `railway config apply` só com pedido do dono.
+- `.railway/railway.ts`: o projeto `cursos` da Railway como código (o serviço `web` em `cursos.profills.com`, o `Postgres` e o bucket `capas`, todos em `iad`, Virgínia). O DNS de `profills.com` fica na KingHost: um CNAME `cursos` para o alvo que a Railway deu e o TXT `_railway-verify.cursos`. `railway config plan` mostra a diferença para o que está no ar; `railway config apply` só com pedido do dono.
 - `AGENTS.md` e `apps/web/AGENTS.md`: blocos que o turbo e o `next dev` reescrevem sozinhos. Commite as mudanças deles junto com o trabalho.
 - `apps/web/PRODUCT.md`: o produto, o público e as decisões do dono. `apps/web/DESIGN.md` (com o sidecar `apps/web/.impeccable/design.json`): o sistema visual tirado do código, com tokens, tipografia, formas, a casca e as regras de movimento. UI nova segue o `DESIGN.md`; mudança que o contradiz atualiza o arquivo no mesmo PR.
 - `docs/marca/`: o que é cada arquivo da marca e de onde veio, e a Orbitron do lockup com a licença OFL (`fontes/orbitron/`). O logo oficial da Profills fica ali como referência, fora do `public/`.
@@ -49,7 +49,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 - `@defaultSensitive=true` marca toda variável como segredo. Valor que chega ao browser leva `@public`, senão o varlock acusa `DETECTED LEAKED SENSITIVE CONFIG` e derruba o request. Foi o que aconteceu com `CLERK_PUBLISHABLE_KEY`.
 - Depois de editar o schema: `bun run env:generate` para regenerar os `env.ts`, e reinicie o `next dev`.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` e `S3_SECRET_ACCESS_KEY` apontam o bucket das capas e são opcionais. Sem uma delas, o envio de capa do admin recusa com "não configurado" e o resto funciona. O bucket é privado: a capa sai pela rota `/capa/[chave]` do app. Na Railway elas são referências ao bucket (`${{capas.ENDPOINT}}` e as outras), menos `S3_REGION`, que vale `auto`. Endpoint, região e nome do bucket levam `@sensitive=false`: a palavra `auto` aparece em todo JS, e o varlock derrubava o build acusando vazamento.
-- Na Railway, `CORS_ORIGIN` vale `https://${{RAILWAY_PUBLIC_DOMAIN}}` e `DATABASE_URL` vale `${{Postgres.DATABASE_URL}}`, pela rede interna. As chaves do Clerk são as mesmas `pk_test`/`sk_test` do dev.
+- Na Railway, `CORS_ORIGIN` vale `https://cursos.profills.com`, o domínio do `web`, e `DATABASE_URL` vale `${{Postgres.DATABASE_URL}}`, pela rede interna. As chaves do Clerk são as mesmas `pk_test`/`sk_test` do dev.
 - `CORS_ORIGIN` precisa ser exatamente a origem do browser (`http://localhost:3001` no dev). Com outro valor, o Clerk recusa o token e todo `protectedProcedure` responde `UNAUTHORIZED`.
 
 ## Banco

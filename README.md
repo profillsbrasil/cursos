@@ -57,4 +57,4 @@ Cada pacote tem o próprio `.env.schema`, e o varlock gera o `src/env.ts` dele. 
 
 ## Deploy
 
-O projeto `cursos` da Railway tem três peças em `iad` (Virgínia): o serviço `web`, o `Postgres` e o bucket `capas`. `.railway/railway.ts` descreve as três. O `web` builda com `bun run --cwd apps/web build`, roda as migrações no pre-deploy e sobe com `bun run --cwd apps/web start`. As variáveis moram na Railway, não no repo; `CLAUDE.md` diz o valor de cada uma. Para subir o diretório atual: `railway up --service web --ci`.
+O projeto `cursos` da Railway tem três peças em `iad` (Virgínia): o serviço `web`, em https://cursos.profills.com, o `Postgres` e o bucket `capas`. `.railway/railway.ts` descreve as três. O `web` builda com `bun run --cwd apps/web build`, roda as migrações no pre-deploy e sobe com `bun run --cwd apps/web start`. As variáveis moram na Railway, não no repo; `CLAUDE.md` diz o valor de cada uma. Para subir o diretório atual: `railway up --service web --ci`.
