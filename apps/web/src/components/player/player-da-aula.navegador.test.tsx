@@ -71,10 +71,12 @@ async function empacotar() {
         import { createRoot } from "react-dom/client";
         import { PlayerDaAula } from "./player-da-aula";
 
+        const dados = ${JSON.stringify(DADOS)};
+        dados.estudo.assistida = window.assistidaNoTeste === true;
         const raiz = createRoot(document.getElementById("raiz"));
         flushSync(() =>
           raiz.render(
-            <PlayerDaAula dados={${JSON.stringify(DADOS)}} inicioSeg={0} video={${JSON.stringify(VIDEO)}} />
+            <PlayerDaAula dados={dados} inicioSeg={0} video={${JSON.stringify(VIDEO)}} />
           )
         );
       `,
@@ -196,7 +198,7 @@ const css = await cssDoApp([
 let enviar: Enviar;
 let pacote: string;
 
-async function abrir(largura: number, altura: number) {
+async function abrir(largura: number, altura: number, assistida = false) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
     height: altura,
@@ -209,6 +211,7 @@ async function abrir(largura: number, altura: number) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div style="display:flex"><div style="flex:none;width:68px"></div><main style="flex:1;min-width:0;margin:10px 10px 10px 0;padding:32px clamp(1rem,4vw,3rem) 64px"><div class="${PAGINA}"><div id="raiz"></div><aside style="height:420px"></aside></div></main></div></body></html>`
     )}); document.close(); window.scrollTo(0, 0);`
   );
+  await avaliar(enviar, `window.assistidaNoTeste = ${assistida};`);
   await avaliar(enviar, pacote);
 }
 
@@ -389,5 +392,16 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         `document.getElementById("iframe-falso").getClientRects().length > 0`
       )
     ).toBe(true);
+  });
+
+  test("no fim da aula assistida, só o cartão leva a Próxima aula em Sol", async () => {
+    await abrir(1440, 900, true);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await emitir({ tipo: "terminou" });
+    await esperar(`document.body.textContent.includes("Aula assistida")`);
+    // O botão de baixo estava em Sol antes do fim, e a cor dele sai numa transição.
+    await esperar(
+      `[...document.querySelectorAll("a")].filter((a) => a.textContent.trim() === "Próxima aula" && getComputedStyle(a).backgroundColor === "rgb(255, 204, 1)").length === 1`
+    );
   });
 });

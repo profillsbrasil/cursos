@@ -103,7 +103,7 @@ export interface VizinhaDaAula {
 export interface AulaNoPlayer {
   anterior: VizinhaDaAula | null;
   aula: {
-    /** "" quando o admin não escreveu. O player ainda não mostra. */
+    /** "" quando o admin não escreveu, e aí o player não mostra a linha. */
     descricao: string;
     duracaoSeg: number;
     id: AulaId;

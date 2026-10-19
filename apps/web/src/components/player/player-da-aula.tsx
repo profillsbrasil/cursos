@@ -87,7 +87,11 @@ export function PlayerDaAula({
           <ProblemaDoPlayer estado={p.estado} />
         </div>
       </section>
-      <NavegacaoEntreAulas dados={dados} destacarProxima={p.estado.assistida} />
+      {/* No fim, o cartão do vídeo já leva a Próxima aula em Sol: um botão principal por vez. */}
+      <NavegacaoEntreAulas
+        dados={dados}
+        destacarProxima={p.estado.assistida && !terminou}
+      />
     </div>
   );
 }
