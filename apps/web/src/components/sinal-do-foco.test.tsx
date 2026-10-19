@@ -19,10 +19,13 @@ import type {
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { sleep } from "bun";
 import { Sparkles } from "lucide-react";
+import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { PREFERENCIAS_PADRAO } from "@/lib/player/preferencias";
 import { estadoInicial } from "@/lib/player/sessao";
+
+import type { Continuar } from "./aluno/continuar";
 
 import {
   abrirChromium,
@@ -44,6 +47,8 @@ mock.module("next/navigation", () => ({
   }),
 }));
 
+const { Sidebar } = await import("@cursos/ui/components/sidebar");
+const { CartaoContinuar } = await import("./aluno/cartao-continuar");
 const { AcessoDoAluno } = await import("./admin/acesso-do-aluno");
 const { ListaDePessoas } = await import("./admin/lista-de-pessoas");
 const { ProvedorDoLote } = await import("./admin/provedor-do-lote");
@@ -224,6 +229,32 @@ const faixa = renderToStaticMarkup(
   />
 );
 
+// O Continuar do rodapé da sidebar aberta, em "Começar curso", como no teste de
+// usabilidade (r1/teclado/01): o Tab chegava nele e só o fundo trocava de cinza.
+const COMECAR: Continuar = {
+  chamada: "Começar curso",
+  chamadaAqui: "Assistindo agora",
+  href: "/cursos/fabrica/aulas/a1" as Route,
+  pct: null,
+  rotulo: "Começar curso: Filmagem da instalação",
+  tipo: "comecar",
+  titulo: "Filmagem da instalação",
+};
+const continuar = renderToStaticMarkup(
+  <ProvedorDaCasca aberta>
+    <Sidebar collapsible="icon" variant="sidebar">
+      <div className="p-3.5">
+        <CartaoContinuar
+          cartao={Object.assign(Promise.resolve(COMECAR), {
+            status: "fulfilled",
+            value: COMECAR,
+          })}
+        />
+      </div>
+    </Sidebar>
+  </ProvedorDaCasca>
+);
+
 interface Elemento {
   atributos: Record<string, string>;
   classes: string[];
@@ -251,9 +282,15 @@ function elementos(html: string): Elemento[] {
   });
 }
 
-const todos = [nav, coluna, controles, pessoas, acesso, faixa].flatMap(
-  elementos
-);
+const todos = [
+  nav,
+  coluna,
+  controles,
+  pessoas,
+  acesso,
+  faixa,
+  continuar,
+].flatMap(elementos);
 const css = await cssDoApp(todos.flatMap((e) => e.classes));
 
 interface Regra {
@@ -532,6 +569,103 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     }
   );
 
+  // O Continuar aberto só trocava o fundo de sidebar-accent (#2f343a) para popover
+  // (#3a3f45), 1,15:1 um contra o outro: com o Tab nele, a tela parecia parada.
+  describe.skipIf(!existsSync(CHROMIUM))(
+    "com o Tab no Continuar da sidebar aberta, o play redondo clareia e brilha como o botão amarelo",
+    () => {
+      interface Redondo {
+        focado: boolean;
+        fundo: string;
+        sombra: string;
+      }
+      let emRepouso: Redondo;
+      let comFoco: Redondo;
+      let comCursor: Redondo;
+      let solHoverAqui: string;
+
+      // A cor e o brilho mudam com transição: lê depois que ela termina.
+      const lerRedondo = () =>
+        avaliar<Redondo>(`(async () => {
+          const link = document.querySelector('a[aria-label="${COMECAR.rotulo}"]');
+          const redondo = link.querySelector("span > span");
+          getComputedStyle(redondo).backgroundColor;
+          await Promise.all(redondo.getAnimations().map((a) => a.finished));
+          const p = getComputedStyle(redondo);
+          return {
+            focado: link === document.activeElement && link.matches(":focus-visible"),
+            fundo: p.backgroundColor,
+            sombra: p.boxShadow,
+          };
+        })()`);
+
+      beforeAll(async () => {
+        enviar = await abrirChromium("sinal-do-foco");
+        await enviar("Emulation.setDeviceMetricsOverride", {
+          deviceScaleFactor: 1,
+          height: 900,
+          mobile: false,
+          width: 1280,
+        });
+        await avaliar(
+          `document.open(); document.write(${JSON.stringify(
+            `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0">${continuar}<div id="sonda" style="background-color: var(--sol-hover)"></div></body></html>`
+          )}); document.close();`
+        );
+        await enviar("DOM.enable");
+        await enviar("CSS.enable");
+        const { root } = (await enviar("DOM.getDocument")) as {
+          root: { nodeId: number };
+        };
+        raiz = root.nodeId;
+        solHoverAqui = await avaliar<string>(
+          "getComputedStyle(document.getElementById('sonda')).backgroundColor"
+        );
+        emRepouso = await lerRedondo();
+        // O cursor forçado no link, sem foco.
+        const link = await noDe(`a[aria-label="${COMECAR.rotulo}"]`);
+        await enviar("CSS.forcePseudoState", {
+          forcedPseudoClasses: ["hover"],
+          nodeId: link,
+        });
+        comCursor = await lerRedondo();
+        await enviar("CSS.forcePseudoState", {
+          forcedPseudoClasses: [],
+          nodeId: link,
+        });
+        // Tab de verdade, como a pessoa.
+        await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
+        await tabAte(
+          `document.activeElement?.getAttribute("aria-label") === ${JSON.stringify(COMECAR.rotulo)}`,
+          10
+        );
+        comFoco = await lerRedondo();
+      }, 20_000);
+
+      afterAll(fecharChromium);
+
+      test("em repouso, o redondo fica no Sol de sempre, sem brilho", () => {
+        expect(solHoverAqui).toStartWith("rgb");
+        expect(emRepouso.focado).toBe(false);
+        expect(emRepouso.fundo).not.toBe(solHoverAqui);
+        expect(emRepouso.sombra).not.toContain(BRILHO);
+      });
+
+      test("com o foco de teclado, o redondo clareia para sol-hover e ganha o brilho", () => {
+        expect(comFoco.focado).toBe(true);
+        expect(comFoco.fundo).toBe(solHoverAqui);
+        expect(comFoco.sombra).toContain(BRILHO);
+      });
+
+      test("o cursor e o foco acendem igual", () => {
+        expect({ fundo: comCursor.fundo, sombra: comCursor.sombra }).toEqual({
+          fundo: comFoco.fundo,
+          sombra: comFoco.sombra,
+        });
+      });
+    }
+  );
+
   test('"Em breve" clareia o nome e o ícone para foreground, sem fundo', () => {
     const emBreve = elementos(nav).filter(
       (e) => e.atributos["aria-disabled"] === "true"
@@ -635,6 +769,25 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
     expect(noFoco(resumo)).toContain("color: var(--titulo)");
+  });
+
+  test("no Continuar da sidebar, o play redondo ganha sol-hover e o brilho pelo grupo do link", () => {
+    const doCartao = elementos(continuar);
+    const link = unico(
+      doCartao.filter((e) => e.atributos["aria-label"] === COMECAR.rotulo),
+      "link do Continuar"
+    );
+    expect(link.classes).toContain("group/continuar");
+    const redondo = unico(
+      doCartao.filter(
+        (e) => e.classes.includes("bg-sol") && e.classes.includes("size-8")
+      ),
+      "redondo"
+    );
+    expect(noFoco(redondo)).toContain("background-color: var(--sol-hover)");
+    expect(noFoco(redondo).some((d) => d.startsWith("--tw-shadow:"))).toBe(
+      true
+    );
   });
 
   test("o summary da faixa do comunicado ganha o fundo branco a 8%", () => {
