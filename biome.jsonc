@@ -6,8 +6,14 @@
     "ultracite/biome/next"
   ],
   "files": {
-    // Protótipos aprovados: HTML de referência, que ninguém roda.
-    "includes": ["!!docs/prototipos"]
+    // Protótipos aprovados: HTML de referência, que ninguém roda. As permissões locais
+    // do Claude Code ficam fora do git (gitignore global) e o Biome não lê esse ignore.
+    // O config do detector do impeccable é reescrito pela CLI dele a cada ignore.
+    "includes": [
+      "!!docs/prototipos",
+      "!!.claude/settings.local.json",
+      "!!.impeccable/config.json"
+    ]
   },
   "overrides": [
     {

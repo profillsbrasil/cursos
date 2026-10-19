@@ -2,50 +2,17 @@
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { VideoDaAula } from "@cursos/api/dominio/tipos";
-import { Kbd } from "@cursos/ui/components/kbd";
+import { cn } from "@cursos/ui/lib/utils";
+import { useCallback } from "react";
 
-import type { EstadoDaSessao } from "@/lib/player/sessao";
 import { usePlayerDaAula } from "@/lib/player/use-player-da-aula";
 
 import { BarraDeTrechos } from "./barra-de-trechos";
 import { CabecalhoDaAula, NavegacaoEntreAulas } from "./cabecalho-da-aula";
 import { ControlesDoPlayer } from "./controles-do-player";
-import { StatusDoPlayer } from "./status-do-player";
-
-const TECLA =
-  "h-auto min-w-0 rounded-[4px] border border-chart-5 border-b-2 bg-transparent px-1 font-mono text-[11px] text-foreground";
-
-const NAO_SALVOU = {
-  envio_recusado:
-    "Não deu para salvar seu progresso: o servidor recusou o envio. Recarregue a página para continuar contando.",
-  sem_acesso:
-    "Não deu para salvar seu progresso: este curso não está mais liberado para você.",
-  sem_video:
-    "Não deu para salvar seu progresso: o vídeo desta aula saiu do ar.",
-  sessao_expirada:
-    "Não deu para salvar seu progresso: sua sessão expirou. Entre de novo para continuar contando.",
-} as const;
-
-const INDISPONIVEL = {
-  nao_encontrado: "Este vídeo não foi encontrado no YouTube.",
-  outro: "O vídeo não carregou. Recarregue a página para tentar de novo.",
-  sem_permissao_de_incorporar:
-    "O dono do vídeo não permite tocar o vídeo fora do YouTube.",
-} as const;
-
-function Problema({ estado }: { estado: EstadoDaSessao }) {
-  let texto: string | null = null;
-  if (estado.reproducao.tipo === "indisponivel") {
-    texto = INDISPONIVEL[estado.reproducao.motivo];
-  } else if (estado.envio.tipo === "parado") {
-    texto = NAO_SALVOU[estado.envio.motivo];
-  }
-  return texto ? (
-    <p className="text-[13px] text-destructive" role="alert">
-      {texto}
-    </p>
-  ) : null;
-}
+import { FimDoVideo } from "./fim-do-video";
+import { CAIXA_DO_VIDEO } from "./partes";
+import { ProblemaDoPlayer } from "./problema-do-player";
 
 export function PlayerDaAula({
   dados,
@@ -63,6 +30,12 @@ export function PlayerDaAula({
     inicioSeg,
     video,
   });
+  const { comandar } = p;
+  const rever = useCallback(() => {
+    comandar({ seg: 0, tipo: "buscar" });
+    comandar({ tipo: "alternar" });
+  }, [comandar]);
+  const terminou = p.estado.reproducao.tipo === "terminou";
   return (
     <div className="grid min-w-0 gap-4">
       <CabecalhoDaAula dados={dados} />
@@ -73,11 +46,26 @@ export function PlayerDaAula({
         ref={p.refContainer}
         tabIndex={-1}
       >
-        {/* O iframe nasce aqui. Nada fica por cima dele (política do YouTube). */}
-        <div
-          className="aspect-video min-h-[200px] w-full bg-black [&_iframe]:size-full [:fullscreen_&]:aspect-auto [:fullscreen_&]:flex-1"
-          ref={p.refVideo}
-        />
+        <div className="bg-black [:fullscreen_&]:min-h-0 [:fullscreen_&]:flex-1">
+          <div className={CAIXA_DO_VIDEO}>
+            {/* O iframe nasce aqui e nunca é destruído no fim: fica escondido. Nada fica por cima dele (política do YouTube). */}
+            <div
+              className={cn(
+                "absolute inset-0 [&_iframe]:size-full",
+                terminou && "hidden"
+              )}
+              ref={p.refVideo}
+            />
+            {terminou ? (
+              <FimDoVideo
+                aoRever={rever}
+                assistida={p.estado.assistida}
+                conquista={p.conquista}
+                dados={dados}
+              />
+            ) : null}
+          </div>
+        </div>
         <div className="grid gap-2 px-4 pt-3 pb-3.5">
           <BarraDeTrechos
             aoBuscar={p.buscar}
@@ -86,31 +74,24 @@ export function PlayerDaAula({
             trechos={p.estado.trechos}
           />
           <ControlesDoPlayer
-            comandar={p.comandar}
+            aoMudarAtalhos={p.setAtalhosAbertos}
+            atalhosAbertos={p.atalhosAbertos}
+            avisoAparente={p.avisoAparente}
+            comandar={comandar}
+            conquista={p.conquista}
             estado={p.estado}
             podeTelaCheia={p.podeTelaCheia}
+            portal={p.refContainer}
             telaCheia={p.telaCheia}
           />
-          <Problema estado={p.estado} />
-          <StatusDoPlayer
-            atalhos={
-              <p className="text-muted-foreground text-xs max-[860px]:hidden">
-                <Kbd className={TECLA}>espaço</Kbd> reproduz ·{" "}
-                <Kbd className={TECLA}>←</Kbd> <Kbd className={TECLA}>→</Kbd> 5
-                s · <Kbd className={TECLA}>j</Kbd>{" "}
-                <Kbd className={TECLA}>l</Kbd> 10 s ·{" "}
-                <Kbd className={TECLA}>↑</Kbd> <Kbd className={TECLA}>↓</Kbd>{" "}
-                volume · <Kbd className={TECLA}>f</Kbd> tela cheia · a amarela
-                mostra o que você já viu, a marca azul é 90%
-              </p>
-            }
-            avisoAparente={p.avisoAparente}
-            conquista={p.conquista}
-            envio={p.estado.envio}
-          />
+          <ProblemaDoPlayer estado={p.estado} />
         </div>
       </section>
-      <NavegacaoEntreAulas dados={dados} destacarProxima={p.estado.assistida} />
+      {/* No fim, o cartão do vídeo já leva a Próxima aula em Sol: um botão principal por vez. */}
+      <NavegacaoEntreAulas
+        dados={dados}
+        destacarProxima={p.estado.assistida && !terminou}
+      />
     </div>
   );
 }

@@ -13,12 +13,16 @@ interface YtPlayer {
   getCurrentTime: () => number;
   getDuration: () => number;
   getPlaybackRate: () => number;
+  // loadModule e unloadModule ficam fora da referência pública. Com controls: 0 o
+  // botão de legenda some, e eles são o único jeito de ligar e desligar a legenda.
+  loadModule: (modulo: "captions") => void;
   mute: () => void;
   pauseVideo: () => void;
   playVideo: () => void;
   seekTo: (seg: number, permitirBuscaNoServidor: boolean) => void;
   setPlaybackRate: (taxa: number) => void;
   setVolume: (nivel: number) => void;
+  unloadModule: (modulo: "captions") => void;
   unMute: () => void;
 }
 
@@ -27,6 +31,7 @@ interface YtApi {
     elemento: HTMLElement,
     opcoes: {
       events: {
+        onApiChange: () => void;
         onError: (e: { data: number }) => void;
         onReady: () => void;
         onStateChange: (e: { data: number }) => void;
@@ -75,6 +80,10 @@ const ESTADOS: Readonly<
   Record<number, "tocou" | "pausou" | "esperou" | "terminou">
 > = { 0: "terminou", 1: "tocou", 2: "pausou", 3: "esperou" };
 
+// O próprio unloadModule dispara outro onApiChange: o que chega nesta janela depois
+// de reaplicar a legenda é o eco da chamada, e reaplicar de novo seria um laço.
+const ECO_DA_LEGENDA_MS = 1000;
+
 const motivoDoErro = (codigo: number): MotivoIndisponivel => {
   if (codigo === 100) {
     return "nao_encontrado";
@@ -92,8 +101,20 @@ export function criarPlayerDoYoutube(
   let instancia: YtPlayer | null = null;
   let playerPronto: YtPlayer | null = null;
   let destruido = false;
+  let legenda = false;
+  let reaplicouEm = Number.NEGATIVE_INFINITY;
   const alvo = document.createElement("div");
   elemento.replaceChildren(alvo);
+
+  // O YouTube carrega o módulo de legenda quando o vídeo começa a tocar e ignora o
+  // unloadModule chamado antes: a escolha volta a cada módulo carregado e a cada play.
+  const aplicarLegenda = () => {
+    if (legenda) {
+      playerPronto?.loadModule("captions");
+    } else {
+      playerPronto?.unloadModule("captions");
+    }
+  };
 
   carregarApi().then(
     (yt) => {
@@ -102,6 +123,14 @@ export function criarPlayerDoYoutube(
       }
       const criado = new yt.Player(alvo, {
         events: {
+          onApiChange: () => {
+            const agora = performance.now();
+            if (agora - reaplicouEm < ECO_DA_LEGENDA_MS) {
+              return;
+            }
+            reaplicouEm = agora;
+            aplicarLegenda();
+          },
           onError: (e) =>
             opcoes.aoEvento({ motivo: motivoDoErro(e.data), tipo: "falhou" }),
           onReady: () => {
@@ -113,6 +142,9 @@ export function criarPlayerDoYoutube(
           },
           onStateChange: (e) => {
             const tipo = ESTADOS[e.data];
+            if (tipo === "tocou") {
+              aplicarLegenda();
+            }
             if (tipo) {
               opcoes.aoEvento({ tipo });
             }
@@ -138,6 +170,10 @@ export function criarPlayerDoYoutube(
 
   return {
     buscar: (seg) => playerPronto?.seekTo(seg, true),
+    definirLegenda: (ligada) => {
+      legenda = ligada;
+      aplicarLegenda();
+    },
     definirMudo: (mudo) =>
       mudo ? playerPronto?.mute() : playerPronto?.unMute(),
     definirVelocidade: (v) => playerPronto?.setPlaybackRate(v),

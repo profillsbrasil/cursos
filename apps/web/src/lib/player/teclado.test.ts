@@ -29,8 +29,13 @@ describe("comandoDaTecla", () => {
     expect(tecla("f")).toEqual({ tipo: "tela_cheia" });
   });
 
-  test("sem tecla de legenda e sem tecla desconhecida", () => {
-    expect(tecla("c")).toBeNull();
+  test("c liga e desliga a legenda, e ? abre a lista de atalhos", () => {
+    expect(tecla("c")).toEqual({ tipo: "legenda" });
+    expect(tecla("C")).toEqual({ tipo: "legenda" });
+    expect(tecla("?")).toEqual({ tipo: "atalhos" });
+  });
+
+  test("tecla desconhecida não vira comando", () => {
     expect(tecla("x")).toBeNull();
   });
 

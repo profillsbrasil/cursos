@@ -24,6 +24,7 @@ export interface Volume {
 
 export interface PlayerDeVideo {
   buscar: (seg: number) => void;
+  definirLegenda: (ligada: boolean) => void;
   definirMudo: (mudo: boolean) => void;
   definirVelocidade: (v: Velocidade) => void;
   definirVolume: (nivel: number) => void;

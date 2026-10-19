@@ -96,6 +96,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     apagado
   );
   const [telaCheia, setTelaCheia] = useState(false);
+  const [atalhosAbertos, setAtalhosAbertos] = useState(false);
   const [podeTelaCheia, setPodeTelaCheia] = useState(false);
 
   useEffect(() => {
@@ -170,6 +171,10 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
         }
         return;
       }
+      if (c.tipo === "atalhos") {
+        setAtalhosAbertos(true);
+        return;
+      }
       sessao?.comandar(c);
     },
     [sessao]
@@ -198,6 +203,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   );
 
   return {
+    atalhosAbertos,
     avisoAparente,
     buscar,
     comandar,
@@ -206,6 +212,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
     podeTelaCheia,
     refContainer,
     refVideo,
+    setAtalhosAbertos,
     telaCheia,
   };
 }

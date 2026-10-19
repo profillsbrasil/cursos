@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/src/components/player/partes.ts"
+        ],
+        "createdAt": "2026-10-19T14:14:13.150Z",
+        "reason": "agente: TECLA é a tecla dos atalhos com 2 px embaixo em chart-5 cinza, regra Tecla do DESIGN.md; já existia em player-da-aula.tsx antes desta mudança"
+      }
+    ]
+  }
+}

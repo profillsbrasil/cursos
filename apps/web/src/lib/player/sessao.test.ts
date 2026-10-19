@@ -79,7 +79,7 @@ function playerFalso(relogio: Relogio) {
   let tocando = false;
   let pronto = false;
   // Como o YouTube: antes do onReady, volume e velocidade não chegam ao player.
-  const aplicado = { mudo: false, nivel: 100, velocidade: 1 };
+  const aplicado = { legenda: true, mudo: false, nivel: 100, velocidade: 1 };
   let aoEvento: (e: EventoDoVideo) => void = () => undefined;
   const tempo = () =>
     tocando
@@ -93,6 +93,11 @@ function playerFalso(relogio: Relogio) {
       if (tocando) {
         aoEvento({ tipo: "esperou" });
         aoEvento({ tipo: "tocou" });
+      }
+    },
+    definirLegenda(ligada) {
+      if (pronto) {
+        aplicado.legenda = ligada;
       }
     },
     definirMudo(mudo) {
@@ -521,20 +526,63 @@ describe("volume e velocidade", () => {
     sessao.comandar({ tipo: "mudo" });
     sessao.comandar({ tipo: "velocidade", valor: 1.5 });
     ficarPronto();
-    expect(video.aplicado).toEqual({ mudo: true, nivel: 20, velocidade: 1.5 });
+    expect(video.aplicado).toEqual({
+      legenda: false,
+      mudo: true,
+      nivel: 20,
+      velocidade: 1.5,
+    });
   });
 
   test("a sessão nasce com a preferência do aparelho e a aplica no pronto", () => {
     const { sessao, video } = montar(0, {
-      preferencias: { velocidade: 1.25, volume: { mudo: false, nivel: 40 } },
+      preferencias: {
+        legenda: false,
+        velocidade: 1.25,
+        volume: { mudo: false, nivel: 40 },
+      },
     });
     expect(sessao.estado().velocidade).toBe(1.25);
     expect(sessao.estado().volume).toEqual({ mudo: false, nivel: 40 });
     expect(video.aplicado).toEqual({
+      legenda: false,
       mudo: false,
       nivel: 40,
       velocidade: 1.25,
     });
+  });
+});
+
+describe("legenda", () => {
+  test("nasce desligada e o pronto a desliga no player", () => {
+    const { sessao, video } = montar();
+    expect(sessao.estado().legenda).toBe(false);
+    expect(video.aplicado.legenda).toBe(false);
+  });
+
+  test("a preferência ligada chega ao player no pronto", () => {
+    const { sessao, video } = montar(0, {
+      preferencias: { ...PREFERENCIAS_PADRAO, legenda: true },
+    });
+    expect(sessao.estado().legenda).toBe(true);
+    expect(video.aplicado.legenda).toBe(true);
+  });
+
+  test("o comando alterna a legenda no estado e no player", () => {
+    const { sessao, video } = montar();
+    sessao.comandar({ tipo: "legenda" });
+    expect(sessao.estado().legenda).toBe(true);
+    expect(video.aplicado.legenda).toBe(true);
+    sessao.comandar({ tipo: "legenda" });
+    expect(sessao.estado().legenda).toBe(false);
+    expect(video.aplicado.legenda).toBe(false);
+  });
+
+  test("ligada antes do pronto, chega ao player no pronto", () => {
+    const { ficarPronto, sessao, video } = montar(0, { pronto: false });
+    sessao.comandar({ tipo: "legenda" });
+    ficarPronto();
+    expect(video.aplicado.legenda).toBe(true);
   });
 });
 

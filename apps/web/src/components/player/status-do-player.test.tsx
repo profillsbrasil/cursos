@@ -6,62 +6,54 @@ import { StatusDoPlayer } from "./status-do-player";
 const POSICIONADO = /\b(fixed|absolute|sticky)\b/;
 const CONQUISTA = { bonusSequencia: null, pontos: 10, sequenciaDias: 1 };
 const ESCONDE = /(^|[\s:])(hidden|invisible|sr-only)(\s|$)/;
-const ATALHOS = <p data-atalhos="">atalhos</p>;
 
-const html = (props: Omit<Parameters<typeof StatusDoPlayer>[0], "atalhos">) =>
-  renderToStaticMarkup(<StatusDoPlayer atalhos={ATALHOS} {...props} />);
+const html = (props: Parameters<typeof StatusDoPlayer>[0]) =>
+  renderToStaticMarkup(<StatusDoPlayer {...props} />);
 
-const classesDe = (h: string, antes: string) =>
-  h.match(new RegExp(`<div class="([^"]*)"[^>]*>${antes}`))?.[1] ?? "";
-
-const caixaDosAtalhos = (h: string) => classesDe(h, "<p data-atalhos");
-const caixaDoAviso = (h: string) => classesDe(h, '<span class="grid size-6');
+const VISTO = /<span class="([^"]*)"[^>]*tabindex="0"[^>]*>/;
+const caixaDoVisto = (h: string) => h.match(VISTO)?.[1] ?? "";
+const AVISO = /<p class="([^"]*)"><b/;
+const caixaDoAviso = (h: string) => h.match(AVISO)?.[1] ?? "";
 const REGIAO = /<div class="([^"]*)" role="status">/;
 const regiao = (h: string) => h.match(REGIAO)?.[1];
 
-describe("linha de status do player", () => {
-  test("vazia, a região de status existe e não sai da árvore de acessibilidade", () => {
-    const h = html({
-      avisoAparente: false,
-      conquista: null,
-      envio: { tipo: "em_dia" },
-    });
+describe("o visto e o aviso da conquista na barra", () => {
+  test("sem conquista, o visto mostra a porcentagem e recebe o foco de teclado, e a região de status existe", () => {
+    const h = html({ avisoAparente: false, conquista: null, pct: 42 });
+    expect(h).toContain("42%");
+    expect(h).toContain("visto");
+    expect(h).toMatch(VISTO);
+    expect(caixaDoVisto(h)).not.toMatch(ESCONDE);
     expect(regiao(h)).toBeDefined();
     expect(regiao(h)).not.toMatch(ESCONDE);
-    expect(caixaDosAtalhos(h)).not.toMatch(ESCONDE);
   });
 
-  test("o aviso aparece no lugar dos atalhos, com role=status, nunca fixo", () => {
-    const h = html({
-      avisoAparente: true,
-      conquista: CONQUISTA,
-      envio: { tipo: "em_dia" },
-    });
-    expect(h).toContain("Aula assistida.");
-    expect(h).toContain("Você viu 90% dos trechos desta aula.");
+  test("o foco de teclado no visto ganha o fundo do cursor", () => {
+    expect(
+      caixaDoVisto(html({ avisoAparente: false, conquista: null, pct: 0 }))
+    ).toContain("hover:bg-accent");
+  });
+
+  test("o aviso aparece no lugar do visto, com role=status, nunca fixo", () => {
+    const h = html({ avisoAparente: true, conquista: CONQUISTA, pct: 91 });
     expect(h).toContain("+10 pts");
+    expect(h).toContain("aula assistida");
     expect(h).not.toMatch(POSICIONADO);
     expect(caixaDoAviso(h)).not.toMatch(ESCONDE);
-    expect(caixaDosAtalhos(h)).toMatch(ESCONDE);
+    expect(caixaDoVisto(h)).toMatch(ESCONDE);
+    // Os dois ficam na mesma célula: a troca não muda a largura da barra.
+    expect(regiao(h)).toContain("col-start-1");
   });
 
-  test("passado o prazo, o aviso sai de vista, os atalhos voltam e a região fica", () => {
-    const h = html({
-      avisoAparente: false,
-      conquista: CONQUISTA,
-      envio: { tipo: "em_dia" },
-    });
+  test("passado o prazo, o aviso sai de vista, o visto volta e a região fica", () => {
+    const h = html({ avisoAparente: false, conquista: CONQUISTA, pct: 91 });
     expect(regiao(h)).not.toMatch(ESCONDE);
     expect(caixaDoAviso(h)).toMatch(ESCONDE);
-    expect(caixaDosAtalhos(h)).not.toMatch(ESCONDE);
+    expect(caixaDoVisto(h)).not.toMatch(ESCONDE);
   });
 
   test("a entrada e a saída usam translate e opacity, e com movimento reduzido só a opacidade", () => {
-    const h = html({
-      avisoAparente: true,
-      conquista: CONQUISTA,
-      envio: { tipo: "em_dia" },
-    });
+    const h = html({ avisoAparente: true, conquista: CONQUISTA, pct: 91 });
     expect(caixaDoAviso(h)).toContain(
       "transition-[translate,opacity,visibility]"
     );
@@ -74,31 +66,8 @@ describe("linha de status do player", () => {
     const h = html({
       avisoAparente: true,
       conquista: { bonusSequencia: 30, pontos: 10, sequenciaDias: 7 },
-      envio: { tipo: "em_dia" },
+      pct: 91,
     });
-    expect(h).toContain("Sequência de 7 dias úteis: +30 pts.");
-  });
-
-  test("a falha de envio ocupa a área dos atalhos enquanto durar", () => {
-    for (const envio of [
-      { falhasSeguidas: 2, tipo: "esperando_nova_tentativa" },
-      { falhasSeguidas: 1, tipo: "enviando" },
-    ] as const) {
-      const h = html({ avisoAparente: false, conquista: CONQUISTA, envio });
-      expect(h).toContain("Progresso não salvo. Tentando de novo.");
-      expect(caixaDosAtalhos(h)).toMatch(ESCONDE);
-    }
-  });
-
-  test("primeiro envio, pendente e em dia não mostram nada", () => {
-    for (const envio of [
-      { falhasSeguidas: 0, tipo: "enviando" },
-      { tipo: "pendente" },
-      { tipo: "em_dia" },
-    ] as const) {
-      const h = html({ avisoAparente: false, conquista: null, envio });
-      expect(h).not.toContain("Progresso");
-      expect(h).not.toContain("Aula assistida");
-    }
+    expect(h).toContain("Sequência de 7 dias úteis: +30 pts");
   });
 });

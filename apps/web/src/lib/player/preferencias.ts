@@ -10,18 +10,22 @@ import {
 import type { Volume } from "./video";
 
 export interface Preferencias {
+  legenda: boolean;
   velocidade: Velocidade;
   volume: Volume;
 }
 
 export const PREFERENCIAS_PADRAO: Preferencias = {
+  legenda: false,
   velocidade: 1,
   volume: { mudo: false, nivel: 100 },
 };
 
 const CHAVE = "cursos:player:preferencias";
 
+// O valor gravado antes da legenda existir não tem o campo, e continua valendo.
 const formato = z.object({
+  legenda: z.boolean().default(false),
   velocidade: z.literal(VELOCIDADES),
   volume: z.object({ mudo: z.boolean(), nivel: z.int().min(0).max(100) }),
 });
@@ -64,9 +68,13 @@ export function criarSessaoComPreferencias(
     deps
   );
   const pararDeGravar = sessao.assinar(() => {
-    const { velocidade, volume } = sessao.estado();
-    if (velocidade !== gravadas.velocidade || volume !== gravadas.volume) {
-      gravadas = { velocidade, volume };
+    const { legenda, velocidade, volume } = sessao.estado();
+    if (
+      legenda !== gravadas.legenda ||
+      velocidade !== gravadas.velocidade ||
+      volume !== gravadas.volume
+    ) {
+      gravadas = { legenda, velocidade, volume };
       gravarPreferencias(gravadas);
     }
   });
