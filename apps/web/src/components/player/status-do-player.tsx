@@ -1,13 +1,10 @@
 import type { Conquista } from "@cursos/api/dominio/registro";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@cursos/ui/components/tooltip";
+import { Tooltip, TooltipTrigger } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
 
-import { DICA } from "@/components/casca/estilo";
 import { plural } from "@/lib/formato";
+
+import { DicaDoPlayer } from "./dica-do-player";
 
 const PILHA = "grid items-center *:col-start-1 *:row-start-1";
 const ENTRADA =
@@ -50,10 +47,10 @@ export function StatusDoPlayer({
             <span className="sr-only"> dos trechos desta aula</span>
           </span>
         </TooltipTrigger>
-        <TooltipContent className={cn(DICA, "max-w-[260px]")}>
+        <DicaDoPlayer className="max-w-[260px]">
           A faixa amarela é o que você já viu. Na marca azul (90%) a aula conta
           como assistida.
-        </TooltipContent>
+        </DicaDoPlayer>
       </Tooltip>
       <div className={PILHA} role="status">
         {conquista ? (

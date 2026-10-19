@@ -404,4 +404,23 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       `[...document.querySelectorAll("a")].filter((a) => a.textContent.trim() === "Próxima aula" && getComputedStyle(a).backgroundColor === "rgb(255, 204, 1)").length === 1`
     );
   });
+
+  test("a dica de um controle nasce dentro do player, que é o que a tela cheia mostra", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    const { x, y } = await avaliar<{ x: number; y: number }>(
+      enviar,
+      `(() => { const r = document.querySelector('[aria-label="Voltar 10 segundos"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`
+    );
+    await enviar("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
+    await esperar(
+      `[...document.querySelectorAll("[data-side]")].some((d) => d.textContent.includes("Voltar 10 s"))`
+    );
+    expect(
+      await avaliar<boolean>(
+        enviar,
+        `[...document.querySelectorAll("[data-side]")].find((d) => d.textContent.includes("Voltar 10 s")).closest("#video") !== null`
+      )
+    ).toBe(true);
+  });
 });

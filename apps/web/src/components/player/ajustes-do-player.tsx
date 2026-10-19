@@ -5,20 +5,16 @@ import { VELOCIDADES, type Velocidade } from "@cursos/api/dominio/regras";
 import { Button } from "@cursos/ui/components/button";
 import { Kbd } from "@cursos/ui/components/kbd";
 import { Popover, PopoverTrigger } from "@cursos/ui/components/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@cursos/ui/components/tooltip";
+import { Tooltip, TooltipTrigger } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
 import { Captions, Keyboard, Settings } from "lucide-react";
 import { type RefObject, useCallback, useRef, useState } from "react";
 
-import { DICA } from "@/components/casca/estilo";
 import { fmtNum, fmtVelocidade } from "@/lib/formato";
 import type { EstadoDaSessao } from "@/lib/player/sessao";
 import type { ComandoDoTeclado } from "@/lib/player/teclado";
 
+import { DicaDoPlayer } from "./dica-do-player";
 import { FOLHA, ICONE, TECLA } from "./partes";
 
 const ATALHOS: readonly { faz: string; teclas: readonly string[] }[] = [
@@ -116,7 +112,7 @@ export function AjustesDoPlayer({
           >
             <Settings aria-hidden="true" />
           </TooltipTrigger>
-          <TooltipContent className={DICA}>Ajustes</TooltipContent>
+          <DicaDoPlayer>Ajustes</DicaDoPlayer>
         </Tooltip>
         <PopoverPrimitive.Portal container={portal}>
           <PopoverPrimitive.Positioner
