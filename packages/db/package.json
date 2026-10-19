@@ -13,8 +13,8 @@
     "db:migrate:local": "drizzle-kit migrate --config drizzle.local.config.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "bun run src/seed/index.ts",
-    "db:start": "supabase start",
-    "db:stop": "supabase stop",
+    "db:start": "docker run -d --rm --name cursos-postgres -p 54322:5432 -e POSTGRES_PASSWORD=postgres postgres:17-alpine",
+    "db:stop": "docker stop cursos-postgres",
     "db:studio": "drizzle-kit studio",
     "test": "bun test"
   },
@@ -28,7 +28,6 @@
     "@types/bun": "^1.4.2",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "1.0.0-rc.4",
-    "supabase": "^2.120.0",
     "typescript": "catalog:",
     "varlock": "catalog:"
   }

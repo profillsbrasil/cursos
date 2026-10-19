@@ -1,5 +1,5 @@
 // Estados inválidos que o banco recusa, um caso por constraint (seção 2.8 do desenho).
-// Roda só com TEST_DATABASE_URL apontando para o Supabase local. Cada caso roda numa
+// Roda só com TEST_DATABASE_URL apontando para o Postgres local. Cada caso roda numa
 // transação desfeita no fim, então nada fica no banco, que é compartilhado entre worktrees.
 // Com SEM_RESTRICAO=1, cada caso apaga a própria constraint antes de violar: o teste tem
 // de ficar vermelho, prova de que é a constraint que segura o estado.

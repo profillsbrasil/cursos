@@ -1,4 +1,4 @@
-// Edição do curso inteiro contra o Supabase local, pelo caller do tRPC como admin.
+// Edição do curso inteiro contra o Postgres local, pelo caller do tRPC como admin.
 // Roda só com TEST_DATABASE_URL em host local. Cada teste cria o próprio curso com
 // sufixo aleatório, e o afterAll apaga tudo.
 

@@ -23,10 +23,10 @@ cursos/
 2. Preencha o `apps/web/.env` seguindo o contrato de `apps/web/.env.schema`. O `CORS_ORIGIN` precisa ser exatamente a origem do browser (`http://localhost:3001`); com outro valor, o Clerk recusa o token e toda chamada protegida responde `UNAUTHORIZED`.
 3. Suba o app com `bun run dev:web`, ou tudo com `bun run dev`, e abra http://localhost:3001.
 
-O banco de produção é o Postgres da Railway. `db:push` e `db:migrate` contra ele são escrita em produção: só rode com o OK do dono. Para trabalhar isolado, use o Supabase local, que aqui é só um Postgres na máquina:
+O banco de produção é o Postgres da Railway. `db:push` e `db:migrate` contra ele são escrita em produção: só rode com o OK do dono. O dev usa o ambiente `development` da Railway (veja a seção Banco do `CLAUDE.md`). Para trabalhar isolado, use o Postgres local, um container do Docker:
 
 ```bash
-bun run db:start                                   # sobe o Supabase local (porta 54322)
+bun run db:start                                   # sobe o Postgres local (porta 54322)
 cd packages/db && bun run db:migrate:local         # aplica as migrações no banco local
 bun run --cwd apps/web dev:local                   # sobe o app contra o banco local
 ```
@@ -43,7 +43,7 @@ O seed de exemplo roda dentro de `packages/db` com `bun run db:seed -- --aluno <
 | `bun run check-types` | Confere os tipos de todos os pacotes |
 | `bun run check` e `fix` | Lint e formato pelo Ultracite (Biome) |
 | `bun run env:generate` | Regenera os `env.ts` depois de mudar um `.env.schema` |
-| `bun run db:start` e `db:stop` | Sobe e derruba o Supabase local |
+| `bun run db:start` e `db:stop` | Sobe e derruba o Postgres local (o `db:stop` apaga os dados) |
 | `bun run db:generate` | Gera a migração SQL a partir do schema (`drizzle-kit generate`) |
 | `bun run db:migrate`, `db:push` e `db:studio` | `drizzle-kit` contra o `DATABASE_URL`; são tasks interativas do turbo, então num shell sem TTY rode `bunx drizzle-kit <comando>` dentro de `packages/db` |
 

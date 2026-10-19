@@ -1,6 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 
-// Só o Supabase local. Não importa varlock/auto-load, então nunca lê o DATABASE_URL do .env (cloud).
+// Só o Postgres local. Não importa varlock/auto-load, então nunca lê o DATABASE_URL do .env.
 export const URL_LOCAL =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 

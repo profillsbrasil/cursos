@@ -1,4 +1,4 @@
-// Contra o Supabase local. Roda só com TEST_DATABASE_URL em host local. Cada
+// Contra o Postgres local. Roda só com TEST_DATABASE_URL em host local. Cada
 // execução cria alunos user_teste<hex>, o slug teste-<hex> e códigos aleatórios, e
 // apaga tudo no afterAll.
 

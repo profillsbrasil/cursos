@@ -54,10 +54,10 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 
 ## Banco
 
-- O banco de produção é o serviço `Postgres` do projeto `cursos` na Railway, em `iad` (Virgínia), ao lado do `web`. O app chega nele pela rede interna. Ele não tem proxy TCP, então nada de fora da Railway o alcança: o `.env` de dev continua no Supabase cloud ou no local, e acesso ao banco de produção passa por `railway ssh --service web`. A ADR 0002 diz por que tudo fica na Railway e o que isso custa em latência.
+- O banco de produção é o serviço `Postgres` do projeto `cursos` na Railway, em `iad` (Virgínia), ao lado do `web`. O app chega nele pela rede interna. Ele não tem proxy TCP, então nada de fora da Railway o alcança; acesso a ele passa por `railway ssh --service web`. A ADR 0002 diz por que tudo fica na Railway e o que isso custa em latência.
+- O dev usa o ambiente `development` do mesmo projeto: o `Postgres-dev` e o bucket `capas-dev`, sem serviço `web`. O `.env` local aponta para eles (`railway bucket credentials --bucket capas-dev --environment development` dá as `S3_*`). O `DATABASE_URL` de dev é o `DATABASE_PUBLIC_URL` do `Postgres-dev`, que só existe com o proxy TCP dele ligado. Migração no dev: `bunx drizzle-kit migrate` dentro de `packages/db`.
 - O `preDeployCommand` do `web` roda `drizzle-kit migrate` antes de cada deploy, então migração que entra na main vai para produção no deploy seguinte. Migração que quebra o código antigo (como a `catalogo_sem_trilha`, ADR 0001) entra no mesmo PR do código que a usa.
-- O projeto cloud do Supabase (`lsatugtpqwiylnfutolg`) foi o banco até a ida para a Railway. Ele não recebe mais escrita do app de produção.
-- O Supabase local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- O Postgres local (`bun run db:start` / `db:stop`, um container `postgres:17-alpine` na porta 54322) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`. O `db:stop` apaga o container e os dados.
 - `bun run db:push` (e `db:generate`, `db:migrate`) da raiz é task interativa do turbo e falha num shell sem TTY. Num agente, rode `bunx drizzle-kit <comando>` dentro de `packages/db`.
 
 ## Auth (Clerk)
@@ -68,7 +68,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 
 ## Comandos
 
-- `bun run dev` sobe tudo; `bun run dev:web` só o app. `bun run --cwd apps/web dev:local` sobe o app contra o Supabase local (o `process.env` vence o `.env` no varlock). Não use `bun --bun next dev`: o Turbopack não resolve o `pg` no runtime do Bun.
+- `bun run dev` sobe tudo; `bun run dev:web` só o app. `bun run --cwd apps/web dev:local` sobe o app contra o Postgres local (o `process.env` vence o `.env` no varlock). Não use `bun --bun next dev`: o Turbopack não resolve o `pg` no runtime do Bun.
 - Testes: `bun run test`. Os de integração só rodam com `TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres` e recusam host que não seja local. Banco local: `bun run db:migrate:local` e `bun run db:seed -- --aluno user_xxx`, dentro de `packages/db`.
 - Antes de commitar: `bun run check-types` e `bun x ultracite check` verdes. Com o `typedRoutes`, o tipo `Route` só fica estrito depois que o `next dev` ou o `next build` gera `apps/web/.next/types`: num worktree novo, o `check-types` passa com href que a branch principal recusa, então rode um dos dois antes. Um hook do Claude Code (`.claude/hooks/formatar-arquivo-editado.ts`) roda o Biome no arquivo editado depois de cada Edit/Write, então o arquivo pode mudar logo após a edição: releia antes do próximo Edit.
 - Deploy: o serviço `web` da Railway builda com `bun run --cwd apps/web build` (sem turbo: os pacotes do workspace são TS e o modo estrito do turbo esconderia variáveis do build) e sobe com `bun run --cwd apps/web start`. O healthcheck é `/entrar`. `railway up --service web --ci` sobe o diretório atual; `railway logs --service web` lê o log.

@@ -1,5 +1,5 @@
-// Trava que impede seed e testes de escrever fora do Supabase local.
-// O DATABASE_URL do .env aponta para o banco cloud (ver a seção Banco do CLAUDE.md da raiz).
+// Trava que impede seed e testes de escrever fora do Postgres local.
+// O DATABASE_URL do .env aponta para o Postgres de dev da Railway (ver a seção Banco do CLAUDE.md da raiz).
 
 const HOSTS_LOCAIS = new Set(["127.0.0.1", "localhost"]);
 
@@ -14,7 +14,7 @@ export class BancoNaoLocalError extends Error {
 }
 
 /**
- * Lança se a URL não for do Supabase local. Com `porta` nula, aceita qualquer porta em host local.
+ * Lança se a URL não for do Postgres local. Com `porta` nula, aceita qualquer porta em host local.
  * Devolve host e porta para o chamador imprimir.
  */
 export function garantirBancoLocal(
@@ -43,12 +43,12 @@ export function garantirBancoLocal(
   const portaUrl = destino.port || "5432";
   if (!HOSTS_LOCAIS.has(host)) {
     throw new BancoNaoLocalError(
-      `Recusado: ${host}:${portaUrl} não é o Supabase local. Veja a seção Banco do CLAUDE.md da raiz.`
+      `Recusado: ${host}:${portaUrl} não é o Postgres local. Veja a seção Banco do CLAUDE.md da raiz.`
     );
   }
   if (porta !== null && portaUrl !== porta) {
     throw new BancoNaoLocalError(
-      `Recusado: a porta ${portaUrl} não é a do Supabase local (${porta}). Veja a seção Banco do CLAUDE.md da raiz.`
+      `Recusado: a porta ${portaUrl} não é a do Postgres local (${porta}). Veja a seção Banco do CLAUDE.md da raiz.`
     );
   }
   return { host, porta: portaUrl };

@@ -26,4 +26,4 @@ App na Railway com o banco no Supabase em São Paulo foi descartado: cada consul
 - Cada request do aluno no Brasil paga cerca de 130 ms até a Virgínia. As consultas ao banco ficam abaixo de 1 ms.
 - A Vercel em `gru1` com o Supabase em São Paulo daria cerca de 20 ms por request. Se a latência pesar, essa é a volta.
 - A capa passa pelo app: a saída de rede do serviço é cobrada, e o `cache-control` de um ano (a chave é o hash) faz o browser pedir cada capa uma vez.
-- O Supabase local continua como Postgres dos testes de integração.
+- O dev usa o ambiente `development` do mesmo projeto, com `Postgres-dev` e `capas-dev`. Os testes de integração rodam num container `postgres:17-alpine`, e o Supabase sai do repo.
