@@ -158,7 +158,7 @@ export function ControlesDoPlayer({
         <span className="mr-1.5 w-[84px] shrink-0">
           <Slider
             aria-labelledby={idVolume}
-            className="py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:transition-transform [&_[data-slot=slider-thumb]]:duration-150 [&_[data-slot=slider-thumb]]:ease-out [&_[data-slot=slider-thumb]]:hover:scale-125 [&_[data-slot=slider-thumb]]:motion-reduce:transition-none [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
+            className="py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:transition-transform [&_[data-slot=slider-thumb]]:duration-150 [&_[data-slot=slider-thumb]]:ease-forte [&_[data-slot=slider-thumb]]:hover:scale-125 [&_[data-slot=slider-thumb]]:motion-reduce:transition-none [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
             max={100}
             min={0}
             onValueChange={definirVolume}

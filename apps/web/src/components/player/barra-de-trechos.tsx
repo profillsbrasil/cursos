@@ -91,7 +91,7 @@ export function BarraDeTrechos({
       />
       {/* O polegar cresce sob o cursor e com o foco de teclado (#30), como o do volume. */}
       <span
-        className="pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full bg-titulo shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-transform duration-150 ease-out group-hover:scale-125 motion-reduce:transition-none"
+        className="pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full bg-titulo shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-transform duration-150 ease-forte group-hover:scale-125 motion-reduce:transition-none"
         style={{ left: pct(cabeca, duracaoSeg) }}
       />
     </div>
