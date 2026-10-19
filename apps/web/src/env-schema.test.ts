@@ -18,4 +18,13 @@ describe(".env.schema", () => {
   test("CORS_ORIGIN é @public", () => {
     expect(decoradores("CORS_ORIGIN")).toContain("@public");
   });
+
+  // O varlock acusa como vazado todo valor sensível que aparece no build. A
+  // região do bucket é "auto", palavra que existe em qualquer JS.
+  test.each(["S3_ENDPOINT", "S3_REGION", "S3_BUCKET"])(
+    "%s não é sensível",
+    (chave) => {
+      expect(decoradores(chave)).toContain("@sensitive=false");
+    }
+  );
 });
