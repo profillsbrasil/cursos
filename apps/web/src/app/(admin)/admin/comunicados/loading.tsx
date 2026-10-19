@@ -1,6 +1,6 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 // O título, o cartão do formulário e o cartão da lista, enquanto o banco e o Clerk respondem.
 export default function Carregando() {

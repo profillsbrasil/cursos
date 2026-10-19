@@ -116,7 +116,7 @@ function ItemDaAula({
       <button
         aria-current={selecionada ? "true" : undefined}
         className={cn(
-          "grid w-full grid-cols-[22px_minmax(0,1fr)_16px] items-start gap-2.5 border-border border-t py-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-white/8 motion-reduce:transition-none",
+          "grid w-full grid-cols-[22px_minmax(0,1fr)_16px] items-start gap-2.5 border-border border-t py-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-white/8",
           selecionada && "bg-sol/8"
         )}
         id={ALVO_DA_AULA.item(aula.id)}

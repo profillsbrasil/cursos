@@ -2,7 +2,7 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { GRADE_DO_CERTIFICADO } from "@/components/certificado/tela-do-certificado";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 export default function CarregandoCertificado() {
   return (

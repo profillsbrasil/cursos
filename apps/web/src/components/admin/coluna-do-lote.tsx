@@ -247,7 +247,7 @@ function Marcadas() {
       </ul>
       {marcadas.length > 1 ? (
         <button
-          className="justify-self-start rounded-md p-0.5 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo motion-reduce:transition-none"
+          className="justify-self-start rounded-md p-0.5 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
           onClick={desmarcarTodas}
           type="button"
         >
@@ -272,7 +272,7 @@ function OpcaoDeCurso({
     [despachar, c.id, c.titulo]
   );
   return (
-    <label className="grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8 has-checked:bg-sol/14 motion-reduce:transition-none">
+    <label className="grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8 has-checked:bg-sol/14">
       <input
         checked={escolhido}
         className="m-0 size-[18px] cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground checked:border-[5px] checked:border-sol"

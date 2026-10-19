@@ -7,6 +7,9 @@ const SRC = join(import.meta.dir, "..");
 const CURVA_PROPRIA = /ease-\[cubic-bezier/;
 const DURACAO = /duration-(\d+)\b/g;
 const DURACAO_MAXIMA_MS = 200;
+const DESLIGA_NO_REDUZIDO = /motion-reduce:\S*(transition-none|animate-none)/;
+const DESLOCA =
+  /transition-transform|transition-\[[^\]]*(translate|transform|rotate|scale)|animate-spin/;
 
 /**
  * A regra de movimento do DESIGN.md: a curva é o ease-forte e a transição da
@@ -26,6 +29,24 @@ describe("movimento da interface", () => {
           (m) => Number(m[1]) > DURACAO_MAXIMA_MS
         );
         if (CURVA_PROPRIA.test(linha) || longas.length > 0) {
+          fora.push(`${arquivo}:${i + 1}`);
+        }
+      });
+    }
+    expect(fora).toEqual([]);
+  });
+
+  // Com movimento reduzido, sai o deslocamento e ficam a cor e a opacidade
+  // (skill review-animations): desligar a transição só vale onde algo se move.
+  test("o movimento reduzido só desliga o que desloca", () => {
+    const fora: string[] = [];
+    for (const arquivo of new Glob("**/*.{ts,tsx}").scanSync(SRC)) {
+      if (arquivo.includes(".test.")) {
+        continue;
+      }
+      const linhas = readFileSync(join(SRC, arquivo), "utf8").split("\n");
+      linhas.forEach((linha, i) => {
+        if (DESLIGA_NO_REDUZIDO.test(linha) && !DESLOCA.test(linha)) {
           fora.push(`${arquivo}:${i + 1}`);
         }
       });

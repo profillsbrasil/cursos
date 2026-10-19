@@ -5,7 +5,7 @@ import {
   GRADE_DAS_PRIMEIRAS_VEZES,
 } from "@/components/conquistas/tela-de-conquistas";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 export default function Carregando() {
   return (

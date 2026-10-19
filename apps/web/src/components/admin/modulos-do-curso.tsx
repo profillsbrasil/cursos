@@ -168,7 +168,7 @@ function CabecaDoBloco({
         aria-disabled={bloco.tipo === "com_erro" ? true : undefined}
         aria-expanded={aberto}
         className={cn(
-          "group/bloco grid w-full cursor-pointer grid-cols-[1.75rem_minmax(0,1fr)_1rem] items-center gap-x-3 gap-y-1.5 px-5 py-3.5 text-left transition-colors duration-150 hover:bg-white/8 aria-disabled:cursor-default motion-reduce:transition-none",
+          "group/bloco grid w-full cursor-pointer grid-cols-[1.75rem_minmax(0,1fr)_1rem] items-center gap-x-3 gap-y-1.5 px-5 py-3.5 text-left transition-colors duration-150 hover:bg-white/8 aria-disabled:cursor-default",
           aberto && "bg-muted/30"
         )}
         id={ALVO.cabeca(modulo.id)}
@@ -454,7 +454,7 @@ function LinkDoIndice({
       <TooltipTrigger
         className={cn(
           // relative: o sr-only é absolute e, sem isto, escapa da fila que rola e alarga a página.
-          "relative grid h-9 min-w-9 place-items-center rounded-full px-2.5 font-semibold text-[13px] tabular-nums transition-colors duration-150 motion-reduce:transition-none",
+          "relative grid h-9 min-w-9 place-items-center rounded-full px-2.5 font-semibold text-[13px] tabular-nums transition-colors duration-150",
           NUMERO[bloco.tipo],
           NUMERO_SOB_O_CURSOR[bloco.tipo]
         )}

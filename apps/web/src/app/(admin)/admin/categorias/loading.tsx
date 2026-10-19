@@ -1,6 +1,6 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 export default function Carregando() {
   return (

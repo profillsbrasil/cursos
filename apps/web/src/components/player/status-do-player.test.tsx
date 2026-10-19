@@ -56,7 +56,7 @@ describe("linha de status do player", () => {
     expect(caixaDosAtalhos(h)).not.toMatch(ESCONDE);
   });
 
-  test("a entrada e a saída usam transform e opacity, sem animação com movimento reduzido", () => {
+  test("a entrada e a saída usam translate e opacity, e com movimento reduzido só a opacidade", () => {
     const h = html({
       avisoAparente: true,
       conquista: CONQUISTA,
@@ -65,7 +65,9 @@ describe("linha de status do player", () => {
     expect(caixaDoAviso(h)).toContain(
       "transition-[translate,opacity,visibility]"
     );
-    expect(caixaDoAviso(h)).toContain("motion-reduce:transition-none");
+    expect(caixaDoAviso(h)).toContain(
+      "motion-reduce:transition-[opacity,visibility]"
+    );
   });
 
   test("o bônus de sequência entra no mesmo aviso", () => {

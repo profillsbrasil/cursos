@@ -304,6 +304,7 @@ let repouso: { fundo: string; sombra: string };
 
 async function avaliar<T>(expressao: string) {
   const { result } = (await enviar("Runtime.evaluate", {
+    awaitPromise: true,
     expression: expressao,
     returnByValue: true,
   })) as { result: { value: T } };
@@ -333,9 +334,10 @@ async function tabAte(condicao: string, tentativas: number): Promise<void> {
 const LINK_ATIVO = 'nav a[aria-current="page"]';
 const OUTRO_LINK = "nav a[href]:not([aria-current])";
 
+// A cor e o brilho mudam com transição: lê depois que ela termina.
 const lerPilula = () =>
   avaliar<{ fundo: string; sombra: string }>(
-    `(() => { const p = getComputedStyle(document.querySelector('nav li[aria-hidden="true"]')); return { fundo: p.backgroundColor, sombra: p.boxShadow }; })()`
+    `(async () => { const li = document.querySelector('nav li[aria-hidden="true"]'); getComputedStyle(li).backgroundColor; await Promise.all(li.getAnimations().map((a) => a.finished)); const p = getComputedStyle(li); return { fundo: p.backgroundColor, sombra: p.boxShadow }; })()`
   );
 
 /** A cor e a sombra da pílula com o cursor ou o foco forçado num link. */
@@ -361,10 +363,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     () => {
       beforeAll(async () => {
         enviar = await abrirChromium("sinal-do-foco");
-        // Sem transição (motion-reduce:transition-none): a cor lida é a final.
-        await enviar("Emulation.setEmulatedMedia", {
-          features: [{ name: "prefers-reduced-motion", value: "reduce" }],
-        });
         await avaliar(
           `document.open(); document.write(${JSON.stringify(
             `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body>${nav}<div id="sonda" style="background-color: var(--sol-hover)"></div></body></html>`

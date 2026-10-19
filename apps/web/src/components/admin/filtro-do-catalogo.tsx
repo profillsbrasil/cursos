@@ -60,7 +60,7 @@ function Filtros({
           <button
             aria-pressed={ligado}
             className={cn(
-              "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 font-semibold text-[13px] transition-colors motion-reduce:transition-none",
+              "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 font-semibold text-[13px] transition-colors",
               ligado
                 ? "bg-titulo text-sobre-cor hover:bg-foreground"
                 : "text-foreground hover:bg-popover"

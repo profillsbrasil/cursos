@@ -129,7 +129,7 @@ function ItemDaLista({
       <button
         aria-current={selecionada ? "true" : undefined}
         className={cn(
-          "grid w-full grid-cols-[22px_minmax(0,1fr)] gap-2.5 border-border border-b px-3.5 py-3 text-left transition-colors duration-150 hover:bg-white/8 motion-reduce:transition-none",
+          "grid w-full grid-cols-[22px_minmax(0,1fr)] gap-2.5 border-border border-b px-3.5 py-3 text-left transition-colors duration-150 hover:bg-white/8",
           selecionada && "bg-sol/8"
         )}
         id={ALVO_DO_QUIZ.item(pergunta.id)}
@@ -193,7 +193,7 @@ function Letra({
   );
   return (
     <label
-      className="group/letra grid size-9 cursor-pointer place-items-center rounded-full transition-colors duration-150 hover:bg-popover motion-reduce:transition-none"
+      className="group/letra grid size-9 cursor-pointer place-items-center rounded-full transition-colors duration-150 hover:bg-popover"
       htmlFor={ALVO_DO_QUIZ.letra(alternativa.id)}
     >
       <input
@@ -213,7 +213,7 @@ function Letra({
       <span
         aria-hidden="true"
         className={cn(
-          "grid size-[26px] place-items-center rounded-full font-semibold text-foreground text-xs ring-[1.5px] ring-muted-foreground ring-inset transition-colors duration-150 group-hover/letra:text-titulo group-hover/letra:ring-ceu group-aria-invalid/alts:ring-destructive motion-reduce:transition-none",
+          "grid size-[26px] place-items-center rounded-full font-semibold text-foreground text-xs ring-[1.5px] ring-muted-foreground ring-inset transition-colors duration-150 group-hover/letra:text-titulo group-hover/letra:ring-ceu group-aria-invalid/alts:ring-destructive",
           alternativa.certa &&
             "bg-ceu text-sobre-cor ring-0 group-hover/letra:text-sobre-cor"
         )}

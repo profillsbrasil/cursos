@@ -20,7 +20,7 @@ export function FaixaComunicado({
         className
       )}
     >
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-[14px] px-4 py-2.5 transition-colors duration-150 hover:bg-white/8 group-open:rounded-b-none motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-[14px] px-4 py-2.5 transition-colors duration-150 hover:bg-white/8 group-open:rounded-b-none [&::-webkit-details-marker]:hidden">
         <Megaphone aria-hidden="true" className="size-4 shrink-0 text-ceu" />
         {/* Fechada, o título corta em uma linha; aberta, ele quebra e aparece inteiro.
             O h2 dentro do summary deixa o comunicado na navegação por títulos. */}

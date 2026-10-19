@@ -5,7 +5,7 @@ import {
   TITULO_DA_AULA,
 } from "@/components/player/cabecalho-da-aula";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 export default function CarregandoAula() {
   return (

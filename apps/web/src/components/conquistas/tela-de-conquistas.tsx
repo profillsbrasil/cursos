@@ -432,7 +432,7 @@ function CartaoDoCertificado({
       <Link
         className={cn(
           CARTAO,
-          "group relative grid grid-rows-[auto_0_1fr] transition-shadow duration-200 ease-forte hover:ring-ceu motion-reduce:transition-none"
+          "group relative grid grid-rows-[auto_0_1fr] transition-shadow duration-200 ease-forte hover:ring-ceu"
         )}
         href={
           c.estado === "ganha"

@@ -238,7 +238,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     ).toEqual(["publicado", "Publicado"]);
   });
 
-  test("a lista abre em 150 ms, e sem transição com movimento reduzido", async () => {
+  test("a lista abre em 150 ms, e com movimento reduzido só pela opacidade", async () => {
     const transicao = async () => {
       await abrirTela();
       await avaliar(enviar, `document.getElementById("status").click()`);
@@ -260,7 +260,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await enviar("Emulation.setEmulatedMedia", {
       features: [{ name: "prefers-reduced-motion", value: "reduce" }],
     });
-    expect((await transicao())[0]).toBe("none");
+    expect((await transicao())[0]).toBe("opacity");
     await enviar("Emulation.setEmulatedMedia", { features: [] });
   });
 
