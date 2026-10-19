@@ -294,6 +294,39 @@ const MEDIR = `(() => {
 })()`;
 const medir = () => avaliar<Medida>(enviar, MEDIR);
 
+interface Divisoria {
+  /** Do fim do enunciado ao bloco seguinte (a marca ou as alternativas). */
+  ateOBloco: number;
+  /** Do fim da linha ao topo do enunciado. */
+  ateOEnunciado: number;
+  esquerda: number;
+  largura: number;
+}
+
+// A linha de cada pergunta é a borda de cima do primeiro contêiner com borda,
+// subindo do fieldset até a seção.
+const DIVISORIAS = `(() => {
+  const secao = document.getElementById("questionario").getBoundingClientRect();
+  return {
+    perguntas: [...document.querySelectorAll("fieldset")].map((grupo) => {
+      let el = grupo;
+      while (parseFloat(getComputedStyle(el).borderTopWidth) === 0) el = el.parentElement;
+      const linha = el.getBoundingClientRect();
+      const fimDaLinha = linha.top + parseFloat(getComputedStyle(el).borderTopWidth);
+      const legenda = grupo.querySelector("legend").getBoundingClientRect();
+      const bloco = grupo.querySelector("legend ~ *").getBoundingClientRect();
+      return {
+        ateOEnunciado: Math.round(legenda.top - fimDaLinha),
+        ateOBloco: Math.round(bloco.top - legenda.bottom),
+        esquerda: Math.round(linha.left - secao.left),
+        largura: Math.round(linha.width - secao.width),
+      };
+    }),
+  };
+})()`;
+const divisorias = () =>
+  avaliar<{ perguntas: Divisoria[] }>(enviar, DIVISORIAS);
+
 describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
   let pacote: string;
 
@@ -356,6 +389,25 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     );
     expect(terceiro[2]?.tentativaId).not.toBe(terceiro[0]?.tentativaId);
   });
+
+  test.each([
+    ["respondendo", CRONOGRAMA],
+    ["corrigido", { ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }],
+  ])(
+    "%s: a linha de cada pergunta passa acima do enunciado, de borda a borda, e o enunciado encosta no bloco seguinte",
+    async (_, q) => {
+      await abrir(1280, htmlDe(q));
+      const { perguntas } = await divisorias();
+      expect(perguntas.length).toBeGreaterThan(0);
+      for (const p of perguntas) {
+        expect(p.esquerda).toBe(0);
+        expect(p.largura).toBe(0);
+        expect(p.ateOEnunciado).toBeGreaterThanOrEqual(16);
+        expect(p.ateOBloco).toBeGreaterThanOrEqual(8);
+        expect(p.ateOBloco).toBeLessThanOrEqual(16);
+      }
+    }
+  );
 
   test("1280 px: o título e os pontos dividem a linha, e a alternativa ocupa a largura da pergunta", async () => {
     await abrir(1280, htmlDe({ ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }));
