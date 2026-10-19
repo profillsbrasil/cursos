@@ -3,10 +3,11 @@ import type { Metadata, Viewport } from "next";
 
 import "../index.css";
 import { Geist, Geist_Mono } from "next/font/google";
-
+import { APARENCIA_CLERK, TEXTOS_CLERK } from "@/components/entrada/clerk";
 import Providers from "@/components/providers";
 import PwaRegistration from "@/components/pwa-registration";
 import { TITULO_DA_RAIZ } from "@/lib/marca";
+import { CRIAR_CONTA, ENTRAR } from "@/lib/rotas";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -31,20 +32,6 @@ export const viewport: Viewport = {
 
 // O app tem um tema só, escuro. A classe "dark" fica fixa no <html> para as
 // variantes dark: dos componentes de packages/ui continuarem valendo.
-const APARENCIA_CLERK = {
-  variables: {
-    colorBackground: "#33383E",
-    colorBorder: "#40454A",
-    colorForeground: "#E9ECEF",
-    colorInput: "#1A1D22",
-    colorInputForeground: "#E9ECEF",
-    colorMutedForeground: "#A8ACB0",
-    colorPrimary: "#FFCC01",
-    colorPrimaryForeground: "#22262B",
-    colorRing: "#AAD2EA",
-  },
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,7 +45,14 @@ export default function RootLayout({
       <body className="antialiased">
         <PwaRegistration />
 
-        <ClerkProvider appearance={APARENCIA_CLERK}>
+        <ClerkProvider
+          appearance={APARENCIA_CLERK}
+          localization={TEXTOS_CLERK}
+          signInFallbackRedirectUrl="/meus-cursos"
+          signInUrl={ENTRAR}
+          signUpFallbackRedirectUrl="/meus-cursos"
+          signUpUrl={CRIAR_CONTA}
+        >
           <Providers>{children}</Providers>
         </ClerkProvider>
       </body>

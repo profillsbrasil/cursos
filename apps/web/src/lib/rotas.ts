@@ -27,3 +27,9 @@ export const caminhoDoCertificado = (slug: string) =>
 
 export const caminhoDaConferencia = (codigo: string) =>
   conferencia(codigo) as Route;
+
+/** O login e o cadastro do Clerk moram no app, e não no Account Portal. */
+export const ENTRAR = "/entrar";
+export const CRIAR_CONTA = "/criar-conta";
+
+export const MINHA_CONTA = "/minha-conta" as Route;

@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 
 import { LOCKUP, PRODUTO } from "@/lib/marca";
 
-import { FOLHA_EM_PX, type FolhaDoCertificado } from "./folha";
+import { FOLHA_EM_PX, type FolhaDoCertificado } from "./medidas-da-folha";
 
 const pxDaFolha = (px: number) => `calc(var(--px-da-folha) * ${px})`;
 

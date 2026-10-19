@@ -4,9 +4,9 @@ import { cn } from "@cursos/ui/lib/utils";
 import { Award, Check, Download, ListChecks, UserRound } from "lucide-react";
 import Link from "next/link";
 
-import { BOTAO } from "@/components/casca/botoes";
+import { BOTAO, LINK_NO_TEXTO } from "@/components/casca/botoes";
 import { diaCurto, diaEmSaoPaulo, plural } from "@/lib/formato";
-import { caminhoDoCertificado, caminhoDoCurso } from "@/lib/rotas";
+import { caminhoDoCertificado, caminhoDoCurso, MINHA_CONTA } from "@/lib/rotas";
 
 import { CopiarLink } from "./copiar-link";
 import { Fatos } from "./fatos";
@@ -137,8 +137,14 @@ export function TelaDoCertificado({
           </h2>
           <p className="max-w-[60ch] text-pretty text-muted-foreground">
             O certificado leva o nome da sua conta, e ela ainda não tem um.
-            Ponha o nome em Minha conta, no cartão da conta no pé do menu, e
-            volte aqui para baixar o PDF.
+            Ponha o nome em{" "}
+            <Link
+              className={cn(LINK_NO_TEXTO, "font-medium text-foreground")}
+              href={MINHA_CONTA}
+            >
+              Minha conta
+            </Link>{" "}
+            e volte aqui para baixar o PDF.
           </p>
         </section>
       )}

@@ -14,7 +14,7 @@ import {
 
 import { LOCKUP } from "@/lib/marca";
 
-import { FOLHA_EM_PX, type FolhaDoCertificado } from "./folha";
+import { FOLHA_EM_PX, type FolhaDoCertificado } from "./medidas-da-folha";
 
 // process.cwd() é apps/web no next dev, no build e no bun test; o trace do build
 // leva os arquivos lidos por caminho fixo a partir dele.
