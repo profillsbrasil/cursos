@@ -111,6 +111,10 @@ export interface RespostaAoEnvio {
   resultado: ResultadoDoQuestionario;
 }
 
+/** O id que o cliente mandou já é de uma tentativa que não é desta aula do aluno. */
+export const TENTATIVA_EM_USO =
+  "Não deu para gravar esta tentativa. Recarregue a página e responda de novo.";
+
 const erroSemAcesso = () =>
   new ErroParaAPessoa({ code: "NOT_FOUND", message: "Aula não encontrada." });
 
@@ -133,16 +137,26 @@ async function gravarTentativa(
   tentativa: TentativaGravada,
   agora: Date
 ) {
-  await aluno.tx.insert(questionarioTentativa).values({
-    acertos: tentativa.acertos,
-    aprovada: tentativa.aprovada,
-    aulaId: envio.aulaId,
-    enviadaEm: agora,
-    id: envio.tentativaId,
-    numero: tentativa.numero,
-    total: tentativa.total,
-    userId: aluno.userId,
-  });
+  // O reenvio do próprio aluno já voltou em resultadoGravado. O id que ainda
+  // colide é de outra pessoa (a trava é por aluno) ou de outra aula, e a recusa
+  // não diz de quem.
+  const [gravada] = await aluno.tx
+    .insert(questionarioTentativa)
+    .values({
+      acertos: tentativa.acertos,
+      aprovada: tentativa.aprovada,
+      aulaId: envio.aulaId,
+      enviadaEm: agora,
+      id: envio.tentativaId,
+      numero: tentativa.numero,
+      total: tentativa.total,
+      userId: aluno.userId,
+    })
+    .onConflictDoNothing({ target: questionarioTentativa.id })
+    .returning({ id: questionarioTentativa.id });
+  if (!gravada) {
+    throw new ErroParaAPessoa({ code: "CONFLICT", message: TENTATIVA_EM_USO });
+  }
   await aluno.tx.insert(questionarioResposta).values(
     tentativa.respostas.map((r) => ({
       alternativaId: r.alternativaId,
