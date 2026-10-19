@@ -109,11 +109,11 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
-/** Um fetch falso que guarda cada Request assinado e responde com `resposta`. */
+/** Um fetch falso que guarda cada pedido assinado e responde com `resposta`. */
 function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
-  const enviar = ((pedido: Request) => {
-    pedidos.push(pedido);
+  const enviar = ((url: string, init?: RequestInit) => {
+    pedidos.push(new Request(url, init));
     return Promise.resolve(resposta());
   }) as unknown as typeof fetch;
   return { enviar, pedidos };
@@ -143,6 +143,26 @@ describe("capasNoBucket", () => {
     expect(pedidos[0]?.headers.get("authorization")).toContain(
       "/auto/s3/aws4_request"
     );
+  });
+
+  test("o PUT leva o corpo em bytes, que o fetch do Next repassa com tamanho; um Request ele recria a partir do stream, e o bucket recusa sem Content-Length (411)", async () => {
+    // next/dist/server/lib/patch-fetch.js: um Request de entrada vira
+    // `new Request(url, { body: request.body })`, um stream sem tamanho, e o
+    // undici do Node manda chunked. O `body` do init passa como veio.
+    const tamanhos: (number | null)[] = [];
+    const comoONext = ((
+      entrada: Parameters<typeof fetch>[0],
+      init?: RequestInit
+    ) => {
+      const corpo = entrada instanceof Request ? entrada.body : init?.body;
+      tamanhos.push(corpo instanceof Uint8Array ? corpo.byteLength : null);
+      return Promise.resolve(new Response(null));
+    }) as typeof fetch;
+    const bytes = await ler("comercial.jpg");
+
+    await capasNoBucket(BUCKET, comoONext).receber(new Blob([bytes]));
+
+    expect(tamanhos).toEqual([bytes.byteLength]);
   });
 
   test("capa recusada não chega ao bucket; o corpo do erro do bucket vai ao log, não à mensagem", async () => {

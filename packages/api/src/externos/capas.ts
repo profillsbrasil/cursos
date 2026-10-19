@@ -137,13 +137,18 @@ export function capasNoBucket(
       if (lida.tipo === "recusa") {
         return lida;
       }
-      const resposta = await enviar(
-        await aws.sign(doObjeto(lida.chave), {
-          body: lida.bytes,
-          headers: { "content-type": lida.contentType },
-          method: "PUT",
-        })
-      );
+      const assinado = await aws.sign(doObjeto(lida.chave), {
+        body: lida.bytes,
+        headers: { "content-type": lida.contentType },
+        method: "PUT",
+      });
+      // Os bytes vão no init: um Request o fetch do Next recria a partir do
+      // stream do corpo, o PUT sai sem Content-Length e o bucket responde 411.
+      const resposta = await enviar(assinado.url, {
+        body: lida.bytes,
+        headers: assinado.headers,
+        method: "PUT",
+      });
       if (!resposta.ok) {
         console.error(
           "Bucket recusou a capa:",
