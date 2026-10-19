@@ -2,7 +2,6 @@
 // enviar, e externos/capas.ts confere de novo no servidor.
 
 export const LIMITE_DA_CAPA = {
-  /** Corpo de função na Vercel vai até 4,5 MB; sobra espaço para o documento. */
   bytes: 4 * 1024 * 1024,
   ladoMaximo: 8000,
   /** O banner mostra a capa a 44vw; abaixo disso ela fica borrada. */
