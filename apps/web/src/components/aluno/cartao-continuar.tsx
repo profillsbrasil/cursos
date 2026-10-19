@@ -25,11 +25,14 @@ const CARTAO = cn(
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-sobre-cor"
 );
 
-// O hover também é o foco de teclado (#30). Aberto, o fundo vira popover; recolhida,
-// o redondo clareia e brilha como o botão amarelo. A cor do hover mora numa camada
-// (::before) atrás do miolo, e só a opacidade dela transiciona: o hover entra e sai
-// em 150 ms, e a troca de modo, que só troca a cor da camada, não anima.
+// O hover também é o foco de teclado (#30). Aberto, o fundo vira popover e o play
+// redondo clareia e brilha (REDONDO, pelo group/continuar): o fundo sozinho mede
+// 1,15:1 contra o realce da sidebar e não se via. Recolhida, o redondo de 40 px
+// clareia e brilha como o botão amarelo. A cor do hover mora numa camada (::before)
+// atrás do miolo, e só a opacidade dela transiciona: o hover entra e sai em 150 ms,
+// e a troca de modo, que só troca a cor da camada, não anima.
 const COM_LINK = cn(
+  "group/continuar",
   "before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:bg-muted before:opacity-0",
   "before:transition-opacity before:duration-150 before:ease-out hover:before:opacity-100",
   "group-data-[collapsible=icon]:before:bg-sol-hover group-data-[collapsible=icon]:before:shadow-brilho"
@@ -40,8 +43,13 @@ const COM_LINK = cn(
 const LINHA =
   "flex items-center gap-2.5 group-data-[collapsible=icon]:contents";
 
-const REDONDO =
-  "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:[&_svg]:size-4";
+// Com o cursor ou o foco no link, o redondo de 32 px acende como o botão amarelo.
+// Recolhida ele é contents, sem caixa: o fundo e a sombra não pintam, e quem acende
+// é o próprio cartão.
+const REDONDO = cn(
+  "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor group-data-[collapsible=icon]:contents [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:[&_svg]:size-4",
+  "transition-[background-color,box-shadow] duration-150 ease-forte group-hover/continuar:bg-sol-hover group-hover/continuar:shadow-brilho"
+);
 
 function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
   return tipo === "questionario" ? (
