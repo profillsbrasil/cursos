@@ -234,6 +234,40 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
   });
 
+  test("o nome salvo de 256 letras sem espaço quebra dentro do cartão e da folha", async () => {
+    await abrir({ firstName: "A".repeat(256), lastName: "Quebra" });
+    const m = await avaliar<Record<string, number>>(
+      enviar,
+      `(() => {
+        const direita = (el) => Math.round(el.getBoundingClientRect().right);
+        const folha = document.querySelector("figure");
+        const nomeDaFolha = folha.querySelector("p:nth-of-type(2)");
+        return {
+          coluna: direita(document.querySelector("form")),
+          folha: direita(nomeDaFolha.parentElement),
+          nomeDaFolha: direita(nomeDaFolha),
+          rolagem: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          titulo: direita(document.querySelector("h2")),
+          tituloRolagem: document.querySelector("h2").scrollWidth - document.querySelector("h2").clientWidth,
+        };
+      })()`
+    );
+    expect(m.titulo).toBeLessThanOrEqual(m.coluna);
+    expect(m.tituloRolagem).toBe(0);
+    expect(m.nomeDaFolha).toBeLessThanOrEqual(m.folha);
+    expect(m.rolagem).toBe(0);
+  });
+
+  test("o nome que passa do que a folha comporta: o campo avisa e não envia", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    await digitar("nome", "A".repeat(30));
+    expect(await textoDe('[data-slot="field-error"]')).toBe(
+      "Cada palavra do nome vai até 20 letras, para caber na linha do certificado."
+    );
+    await salvar();
+    expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
+  });
+
   test("o Clerk salva: o nome, o avatar e a legenda passam ao nome novo", async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
     await digitar("nome", "Bia");
