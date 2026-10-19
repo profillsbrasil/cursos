@@ -1,0 +1,225 @@
+// O cartão do nome de Minha conta, montado de verdade no Chromium headless, com o
+// usuário do Clerk falso: o teste digita, salva, faz o Clerk recusar e mede. Sem
+// Chromium na máquina, a suíte pula.
+
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { build } from "bun";
+
+import { folhaDeExemplo } from "@/components/certificado/folha";
+
+import {
+  abrirChromium,
+  avaliar,
+  CHROMIUM,
+  cssDoApp,
+  type Enviar,
+  fecharChromium,
+} from "../chromium-de-teste";
+
+const ENTRADA = join(import.meta.dir, "secao-do-nome.entrada.tsx");
+const CLERK = join(import.meta.dir, "clerk-falso.js");
+const SONNER = join(import.meta.dir, "sonner-falso.js");
+const IMAGEM = join(import.meta.dir, "imagem-falsa.js");
+const CLERK_NEXTJS = /^@clerk\/nextjs$/;
+const SONNER_PACOTE = /^sonner$/;
+const NEXT_IMAGE = /^next\/image$/;
+
+const FOLHA = {
+  exemplo: true,
+  folha: folhaDeExemplo("https://cursos.profills.com.br"),
+};
+
+async function empacotar() {
+  const pacote = await build({
+    define: { "process.env.NODE_ENV": '"development"' },
+    entrypoints: [ENTRADA],
+    files: {
+      [ENTRADA]: `
+        import { ClerkAPIResponseError } from "@clerk/nextjs/errors";
+        import { flushSync } from "react-dom";
+        import { createRoot } from "react-dom/client";
+        import { SecaoDoNome } from "./secao-do-nome";
+
+        // O Clerk falso: grava o pedido e, com window.recusa, recusa como o Clerk recusa.
+        window.pedidos = [];
+        window.toasts = [];
+        const raiz = createRoot(document.getElementById("raiz"));
+        const desenhar = (user) =>
+          flushSync(() =>
+            raiz.render(
+              <div className="@container">
+                <SecaoDoNome certificados={0} folha={${JSON.stringify(FOLHA)}} key={user.id} user={user} />
+              </div>
+            )
+          );
+        const usuario = (dados) => ({
+          hasImage: false,
+          id: "user_1",
+          imageUrl: "",
+          primaryEmailAddress: { emailAddress: "ana@exemplo.com" },
+          setProfileImage: async () => undefined,
+          ...dados,
+          update: async (pedido) => {
+            window.pedidos.push(pedido);
+            if (window.recusa) {
+              throw new ClerkAPIResponseError("recusado", { data: [window.recusa], status: 422 });
+            }
+            // Como o useUser: o usuário salvo volta como um objeto novo.
+            setTimeout(() => desenhar(usuario({ ...dados, ...pedido })));
+          },
+        });
+        desenhar(usuario(window.INICIAL));
+      `,
+      [CLERK]: "export const useReverification = (fazer) => fazer;",
+      [SONNER]: `export const toast = {
+        error: (m) => window.toasts.push(["erro", m]),
+        success: (m) => window.toasts.push(["ok", m]),
+      };`,
+      [IMAGEM]: `import { createElement } from "react";
+        export default function Image({ alt, height, src, style, width }) {
+          return createElement("img", { alt, height, src, style, width });
+        }`,
+    },
+    format: "iife",
+    plugins: [
+      {
+        name: "clerk-falso",
+        setup(construtor) {
+          construtor.onResolve({ filter: CLERK_NEXTJS }, () => ({
+            path: CLERK,
+          }));
+          construtor.onResolve({ filter: SONNER_PACOTE }, () => ({
+            path: SONNER,
+          }));
+          construtor.onResolve({ filter: NEXT_IMAGE }, () => ({
+            path: IMAGEM,
+          }));
+        },
+      },
+    ],
+    target: "browser",
+  });
+  const [saida] = pacote.outputs;
+  if (!(pacote.success && saida)) {
+    throw new Error(`o pacote do cartão não saiu: ${pacote.logs.join("\n")}`);
+  }
+  return saida.text();
+}
+
+let enviar: Enviar;
+let pacote: string;
+
+/** A página de 1280 px com a casca aberta: o cartão fica com 936 px, como no print. */
+async function abrir(inicial: { firstName: string; lastName: string }) {
+  await enviar("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: 900,
+    mobile: false,
+    width: 1280,
+  });
+  await avaliar(
+    enviar,
+    `document.open(); document.write(${JSON.stringify(
+      '<!doctype html><html class="dark" lang="pt-BR"><head><style id="css"></style></head><body style="margin:0"><main style="margin-left:248px;padding:32px 48px"><div id="raiz"></div></main></body></html>'
+    )}); document.close(); window.INICIAL = ${JSON.stringify(inicial)}; window.recusa = null;`
+  );
+  await avaliar(enviar, pacote);
+  await estilizar();
+}
+
+/** Compila o CSS do app para as classes que estão na página agora. */
+async function estilizar() {
+  const classes = await avaliar<string[]>(
+    enviar,
+    `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`
+  );
+  const css = await cssDoApp(classes);
+  await avaliar(
+    enviar,
+    `document.getElementById("css").textContent = ${JSON.stringify(css)}`
+  );
+}
+
+const digitar = (campo: "nome" | "sobrenome", valor: string) =>
+  avaliar(
+    enviar,
+    `(() => {
+      const campo = document.querySelector('input[name="${campo}"]');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(campo, ${JSON.stringify(valor)});
+      campo.dispatchEvent(new Event("input", { bubbles: true }));
+    })()`
+  );
+
+const salvar = () =>
+  avaliar(
+    enviar,
+    `[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome").click()`
+  );
+
+const textoDe = (seletor: string) =>
+  avaliar<string | null>(
+    enviar,
+    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`
+  );
+
+function esperar(condicao: string) {
+  return avaliar(
+    enviar,
+    `new Promise((pronto, falhou) => {
+      const inicio = performance.now();
+      const olhar = () => {
+        if (${condicao}) return pronto(true);
+        if (performance.now() - inicio > 2000) return falhou(new Error("não aconteceu: " + ${JSON.stringify(condicao)}));
+        setTimeout(olhar, 20);
+      };
+      olhar();
+    })`
+  );
+}
+
+const RECUSA_DE_HTML = {
+  code: "form_param_value_invalid",
+  long_message: 'The first name "<b>" is invalid: contains HTML tags',
+  message: "is invalid",
+  meta: { param_name: "first_name" },
+};
+
+describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
+  beforeAll(async () => {
+    pacote = await empacotar();
+    enviar = await abrirChromium("minha-conta");
+  }, 30_000);
+
+  afterAll(fecharChromium);
+
+  test("o Clerk recusa: o nome, o avatar e a legenda continuam no nome salvo", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    await digitar("nome", "Bia");
+    await avaliar(enviar, `window.recusa = ${JSON.stringify(RECUSA_DE_HTML)}`);
+    await salvar();
+    await esperar("window.toasts.length > 0");
+    expect(await textoDe("h2")).toBe("Ana Souza");
+    expect(await textoDe('[data-slot="avatar-fallback"]')).toBe("AS");
+    // A folha é a prévia do que a pessoa digitou, e a legenda diz que não salvou.
+    expect(await textoDe("figure p:nth-of-type(2)")).toBe("Bia Souza");
+    expect(await textoDe("figure + p")).toBe(
+      "Prévia: este nome ainda não foi salvo"
+    );
+  });
+
+  test("o Clerk salva: o nome, o avatar e a legenda passam ao nome novo", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    await digitar("nome", "Bia");
+    await salvar();
+    await esperar('document.querySelector("h2").textContent === "Bia Souza"');
+    expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+      { firstName: "Bia", lastName: "Souza" },
+    ]);
+    expect(await textoDe('[data-slot="avatar-fallback"]')).toBe("BS");
+    expect(await textoDe("figure + p")).toBe(
+      "Exemplo: o seu primeiro certificado sai assim"
+    );
+  });
+});
