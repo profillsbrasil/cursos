@@ -71,13 +71,15 @@ export type Comando =
   | { tipo: "velocidade"; valor: Velocidade }
   | { delta: number; tipo: "volume" }
   | { nivel: number; tipo: "definir_volume" }
-  | { tipo: "mudo" };
+  | { tipo: "mudo" }
+  | { tipo: "legenda" };
 
 export interface EstadoDaSessao {
   assistida: boolean;
   cobertura: Cobertura;
   duracaoSeg: number;
   envio: EstadoEnvio;
+  legenda: boolean;
   reproducao: EstadoReproducao;
   tempoSeg: number;
   trechos: Trechos;
@@ -164,6 +166,7 @@ export const estadoInicial = (e: EntradaDaSessao): EstadoDaSessao => ({
   cobertura: cobertura(e.estudo.trechos, e.duracaoSeg),
   duracaoSeg: e.duracaoSeg,
   envio: { tipo: "em_dia" },
+  legenda: e.preferencias.legenda,
   reproducao: { tipo: "carregando" },
   tempoSeg: e.inicioSeg,
   trechos: e.estudo.trechos,
@@ -180,7 +183,8 @@ export function criarSessaoDeEstudo(
 ): SessaoDeEstudo {
   const { duracaoSeg } = entrada;
   let foto = estadoInicial(entrada);
-  let { assistida, envio, reproducao, tempoSeg, velocidade, volume } = foto;
+  let { assistida, envio, legenda, reproducao, tempoSeg, velocidade, volume } =
+    foto;
   let servidor = foto.trechos;
   let pendentes: Trechos = SEM_TRECHOS;
   let medidor: Medidor = MEDIDOR_PARADO;
@@ -208,6 +212,7 @@ export function criarSessaoDeEstudo(
       cobertura: cobertura(trechos, duracaoSeg),
       duracaoSeg,
       envio,
+      legenda,
       reproducao,
       tempoSeg,
       trechos,
@@ -370,6 +375,7 @@ export function criarSessaoDeEstudo(
     player.definirVolume(volume.nivel);
     player.definirMudo(volume.mudo);
     player.definirVelocidade(velocidade);
+    player.definirLegenda(legenda);
     if (Math.abs(duracaoDoVideoSeg - duracaoSeg) > DIFERENCA_DE_DURACAO_SEG) {
       console.warn(
         `duração do vídeo (${duracaoDoVideoSeg} s) difere da aula (${duracaoSeg} s)`
@@ -478,6 +484,10 @@ export function criarSessaoDeEstudo(
       case "mudo":
         player.definirMudo(!volume.mudo);
         volume = { ...volume, mudo: !volume.mudo };
+        break;
+      case "legenda":
+        legenda = !legenda;
+        player.definirLegenda(legenda);
         break;
       default: {
         const nenhum: never = c;

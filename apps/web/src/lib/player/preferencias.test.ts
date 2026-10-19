@@ -14,12 +14,29 @@ describe("paraPreferencias", () => {
     expect(paraPreferencias(null)).toEqual(PREFERENCIAS_PADRAO);
   });
 
+  test("a legenda nasce desligada", () => {
+    expect(PREFERENCIAS_PADRAO.legenda).toBe(false);
+  });
+
   test("lê o que a sessão gravou", () => {
     const guardado: Preferencias = {
+      legenda: true,
       velocidade: 1.5,
       volume: { mudo: true, nivel: 35 },
     };
     expect(paraPreferencias(JSON.stringify(guardado))).toEqual(guardado);
+  });
+
+  test("o valor gravado antes da legenda mantém volume e velocidade, com a legenda desligada", () => {
+    expect(
+      paraPreferencias(
+        JSON.stringify({ velocidade: 1.5, volume: { mudo: true, nivel: 35 } })
+      )
+    ).toEqual({
+      legenda: false,
+      velocidade: 1.5,
+      volume: { mudo: true, nivel: 35 },
+    });
   });
 
   test("valor fora da lista ou quebrado volta ao padrão", () => {
@@ -64,10 +81,13 @@ describe("sessão e preferências do aparelho", () => {
         },
       },
     });
-    const aplicado = { nivel: 100, velocidade: 1 };
+    const aplicado = { legenda: false, nivel: 100, velocidade: 1 };
     let emitir: (e: EventoDoVideo) => void = () => undefined;
     const player: PlayerDeVideo = {
       buscar: () => undefined,
+      definirLegenda: (ligada) => {
+        aplicado.legenda = ligada;
+      },
       definirMudo: () => undefined,
       definirVelocidade: (v) => {
         aplicado.velocidade = v;
@@ -102,6 +122,7 @@ describe("sessão e preferências do aparelho", () => {
   }
 
   const guardado: Preferencias = {
+    legenda: true,
     velocidade: 1.5,
     volume: { mudo: false, nivel: 35 },
   };
@@ -112,19 +133,27 @@ describe("sessão e preferências do aparelho", () => {
     );
     expect(sessao.estado()).toMatchObject(guardado);
     emitir({ duracaoSeg: 600, tipo: "pronto" });
-    expect(aplicado).toEqual({ nivel: 35, velocidade: 1.5 });
+    expect(aplicado).toEqual({ legenda: true, nivel: 35, velocidade: 1.5 });
     expect(gravacoes).toEqual([]);
   });
 
-  test("mudar volume ou velocidade grava no aparelho; parar de gravar desliga", () => {
+  test("mudar volume, velocidade ou legenda grava no aparelho; parar de gravar desliga", () => {
     const { gravacoes, pararDeGravar, sessao } = montar(null);
     sessao.comandar({ tipo: "velocidade", valor: 2 });
     expect(paraPreferencias(gravacoes.at(-1) ?? null)).toEqual({
+      legenda: false,
       velocidade: 2,
       volume: PREFERENCIAS_PADRAO.volume,
     });
     sessao.comandar({ nivel: 40, tipo: "definir_volume" });
     expect(paraPreferencias(gravacoes.at(-1) ?? null)).toEqual({
+      legenda: false,
+      velocidade: 2,
+      volume: { mudo: false, nivel: 40 },
+    });
+    sessao.comandar({ tipo: "legenda" });
+    expect(paraPreferencias(gravacoes.at(-1) ?? null)).toEqual({
+      legenda: true,
       velocidade: 2,
       volume: { mudo: false, nivel: 40 },
     });
