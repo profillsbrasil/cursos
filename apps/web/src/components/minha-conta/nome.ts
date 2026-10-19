@@ -27,6 +27,7 @@ export const FRASES_DO_NOME = {
   recusado: "Este nome não foi aceito. Use letras, espaço, hífen e apóstrofo.",
   sinais: "O nome não pode ter os sinais <, > e &.",
   site: "O nome não pode ter endereço de site.",
+  vazio: "Escreva o seu nome para salvar.",
 } as const;
 
 const SINAIS = /[<>&]/;
@@ -49,6 +50,9 @@ export function problemaDoNome(
   sobrenome: string
 ): ProblemaDoNome | null {
   const campos = { nome, sobrenome };
+  if (nome.trim() === "") {
+    return { campos: ["nome"], frase: FRASES_DO_NOME.vazio };
+  }
   const sinais = comProblema(campos, (t) => SINAIS.test(t));
   if (sinais.length > 0) {
     return { campos: sinais, frase: FRASES_DO_NOME.sinais };

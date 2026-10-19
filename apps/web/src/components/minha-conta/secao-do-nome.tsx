@@ -142,7 +142,7 @@ export function SecaoDoNome({
     nome.trim() !== (user.firstName ?? "") ||
     sobrenome.trim() !== (user.lastName ?? "");
   // O campo avisa a regra antes de enviar, e o Salvar diz por que está apagado.
-  const problema = problemaDoNome(nome, sobrenome);
+  const problema = mudou ? problemaDoNome(nome, sobrenome) : null;
   const idDoErro = `${id}-erro`;
   const marcar = (campo: CampoDoNome) =>
     problema?.campos.includes(campo)
@@ -230,7 +230,7 @@ export function SecaoDoNome({
             <button
               aria-describedby={problema ? idDoErro : undefined}
               className={BOTAO_PEQUENO}
-              disabled={pendente || !mudou || nome.trim() === "" || !!problema}
+              disabled={pendente || !mudou || !!problema}
               type="submit"
             >
               Salvar nome

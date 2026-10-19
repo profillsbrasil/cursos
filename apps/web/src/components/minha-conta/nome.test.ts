@@ -67,4 +67,15 @@ describe("problemaDoNome", () => {
       frase: FRASES_DO_NOME.comprimento,
     });
   });
+
+  test.each([[""], ["   "]])("o nome %p, vazio, pede o nome", (nome) => {
+    expect(problemaDoNome(nome, "Souza")).toEqual({
+      campos: ["nome"],
+      frase: FRASES_DO_NOME.vazio,
+    });
+  });
+
+  test("o sobrenome vazio vale", () => {
+    expect(problemaDoNome("Ana", "")).toBeNull();
+  });
 });

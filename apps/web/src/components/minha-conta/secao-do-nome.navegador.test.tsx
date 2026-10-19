@@ -268,6 +268,31 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
   });
 
+  test("o nome apagado: o Salvar fica apagado e diz por quê", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    expect(await textoDe('[data-slot="field-error"]')).toBeNull();
+    await digitar("nome", "   ");
+    expect(await textoDe('[data-slot="field-error"]')).toBe(
+      "Escreva o seu nome para salvar."
+    );
+    expect(
+      await avaliar<boolean>(
+        enviar,
+        `(() => {
+          const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
+          const erro = document.querySelector('[data-slot="field-error"]').id;
+          return botao.disabled && botao.getAttribute("aria-describedby") === erro &&
+            document.querySelector('input[name="nome"]').getAttribute("aria-invalid") === "true";
+        })()`
+      )
+    ).toBe(true);
+  });
+
+  test("sem nome salvo e sem mudança, nada acusa erro", async () => {
+    await abrir({ firstName: "", lastName: "" });
+    expect(await textoDe('[data-slot="field-error"]')).toBeNull();
+  });
+
   test("o Clerk salva: o nome, o avatar e a legenda passam ao nome novo", async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
     await digitar("nome", "Bia");
