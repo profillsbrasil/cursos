@@ -293,8 +293,8 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           tentativaId: TENTATIVA_DO_BRUNO,
         })
       );
-      // Hoje sai INTERNAL_SERVER_ERROR (a chave primária da tentativa colide).
-      expect(codigo).not.toBe("passou");
+      // O insert da tentativa não faz nada no id que já existe, e a recusa sai como CONFLICT.
+      expect(codigo).toBe("CONFLICT");
       expect(await fatosDe(BRUNO)).toEqual(antes);
       expect(await fatosDe(ANA)).toEqual(anaAntes);
     });
