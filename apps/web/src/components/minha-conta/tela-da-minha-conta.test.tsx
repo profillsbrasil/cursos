@@ -40,6 +40,29 @@ mock.module("@clerk/nextjs", () => ({
 }));
 
 const { TelaDaMinhaConta } = await import("./tela-da-minha-conta");
+const { folhaDeExemplo, folhaDo, enderecoDaConferencia } = await import(
+  "@/components/certificado/folha"
+);
+
+/** A barra colorida da prévia antiga: um traço absoluto na esquerda ou uma borda esquerda grossa ou colorida. */
+const BARRA_LATERAL =
+  /inset-y-0 left-0|w-\[5px\]|border-l-\[?\d|border-l-(sol|ceu|canela)/;
+
+const ORIGEM = "https://cursos.profills.com.br";
+const GANHA = {
+  exemplo: false,
+  folha: folhaDo(
+    {
+      codigo: "PF7K-2Q9M",
+      emitidoEm: "2026-10-14T15:00:00.000Z",
+      horas: 3,
+      nome: "Nome Antigo Do Certificado",
+      tituloDoCurso: "Filmagem da instalação",
+    },
+    enderecoDaConferencia(ORIGEM, "PF7K-2Q9M")
+  ),
+};
+const EXEMPLO = { exemplo: true, folha: folhaDeExemplo(ORIGEM) };
 
 const texto = (h: string) =>
   h
@@ -49,7 +72,12 @@ const texto = (h: string) =>
 
 function tela(certificados: number, c: Record<string, unknown> = {}) {
   conta = usuario(c);
-  return renderToStaticMarkup(<TelaDaMinhaConta certificados={certificados} />);
+  return renderToStaticMarkup(
+    <TelaDaMinhaConta
+      certificados={certificados}
+      folha={certificados > 0 ? GANHA : EXEMPLO}
+    />
+  );
 }
 
 describe("a página Minha conta", () => {
@@ -60,7 +88,7 @@ describe("a página Minha conta", () => {
     );
     expect(titulos).toEqual([
       "Minha conta",
-      "Seu nome",
+      "Ana Souza",
       "Como você entra",
       "Senha",
       "Aparelhos",
@@ -68,8 +96,31 @@ describe("a página Minha conta", () => {
     expect(texto(h)).toContain("Sair da conta Excluir conta");
   });
 
-  test("a prévia da folha mostra o nome da conta", () => {
-    expect(texto(tela(0))).toContain("Certificado de conclusão Ana Souza");
+  test("a folha mostra o nome dos campos, não o que veio do servidor", () => {
+    const h = tela(1, { firstName: "Bia", lastName: "Lima" });
+    expect(h).toContain('value="Bia"');
+    expect(h).toContain('value="Lima"');
+    expect(texto(h)).toContain("Certificamos que Bia Lima");
+    expect(h).not.toContain("Nome Antigo Do Certificado");
+    expect(texto(h)).toContain("Filmagem da instalação");
+    expect(texto(h)).toContain("Assim o nome sai no certificado");
+  });
+
+  test("sem certificado, a folha é o exemplo, sem curso nem código inventados", () => {
+    const t = texto(tela(0));
+    expect(t).toContain("Exemplo: o seu primeiro certificado sai assim");
+    expect(t).toContain("O curso que você concluir");
+    expect(t).toContain("XXXX-XXXX");
+    expect(t).toContain("Confira em cursos.profills.com.br/certificado ");
+    expect(t).toContain("Certificamos que Ana Souza");
+  });
+
+  test("a prévia antiga, com a barra Sol na lateral, não volta", () => {
+    for (const h of [tela(0), tela(2)]) {
+      expect(h).not.toContain("Prévia do nome no certificado");
+      expect(h).not.toMatch(BARRA_LATERAL);
+      expect(h).toContain("Prévia da folha do certificado de Ana Souza");
+    }
   });
 
   test("o aviso dos certificados só aparece com certificado emitido", () => {

@@ -22,7 +22,8 @@ import { useAcaoDaConta } from "./use-acao-da-conta";
 
 const PERIGO = cn(
   CONTORNO_PEQUENO,
-  "text-destructive hover:border-destructive dark:hover:border-destructive"
+  "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10",
+  "dark:border-destructive dark:hover:border-destructive dark:hover:bg-destructive/10"
 );
 
 const EXCLUIR = cn(

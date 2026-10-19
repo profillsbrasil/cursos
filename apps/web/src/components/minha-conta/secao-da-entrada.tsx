@@ -19,12 +19,14 @@ import {
   ACOES,
   AJUDA,
   BOTAO_PEQUENO,
+  CABECALHO_DO_CARTAO,
+  CARTAO,
   CONTORNO_PEQUENO,
   DETALHE_DA_LINHA,
   LINHA,
   NOME_DA_LINHA,
+  PE_DO_CARTAO,
   ROTULO,
-  SECAO,
   SELO,
   TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
@@ -350,17 +352,21 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
 export function SecaoDaEntrada({ user }: { user: Usuario }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className={SECAO}>
-      <h2 className={TITULO_DA_SECAO} id={id}>
-        Como você entra
-      </h2>
+    <section aria-labelledby={id} className={CARTAO}>
+      <header className={CABECALHO_DO_CARTAO}>
+        <h2 className={TITULO_DA_SECAO} id={id}>
+          Como você entra
+        </h2>
+      </header>
       <ul className="grid">
         {user.emailAddresses.map((email) => (
           <LinhaDoEmail email={email} key={email.id} user={user} />
         ))}
         <LinhaDoGoogle user={user} />
       </ul>
-      <AdicionarEmail user={user} />
+      <div className={PE_DO_CARTAO}>
+        <AdicionarEmail user={user} />
+      </div>
     </section>
   );
 }

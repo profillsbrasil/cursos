@@ -8,9 +8,16 @@ import { SecaoDaSenha } from "./secao-da-senha";
 import { SecaoDeSair } from "./secao-de-sair";
 import { SecaoDoNome } from "./secao-do-nome";
 import { SecaoDosAparelhos } from "./secao-dos-aparelhos";
+import type { FolhaDaConta } from "./tipos";
 
-/** A versão B do protótipo, com Excluir conta no lugar de "fale com a Profills". */
-export function TelaDaMinhaConta({ certificados }: { certificados: number }) {
+/** A versão B do protótipo, "Sua folha em destaque". */
+export function TelaDaMinhaConta({
+  certificados,
+  folha,
+}: {
+  certificados: number;
+  folha: FolhaDaConta;
+}) {
   const { isLoaded, user } = useUser();
   if (!(isLoaded && user)) {
     return <EsqueletoDaMinhaConta />;
@@ -19,14 +26,19 @@ export function TelaDaMinhaConta({ certificados }: { certificados: number }) {
     <>
       <CabecalhoDaMinhaConta />
       <div className="@container grid gap-[18px]">
-        <div className="grid @min-[56rem]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] items-start gap-[18px]">
-          <SecaoDoNome certificados={certificados} key={user.id} user={user} />
-          <div className="grid min-w-0 gap-[18px]">
-            <SecaoDaEntrada user={user} />
-            <SecaoDaSenha user={user} />
+        <SecaoDoNome
+          certificados={certificados}
+          folha={folha}
+          key={user.id}
+          user={user}
+        />
+        <div className="grid @min-[48rem]:grid-cols-2 items-start gap-[18px]">
+          <SecaoDaEntrada user={user} />
+          <SecaoDaSenha user={user} />
+          <div className="@min-[48rem]:col-span-2 grid min-w-0">
+            <SecaoDosAparelhos user={user} />
           </div>
         </div>
-        <SecaoDosAparelhos user={user} />
         <SecaoDeSair certificados={certificados} user={user} />
       </div>
     </>

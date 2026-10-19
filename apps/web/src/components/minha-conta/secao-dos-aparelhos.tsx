@@ -2,7 +2,7 @@
 
 import { useSession } from "@clerk/nextjs";
 import { cn } from "@cursos/ui/lib/utils";
-import { Monitor, Smartphone } from "lucide-react";
+import { ChevronDown, Monitor, Smartphone } from "lucide-react";
 import { useCallback, useEffect, useId, useState } from "react";
 
 import { plural } from "@/lib/formato";
@@ -12,13 +12,16 @@ import { fraseDoErro } from "./erros";
 import {
   ACAO_NA_LINHA,
   ACOES,
+  CABECALHO_DO_CARTAO,
+  CARTAO,
   CONTORNO_PEQUENO,
   DETALHE_DA_LINHA,
   ICONE_DO_APARELHO,
   LINHA,
+  LINHA_BOTAO,
   NOME_DA_LINHA,
+  PE_DO_CARTAO,
   RESUMO_DA_SECAO,
-  SECAO,
   SELO,
   TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
@@ -74,7 +77,7 @@ function LinhaDoAparelho({
 
 function Esqueleto() {
   return (
-    <div aria-busy="true" className="grid gap-3">
+    <div aria-busy="true" className="grid gap-3 px-[22px] pb-[22px]">
       <span className="sr-only">Carregando os aparelhos</span>
       <span className="h-[34px] animate-pulse rounded-[10px] bg-muted" />
       <span className="h-[34px] animate-pulse rounded-[10px] bg-muted" />
@@ -133,11 +136,15 @@ function ListaDosAparelhos({
         ))}
       </ul>
       {antigos.length > 0 ? (
-        <details className="border-border border-t pt-3">
-          <summary className="w-fit cursor-pointer list-none font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo [&::-webkit-details-marker]:hidden">
+        <details className="group">
+          <summary className={LINHA_BOTAO}>
             Mais {plural(antigos.length, "acesso antigo", "acessos antigos")}
+            <ChevronDown
+              aria-hidden="true"
+              className="size-4 shrink-0 transition-transform duration-200 ease-forte group-open:rotate-180 motion-reduce:transition-none"
+            />
           </summary>
-          <ul className="mt-3 grid">
+          <ul className="grid">
             {antigos.map((a) => (
               <LinhaDoAparelho
                 aoSair={sairDeUm}
@@ -150,7 +157,7 @@ function ListaDosAparelhos({
         </details>
       ) : null}
       {outras.length > 0 ? (
-        <div className={ACOES}>
+        <div className={cn(PE_DO_CARTAO, ACOES)}>
           <button
             className={CONTORNO_PEQUENO}
             disabled={pendente}
@@ -193,8 +200,8 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
   }, [user.id, versao]);
 
   return (
-    <section aria-labelledby={id} className={SECAO}>
-      <header>
+    <section aria-labelledby={id} className={CARTAO}>
+      <header className={CABECALHO_DO_CARTAO}>
         <h2 className={TITULO_DA_SECAO} id={id}>
           Aparelhos
         </h2>
@@ -205,7 +212,9 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
       </header>
       {lista.estado === "carregando" ? <Esqueleto /> : null}
       {lista.estado === "falhou" ? (
-        <p className={DETALHE_DA_LINHA}>{lista.frase}</p>
+        <p className={cn(DETALHE_DA_LINHA, "px-[22px] pb-[22px]")}>
+          {lista.frase}
+        </p>
       ) : null}
       {lista.estado === "pronta" ? (
         <ListaDosAparelhos

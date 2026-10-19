@@ -10,12 +10,15 @@ import {
   ACOES,
   AJUDA,
   BOTAO_PEQUENO,
+  CABECALHO_DO_CARTAO,
   CAIXA,
+  CARTAO,
   CONTORNO_PEQUENO,
   DETALHE_DA_LINHA,
+  LINHA,
   NOME_DA_LINHA,
+  PE_DO_CARTAO,
   ROTULO,
-  SECAO,
   TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
 } from "./partes";
@@ -126,27 +129,35 @@ export function SecaoDaSenha({ user }: { user: Usuario }) {
   const fechar = useCallback(() => setAberto(false), []);
   const abrir = useCallback(() => setAberto(true), []);
   return (
-    <section aria-labelledby={id} className={SECAO}>
-      <h2 className={TITULO_DA_SECAO} id={id}>
-        Senha
-      </h2>
-      <div className={TEXTO_DA_LINHA}>
-        <b className={NOME_DA_LINHA}>{temSenha ? "Com senha" : "Sem senha"}</b>
-        <span className={DETALHE_DA_LINHA}>
-          {temSenha
-            ? "Você também entra com o e-mail e esta senha."
-            : "Você entra com o código no e-mail ou com o Google. Crie uma senha para entrar também com ela."}
-        </span>
-      </div>
-      {aberto ? (
-        <FormularioDaSenha fechar={fechar} user={user} />
-      ) : (
-        <div className={ACOES}>
-          <button className={CONTORNO_PEQUENO} onClick={abrir} type="button">
-            {temSenha ? "Trocar senha" : "Criar senha"}
-          </button>
+    <section aria-labelledby={id} className={CARTAO}>
+      <header className={CABECALHO_DO_CARTAO}>
+        <h2 className={TITULO_DA_SECAO} id={id}>
+          Senha
+        </h2>
+      </header>
+      <div className={LINHA}>
+        <div className={TEXTO_DA_LINHA}>
+          <b className={NOME_DA_LINHA}>
+            {temSenha ? "Com senha" : "Sem senha"}
+          </b>
+          <span className={DETALHE_DA_LINHA}>
+            {temSenha
+              ? "Você também entra com o e-mail e esta senha."
+              : "Você entra com o código no e-mail ou com o Google. Crie uma senha para entrar também com ela."}
+          </span>
         </div>
-      )}
+      </div>
+      <div className={PE_DO_CARTAO}>
+        {aberto ? (
+          <FormularioDaSenha fechar={fechar} user={user} />
+        ) : (
+          <div className={ACOES}>
+            <button className={CONTORNO_PEQUENO} onClick={abrir} type="button">
+              {temSenha ? "Trocar senha" : "Criar senha"}
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
