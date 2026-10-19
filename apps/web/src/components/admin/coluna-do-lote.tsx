@@ -275,7 +275,7 @@ function OpcaoDeCurso({
     <label className="grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8 has-checked:bg-sol/14 motion-reduce:transition-none">
       <input
         checked={escolhido}
-        className="m-0 size-[18px] cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground transition-[border] checked:border-[5px] checked:border-sol motion-reduce:transition-none"
+        className="m-0 size-[18px] cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground checked:border-[5px] checked:border-sol"
         name="curso-do-lote"
         onChange={escolher}
         type="radio"
