@@ -88,7 +88,7 @@ Biome (via Ultracite) cobre formatação e a maior parte do estilo. O que ele n�
 
 ## Agent skills
 
-Animação nova passa pela skill `animate`, e a revisão de animação, pela `review-animations` (as duas instaladas globalmente).
+Animação nova passa pela skill `animate`, e a revisão de animação, pela `review-animations`. As duas vêm de `emilkowalski/skills`, ficam em `.agents/skills/` com link em `.claude/skills/` e entram no `skills-lock.json`. A `review-animations` tem `disable-model-invocation`: só roda quando o dono digita `/review-animations`, e o agente que precisa da revisão lê o `SKILL.md` e o `STANDARDS.md` dela e aplica o checklist.
 
 ### Issue tracker
 
