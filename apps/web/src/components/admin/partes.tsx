@@ -18,10 +18,11 @@ export const GATILHO_DA_SELECAO = {
 
 /**
  * A lista aberta, no padrão do menu da conta. Abre em 150 ms pela opacidade e
- * pelo transform inteiro; com movimento reduzido, aparece sem transição.
+ * pelo transform inteiro; com movimento reduzido, só a opacidade anima, sem
+ * deslocar.
  */
 export const LISTA_DA_SELECAO =
-  "max-h-[min(20rem,var(--available-height))] min-w-(--anchor-width) max-w-[min(26rem,var(--available-width))] origin-(--transform-origin) overflow-y-auto rounded-[14px] bg-popover p-1.5 text-popover-foreground shadow-black/45 shadow-xl ring-1 ring-border transition-[opacity,transform] duration-150 ease-forte data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-100 data-ending-style:[transform:translateY(-4px)_scale(0.98)] data-starting-style:[transform:translateY(-4px)_scale(0.98)] motion-reduce:transition-none";
+  "max-h-[min(20rem,var(--available-height))] min-w-(--anchor-width) max-w-[min(26rem,var(--available-width))] origin-(--transform-origin) overflow-y-auto rounded-[14px] bg-popover p-1.5 text-popover-foreground shadow-black/45 shadow-xl ring-1 ring-border transition-[opacity,transform] duration-150 ease-forte data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-100 data-ending-style:[transform:translateY(-4px)_scale(0.98)] data-starting-style:[transform:translateY(-4px)_scale(0.98)] motion-reduce:transition-opacity motion-reduce:data-ending-style:transform-none motion-reduce:data-starting-style:transform-none";
 
 export const ITEM_DA_SELECAO =
   "flex min-h-9 cursor-pointer select-none items-center gap-2.5 rounded-[9px] px-2.5 py-1.5 font-medium text-[13px] text-sidebar-foreground data-highlighted:bg-sidebar-accent data-selected:font-semibold data-highlighted:text-titulo data-selected:text-titulo [&_svg]:size-4 [&_svg]:shrink-0";

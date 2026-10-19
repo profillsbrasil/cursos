@@ -106,7 +106,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
 function AtalhoNovoCurso() {
   return (
     <Link
-      className="grid aspect-[900/604] min-w-0 place-content-center justify-items-center gap-2.5 rounded-[14px] border-[1.5px] border-trilho border-dashed p-4 text-center text-foreground transition-colors hover:border-ceu hover:bg-white/8 motion-reduce:transition-none"
+      className="grid aspect-[900/604] min-w-0 place-content-center justify-items-center gap-2.5 rounded-[14px] border-[1.5px] border-trilho border-dashed p-4 text-center text-foreground transition-colors hover:border-ceu hover:bg-white/8"
       href={NOVO_CURSO}
     >
       <span className="grid size-11 place-items-center rounded-full bg-sol text-sobre-cor">

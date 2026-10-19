@@ -194,7 +194,7 @@ function Liberacoes({
         // As revogadas ficam recolhidas no fim. Sob o cursor e com o foco, o
         // summary ganha o fundo branco a 8% e o texto em titulo, como o módulo do player.
         <details className="group/revogadas border-border border-t">
-          <summary className="flex cursor-pointer list-none items-center gap-2 @xl:px-5 px-4 py-3.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-white/8 hover:text-titulo motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-2 @xl:px-5 px-4 py-3.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-white/8 hover:text-titulo [&::-webkit-details-marker]:hidden">
             <ChevronRight
               aria-hidden="true"
               className="size-4 transition-transform group-open/revogadas:rotate-90 motion-reduce:transition-none"

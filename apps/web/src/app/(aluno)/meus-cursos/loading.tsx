@@ -2,7 +2,7 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { GRADE_CAPAS } from "@/components/meus-cursos/capa-curso";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 // Esqueleto no formato do banner, da semana e da seção dos cursos: o título e as
 // capas na mesma grade da página.

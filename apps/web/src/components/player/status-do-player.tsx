@@ -8,7 +8,7 @@ import type { EstadoEnvio } from "@/lib/player/sessao";
 
 const PILHA = "grid items-center *:col-start-1 *:row-start-1";
 const ENTRADA =
-  "transition-[translate,opacity,visibility] duration-200 ease-forte motion-reduce:transition-none";
+  "transition-[translate,opacity,visibility] duration-200 ease-forte motion-reduce:transition-[opacity,visibility]";
 
 /**
  * A linha de atalhos, o aviso da conquista e a falha de envio dividem a mesma célula
@@ -34,7 +34,7 @@ export function StatusDoPlayer({
     <div className={cn(PILHA, "min-[861px]:min-h-[38px]")}>
       <div
         className={cn(
-          "transition-opacity duration-150 ease-forte motion-reduce:transition-none",
+          "transition-opacity duration-150 ease-forte",
           (aviso || falhando) && "invisible opacity-0"
         )}
       >
@@ -46,7 +46,9 @@ export function StatusDoPlayer({
             className={cn(
               ENTRADA,
               "flex items-center gap-2.5 rounded-[12px] border border-chart-5 bg-card px-3 py-1.5",
-              aviso ? "opacity-100" : "invisible translate-y-4 opacity-0"
+              aviso
+                ? "opacity-100"
+                : "invisible translate-y-4 opacity-0 motion-reduce:translate-y-0"
             )}
           >
             <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ceu text-sobre-cor">

@@ -2,7 +2,7 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { CabecalhoDosComunicados } from "@/components/comunicados-do-aluno/tela-de-comunicados";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 export default function Carregando() {
   return (

@@ -6,7 +6,7 @@ import {
   LUGAR_DO_RESTO,
 } from "@/components/curso/tela-do-curso";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 export default function CarregandoCurso() {
   return (

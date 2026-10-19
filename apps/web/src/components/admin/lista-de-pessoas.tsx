@@ -32,7 +32,7 @@ const JA_TEM: Selo = {
 // Marcada pelo aria-checked: o data-checked: sai num :where e perde para o
 // dark:bg-background que apaga o dark:bg-input/30 do Checkbox do packages/ui.
 const CAIXA =
-  "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors motion-reduce:transition-none dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
+  "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
 
 function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const { despachar, estado } = useLote();
@@ -53,7 +53,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   return (
     <li
       className={cn(
-        "grid @min-[35rem]:grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_auto_1rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)_1rem] items-center @min-[35rem]:gap-x-4 gap-x-3 gap-y-1.5 @min-[35rem]:px-5 px-3.5 @min-[35rem]:py-3.5 py-3 transition-colors motion-reduce:transition-none",
+        "grid @min-[35rem]:grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_auto_1rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)_1rem] items-center @min-[35rem]:gap-x-4 gap-x-3 gap-y-1.5 @min-[35rem]:px-5 px-3.5 @min-[35rem]:py-3.5 py-3 transition-colors",
         marcada ? "bg-sol/6" : "hover:bg-muted/40"
       )}
     >
@@ -74,7 +74,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
       />
       <span className="grid min-w-0 gap-0.5">
         <Link
-          className="max-w-full justify-self-start truncate font-medium text-foreground underline-offset-4 transition-colors hover:text-titulo hover:underline motion-reduce:transition-none"
+          className="max-w-full justify-self-start truncate font-medium text-foreground underline-offset-4 transition-colors hover:text-titulo hover:underline"
           href={href}
         >
           {p.nome}
@@ -97,7 +97,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
       >
         <ChevronRight
           aria-hidden="true"
-          className="size-4 text-muted-foreground transition-[color,translate] group-hover/seta:translate-x-0.5 group-hover/seta:text-ceu motion-reduce:transition-none"
+          className="size-4 text-muted-foreground transition-[color,translate] group-hover/seta:translate-x-0.5 group-hover/seta:text-ceu motion-reduce:transition-colors"
         />
       </Link>
     </li>

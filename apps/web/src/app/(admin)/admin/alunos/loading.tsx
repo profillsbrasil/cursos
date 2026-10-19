@@ -1,6 +1,6 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 // Serve à busca e ao acesso da pessoa: o título e um cartão de linhas, enquanto
 // o Clerk e o banco respondem.

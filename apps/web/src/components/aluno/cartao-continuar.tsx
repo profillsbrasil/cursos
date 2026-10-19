@@ -31,7 +31,7 @@ const CARTAO = cn(
 // em 150 ms, e a troca de modo, que só troca a cor da camada, não anima.
 const COM_LINK = cn(
   "before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:bg-muted before:opacity-0",
-  "before:transition-opacity before:duration-150 before:ease-out hover:before:opacity-100 motion-reduce:before:transition-none",
+  "before:transition-opacity before:duration-150 before:ease-out hover:before:opacity-100",
   "group-data-[collapsible=icon]:before:bg-sol-hover group-data-[collapsible=icon]:before:shadow-brilho"
 );
 
@@ -138,7 +138,7 @@ function Esqueleto() {
   return (
     <div
       aria-hidden="true"
-      className="grid animate-pulse gap-2 rounded-[14px] bg-sidebar-accent p-3 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 motion-reduce:animate-none"
+      className="grid animate-pulse gap-2 rounded-[14px] bg-sidebar-accent p-3 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
     >
       <span className="invisible contents group-data-[collapsible=icon]:hidden">
         <ConteudoDoCartao

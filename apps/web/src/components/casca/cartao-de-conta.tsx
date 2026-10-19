@@ -32,7 +32,7 @@ const apagado = () => false;
 
 const GATILHO = cn(
   "flex w-full items-center gap-2.5 rounded-2xl border border-sidebar-border bg-sidebar p-2 text-left",
-  "transition-[border-color,background-color,box-shadow] duration-150 ease-forte motion-reduce:transition-none",
+  "transition-[border-color,background-color,box-shadow] duration-150 ease-forte",
   "hover:border-trilho hover:bg-sidebar-accent data-popup-open:border-trilho data-popup-open:bg-sidebar-accent",
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px"
 );
@@ -46,8 +46,7 @@ const ITEM =
 const PLACA =
   "grid gap-0.5 rounded-[10px] bg-sidebar-accent px-2.5 py-2 text-muted-foreground text-xs focus:bg-border focus:text-muted-foreground";
 
-const LINHA_ESQUELETO =
-  "block animate-pulse rounded bg-muted motion-reduce:animate-none";
+const LINHA_ESQUELETO = "block animate-pulse rounded bg-muted";
 
 function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);

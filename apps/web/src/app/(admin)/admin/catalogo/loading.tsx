@@ -2,7 +2,7 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { GRADE_DO_CATALOGO } from "@/components/admin/grade-do-catalogo";
 
-const PULSO = "bg-card motion-reduce:animate-none";
+const PULSO = "bg-card";
 
 // O cabeçalho e as capas na mesma grade da página, enquanto o banco responde.
 export default function Carregando() {
