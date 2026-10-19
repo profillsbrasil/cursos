@@ -13,7 +13,10 @@ export const TITULO_DA_AULA =
   "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-tight tracking-[-0.02em]";
 export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
 
-/** O título da aula e a linha do módulo, acima do vídeo: a primeira coisa que a pessoa lê na aula. */
+/**
+ * O título da aula, a linha do módulo e a descrição que o admin escreveu, acima do
+ * vídeo: a primeira coisa que a pessoa lê na aula.
+ */
 export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
   const { aula } = dados;
   return (
@@ -24,6 +27,11 @@ export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
         {aula.numeroNoModulo} de {aula.totalNoModulo} ·{" "}
         {fmtMin(aula.duracaoSeg)}
       </p>
+      {aula.descricao.trim() ? (
+        <p className="mt-2.5 max-w-[72ch] whitespace-pre-line text-pretty text-foreground text-sm">
+          {aula.descricao}
+        </p>
+      ) : null}
     </div>
   );
 }

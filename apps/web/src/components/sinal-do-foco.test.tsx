@@ -21,6 +21,9 @@ import { sleep } from "bun";
 import { Sparkles } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { PREFERENCIAS_PADRAO } from "@/lib/player/preferencias";
+import { estadoInicial } from "@/lib/player/sessao";
+
 import {
   abrirChromium,
   CHROMIUM,
@@ -48,6 +51,7 @@ const { ITENS_DO_ALUNO } = await import("./aluno/menu");
 const { NavPrincipal } = await import("./casca/nav-principal");
 const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
 const { ColunaDoCurso } = await import("./player/coluna-do-curso");
+const { ControlesDoPlayer } = await import("./player/controles-do-player");
 const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
 
 const ITEM_EM_BREVE_DE_TESTE = {
@@ -118,6 +122,30 @@ const coluna = renderToStaticMarkup(
         questionario: null,
       } satisfies AulaNoPlayer
     }
+  />
+);
+
+// Os controles do player, com o player pronto e a tela cheia disponível.
+const nada = () => undefined;
+const controles = renderToStaticMarkup(
+  <ControlesDoPlayer
+    aoMudarAtalhos={nada}
+    atalhosAbertos={false}
+    avisoAparente={false}
+    comandar={nada}
+    conquista={null}
+    estado={{
+      ...estadoInicial({
+        duracaoSeg: 300,
+        estudo: { assistida: false, trechos: SEM_TRECHOS },
+        inicioSeg: 0,
+        preferencias: PREFERENCIAS_PADRAO,
+      }),
+      reproducao: { tipo: "pronto" },
+    }}
+    podeTelaCheia
+    portal={{ current: null }}
+    telaCheia={false}
   />
 );
 
@@ -223,7 +251,9 @@ function elementos(html: string): Elemento[] {
   });
 }
 
-const todos = [nav, coluna, pessoas, acesso, faixa].flatMap(elementos);
+const todos = [nav, coluna, controles, pessoas, acesso, faixa].flatMap(
+  elementos
+);
 const css = await cssDoApp(todos.flatMap((e) => e.classes));
 
 interface Regra {
@@ -533,6 +563,39 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     expect(noFoco(titulo)).toContain("color: var(--titulo)");
     // O título acende pelo grupo do summary, que precisa existir.
     expect(resumo.classes).toContain("group/modulo");
+  });
+
+  test("na barra do player, cada botão de ícone, a legenda, os Ajustes e o visto ganham o fundo do cursor", () => {
+    const daBarra = elementos(controles);
+    const comFoco = [
+      ...[
+        "Reproduzir",
+        "Voltar 10 segundos",
+        "Avançar 10 segundos",
+        "Silenciar",
+        "Legendas",
+        "Ajustes",
+        "Tela cheia",
+      ].map((rotulo) =>
+        unico(
+          daBarra.filter((e) => e.atributos["aria-label"] === rotulo),
+          rotulo
+        )
+      ),
+      unico(
+        daBarra.filter(
+          (e) =>
+            e.atributos.tabindex === "0" &&
+            e.atributos["aria-label"] === undefined
+        ),
+        "visto"
+      ),
+    ];
+    for (const e of comFoco) {
+      expect(noFoco(e).filter((d) => FUNDO.test(d))).toContain(
+        "background-color: var(--accent)"
+      );
+    }
   });
 
   test("na linha da busca de pessoas, a caixa ganha a borda Céu, o nome clareia e a seta vira Céu", () => {

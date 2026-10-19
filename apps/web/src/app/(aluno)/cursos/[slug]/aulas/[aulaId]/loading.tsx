@@ -4,6 +4,7 @@ import {
   LINHA_DO_MODULO,
   TITULO_DA_AULA,
 } from "@/components/player/cabecalho-da-aula";
+import { CAIXA_DO_VIDEO } from "@/components/player/partes";
 
 const PULSO = "bg-card";
 
@@ -24,7 +25,13 @@ export default function CarregandoAula() {
             <Skeleton className={`${PULSO} h-[1lh] w-1/2 rounded-md`} />
           </div>
         </div>
-        <Skeleton className={`${PULSO} aspect-video rounded-[20px]`} />
+        {/* A caixa do vídeo e os 94 px dos controles dão a altura do player real. */}
+        <Skeleton
+          className={`${PULSO} rounded-[20px] border border-transparent`}
+        >
+          <div className={CAIXA_DO_VIDEO} />
+          <div className="h-[94px]" />
+        </Skeleton>
       </div>
       <Skeleton className={`${PULSO} h-[420px] rounded-[20px]`} />
     </div>

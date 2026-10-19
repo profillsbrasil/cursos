@@ -1,83 +1,80 @@
 import type { Conquista } from "@cursos/api/dominio/registro";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check } from "lucide-react";
-import type { ReactNode } from "react";
 
+import { DICA } from "@/components/casca/estilo";
 import { plural } from "@/lib/formato";
-import type { EstadoEnvio } from "@/lib/player/sessao";
 
 const PILHA = "grid items-center *:col-start-1 *:row-start-1";
 const ENTRADA =
   "transition-[translate,opacity,visibility] duration-200 ease-forte motion-reduce:transition-[opacity,visibility]";
 
 /**
- * A linha de atalhos, o aviso da conquista e a falha de envio dividem a mesma célula
- * do grid: o aviso aparece no lugar dos atalhos, dentro do card, sem empurrar
- * Anterior e Próxima, que ficam abaixo do card, e sem tocar no iframe.
+ * O "% visto" e o aviso da conquista dividem a mesma célula da barra de controles: o
+ * aviso aparece no lugar do "% visto" sem empurrar os botões, porque a célula já tem a
+ * largura do maior dos dois, e sem tocar no iframe.
  */
 export function StatusDoPlayer({
-  atalhos,
   avisoAparente,
   conquista,
-  envio,
+  pct,
 }: {
-  atalhos: ReactNode;
   avisoAparente: boolean;
   conquista: Conquista | null;
-  envio: EstadoEnvio;
+  pct: number;
 }) {
-  const falhando =
-    envio.tipo === "esperando_nova_tentativa" ||
-    (envio.tipo === "enviando" && envio.falhasSeguidas > 0);
   const aviso = conquista !== null && avisoAparente;
   return (
-    <div className={cn(PILHA, "min-[861px]:min-h-[38px]")}>
-      <div
-        className={cn(
-          "transition-opacity duration-150 ease-forte",
-          (aviso || falhando) && "invisible opacity-0"
-        )}
-      >
-        {atalhos}
-      </div>
+    <div className={cn(PILHA, "mr-1.5")}>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <span
+              className={cn(
+                "inline-flex items-center gap-2 rounded-lg px-1.5 py-1 text-[13px] text-muted-foreground transition-[background-color,opacity,visibility] duration-150 ease-forte hover:bg-accent",
+                aviso && "invisible opacity-0"
+              )}
+              // biome-ignore lint/a11y/noNoninteractiveTabindex: a dica que explica a faixa abre pelo foco de teclado.
+              tabIndex={0}
+            />
+          }
+        >
+          <i aria-hidden="true" className="size-2.5 rounded-[3px] bg-sol" />
+          <span>
+            <b className="font-semibold text-foreground tabular-nums">{pct}%</b>{" "}
+            visto
+            <span className="sr-only"> dos trechos desta aula</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className={cn(DICA, "max-w-[260px]")}>
+          A faixa amarela é o que você já viu. Na marca azul (90%) a aula conta
+          como assistida.
+        </TooltipContent>
+      </Tooltip>
       <div className={PILHA} role="status">
         {conquista ? (
-          <div
-            className={cn(
-              ENTRADA,
-              "flex items-center gap-2.5 rounded-[12px] border border-chart-5 bg-card px-3 py-1.5",
-              aviso
-                ? "opacity-100"
-                : "invisible translate-y-4 opacity-0 motion-reduce:translate-y-0"
-            )}
-          >
-            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ceu text-sobre-cor">
-              <Check
-                aria-hidden="true"
-                className="size-3.5"
-                strokeWidth={2.6}
-              />
-            </span>
-            <p className="min-w-0 flex-1 text-[13px] text-muted-foreground">
-              <b className="font-semibold text-titulo">Aula assistida.</b> Você
-              viu 90% dos trechos desta aula.
-              {conquista.bonusSequencia
-                ? ` Sequência de ${plural(conquista.sequenciaDias, "dia útil", "dias úteis")}: +${conquista.bonusSequencia} pts.`
-                : null}
-            </p>
-            <span className="shrink-0 font-mono font-semibold text-base text-sol tabular-nums">
-              +{conquista.pontos} pts
-            </span>
-          </div>
-        ) : null}
-        {falhando ? (
           <p
             className={cn(
-              "text-[13px] text-muted-foreground",
-              aviso && "invisible"
+              ENTRADA,
+              "inline-flex items-center gap-2 px-1.5 text-[13px] text-titulo",
+              aviso
+                ? "opacity-100"
+                : "invisible translate-y-2 opacity-0 motion-reduce:translate-y-0"
             )}
           >
-            Progresso não salvo. Tentando de novo.
+            <b className="font-mono font-semibold text-base text-sol tabular-nums">
+              +{conquista.pontos} pts
+            </b>
+            <span>
+              aula assistida
+              {conquista.bonusSequencia
+                ? `. Sequência de ${plural(conquista.sequenciaDias, "dia útil", "dias úteis")}: +${conquista.bonusSequencia} pts`
+                : null}
+            </span>
           </p>
         ) : null}
       </div>
