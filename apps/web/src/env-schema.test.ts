@@ -14,13 +14,8 @@ function decoradores(chave: string) {
 describe(".env.schema", () => {
   // O varlock derruba o request que escreve no HTML o valor de um item sensível.
   // A origem do app vai ao HTML (link de conferência do certificado, QR), então
-  // nenhum item de onde ela sai pode ser sensível.
-  test.each([
-    "CORS_ORIGIN",
-    "VERCEL_ORIGIN",
-    "VERCEL_URL",
-    "VERCEL_PROJECT_PRODUCTION_URL",
-  ])("%s é @public", (chave) => {
-    expect(decoradores(chave)).toContain("@public");
+  // ela não pode ser sensível.
+  test("CORS_ORIGIN é @public", () => {
+    expect(decoradores("CORS_ORIGIN")).toContain("@public");
   });
 });

@@ -4,7 +4,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { LIMITE_DA_CAPA } from "../dominio/capa";
-import { capasDesligadas, capasDoSupabase, lerCapa } from "./capas";
+import { capasDesligadas, capasNoBucket, lerCapa } from "./capas";
 
 const PASTA = join(import.meta.dir, "../../../../apps/web/public/capas");
 
@@ -101,57 +101,61 @@ describe("lerCapa", () => {
   });
 });
 
-describe("capasDoSupabase", () => {
-  test("envia ao bucket capas com a chave e devolve a URL pública e a medida", async () => {
-    const pedidos: { url: string; init: RequestInit | undefined }[] = [];
-    const enviar = ((url: string, init?: RequestInit) => {
-      pedidos.push({ init, url });
-      return Promise.resolve(new Response("{}", { status: 200 }));
-    }) as unknown as typeof fetch;
-    const capas = capasDoSupabase(
-      { chave: "chave-de-teste", url: "https://exemplo.supabase.co/" },
-      enviar
-    );
+const BUCKET = {
+  bucket: "capas-teste",
+  endpoint: "https://t3.storageapi.dev",
+  idDaChave: "id-de-teste",
+  regiao: "auto",
+  segredo: "segredo-de-teste",
+};
+
+/** Um fetch falso que guarda cada Request assinado e responde com `resposta`. */
+function bucketFalso(resposta: () => Response) {
+  const pedidos: Request[] = [];
+  const enviar = ((pedido: Request) => {
+    pedidos.push(pedido);
+    return Promise.resolve(resposta());
+  }) as unknown as typeof fetch;
+  return { enviar, pedidos };
+}
+
+describe("capasNoBucket", () => {
+  test("envia ao bucket com PUT assinado e devolve a URL do app e a medida", async () => {
+    const { enviar, pedidos } = bucketFalso(() => new Response(null));
     const bytes = await ler("comercial.jpg");
     const hash = createHash("sha256").update(bytes).digest("hex");
 
-    const recebida = await capas.receber(new Blob([bytes]));
+    const recebida = await capasNoBucket(BUCKET, enviar).receber(
+      new Blob([bytes])
+    );
 
     expect(recebida).toEqual({
-      imagem: {
-        altura: 604,
-        largura: 900,
-        url: `https://exemplo.supabase.co/storage/v1/object/public/capas/${hash}.jpg`,
-      },
+      imagem: { altura: 604, largura: 900, url: `/capa/${hash}.jpg` },
       tipo: "guardada",
     });
-    expect(pedidos.map((p) => p.url)).toEqual([
-      `https://exemplo.supabase.co/storage/v1/object/capas/${hash}.jpg`,
+    expect(pedidos.map((p) => [p.method, p.url])).toEqual([
+      ["PUT", `https://capas-teste.t3.storageapi.dev/${hash}.jpg`],
     ]);
-    expect(pedidos[0]?.init?.headers).toMatchObject({
-      Authorization: "Bearer chave-de-teste",
-      apikey: "chave-de-teste",
-      "content-type": "image/jpeg",
-      "x-upsert": "true",
-    });
+    expect(pedidos[0]?.headers.get("content-type")).toBe("image/jpeg");
+    expect(pedidos[0]?.headers.get("authorization")).toStartWith(
+      "AWS4-HMAC-SHA256 Credential=id-de-teste/"
+    );
+    expect(pedidos[0]?.headers.get("authorization")).toContain(
+      "/auto/s3/aws4_request"
+    );
   });
 
-  test("capa recusada não chega ao Storage; o corpo do erro do Storage vai ao log, não à mensagem", async () => {
-    let chamadas = 0;
-    const falha = (() => {
-      chamadas += 1;
-      return Promise.resolve(new Response("sem bucket", { status: 404 }));
-    }) as unknown as typeof fetch;
-    const capas = capasDoSupabase(
-      { chave: "k", url: "https://x.supabase.co" },
-      falha
+  test("capa recusada não chega ao bucket; o corpo do erro do bucket vai ao log, não à mensagem", async () => {
+    const { enviar, pedidos } = bucketFalso(
+      () => new Response("sem bucket", { status: 404 })
     );
+    const capas = capasNoBucket(BUCKET, enviar);
     const log = spyOn(console, "error").mockImplementation(() => undefined);
 
     expect(await capas.receber(new Blob(["texto"]))).toMatchObject({
       tipo: "recusa",
     });
-    expect(chamadas).toBe(0);
+    expect(pedidos).toHaveLength(0);
     const erro = await capas
       .receber(new Blob([await ler("comercial.jpg")]))
       .catch((e: unknown) => e);
@@ -173,22 +177,45 @@ describe("capasDoSupabase", () => {
       },
       size: LIMITE_DA_CAPA.bytes + 1,
     } as unknown as Blob;
-    const capas = capasDoSupabase(
-      { chave: "k", url: "https://x.supabase.co" },
-      fetch
-    );
 
-    expect(await capas.receber(pesado)).toEqual({
+    expect(await capasNoBucket(BUCKET, fetch).receber(pesado)).toEqual({
       recusa: { limiteMb: 4, tipo: "pesada" },
       tipo: "recusa",
     });
     expect(lidos).toBe(0);
   });
 
-  test("sem configuração, recusa com desligado", async () => {
+  test("abrir lê a capa com GET assinado e devolve null quando ela não existe", async () => {
+    const chave = `${"a".repeat(64)}.jpg`;
+    const achada = bucketFalso(() => new Response("bytes"));
+    const sumida = bucketFalso(() => new Response(null, { status: 404 }));
+
+    const resposta = await capasNoBucket(BUCKET, achada.enviar).abrir(chave);
+
+    expect(await resposta?.text()).toBe("bytes");
+    expect(achada.pedidos.map((p) => [p.method, p.url])).toEqual([
+      ["GET", `https://capas-teste.t3.storageapi.dev/${chave}`],
+    ]);
+    expect(await capasNoBucket(BUCKET, sumida.enviar).abrir(chave)).toBeNull();
+  });
+
+  test("abrir recusa chave que não é de capa sem chamar o bucket", async () => {
+    const { enviar, pedidos } = bucketFalso(() => new Response("x"));
+    const capas = capasNoBucket(BUCKET, enviar);
+
+    const abertas = await Promise.all(
+      ["../segredo", "a.jpg", `${"a".repeat(64)}.gif`].map(capas.abrir)
+    );
+
+    expect(abertas).toEqual([null, null, null]);
+    expect(pedidos).toHaveLength(0);
+  });
+
+  test("sem configuração, recusa com desligado e não abre nada", async () => {
     expect(await capasDesligadas.receber(new Blob(["x"]))).toEqual({
       recusa: { tipo: "desligado" },
       tipo: "recusa",
     });
+    expect(await capasDesligadas.abrir(`${"a".repeat(64)}.jpg`)).toBeNull();
   });
 });

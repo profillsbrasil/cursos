@@ -1,16 +1,23 @@
 import { createClerkClient } from "@clerk/backend";
 import type { Servicos } from "@cursos/api/context";
-import { capasDesligadas, capasDoSupabase } from "@cursos/api/externos/capas";
+import { capasDesligadas, capasNoBucket } from "@cursos/api/externos/capas";
 import { pessoasDoClerk } from "@cursos/api/externos/pessoas";
 import { createDb } from "@cursos/db";
 
 import { ENV } from "./env.server";
 
 const capas =
-  ENV.SUPABASE_URL && ENV.SUPABASE_SERVICE_ROLE_KEY
-    ? capasDoSupabase({
-        chave: ENV.SUPABASE_SERVICE_ROLE_KEY,
-        url: ENV.SUPABASE_URL,
+  ENV.S3_ENDPOINT &&
+  ENV.S3_REGION &&
+  ENV.S3_BUCKET &&
+  ENV.S3_ACCESS_KEY_ID &&
+  ENV.S3_SECRET_ACCESS_KEY
+    ? capasNoBucket({
+        bucket: ENV.S3_BUCKET,
+        endpoint: ENV.S3_ENDPOINT,
+        idDaChave: ENV.S3_ACCESS_KEY_ID,
+        regiao: ENV.S3_REGION,
+        segredo: ENV.S3_SECRET_ACCESS_KEY,
       })
     : capasDesligadas;
 

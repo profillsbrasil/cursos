@@ -48,6 +48,7 @@ const AGORA = new Date("2026-10-07T18:00:00Z");
 const em = (s: number) => new Date(AGORA.getTime() + s * 1000);
 
 const capasDeTeste: Capas = {
+  abrir: () => Promise.resolve(null),
   receber: () =>
     Promise.resolve({
       imagem: { altura: 720, largura: 1280, url: `/capas/teste-${S}.jpg` },

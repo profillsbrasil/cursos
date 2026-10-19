@@ -84,6 +84,9 @@ export const conferirCertificado = cache((codigo: string) =>
   createCaller(contextoDe(null, servicos)).certificado.conferir({ codigo })
 );
 
+/** Pública como a conferência: a capa aparece para quem ainda não entrou. */
+export const abrirCapa = (chave: string) => servicos.capas.abrir(chave);
+
 export const carregarPainelDeTroca = cache(async () =>
   (await caller()).troca.painel()
 );
