@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { StatusDoPlayer } from "./status-do-player";
 
-const POSICIONADO = /\b(fixed|absolute|sticky)\b/;
+const SOLTO_DA_BARRA = /\b(fixed|sticky)\b/;
 const CONQUISTA = { bonusSequencia: null, pontos: 10, sequenciaDias: 1 };
 const ESCONDE = /(^|[\s:])(hidden|invisible|sr-only)(\s|$)/;
 
@@ -16,6 +16,7 @@ const AVISO = /<p class="([^"]*)"><b/;
 const caixaDoAviso = (h: string) => h.match(AVISO)?.[1] ?? "";
 const REGIAO = /<div class="([^"]*)" role="status">/;
 const regiao = (h: string) => h.match(REGIAO)?.[1];
+const RAIZ = /^<div class="([^"]*)"/;
 
 describe("o visto e o aviso da conquista na barra", () => {
   test("sem conquista, o visto mostra a porcentagem e recebe o foco de teclado, e a região de status existe", () => {
@@ -38,11 +39,19 @@ describe("o visto e o aviso da conquista na barra", () => {
     const h = html({ avisoAparente: true, conquista: CONQUISTA, pct: 91 });
     expect(h).toContain("+10 pts");
     expect(h).toContain("aula assistida");
-    expect(h).not.toMatch(POSICIONADO);
+    expect(h).not.toMatch(SOLTO_DA_BARRA);
     expect(caixaDoAviso(h)).not.toMatch(ESCONDE);
     expect(caixaDoVisto(h)).toMatch(ESCONDE);
-    // Os dois ficam na mesma célula: a troca não muda a largura da barra.
-    expect(regiao(h)).toContain("col-start-1");
+  });
+
+  test("o aviso cobre a célula por cima, sem dar largura a ela, e quebra em até duas linhas", () => {
+    // A célula guardava a largura do aviso escondido, e a barra quebrava a 1280 px.
+    const h = html({ avisoAparente: false, conquista: CONQUISTA, pct: 91 });
+    expect(h.match(RAIZ)?.[1]).toContain("relative");
+    expect(regiao(h)).toContain("absolute");
+    expect(regiao(h)).toContain("inset-0");
+    expect(caixaDoAviso(h)).toContain("line-clamp-2");
+    expect(caixaDoVisto(h)).toContain("shrink-0");
   });
 
   test("passado o prazo, o aviso sai de vista, o visto volta e a região fica", () => {

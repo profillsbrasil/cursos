@@ -6,14 +6,15 @@ import { plural } from "@/lib/formato";
 
 import { DicaDoPlayer } from "./dica-do-player";
 
-const PILHA = "grid items-center *:col-start-1 *:row-start-1";
 const ENTRADA =
   "transition-[translate,opacity,visibility] duration-200 ease-forte motion-reduce:transition-[opacity,visibility]";
 
 /**
- * O "% visto" e o aviso da conquista dividem a mesma célula da barra de controles: o
- * aviso aparece no lugar do "% visto" sem empurrar os botões, porque a célula já tem a
- * largura do maior dos dois, e sem tocar no iframe.
+ * O "% visto" e o aviso da conquista dividem a mesma célula da barra de controles, o
+ * vão entre o tempo e os botões da direita. O "% visto" fica encostado à direita e dá
+ * a largura mínima da célula; o aviso cobre a célula inteira por cima, alinhado à
+ * direita e quebrando em até duas linhas, então nem a largura dele nem a chegada dele
+ * mexem na barra. Na barra de 320 px o vão não basta, e o aviso cobre também o tempo.
  */
 export function StatusDoPlayer({
   avisoAparente,
@@ -26,13 +27,13 @@ export function StatusDoPlayer({
 }) {
   const aviso = conquista !== null && avisoAparente;
   return (
-    <div className={cn(PILHA, "mr-1.5")}>
+    <div className="@max-[18.5rem]/barra:static relative flex min-w-0 flex-1 items-center justify-end self-stretch">
       <Tooltip>
         <TooltipTrigger
           render={
             <span
               className={cn(
-                "inline-flex items-center gap-2 rounded-lg px-1.5 py-1 text-[13px] text-muted-foreground transition-[background-color,opacity,visibility] duration-150 ease-forte hover:bg-accent",
+                "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-1.5 py-1 text-[13px] text-muted-foreground transition-[background-color,opacity,visibility] duration-150 ease-forte hover:bg-accent",
                 aviso && "invisible opacity-0"
               )}
               // biome-ignore lint/a11y/noNoninteractiveTabindex: a dica que explica a faixa abre pelo foco de teclado.
@@ -52,18 +53,21 @@ export function StatusDoPlayer({
           como assistida.
         </DicaDoPlayer>
       </Tooltip>
-      <div className={PILHA} role="status">
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-end"
+        role="status"
+      >
         {conquista ? (
           <p
             className={cn(
               ENTRADA,
-              "inline-flex items-center gap-2 px-1.5 text-[13px] text-titulo",
+              "line-clamp-2 @max-[18.5rem]/barra:w-full @max-[18.5rem]/barra:bg-background px-1.5 text-right text-[13px] text-titulo leading-[1.3]",
               aviso
                 ? "opacity-100"
                 : "invisible translate-y-2 opacity-0 motion-reduce:translate-y-0"
             )}
           >
-            <b className="font-mono font-semibold text-base text-sol tabular-nums">
+            <b className="mr-2 font-mono font-semibold text-base text-sol tabular-nums leading-none">
               +{conquista.pontos} pts
             </b>
             <span>
