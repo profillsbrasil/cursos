@@ -27,6 +27,7 @@ import {
   BOTAO_PEQUENO,
   CARTAO,
   DETALHE_DA_LINHA,
+  PE_DO_CARTAO,
   ROTULO,
 } from "./partes";
 import type { FolhaDaConta, Usuario } from "./tipos";
@@ -151,9 +152,10 @@ export function SecaoDoNome({
         "grid @min-[48rem]:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]"
       )}
     >
-      <div className="@container grid content-start gap-[18px] @min-[48rem]:p-[26px] p-[22px]">
-        <Foto nome={completo} user={user} />
-        <form className="grid gap-[18px]" onSubmit={salvar}>
+      {/* O Salvar mora no pé, preso embaixo: a coluna acompanha a altura da folha ao lado. */}
+      <form className="grid grid-rows-[1fr_auto]" onSubmit={salvar}>
+        <div className="@container grid content-start gap-[18px] @min-[48rem]:p-[26px] p-[22px]">
+          <Foto nome={completo} user={user} />
           <div className="grid @min-[24rem]:grid-cols-2 gap-3">
             <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-nome`}>
               <span className={ROTULO}>Nome</span>
@@ -193,6 +195,8 @@ export function SecaoDoNome({
               com o nome novo, no PDF e na conferência pública.
             </p>
           ) : null}
+        </div>
+        <div className={cn(PE_DO_CARTAO, "@min-[48rem]:px-[26px]")}>
           <div className={ACOES}>
             <button
               className={BOTAO_PEQUENO}
@@ -202,8 +206,8 @@ export function SecaoDoNome({
               Salvar nome
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
       <div className="grid content-center justify-items-center gap-3.5 border-border border-t @min-[48rem]:border-t-0 @min-[48rem]:border-l bg-sidebar @min-[48rem]:p-7 p-5">
         <FolhaNaTela
           className="w-full max-w-[440px] -rotate-[1.2deg] shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
