@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@cursos/ui/components/avatar";
+import { FieldError } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
@@ -20,7 +21,7 @@ import { CAMPO } from "@/components/casca/campos";
 import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
-
+import { type CampoDoNome, problemaDoNome } from "./nome";
 import {
   ACAO_NA_LINHA,
   ACOES,
@@ -140,6 +141,13 @@ export function SecaoDoNome({
   const mudou =
     nome.trim() !== (user.firstName ?? "") ||
     sobrenome.trim() !== (user.lastName ?? "");
+  // O campo avisa a regra antes de enviar, e o Salvar diz por que está apagado.
+  const problema = problemaDoNome(nome, sobrenome);
+  const idDoErro = `${id}-erro`;
+  const marcar = (campo: CampoDoNome) =>
+    problema?.campos.includes(campo)
+      ? { "aria-describedby": idDoErro, "aria-invalid": true }
+      : {};
   const mudar = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCampos((c) => ({ ...c, [name]: value }));
@@ -147,13 +155,16 @@ export function SecaoDoNome({
   const salvar = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      if (problema) {
+        return;
+      }
       executar(
         () =>
           user.update({ firstName: nome.trim(), lastName: sobrenome.trim() }),
         { sucesso: "Nome salvo." }
       );
     },
-    [executar, nome, sobrenome, user]
+    [executar, nome, problema, sobrenome, user]
   );
   return (
     <section
@@ -171,6 +182,7 @@ export function SecaoDoNome({
             <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-nome`}>
               <span className={ROTULO}>Nome</span>
               <Input
+                {...marcar("nome")}
                 autoComplete="given-name"
                 className={CAMPO}
                 id={`${id}-nome`}
@@ -185,6 +197,7 @@ export function SecaoDoNome({
             <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-sobrenome`}>
               <span className={ROTULO}>Sobrenome</span>
               <Input
+                {...marcar("sobrenome")}
                 autoComplete="family-name"
                 className={CAMPO}
                 id={`${id}-sobrenome`}
@@ -195,6 +208,11 @@ export function SecaoDoNome({
                 value={sobrenome}
               />
             </label>
+            {problema ? (
+              <FieldError className="@min-[24rem]:col-span-2" id={idDoErro}>
+                {problema.frase}
+              </FieldError>
+            ) : null}
           </div>
           {certificados > 0 ? (
             <p className={DETALHE_DA_LINHA}>
@@ -210,8 +228,9 @@ export function SecaoDoNome({
         <div className={cn(PE_DO_CARTAO, "@min-[48rem]:px-[26px]")}>
           <div className={ACOES}>
             <button
+              aria-describedby={problema ? idDoErro : undefined}
               className={BOTAO_PEQUENO}
-              disabled={pendente || !mudou || nome.trim() === ""}
+              disabled={pendente || !mudou || nome.trim() === "" || !!problema}
               type="submit"
             >
               Salvar nome

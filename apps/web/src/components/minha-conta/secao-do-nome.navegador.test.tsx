@@ -209,6 +209,31 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     );
   });
 
+  test("o nome com HTML do teste de usabilidade: o campo avisa a regra antes de enviar", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    await digitar("nome", "<b>html</b> 😀 -5");
+    expect(await textoDe('[data-slot="field-error"]')).toBe(
+      "O nome não pode ter os sinais <, > e &."
+    );
+    expect(
+      await avaliar<Record<string, boolean>>(
+        enviar,
+        `(() => {
+        const campo = document.querySelector('input[name="nome"]');
+        const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
+        const erro = document.querySelector('[data-slot="field-error"]').id;
+        return {
+          botao: botao.disabled && botao.getAttribute("aria-describedby") === erro,
+          campo: campo.getAttribute("aria-invalid") === "true" && campo.getAttribute("aria-describedby") === erro,
+          sobrenome: document.querySelector('input[name="sobrenome"]').hasAttribute("aria-invalid"),
+        };
+      })()`
+      )
+    ).toEqual({ botao: true, campo: true, sobrenome: false });
+    await salvar();
+    expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
+  });
+
   test("o Clerk salva: o nome, o avatar e a legenda passam ao nome novo", async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
     await digitar("nome", "Bia");

@@ -2,11 +2,26 @@ import { describe, expect, test } from "bun:test";
 import { ClerkAPIResponseError, ClerkRuntimeError } from "@clerk/nextjs/errors";
 
 import { FRASE_GENERICA, fraseDoErro } from "./erros";
+import { FRASES_DO_NOME } from "./nome";
 
 const doClerk = (code: string, status = 422) =>
   new ClerkAPIResponseError("erro", {
     data: [{ code, long_message: "", message: "" }],
     status,
+  });
+
+// A recusa que o Clerk devolveu ao nome "<b>html</b> 😀 -5" (medida no POST /v1/users).
+const nomeRecusado = (param_name: string, long_message: string) =>
+  new ClerkAPIResponseError("erro", {
+    data: [
+      {
+        code: "form_param_value_invalid",
+        long_message,
+        message: "is invalid",
+        meta: { param_name },
+      },
+    ],
+    status: 422,
   });
 
 describe("fraseDoErro", () => {
@@ -54,5 +69,33 @@ describe("fraseDoErro", () => {
     expect(fraseDoErro(doClerk("codigo_novo_do_clerk"))).toBe(FRASE_GENERICA);
     expect(fraseDoErro(new TypeError("Failed to fetch"))).toBe(FRASE_GENERICA);
     expect(fraseDoErro("texto")).toBe(FRASE_GENERICA);
+  });
+
+  test("o nome com HTML que o Clerk recusa diz a regra dos sinais", () => {
+    expect(
+      fraseDoErro(
+        nomeRecusado(
+          "first_name",
+          'The first name "<b>html</b> 😀 -5" is invalid: contains HTML tags'
+        )
+      )
+    ).toBe(FRASES_DO_NOME.sinais);
+  });
+
+  test("o sobrenome com site que o Clerk recusa diz a regra do site", () => {
+    expect(
+      fraseDoErro(
+        nomeRecusado(
+          "last_name",
+          'The last name "https://x.com" is invalid: contains a URL'
+        )
+      )
+    ).toBe(FRASES_DO_NOME.site);
+  });
+
+  test("outra recusa do nome diz o que o nome aceita", () => {
+    expect(
+      fraseDoErro(nomeRecusado("first_name", "is invalid: something new"))
+    ).toBe(FRASES_DO_NOME.recusado);
   });
 });
