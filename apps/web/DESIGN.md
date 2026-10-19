@@ -294,7 +294,10 @@ O sistema é plano e em camadas de tom: fundo, sidebar, cartão e popover clarei
 
 ## Shapes
 
-Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, caixa de seleção 7 px, botão de recolher da sidebar 9 px, item de menu 10 px, aviso e cartão Continuar 14 px, área de texto e cartão de conteúdo 20 px, alternativa do questionário do aluno 23 px (a cápsula de 46 px), cartão de conta e menu 22 px (`rounded-2xl`, que este tema define como `--radius` mais 8 px, não os 16 px do Tailwind), e o painel do conteúdo 24 px (`--raio-do-painel`). Botões de texto, campos, gatilhos da seleção, busca, alavanca, selos, barras de progresso, avatar e o botão de play são pílulas ou círculos (o kit "Pílula e Sol" dos controles de formulário). A capa dentro de cartão usa 14 px. Linha divisória dentro de cartão vai de borda a borda.
+Tudo é arredondado e cheio. A escala parte de `--radius` (14 px): dica 7 px, caixa de seleção 7 px, botão de recolher da sidebar 9 px, item de menu 10 px, aviso e cartão Continuar 14 px, área de texto e cartão de conteúdo 20 px, alternativa do questionário do aluno 23 px (a cápsula de 46 px), cartão de conta e menu 22 px (`rounded-2xl`, que este tema define como `--radius` mais 8 px, não os 16 px do Tailwind), e o painel do conteúdo 24 px (`--raio-do-painel`). Botões de texto, campos, gatilhos da seleção, busca, alavanca, selos, barras de progresso, avatar e o botão de play são pílulas ou círculos (o kit "Pílula e Sol" dos controles de formulário). A capa dentro de cartão usa 14 px.
+
+### Named Rules
+**The Edge To Edge Rule.** Toda linha divisória dentro de um cartão, de um painel ou de um menu vai de uma borda à outra, sem recuo em nenhum dos lados. Isso vale para a linha entre itens de lista, a linha acima do pé, a linha abaixo do cabeçalho e a divisória vertical entre colunas, que vai do topo ao fundo. O jeito de construir é o de `components/minha-conta/partes.ts`. O cartão não tem padding lateral (`CARTAO`). O cabeçalho, cada linha e o pé têm o próprio padding (`CABECALHO_DO_CARTAO`, `LINHA`, `PE_DO_CARTAO`), e a divisória é o `border-t` da linha que vem embaixo. Uma linha-botão ("Mais N acessos antigos") também ocupa a largura toda. Linha que para antes da borda, porque o cartão tem padding e a divisória mora dentro dele, é defeito, e não variação de estilo.
 
 ## Components
 
@@ -508,6 +511,7 @@ Em `/admin/categorias`. O cabeçalho conta categorias e cursos ("5 categorias, 1
 - **Don't** pôr texto branco sobre Sol, Céu ou Canela cheios.
 - **Don't** criar tema claro nem alternância de tema.
 - **Don't** pôr sombra em cartão em repouso.
+- **Don't** desenhar divisória que para antes da borda do cartão: nada de `border-t`, `divide-y`, `<hr>` ou `Separator` dentro de um contêiner com padding lateral. A linha vai de borda a borda (The Edge To Edge Rule).
 - **Don't** redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.
 - **Don't** pôr pontos ou sequência fora do cartão de conta na casca.
 - **Don't** usar caixa alta ou linha acima de título fora do selo da área.
