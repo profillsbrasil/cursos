@@ -54,6 +54,7 @@
     "@biomejs/biome": "2.5.15",
     "@cursos/config": "workspace:*",
     "@types/node": "catalog:",
+    "railway": "^3.16.0",
     "turbo": "^2.10.12",
     "typescript": "catalog:",
     "ultracite": "7.12.4",

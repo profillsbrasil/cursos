@@ -54,7 +54,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 
 ## Banco
 
-- O banco de produção é o serviço `Postgres` do projeto `cursos` na Railway, em `iad` (Virgínia), ao lado do `web`. O app chega nele pela rede interna; de fora, pelo `DATABASE_PUBLIC_URL` do serviço (`railway variable list --service Postgres`). A ADR 0002 diz por que tudo fica na Railway e o que isso custa em latência.
+- O banco de produção é o serviço `Postgres` do projeto `cursos` na Railway, em `iad` (Virgínia), ao lado do `web`. O app chega nele pela rede interna. Ele não tem proxy TCP, então nada de fora da Railway o alcança: o `.env` de dev continua no Supabase cloud ou no local, e acesso ao banco de produção passa por `railway ssh --service web`. A ADR 0002 diz por que tudo fica na Railway e o que isso custa em latência.
 - O `preDeployCommand` do `web` roda `drizzle-kit migrate` antes de cada deploy, então migração que entra na main vai para produção no deploy seguinte. Migração que quebra o código antigo (como a `catalogo_sem_trilha`, ADR 0001) entra no mesmo PR do código que a usa.
 - O projeto cloud do Supabase (`lsatugtpqwiylnfutolg`) foi o banco até a ida para a Railway. Ele não recebe mais escrita do app de produção.
 - O Supabase local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
