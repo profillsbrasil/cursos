@@ -186,6 +186,10 @@ const RECUSA_DE_HTML = {
   meta: { param_name: "first_name" },
 };
 
+const FOTO_OU_ARQUIVO = /foto|file|arquivo/i;
+// O texto dentro de um controle repete o nome dele na árvore.
+const TEXTO_SOLTO = new Set(["InlineTextBox", "StaticText"]);
+
 describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
   beforeAll(async () => {
     pacote = await empacotar();
@@ -291,6 +295,31 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
   test("sem nome salvo e sem mudança, nada acusa erro", async () => {
     await abrir({ firstName: "", lastName: "" });
     expect(await textoDe('[data-slot="field-error"]')).toBeNull();
+  });
+
+  test('o campo de arquivo da foto não aparece nem é anunciado ("No file chosen")', async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    const { nodes } = (await enviar("Accessibility.getFullAXTree")) as {
+      nodes: {
+        ignored: boolean;
+        name?: { value: string };
+        role?: { value: string };
+        value?: { value: string };
+      }[];
+    };
+    const anunciados = nodes
+      .filter((n) => !(n.ignored || TEXTO_SOLTO.has(n.role?.value ?? "")))
+      .map((n) =>
+        [n.role?.value, n.name?.value, n.value?.value].filter(Boolean).join(" ")
+      );
+    expect(anunciados.filter((t) => FOTO_OU_ARQUIVO.test(t))).toEqual([
+      "button Trocar foto",
+    ]);
+    const visivel = await avaliar<boolean>(
+      enviar,
+      `(() => { const r = document.querySelector('input[type="file"]').getBoundingClientRect(); return r.width > 1 && r.height > 1; })()`
+    );
+    expect(visivel).toBe(false);
   });
 
   test("o Clerk salva: o nome, o avatar e a legenda passam ao nome novo", async () => {
