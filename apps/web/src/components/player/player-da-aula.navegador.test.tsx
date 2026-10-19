@@ -593,6 +593,27 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     });
   });
 
+  test("a linha entre a velocidade e os itens dos Ajustes vai de uma borda à outra da folha", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await clicar('button[aria-label="Ajustes"]');
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    // A folha cresce de 95% ao abrir: a medida espera os 150 ms da entrada.
+    const medida = await avaliar<{ folha: number[]; linha: number[] }>(
+      enviar,
+      `new Promise((pronto) => setTimeout(() => {
+        const folha = document.querySelector('${FOLHA_DOS_AJUSTES}');
+        const f = folha.getBoundingClientRect();
+        const l = folha.querySelector("hr").getBoundingClientRect();
+        pronto({
+          folha: [Math.round(f.left + folha.clientLeft), Math.round(f.left + folha.clientLeft + folha.clientWidth)],
+          linha: [Math.round(l.left), Math.round(l.right)],
+        });
+      }, 250))`
+    );
+    expect(medida.linha).toEqual(medida.folha);
+  });
+
   test("a tecla ? abre a lista de atalhos e a tecla c alterna a legenda", async () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });

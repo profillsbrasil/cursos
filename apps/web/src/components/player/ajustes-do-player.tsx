@@ -172,7 +172,8 @@ export function AjustesDoPlayer({
                   ))}
                 </div>
               </fieldset>
-              <hr className="my-1 border-border" />
+              {/* A folha tem 8 px de padding; a linha volta até a borda (The Edge To Edge Rule). */}
+              <hr className="-mx-2 my-1 border-border" />
               <button
                 aria-pressed={legenda}
                 className={OPCAO}
