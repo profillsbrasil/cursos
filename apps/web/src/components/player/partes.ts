@@ -20,4 +20,4 @@ export const CAIXA_DO_VIDEO =
 
 /** O popover dos ajustes e da lista de atalhos, abrindo sobre a barra. */
 export const FOLHA =
-  "z-50 rounded-[14px] border border-border bg-popover p-2 text-foreground text-sm shadow-xl transition-[opacity,scale] duration-150 ease-forte data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 motion-reduce:transition-opacity motion-reduce:data-[ending-style]:scale-100 motion-reduce:data-[starting-style]:scale-100 origin-(--transform-origin)";
+  "z-50 rounded-[14px] border border-border bg-popover p-2 text-foreground text-sm shadow-black/45 shadow-xl transition-[opacity,scale] duration-150 ease-forte data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 motion-reduce:transition-opacity motion-reduce:data-[ending-style]:scale-100 motion-reduce:data-[starting-style]:scale-100 origin-(--transform-origin)";
