@@ -175,11 +175,11 @@
       },
       "mono": {
         "displayName": "Mono",
-        "purpose": "A voz dos números do player: os pontos da linha de status, em 600 e 16 px. Fora do player, número é Geist com tabular-nums."
+        "purpose": "A voz dos números do player: os pontos do aviso na barra e do cartão de fim do vídeo, em 600 e 16 px. Fora do player, número é Geist com tabular-nums."
       },
       "mono-player": {
         "displayName": "Mono dos controles",
-        "purpose": "O tempo e a velocidade nos controles do player, em 13 px."
+        "purpose": "O tempo nos controles do player, em 13 px."
       },
       "mono-coluna": {
         "displayName": "Mono da coluna",
@@ -187,7 +187,7 @@
       },
       "tecla": {
         "displayName": "Tecla",
-        "purpose": "A tecla dos atalhos escritos sob a barra do player, em 11 px."
+        "purpose": "A tecla na lista de atalhos do player e no item Atalhos do teclado dos Ajustes, em 11 px."
       },
       "selo-da-area": {
         "displayName": "Selo da área",
