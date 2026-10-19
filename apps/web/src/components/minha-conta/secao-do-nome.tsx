@@ -21,7 +21,7 @@ import { CAMPO } from "@/components/casca/campos";
 import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
-import { type CampoDoNome, problemaDoNome } from "./nome";
+import { type CampoDoNome, LIMITE_DO_NOME, problemaDoNome } from "./nome";
 import {
   ACAO_NA_LINHA,
   ACOES,
@@ -69,7 +69,7 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
         </AvatarFallback>
       </Avatar>
       <div className="grid min-w-0 gap-0.5">
-        <h2 className="break-words font-bold text-2xl text-titulo leading-tight tracking-[-0.025em]">
+        <h2 className="wrap-anywhere font-bold text-2xl text-titulo leading-tight tracking-[-0.025em]">
           {nome || "Seu nome"}
         </h2>
         <p className={DETALHE_DA_LINHA}>
@@ -186,7 +186,7 @@ export function SecaoDoNome({
                 autoComplete="given-name"
                 className={CAMPO}
                 id={`${id}-nome`}
-                maxLength={256}
+                maxLength={LIMITE_DO_NOME}
                 name="nome"
                 onChange={mudar}
                 placeholder="Ana"
@@ -201,7 +201,7 @@ export function SecaoDoNome({
                 autoComplete="family-name"
                 className={CAMPO}
                 id={`${id}-sobrenome`}
-                maxLength={256}
+                maxLength={LIMITE_DO_NOME}
                 name="sobrenome"
                 onChange={mudar}
                 placeholder="Souza"
@@ -240,7 +240,8 @@ export function SecaoDoNome({
       </form>
       <div className="grid content-center justify-items-center gap-3.5 border-border border-t @min-[48rem]:border-t-0 @min-[48rem]:border-l bg-sidebar @min-[48rem]:p-7 p-5">
         <FolhaNaTela
-          className="w-full max-w-[440px] -rotate-[1.2deg] shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
+          // O nome salvo antes do limite pode ter palavra maior que a linha: ela quebra na folha.
+          className="wrap-anywhere w-full max-w-[440px] -rotate-[1.2deg] shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
           folha={folhaComONome(folha.folha, completo || "Seu nome aqui")}
         />
         <p className="text-center text-muted-foreground text-xs">
