@@ -390,6 +390,54 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     expect(terceiro[2]?.tentativaId).not.toBe(terceiro[0]?.tentativaId);
   });
 
+  test("com o Enter em Enviar respostas, o foco vai para o resultado, que se anuncia pelo título e pela frase", async () => {
+    await abrir(1280, "", pacote);
+    await marcarAsCertas();
+    const tecla = (type: string) =>
+      enviar("Input.dispatchKeyEvent", {
+        code: "Enter",
+        key: "Enter",
+        type,
+        windowsVirtualKeyCode: 13,
+        ...(type === "keyDown" ? { text: "\r" } : {}),
+      });
+    const enter = async () => {
+      await avaliar(
+        enviar,
+        `[...document.querySelectorAll("button")].find((b) => b.textContent.includes("Enviar")).focus()`
+      );
+      await tecla("keyDown");
+      await tecla("keyUp");
+    };
+    // O primeiro envio cai na rede e o foco fica no botão; o segundo vira o resultado.
+    await enter();
+    // O alerta entra antes do fim do pendente: espera o rótulo do reenvio.
+    await esperar(
+      `[...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Enviar de novo")`
+    );
+    await enter();
+    await esperar(`document.querySelector('[role="status"]')`);
+    expect(
+      await avaliar<string>(
+        enviar,
+        `document.activeElement === document.querySelector('[role="status"]') ? "resultado" : document.activeElement.tagName`
+      )
+    ).toBe("resultado");
+    const { result } = (await enviar("Runtime.evaluate", {
+      expression: "document.activeElement",
+    })) as { result: { objectId: string } };
+    const { nodes } = (await enviar("Accessibility.getPartialAXTree", {
+      fetchRelatives: false,
+      objectId: result.objectId,
+    })) as {
+      nodes: { description?: { value: string }; name?: { value: string } }[];
+    };
+    expect(nodes[0]?.name?.value).toBe("Ainda não: 2 de 3 (67%)");
+    expect(nodes[0]?.description?.value).toStartWith(
+      "Você errou a pergunta 2."
+    );
+  });
+
   test.each([
     ["respondendo", CRONOGRAMA],
     ["corrigido", { ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }],
