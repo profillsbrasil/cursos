@@ -213,7 +213,10 @@ export const TEXTOS_CLERK = {
       ...comOProduto.signUp?.start,
       actionLink: "Entrar",
       actionText: "Já tem conta?",
-      subtitle: "O nome sai no certificado dos cursos que você concluir.",
+      // A instância do Clerk não pede nome no cadastro: o subtítulo não promete
+      // o campo, e diz onde o nome do certificado se acerta.
+      subtitle:
+        "Use seu e-mail ou o Google. O nome do certificado você confere depois, em Minha conta.",
       title: "Criar sua conta",
     },
   },
