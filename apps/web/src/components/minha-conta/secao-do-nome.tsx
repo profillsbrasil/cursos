@@ -84,13 +84,14 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
           >
             Trocar foto
           </button>
+          {/* Fora da árvore de acessibilidade: o Trocar foto é o controle, e o campo de
+              arquivo só anunciaria o "No file chosen" do navegador. O click() abre o
+              seletor mesmo com o campo em display: none. */}
           <input
             accept="image/jpeg,image/png,image/gif,image/webp"
-            aria-label="Escolher a foto"
-            className="sr-only"
+            hidden
             onChange={trocar}
             ref={arquivo}
-            tabIndex={-1}
             type="file"
           />
           {user.hasImage ? (
