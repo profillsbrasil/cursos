@@ -1,6 +1,7 @@
 import {
   bucket,
   defineRailway,
+  github,
   postgres,
   preserve,
   project,
@@ -40,6 +41,7 @@ export default defineRailway(() => {
     healthcheck: "/entrar",
     preDeploy: "bun run --cwd packages/db db:migrate:deploy",
     replicas: { iad: 1 },
+    source: github("profillsbrasil/cursos", { branch: "main" }),
     start: "bun run --cwd apps/web start",
   });
 
