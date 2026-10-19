@@ -109,7 +109,16 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
   );
 }
 
-/** O topo de Minha conta: quem é a pessoa, o nome que ela edita e, ao lado, a folha do certificado com esse nome. */
+function legendaDaFolha(exemplo: boolean, mudou: boolean) {
+  if (mudou) {
+    return "Prévia: este nome ainda não foi salvo";
+  }
+  return exemplo
+    ? "Exemplo: o seu primeiro certificado sai assim"
+    : "Assim o nome sai no certificado";
+}
+
+/** O topo de Minha conta: quem é a pessoa, com o nome salvo, os campos do nome e, ao lado, a folha do certificado com o nome dos campos. */
 export function SecaoDoNome({
   certificados,
   folha,
@@ -125,6 +134,8 @@ export function SecaoDoNome({
     nome: user.firstName ?? "",
     sobrenome: user.lastName ?? "",
   });
+  // O cartão mostra o nome salvo no Clerk; a folha, o que a pessoa digita.
+  const salvo = juntar(user.firstName ?? "", user.lastName ?? "");
   const completo = juntar(nome, sobrenome);
   const mudou =
     nome.trim() !== (user.firstName ?? "") ||
@@ -155,7 +166,7 @@ export function SecaoDoNome({
       {/* O Salvar mora no pé, preso embaixo: a coluna acompanha a altura da folha ao lado. */}
       <form className="grid grid-rows-[1fr_auto]" onSubmit={salvar}>
         <div className="@container grid content-start gap-[18px] @min-[48rem]:p-[26px] p-[22px]">
-          <Foto nome={completo} user={user} />
+          <Foto nome={salvo} user={user} />
           <div className="grid @min-[24rem]:grid-cols-2 gap-3">
             <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-nome`}>
               <span className={ROTULO}>Nome</span>
@@ -214,9 +225,7 @@ export function SecaoDoNome({
           folha={folhaComONome(folha.folha, completo || "Seu nome aqui")}
         />
         <p className="text-center text-muted-foreground text-xs">
-          {folha.exemplo
-            ? "Exemplo: o seu primeiro certificado sai assim"
-            : "Assim o nome sai no certificado"}
+          {legendaDaFolha(folha.exemplo, mudou)}
         </p>
       </div>
     </section>
