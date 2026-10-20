@@ -53,9 +53,9 @@ describe("vários comunicados", () => {
     expect(destaque(h)).toContain("<img");
   });
 
-  test("os anteriores vão num cartão por mês, com a contagem", () => {
+  test("os anteriores vão num cartão por mês, com a contagem, e o mês do destaque conta o destaque", () => {
     expect(meses(h)).toEqual([
-      "Outubro de 2026 2 comunicados",
+      "Outubro de 2026 3 comunicados, contando o destaque",
       "Setembro de 2026 1 comunicado",
     ]);
   });
