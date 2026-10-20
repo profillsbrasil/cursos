@@ -220,9 +220,13 @@ export const TEXTOS_CLERK = {
   socialButtonsBlockButton: "Continuar com o {{provider|titleize}}",
   unstable__errors: {
     ...comOProduto.unstable__errors,
+    form_password_pwned:
+      "Essa senha aparece em vazamentos de dados conhecidos. Escolha outra.",
+    form_password_pwned__sign_in:
+      "Essa senha aparece em vazamentos de dados conhecidos. Crie uma senha nova para entrar.",
     passwordComplexity: {
       ...comOProduto.unstable__errors?.passwordComplexity,
-      minimumLength: "pelo menos {{length}} caracteres. Uma frase serve",
+      minimumLength: "pelo menos {{length}} caracteres",
       sentencePrefix: "A senha precisa ter",
     },
   },
