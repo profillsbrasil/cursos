@@ -529,6 +529,30 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     expect(Math.abs(visto - tempo)).toBeLessThanOrEqual(1);
   });
 
+  test("enquanto o vídeo carrega, o player fica ocupado e os botões desligados pulsam", async () => {
+    await abrir(1440, 900);
+    const sinal = () =>
+      avaliar<{ ocupado: string | null; pulso: string[] }>(
+        enviar,
+        `({
+          ocupado: document.getElementById("video").getAttribute("aria-busy"),
+          pulso: ["Reproduzir", "Voltar 10 segundos", "Avançar 10 segundos"].map((r) => {
+            const b = document.querySelector('button[aria-label="' + r + '"]');
+            return (b.disabled ? "desligado " : "ligado ") + getComputedStyle(b.parentElement).animationName;
+          }),
+        })`
+      );
+    expect(await sinal()).toEqual({
+      ocupado: "true",
+      pulso: ["desligado pulse", "desligado pulse", "desligado pulse"],
+    });
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    expect(await sinal()).toEqual({
+      ocupado: "false",
+      pulso: ["ligado none", "ligado none", "ligado none"],
+    });
+  });
+
   test("os Ajustes trocam a velocidade, ligam a legenda e abrem a lista de atalhos, que fecha no Esc", async () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
