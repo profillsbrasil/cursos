@@ -6,7 +6,7 @@ import { Switch } from "@cursos/ui/components/switch";
 import { cn } from "@cursos/ui/lib/utils";
 import { useCallback, useState } from "react";
 
-import { ALAVANCA } from "@/components/casca/campos";
+import { ALAVANCA, RADIO } from "@/components/casca/campos";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -30,7 +30,7 @@ function OpcaoDePerfil({
     <label className="flex cursor-pointer items-start gap-3.5 border-border border-t px-[22px] py-3.5 transition-colors hover:bg-white/8 has-checked:bg-sol/6">
       <input
         checked={escolhida}
-        className="m-0 mt-px size-[18px] shrink-0 cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground checked:border-[5px] checked:border-sol disabled:cursor-not-allowed"
+        className={cn(RADIO, "mt-px")}
         data-campo
         disabled={desligada}
         name={grupo}

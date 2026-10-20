@@ -397,6 +397,18 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
       "RL Roberto Lima Liberada em 20 de ago. Já tinha",
     ]);
     await foto("1280-erro");
+    expect(
+      await avaliar<{ direita: number; esquerda: number }[]>(
+        enviar,
+        `(() => {
+          const coluna = document.querySelector("aside").getBoundingClientRect();
+          return [...document.querySelectorAll("aside li")].map((l) => {
+            const r = l.getBoundingClientRect();
+            return { direita: coluna.right - r.right, esquerda: r.left - coluna.left };
+          });
+        })()`
+      )
+    ).toEqual(new Array(3).fill({ direita: 0, esquerda: 0 }));
 
     await clicar('[aria-label="Tentar de novo para Camila Rocha"]');
     await esperar(
@@ -408,6 +420,28 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
     await clicarNoTexto("Nova liberação");
     expect(await texto("aside h2")).toBe("Marcadas0");
     expect(await focado()).toBe("lote");
+  });
+
+  test("Liberar sem curso é o contorno desligado; pronto, é o botão amarelo", async () => {
+    await abrirTela(1280);
+    const liberar = () =>
+      avaliar<{ desligado: boolean; fundo: string }>(
+        enviar,
+        `(() => {
+          const b = document.querySelector("aside > button");
+          return { desligado: b.hasAttribute("data-disabled"), fundo: getComputedStyle(b).backgroundColor };
+        })()`
+      );
+    await marcar("Ana Beatriz Lima");
+    expect(await liberar()).toEqual({
+      desligado: true,
+      fundo: "rgba(0, 0, 0, 0)",
+    });
+    await clicar(`input[value="${COMERCIAL}"]`);
+    await esperar(
+      `getComputedStyle(document.querySelector("aside > button")).backgroundColor === "rgb(255, 204, 1)"`
+    );
+    expect((await liberar()).desligado).toBe(false);
   });
 
   test("busca sem ninguém lembra que as marcadas continuam marcadas", async () => {
