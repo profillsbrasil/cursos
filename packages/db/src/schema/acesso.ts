@@ -10,7 +10,53 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { curso } from "./catalogo";
-import { liberacaoOrigem, momento, tabela } from "./comum";
+import { liberacaoOrigem, momento, perfil, tabela } from "./comum";
+
+/**
+ * O perfil de quem já entrou no app. A linha nasce no primeiro acesso, com o
+ * perfil do cadastro; definidoPor fica null até um admin mudar.
+ */
+export const perfilDaPessoa = tabela(
+  "perfil_da_pessoa",
+  {
+    definidoEm: momento(),
+    definidoPor: text(),
+    perfil: perfil().notNull(),
+    userId: text().primaryKey(), // userId do Clerk
+  },
+  (t) => [
+    check(
+      "perfil_da_pessoa_user_id_clerk",
+      sql`${t.userId} ~ '^user_[A-Za-z0-9]+$'`
+    ),
+  ]
+);
+
+/** Um curso aberto a todo mundo de um perfil, inclusive a quem ganhar o perfil depois. */
+export const liberacaoDoPerfil = tabela(
+  "liberacao_do_perfil",
+  {
+    cursoId: uuid()
+      .notNull()
+      .references(() => curso.id, { onDelete: "restrict" }),
+    id: uuid().primaryKey().defaultRandom(),
+    liberadaEm: momento(),
+    liberadaPor: text().notNull(),
+    perfil: perfil().notNull(),
+    revogadaEm: timestamp({ withTimezone: true }),
+    revogadaPor: text(),
+  },
+  (t) => [
+    check(
+      "liberacao_do_perfil_revogacao_coerente",
+      sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
+          and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
+    ),
+    uniqueIndex("liberacao_do_perfil_ativa_unica")
+      .on(t.perfil, t.cursoId)
+      .where(sql`${t.revogadaEm} is null`),
+  ]
+);
 
 export const liberacao = tabela(
   "liberacao",

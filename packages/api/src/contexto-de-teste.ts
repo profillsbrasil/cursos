@@ -1,7 +1,7 @@
 import type { Database } from "@cursos/db";
 
 import type { Context, Papel } from "./context";
-import type { Pessoa } from "./dominio/tipos";
+import type { Conta, Pessoa } from "./dominio/tipos";
 import { type Capas, capasDesligadas } from "./externos/capas";
 import { type Materiais, materiaisDesligados } from "./externos/materiais";
 import { LIMITE, type Pessoas } from "./externos/pessoas";
@@ -14,14 +14,20 @@ export interface OpcoesDeTeste {
   /** Sem a porta, o envio de material recusa como num ambiente sem Storage. */
   materiais?: Materiais;
   papel?: Papel;
-  /** As pessoas que o Clerk falso conhece. Sem a lista, ele não conhece ninguém. */
-  pessoas?: readonly Pessoa[];
+  /**
+   * As pessoas que o Clerk falso conhece. Sem a lista, ele não conhece ninguém.
+   * Sem emailVerificado, o e-mail conta como verificado.
+   */
+  pessoas?: readonly (Pessoa & Partial<Conta>)[];
   /** null: sem sessão. */
   userId: string | null;
 }
 
 /** Clerk falso: busca por trecho de nome, e-mail ou userId, sem caixa, e corta em LIMITE. */
-export function pessoasDeTeste(lista: readonly Pessoa[]): Pessoas {
+export function pessoasDeTeste(
+  lista: readonly (Pessoa & Partial<Conta>)[]
+): Pessoas {
+  const achar = (userId: string) => lista.find((p) => p.userId === userId);
   return {
     buscar: (termo) => {
       const t = termo.toLowerCase();
@@ -35,8 +41,20 @@ export function pessoasDeTeste(lista: readonly Pessoa[]): Pessoas {
         total: casadas.length,
       });
     },
-    porId: (userId) =>
-      Promise.resolve(lista.find((p) => p.userId === userId) ?? null),
+    conta: (userId) => {
+      const p = achar(userId);
+      return Promise.resolve(
+        p ? { ...p, emailVerificado: p.emailVerificado ?? true } : null
+      );
+    },
+    porId: (userId) => {
+      const p = achar(userId);
+      return Promise.resolve(
+        p
+          ? { email: p.email, foto: p.foto, nome: p.nome, userId: p.userId }
+          : null
+      );
+    },
   };
 }
 

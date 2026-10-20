@@ -6,6 +6,7 @@ export {
   liberacaoOrigem,
   materialTipo,
   motivoPonto,
+  perfil,
   videoProvedor,
 } from "./comum";
 export * from "./comunicado";

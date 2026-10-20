@@ -20,8 +20,10 @@ const TABELAS_DO_ADMIN = [
   "curso",
   "liberacao",
   "material",
+  "liberacao_do_perfil",
   "modulo",
   "nivel",
+  "perfil_da_pessoa",
   "pergunta",
 ];
 

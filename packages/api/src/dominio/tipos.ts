@@ -17,6 +17,7 @@ export type TentativaId = Marca<string, "TentativaId">;
 /** Impressão do conteúdo de um documento do admin (dominio/versao.ts). */
 export type Versao = Marca<string, "Versao">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;
+export type LiberacaoDoPerfilId = Marca<string, "LiberacaoDoPerfilId">;
 export type ComunicadoId = Marca<string, "ComunicadoId">;
 export type CategoriaId = Marca<string, "CategoriaId">;
 /** Um arquivo do material de apoio do curso. O id nasce no editor. */
@@ -32,6 +33,12 @@ export interface Pessoa {
   foto: string | null;
   nome: string;
   userId: string;
+}
+
+/** A Pessoa com o que só a ficha dela mostra. */
+export interface Conta extends Pessoa {
+  /** O e-mail principal passou pela verificação do Clerk. */
+  emailVerificado: boolean;
 }
 
 /** Uma página da busca de pessoas, e quantas casaram no total. */

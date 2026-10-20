@@ -11,6 +11,7 @@ import {
   certificado,
   curso,
   liberacao,
+  liberacaoDoPerfil,
   material,
   modulo,
   nivel,
@@ -163,7 +164,8 @@ export async function abrirCurso(
   } = await exec.execute<{ certificados: number; liberacoes: number }>(sql`
     select
       (select count(*)::int from ${certificado} where ${certificado.cursoId} = ${id}) as certificados,
-      (select count(*)::int from ${liberacao} where ${liberacao.cursoId} = ${id}) as liberacoes`);
+      (select count(*)::int from ${liberacao} where ${liberacao.cursoId} = ${id})
+        + (select count(*)::int from ${liberacaoDoPerfil} where ${liberacaoDoPerfil.cursoId} = ${id}) as liberacoes`);
 
   const semVersao: DocumentoDoCurso = {
     categoriaId: linha.categoriaId as CategoriaId,
