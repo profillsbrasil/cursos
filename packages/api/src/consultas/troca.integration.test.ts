@@ -202,6 +202,27 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     );
   });
 
+  test("20 trocas de cursos diferentes ao mesmo tempo pela API com saldo para uma: uma passa e o saldo fica em 0", async () => {
+    const userId = await aluno(300);
+    const alvos = await Promise.all(
+      Array.from({ length: 20 }, () => cursoTrocavel(300))
+    );
+    const caller = createCaller(contextoDeTeste({ db, userId }));
+    const r = await Promise.allSettled(
+      alvos.map((cursoId) => caller.troca.trocar({ cursoId, precoVisto: 300 }))
+    );
+    const codigos = r.map(codigo).map(String);
+    expect(codigos.filter((c) => c === "fulfilled")).toHaveLength(1);
+    expect(codigos.filter((c) => c === "PRECONDITION_FAILED")).toHaveLength(19);
+    expect(await trocasDe(userId)).toHaveLength(1);
+    expect(await saldoDe(userId)).toBe(0);
+    const liberados = await db
+      .select({ id: liberacao.id })
+      .from(liberacao)
+      .where(eq(liberacao.userId, userId));
+    expect(liberados).toHaveLength(1);
+  });
+
   test("duplo clique no mesmo curso: um lançamento, e o segundo devolve a mesma troca", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
