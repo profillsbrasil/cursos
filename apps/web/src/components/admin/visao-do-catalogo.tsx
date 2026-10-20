@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { BOTAO } from "@/components/casca/botoes";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
 import { fmtHoras, fmtPts, plural } from "@/lib/formato";
@@ -170,22 +171,18 @@ function resumo(cursos: Visao["cursos"]) {
 export function VisaoDoCatalogo({ visao: { cursos } }: { visao: Visao }) {
   return (
     <>
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-x-5 gap-y-3.5">
-        <div>
-          <h1 className="font-bold text-3xl text-titulo tracking-tight">
-            Catálogo
-          </h1>
-          <p className="mt-1 text-muted-foreground tabular-nums">
-            {resumo(cursos)}
-          </p>
-        </div>
-        {cursos.length > 0 && (
-          <Link className={BOTAO} href={NOVO_CURSO}>
-            <Plus aria-hidden="true" className="size-4" />
-            Novo curso
-          </Link>
-        )}
-      </header>
+      <CabecalhoDaPagina
+        acao={
+          cursos.length > 0 && (
+            <Link className={BOTAO} href={NOVO_CURSO}>
+              <Plus aria-hidden="true" className="size-4" />
+              Novo curso
+            </Link>
+          )
+        }
+        resumo={resumo(cursos)}
+        titulo="Catálogo"
+      />
       {cursos.length === 0 ? (
         <CatalogoVazio />
       ) : (

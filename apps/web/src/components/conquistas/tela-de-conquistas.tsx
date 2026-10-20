@@ -24,7 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { type CSSProperties, Fragment } from "react";
 
-import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
 import { Secao } from "@/components/meus-cursos/secao";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Categorias } from "@/components/admin/categorias";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { plural } from "@/lib/formato";
 import { carregarCategorias } from "@/server/api";
 
@@ -11,15 +12,10 @@ export default async function PaginaDeCategorias() {
   const cursos = categorias.reduce((n, c) => n + c.cursos.length, 0);
   return (
     <>
-      <header className="mb-8 grid gap-1.5">
-        <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight">
-          Categorias
-        </h1>
-        <p className="text-muted-foreground tabular-nums">
-          {plural(categorias.length, "categoria", "categorias")},{" "}
-          {plural(cursos, "curso", "cursos")}
-        </p>
-      </header>
+      <CabecalhoDaPagina
+        resumo={`${plural(categorias.length, "categoria", "categorias")}, ${plural(cursos, "curso", "cursos")}`}
+        titulo="Categorias"
+      />
       <Categorias categorias={categorias} />
     </>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Comunicados } from "@/components/admin/comunicados";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { carregarComunicados } from "@/server/api";
 
 export const metadata: Metadata = { title: "Comunicados" };
@@ -9,14 +10,10 @@ export default async function PaginaDeComunicados() {
   const dados = await carregarComunicados();
   return (
     <>
-      <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
-        <h1 className="font-bold text-3xl text-titulo tracking-tight">
-          Comunicados
-        </h1>
-        <p className="text-muted-foreground">
-          O aluno vê o mais recente em Meus cursos e todos em Comunicados
-        </p>
-      </header>
+      <CabecalhoDaPagina
+        resumo="O aluno vê o mais recente em Meus cursos e todos em Comunicados"
+        titulo="Comunicados"
+      />
       <Comunicados {...dados} />
     </>
   );

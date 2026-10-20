@@ -9,12 +9,12 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
 import {
   BOTAO_CONTORNO,
   LINK_NO_TEXTO,
   PEQUENO,
 } from "@/components/casca/botoes";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
 import { paragrafos } from "@/components/curso/textos";
 import { Secao } from "@/components/meus-cursos/secao";

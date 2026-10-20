@@ -1,6 +1,6 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 
 const PULSO = "rounded-[20px] bg-card";
 

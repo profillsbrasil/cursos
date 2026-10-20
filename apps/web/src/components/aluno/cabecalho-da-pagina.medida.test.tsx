@@ -19,7 +19,7 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium-de-teste";
-import { CabecalhoDaPagina } from "./cabecalho-da-pagina";
+import { CabecalhoDaPagina } from "../casca/cabecalho-da-pagina";
 
 const naPagina = (filhos: ReactNode) =>
   renderToStaticMarkup(
