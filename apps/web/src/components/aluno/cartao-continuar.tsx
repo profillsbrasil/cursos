@@ -17,13 +17,19 @@ import { useModoDaCasca } from "@/components/casca/provedor-da-casca";
 import { type Continuar, estaAqui } from "./continuar";
 
 // Um elemento só nos dois modos, como o SidebarMenuButton: aberto, o cartão;
-// recolhida, ele encolhe para o botão redondo de 40 px em Sol, preso à esquerda como
-// os itens. O group-data vence as classes do cartão pela especificidade. O elemento
-// não tem transição: a troca de modo (Ctrl+B inclusive) muda a cor na hora.
+// recolhida, ele encolhe para o redondo de 40 px, preso à esquerda como os itens. O
+// group-data vence as classes do cartão pela especificidade. O elemento não tem
+// transição: a troca de modo (Ctrl+B inclusive) muda a cor na hora.
 const CARTAO = cn(
   "relative isolate grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground",
-  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-sobre-cor"
+  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
 );
+
+// Recolhida, o Sol cheio é do botão que leva à aula. Na própria aula o cartão não é
+// link, e o redondo fica no realce da sidebar com o play em Sol.
+const RECOLHIDO_COM_LINK =
+  "group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:text-sobre-cor";
+const RECOLHIDO_AQUI = "group-data-[collapsible=icon]:text-sol";
 
 // O hover também é o foco de teclado (#30). Aberto, o fundo vira popover e o play
 // redondo clareia e brilha (REDONDO, pelo group/continuar): o fundo sozinho mede
@@ -44,10 +50,10 @@ const LINHA =
   "flex items-center gap-2.5 group-data-[collapsible=icon]:contents";
 
 // Com o cursor ou o foco no link, o redondo de 32 px acende como o botão amarelo.
-// Recolhida ele é contents, sem caixa: o fundo e a sombra não pintam, e quem acende
-// é o próprio cartão.
+// Recolhida ele é contents, sem caixa: o fundo e a sombra não pintam, quem acende
+// é o próprio cartão, e o ícone herda a cor dele.
 const REDONDO = cn(
-  "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor group-data-[collapsible=icon]:contents [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:[&_svg]:size-4",
+  "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:text-inherit [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:[&_svg]:size-4",
   "transition-[background-color,box-shadow] duration-150 ease-forte group-hover/continuar:bg-sol-hover group-hover/continuar:shadow-brilho"
 );
 
@@ -107,15 +113,15 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
   const aqui = estaAqui(c, caminho);
   const chamada = aqui ? c.chamadaAqui : c.chamada;
   return (
-    <Tooltip>
+    <Tooltip disabled={!recolhida}>
       <TooltipTrigger
         render={
           aqui ? (
-            <div aria-current="page" className={CARTAO} />
+            <div aria-current="page" className={cn(CARTAO, RECOLHIDO_AQUI)} />
           ) : (
             <Link
               aria-label={c.rotulo}
-              className={cn(CARTAO, COM_LINK)}
+              className={cn(CARTAO, RECOLHIDO_COM_LINK, COM_LINK)}
               href={c.href}
             />
           )
@@ -128,7 +134,7 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
           titulo={c.titulo}
         />
       </TooltipTrigger>
-      <TooltipContent className={DICA} hidden={!recolhida} side="right">
+      <TooltipContent className={DICA} side="right">
         {chamada}
         <span className={DICA_SECUNDARIA}>{c.titulo}</span>
       </TooltipContent>

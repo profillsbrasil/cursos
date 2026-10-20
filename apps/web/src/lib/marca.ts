@@ -11,6 +11,9 @@ export const PRODUTO = "Profills Cursos";
  */
 export const TEMPLATE_DO_TITULO = `%s · ${PRODUTO}`;
 
+/** O título das páginas do admin: "Pessoas · Admin · Profills Cursos". */
+export const TEMPLATE_DO_TITULO_DO_ADMIN = `%s · Admin · ${PRODUTO}`;
+
 /** O título do layout raiz: o nome sozinho na página sem título. */
 export const TITULO_DA_RAIZ = {
   default: PRODUTO,

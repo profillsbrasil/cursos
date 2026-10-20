@@ -82,7 +82,7 @@ export async function Casca({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <TopoDoCelular />
+        <TopoDoCelular selo={selo} />
         <div
           className="min-w-0 px-[clamp(1rem,4vw,3rem)] pt-8 pb-16"
           id={CONTEUDO}

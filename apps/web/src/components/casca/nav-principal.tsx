@@ -58,11 +58,11 @@ function ItemDaNav({
 }) {
   const { recolhida } = useModoDaCasca();
   return (
-    <Tooltip>
+    <Tooltip disabled={!recolhida}>
       <TooltipTrigger className={cn(ITEM, POR_ESTADO[estado])} render={render}>
         {children}
       </TooltipTrigger>
-      <TooltipContent className={DICA} hidden={!recolhida} side="right">
+      <TooltipContent className={DICA} side="right">
         {dica}
       </TooltipContent>
     </Tooltip>

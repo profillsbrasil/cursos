@@ -4,7 +4,7 @@ import { AbasDasLiberacoes } from "@/components/admin/abas-das-liberacoes";
 import { GradeDosPerfisDoAdmin } from "@/components/admin/grade-dos-perfis";
 import { carregarGradeDosPerfis } from "@/server/api";
 
-export const metadata: Metadata = { title: "Liberações por perfil · Admin" };
+export const metadata: Metadata = { title: "Liberações por perfil" };
 
 export default async function LiberacoesPorPerfil() {
   const grade = await carregarGradeDosPerfis();

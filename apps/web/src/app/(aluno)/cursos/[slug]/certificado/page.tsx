@@ -22,8 +22,12 @@ const paginaDaUrl = async (params: Props["params"]) => {
 // O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx
 // do curso.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  await paginaDaUrl(params);
-  return { title: "Seu certificado" };
+  const pagina = await paginaDaUrl(params);
+  const curso =
+    pagina.tipo === "emitido"
+      ? pagina.certificado.tituloDoCurso
+      : pagina.curso.titulo;
+  return { title: `Certificado · ${curso}` };
 }
 
 export default async function Certificado({ params }: Props) {

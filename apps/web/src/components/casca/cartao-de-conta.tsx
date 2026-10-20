@@ -14,6 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@cursos/ui/components/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
 import { ChevronsUpDown, Flame, LogOut, Star, UserRound } from "lucide-react";
 import Link from "next/link";
@@ -23,6 +28,7 @@ import { fmtPts, iniciais, plural } from "@/lib/formato";
 import { anelDosPontos } from "@/lib/player/sinal";
 import { MINHA_CONTA } from "@/lib/rotas";
 
+import { DICA, DICA_SECUNDARIA } from "./estilo";
 import type { LinkDaArea } from "./nav";
 import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 
@@ -31,11 +37,14 @@ export type Placar = Pick<ResumoAluno, "saldo" | "sequenciaDias">;
 
 const apagado = () => false;
 
+// Recolhido, o avatar cobre o fundo e a borda de 1 px quase não muda: sob o cursor,
+// com o foco e com o menu aberto, acende o anel de 2 px em Céu.
 const GATILHO = cn(
   "flex w-full items-center gap-2.5 rounded-2xl border border-sidebar-border bg-sidebar p-2 text-left",
   "transition-[border-color,background-color,box-shadow] duration-150 ease-forte",
   "hover:border-trilho hover:bg-sidebar-accent data-popup-open:border-trilho data-popup-open:bg-sidebar-accent",
-  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px"
+  "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px",
+  "group-data-[collapsible=icon]:data-popup-open:ring-2 group-data-[collapsible=icon]:data-popup-open:ring-ceu group-data-[collapsible=icon]:hover:ring-2 group-data-[collapsible=icon]:hover:ring-ceu"
 );
 
 // O anel acende quando a conquista chega no player (anelDosPontos).
@@ -48,6 +57,9 @@ const PLACA =
   "grid gap-0.5 rounded-[10px] bg-sidebar-accent px-2.5 py-2 text-muted-foreground text-xs focus:bg-border focus:text-muted-foreground";
 
 const LINHA_ESQUELETO = "block animate-pulse rounded bg-muted";
+
+// O menu tem p-1.5: a divisória volta os 6 px para ir de uma borda à outra.
+const DIVISORIA = "-mx-1.5 my-1";
 
 function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);
@@ -71,6 +83,11 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
       ) : null}
     </span>
   );
+}
+
+function SaldoDaDica({ placar }: { placar: Promise<Placar | null> }) {
+  const p = use(placar);
+  return p ? <span className={DICA_SECUNDARIA}>{fmtPts(p.saldo)}</span> : null;
 }
 
 function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
@@ -109,7 +126,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
           </DropdownMenuItem>
         ) : null}
       </div>
-      <DropdownMenuSeparator className="mx-0 my-1" />
+      <DropdownMenuSeparator className={DIVISORIA} />
     </>
   );
 }
@@ -135,35 +152,48 @@ export function CartaoDeConta({
     user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? "Sua conta";
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={cn(GATILHO, aceso && ANEL)}>
-        <Avatar className="size-9 after:hidden">
-          {user?.hasImage ? <AvatarImage alt="" src={user.imageUrl} /> : null}
-          <AvatarFallback className="bg-canela font-bold text-[13px] text-sobre-cor">
-            {isLoaded ? iniciais(nome) : null}
-          </AvatarFallback>
-        </Avatar>
-        <span className="grid min-w-0 flex-1 gap-0.5 leading-tight group-data-[collapsible=icon]:sr-only">
-          <span className="sr-only">Conta de </span>
-          {isLoaded ? (
-            <span className="truncate font-semibold text-sm text-titulo">
-              {nome}
-            </span>
-          ) : (
-            <span className={cn(LINHA_ESQUELETO, "h-3.5 w-28")} />
-          )}
+      <Tooltip disabled={!recolhida}>
+        <DropdownMenuTrigger
+          className={cn(GATILHO, aceso && ANEL)}
+          render={<TooltipTrigger />}
+        >
+          <Avatar className="size-9 after:hidden">
+            {user?.hasImage ? <AvatarImage alt="" src={user.imageUrl} /> : null}
+            <AvatarFallback className="bg-canela font-bold text-[13px] text-sobre-cor">
+              {isLoaded ? iniciais(nome) : null}
+            </AvatarFallback>
+          </Avatar>
+          <span className="grid min-w-0 flex-1 gap-0.5 leading-tight group-data-[collapsible=icon]:sr-only">
+            <span className="sr-only">Conta de </span>
+            {isLoaded ? (
+              <span className="truncate font-semibold text-sm text-titulo">
+                {nome}
+              </span>
+            ) : (
+              <span className={cn(LINHA_ESQUELETO, "h-3.5 w-28")} />
+            )}
+            {placar ? (
+              <Suspense
+                fallback={<span className={cn(LINHA_ESQUELETO, "h-3 w-24")} />}
+              >
+                <NumerosDoGatilho placar={placar} />
+              </Suspense>
+            ) : null}
+          </span>
+          <ChevronsUpDown
+            aria-hidden="true"
+            className="size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden"
+          />
+        </DropdownMenuTrigger>
+        <TooltipContent className={DICA} side="right">
+          {nome}
           {placar ? (
-            <Suspense
-              fallback={<span className={cn(LINHA_ESQUELETO, "h-3 w-24")} />}
-            >
-              <NumerosDoGatilho placar={placar} />
+            <Suspense fallback={null}>
+              <SaldoDaDica placar={placar} />
             </Suspense>
           ) : null}
-        </span>
-        <ChevronsUpDown
-          aria-hidden="true"
-          className="size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden"
-        />
-      </DropdownMenuTrigger>
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent
         align={recolhida ? "end" : "start"}
         className={cn(
@@ -195,7 +225,7 @@ export function CartaoDeConta({
             {outraArea.nome}
           </DropdownMenuItem>
         ) : null}
-        <DropdownMenuSeparator className="mx-0 my-1" />
+        <DropdownMenuSeparator className={DIVISORIA} />
         <DropdownMenuItem className={ITEM} onClick={sair}>
           <LogOut aria-hidden="true" />
           Sair

@@ -77,6 +77,16 @@
   --raio-do-painel: 24px;
 }
 
+/* Abaixo do md, o topo do celular (h-14) fica preso em cima: o salto por âncora e o
+   foco de teclado param abaixo dele, e o que é sticky no topo da página desconta
+   a altura dele. */
+@media (width < 48rem) {
+  :root:has([data-slot="topo-do-celular"]) {
+    --topo-da-casca: 3.5rem;
+    scroll-padding-top: var(--topo-da-casca);
+  }
+}
+
 @media (width >= 48rem) {
   [data-slot="sidebar-wrapper"] {
     background-color: var(--sidebar);

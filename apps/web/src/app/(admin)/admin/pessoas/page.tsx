@@ -18,7 +18,7 @@ import { CAMPO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
 import { carregarListaDePessoas } from "@/server/api";
 
-export const metadata: Metadata = { title: "Pessoas · Admin" };
+export const metadata: Metadata = { title: "Pessoas" };
 
 const FILTRO =
   "inline-flex h-9 items-center gap-2 rounded-full px-3.5 font-semibold text-[13px] ring-1 ring-inset transition-colors";

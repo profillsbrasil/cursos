@@ -29,6 +29,12 @@ const ALTERNAR_RECOLHIDA =
 
 const SOME_COM_HOVER = "transition-opacity duration-150";
 
+// No celular, abrir e fechar a gaveta têm o mesmo alvo de 40 px.
+const BOTAO_DO_CELULAR = cn(BOTAO_DE_ICONE, "size-10");
+
+const SELO =
+  "rounded-full bg-ceu/14 px-1.5 py-[3px] font-semibold text-[10px] text-ceu uppercase leading-none tracking-wide";
+
 const semInscricao = () => () => undefined;
 
 // O servidor e a hidratação escrevem Ctrl B; o cliente troca para ⌘ B no Mac logo
@@ -66,7 +72,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
           width={LOCKUP.largura}
         />
         {selo ? (
-          <span className="absolute top-[19px] left-[124px] rounded-full bg-ceu/14 px-1.5 py-[3px] font-semibold text-[10px] text-ceu uppercase leading-none tracking-wide">
+          <span className={cn(SELO, "absolute top-[19px] left-[124px]")}>
             {selo}
           </span>
         ) : null}
@@ -74,7 +80,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
       {noCelular ? (
         <button
           aria-label="Fechar navegação"
-          className={cn(BOTAO_DE_ICONE, "ml-auto")}
+          className={cn(BOTAO_DO_CELULAR, "ml-auto")}
           onClick={fecharNoCelular}
           type="button"
         >
@@ -133,16 +139,21 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
 }
 
 /**
- * A faixa do topo do conteúdo abaixo de 768 px: o botão que abre a gaveta e o
- * ícone da marca. As páginas não sabem dela; o topo de cada página vem abaixo.
+ * A faixa do topo do conteúdo abaixo de 768 px: o botão que abre a gaveta, o ícone
+ * da marca e o selo da área. Ela fica presa em cima, então a gaveta abre de qualquer
+ * altura da página. As páginas não sabem dela; o topo de cada página vem abaixo, e o
+ * --topo-da-casca do index.css desconta a altura dela do que rola e do que é sticky.
  */
-export function TopoDoCelular() {
+export function TopoDoCelular({ selo }: { selo?: string }) {
   const { alternar } = useAlternarNavegacao();
   return (
-    <div className="flex h-14 items-center gap-2 border-border border-b bg-background px-3 md:hidden">
+    <div
+      className="sticky top-0 z-20 flex h-14 items-center gap-2 border-border border-b bg-background px-3 md:hidden"
+      data-slot="topo-do-celular"
+    >
       <button
         aria-label="Abrir navegação"
-        className={cn(BOTAO_DE_ICONE, "size-10")}
+        className={BOTAO_DO_CELULAR}
         onClick={alternar}
         type="button"
       >
@@ -155,6 +166,7 @@ export function TopoDoCelular() {
         src={ICONE.src}
         width={ICONE.largura}
       />
+      {selo ? <span className={SELO}>{selo}</span> : null}
     </div>
   );
 }
