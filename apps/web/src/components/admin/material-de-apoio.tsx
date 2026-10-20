@@ -18,11 +18,27 @@ import type { MaterialId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
-import { ChevronDown, ChevronUp, CircleAlert, FileUp, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  CircleAlert,
+  FileUp,
+  GripVertical,
+  X,
+} from "lucide-react";
+import {
+  type DragControls,
+  Reorder,
+  type Transition,
+  useDragControls,
+  useMotionValue,
+  useReducedMotion,
+} from "motion/react";
 import {
   type ChangeEvent,
   type Dispatch,
   type DragEvent,
+  type PointerEvent,
   useCallback,
   useContext,
   useRef,
@@ -30,6 +46,7 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CURVA_FORTE } from "@/components/casca/nav";
 import { SeloDoTipo } from "@/components/material-de-apoio/selo-do-tipo";
 import {
   type Direcao,
@@ -49,6 +66,9 @@ import {
   type AcaoDoEditor,
   dentroDoLimite,
   type EnvioDeMaterial,
+  idDaLinha,
+  type LinhaDaLista,
+  linhasDoMaterial,
   type RascunhoDoEditor,
 } from "./rascunho-do-editor";
 
@@ -61,7 +81,32 @@ const FALHA_DO_ENVIO = "Não deu para enviar. Tente de novo em instantes.";
 
 /** Uma linha do cartão: 1 px de borda a borda em cima, padding só dentro dela. */
 const LINHA =
-  "grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3.5 border-border border-t px-5 py-3 first:border-t-0";
+  "grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3.5 border-border border-t bg-card py-3 pr-5 pl-2.5 first:border-t-0";
+
+/** A linha presa ao ponteiro flutua sobre as outras, com a sombra Flutuante. */
+const LINHA_ARRASTADA = "shadow-[0_10px_30px_rgb(0_0_0/0.45)]";
+
+/** A coluna da alça; a linha que não arrasta deixa a coluna vazia, para os selos ficarem alinhados. */
+const ALCA = "flex h-11 w-6 items-center justify-center";
+
+/**
+ * Como as linhas andam. As outras abrem espaço para a arrastada só durante o
+ * arrastar; pelas setas, que são o caminho do teclado, a linha troca de lugar na
+ * hora. Solta, a arrastada assenta sem quique; com movimento reduzido, nada desliza.
+ */
+function movimentoDasLinhas(arrastando: boolean, reduzir: boolean) {
+  return {
+    assentar: reduzir
+      ? { bounceDamping: 10_000_000, bounceStiffness: 1_000_000 }
+      : { bounceDamping: 49, bounceStiffness: 600 },
+    transition: {
+      duration: arrastando && !reduzir ? 0.18 : 0,
+      ease: CURVA_FORTE,
+    } satisfies Transition,
+  };
+}
+
+type Movimento = ReturnType<typeof movimentoDasLinhas>;
 
 const DETALHE = "truncate text-muted-foreground text-xs tabular-nums";
 
@@ -77,23 +122,76 @@ export function resumoDoMaterial(
   return `${plural(materiais.length, "arquivo", "arquivos")}, ${tamanhoDoArquivo(total)}`;
 }
 
+function Alca({
+  aoComecar,
+  aoSoltar,
+  controles,
+}: {
+  aoComecar: () => void;
+  aoSoltar: () => void;
+  controles: DragControls;
+}) {
+  const pegar = useCallback(
+    (e: PointerEvent<HTMLSpanElement>) => {
+      // Sem isso, o ponteiro arrastado seleciona o texto das linhas por onde passa.
+      e.preventDefault();
+      aoComecar();
+      controles.start(e);
+    },
+    [aoComecar, controles]
+  );
+  return (
+    // Só o ponteiro arrasta; o teclado e o leitor de tela usam as setas da linha.
+    <span
+      aria-hidden="true"
+      className={cn(
+        ALCA,
+        "cursor-grab touch-none text-muted-foreground transition-colors duration-150 ease-forte hover:text-titulo active:cursor-grabbing"
+      )}
+      onPointerDown={pegar}
+      onPointerUp={aoSoltar}
+      title="Arraste para mudar a ordem"
+    >
+      <GripVertical className="size-4" />
+    </span>
+  );
+}
+
 function LinhaDoMaterial({
+  aoComecar,
+  aoSoltar,
+  arrastada,
   despachar,
   indice,
   material,
-  materiais,
+  movimento,
+  proximo,
+  total,
 }: {
+  aoComecar: (id: MaterialId) => void;
+  aoSoltar: () => void;
+  arrastada: boolean;
   despachar: Dispatch<AcaoDoEditor>;
+  /** A posição entre todas as linhas da seção, também as dos envios. */
   indice: number;
   material: MaterialDoDocumento;
-  materiais: readonly MaterialDoDocumento[];
+  movimento: Movimento;
+  /** Quem recebe o foco quando esta linha sai. */
+  proximo: string;
+  total: number;
 }) {
   const { id } = material;
+  const controles = useDragControls();
+  // A linha só anda na vertical. Quando a barra de rolagem da página aparece no
+  // meio do arrastar, a linha estreita 10 px, o Motion soma ao x dela os 5 px que
+  // o centro andou e, ao soltar, só devolve o y: ela ficava torta. Com o _dragX
+  // num valor que ninguém desenha, esse desvio não chega à linha.
+  const deslizeHorizontal = useMotionValue(0);
+  const comecar = useCallback(() => aoComecar(id), [aoComecar, id]);
   const campo = ID.material(id);
   const { aria, mensagem } = useErroDoCampo(campo);
   const saiuDoCampo = useContext(SaiuDoCampo);
   const sair = useCallback(() => saiuDoCampo(campo), [campo, saiuDoCampo]);
-  const total = materiais.length;
   const nome = material.titulo.trim() || material.nomeDoArquivo;
   const renomear = useCallback(
     (e: ChangeEvent<HTMLInputElement>) =>
@@ -102,8 +200,8 @@ function LinhaDoMaterial({
   );
   const mover = useCallback(
     (direcao: Direcao) => {
-      despachar({ direcao, id, tipo: "material_movido" });
       const destino = direcao === "acima" ? indice - 1 : indice + 1;
+      despachar({ id, para: destino, tipo: "material_movido" });
       focarDepois(
         `material-${id}-${setaDepoisDeMover(direcao, destino === 0 || destino === total - 1)}`
       );
@@ -113,12 +211,22 @@ function LinhaDoMaterial({
   const subir = useCallback(() => mover("acima"), [mover]);
   const descer = useCallback(() => mover("abaixo"), [mover]);
   const tirar = useCallback(() => {
-    const fica = vizinhoQueFica(materiais, indice);
     despachar({ id, tipo: "material_removido" });
-    focarDepois(fica ? tirarDe(fica.id) : ESCOLHER);
-  }, [despachar, id, indice, materiais]);
+    focarDepois(proximo);
+  }, [despachar, id, proximo]);
   return (
-    <li className={LINHA}>
+    <Reorder.Item
+      _dragX={deslizeHorizontal}
+      className={cn(LINHA, arrastada && LINHA_ARRASTADA)}
+      dragControls={controles}
+      dragListener={false}
+      dragMomentum={false}
+      dragTransition={movimento.assentar}
+      onDragEnd={aoSoltar}
+      transition={movimento.transition}
+      value={id}
+    >
+      <Alca aoComecar={comecar} aoSoltar={aoSoltar} controles={controles} />
       <SeloDoTipo tipo={material.tipo} />
       <div className="grid min-w-0 gap-0.5">
         <label className="sr-only" htmlFor={campo}>
@@ -168,17 +276,24 @@ function LinhaDoMaterial({
           <X aria-hidden="true" />
         </Button>
       </span>
-    </li>
+    </Reorder.Item>
   );
 }
 
+/**
+ * A linha que sobe ou foi recusada não arrasta nem tem setas: a que sobe vira
+ * material em segundos, no mesmo lugar, e a recusada não entra no curso. Ela
+ * abre espaço quando outra linha passa.
+ */
 function LinhaDoEnvio({
   despachar,
   envio,
+  movimento,
   proximo,
 }: {
   despachar: Dispatch<AcaoDoEditor>;
   envio: EnvioDeMaterial;
+  movimento: Movimento;
   /** Quem recebe o foco quando esta linha sai. */
   proximo: string;
 }) {
@@ -189,7 +304,13 @@ function LinhaDoEnvio({
   }, [despachar, id, proximo]);
   const recusado = estado.tipo === "recusado";
   return (
-    <li className={LINHA}>
+    <Reorder.Item
+      className={LINHA}
+      dragListener={false}
+      transition={movimento.transition}
+      value={id}
+    >
+      <span className={ALCA} />
       <SeloDoTipo recusado={recusado} tipo={envio.tipo} />
       <div className="grid min-w-0 gap-1">
         <p className="truncate font-semibold text-sm text-titulo">
@@ -230,7 +351,7 @@ function LinhaDoEnvio({
       ) : (
         <span />
       )}
-    </li>
+    </Reorder.Item>
   );
 }
 
@@ -260,10 +381,28 @@ export function MaterialDeApoio({
   estado: Pick<RascunhoDoEditor, "daGeracao" | "rascunho">;
 }) {
   const { materiais } = estado.rascunho;
-  const { envios } = estado.daGeracao;
+  const linhas = linhasDoMaterial(estado);
   const { executar } = useAcao();
   const entrada = useRef<HTMLInputElement>(null);
   const [arrastando, setArrastando] = useState(false);
+  const [movendo, setMovendo] = useState<MaterialId | null>(null);
+  const movimento = movimentoDasLinhas(
+    movendo !== null,
+    useReducedMotion() ?? false
+  );
+  const soltar = useCallback(() => setMovendo(null), []);
+  const reordenar = useCallback(
+    (ids: MaterialId[]) => {
+      if (movendo) {
+        despachar({
+          id: movendo,
+          para: ids.indexOf(movendo),
+          tipo: "material_movido",
+        });
+      }
+    },
+    [despachar, movendo]
+  );
 
   const enviar = useCallback(
     (arquivos: readonly File[]) => {
@@ -326,7 +465,14 @@ export function MaterialDeApoio({
     [enviar]
   );
 
-  const vazio = materiais.length === 0 && envios.length === 0;
+  const vazio = linhas.length === 0;
+  const comTirar = linhas.filter(
+    (l) => l.tipo === "material" || l.envio.estado.tipo === "recusado"
+  );
+  const proximoDe = (l: LinhaDaLista) => {
+    const fica = vizinhoQueFica(comTirar, comTirar.indexOf(l));
+    return fica ? tirarDe(idDaLinha(fica)) : ESCOLHER;
+  };
   return (
     <Secao
       id="material"
@@ -348,28 +494,37 @@ export function MaterialDeApoio({
             Sem arquivo, a página do curso não mostra material de apoio.
           </p>
         ) : (
-          <ul aria-label="Arquivos do material de apoio">
-            {materiais.map((m, i) => (
-              <LinhaDoMaterial
-                despachar={despachar}
-                indice={i}
-                key={m.id}
-                materiais={materiais}
-                material={m}
-              />
-            ))}
-            {envios.map((x, i) => {
-              const fica = vizinhoQueFica(envios, i);
-              return (
+          <Reorder.Group
+            aria-label="Arquivos do material de apoio"
+            axis="y"
+            onReorder={reordenar}
+            values={linhas.map(idDaLinha)}
+          >
+            {linhas.map((l, i) =>
+              l.tipo === "material" ? (
+                <LinhaDoMaterial
+                  aoComecar={setMovendo}
+                  aoSoltar={soltar}
+                  arrastada={movendo === l.material.id}
+                  despachar={despachar}
+                  indice={i}
+                  key={l.material.id}
+                  material={l.material}
+                  movimento={movimento}
+                  proximo={proximoDe(l)}
+                  total={linhas.length}
+                />
+              ) : (
                 <LinhaDoEnvio
                   despachar={despachar}
-                  envio={x}
-                  key={x.id}
-                  proximo={fica ? tirarDe(fica.id) : ESCOLHER}
+                  envio={l.envio}
+                  key={l.envio.id}
+                  movimento={movimento}
+                  proximo={proximoDe(l)}
                 />
-              );
-            })}
-          </ul>
+              )
+            )}
+          </Reorder.Group>
         )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-border border-t bg-muted/30 px-5 py-4">
           <p className="min-w-0 flex-[1_1_260px] text-[13px] text-muted-foreground">

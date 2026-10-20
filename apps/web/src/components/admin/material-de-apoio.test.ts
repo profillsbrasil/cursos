@@ -9,6 +9,7 @@ import {
   type AcaoDoEditor,
   dentroDoLimite,
   type EnvioDeMaterial,
+  linhasDoMaterial,
   type RascunhoDoEditor,
   RECUSA_DO_LIMITE,
   rascunhoDoEditor,
@@ -43,6 +44,14 @@ const aplicar = (e: RascunhoDoEditor, ...acoes: AcaoDoEditor[]) =>
 
 const titulos = (e: RascunhoDoEditor) =>
   e.rascunho.materiais.map((m) => m.titulo);
+
+/** A lista que a seção mostra: o título de cada material e o arquivo de cada envio. */
+const linhas = (e: RascunhoDoEditor) =>
+  linhasDoMaterial(e).map((l) =>
+    l.tipo === "material"
+      ? l.material.titulo
+      : `subindo ${l.envio.nomeDoArquivo}`
+  );
 
 describe("material de apoio no rascunho", () => {
   test("o arquivo escolhido fica subindo e prende o admin; o recebido entra no fim com o título sugerido", () => {
@@ -99,22 +108,63 @@ describe("material de apoio no rascunho", () => {
     expect(telaDo(depois).sujo).toBe(false);
   });
 
-  test("renomear, subir, descer e tirar mexem só no material pedido", () => {
+  test("renomear, mover pelo índice e tirar mexem só no material pedido", () => {
     const e = salvo([material(1), material(2), material(3)]);
     const mudado = aplicar(
       e,
       { id: idDe(3), tipo: "material_renomeado", titulo: "Manual" },
-      { direcao: "acima", id: idDe(3), tipo: "material_movido" },
-      { direcao: "acima", id: idDe(1), tipo: "material_movido" },
+      { id: idDe(3), para: 1, tipo: "material_movido" },
+      { id: idDe(1), para: 2, tipo: "material_movido" },
       { id: idDe(2), tipo: "material_removido" }
     );
-    expect(titulos(mudado)).toEqual(["Material 1", "Manual"]);
+    expect(titulos(mudado)).toEqual(["Manual", "Material 1"]);
     expect(telaDo(mudado).sujo).toBe(true);
     expect(
-      titulos(
-        aplicar(e, { direcao: "abaixo", id: idDe(3), tipo: "material_movido" })
-      )
-    ).toEqual(["Material 1", "Material 2", "Material 3"]);
+      titulos(aplicar(e, { id: idDe(1), para: 2, tipo: "material_movido" }))
+    ).toEqual(["Material 2", "Material 3", "Material 1"]);
+    expect(aplicar(e, { id: idDe(3), para: 3, tipo: "material_movido" })).toBe(
+      e
+    );
+  });
+
+  test("três arquivos escolhidos juntos ficam na ordem da seleção, mesmo com o terceiro chegando primeiro", () => {
+    const escolhidos = aplicar(salvo([material(1)]), {
+      envios: [enviando(2), enviando(3), enviando(4)],
+      tipo: "materiais_escolhidos",
+    });
+    const terceiro = aplicar(escolhidos, {
+      material: material(4),
+      tipo: "material_recebido",
+    });
+    expect(linhas(terceiro)).toEqual([
+      "Material 1",
+      "subindo arquivo-2.pdf",
+      "subindo arquivo-3.pdf",
+      "Material 4",
+    ]);
+    const todos = aplicar(
+      terceiro,
+      { material: material(2), tipo: "material_recebido" },
+      { material: material(3), tipo: "material_recebido" }
+    );
+    expect(titulos(todos)).toEqual([
+      "Material 1",
+      "Material 2",
+      "Material 3",
+      "Material 4",
+    ]);
+    expect(todos.daGeracao.envios).toEqual([]);
+  });
+
+  test("a linha que sobe fica onde estava quando um material passa por ela ou sai de cima dela", () => {
+    const e = aplicar(
+      salvo([material(1), material(2)]),
+      { envios: [enviando(3)], tipo: "materiais_escolhidos" },
+      { id: idDe(2), para: 2, tipo: "material_movido" },
+      { id: idDe(1), tipo: "material_removido" },
+      { material: material(3), tipo: "material_recebido" }
+    );
+    expect(titulos(e)).toEqual(["Material 3", "Material 2"]);
   });
 
   test("título vazio marca o campo da linha quando o admin sai dele", () => {

@@ -70,7 +70,7 @@ export const GEOMETRIA_DA_LISTA = {
   "--vao-do-item": `${VAO_DO_ITEM}px`,
 } as CSSProperties;
 
-const CURVA_FORTE: [number, number, number, number] = [0.23, 1, 0.32, 1];
+export const CURVA_FORTE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 const DESLIZE_S = 0.18;
 
 export interface MovimentoDaPilula {
