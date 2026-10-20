@@ -624,6 +624,55 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     expect(await focado()).toBe("LegendasDesligadas");
   });
 
+  test("pelo teclado, as teclas dentro dos Ajustes ficam na folha e não tocam nem andam no vídeo", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    await apertar("Tab");
+    expect(await focado()).toBe("LegendasDesligadas");
+    await pedidos();
+    await ["ArrowRight", "ArrowLeft", "l", "k"].reduce<Promise<void>>(
+      (anterior, tecla) => anterior.then(() => apertar(tecla)),
+      Promise.resolve()
+    );
+    expect(await pedidos()).toEqual([]);
+  });
+
+  test("com o YouTube, andar no vídeo antes do primeiro play não o faz tocar: a posição espera o Reproduzir", async () => {
+    await abrir(1440, 900, false, false, pacoteComYoutube);
+    await esperar(
+      `document.querySelector('button[aria-label="Reproduzir"]')?.disabled === false`
+    );
+    const chamadas = () => avaliar<string[]>(enviar, "window.yt.splice(0)");
+    await chamadas();
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Reproduzir"]').focus()`
+    );
+    await apertar("ArrowRight");
+    await clicar('button[aria-label="Avançar 10 segundos"]');
+    // O seekTo do YouTube toca o vídeo que ainda não começou.
+    expect(await chamadas()).toEqual([]);
+    expect(
+      await avaliar<string>(
+        enviar,
+        `[...document.querySelectorAll("#video span")].find((s) => s.textContent.includes(" / ")).textContent`
+      )
+    ).toStartWith("00:15 / 10:34");
+    await clicar('button[aria-label="Reproduzir"]');
+    expect(await chamadas()).toEqual(["seekTo:15,true", "playVideo"]);
+    // Depois do primeiro play, andar no vídeo vai direto ao YouTube.
+    await avaliar(enviar, "window.ytEventos.onStateChange({ data: 1 })");
+    await chamadas();
+    await clicar('button[aria-label="Avançar 10 segundos"]');
+    expect(await chamadas()).toEqual(["seekTo:10,true"]);
+  });
+
   test("pelo teclado, o Esc na lista de atalhos devolve o foco à engrenagem", async () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
