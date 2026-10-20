@@ -13,6 +13,7 @@ import {
   recusaDaMedida,
   recusaDoTamanho,
 } from "../dominio/capa";
+import type { ObjetoDoBucket } from "../dominio/orfaos";
 
 export type CapaRecebida =
   | { tipo: "guardada"; imagem: ImagemDaCapa }
@@ -102,7 +103,21 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
   const doObjeto = (chave: string) =>
     `${endpoint.protocol}//${cfg.bucket}.${endpoint.host}/${chave}`;
 
+  const recusado = async (etapa: string, resposta: Response) =>
+    new Error(
+      `Bucket ${cfg.bucket} recusou ${etapa}: ${resposta.status} ${await resposta.text()}`
+    );
+
   return {
+    /** DeleteObject. O S3 responde 204 também para a chave que não existe. */
+    async apagar(chave: string) {
+      const resposta = await enviar(
+        await aws.sign(doObjeto(chave), { method: "DELETE" })
+      );
+      if (!(resposta.ok || resposta.status === 404)) {
+        throw await recusado(`apagar ${chave}`, resposta);
+      }
+    },
     async guardar(
       chave: string,
       bytes: Uint8Array<ArrayBuffer>,
@@ -122,15 +137,72 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
         method: "PUT",
       });
     },
+    /** ListObjectsV2, página a página, até o fim do bucket. */
+    async listar(): Promise<ObjetoDoBucket[]> {
+      const objetos: ObjetoDoBucket[] = [];
+      let continuacao: string | undefined;
+      do {
+        const url = new URL(doObjeto(""));
+        url.searchParams.set("list-type", "2");
+        if (continuacao) {
+          url.searchParams.set("continuation-token", continuacao);
+        }
+        // biome-ignore lint/performance/noAwaitInLoops: cada página pede o token da anterior.
+        const resposta = await enviar(await aws.sign(url.toString()));
+        if (!resposta.ok) {
+          throw await recusado("a listagem", resposta);
+        }
+        const pagina = lerPaginaDaListagem(await resposta.text());
+        objetos.push(...pagina.objetos);
+        ({ continuacao } = pagina);
+      } while (continuacao);
+      return objetos;
+    },
     pedir: async (chave: string, method: "GET" | "HEAD" = "GET") =>
       enviar(await aws.sign(doObjeto(chave), { method })),
+  };
+}
+
+const ENTIDADES: Record<string, string> = {
+  "&amp;": "&",
+  "&apos;": "'",
+  "&gt;": ">",
+  "&lt;": "<",
+  "&quot;": '"',
+};
+const ENTIDADE = /&(amp|apos|gt|lt|quot);/g;
+const CONTEUDO = /<Contents>([\s\S]*?)<\/Contents>/g;
+
+function campo(xml: string, nome: string): string | undefined {
+  const achado = new RegExp(`<${nome}>([^<]*)</${nome}>`).exec(xml)?.[1];
+  return achado?.replace(ENTIDADE, (e) => ENTIDADES[e] ?? e);
+}
+
+/** O XML de uma página do ListObjectsV2: os objetos e o token da próxima, se houver. */
+export function lerPaginaDaListagem(xml: string): {
+  continuacao: string | undefined;
+  objetos: ObjetoDoBucket[];
+} {
+  const objetos = [...xml.matchAll(CONTEUDO)].map(([, item = ""]) => {
+    const chave = campo(item, "Key");
+    const modificadoEm = new Date(campo(item, "LastModified") ?? "");
+    const bytes = Number(campo(item, "Size"));
+    if (!chave || Number.isNaN(modificadoEm.getTime()) || Number.isNaN(bytes)) {
+      throw new Error(`Objeto ilegível na listagem do bucket: ${item}`);
+    }
+    return { bytes, chave, modificadoEm };
+  });
+  const truncada = campo(xml, "IsTruncated") === "true";
+  return {
+    continuacao: truncada ? campo(xml, "NextContinuationToken") : undefined,
+    objetos,
   };
 }
 
 /**
  * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT
  * reescreve os mesmos bytes e o cache pode durar um ano. Capa trocada deixa o
- * objeto antigo no bucket; não há coleta.
+ * objeto antigo no bucket até a coleta de órfãos (scripts/coletar-orfaos.ts).
  */
 export function capasNoBucket(
   cfg: BucketDeCapas,

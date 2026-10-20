@@ -4,7 +4,13 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { LIMITE_DA_CAPA } from "../dominio/capa";
-import { capasDesligadas, capasNoBucket, lerCapa } from "./capas";
+import {
+  bucketAssinado,
+  capasDesligadas,
+  capasNoBucket,
+  lerCapa,
+  lerPaginaDaListagem,
+} from "./capas";
 
 const PASTA = join(import.meta.dir, "../../../../apps/web/public/capas");
 
@@ -227,5 +233,121 @@ describe("capasNoBucket", () => {
       tipo: "recusa",
     });
     expect(await capasDesligadas.abrir(`${"a".repeat(64)}.jpg`)).toBeNull();
+  });
+});
+
+const paginaDaListagem = (
+  objetos: { chave: string; bytes: number; em: string }[],
+  proxima?: string
+) =>
+  `<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>capas-teste</Name>
+  <KeyCount>${objetos.length}</KeyCount>
+  <IsTruncated>${proxima ? "true" : "false"}</IsTruncated>
+  ${proxima ? `<NextContinuationToken>${proxima}</NextContinuationToken>` : ""}
+  ${objetos
+    .map(
+      (o) =>
+        `<Contents><Key>${o.chave}</Key><LastModified>${o.em}</LastModified><ETag>&quot;x&quot;</ETag><Size>${o.bytes}</Size><StorageClass>STANDARD</StorageClass></Contents>`
+    )
+    .join("")}
+</ListBucketResult>`;
+
+describe("bucketAssinado", () => {
+  test("listar segue o token de página em página, com GET assinado de ListObjectsV2", async () => {
+    const paginas = [
+      paginaDaListagem(
+        [{ bytes: 10, chave: "a.jpg", em: "2026-10-01T10:00:00.000Z" }],
+        "token+/="
+      ),
+      paginaDaListagem([
+        { bytes: 20, chave: "b.pdf", em: "2026-10-02T10:00:00.000Z" },
+        { bytes: 30, chave: "c.zip", em: "2026-10-03T10:00:00.000Z" },
+      ]),
+    ];
+    const { enviar, pedidos } = bucketFalso(
+      () => new Response(paginas.shift())
+    );
+
+    const objetos = await bucketAssinado(BUCKET, enviar).listar();
+
+    expect(objetos).toEqual([
+      {
+        bytes: 10,
+        chave: "a.jpg",
+        modificadoEm: new Date("2026-10-01T10:00:00Z"),
+      },
+      {
+        bytes: 20,
+        chave: "b.pdf",
+        modificadoEm: new Date("2026-10-02T10:00:00Z"),
+      },
+      {
+        bytes: 30,
+        chave: "c.zip",
+        modificadoEm: new Date("2026-10-03T10:00:00Z"),
+      },
+    ]);
+    expect(pedidos.map((p) => [p.method, p.url])).toEqual([
+      ["GET", "https://capas-teste.t3.storageapi.dev/?list-type=2"],
+      [
+        "GET",
+        "https://capas-teste.t3.storageapi.dev/?list-type=2&continuation-token=token%2B%2F%3D",
+      ],
+    ]);
+    expect(pedidos[1]?.headers.get("authorization")).toStartWith(
+      "AWS4-HMAC-SHA256 Credential=id-de-teste/"
+    );
+  });
+
+  test("a listagem lê o bucket vazio e a chave com entidade de XML", () => {
+    expect(lerPaginaDaListagem(paginaDaListagem([]))).toEqual({
+      continuacao: undefined,
+      objetos: [],
+    });
+    expect(
+      lerPaginaDaListagem(
+        paginaDaListagem([
+          { bytes: 1, chave: "a&amp;b.txt", em: "2026-10-01T10:00:00Z" },
+        ])
+      ).objetos[0]?.chave
+    ).toBe("a&b.txt");
+  });
+
+  test("apagar manda DELETE assinado do objeto e aceita o 204 e o 404", async () => {
+    const respostas = [
+      new Response(null, { status: 204 }),
+      new Response(null, { status: 404 }),
+    ];
+    const { enviar, pedidos } = bucketFalso(
+      () => respostas.shift() as Response
+    );
+    const bucket = bucketAssinado(BUCKET, enviar);
+
+    await bucket.apagar("a.jpg");
+    await bucket.apagar("b.pdf");
+
+    expect(pedidos.map((p) => [p.method, p.url])).toEqual([
+      ["DELETE", "https://capas-teste.t3.storageapi.dev/a.jpg"],
+      ["DELETE", "https://capas-teste.t3.storageapi.dev/b.pdf"],
+    ]);
+    expect(pedidos[0]?.headers.get("authorization")).toStartWith(
+      "AWS4-HMAC-SHA256 Credential=id-de-teste/"
+    );
+  });
+
+  test("recusa do bucket na listagem e no apagar vira erro com o status e o corpo", async () => {
+    const { enviar } = bucketFalso(
+      () => new Response("AccessDenied", { status: 403 })
+    );
+    const bucket = bucketAssinado(BUCKET, enviar);
+
+    expect(String(await bucket.listar().catch((e: unknown) => e))).toBe(
+      "Error: Bucket capas-teste recusou a listagem: 403 AccessDenied"
+    );
+    expect(String(await bucket.apagar("a.jpg").catch((e: unknown) => e))).toBe(
+      "Error: Bucket capas-teste recusou apagar a.jpg: 403 AccessDenied"
+    );
   });
 });
