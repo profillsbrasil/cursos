@@ -124,6 +124,52 @@ const semana = () =>
     };
   `);
 
+/**
+ * A marca "sáb e dom" como o Chromium a desenha: a escrita, o giro (`rotate` e
+ * `transform`), a letra e o contraste da cor calculada contra o primeiro fundo
+ * pintado atrás dela. O canvas converte qualquer cor (oklch, color-mix) para sRGB.
+ */
+const fimsDeSemana = () =>
+  medir<
+    {
+      contraste: number;
+      fonte: number;
+      rotate: string;
+      transform: string;
+      writingMode: string;
+    }[]
+  >(`
+    const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    const rgb = (cor) => {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = cor;
+      ctx.fillRect(0, 0, 1, 1);
+      return [...ctx.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+    };
+    const luz = ([r, g, b]) => {
+      const c = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+      return 0.2126 * c(r) + 0.7152 * c(g) + 0.0722 * c(b);
+    };
+    const fundo = (el) => {
+      for (let e = el; e; e = e.parentElement) {
+        const cor = getComputedStyle(e).backgroundColor;
+        if (cor !== "rgba(0, 0, 0, 0)" && cor !== "transparent") return cor;
+      }
+      return getComputedStyle(document.body).backgroundColor;
+    };
+    return [...document.querySelectorAll("[data-fim-de-semana]")].map((el) => {
+      const s = getComputedStyle(el);
+      const [a, b] = [luz(rgb(s.color)), luz(rgb(fundo(el)))].sort((x, y) => y - x);
+      return {
+        contraste: (a + 0.05) / (b + 0.05),
+        fonte: parseFloat(s.fontSize),
+        rotate: s.rotate,
+        transform: s.transform,
+        writingMode: s.writingMode,
+      };
+    });
+  `);
+
 const primeiras = () =>
   medir<Caixa[]>(
     `return [...document.querySelectorAll("[data-primeira-vez]")].map(caixa);`
@@ -248,6 +294,18 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
           expect(fim.direita).toBeLessThanOrEqual(
             (s.circulos[sexta + 1] as Caixa).esquerda
           );
+        }
+      });
+
+      test(`${largura} px, ${nome}: "sáb e dom" se lê na horizontal, em 12 px e com contraste de 4,5:1`, async () => {
+        await abrir(largura, html);
+        const fins = await fimsDeSemana();
+        expect(fins.length).toBeGreaterThan(0);
+        for (const f of fins) {
+          expect(f.writingMode).toBe("horizontal-tb");
+          expect([f.rotate, f.transform]).toEqual(["none", "none"]);
+          expect(f.fonte).toBeGreaterThanOrEqual(12);
+          expect(f.contraste).toBeGreaterThanOrEqual(4.5);
         }
       });
 
