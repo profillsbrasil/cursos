@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@cursos/ui/components/avatar";
+import { Button } from "@cursos/ui/components/button";
 import { FieldError } from "@cursos/ui/components/field";
 import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
@@ -17,6 +18,7 @@ import {
   useState,
 } from "react";
 
+import { CONTORNO_DESLIGADO, PEQUENO } from "@/components/casca/botoes";
 import { CAMPO } from "@/components/casca/campos";
 import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
@@ -123,6 +125,41 @@ function legendaDaFolha(exemplo: boolean, mudou: boolean) {
     : "Assim o nome sai no certificado";
 }
 
+/**
+ * Parado (nada mudou ou o nome não passa na regra), o Salvar é o contorno
+ * desligado e focável, e diz por quê; enviando, fica Sol com o desligado.
+ */
+function SalvarNome({
+  descritoPor,
+  idDeNadaMudou,
+  parado,
+  pendente,
+}: {
+  descritoPor: string;
+  idDeNadaMudou: string;
+  parado: boolean;
+  pendente: boolean;
+}) {
+  return (
+    <>
+      <Button
+        aria-describedby={parado ? descritoPor : undefined}
+        className={
+          parado && !pendente ? cn(CONTORNO_DESLIGADO, PEQUENO) : BOTAO_PEQUENO
+        }
+        disabled={pendente || parado}
+        focusableWhenDisabled
+        type="submit"
+      >
+        Salvar nome
+      </Button>
+      <span className="sr-only" id={idDeNadaMudou}>
+        Nada mudou no nome.
+      </span>
+    </>
+  );
+}
+
 /** O topo de Minha conta: quem é a pessoa, com o nome salvo, os campos do nome e, ao lado, a folha do certificado com o nome dos campos. */
 export function SecaoDoNome({
   certificados,
@@ -148,6 +185,7 @@ export function SecaoDoNome({
   // O campo avisa a regra antes de enviar, e o Salvar diz por que está apagado.
   const problema = mudou ? problemaDoNome(nome, sobrenome) : null;
   const idDoErro = `${id}-erro`;
+  const idDeNadaMudou = `${id}-nada-mudou`;
   const marcar = (campo: CampoDoNome) =>
     problema?.campos.includes(campo)
       ? { "aria-describedby": idDoErro, "aria-invalid": true }
@@ -231,14 +269,12 @@ export function SecaoDoNome({
         </div>
         <div className={cn(PE_DO_CARTAO, "@min-[48rem]:px-[26px]")}>
           <div className={ACOES}>
-            <button
-              aria-describedby={problema ? idDoErro : undefined}
-              className={BOTAO_PEQUENO}
-              disabled={pendente || !mudou || !!problema}
-              type="submit"
-            >
-              Salvar nome
-            </button>
+            <SalvarNome
+              descritoPor={problema ? idDoErro : idDeNadaMudou}
+              idDeNadaMudou={idDeNadaMudou}
+              parado={!mudou || problema !== null}
+              pendente={pendente}
+            />
           </div>
         </div>
       </form>

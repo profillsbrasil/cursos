@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
-import { CONTORNO_DESLIGADO, ICONE } from "./partes";
+import { CONTORNO_DESLIGADO } from "@/components/casca/botoes";
+
+import { ICONE } from "./partes";
 
 const classesDoBotao = (className: string) =>
   cn(buttonVariants({ className, size: "default", variant: "default" })).split(

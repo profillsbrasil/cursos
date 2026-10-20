@@ -18,7 +18,11 @@ import {
   useCallback,
 } from "react";
 
-import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import {
+  BOTAO_CONTORNO,
+  CONTORNO_DESLIGADO,
+  PEQUENO,
+} from "@/components/casca/botoes";
 import { DICA } from "@/components/casca/estilo";
 import {
   type Direcao,
@@ -33,7 +37,7 @@ import { AulasDoModulo } from "./aulas-do-modulo";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { CONTORNO_DESLIGADO, ICONE, ROTULO, SELO, Vazio } from "./partes";
+import { ICONE, ROTULO, SELO, Vazio } from "./partes";
 import {
   ID,
   type ModuloDoRascunho,

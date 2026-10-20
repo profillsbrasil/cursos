@@ -2,12 +2,11 @@ import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { useId } from "react";
 
-import { BOTAO } from "@/components/casca/botoes";
+import { BOTAO, CONTORNO_DESLIGADO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
 
 import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
 import { Carregando } from "./confirmacao-na-linha";
-import { CONTORNO_DESLIGADO } from "./partes";
 import type { Problema } from "./problemas";
 
 /** O que a barra do pé e a coluna de publicação mostram do salvar. */
