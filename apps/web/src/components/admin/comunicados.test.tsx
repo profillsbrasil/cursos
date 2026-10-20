@@ -54,3 +54,16 @@ describe("autor na lista de publicados", () => {
     expect(tela.match(/, por /g)).toHaveLength(1);
   });
 });
+
+describe("onde o aluno lê o comunicado", () => {
+  test("a tela não repete Meus cursos: o cabeçalho da página já diz onde ele aparece", () => {
+    const vazia = texto(
+      renderToStaticMarkup(<Comunicados comunicados={[]} cursos={[]} />)
+    );
+    expect(vazia).toContain(
+      "Novo comunicado Para todos ou para quem tem um curso"
+    );
+    expect(vazia).toContain("Nenhum comunicado ainda.");
+    expect(vazia).not.toContain("Meus cursos");
+  });
+});

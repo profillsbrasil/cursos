@@ -14,7 +14,7 @@ export default async function PaginaDeComunicados() {
           Comunicados
         </h1>
         <p className="text-muted-foreground">
-          O aluno vê em Meus cursos só o mais recente que alcança
+          O aluno vê o mais recente em Meus cursos e todos em Comunicados
         </p>
       </header>
       <Comunicados {...dados} />
