@@ -9,13 +9,15 @@ import type { Transacao } from "./comum";
  * `curso:<id>` serializa a edição e o apagamento pelo admin. salvarCurso e
  * apagarCurso pegam só a `curso:<id>` deles, e a criação pega também a
  * `slug:<raiz>` (raizDoSlug) antes de escolher o endereço livre e, depois dela, a
- * `codigo:<sigla>` antes de escolher o código livre.
+ * `codigo:<sigla>` antes de escolher o código livre. `papel` serializa toda
+ * mudança de papel: dois admins não tiram o papel um do outro ao mesmo tempo.
  */
 type ChaveDeTrava =
   | `codigo:${string}`
   | `ponto:${string}`
   | `curso:${string}`
-  | `slug:${string}`;
+  | `slug:${string}`
+  | "papel";
 
 /** A mesma trava de comTrava, numa transação que já segura outra. */
 export async function travarTambem(tx: Transacao, chave: ChaveDeTrava) {

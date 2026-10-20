@@ -1,12 +1,13 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import { perfilDaPessoa } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { contextoDeTeste, pessoasDeTeste } from "../contexto-de-teste";
 import type { Conta, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 
@@ -131,6 +132,40 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
         .definirPapel({ papel: "aluno", userId: DONA })
         .catch(codigo)
     ).toBe("PRECONDITION_FAILED");
+  });
+
+  test("dois admins tirando o papel um do outro ao mesmo tempo: um tira, o outro é recusado", async () => {
+    const A = `user_a${S}`;
+    const B = `user_b${S}`;
+    const clerk = pessoasDeTeste([
+      { email: null, foto: null, nome: "A", papel: "admin", userId: A },
+      { email: null, foto: null, nome: "B", papel: "admin", userId: B },
+    ]);
+    const { definirPapel } = clerk;
+    // A espera põe as duas mudanças no ar ao mesmo tempo, antes de uma gravar.
+    clerk.definirPapel = async (userId, papel) => {
+      await esperar(50);
+      await definirPapel(userId, papel);
+    };
+    const como = (userId: string) =>
+      createCaller({
+        ...contextoDeTeste({ db, papel: "admin", userId }),
+        pessoas: clerk,
+      });
+    const resultados = await Promise.allSettled([
+      como(A).admin.pessoas.definirPapel({ papel: "aluno", userId: B }),
+      como(B).admin.pessoas.definirPapel({ papel: "aluno", userId: A }),
+    ]);
+    expect(resultados.map((r) => r.status).sort()).toEqual([
+      "fulfilled",
+      "rejected",
+    ]);
+    const recusa = resultados.find((r) => r.status === "rejected");
+    expect(recusa?.status === "rejected" && codigo(recusa.reason)).toBe(
+      "FORBIDDEN"
+    );
+    const papeis = await Promise.all([clerk.conta(A), clerk.conta(B)]);
+    expect(papeis.filter((c) => c?.papel === "admin")).toHaveLength(1);
   });
 
   test("mudar perfil ou papel de quem o Clerk não conhece recusa com a frase", async () => {

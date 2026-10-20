@@ -37,6 +37,7 @@ import {
   linhasDosPerfis,
   quemTemOPerfil,
 } from "../consultas/perfil";
+import { comTrava } from "../consultas/trava";
 import { montarBusca } from "../dominio/acompanhamento";
 import { nomeDaCategoria } from "../dominio/categoria";
 import {
@@ -265,7 +266,7 @@ export const adminRouter = router({
   pessoas: router({
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(({ ctx, input }) => {
         // Ninguém tira o próprio papel: quem tira o de outro continua admin, e
         // a plataforma nunca fica sem admin.
         if (input.userId === ctx.admin && input.papel === "aluno") {
@@ -274,11 +275,25 @@ export const adminRouter = router({
             message: "Você não pode tirar o seu próprio papel de admin.",
           });
         }
-        if (!(await ctx.pessoas.conta(input.userId))) {
-          throw pessoaSumiu();
-        }
-        await ctx.pessoas.definirPapel(input.userId, input.papel);
-        return { papel: input.papel };
+        // Sob a trava, o papel de quem pede vem do Clerk, não do token: o token
+        // diz admin por até 60 s depois de outro admin tirar o papel dele.
+        return comTrava(ctx.db, "papel", async () => {
+          const [eu, alvo] = await Promise.all([
+            ctx.pessoas.conta(ctx.admin),
+            ctx.pessoas.conta(input.userId),
+          ]);
+          if (eu?.papel !== "admin") {
+            throw new ErroParaAPessoa({
+              code: "FORBIDDEN",
+              message: "Você não é mais admin.",
+            });
+          }
+          if (!alvo) {
+            throw pessoaSumiu();
+          }
+          await ctx.pessoas.definirPapel(input.userId, input.papel);
+          return { papel: input.papel };
+        });
       }),
     definirPerfil: adminProcedure
       .input(z.object({ perfil, userId }))
