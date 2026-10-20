@@ -45,10 +45,10 @@ function BotaoDeVelocidade({
       aria-label={fmtVelocidade(valor)}
       aria-pressed={marcada}
       className={cn(
-        "h-[30px] rounded-lg font-mono font-semibold text-xs tabular-nums transition-colors duration-150 ease-forte",
+        "h-[30px] rounded-lg font-mono font-semibold text-xs tabular-nums transition-[background-color,color,box-shadow] duration-150 ease-forte",
         marcada
-          ? "bg-sol text-sobre-cor hover:bg-sol-hover"
-          : "text-foreground hover:bg-card"
+          ? "bg-sol text-sobre-cor hover:bg-sol-hover hover:shadow-brilho"
+          : "text-foreground hover:bg-trilho hover:text-titulo"
       )}
       onClick={escolher}
       type="button"
@@ -58,8 +58,19 @@ function BotaoDeVelocidade({
   );
 }
 
+/**
+ * O item da folha sob o cursor e com o foco de teclado sobe um degrau de tom sobre o
+ * `popover` da folha, até o `trilho`. O `cartao`, um degrau abaixo, deixava o item
+ * focado com um fundo escuro que mal se via.
+ */
 const OPCAO =
-  "flex h-[38px] w-full items-center gap-2.5 rounded-lg px-2 text-left text-foreground transition-colors duration-150 ease-forte hover:bg-card hover:text-titulo [&_svg]:size-[18px]";
+  "flex h-[38px] w-full items-center gap-2.5 rounded-lg px-2 text-left text-foreground transition-colors duration-150 ease-forte hover:bg-trilho hover:text-titulo [&_svg]:size-[18px]";
+
+/** O Esc devolve o foco à engrenagem já no quadro em que a folha começa a sair. */
+const fechouNoEsc = (
+  aberto: boolean,
+  detalhes: PopoverPrimitive.Root.ChangeEventDetails
+) => !aberto && detalhes.reason === "escape-key";
 
 /**
  * A engrenagem da barra: a velocidade como escolha direta, a legenda e a lista de
@@ -90,10 +101,30 @@ export function AjustesDoPlayer({
     setAberto(false);
     aoMudarAtalhos(true);
   }, [aoMudarAtalhos]);
+  // O Base UI só devolve o foco quando a folha termina de sair, 150 ms depois; até
+  // lá o foco ficava no botão que some, como o 2× da velocidade.
+  const mudarAjustes = useCallback(
+    (abrir: boolean, detalhes: PopoverPrimitive.Root.ChangeEventDetails) => {
+      setAberto(abrir);
+      if (fechouNoEsc(abrir, detalhes)) {
+        refEngrenagem.current?.focus();
+      }
+    },
+    []
+  );
+  const mudarAtalhos = useCallback(
+    (abrir: boolean, detalhes: PopoverPrimitive.Root.ChangeEventDetails) => {
+      aoMudarAtalhos(abrir);
+      if (fechouNoEsc(abrir, detalhes)) {
+        refEngrenagem.current?.focus();
+      }
+    },
+    [aoMudarAtalhos]
+  );
 
   return (
     <>
-      <Popover onOpenChange={setAberto} open={aberto}>
+      <Popover onOpenChange={mudarAjustes} open={aberto}>
         <Tooltip>
           <TooltipTrigger
             render={
@@ -141,7 +172,8 @@ export function AjustesDoPlayer({
                   ))}
                 </div>
               </fieldset>
-              <hr className="my-1 border-border" />
+              {/* A folha tem 8 px de padding; a linha volta até a borda (The Edge To Edge Rule). */}
+              <hr className="-mx-2 my-1 border-border" />
               <button
                 aria-pressed={legenda}
                 className={OPCAO}
@@ -163,7 +195,7 @@ export function AjustesDoPlayer({
           </PopoverPrimitive.Positioner>
         </PopoverPrimitive.Portal>
       </Popover>
-      <Popover onOpenChange={aoMudarAtalhos} open={atalhosAbertos}>
+      <Popover onOpenChange={mudarAtalhos} open={atalhosAbertos}>
         <PopoverPrimitive.Portal container={portal}>
           <PopoverPrimitive.Positioner
             align="end"

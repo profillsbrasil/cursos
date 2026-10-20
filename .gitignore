@@ -56,3 +56,6 @@ coverage
 .cache
 tmp
 temp
+
+# Prints do teste de usabilidade (qa/primeiros-usuarios)
+qa/**/*.png

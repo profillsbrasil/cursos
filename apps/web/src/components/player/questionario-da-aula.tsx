@@ -25,7 +25,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import {
   BOTAO,
@@ -59,6 +59,8 @@ type Fase =
   | {
       tipo: "resultado";
       concluiuOCurso: boolean;
+      /** Só o envio leva o foco ao resultado; a última tentativa, ao abrir a aula, não. */
+      focar: boolean;
       resultado: ResultadoDoQuestionario;
     };
 
@@ -71,7 +73,12 @@ const novaTentativa = (): Fase => ({
 
 const faseInicial = (q: Questionario): Fase =>
   q.ultima
-    ? { concluiuOCurso: false, resultado: q.ultima, tipo: "resultado" }
+    ? {
+        concluiuOCurso: false,
+        focar: false,
+        resultado: q.ultima,
+        tipo: "resultado",
+      }
     : novaTentativa();
 
 const LADO = "px-[26px] max-sm:px-[18px]";
@@ -244,62 +251,66 @@ function Pergunta({
     fase.tipo === "resultado"
       ? fase.resultado.respostas.find((r) => r.perguntaId === pergunta.id)
       : undefined;
+  // A linha é a borda da caixa de fora: no próprio fieldset, o legend senta
+  // em cima da borda e a linha corta o enunciado.
   return (
-    <fieldset
-      className={cn(
-        "grid min-w-0 gap-3 border-border border-t py-[22px]",
-        LADO
-      )}
-    >
-      <legend className="mb-3 flex gap-2.5 text-pretty font-semibold text-base text-titulo leading-[1.45]">
-        <span className="shrink-0 font-medium text-muted-foreground tabular-nums">
-          {numero}.
-        </span>
-        <span>{pergunta.enunciado}</span>
-      </legend>
-      {resposta ? (
-        <p
-          className={cn(
-            "inline-flex items-center gap-1.5 font-semibold text-[13px]",
-            resposta.certa ? "text-ceu" : "text-canela"
+    <div className={cn("border-border border-t py-[22px]", LADO)}>
+      <fieldset className="m-0 grid min-w-0 gap-3 border-0 p-0">
+        <legend className="mb-3 flex gap-2.5 text-pretty p-0 font-semibold text-base text-titulo leading-[1.45]">
+          <span className="shrink-0 font-medium text-muted-foreground tabular-nums">
+            {numero}.
+          </span>
+          <span>{pergunta.enunciado}</span>
+        </legend>
+        {resposta ? (
+          <p
+            className={cn(
+              "inline-flex items-center gap-1.5 font-semibold text-[13px]",
+              resposta.certa ? "text-ceu" : "text-canela"
+            )}
+          >
+            {resposta.certa ? (
+              <Check
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.5}
+              />
+            ) : (
+              <X aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
+            )}
+            {resposta.certa ? "Certa" : "Você errou esta"}
+          </p>
+        ) : null}
+        <div className="grid gap-2">
+          {pergunta.alternativas.map((a, i) =>
+            fase.tipo === "respondendo" ? (
+              <AlternativaParaMarcar
+                alternativaId={a.id}
+                indice={i}
+                key={a.id}
+                marcada={fase.marcadas[pergunta.id] === a.id}
+                marcar={marcar}
+                perguntaId={pergunta.id}
+                texto={a.texto}
+              />
+            ) : (
+              <AlternativaCorrigida
+                indice={i}
+                key={a.id}
+                texto={a.texto}
+                veredito={vereditoDe(a.id, resposta)}
+              />
+            )
           )}
-        >
-          {resposta.certa ? (
-            <Check aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
-          ) : (
-            <X aria-hidden="true" className="size-3.5" strokeWidth={2.5} />
-          )}
-          {resposta.certa ? "Certa" : "Você errou esta"}
-        </p>
-      ) : null}
-      <div className="grid gap-2">
-        {pergunta.alternativas.map((a, i) =>
-          fase.tipo === "respondendo" ? (
-            <AlternativaParaMarcar
-              alternativaId={a.id}
-              indice={i}
-              key={a.id}
-              marcada={fase.marcadas[pergunta.id] === a.id}
-              marcar={marcar}
-              perguntaId={pergunta.id}
-              texto={a.texto}
-            />
-          ) : (
-            <AlternativaCorrigida
-              indice={i}
-              key={a.id}
-              texto={a.texto}
-              veredito={vereditoDe(a.id, resposta)}
-            />
-          )
-        )}
-      </div>
-    </fieldset>
+        </div>
+      </fieldset>
+    </div>
   );
 }
 
 export function Resultado({
   concluiuOCurso,
+  focar = false,
   proxima,
   resultado,
   slug,
@@ -307,6 +318,7 @@ export function Resultado({
   tentarDeNovo,
 }: {
   concluiuOCurso: boolean;
+  focar?: boolean;
   proxima: VizinhaDaAula | null;
   resultado: ResultadoDoQuestionario;
   slug: string;
@@ -315,14 +327,27 @@ export function Resultado({
 }) {
   const { texto, titulo } = fraseDoResultado(resultado);
   const { aprovada, pontos } = resultado;
+  const id = useId();
+  const caixa = useRef<HTMLDivElement>(null);
+  // O botão de envio some com o resultado. Sem isto o foco cai no body, e o
+  // resultado, que entra já preenchido, não se anuncia pelo role="status".
+  useEffect(() => {
+    if (focar) {
+      caixa.current?.focus();
+    }
+  }, [focar]);
   return (
     <div
+      aria-describedby={`${id}-texto`}
+      aria-labelledby={`${id}-titulo`}
       className={cn(
         "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-border border-b py-[22px] max-sm:grid-cols-[auto_minmax(0,1fr)]",
         LADO,
         aprovada ? "bg-ceu/8" : "bg-canela/14"
       )}
+      ref={caixa}
       role="status"
+      tabIndex={-1}
     >
       <span
         className={cn(
@@ -336,7 +361,10 @@ export function Resultado({
           <RotateCcw aria-hidden="true" className="size-5" strokeWidth={2.6} />
         )}
       </span>
-      <h2 className="font-bold text-titulo text-xl leading-[1.3] tracking-[-0.02em]">
+      <h2
+        className="font-bold text-titulo text-xl leading-[1.3] tracking-[-0.02em]"
+        id={`${id}-titulo`}
+      >
         {titulo}
       </h2>
       <span
@@ -347,7 +375,10 @@ export function Resultado({
       >
         {ganhoDe(pontos)}
       </span>
-      <p className="col-start-2 col-end-[-1] text-pretty text-foreground max-sm:col-start-1">
+      <p
+        className="col-start-2 col-end-[-1] text-pretty text-foreground max-sm:col-start-1"
+        id={`${id}-texto`}
+      >
         {texto}
         {concluiuOCurso ? (
           <>
@@ -456,6 +487,7 @@ export function QuestionarioDaAula({
         depois: (r) =>
           setFase({
             concluiuOCurso: r.cursoConcluido !== null,
+            focar: true,
             resultado: r.resultado,
             tipo: "resultado",
           }),
@@ -473,6 +505,7 @@ export function QuestionarioDaAula({
       {fase.tipo === "resultado" ? (
         <Resultado
           concluiuOCurso={fase.concluiuOCurso}
+          focar={fase.focar}
           proxima={proxima}
           resultado={fase.resultado}
           slug={slug}

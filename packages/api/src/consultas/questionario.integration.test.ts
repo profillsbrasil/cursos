@@ -41,6 +41,7 @@ import { createCaller } from "../routers/index";
 import { registrar } from "./aula";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { linhasDoHistorico } from "./meus-cursos";
+import { TENTATIVA_EM_USO } from "./questionario";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -372,6 +373,44 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     expect(await pontosDe(aluno)).toEqual([
       { motivo: "questionario", pontos: 10 },
     ]);
+  });
+
+  test("o tentativaId de outra pessoa é recusado com CONFLICT, sem gravar nem mostrar a tentativa dela", async () => {
+    const c = await plantarCurso([2]);
+    const [a1] = c.aulas;
+    if (!a1) {
+      throw new Error("aula não plantada");
+    }
+    const dona = novoAluno();
+    const outra = novoAluno();
+    await liberar(dona, c.id);
+    await liberar(outra, c.id);
+    const id = randomUUID() as TentativaId;
+    const daDona = await enviar(dona, a1, 2, id);
+
+    const esperado = {
+      code: "CONFLICT",
+      message: TENTATIVA_EM_USO,
+    };
+    // Sem tentativa dela na aula, e depois com uma reprovada: os dois caminhos chegam ao insert.
+    expect(await recusa(enviar(outra, a1, 2, id))).toEqual(esperado);
+    await enviar(outra, a1, 0);
+    expect(await recusa(enviar(outra, a1, 2, id))).toEqual(esperado);
+
+    const tentativas = await db
+      .select({
+        acertos: questionarioTentativa.acertos,
+        userId: questionarioTentativa.userId,
+      })
+      .from(questionarioTentativa)
+      .where(eq(questionarioTentativa.id, id));
+    expect(tentativas).toEqual([{ acertos: 2, userId: dona }]);
+    expect(await pontosDe(outra)).toEqual([]);
+    expect(await pontosDe(dona)).toEqual([
+      { motivo: "questionario", pontos: 10 },
+    ]);
+    const deNovo = await enviar(dona, a1, 0, id);
+    expect(deNovo.resultado).toEqual(daDona.resultado);
   });
 
   test("envio incompleto, aula sem questionário e curso sem liberação são recusados sem gravar", async () => {

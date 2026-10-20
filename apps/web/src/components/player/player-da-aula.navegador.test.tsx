@@ -110,9 +110,9 @@ async function empacotar() {
           aula: {
             registrar: {
               mutate: async (pedido) => ({
-                assistida: false,
+                assistida: window.conquistaNoTeste !== undefined,
                 cobertura: { pct: 0, seg: 0 },
-                conquista: null,
+                conquista: window.conquistaNoTeste ?? null,
                 recusadosSeg: 0,
                 trechos: pedido.trechos,
               }),
@@ -175,9 +175,13 @@ const classesDe = (h: string) =>
 // do clique ou do evento: as classes deles vêm do código-fonte, lido como texto, como
 // o Tailwind do app faz.
 const fontes = await Promise.all(
-  ["partes.ts", "ajustes-do-player.tsx", "player-da-aula.tsx"].map((f) =>
-    file(join(import.meta.dir, f)).text()
-  )
+  [
+    "partes.ts",
+    "ajustes-do-player.tsx",
+    "controles-do-player.tsx",
+    "player-da-aula.tsx",
+    "status-do-player.tsx",
+  ].map((f) => file(join(import.meta.dir, f)).text())
 );
 const nada = () => undefined;
 const css = await cssDoApp([
@@ -198,20 +202,35 @@ const css = await cssDoApp([
 let enviar: Enviar;
 let pacote: string;
 
-async function abrir(largura: number, altura: number, assistida = false) {
+// No celular a casca não tem sidebar nem moldura, e o conteúdo tem 16 px dos lados.
+const CASCA_DO_COMPUTADOR =
+  '<div style="flex:none;width:68px"></div><main style="flex:1;min-width:0;margin:10px 10px 10px 0;padding:32px clamp(1rem,4vw,3rem) 64px">';
+const CASCA_DO_CELULAR =
+  '<main style="flex:1;min-width:0;padding:24px 16px 64px">';
+
+async function abrir(
+  largura: number,
+  altura: number,
+  assistida = false,
+  celular = false
+) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
     height: altura,
-    mobile: false,
+    mobile: celular,
     width: largura,
   });
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
-      `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div style="display:flex"><div style="flex:none;width:68px"></div><main style="flex:1;min-width:0;margin:10px 10px 10px 0;padding:32px clamp(1rem,4vw,3rem) 64px"><div class="${PAGINA}"><div id="raiz"></div><aside style="height:420px"></aside></div></main></div></body></html>`
+      `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div style="display:flex">${celular ? CASCA_DO_CELULAR : CASCA_DO_COMPUTADOR}<div class="${PAGINA}"><div id="raiz"></div><aside style="height:420px"></aside></div></main></div></body></html>`
     )}); document.close(); window.scrollTo(0, 0);`
   );
-  await avaliar(enviar, `window.assistidaNoTeste = ${assistida};`);
+  // O document.open troca o documento, não a janela: o que um teste pôs nela sai aqui.
+  await avaliar(
+    enviar,
+    `window.assistidaNoTeste = ${assistida}; window.conquistaNoTeste = undefined;`
+  );
   await avaliar(enviar, pacote);
 }
 
@@ -245,12 +264,91 @@ const teclar = (key: string) =>
     enviar,
     `document.getElementById("video").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: ${JSON.stringify(key)} }))`
   );
+/** Uma tecla de verdade, pelo DevTools, com o keydown e o keyup que o browser gera. */
+const TECLAS: Record<string, { code: string; vk: number }> = {
+  Enter: { code: "Enter", vk: 13 },
+  Escape: { code: "Escape", vk: 27 },
+  Tab: { code: "Tab", vk: 9 },
+};
+async function apertar(key: string) {
+  const { code, vk } = TECLAS[key] ?? { code: key, vk: 0 };
+  const base = { code, key, windowsVirtualKeyCode: vk };
+  await enviar("Input.dispatchKeyEvent", {
+    ...base,
+    text: key === "Enter" ? "\r" : undefined,
+    type: "keyDown",
+  });
+  await enviar("Input.dispatchKeyEvent", { ...base, type: "keyUp" });
+  await avaliar(
+    enviar,
+    "new Promise((r) => requestAnimationFrame(() => r(0)))"
+  );
+}
+/** A mesma tecla várias vezes, uma depois da outra. */
+const apertarVezes = (key: string, vezes: number) =>
+  Array.from({ length: vezes }).reduce<Promise<void>>(
+    (anterior) => anterior.then(() => apertar(key)),
+    Promise.resolve()
+  );
+const focado = () =>
+  avaliar<string | null>(
+    enviar,
+    `document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent ?? null`
+  );
 const pressionado = (seletor: string) =>
   avaliar<string | null>(
     enviar,
     `document.querySelector(${JSON.stringify(seletor)})?.getAttribute("aria-pressed") ?? null`
   );
 const FOLHA_DOS_AJUSTES = '[role="dialog"][aria-label="Ajustes"]';
+
+/** A conquista mais longa: a aula assistida com o bônus da sequência. */
+const CONQUISTA_COM_BONUS = {
+  bonusSequencia: 30,
+  pontos: 10,
+  sequenciaDias: 7,
+};
+
+/** O meio vertical de cada peça da barra de controles, arredondado, e se a barra transborda. */
+function linhasDaBarra() {
+  return avaliar<{ topos: Record<string, number>; transborda: boolean }>(
+    enviar,
+    `(() => {
+      const player = document.getElementById("video");
+      const topo = (el) => { const r = el.getBoundingClientRect(); return Math.round(r.top + r.height / 2); };
+      const botao = (rotulo) => topo(player.querySelector('button[aria-label="' + rotulo + '"]'));
+      const tempo = [...player.querySelectorAll("span")].find((s) => s.textContent.includes(" / "));
+      const visto = [...player.querySelectorAll("[tabindex='0']")].find((s) => s.textContent.includes("visto"));
+      const barra = tempo.closest("[data-barra]") ?? tempo.parentElement;
+      return {
+        topos: {
+          ajustes: botao("Ajustes"),
+          avancar: botao("Avançar 10 segundos"),
+          legendas: botao("Legendas"),
+          reproduzir: topo(player.querySelector('button[aria-label="Reproduzir"], button[aria-label="Pausar"]')),
+          som: topo(player.querySelector('button[aria-label="Silenciar"], button[aria-label="Ativar som"]')),
+          telaCheia: botao("Tela cheia"),
+          tempo: topo(tempo),
+          visto: topo(visto),
+          voltar: botao("Voltar 10 segundos"),
+        },
+        transborda: barra.scrollWidth > barra.clientWidth || document.documentElement.scrollWidth > window.innerWidth,
+      };
+    })()`
+  );
+}
+
+/** Toca até o fim com o servidor devolvendo a conquista, como na aula que fica assistida. */
+async function assistirAteOFim() {
+  await avaliar(
+    enviar,
+    `window.conquistaNoTeste = ${JSON.stringify(CONQUISTA_COM_BONUS)};`
+  );
+  await emitir({ duracaoSeg: 634, tipo: "pronto" });
+  await emitir({ tipo: "tocou" });
+  await emitir({ tipo: "terminou" });
+  await esperar(`document.body.textContent.includes("aula assistida")`);
+}
 const LISTA_DE_ATALHOS = '[role="dialog"]:not([aria-label="Ajustes"])';
 
 describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
@@ -297,6 +395,63 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     });
   }
 
+  for (const [largura, altura] of [
+    [1280, 800],
+    [1440, 900],
+  ] as const) {
+    test(`em ${largura} x ${altura}, a barra não quebra quando a aula fica assistida com o bônus`, async () => {
+      await abrir(largura, altura);
+      await assistirAteOFim();
+      const { topos, transborda } = await linhasDaBarra();
+      expect(transborda).toBe(false);
+      // Uma linha só: todas as peças no meio do botão de reproduzir, a 1 px.
+      const linha = topos.reproduzir;
+      for (const [peca, topo] of Object.entries(topos)) {
+        expect({ peca, umaLinha: Math.abs(topo - linha) <= 1 }).toEqual({
+          peca,
+          umaLinha: true,
+        });
+      }
+    });
+  }
+
+  for (const largura of [375, 390]) {
+    test(`em ${largura} px, a barra tem duas linhas pensadas: os botões em cima, o tempo e o "% visto" embaixo`, async () => {
+      await abrir(largura, 812, false, true);
+      await assistirAteOFim();
+      const { topos, transborda } = await linhasDaBarra();
+      expect(transborda).toBe(false);
+      const { tempo, visto, ...botoes } = topos;
+      const emCima = topos.reproduzir;
+      for (const [peca, topo] of Object.entries(botoes)) {
+        expect({ emCima: Math.abs(topo - emCima) <= 1, peca }).toEqual({
+          emCima: true,
+          peca,
+        });
+      }
+      expect(tempo).toBeGreaterThan(emCima);
+      expect(Math.abs(visto - tempo)).toBeLessThanOrEqual(1);
+    });
+  }
+
+  test("em 320 px, os seis botões ficam em cima e o som desce para a linha do tempo", async () => {
+    await abrir(320, 640, false, true);
+    await assistirAteOFim();
+    const { topos, transborda } = await linhasDaBarra();
+    expect(transborda).toBe(false);
+    const { som, tempo, visto, ...botoes } = topos;
+    const emCima = topos.reproduzir;
+    for (const [peca, topo] of Object.entries(botoes)) {
+      expect({ emCima: Math.abs(topo - emCima) <= 1, peca }).toEqual({
+        emCima: true,
+        peca,
+      });
+    }
+    expect(tempo).toBeGreaterThan(emCima);
+    expect(Math.abs(som - tempo)).toBeLessThanOrEqual(1);
+    expect(Math.abs(visto - tempo)).toBeLessThanOrEqual(1);
+  });
+
   test("os Ajustes trocam a velocidade, ligam a legenda e abrem a lista de atalhos, que fecha no Esc", async () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
@@ -342,6 +497,121 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       `document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" }))`
     );
     await esperar(`!document.querySelector('${LISTA_DE_ATALHOS}')`);
+  });
+
+  test("pelo teclado, o Esc fecha os Ajustes e devolve o foco à engrenagem, mesmo depois de escolher a velocidade", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    // Do primeiro item da folha até o 2×, como a pessoa do teste fez.
+    await apertarVezes("Tab", 5);
+    expect(await focado()).toBe("2×");
+    await apertar("Enter");
+    expect(await pressionado('button[aria-label="2×"]')).toBe("true");
+    await apertar("Escape");
+    // Já no quadro do Esc, com a folha ainda saindo: o 2× que some não segura o foco.
+    expect(await focado()).toBe("Ajustes");
+    await esperar(`!document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    expect(await focado()).toBe("Ajustes");
+  });
+
+  test("pelo teclado, o Esc na lista de atalhos devolve o foco à engrenagem", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    await apertarVezes("Tab", 7);
+    expect(await focado()).toBe("Atalhos do teclado?");
+    await apertar("Enter");
+    await esperar(`document.querySelector('${LISTA_DE_ATALHOS}')`);
+    await apertar("Escape");
+    expect(await focado()).toBe("Ajustes");
+    await esperar(`!document.querySelector('${LISTA_DE_ATALHOS}')`);
+    expect(await focado()).toBe("Ajustes");
+  });
+
+  test("pelo teclado, o item focado dos Ajustes clareia sobre a folha, e a velocidade marcada acende como o botão amarelo", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    const sinal = () =>
+      avaliar<{
+        cor: string;
+        folha: string;
+        fundo: string;
+        item: string;
+        sombra: string;
+      }>(
+        enviar,
+        // A transição de cor dura 150 ms: a medida espera ela acabar.
+        `new Promise((pronto) => setTimeout(() => {
+          const item = document.activeElement;
+          const estilo = getComputedStyle(item);
+          pronto({
+            cor: estilo.color,
+            folha: getComputedStyle(document.querySelector('${FOLHA_DOS_AJUSTES}')).backgroundColor,
+            fundo: estilo.backgroundColor,
+            item: item.getAttribute("aria-label") ?? item.textContent,
+            sombra: estilo.boxShadow,
+          });
+        }, 250))`
+      );
+    const TRILHO = "rgb(77, 82, 87)";
+    const TITULO = "rgb(244, 245, 247)";
+    const POPOVER = "rgb(58, 63, 69)";
+
+    // O primeiro item, que recebe o foco quando a folha abre.
+    expect(await sinal()).toMatchObject({
+      cor: TITULO,
+      folha: POPOVER,
+      fundo: TRILHO,
+      item: "0,75×",
+    });
+    await apertar("Tab");
+    const marcada = await sinal();
+    expect(marcada).toMatchObject({ fundo: "rgb(255, 214, 51)", item: "1×" });
+    expect(marcada.sombra).toContain("rgba(255, 204, 1, 0.28)");
+    await apertarVezes("Tab", 5);
+    expect(await sinal()).toMatchObject({
+      cor: TITULO,
+      fundo: TRILHO,
+      item: "LegendasDesligadas",
+    });
+  });
+
+  test("a linha entre a velocidade e os itens dos Ajustes vai de uma borda à outra da folha", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await clicar('button[aria-label="Ajustes"]');
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    // A folha cresce de 95% ao abrir: a medida espera os 150 ms da entrada.
+    const medida = await avaliar<{ folha: number[]; linha: number[] }>(
+      enviar,
+      `new Promise((pronto) => setTimeout(() => {
+        const folha = document.querySelector('${FOLHA_DOS_AJUSTES}');
+        const f = folha.getBoundingClientRect();
+        const l = folha.querySelector("hr").getBoundingClientRect();
+        pronto({
+          folha: [Math.round(f.left + folha.clientLeft), Math.round(f.left + folha.clientLeft + folha.clientWidth)],
+          linha: [Math.round(l.left), Math.round(l.right)],
+        });
+      }, 250))`
+    );
+    expect(medida.linha).toEqual(medida.folha);
   });
 
   test("a tecla ? abre a lista de atalhos e a tecla c alterna a legenda", async () => {

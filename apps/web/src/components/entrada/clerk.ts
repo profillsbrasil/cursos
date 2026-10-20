@@ -180,6 +180,25 @@ const comOProduto: typeof ptBR = JSON.parse(
   JSON.stringify(ptBR).replaceAll("{{applicationName}}", PRODUTO)
 );
 
+// O link de entrada (__clerk_ticket). O Clerk procura a recusa da API em
+// unstable__errors.<code> e, sem a chave, mostra o long_message dela, em inglês; o
+// ptBR não traz esses códigos. O tipo do Clerk não lista os sign_in_token_*, mas
+// a leitura é pelo caminho no objeto mesclado: vão por spread, que o TypeScript
+// não confere como propriedade a mais. Códigos da doc de erros da Frontend API.
+const ERROS_DO_LINK_DE_ENTRADA = {
+  sign_in_token_already_used_code:
+    "Este link de entrada já foi usado, e cada link vale uma vez só. Entre com seu e-mail ou com o Google.",
+  sign_in_token_cannot_be_used_code:
+    "Este link de entrada não vale mais. Entre com seu e-mail ou com o Google.",
+  sign_in_token_not_in_sign_in_code: "Este link só serve para entrar na conta.",
+  sign_in_token_revoked_code:
+    "Este link de entrada foi cancelado. Entre com seu e-mail ou com o Google.",
+  ticket_expired_code:
+    "Este link expirou. Entre com seu e-mail ou com o Google.",
+  ticket_invalid_code:
+    "Este link não vale mais ou já foi usado. Entre com seu e-mail ou com o Google.",
+};
+
 export const TEXTOS_CLERK = {
   ...comOProduto,
   dividerText: "ou com e-mail",
@@ -213,7 +232,10 @@ export const TEXTOS_CLERK = {
       ...comOProduto.signUp?.start,
       actionLink: "Entrar",
       actionText: "Já tem conta?",
-      subtitle: "O nome sai no certificado dos cursos que você concluir.",
+      // A instância do Clerk não pede nome no cadastro: o subtítulo não promete
+      // o campo, e diz onde o nome do certificado se acerta.
+      subtitle:
+        "Use seu e-mail ou o Google. O nome do certificado você confere depois, em Minha conta.",
       title: "Criar sua conta",
     },
   },
@@ -229,5 +251,6 @@ export const TEXTOS_CLERK = {
       minimumLength: "pelo menos {{length}} caracteres",
       sentencePrefix: "A senha precisa ter",
     },
+    ...ERROS_DO_LINK_DE_ENTRADA,
   },
 } satisfies Props["localization"];
