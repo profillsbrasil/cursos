@@ -18,7 +18,15 @@ import { SELO_DE_ADMIN, SOBRE_O_PERFIL, seloDoPerfil } from "./perfis";
 export const fichaDaPessoa = (userId: string) =>
   `/admin/pessoas/${userId}` as Route;
 
+const ultimoAcesso = (p: PessoaNaLista, hoje: string) =>
+  p.ultimoAcesso
+    ? quando(diaEmSaoPaulo(p.ultimoAcesso.toISOString()), hoje)
+    : null;
+
+/** O perfil e o papel têm colunas a partir de 44rem; abaixo, descem para uma linha sob o e-mail. */
 function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
+  const selo = seloDoPerfil(p.perfil);
+  const acesso = ultimoAcesso(p, hoje);
   return (
     <li>
       <Link
@@ -26,7 +34,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
         href={fichaDaPessoa(p.userId)}
       >
         <FotoDaPessoa
-          className="@min-[44rem]:size-10 size-9"
+          className="@min-[44rem]:size-10 size-9 self-start @min-[44rem]:self-center"
           foto={p.foto}
           nome={p.nome}
         />
@@ -37,12 +45,23 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
           </span>
           {p.perfil.doCadastro ? (
             <span className="text-muted-foreground text-xs">
-              Ainda não entrou no app
+              Perfil do cadastro, fora dos filtros
             </span>
           ) : null}
+          <span className="mt-1.5 flex @min-[44rem]:hidden flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <SeloDeSituacao selo={selo} />
+            {p.papel === "admin" ? (
+              <SeloDeSituacao selo={SELO_DE_ADMIN} />
+            ) : null}
+            <span className="text-muted-foreground text-xs">
+              {acesso
+                ? `Último acesso: ${acesso.toLocaleLowerCase("pt-BR")}`
+                : "Nunca acessou"}
+            </span>
+          </span>
         </span>
         <span className="@min-[44rem]:block hidden">
-          <SeloDeSituacao selo={seloDoPerfil(p.perfil.perfil)} />
+          <SeloDeSituacao selo={selo} />
         </span>
         <span className="@min-[44rem]:block hidden">
           {p.papel === "admin" ? (
@@ -52,9 +71,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
           )}
         </span>
         <span className="@min-[44rem]:block hidden text-muted-foreground text-sm tabular-nums">
-          {p.ultimoAcesso
-            ? quando(diaEmSaoPaulo(p.ultimoAcesso.toISOString()), hoje)
-            : "Nunca"}
+          {acesso ?? "Nunca"}
         </span>
         <ChevronRight
           aria-hidden="true"
@@ -71,7 +88,7 @@ const tituloDaLista = (termo: string, lista: ListaDePessoas) => {
   }
   return lista.filtro
     ? SOBRE_O_PERFIL[lista.filtro].plural
-    : "Ativos recentemente";
+    : "Por último acesso";
 };
 
 export function ListaDePessoasDoAdmin({
