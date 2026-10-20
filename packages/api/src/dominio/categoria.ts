@@ -1,17 +1,7 @@
 // A Categoria é um registro que o admin mantém em admin.categorias. O curso aponta
 // para uma pelo id; o aluno só vê o nome.
 
-import { z } from "zod";
-
-import { CARACTERES } from "./edicao-do-curso";
 import type { CategoriaId } from "./tipos";
-
-/** O mesmo formato do check categoria_nome_formato: aparado, de 1 a 80 caracteres. */
-export const nomeDaCategoria = z
-  .string()
-  .trim()
-  .min(1)
-  .max(CARACTERES.categoria);
 
 export interface CategoriaNaLista {
   /** Títulos dos cursos que apontam para ela, em ordem pt-BR. Com algum, ela não se apaga. */

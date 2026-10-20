@@ -62,16 +62,34 @@ function caminhoAteOZod(arquivo: string, visto: Set<string>): string[] | null {
   return null;
 }
 
+function grafo(arquivo: string, visto = new Set<string>()): Set<string> {
+  if (visto.has(arquivo)) {
+    return visto;
+  }
+  visto.add(arquivo);
+  for (const [, clausula = "", origem = ""] of readFileSync(
+    arquivo,
+    "utf8"
+  ).matchAll(IMPORTACAO)) {
+    const proximo = soTipos(clausula) ? null : resolver(arquivo, origem);
+    if (proximo) {
+      grafo(proximo, visto);
+    }
+  }
+  return visto;
+}
+
 /**
- * O Zod pesa cerca de 90 KB em gzip no navegador. As telas do aluno, a aula
- * acima de todas, não validam nada que justifique o peso; o editor do admin
- * valida o rascunho com os schemas de edicao-do-curso e fica de fora.
+ * O Zod pesa cerca de 90 KB em gzip no navegador. Só o editor do curso valida
+ * no cliente, com os schemas de edicao-do-curso; o que ele importa já viaja com
+ * o Zod. Qualquer outra tela, do aluno ou do admin, fica sem ele.
  */
-describe("o cliente do aluno não carrega o Zod", () => {
-  test("nenhum módulo use client fora do admin chega ao zod", () => {
+describe("só o editor do curso carrega o Zod no cliente", () => {
+  test("nenhum módulo use client fora do editor chega ao zod", () => {
+    const doEditor = grafo(join(SRC, "components/admin/editor-do-curso.tsx"));
     const fora = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)]
-      .filter((arquivo) => !arquivo.startsWith("components/admin/"))
       .map((arquivo) => join(SRC, arquivo))
+      .filter((arquivo) => !doEditor.has(arquivo))
       .filter((arquivo) =>
         readFileSync(arquivo, "utf8").startsWith('"use client"')
       )

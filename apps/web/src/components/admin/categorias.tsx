@@ -4,7 +4,7 @@ import {
   type CategoriaNaLista,
   categoriaEmUso,
 } from "@cursos/api/dominio/categoria";
-import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
+import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldError } from "@cursos/ui/components/field";

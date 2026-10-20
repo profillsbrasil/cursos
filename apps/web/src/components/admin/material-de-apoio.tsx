@@ -1,10 +1,7 @@
 "use client";
 
-import {
-  CARACTERES,
-  LIMITES,
-  type MaterialDoDocumento,
-} from "@cursos/api/dominio/edicao-do-curso";
+import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
+import { CARACTERES, LIMITES } from "@cursos/api/dominio/limites-do-curso";
 import {
   formularioDoMaterial,
   mensagemDoMaterial,

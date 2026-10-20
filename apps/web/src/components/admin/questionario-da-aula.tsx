@@ -1,6 +1,6 @@
 "use client";
 
-import { CARACTERES, LIMITES } from "@cursos/api/dominio/edicao-do-curso";
+import { CARACTERES, LIMITES } from "@cursos/api/dominio/limites-do-curso";
 import {
   ALTERNATIVAS,
   acertosParaPassar,

@@ -39,7 +39,6 @@ import {
 } from "../consultas/perfil";
 import { comTrava } from "../consultas/trava";
 import { montarBusca } from "../dominio/acompanhamento";
-import { nomeDaCategoria } from "../dominio/categoria";
 import {
   montarComunicados,
   TEXTO_MAX,
@@ -47,6 +46,7 @@ import {
 } from "../dominio/comunicado";
 import { montarGrade } from "../dominio/grade-dos-perfis";
 import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
+import { CARACTERES } from "../dominio/limites-do-curso";
 import {
   arquivoDoFormulario,
   type MaterialEnviado,
@@ -70,6 +70,8 @@ const userId = z.string().regex(USER_ID);
 
 const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
 const categoriaId = z.uuid().transform((id) => id.toLowerCase() as CategoriaId);
+/** O mesmo formato do check categoria_nome_formato: aparado, de 1 a 80 caracteres. */
+const nomeDaCategoria = z.string().trim().min(1).max(CARACTERES.categoria);
 
 const doCurso = z.object({ id: cursoId });
 

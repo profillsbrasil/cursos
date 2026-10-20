@@ -1,10 +1,8 @@
 "use client";
 
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
-import {
-  CARACTERES,
-  type EdicaoDoCurso,
-} from "@cursos/api/dominio/edicao-do-curso";
+import type { EdicaoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
+import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
 import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";

@@ -19,12 +19,11 @@ import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
-  CARACTERES,
   type DocumentoDoCurso,
   formularioDoCurso,
-  LIMITES,
   type MaterialDoDocumento,
 } from "../dominio/edicao-do-curso";
+import { CARACTERES, LIMITES } from "../dominio/limites-do-curso";
 import type {
   AdminId,
   AulaId,

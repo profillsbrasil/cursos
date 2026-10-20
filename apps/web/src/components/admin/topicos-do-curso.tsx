@@ -1,6 +1,6 @@
 "use client";
 
-import { CARACTERES, LIMITES } from "@cursos/api/dominio/edicao-do-curso";
+import { CARACTERES, LIMITES } from "@cursos/api/dominio/limites-do-curso";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
 import { cn } from "@cursos/ui/lib/utils";

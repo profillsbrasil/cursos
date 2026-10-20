@@ -1,8 +1,8 @@
 "use client";
 
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
-import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import { slugDoTitulo } from "@cursos/api/dominio/endereco";
+import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
 import { cn } from "@cursos/ui/lib/utils";
