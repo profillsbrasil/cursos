@@ -323,6 +323,27 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     );
   });
 
+  test("sem mudança, o Enter no campo não envia o nome", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    await avaliar(
+      enviar,
+      `document.querySelector('input[name="nome"]').focus()`
+    );
+    const enter = { code: "Enter", key: "Enter", windowsVirtualKeyCode: 13 };
+    await enviar("Input.dispatchKeyEvent", {
+      ...enter,
+      text: "\r",
+      type: "keyDown",
+    });
+    await enviar("Input.dispatchKeyEvent", { ...enter, type: "keyUp" });
+    await digitar("nome", "Bia");
+    await salvar();
+    await esperar("window.pedidos.length > 0");
+    expect(await avaliar<unknown[]>(enviar, "window.pedidos")).toEqual([
+      { firstName: "Bia", lastName: "Souza" },
+    ]);
+  });
+
   test("sem nome salvo e sem mudança, nada acusa erro", async () => {
     await abrir({ firstName: "", lastName: "" });
     expect(await textoDe('[data-slot="field-error"]')).toBeNull();
