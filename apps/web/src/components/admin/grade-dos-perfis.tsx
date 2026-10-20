@@ -212,7 +212,7 @@ export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
           ))}
         </div>
         {grade.cursos.length === 0 ? (
-          <p className="border-border border-t px-5 py-4 text-muted-foreground">
+          <p className="border-border border-t px-5 py-4 text-muted-foreground text-sm">
             Nenhum curso no catálogo.
           </p>
         ) : (

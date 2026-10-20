@@ -47,9 +47,9 @@ export function ReciboDaConferencia({
           Certificado válido
         </h1>
         <div>
-          <p className="text-muted-foreground">Certificamos que</p>
+          <p className="text-muted-foreground text-sm">Certificamos que</p>
           <p className={NOME}>{certificado.nome ?? "Nome não disponível"}</p>
-          <p className="text-muted-foreground">concluiu o curso</p>
+          <p className="text-muted-foreground text-sm">concluiu o curso</p>
           <p className={NOME}>{certificado.tituloDoCurso}</p>
         </div>
         <Fatos

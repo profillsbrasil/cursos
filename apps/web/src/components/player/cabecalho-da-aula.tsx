@@ -10,8 +10,8 @@ import { caminhoDaAula } from "@/lib/rotas";
 // O esqueleto de loading.tsx desenha as duas linhas com estas mesmas classes, então
 // a altura dele bate com a do cabeçalho em toda largura.
 export const TITULO_DA_AULA =
-  "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-tight tracking-[-0.02em]";
-export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
+  "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-[1.2] tracking-tight";
+export const LINHA_DO_MODULO = "mt-1 text-muted-foreground text-sm";
 
 /**
  * O título da aula, a linha do módulo e a descrição que o admin escreveu, acima do

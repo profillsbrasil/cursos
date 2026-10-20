@@ -117,5 +117,5 @@ export function Secao({
 }
 
 export function Vazio({ children }: { children: ReactNode }) {
-  return <p className="px-5 py-4 text-muted-foreground">{children}</p>;
+  return <p className="px-5 py-4 text-muted-foreground text-sm">{children}</p>;
 }
