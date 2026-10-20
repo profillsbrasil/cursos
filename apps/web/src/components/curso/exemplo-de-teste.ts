@@ -1,10 +1,11 @@
+import type { MaterialDaPagina } from "@cursos/api/dominio/material";
 import type {
   AulaDaPagina,
   ModuloDaPagina,
   PaginaDoCurso,
 } from "@cursos/api/dominio/pagina-do-curso";
 import type { MarcaDoQuestionario } from "@cursos/api/dominio/questionario";
-import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
+import type { AulaId, DiaISO, MaterialId } from "@cursos/api/dominio/tipos";
 
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}` as AulaId;
@@ -45,6 +46,7 @@ const FABRICA: PaginaDoCurso = {
   descricao:
     "O primeiro curso de quem chega à montagem da Profills.\n\nNo último módulo, você lê um esquema pneumático.",
   estado: { primeiraAula: RISCOS, tipo: "nao_iniciado" },
+  materiais: [],
   modulos: [
     {
       aulas: [
@@ -92,6 +94,32 @@ export const CRONOGRAMA = id(122);
 export const URGENCIA_3 = id(123);
 export const CONFIANCA = id(131);
 
+const material = (
+  n: number,
+  titulo: string,
+  tipo: MaterialDaPagina["tipo"],
+  bytes: number
+): MaterialDaPagina => {
+  const idDoMaterial =
+    `00000000-0000-4000-9000-${String(n).padStart(12, "0")}` as MaterialId;
+  return {
+    bytes,
+    href: `/material/${idDoMaterial}`,
+    id: idDoMaterial,
+    nomeDoArquivo: `${titulo.toLowerCase().replaceAll(" ", "-")}.${tipo}`,
+    tipo,
+    titulo,
+  };
+};
+
+/** Quatro arquivos, como no protótipo: o cartão mostra 3 e o "Ver todos (4)". */
+export const MATERIAIS_DO_COMERCIAL: readonly MaterialDaPagina[] = [
+  material(1, "Checklist da visita técnica", "pdf", 1_258_291),
+  material(2, "Planilha do cronograma reverso", "xlsx", 88_064),
+  material(3, "Manual do método comercial, revisão 7", "pdf", 15_518_924),
+  material(4, "Slides do curso", "pptx", 6_606_029),
+];
+
 const VENDEDOR = { nome: "Vendedor Profills Certificado", ordem: 1 };
 const CONSULTOR = { nome: "Consultor Comercial Profills", ordem: 2 };
 
@@ -107,6 +135,7 @@ const COMERCIAL: PaginaDoCurso = {
   descricao:
     "O método comercial da Profills, do primeiro contato ao pós-venda.",
   estado: { primeiraAula: AUTO_1, tipo: "nao_iniciado" },
+  materiais: [],
   modulos: [
     {
       aulas: [

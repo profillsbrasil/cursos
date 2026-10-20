@@ -1,11 +1,17 @@
 // Sem "use client": o editor e os testes importam.
 
 import type { Motivo } from "@cursos/api";
-import type { DocumentoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
+import {
+  type DocumentoDoCurso,
+  LIMITES,
+  type MaterialDoDocumento,
+} from "@cursos/api/dominio/edicao-do-curso";
+import type { TipoDoMaterial } from "@cursos/api/dominio/material";
 import { ALTERNATIVAS } from "@cursos/api/dominio/questionario";
 import type {
   AlternativaId,
   AulaId,
+  MaterialId,
   ModuloId,
   PerguntaId,
   Versao,
@@ -35,7 +41,7 @@ import {
 
 type CampoDoCurso = Exclude<
   keyof RascunhoDoCurso,
-  "id" | "modulos" | "niveis" | "versao"
+  "id" | "materiais" | "modulos" | "niveis" | "versao"
 >;
 
 export type Mudanca =
@@ -43,6 +49,9 @@ export type Mudanca =
   | { tipo: "nivel_novo"; ordem: number }
   | { tipo: "nivel_renomeado"; ordem: number; nome: string }
   | { tipo: "nivel_removido"; ordem: number }
+  | { tipo: "material_renomeado"; id: MaterialId; titulo: string }
+  | { tipo: "material_movido"; id: MaterialId; direcao: Direcao }
+  | { tipo: "material_removido"; id: MaterialId }
   | { tipo: "modulo_novo"; id: ModuloId }
   | {
       tipo: "modulo_editado";
@@ -192,6 +201,25 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
         ),
         niveis: r.niveis.filter((n) => n.ordem !== m.ordem),
       };
+    case "material_renomeado":
+      return {
+        ...r,
+        materiais: r.materiais.map((x) =>
+          x.id === m.id ? { ...x, titulo: m.titulo } : x
+        ),
+      };
+    case "material_movido":
+      return {
+        ...r,
+        materiais:
+          trocado(
+            r.materiais,
+            r.materiais.findIndex((x) => x.id === m.id),
+            m.direcao
+          ) ?? r.materiais,
+      };
+    case "material_removido":
+      return { ...r, materiais: r.materiais.filter((x) => x.id !== m.id) };
     case "modulo_novo": {
       const numero = Math.max(0, ...r.modulos.map((x) => numeroDe(x) ?? 0));
       return {
@@ -540,10 +568,27 @@ function comODonoDoCampo(
   return e;
 }
 
+/**
+ * Um arquivo de material de apoio que ainda não entrou no rascunho: subindo para
+ * o bucket ou recusado. Quando o envio volta, ele sai daqui e entra no rascunho.
+ */
+export interface EnvioDeMaterial {
+  bytes: number;
+  estado: { tipo: "enviando" } | { tipo: "recusado"; motivo: string };
+  id: MaterialId;
+  nomeDoArquivo: string;
+  /** null quando a extensão não é de nenhum tipo aceito. */
+  tipo: TipoDoMaterial | null;
+}
+
+export const RECUSA_DO_LIMITE = `O curso tem no máximo ${LIMITES.materiais} arquivos de material de apoio. Tire um para pôr este.`;
+
 /** O que volta ao início a cada recomeço do rascunho. */
 interface DaGeracao {
   /** A capa escolhida e ainda não salva, que também deixa o editor sujo. */
   capa: File | null;
+  /** Os arquivos de material de apoio subindo ou recusados, na ordem em que vieram. */
+  envios: readonly EnvioDeMaterial[];
   /** A linha que pede confirmação, como a do Apagar. */
   linha: string | null;
   /** O Salvar foi recusado aqui: a tela marca tudo o que ele recusaria. */
@@ -554,6 +599,7 @@ interface DaGeracao {
 
 const INICIO_DA_GERACAO: DaGeracao = {
   capa: null,
+  envios: [],
   linha: null,
   tentou: false,
   tocados: new Set(),
@@ -605,6 +651,9 @@ export type AcaoDoAdmin =
   | { tipo: "pergunta_escolhida"; aulaId: AulaId; perguntaId: PerguntaId }
   | { tipo: "saiu_do_campo"; id: string }
   | { tipo: "capa_escolhida"; arquivo: File | null }
+  /** Os arquivos escolhidos, já conferidos no navegador: os recusados vêm com o motivo. */
+  | { tipo: "materiais_escolhidos"; envios: readonly EnvioDeMaterial[] }
+  | { tipo: "envio_tirado"; id: MaterialId }
   | { tipo: "linha_pedida"; chave: string | null }
   | { tipo: "linha_fechada"; chave: string }
   | { tipo: "salvar" }
@@ -613,6 +662,9 @@ export type AcaoDoAdmin =
 
 export type RespostaDoServidor =
   | { tipo: "pagina"; pagina: DocumentoDoCurso }
+  /** O bucket guardou o arquivo; ele entra no rascunho no fim da lista. */
+  | { tipo: "material_recebido"; material: MaterialDoDocumento }
+  | { tipo: "material_recusado"; id: MaterialId; motivo: string }
   /** O servidor gravou o envio; o que o admin editou depois fica. */
   | { tipo: "salvo"; envio: Envio; versao: Versao }
   /**
@@ -630,8 +682,10 @@ const SEM_CAPA: Problema = {
 
 const ehNovo = (e: RascunhoDoEditor) => e.apoio.base.versao === null;
 
+/** O arquivo subindo também prende o admin: sair agora o perderia. */
 const ehSujo = (e: RascunhoDoEditor) =>
   e.daGeracao.capa !== null ||
+  e.daGeracao.envios.some((x) => x.estado.tipo === "enviando") ||
   !mesmoRascunho(rascunhoDoCurso(e.apoio.base), e.rascunho);
 
 /** O que o Salvar recusa sem ir ao servidor, ou o envio quando não há nada. */
@@ -723,6 +777,52 @@ function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
   };
 }
 
+/**
+ * Os arquivos que acabaram de ser escolhidos, com o que passa do teto de 20 já
+ * recusado: contam os prontos do rascunho e os que estão subindo. Quem escolhe
+ * envia só os que saem daqui como enviando.
+ */
+export function dentroDoLimite(
+  e: Pick<RascunhoDoEditor, "daGeracao" | "rascunho">,
+  novos: readonly EnvioDeMaterial[]
+): EnvioDeMaterial[] {
+  const subindo = e.daGeracao.envios.filter(
+    (x) => x.estado.tipo === "enviando"
+  ).length;
+  let vagas = LIMITES.materiais - e.rascunho.materiais.length - subindo;
+  return novos.map((x) => {
+    if (x.estado.tipo !== "enviando") {
+      return x;
+    }
+    vagas -= 1;
+    return vagas >= 0
+      ? x
+      : { ...x, estado: { motivo: RECUSA_DO_LIMITE, tipo: "recusado" } };
+  });
+}
+
+/**
+ * O envio de outra geração (o admin pediu Recarregar enquanto o arquivo subia)
+ * não entra: o rascunho dele foi jogado fora.
+ */
+function recebido(
+  e: RascunhoDoEditor,
+  material: MaterialDoDocumento
+): RascunhoDoEditor {
+  if (!e.daGeracao.envios.some((x) => x.id === material.id)) {
+    return e;
+  }
+  return {
+    ...naGeracao(e, {
+      envios: e.daGeracao.envios.filter((x) => x.id !== material.id),
+    }),
+    rascunho: {
+      ...e.rascunho,
+      materiais: [...e.rascunho.materiais, material],
+    },
+  };
+}
+
 function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
   switch (a.tipo) {
     case "aberto":
@@ -744,6 +844,24 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
     }
     case "capa_escolhida":
       return naGeracao(e, { capa: a.arquivo });
+    case "materiais_escolhidos":
+      return naGeracao(e, {
+        envios: [...e.daGeracao.envios, ...a.envios],
+      });
+    case "envio_tirado":
+      return naGeracao(e, {
+        envios: e.daGeracao.envios.filter((x) => x.id !== a.id),
+      });
+    case "material_recebido":
+      return recebido(e, a.material);
+    case "material_recusado":
+      return naGeracao(e, {
+        envios: e.daGeracao.envios.map((x) =>
+          x.id === a.id
+            ? { ...x, estado: { motivo: a.motivo, tipo: "recusado" } }
+            : x
+        ),
+      });
     case "linha_pedida":
       return naGeracao(e, { linha: a.chave });
     case "linha_fechada":

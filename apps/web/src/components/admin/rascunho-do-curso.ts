@@ -13,6 +13,7 @@ import { ALTERNATIVAS } from "@cursos/api/dominio/questionario";
 import type {
   AlternativaId,
   AulaId,
+  MaterialId,
   ModuloId,
   PerguntaId,
 } from "@cursos/api/dominio/tipos";
@@ -76,6 +77,7 @@ export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
     categoriaId: d.categoriaId,
     descricao: d.descricao,
     id: d.id,
+    materiais: d.materiais.map((m) => ({ ...m })),
     modulos: d.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
         descricao: a.descricao,
@@ -110,6 +112,7 @@ function emOrdem(r: RascunhoDoCurso) {
     r.categoriaId,
     r.descricao,
     r.id,
+    r.materiais.map((m) => [m.id, m.titulo, m.chave, m.nomeDoArquivo]),
     r.modulos.map((m) => [
       m.id,
       m.nivelOrdem,
@@ -191,6 +194,7 @@ export const ID = {
   alternativa: (id: AlternativaId) => `alternativa-${id}`,
   aula: (id: AulaId, campo: CampoDaAula) => `aula-${id}-${campo}`,
   curso: (campo: CampoDoCursoComId | "capa") => `curso-${campo}`,
+  material: (id: MaterialId) => `material-${id}-titulo`,
   modulo: (id: ModuloId, campo: "nivel" | "numero" | "titulo") =>
     `modulo-${id}-${campo}`,
   nivel: (ordem: number) => `nivel-${ordem}`,
@@ -216,6 +220,29 @@ const CAMPOS_DO_CURSO = new Set<string>([
   "titulo",
 ] satisfies CampoDoCursoComId[]);
 
+/** Os tópicos, o material e os níveis; undefined quando o caminho é de outra lista. */
+function campoNaLista(
+  r: RascunhoDoCurso,
+  caminho: readonly PropertyKey[]
+): string | null | undefined {
+  const [a, b, c] = caminho;
+  if (typeof b !== "number") {
+    return undefined;
+  }
+  if (a === "topicos" && caminho.length === 2) {
+    return ID.topico(b);
+  }
+  if (a === "materiais" && c === "titulo") {
+    const material = r.materiais[b];
+    return material ? ID.material(material.id) : null;
+  }
+  if (a === "niveis" && c === "nome") {
+    const nivel = r.niveis[b];
+    return nivel ? ID.nivel(nivel.ordem) : null;
+  }
+  return undefined;
+}
+
 function campoDoCaminho(
   r: RascunhoDoCurso,
   caminho: readonly PropertyKey[]
@@ -224,12 +251,9 @@ function campoDoCaminho(
   if (caminho.length === 1 && CAMPOS_DO_CURSO.has(String(a))) {
     return ID.curso(a as CampoDoCursoComId);
   }
-  if (a === "topicos" && typeof b === "number" && caminho.length === 2) {
-    return ID.topico(b);
-  }
-  if (a === "niveis" && typeof b === "number" && c === "nome") {
-    const nivel = r.niveis[b];
-    return nivel ? ID.nivel(nivel.ordem) : null;
+  const daLista = campoNaLista(r, caminho);
+  if (daLista !== undefined) {
+    return daLista;
   }
   const modulo =
     a === "modulos" && typeof b === "number" ? r.modulos[b] : undefined;
@@ -287,6 +311,7 @@ const CAMPO_DA_AULA: Record<string, CampoDaAula> = {
 const NOME_DA_LISTA: Record<string, string> = {
   alternativas: "alternativas",
   aulas: "aulas por módulo",
+  materiais: "arquivos de material de apoio",
   modulos: "módulos",
   niveis: "níveis",
   perguntas: "perguntas por aula",

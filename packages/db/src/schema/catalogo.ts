@@ -12,7 +12,13 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { cursoStatus, momento, tabela, videoProvedor } from "./comum";
+import {
+  cursoStatus,
+  materialTipo,
+  momento,
+  tabela,
+  videoProvedor,
+} from "./comum";
 import { SLUG } from "./formatos";
 
 export const categoria = tabela(
@@ -189,6 +195,44 @@ export const alternativa = tabela(
     check(
       "alternativa_texto_formato",
       sql`${t.texto} = trim(${t.texto}) and char_length(${t.texto}) between 1 and 200`
+    ),
+  ]
+);
+
+// O material de apoio do curso inteiro, que o aluno com liberação ativa baixa na
+// página do curso. Os tetos repetem CARACTERES e LIMITES de edicao-do-curso.ts, e
+// o edicao.integration.test.ts confere os dois lados; "até 20 por curso" é regra
+// entre linhas e fica no schema zod. O arquivo mora no bucket de materiais pela
+// chave, o sha256 dos bytes mais a extensão do tipo.
+export const material = tabela(
+  "material",
+  {
+    bytes: integer().notNull(),
+    chave: text().notNull(),
+    cursoId: uuid()
+      .notNull()
+      .references(() => curso.id, { onDelete: "cascade" }),
+    id: uuid().primaryKey().defaultRandom(),
+    nomeDoArquivo: text().notNull(),
+    posicao: smallint().notNull(),
+    tipo: materialTipo().notNull(),
+    titulo: text().notNull(),
+  },
+  (t) => [
+    unique("material_posicao_unica").on(t.cursoId, t.posicao),
+    check("material_posicao_positiva", sql`${t.posicao} >= 1`),
+    check(
+      "material_titulo_formato",
+      sql`${t.titulo} = trim(${t.titulo}) and char_length(${t.titulo}) between 1 and 120`
+    ),
+    check(
+      "material_nome_do_arquivo_tamanho",
+      sql`char_length(${t.nomeDoArquivo}) between 1 and 200`
+    ),
+    check("material_bytes_limite", sql`${t.bytes} between 1 and 52428800`),
+    check(
+      "material_chave_formato",
+      sql`${t.chave} ~ ('^[0-9a-f]{64}\\.' || ${t.tipo}::text || '$')`
     ),
   ]
 );

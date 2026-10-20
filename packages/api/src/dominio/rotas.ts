@@ -1,5 +1,5 @@
 // Os endereços do aluno que o servidor devolve prontos. apps/web/src/lib/rotas.ts
-// os tipa como Route; nenhum outro lugar monta "/cursos/...".
+// os tipa como Route; nenhum outro lugar monta "/cursos/..." nem "/material/...".
 
 export const caminhoDoCurso = (slug: string) => `/cursos/${slug}`;
 
@@ -15,3 +15,6 @@ export const caminhoDoCertificado = (slug: string) =>
 
 export const caminhoDaConferencia = (codigo: string) =>
   `/certificado/${codigo}`;
+
+/** O download de um arquivo do material de apoio, pela rota app/material/[id]. */
+export const caminhoDoMaterial = (id: string) => `/material/${id}`;

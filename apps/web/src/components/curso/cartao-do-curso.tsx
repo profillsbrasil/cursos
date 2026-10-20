@@ -23,6 +23,7 @@ import {
 import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { SeloEstado } from "@/components/meus-cursos/selo-estado";
 
+import { MaterialDoCurso } from "./material-do-curso";
 import {
   type CartaoDoCurso as Cartao,
   cartaoDoCurso,
@@ -141,6 +142,12 @@ export function CartaoDoCurso({
                 );
               })}
             </ul>
+          ) : null}
+          {pagina.materiais.length > 0 ? (
+            <>
+              <div className="-mx-5 my-0.5 h-px bg-border" />
+              <MaterialDoCurso materiais={pagina.materiais} />
+            </>
           ) : null}
         </div>
       </div>

@@ -6,6 +6,24 @@ export const STATUS_DO_CURSO = ["em_producao", "publicado"] as const;
 /** `troca` é a única que não se revoga. */
 export const ORIGEM_DA_LIBERACAO = ["admin", "troca"] as const;
 
+/**
+ * As extensões do material de apoio. O registro com content-type, assinatura e
+ * rótulo mora em dominio/material.ts do @cursos/api.
+ */
+export const TIPO_DO_MATERIAL = [
+  "pdf",
+  "doc",
+  "docx",
+  "xls",
+  "xlsx",
+  "ppt",
+  "pptx",
+  "png",
+  "jpg",
+  "webp",
+  "zip",
+] as const;
+
 export const SLUG = "^[a-z0-9]+(-[a-z0-9]+)*$";
 
 /** O mesmo formato do ramo youtube do check aula_video_formato. */

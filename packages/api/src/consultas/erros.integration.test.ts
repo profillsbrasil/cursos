@@ -19,6 +19,7 @@ const TABELAS_DO_ADMIN = [
   "comunicado",
   "curso",
   "liberacao",
+  "material",
   "modulo",
   "nivel",
   "pergunta",

@@ -73,6 +73,7 @@ describe("índice das seções", () => {
     expect(secoesDoEditor(rascunho, true).map((s) => s.id)).toEqual([
       "capa-e-descricao",
       "topicos",
+      "material",
       "publicacao",
       "niveis",
       "modulos",
@@ -80,6 +81,7 @@ describe("índice das seções", () => {
     const existente = secoesDoEditor(rascunho, false);
     expect(existente.at(-1)?.id).toBe("apagar");
     expect(existente.find((s) => s.id === "modulos")?.contagem).toBe(2);
+    expect(existente.find((s) => s.id === "material")?.contagem).toBe(0);
   });
 
   test("o resumo conta módulos e aulas, e a duração só com vídeo", () => {

@@ -5,9 +5,14 @@
 // plano-do-curso.ts.
 
 // formatos.ts, não comum.ts: este módulo vai para o bundle do browser.
-import { ID_DO_YOUTUBE, STATUS_DO_CURSO } from "@cursos/db/schema/formatos";
+import {
+  ID_DO_YOUTUBE,
+  STATUS_DO_CURSO,
+  TIPO_DO_MATERIAL,
+} from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
+import { CHAVE_DO_MATERIAL, LIMITE_DO_MATERIAL } from "./material";
 import { ALTERNATIVAS } from "./questionario";
 import type {
   AlternativaId,
@@ -15,6 +20,7 @@ import type {
   Capa,
   CategoriaId,
   CursoId,
+  MaterialId,
   ModuloId,
   PerguntaId,
   Versao,
@@ -28,6 +34,9 @@ import type {
  */
 export const LIMITES = {
   aulasPorModulo: 500,
+  /** O teto de cada arquivo; o check material_bytes_limite repete. */
+  bytesDoMaterial: LIMITE_DO_MATERIAL.bytes,
+  materiais: LIMITE_DO_MATERIAL.porCurso,
   modulos: 200,
   niveis: 50,
   numeroDeModulo: 999,
@@ -42,10 +51,12 @@ export const CARACTERES = {
   descricao: 2000,
   descricaoDaAula: 2000,
   enunciado: 500,
+  nomeDoArquivo: LIMITE_DO_MATERIAL.nomeDoArquivo,
   nomeDoNivel: 60,
   slug: 80,
   titulo: 120,
   tituloDaAula: 160,
+  tituloDoMaterial: LIMITE_DO_MATERIAL.titulo,
   tituloDoModulo: 160,
   topico: 120,
 } as const;
@@ -114,6 +125,21 @@ const modulo = z.object({
   titulo: texto(CARACTERES.tituloDoModulo),
 });
 
+const material = z
+  .object({
+    bytes: z.int().positive().max(LIMITE_DO_MATERIAL.bytes),
+    chave: z.string().regex(CHAVE_DO_MATERIAL),
+    /** Material novo: o editor gera o id. A posição é o índice mais 1. */
+    id: uuid.transform((id) => id as MaterialId),
+    nomeDoArquivo: z.string().trim().min(1).max(CARACTERES.nomeDoArquivo),
+    tipo: z.enum(TIPO_DO_MATERIAL),
+    titulo: texto(CARACTERES.tituloDoMaterial),
+  })
+  .refine((m) => m.chave.endsWith(`.${m.tipo}`), {
+    message: "A chave do arquivo não é do tipo dele.",
+    path: ["chave"],
+  });
+
 const nivel = z.object({
   nome: texto(CARACTERES.nomeDoNivel),
   ordem: z.int().min(1).max(LIMITES.niveis),
@@ -144,6 +170,8 @@ export const documentoDoCurso = z
     categoriaId: uuid.transform((id) => id as CategoriaId),
     descricao: livre(CARACTERES.descricao),
     id: uuid.transform((id) => id as CursoId),
+    /** O material de apoio, na ordem em que o aluno lê. */
+    materiais: z.array(material).max(LIMITES.materiais),
     modulos: z.array(modulo).max(LIMITES.modulos),
     niveis: z.array(nivel).max(LIMITES.niveis),
     precoTroca: z.int().positive().max(PRECO_MAXIMO).nullable(),
@@ -178,6 +206,9 @@ export const documentoDoCurso = z
     for (const id of repetidos(alternativas.map((a) => a.id))) {
       falha(`Alternativa ${id} aparece duas vezes.`, ["modulos"]);
     }
+    for (const id of repetidos(d.materiais.map((m) => m.id))) {
+      falha(`Material ${id} aparece duas vezes.`, ["materiais"]);
+    }
     for (const o of repetidos(d.niveis.map((n) => n.ordem))) {
       falha(`Dois níveis com a ordem ${o}.`, ["niveis"]);
     }
@@ -202,6 +233,7 @@ export type DocumentoDoCurso = z.output<typeof documentoDoCurso>;
 export type ModuloDoDocumento = DocumentoDoCurso["modulos"][number];
 export type AulaDoDocumento = ModuloDoDocumento["aulas"][number];
 export type PerguntaDoDocumento = AulaDoDocumento["perguntas"][number];
+export type MaterialDoDocumento = DocumentoDoCurso["materiais"][number];
 export type AlternativaDoDocumento =
   PerguntaDoDocumento["alternativas"][number];
 
@@ -311,6 +343,7 @@ export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
       categoriaId: SEM_CATEGORIA,
       descricao: "",
       id,
+      materiais: [],
       modulos: [],
       niveis: [],
       precoTroca: null,

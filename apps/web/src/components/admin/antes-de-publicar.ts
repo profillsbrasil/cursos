@@ -80,7 +80,10 @@ export interface SecaoDoIndice {
 }
 
 export function secoesDoEditor(
-  rascunho: Pick<RascunhoDoCurso, "modulos" | "niveis" | "topicos">,
+  rascunho: Pick<
+    RascunhoDoCurso,
+    "materiais" | "modulos" | "niveis" | "topicos"
+  >,
   novo: boolean
 ): SecaoDoIndice[] {
   const secoes: SecaoDoIndice[] = [
@@ -89,6 +92,11 @@ export function secoesDoEditor(
       contagem: rascunho.topicos.length,
       id: "topicos",
       nome: "O que você vai aprender",
+    },
+    {
+      contagem: rascunho.materiais.length,
+      id: "material",
+      nome: "Material de apoio",
     },
     { contagem: null, id: "publicacao", nome: "Publicação" },
     { contagem: rascunho.niveis.length, id: "niveis", nome: "Níveis" },

@@ -537,6 +537,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       categoriaId,
       descricao: "",
       id: randomUUID() as CursoId,
+      materiais: [],
       modulos: [
         {
           aulas: [
@@ -615,6 +616,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       categoriaId,
       descricao: "",
       id: randomUUID() as CursoId,
+      materiais: [],
       modulos: [
         {
           aulas: [

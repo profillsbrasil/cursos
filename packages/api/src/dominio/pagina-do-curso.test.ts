@@ -45,7 +45,7 @@ const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
     posicoes: o.posicoes ?? [],
     questionarios: o.questionarios ?? [],
   });
-  return aberto && montarPaginaDoCurso(aberto);
+  return aberto && montarPaginaDoCurso(aberto, []);
 };
 
 const SEM: MarcaDoQuestionario = { tipo: "sem" };
@@ -144,7 +144,7 @@ describe("montarPaginaDoCurso", () => {
       posicoes: [],
       questionarios: [],
     });
-    const p = aberto && montarPaginaDoCurso(aberto);
+    const p = aberto && montarPaginaDoCurso(aberto, []);
     expect({
       modulos: p?.modulos.map((m) => [m.numero, m.nivel]),
       niveis: p?.niveis,
@@ -219,7 +219,7 @@ describe("montarPaginaDoCurso", () => {
       posicoes: [],
       questionarios: [tentativa(B1, false, 2)],
     });
-    const p = aberto && montarPaginaDoCurso(aberto);
+    const p = aberto && montarPaginaDoCurso(aberto, []);
     expect([p?.estado, p?.acao]).toEqual([
       { aprovados: 0, proximaAula: B1, tipo: "questionarios", total: 2 },
       {
@@ -280,7 +280,7 @@ describe("montarPaginaDoCurso", () => {
       posicoes: [],
       questionarios: [],
     });
-    expect(aberto && montarPaginaDoCurso(aberto).acao).toEqual({
+    expect(aberto && montarPaginaDoCurso(aberto, []).acao).toEqual({
       aulaId: A1,
       href: `/cursos/envase/aulas/${A1}`,
       tipo: "rever",

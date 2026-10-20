@@ -434,7 +434,8 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
 
     test("ao rolar, a coluna fica presa a 24 px do topo", async () => {
       await abrirEditor(1920);
-      await avaliar(enviar, "window.scrollTo(0, 1200)");
+      // No meio da página: no fim, o curso de exemplo acaba antes da coluna e a empurra.
+      await avaliar(enviar, "window.scrollTo(0, 600)");
       await avaliar(
         enviar,
         "new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"

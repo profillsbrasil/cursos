@@ -2,6 +2,7 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import { contextoDe, ehAdmin } from "@cursos/api/context";
+import { TIPOS_DE_MATERIAL } from "@cursos/api/dominio/material";
 import { createCaller } from "@cursos/api/routers/index";
 import { notFound, unstable_rethrow } from "next/navigation";
 import { cache } from "react";
@@ -86,6 +87,27 @@ export const conferirCertificado = cache((codigo: string) =>
 
 /** Pública como a conferência: a capa aparece para quem ainda não entrou. */
 export const abrirCapa = (chave: string) => servicos.capas.abrir(chave);
+
+/**
+ * O download do material de apoio. Sem sessão não manda para o login: a rota
+ * responde 404, como para quem não pode ver o curso. null também quando o objeto
+ * sumiu do bucket.
+ */
+export async function abrirMaterial(id: string) {
+  const ctx = contextoDe(await auth(), servicos);
+  if (!ctx.auth) {
+    return null;
+  }
+  const arquivo = await createCaller(ctx).curso.material({ id });
+  const resposta = arquivo && (await servicos.materiais.abrir(arquivo.chave));
+  return arquivo && resposta
+    ? {
+        contentType: TIPOS_DE_MATERIAL[arquivo.tipo].contentType,
+        nomeDoArquivo: arquivo.nomeDoArquivo,
+        resposta,
+      }
+    : null;
+}
 
 export const carregarPainelDeTroca = cache(async () =>
   (await caller()).troca.painel()

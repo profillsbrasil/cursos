@@ -17,6 +17,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.categoria.id,
     }),
     liberacoes: r.many.liberacao({ from: r.curso.id, to: r.liberacao.cursoId }),
+    materiais: r.many.material({ from: r.curso.id, to: r.material.cursoId }),
     modulos: r.many.modulo({ from: r.curso.id, to: r.modulo.cursoId }),
     niveis: r.many.nivel({ from: r.curso.id, to: r.nivel.cursoId }),
   },

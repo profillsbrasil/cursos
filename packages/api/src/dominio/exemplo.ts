@@ -80,6 +80,7 @@ export function documentoDeExemplo(
     categoriaId: EDICAO.CATEGORIA,
     descricao: "",
     id: EDICAO.CURSO,
+    materiais: [],
     modulos: [
       {
         aulas: [

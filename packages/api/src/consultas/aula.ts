@@ -33,6 +33,7 @@ import { ErroParaAPessoa } from "../index";
 import { COM_CONTEUDO } from "./catalogo";
 import { concluirCurso } from "./certificado";
 import { type Executor, relacaoLiberacoesAtivas } from "./comum";
+import { materiaisDaPagina } from "./material";
 import { linhasDosQuestionarios } from "./meus-cursos";
 import { linhasDoQuestionario } from "./questionario";
 import { travarAluno } from "./trava";
@@ -126,10 +127,12 @@ export async function carregarPaginaDoCurso(
   userId: string,
   slug: string
 ): Promise<PaginaDoCurso | null> {
-  const aberto = montarCursoAberto(
-    await linhasDoCurso(db, userId, { slug }, { serial: false })
-  );
-  return aberto && montarPaginaDoCurso(aberto);
+  const [linhas, materiais] = await Promise.all([
+    linhasDoCurso(db, userId, { slug }, { serial: false }),
+    materiaisDaPagina(db, slug),
+  ]);
+  const aberto = montarCursoAberto(linhas);
+  return aberto && montarPaginaDoCurso(aberto, materiais);
 }
 
 const erroSemAcesso = () =>
