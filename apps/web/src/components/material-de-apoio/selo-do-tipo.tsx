@@ -17,8 +17,8 @@ const COR: Partial<Record<TipoDoMaterial, string>> = {
 };
 
 const TAMANHO = {
-  grande: "h-11 w-[38px] rounded-[8px] text-[10px]",
-  pequeno: "h-[34px] w-[30px] rounded-[7px] text-[9px]",
+  grande: "h-11 w-[38px] rounded-[8px] text-[11px]",
+  pequeno: "h-[38px] w-[34px] rounded-[8px] text-[11px]",
 } as const;
 
 /**

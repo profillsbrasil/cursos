@@ -49,7 +49,7 @@ export function MaterialDoCurso({
         {mostrados.map((m) => (
           <li key={m.id}>
             <a
-              className="group grid grid-cols-[30px_minmax(0,1fr)_16px] items-center gap-2.5 rounded-[10px] px-2.5 py-1.5 transition-colors duration-150 ease-forte hover:bg-white/8"
+              className="group grid grid-cols-[34px_minmax(0,1fr)_16px] items-center gap-2.5 rounded-[10px] px-2.5 py-1.5 transition-colors duration-150 ease-forte hover:bg-white/8"
               download={m.nomeDoArquivo}
               href={m.href}
               id={idDoLink(m.id)}
