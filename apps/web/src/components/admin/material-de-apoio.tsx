@@ -60,7 +60,7 @@ import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
 import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { ICONE, Secao } from "./partes";
+import { ICONE, Secao, Vazio } from "./partes";
 import { ID } from "./rascunho-do-curso";
 import {
   type AcaoDoEditor,
@@ -490,9 +490,9 @@ export function MaterialDeApoio({
         onDrop={soltou}
       >
         {vazio ? (
-          <p className="px-5 py-4 text-muted-foreground text-sm">
+          <Vazio>
             Sem arquivo, a página do curso não mostra material de apoio.
-          </p>
+          </Vazio>
         ) : (
           <Reorder.Group
             aria-label="Arquivos do material de apoio"

@@ -111,7 +111,7 @@ export function CursosParaTrocar({
         {cartoes.length === 0 ? (
           // O vazio é um cartão com o botão na mesma linha, não um texto solto.
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-[20px] bg-card px-5 py-4 ring-1 ring-border">
-            <p className="max-w-[60ch] text-muted-foreground">
+            <p className="max-w-[60ch] text-muted-foreground text-sm">
               {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
             </p>
             {temCursoTrocavelNaVitrine ? null : voltar(voltarAEstudar)}

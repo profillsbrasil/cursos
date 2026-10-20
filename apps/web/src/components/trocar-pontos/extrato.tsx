@@ -14,7 +14,7 @@ export function Extrato({
 }) {
   if (itens.length === 0) {
     return (
-      <p className="rounded-[20px] bg-card px-5 py-4 text-muted-foreground ring-1 ring-border">
+      <p className="rounded-[20px] bg-card px-5 py-4 text-muted-foreground text-sm ring-1 ring-border">
         Nenhum ponto ainda. Cada aula assistida até o fim vale pontos.
       </p>
     );

@@ -16,7 +16,7 @@ export function TelaNaoEncontrada({
       <h1 className="font-bold text-2xl text-titulo tracking-tight">
         {titulo}
       </h1>
-      <p className="text-muted-foreground">{texto}</p>
+      <p className="text-muted-foreground text-sm">{texto}</p>
       <Link className={BOTAO} href="/meus-cursos">
         <ArrowLeft aria-hidden="true" />
         Voltar para Meus cursos

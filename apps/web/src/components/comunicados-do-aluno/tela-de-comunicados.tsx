@@ -136,7 +136,7 @@ function Linha({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
         <h3 className="text-balance font-semibold text-base text-titulo leading-[1.4]">
           {c.titulo}
         </h3>
-        <Texto texto={c.texto} />
+        <Texto className="text-sm" texto={c.texto} />
         <p className={LINHA_APAGADA}>
           <span>
             {c.alvo.tipo === "curso" ? (
@@ -160,7 +160,7 @@ function Vazio() {
         <h2 className="font-semibold text-base text-titulo leading-[1.4]">
           Nenhum comunicado por enquanto
         </h2>
-        <p className="mt-1 max-w-[56ch] text-pretty text-muted-foreground">
+        <p className="mt-1 max-w-[56ch] text-pretty text-muted-foreground text-sm">
           Quando o admin publicar um aviso para todos ou sobre um dos seus
           cursos, ele aparece aqui, com o texto inteiro.
         </p>

@@ -71,7 +71,7 @@ function Pendente({
           <h2 className={TITULO_DO_CARTAO} id="certificado-pendente">
             O certificado sai quando você concluir o curso
           </h2>
-          <p className="mt-1 text-muted-foreground">
+          <p className="mt-1 text-muted-foreground text-sm">
             Assista a todas as aulas e passe em todos os questionários.
           </p>
         </div>

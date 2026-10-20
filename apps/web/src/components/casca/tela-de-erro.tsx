@@ -28,7 +28,7 @@ export function TelaDeErro({
       <h1 className="font-bold text-2xl text-titulo tracking-tight">
         {titulo}
       </h1>
-      <p className="text-muted-foreground">{texto}</p>
+      <p className="text-muted-foreground text-sm">{texto}</p>
       <button className={BOTAO} onClick={retry} type="button">
         <RotateCcw aria-hidden="true" />
         Tentar de novo
