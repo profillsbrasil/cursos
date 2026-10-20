@@ -71,7 +71,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
       />
       <span className="grid min-w-0 gap-0.5">
         <Link
-          className="max-w-full justify-self-start truncate font-medium text-foreground underline-offset-4 transition-colors hover:text-titulo hover:underline"
+          className="max-w-full justify-self-start truncate font-medium text-base text-foreground underline-offset-4 transition-colors hover:text-titulo hover:underline"
           href={href}
         >
           {p.nome}

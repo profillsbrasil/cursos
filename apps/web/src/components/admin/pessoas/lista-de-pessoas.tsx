@@ -39,7 +39,9 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
           nome={p.nome}
         />
         <span className="grid min-w-0 gap-0.5">
-          <span className="truncate font-medium text-foreground">{p.nome}</span>
+          <span className="truncate font-medium text-base text-foreground">
+            {p.nome}
+          </span>
           <span className="truncate text-muted-foreground text-sm">
             {p.email ?? p.userId}
           </span>
