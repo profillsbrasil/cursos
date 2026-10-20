@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { spawnSync } from "bun";
 
 import { enderecoDaConferencia, folhaDo } from "./folha";
+import { FOLHA_EM_PX } from "./medidas-da-folha";
+import { NOMES_DA_FOLHA } from "./nomes-de-teste";
 import { pdfDaFolha } from "./pdf";
 
 const ANA = {
@@ -62,6 +64,85 @@ const textoDoPdf = (pdf: Buffer) =>
   emDisco(pdf, (arquivo) =>
     spawnSync(["pdftotext", "-layout", arquivo, "-"]).stdout.toString()
   );
+
+interface Palavra {
+  direita: number;
+  esquerda: number;
+  pe: number;
+  texto: string;
+  topo: number;
+}
+
+const PAGINA_LIDA = /<page\b/g;
+const PALAVRA =
+  /<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)<\/word>/g;
+
+const palavrasDoPdf = (pdf: Buffer) =>
+  emDisco(pdf, (arquivo) => {
+    const xml = spawnSync([
+      "pdftotext",
+      "-bbox",
+      arquivo,
+      "-",
+    ]).stdout.toString();
+    const palavras: Palavra[] = [...xml.matchAll(PALAVRA)].map(
+      ([, x0, y0, x1, y1, texto = ""]) => ({
+        direita: Number(x1),
+        esquerda: Number(x0),
+        pe: Number(y1),
+        texto,
+        topo: Number(y0),
+      })
+    );
+    return { paginas: xml.match(PAGINA_LIDA)?.length ?? 0, palavras };
+  });
+
+const emPt = (px: number) => (px * 841.89) / FOLHA_EM_PX.largura;
+const { centro, confere, pe } = FOLHA_EM_PX;
+const DA_FOLHA = {
+  direita: emPt(FOLHA_EM_PX.largura - centro.lado),
+  esquerda: emPt(centro.lado),
+  faixa: emPt(FOLHA_EM_PX.faixa.altura),
+  pe: emPt(FOLHA_EM_PX.altura - pe.baixo - pe.acima - confere.qr),
+};
+const SEM_ESPACO = /\s+/g;
+const HIFEN = /-/g;
+
+describe.skipIf(!POPPLER)("o nome de qualquer tamanho no PDF", () => {
+  test.each(NOMES_DA_FOLHA)(
+    "%s: uma página, o nome entre a faixa e o pé, dentro das margens, inteiro ou cortado com reticências",
+    async (_, nome) => {
+      const { paginas, palavras } = palavrasDoPdf(
+        await pdfDe({ ...LONGO, nome })
+      );
+      expect(paginas).toBe(1);
+      const abre = palavras.findIndex((p) => p.texto === "Certificamos");
+      const fecha = palavras.findIndex((p) => p.texto === "concluiu");
+      const certificamos = palavras[abre];
+      const doNome = palavras.slice(abre + 2, fecha);
+      const ultima = palavras.find((p) => p.texto === "2026.");
+      expect(certificamos?.topo).toBeGreaterThan(DA_FOLHA.faixa + 1);
+      expect(doNome.length).toBeGreaterThan(0);
+      for (const p of doNome) {
+        expect(p.topo).toBeGreaterThanOrEqual(certificamos?.pe ?? 0);
+        expect(p.esquerda).toBeGreaterThanOrEqual(DA_FOLHA.esquerda - 0.5);
+        expect(p.direita).toBeLessThanOrEqual(DA_FOLHA.direita + 0.5);
+      }
+      expect(ultima?.pe ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(
+        DA_FOLHA.pe
+      );
+      const lido = doNome
+        .map((p) => p.texto)
+        .join("")
+        .replace(HIFEN, "");
+      const inteiro = nome.replace(SEM_ESPACO, "");
+      if (lido !== inteiro) {
+        expect(lido.endsWith("…")).toBe(true);
+        expect(inteiro.startsWith(lido.slice(0, -1))).toBe(true);
+      }
+    }
+  );
+});
 
 describe.skipIf(!POPPLER)("o PDF lido pelo poppler", () => {
   test("traz nome, curso, carga horária, data, código e o endereço da conferência", async () => {
