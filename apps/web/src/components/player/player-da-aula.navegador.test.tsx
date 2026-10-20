@@ -61,7 +61,42 @@ const DADOS: AulaNoPlayer = {
   questionario: null,
 };
 
-async function empacotar() {
+/**
+ * A IFrame API do YouTube falsa, para o adaptador de verdade (`lib/player/youtube.ts`):
+ * como a real, o `Player` troca o elemento por um iframe, aqui com os três controles
+ * que o YouTube põe no pôster, e anota cada chamada em `window.yt`.
+ */
+const YOUTUBE_FALSO = `
+  window.yt = [];
+  window.YT = {
+    Player: function (alvo, opcoes) {
+      const iframe = document.createElement("iframe");
+      iframe.id = "iframe-do-youtube";
+      iframe.srcdoc = '<button>Play video</button><button>Copy link</button><a href="#">Watch on YouTube</a>';
+      alvo.replaceWith(iframe);
+      window.ytEventos = opcoes.events;
+      const anotar = (nome) => (...a) => { window.yt.push(a.length ? nome + ":" + a.join(",") : nome); };
+      setTimeout(() => opcoes.events.onReady(), 0);
+      return {
+        destroy: anotar("destroy"),
+        getCurrentTime: () => 0,
+        getDuration: () => 634,
+        getPlaybackRate: () => 1,
+        loadModule: anotar("loadModule"),
+        mute: anotar("mute"),
+        pauseVideo: anotar("pauseVideo"),
+        playVideo: anotar("playVideo"),
+        seekTo: anotar("seekTo"),
+        setPlaybackRate: anotar("setPlaybackRate"),
+        setVolume: anotar("setVolume"),
+        unloadModule: anotar("unloadModule"),
+        unMute: anotar("unMute"),
+      };
+    },
+  };
+`;
+
+async function empacotar(comYoutube = false) {
   const pacote = await build({
     define: { "process.env.NODE_ENV": '"development"' },
     entrypoints: [ENTRADA],
@@ -134,7 +169,7 @@ async function empacotar() {
         name: "player-falso",
         setup(construtor) {
           construtor.onResolve({ filter: VIDEO_DO_HOOK }, (args) =>
-            args.importer.endsWith("use-player-da-aula.ts")
+            !comYoutube && args.importer.endsWith("use-player-da-aula.ts")
               ? { path: VIDEO_FALSO }
               : undefined
           );
@@ -161,6 +196,10 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));
 const { PlayerDaAula } = await import("./player-da-aula");
+const { default: CarregandoAula } = await import(
+  "../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading"
+);
+const ESQUELETO = renderToStaticMarkup(<CarregandoAula />);
 const { FimDoVideo } = await import("./fim-do-video");
 
 // A página da aula, como o page.tsx a monta, com a coluna do curso no lugar.
@@ -195,12 +234,14 @@ const css = await cssDoApp([
       <FimDoVideo aoRever={nada} assistida conquista={null} dados={DADOS} />
     )
   ),
+  ...classesDe(ESQUELETO),
   ...PAGINA.split(" "),
   ...fontes.join(" ").split(SEPARADOR_DE_CLASSES),
 ]);
 
 let enviar: Enviar;
 let pacote: string;
+let pacoteComYoutube: string;
 
 // No celular a casca não tem sidebar nem moldura, e o conteúdo tem 16 px dos lados.
 const CASCA_DO_COMPUTADOR =
@@ -212,7 +253,8 @@ async function abrir(
   largura: number,
   altura: number,
   assistida = false,
-  celular = false
+  celular = false,
+  codigo = pacote
 ) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -231,7 +273,28 @@ async function abrir(
     enviar,
     `window.assistidaNoTeste = ${assistida}; window.conquistaNoTeste = undefined;`
   );
-  await avaliar(enviar, pacote);
+  await avaliar(enviar, codigo === pacoteComYoutube ? YOUTUBE_FALSO : "");
+  await avaliar(enviar, codigo);
+}
+
+/** O loading.tsx da aula na mesma casca, no lugar da página. */
+async function abrirEsqueleto(
+  largura: number,
+  altura: number,
+  celular: boolean
+) {
+  await enviar("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: altura,
+    mobile: celular,
+    width: largura,
+  });
+  await avaliar(
+    enviar,
+    `document.open(); document.write(${JSON.stringify(
+      `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div style="display:flex">${celular ? CASCA_DO_CELULAR : CASCA_DO_COMPUTADOR}${ESQUELETO}</main></div></body></html>`
+    )}); document.close(); window.scrollTo(0, 0);`
+  );
 }
 
 function esperar(condicao: string) {
@@ -266,6 +329,8 @@ const teclar = (key: string) =>
   );
 /** Uma tecla de verdade, pelo DevTools, com o keydown e o keyup que o browser gera. */
 const TECLAS: Record<string, { code: string; vk: number }> = {
+  ArrowLeft: { code: "ArrowLeft", vk: 37 },
+  ArrowRight: { code: "ArrowRight", vk: 39 },
   Enter: { code: "Enter", vk: 13 },
   Escape: { code: "Escape", vk: 27 },
   Tab: { code: "Tab", vk: 9 },
@@ -284,6 +349,21 @@ async function apertar(key: string) {
     "new Promise((r) => requestAnimationFrame(() => r(0)))"
   );
 }
+/** Cada parada do Tab até o controle com o rótulo pedido, em no máximo 10 Tabs. */
+async function tabAte(
+  rotulo: string,
+  paradas: string[] = []
+): Promise<string[]> {
+  await apertar("Tab");
+  const parada = await avaliar<string>(
+    enviar,
+    `(() => { const a = document.activeElement; return a.tagName + " " + (a.getAttribute("aria-label") ?? a.textContent.trim()); })()`
+  );
+  const ate = [...paradas, parada];
+  return parada.includes(rotulo) || ate.length >= 10
+    ? ate
+    : tabAte(rotulo, ate);
+}
 /** A mesma tecla várias vezes, uma depois da outra. */
 const apertarVezes = (key: string, vezes: number) =>
   Array.from({ length: vezes }).reduce<Promise<void>>(
@@ -301,6 +381,12 @@ const pressionado = (seletor: string) =>
     `document.querySelector(${JSON.stringify(seletor)})?.getAttribute("aria-pressed") ?? null`
   );
 const FOLHA_DOS_AJUSTES = '[role="dialog"][aria-label="Ajustes"]';
+/** A velocidade marcada nos Ajustes, pelo rótulo dela. */
+const velocidadeMarcada = () =>
+  avaliar<string | null>(
+    enviar,
+    `document.querySelector('${FOLHA_DOS_AJUSTES} input[type="radio"]:checked')?.getAttribute("aria-label") ?? null`
+  );
 
 /** A conquista mais longa: a aula assistida com o bônus da sequência. */
 const CONQUISTA_COM_BONUS = {
@@ -353,13 +439,29 @@ const LISTA_DE_ATALHOS = '[role="dialog"]:not([aria-label="Ajustes"])';
 
 describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
   beforeAll(async () => {
-    [enviar, pacote] = await Promise.all([
+    [enviar, pacote, pacoteComYoutube] = await Promise.all([
       abrirChromium("player-da-aula"),
       empacotar(),
+      empacotar(true),
     ]);
   }, 20_000);
 
   afterAll(fecharChromium);
+
+  test("pelo Tab, do topo da aula se chega ao slider de posição sem passar pelo iframe do YouTube, que segue clicável", async () => {
+    await abrir(1440, 900, false, false, pacoteComYoutube);
+    await esperar(
+      `document.querySelector("#iframe-do-youtube")?.contentDocument?.querySelector("button")`
+    );
+    expect(await tabAte("Posição no vídeo")).toEqual(["DIV Posição no vídeo"]);
+    // O clique no meio do vídeo ainda cai no iframe.
+    expect(
+      await avaliar<boolean>(
+        enviar,
+        `(() => { const f = document.getElementById("iframe-do-youtube"); const r = f.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === f && getComputedStyle(f).pointerEvents !== "none"; })()`
+      )
+    ).toBe(true);
+  });
 
   for (const [largura, altura] of [
     [1440, 900],
@@ -452,6 +554,59 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     expect(Math.abs(visto - tempo)).toBeLessThanOrEqual(1);
   });
 
+  test("enquanto o vídeo carrega, o player fica ocupado e os botões desligados pulsam", async () => {
+    await abrir(1440, 900);
+    const sinal = () =>
+      avaliar<{ ocupado: string | null; pulso: string[] }>(
+        enviar,
+        `({
+          ocupado: document.getElementById("video").getAttribute("aria-busy"),
+          pulso: ["Reproduzir", "Voltar 10 segundos", "Avançar 10 segundos"].map((r) => {
+            const b = document.querySelector('button[aria-label="' + r + '"]');
+            return (b.disabled ? "desligado " : "ligado ") + getComputedStyle(b.parentElement).animationName;
+          }),
+        })`
+      );
+    expect(await sinal()).toEqual({
+      ocupado: "true",
+      pulso: ["desligado pulse", "desligado pulse", "desligado pulse"],
+    });
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    expect(await sinal()).toEqual({
+      ocupado: "false",
+      pulso: ["ligado none", "ligado none", "ligado none"],
+    });
+  });
+
+  // A barra tem uma linha a partir de 40rem de largura dela e duas abaixo disso: no
+  // celular, no tablet e entre 1081 e uns 1230 px, onde a coluna do curso a estreita.
+  for (const [largura, altura, celular] of [
+    [1440, 900, false],
+    [1120, 800, false],
+    [1180, 800, false],
+    [1000, 800, false],
+    [390, 812, true],
+    [320, 640, true],
+  ] as const) {
+    test(`em ${largura} x ${altura}, o esqueleto do player tem a altura do player com os controles`, async () => {
+      await abrirEsqueleto(largura, altura, celular);
+      const esqueleto = await avaliar<number>(
+        enviar,
+        `document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect().height`
+      );
+      await abrir(largura, altura, false, celular);
+      await emitir({ duracaoSeg: 634, tipo: "pronto" });
+      const player = await avaliar<number>(
+        enviar,
+        `document.getElementById("video").getBoundingClientRect().height`
+      );
+      expect({ esqueleto: Math.round(esqueleto), largura }).toEqual({
+        esqueleto: Math.round(player),
+        largura,
+      });
+    });
+  }
+
   test("os Ajustes trocam a velocidade, ligam a legenda e abrem a lista de atalhos, que fecha no Esc", async () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
@@ -469,13 +624,13 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     expect(
       await avaliar<string[]>(
         enviar,
-        `[...document.querySelectorAll('${FOLHA_DOS_AJUSTES} fieldset button')].map((b) => b.textContent + (b.getAttribute("aria-pressed") === "true" ? "*" : ""))`
+        `[...document.querySelectorAll('${FOLHA_DOS_AJUSTES} fieldset label')].map((l) => l.textContent + (l.querySelector("input").checked ? "*" : ""))`
       )
     ).toEqual(["0,75", "1*", "1,25", "1,5", "1,75", "2"]);
 
-    await clicar(`${FOLHA_DOS_AJUSTES} button[aria-label="1,5×"]`);
+    await clicar(`${FOLHA_DOS_AJUSTES} input[aria-label="1,5×"]`);
     expect(await pedidos()).toEqual(["velocidade:1.5"]);
-    expect(await pressionado('button[aria-label="1,5×"]')).toBe("true");
+    expect(await velocidadeMarcada()).toBe("1,5×");
 
     await clicarNoTexto("LegendasDesligadas");
     expect(await pedidos()).toEqual(["legenda:true"]);
@@ -508,16 +663,92 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    // Do primeiro item da folha até o 2×, como a pessoa do teste fez.
-    await apertarVezes("Tab", 5);
+    // Da velocidade marcada até o 2×, pelas setas.
+    await apertarVezes("ArrowRight", 4);
     expect(await focado()).toBe("2×");
-    await apertar("Enter");
-    expect(await pressionado('button[aria-label="2×"]')).toBe("true");
+    expect(await velocidadeMarcada()).toBe("2×");
     await apertar("Escape");
     // Já no quadro do Esc, com a folha ainda saindo: o 2× que some não segura o foco.
     expect(await focado()).toBe("Ajustes");
     await esperar(`!document.querySelector('${FOLHA_DOS_AJUSTES}')`);
     expect(await focado()).toBe("Ajustes");
+  });
+
+  test("pelo teclado, o foco entra na velocidade marcada e as setas andam entre as velocidades", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    expect(await focado()).toBe("1×");
+    await pedidos();
+    await apertar("ArrowRight");
+    expect(await focado()).toBe("1,25×");
+    expect(await velocidadeMarcada()).toBe("1,25×");
+    await apertarVezes("ArrowLeft", 2);
+    expect(await focado()).toBe("0,75×");
+    expect(await velocidadeMarcada()).toBe("0,75×");
+    // As setas trocam a velocidade, e nenhuma delas anda no vídeo.
+    expect(await pedidos()).toEqual([
+      "velocidade:1.25",
+      "velocidade:1",
+      "velocidade:0.75",
+    ]);
+    // O Tab sai do grupo para o item seguinte, sem passar pelas outras velocidades.
+    await apertar("Tab");
+    expect(await focado()).toBe("LegendasDesligadas");
+  });
+
+  test("pelo teclado, as teclas dentro dos Ajustes ficam na folha e não tocam nem andam no vídeo", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    await apertar("Tab");
+    expect(await focado()).toBe("LegendasDesligadas");
+    await pedidos();
+    await ["ArrowRight", "ArrowLeft", "l", "k"].reduce<Promise<void>>(
+      (anterior, tecla) => anterior.then(() => apertar(tecla)),
+      Promise.resolve()
+    );
+    expect(await pedidos()).toEqual([]);
+  });
+
+  test("com o YouTube, andar no vídeo antes do primeiro play não o faz tocar: a posição espera o Reproduzir", async () => {
+    await abrir(1440, 900, false, false, pacoteComYoutube);
+    await esperar(
+      `document.querySelector('button[aria-label="Reproduzir"]')?.disabled === false`
+    );
+    const chamadas = () => avaliar<string[]>(enviar, "window.yt.splice(0)");
+    await chamadas();
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Reproduzir"]').focus()`
+    );
+    await apertar("ArrowRight");
+    await clicar('button[aria-label="Avançar 10 segundos"]');
+    // O seekTo do YouTube toca o vídeo que ainda não começou.
+    expect(await chamadas()).toEqual([]);
+    expect(
+      await avaliar<string>(
+        enviar,
+        `[...document.querySelectorAll("#video span")].find((s) => s.textContent.includes(" / ")).textContent`
+      )
+    ).toStartWith("00:15 / 10:34");
+    await clicar('button[aria-label="Reproduzir"]');
+    expect(await chamadas()).toEqual(["seekTo:15,true", "playVideo"]);
+    // Depois do primeiro play, andar no vídeo vai direto ao YouTube.
+    await avaliar(enviar, "window.ytEventos.onStateChange({ data: 1 })");
+    await chamadas();
+    await clicar('button[aria-label="Avançar 10 segundos"]');
+    expect(await chamadas()).toEqual(["seekTo:10,true"]);
   });
 
   test("pelo teclado, o Esc na lista de atalhos devolve o foco à engrenagem", async () => {
@@ -529,7 +760,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    await apertarVezes("Tab", 7);
+    // Da velocidade marcada, o Tab passa por Legendas e chega aos Atalhos.
+    await apertarVezes("Tab", 2);
     expect(await focado()).toBe("Atalhos do teclado?");
     await apertar("Enter");
     await esperar(`document.querySelector('${LISTA_DE_ATALHOS}')`);
@@ -560,7 +792,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         // A transição de cor dura 150 ms: a medida espera ela acabar.
         `new Promise((pronto) => setTimeout(() => {
           const item = document.activeElement;
-          const estilo = getComputedStyle(item);
+          // O rádio da velocidade fica escondido: quem acende é o rótulo dele.
+          const estilo = getComputedStyle(item.type === "radio" ? item.closest("label") : item);
           pronto({
             cor: estilo.color,
             folha: getComputedStyle(document.querySelector('${FOLHA_DOS_AJUSTES}')).backgroundColor,
@@ -574,18 +807,15 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     const TITULO = "rgb(244, 245, 247)";
     const POPOVER = "rgb(58, 63, 69)";
 
-    // O primeiro item, que recebe o foco quando a folha abre.
-    expect(await sinal()).toMatchObject({
-      cor: TITULO,
-      folha: POPOVER,
-      fundo: TRILHO,
-      item: "0,75×",
-    });
-    await apertar("Tab");
+    // A velocidade marcada, que recebe o foco quando a folha abre.
     const marcada = await sinal();
-    expect(marcada).toMatchObject({ fundo: "rgb(255, 214, 51)", item: "1×" });
+    expect(marcada).toMatchObject({
+      folha: POPOVER,
+      fundo: "rgb(255, 214, 51)",
+      item: "1×",
+    });
     expect(marcada.sombra).toContain("rgba(255, 204, 1, 0.28)");
-    await apertarVezes("Tab", 5);
+    await apertar("Tab");
     expect(await sinal()).toMatchObject({
       cor: TITULO,
       fundo: TRILHO,

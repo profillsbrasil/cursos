@@ -103,6 +103,16 @@ export function criarPlayerDoYoutube(
   let destruido = false;
   let legenda = false;
   let reaplicouEm = Number.NEGATIVE_INFINITY;
+  // O seekTo toca o vídeo que ainda não começou (estado -1 ou 5, na referência da
+  // IFrame API): antes do primeiro play, a posição pedida espera o play.
+  let comecou = false;
+  let posicaoAntesDoPlay: number | null = null;
+  const aplicarPosicaoAntesDoPlay = () => {
+    if (posicaoAntesDoPlay !== null) {
+      playerPronto?.seekTo(posicaoAntesDoPlay, true);
+      posicaoAntesDoPlay = null;
+    }
+  };
   const alvo = document.createElement("div");
   elemento.replaceChildren(alvo);
 
@@ -142,6 +152,11 @@ export function criarPlayerDoYoutube(
           },
           onStateChange: (e) => {
             const tipo = ESTADOS[e.data];
+            if (tipo && !comecou) {
+              // O play pelo clique no vídeo também leva à posição pedida antes dele.
+              comecou = true;
+              aplicarPosicaoAntesDoPlay();
+            }
             if (tipo === "tocou") {
               aplicarLegenda();
             }
@@ -163,13 +178,22 @@ export function criarPlayerDoYoutube(
         },
         videoId,
       });
+      // A barra do app tem os controles, e as 7 paradas de Tab do pôster do YouTube
+      // (em inglês) vinham antes dela. O clique no vídeo continua indo ao iframe.
+      elemento.querySelector("iframe")?.setAttribute("tabindex", "-1");
       instancia = criado;
     },
     () => opcoes.aoEvento({ motivo: "outro", tipo: "falhou" })
   );
 
   return {
-    buscar: (seg) => playerPronto?.seekTo(seg, true),
+    buscar: (seg) => {
+      if (comecou) {
+        playerPronto?.seekTo(seg, true);
+      } else {
+        posicaoAntesDoPlay = seg;
+      }
+    },
     definirLegenda: (ligada) => {
       legenda = ligada;
       aplicarLegenda();
@@ -185,8 +209,12 @@ export function criarPlayerDoYoutube(
       playerPronto = null;
     },
     pausar: () => playerPronto?.pauseVideo(),
-    tempo: () => playerPronto?.getCurrentTime() ?? opcoes.inicioSeg,
-    tocar: () => playerPronto?.playVideo(),
+    tempo: () =>
+      posicaoAntesDoPlay ?? playerPronto?.getCurrentTime() ?? opcoes.inicioSeg,
+    tocar: () => {
+      aplicarPosicaoAntesDoPlay();
+      playerPronto?.playVideo();
+    },
     velocidade: () => playerPronto?.getPlaybackRate() ?? 1,
   };
 }

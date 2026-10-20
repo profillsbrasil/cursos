@@ -5,6 +5,7 @@ import {
   diaEmSaoPaulo,
   duracaoDoTexto,
   fmtData,
+  fmtPts,
   fmtPtsComSinal,
   mmss,
   quando,
@@ -63,6 +64,14 @@ describe("duracaoDoTexto", () => {
     ]) {
       expect(duracaoDoTexto(texto)).toBeNull();
     }
+  });
+});
+
+describe("fmtPts", () => {
+  test("um ponto fica no singular", () => {
+    expect(fmtPts(1)).toBe("1 pt");
+    expect(fmtPts(0)).toBe("0 pts");
+    expect(fmtPts(2340)).toBe("2.340 pts");
   });
 });
 

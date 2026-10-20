@@ -8,7 +8,7 @@ import { Popover, PopoverTrigger } from "@cursos/ui/components/popover";
 import { Tooltip, TooltipTrigger } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
 import { Captions, Keyboard, Settings } from "lucide-react";
-import { type RefObject, useCallback, useRef, useState } from "react";
+import { type RefObject, useCallback, useId, useRef, useState } from "react";
 
 import { fmtNum, fmtVelocidade } from "@/lib/formato";
 import type { EstadoDaSessao } from "@/lib/player/sessao";
@@ -27,12 +27,18 @@ const ATALHOS: readonly { faz: string; teclas: readonly string[] }[] = [
   { faz: "Tela cheia", teclas: ["f"] },
 ];
 
-function BotaoDeVelocidade({
+/**
+ * Cada velocidade é um rádio escondido no rótulo, como as alternativas do questionário:
+ * o Tab entra na marcada e sai do grupo, e as setas andam entre elas, já escolhendo.
+ */
+function OpcaoDeVelocidade({
   comandar,
+  grupo,
   marcada,
   valor,
 }: {
   comandar: (c: ComandoDoTeclado) => void;
+  grupo: string;
   marcada: boolean;
   valor: Velocidade;
 }) {
@@ -41,20 +47,25 @@ function BotaoDeVelocidade({
     [comandar, valor]
   );
   return (
-    <button
-      aria-label={fmtVelocidade(valor)}
-      aria-pressed={marcada}
+    <label
       className={cn(
-        "h-[30px] rounded-lg font-mono font-semibold text-xs tabular-nums transition-[background-color,color,box-shadow] duration-150 ease-forte",
+        "grid h-[30px] cursor-pointer place-items-center rounded-lg font-mono font-semibold text-xs tabular-nums transition-[background-color,color,box-shadow] duration-150 ease-forte",
         marcada
           ? "bg-sol text-sobre-cor hover:bg-sol-hover hover:shadow-brilho"
           : "text-foreground hover:bg-trilho hover:text-titulo"
       )}
-      onClick={escolher}
-      type="button"
     >
-      {fmtNum(valor)}
-    </button>
+      <input
+        aria-label={fmtVelocidade(valor)}
+        checked={marcada}
+        className="sr-only"
+        name={grupo}
+        onChange={escolher}
+        type="radio"
+        value={valor}
+      />
+      <span aria-hidden="true">{fmtNum(valor)}</span>
+    </label>
   );
 }
 
@@ -91,6 +102,7 @@ export function AjustesDoPlayer({
 }) {
   const [aberto, setAberto] = useState(false);
   const refEngrenagem = useRef<HTMLButtonElement>(null);
+  const grupoDaVelocidade = useId();
   const { legenda, velocidade } = estado;
 
   const alternarLegenda = useCallback(
@@ -163,8 +175,9 @@ export function AjustesDoPlayer({
                 </legend>
                 <div className="grid grid-cols-6 gap-1 px-1.5 pb-1.5">
                   {VELOCIDADES.map((v) => (
-                    <BotaoDeVelocidade
+                    <OpcaoDeVelocidade
                       comandar={comandar}
+                      grupo={grupoDaVelocidade}
                       key={v}
                       marcada={v === velocidade}
                       valor={v}

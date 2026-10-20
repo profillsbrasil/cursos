@@ -70,8 +70,9 @@ export function fmtHoras(seg: number) {
 /** O formato longo: "2 de outubro de 2026", no fuso de São Paulo. */
 export const fmtData = (iso: string) => DATA.format(new Date(iso));
 
-/** "2.340 pts". */
-export const fmtPts = (n: number) => `${NUMERO.format(n)} pts`;
+/** "2.340 pts", "1 pt". */
+export const fmtPts = (n: number) =>
+  `${NUMERO.format(n)} ${n === 1 ? "pt" : "pts"}`;
 
 /** "03:42", "12:05". */
 export function mmss(seg: number) {

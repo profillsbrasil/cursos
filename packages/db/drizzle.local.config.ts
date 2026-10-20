@@ -1,11 +1,14 @@
 import { defineConfig } from "drizzle-kit";
 
+import { garantirBancoLocal, URL_LOCAL_PADRAO } from "./src/seed/guarda-local";
+
 // Só o Postgres local. Não importa varlock/auto-load, então nunca lê o DATABASE_URL do .env.
-export const URL_LOCAL =
-  "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+// LOCAL_DATABASE_URL aponta outro Postgres local (outro worktree, outra porta); host remoto é recusado.
+const url = process.env.LOCAL_DATABASE_URL ?? URL_LOCAL_PADRAO;
+garantirBancoLocal(url, null);
 
 export default defineConfig({
-  dbCredentials: { url: URL_LOCAL },
+  dbCredentials: { url },
   dialect: "postgresql",
   out: "./src/migrations",
   schema: "./src/schema/index.ts",

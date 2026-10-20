@@ -40,6 +40,7 @@ export function PlayerDaAula({
     <div className="grid min-w-0 gap-4">
       <CabecalhoDaAula dados={dados} />
       <section
+        aria-busy={p.estado.reproducao.tipo === "carregando"}
         aria-label="Player da aula"
         className="overflow-hidden rounded-[20px] border border-border bg-background [&:fullscreen]:flex [&:fullscreen]:flex-col [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
         id="video"

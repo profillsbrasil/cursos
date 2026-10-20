@@ -92,7 +92,7 @@ describe("não aprovado na primeira", () => {
 
   test("o topo diz a nota, as perguntas erradas, a regra e os pontos da primeira, com Tentar de novo e Rever o vídeo", () => {
     expect(topo(html)).toBe(
-      "Ainda não: 2 de 4 (50%) +10 pts Você errou as perguntas 2 e 3. Para passar, 3 de 4. Você ganhou +10 pts pelos acertos desta primeira tentativa; as próximas não valem pontos. Tentar de novo Rever o vídeo"
+      "Ainda não: 2 de 4 (50%) +10 pts Você errou as perguntas 2 e 3. Para passar, 3 de 4. O questionário pontua só na primeira tentativa: você ganhou +10 pts pelos acertos dela. Tentar de novo Rever o vídeo"
     );
     expect(html).toContain('href="#video"');
   });
@@ -164,6 +164,30 @@ describe("os textos", () => {
         })),
       })
     ).toBe("as perguntas 1, 2, 3 e 4");
+  });
+
+  test("reprovado na primeira sem acerto: a regra dos pontos do questionário, sem +0 pts na frase", () => {
+    const { texto: frase } = fraseDoResultado({
+      ...REPROVADO_NA_PRIMEIRA,
+      acertos: 0,
+      pontos: 0,
+      pontosDaPrimeira: 0,
+      respostas: REPROVADO_NA_PRIMEIRA.respostas.map((r) => ({
+        ...r,
+        certa: false,
+      })),
+    });
+    expect(frase).toBe(
+      "Você errou as perguntas 1, 2, 3 e 4. Para passar, 3 de 4. O questionário pontua só na primeira tentativa."
+    );
+  });
+
+  // Os pontos da aula assistida podem entrar depois do envio: a frase não pode
+  // dizer que nada mais pontua.
+  test("reprovado na primeira: a frase não diz que as próximas não valem pontos", () => {
+    const { texto: frase } = fraseDoResultado(REPROVADO_NA_PRIMEIRA);
+    expect(frase).not.toContain("próximas");
+    expect(frase).toContain("O questionário pontua só na primeira tentativa");
   });
 
   test("reprovado de novo: sem pontos na frase, e tente quantas vezes quiser", () => {

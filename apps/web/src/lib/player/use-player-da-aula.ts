@@ -72,6 +72,11 @@ function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
   if (alvo === container) {
     return false;
   }
+  // As folhas dos Ajustes e dos atalhos ficam com as teclas delas: as setas andam
+  // na velocidade, e nenhuma letra lá dentro toca ou anda no vídeo.
+  if (alvo.closest("[role=dialog]")) {
+    return true;
+  }
   if (e.key === " " || e.key === "Enter") {
     return alvo.closest("button, a, input") !== null;
   }

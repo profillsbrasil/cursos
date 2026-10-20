@@ -4,6 +4,7 @@ import { PONTOS } from "@cursos/api/dominio/regras";
 import { fmtPts, plural } from "@/lib/formato";
 
 const POR_ACERTO = `${PONTOS.questionario} por acerto`;
+const SO_NA_PRIMEIRA = "O questionário pontua só na primeira tentativa";
 const PTS_POR_ACERTO = `${PONTOS.questionario} pts por acerto na primeira tentativa.`;
 
 export const pctDe = (acertos: number, total: number) =>
@@ -54,10 +55,15 @@ export function fraseDoResultado(r: ResultadoDoQuestionario): FraseDoResultado {
   const erradas = erradasDe(r);
   const errou = erradas ? `Você errou ${erradas}. ` : "";
   const regra = regraDaNota(r.paraPassar, r.total);
+  // A regra fala do questionário: a aula assistida e a sequência pontuam à parte.
+  const pontos =
+    r.pontos > 0
+      ? `${SO_NA_PRIMEIRA}: você ganhou ${ganhoDe(r.pontos)} pelos acertos dela.`
+      : `${SO_NA_PRIMEIRA}.`;
   return {
     texto:
       r.tentativa === 1
-        ? `${errou}${regra}. Você ganhou ${ganhoDe(r.pontos)} pelos acertos desta primeira tentativa; as próximas não valem pontos.`
+        ? `${errou}${regra}. ${pontos}`
         : `${errou}${regra}. Tente de novo quantas vezes quiser.`,
     titulo: `Ainda não: ${nota(r)}`,
   };

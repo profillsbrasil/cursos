@@ -35,9 +35,9 @@ Vocabulário do domínio da plataforma de cursos. Nome de tabela, procedure e co
 | Cobertura | Soma dos segundos distintos dos trechos vistos de uma aula. Ver o mesmo trecho duas vezes conta uma vez. O servidor calcula com a duração da aula no banco. |
 | Cota de vídeo | Quantos segundos de vídeo novo o servidor ainda aceita de um aluno. Enche 2 s por segundo de relógio, até 180 s, e vale para todas as abas e aulas dele. O que passa da cota fica para o envio seguinte. |
 | Progresso | Aulas assistidas sobre aulas do curso, contadas no servidor. |
-| Questionário | As perguntas de múltipla escolha de uma aula: de 2 a 5 alternativas, uma certa. A aula sem pergunta não tem questionário a aprovar. Não existe prova final do curso. |
+| Questionário | As perguntas de múltipla escolha de uma aula: de 2 a 5 alternativas, uma certa. A aula sem pergunta não tem questionário a aprovar. Pontua só na primeira tentativa (ver Tentativa). Não existe prova final do curso. |
 | Nota mínima | 70% dos acertos, igual em todo curso, arredondada para cima: 3 de 3, 3 de 4. |
-| Tentativa | Um envio do questionário de uma aula. A nota e a aprovação ficam como estavam no envio, e a edição do admin não as muda. Só a primeira tentativa pontua: 5 pontos por acerto, aprovada ou não. A pessoa tenta de novo quantas vezes quiser. |
+| Tentativa | Um envio do questionário de uma aula. A nota e a aprovação ficam como estavam no envio, e a edição do admin não as muda. Só a primeira tentativa pontua: 5 pontos por acerto, aprovada ou não. As outras não pontuam no questionário, e os pontos da aula assistida e da sequência entram à parte, antes ou depois de qualquer tentativa. A pessoa tenta de novo quantas vezes quiser. |
 | Certificado | Comprovante emitido quando o aluno assistiu a todas as aulas e foi aprovado em todos os questionários, na escrita que completa a última pendência. Tem código único no formato `XXXX-XXXX` e continua valendo se o curso ganhar aula ou pergunta nova. |
 | Curso concluído | Curso em que o aluno tem certificado. |
 | Carga horária | A soma da duração dos vídeos do curso no momento da emissão, gravada no certificado e arredondada para cima em horas ("2 horas"). Não muda se o curso ganhar aula depois. |

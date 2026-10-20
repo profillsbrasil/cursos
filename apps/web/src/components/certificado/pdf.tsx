@@ -14,7 +14,12 @@ import {
 
 import { LOCKUP } from "@/lib/marca";
 
-import { FOLHA_EM_PX, type FolhaDoCertificado } from "./medidas-da-folha";
+import {
+  FOLHA_EM_PX,
+  type FolhaDoCertificado,
+  HIFEN_OCULTO,
+  quebravel,
+} from "./medidas-da-folha";
 
 // process.cwd() é apps/web no next dev, no build e no bun test; o trace do build
 // leva os arquivos lidos por caminho fixo a partir dele.
@@ -30,8 +35,9 @@ Font.register({
     { fontWeight: 700, src: join(FONTES, "Geist-Bold.ttf") },
   ],
 });
-// Sem isto, o react-pdf hifeniza nome e curso pelas regras do inglês.
-Font.registerHyphenationCallback((palavra) => [palavra]);
+// Sem isto, o react-pdf hifeniza nome e curso pelas regras do inglês. Quebra só
+// no hífen oculto que `quebravel` põe na palavra maior que a linha.
+Font.registerHyphenationCallback((palavra) => palavra.split(HIFEN_OCULTO));
 
 type Forma =
   | { tipo: "caminho"; d: string; fill: string }
@@ -162,7 +168,7 @@ function FolhaEmPdf({ folha }: { folha: FolhaDoCertificado }) {
             marginTop: pt(nome.acima),
           }}
         >
-          {folha.nome}
+          {quebravel(folha.nome, folha.nomeEmTamanho)}
         </Text>
         <View
           style={{

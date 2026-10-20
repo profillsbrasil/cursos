@@ -17,11 +17,13 @@ async function aulaDaUrl(params: Props["params"]) {
   return carregarAula(slug, aulaId);
 }
 
+// O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dados = await aulaDaUrl(params);
-  return {
-    title: dados ? `${dados.aula.titulo} · ${dados.curso.titulo}` : "Aula",
-  };
+  if (!dados) {
+    notFound();
+  }
+  return { title: `${dados.aula.titulo} · ${dados.curso.titulo}` };
 }
 
 export default async function PaginaDaAula({ params }: Props) {

@@ -327,6 +327,57 @@ const DIVISORIAS = `(() => {
 const divisorias = () =>
   avaliar<{ perguntas: Divisoria[] }>(enviar, DIVISORIAS);
 
+const tecla = (key: "Enter" | "Tab", type: "keyDown" | "keyUp") =>
+  enviar("Input.dispatchKeyEvent", {
+    code: key,
+    key,
+    type,
+    windowsVirtualKeyCode: key === "Enter" ? 13 : 9,
+    ...(type === "keyDown" && key === "Enter" ? { text: "\r" } : {}),
+  });
+
+async function enterEm(rotulo: string) {
+  await avaliar(
+    enviar,
+    `[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === ${JSON.stringify(rotulo)}).focus()`
+  );
+  await tecla("Enter", "keyDown");
+  await tecla("Enter", "keyUp");
+}
+
+// O primeiro envio cai na rede e o foco fica no botão; o segundo vira o resultado.
+async function enviarPeloEnter() {
+  await enterEm("Enviar respostas");
+  // O alerta entra antes do fim do pendente: espera o rótulo do reenvio.
+  await esperar(
+    `[...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Enviar de novo")`
+  );
+  await enterEm("Enviar de novo");
+  await esperar(`document.querySelector('[role="status"]')`);
+}
+
+/** O que a árvore de acessibilidade do Chromium dá para o elemento com foco. */
+async function anuncioDoFoco() {
+  const { result } = (await enviar("Runtime.evaluate", {
+    expression: "document.activeElement",
+  })) as { result: { objectId: string } };
+  const { nodes } = (await enviar("Accessibility.getPartialAXTree", {
+    fetchRelatives: false,
+    objectId: result.objectId,
+  })) as {
+    nodes: {
+      description?: { value: string };
+      name?: { value: string };
+      role?: { value: string };
+    }[];
+  };
+  return {
+    descricao: nodes[0]?.description?.value,
+    nome: nodes[0]?.name?.value,
+    papel: nodes[0]?.role?.value,
+  };
+}
+
 describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
   let pacote: string;
 
@@ -393,49 +444,51 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
   test("com o Enter em Enviar respostas, o foco vai para o resultado, que se anuncia pelo título e pela frase", async () => {
     await abrir(1280, "", pacote);
     await marcarAsCertas();
-    const tecla = (type: string) =>
-      enviar("Input.dispatchKeyEvent", {
-        code: "Enter",
-        key: "Enter",
-        type,
-        windowsVirtualKeyCode: 13,
-        ...(type === "keyDown" ? { text: "\r" } : {}),
-      });
-    const enter = async () => {
-      await avaliar(
-        enviar,
-        `[...document.querySelectorAll("button")].find((b) => b.textContent.includes("Enviar")).focus()`
-      );
-      await tecla("keyDown");
-      await tecla("keyUp");
-    };
-    // O primeiro envio cai na rede e o foco fica no botão; o segundo vira o resultado.
-    await enter();
-    // O alerta entra antes do fim do pendente: espera o rótulo do reenvio.
-    await esperar(
-      `[...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Enviar de novo")`
-    );
-    await enter();
-    await esperar(`document.querySelector('[role="status"]')`);
+    await enviarPeloEnter();
     expect(
       await avaliar<string>(
         enviar,
         `document.activeElement === document.querySelector('[role="status"]') ? "resultado" : document.activeElement.tagName`
       )
     ).toBe("resultado");
-    const { result } = (await enviar("Runtime.evaluate", {
-      expression: "document.activeElement",
-    })) as { result: { objectId: string } };
-    const { nodes } = (await enviar("Accessibility.getPartialAXTree", {
-      fetchRelatives: false,
-      objectId: result.objectId,
-    })) as {
-      nodes: { description?: { value: string }; name?: { value: string } }[];
-    };
-    expect(nodes[0]?.name?.value).toBe("Ainda não: 2 de 3 (67%)");
-    expect(nodes[0]?.description?.value).toStartWith(
-      "Você errou a pergunta 2."
-    );
+    const anuncio = await anuncioDoFoco();
+    expect(anuncio.nome).toBe("Ainda não: 2 de 3 (67%)");
+    expect(anuncio.descricao).toStartWith("Você errou a pergunta 2.");
+  });
+
+  test("com o Enter em Tentar de novo, o foco vai para o título Questionário, que se anuncia com a regra", async () => {
+    await abrir(1280, "", pacote);
+    await marcarAsCertas();
+    await enviarPeloEnter();
+    await enterEm("Tentar de novo");
+    await esperar(`document.querySelector('input[type="radio"]')`);
+    expect(
+      await avaliar<string>(
+        enviar,
+        "document.activeElement.tagName + ' ' + document.activeElement.textContent.trim()"
+      )
+    ).toBe("H2 Questionário");
+    expect(await anuncioDoFoco()).toEqual({
+      descricao: "3 perguntas · Para passar, 3 de 3",
+      nome: "Questionário",
+      papel: "heading",
+    });
+    // Foco é hover: o título não ganha contorno.
+    expect(
+      await avaliar<string>(
+        enviar,
+        "getComputedStyle(document.activeElement).outlineStyle"
+      )
+    ).toBe("none");
+    // O Tab seguinte entra na primeira pergunta.
+    await tecla("Tab", "keyDown");
+    await tecla("Tab", "keyUp");
+    expect(
+      await avaliar<string>(
+        enviar,
+        "document.activeElement.closest('fieldset')?.querySelector('legend').textContent.trim() ?? document.activeElement.tagName"
+      )
+    ).toStartWith("1.");
   });
 
   test.each([

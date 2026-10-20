@@ -11,6 +11,7 @@ const nada = () => undefined;
 const SLIDER_E_PAI = /<span class="([^"]*)"><div[^>]*data-slot="slider"/;
 const BOTAO_DA_LEGENDA = /<button[^>]*aria-label="Legendas"[^>]*>/;
 const CLASSE = /class="([^"]*)"/;
+const POLEGAR = /data-slot="slider-thumb"/g;
 const PRESSIONADO = /aria-pressed="([^"]*)"/;
 const ABRE_OS_AJUSTES =
   /aria-haspopup="dialog"[^>]*aria-label="Ajustes"|aria-label="Ajustes"[^>]*aria-haspopup="dialog"/;
@@ -48,6 +49,10 @@ describe("controles do player", () => {
     const caixa = html().match(SLIDER_E_PAI)?.[1].split(" ");
     expect(caixa).toContain("w-[84px]");
     expect(caixa).toContain("shrink-0");
+  });
+
+  test("o volume tem um polegar só, então uma parada de Tab só", () => {
+    expect(html().match(POLEGAR)).toHaveLength(1);
   });
 
   test("a legenda desligada é o botão solto, com o ícone apagado e sem a barra Sol", () => {

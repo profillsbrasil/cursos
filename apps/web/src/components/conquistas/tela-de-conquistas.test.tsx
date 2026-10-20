@@ -35,7 +35,7 @@ const trilha = (h: string) => texto(trecho(h, "data-trilha", "</ol>"));
 const sequencia = (h: string) =>
   texto(
     trecho(h, "data-sequencia", '<ol aria-label="Primeiras vezes"').replace(
-      /<li aria-hidden="true"[^>]*>[^<]*<\/li>/g,
+      /<li aria-hidden="true"[^>]*>.*?<\/li>/g,
       " | "
     )
   );

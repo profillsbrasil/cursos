@@ -285,10 +285,11 @@ function SeteDiasSeguidos({
             {d.depoisDoFimDeSemana ? (
               <li
                 aria-hidden="true"
-                className="w-3.5 rotate-180 self-end pb-3 text-center text-[10px] text-muted-foreground leading-none [writing-mode:vertical-rl]"
+                className="grid @min-[421px]:h-9 h-8 content-center self-end text-center text-muted-foreground text-xs leading-[15px]"
                 data-fim-de-semana
               >
-                sáb e dom
+                <span>sáb</span>
+                <span>dom</span>
               </li>
             ) : null}
             <li

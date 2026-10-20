@@ -47,7 +47,25 @@ mock.module("next/navigation", () => ({
   }),
 }));
 
+// A Casca inteira, para o link de pular: ela lê o cookie da sidebar, e o cartão de
+// conta lê a pessoa do Clerk, que sem o ClerkProvider lança.
+const cabecalhos = await import("next/headers");
+mock.module("next/headers", () => ({
+  ...cabecalhos,
+  cookies: () => Promise.resolve({ get: () => undefined }),
+}));
+const clerk = await import("@clerk/nextjs");
+mock.module("@clerk/nextjs", () => ({
+  ...clerk,
+  useClerk: () => ({ signOut: () => undefined }),
+  useUser: () => ({
+    isLoaded: true,
+    user: { fullName: "Ana Souza", hasImage: false },
+  }),
+}));
+
 const { Sidebar } = await import("@cursos/ui/components/sidebar");
+const { Casca } = await import("./casca/casca");
 const { CartaoContinuar } = await import("./aluno/cartao-continuar");
 const { AcessoDoAluno } = await import("./admin/acesso-do-aluno");
 const { ListaDePessoas } = await import("./admin/lista-de-pessoas");
@@ -255,6 +273,32 @@ const continuar = renderToStaticMarkup(
   </ProvedorDaCasca>
 );
 
+// A casca do aluno como o layout a monta, com o Continuar no rodapé e uma página
+// cujo primeiro controle é "Começar o curso".
+const PRIMEIRO_DO_CONTEUDO = "Começar o curso";
+const casca = renderToStaticMarkup(
+  await Casca({
+    children: (
+      <>
+        <h1>Meus cursos</h1>
+        <a href="/cursos/fabrica">{PRIMEIRO_DO_CONTEUDO}</a>
+      </>
+    ),
+    itens: ITENS_DO_ALUNO,
+    outraArea: null,
+    placar: null,
+    rodape: (
+      <CartaoContinuar
+        cartao={Object.assign(Promise.resolve(COMECAR), {
+          status: "fulfilled",
+          value: COMECAR,
+        })}
+      />
+    ),
+    rotulo: "Navegação principal",
+  })
+);
+
 interface Elemento {
   atributos: Record<string, string>;
   classes: string[];
@@ -290,6 +334,7 @@ const todos = [
   acesso,
   faixa,
   continuar,
+  casca,
 ].flatMap(elementos);
 const css = await cssDoApp(todos.flatMap((e) => e.classes));
 
@@ -800,3 +845,114 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     );
   });
 });
+
+// Teste de usabilidade (r2/teclado/01): sem link de pular, o Tab passava por 7
+// paradas da casca (recolher, 4 itens, Continuar, conta) antes do conteúdo.
+describe.skipIf(!existsSync(CHROMIUM))(
+  "na casca, o primeiro Tab mostra Pular para o conteúdo, e o Enter leva o Tab seguinte ao conteúdo",
+  () => {
+    interface Pular {
+      focado: string;
+      fundo: string;
+      visivel: boolean;
+    }
+    let antes: Pular;
+    let noPrimeiroTab: Pular;
+    let depoisDoEnter: string;
+    let depoisDoEnterETab: string;
+    let solHoverAqui: string;
+
+    async function tecla(key: "Enter" | "Tab") {
+      const base = {
+        code: key,
+        key,
+        windowsVirtualKeyCode: key === "Tab" ? 9 : 13,
+      };
+      const texto = key === "Enter" ? { text: "\r" } : {};
+      await enviar("Input.dispatchKeyEvent", {
+        ...base,
+        ...texto,
+        type: "rawKeyDown",
+      });
+      if (key === "Enter") {
+        await enviar("Input.dispatchKeyEvent", {
+          ...base,
+          ...texto,
+          type: "char",
+        });
+      }
+      await enviar("Input.dispatchKeyEvent", { ...base, type: "keyUp" });
+    }
+
+    const FOCADO = `(() => {
+      const a = document.activeElement;
+      return a?.getAttribute("aria-label") || a?.id || a?.textContent?.trim() || a?.tagName;
+    })()`;
+
+    // O link de pular, pelo texto; o fundo lido depois que a transição termina.
+    const lerPular = () =>
+      avaliar<Pular>(`(async () => {
+        const link = [...document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Pular para o conteúdo");
+        const ativo = document.activeElement;
+        const focado = ativo?.getAttribute("aria-label") || ativo?.textContent?.trim() || ativo?.tagName;
+        if (!link) return { focado, fundo: "", visivel: false };
+        getComputedStyle(link).backgroundColor;
+        await Promise.all(link.getAnimations().map((a) => a.finished));
+        const r = link.getBoundingClientRect();
+        return {
+          focado,
+          fundo: getComputedStyle(link).backgroundColor,
+          visivel: r.width > 1 && r.height > 1 && r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth,
+        };
+      })()`);
+
+    beforeAll(async () => {
+      enviar = await abrirChromium("sinal-do-foco");
+      await enviar("Emulation.setDeviceMetricsOverride", {
+        deviceScaleFactor: 1,
+        height: 900,
+        mobile: false,
+        width: 1280,
+      });
+      await avaliar(
+        `document.open(); document.write(${JSON.stringify(
+          `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0">${casca}<div id="sonda" style="background-color: var(--sol-hover)"></div></body></html>`
+        )}); document.close();`
+      );
+      solHoverAqui = await avaliar<string>(
+        "getComputedStyle(document.getElementById('sonda')).backgroundColor"
+      );
+      // Tab e Enter de verdade, como a pessoa.
+      await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
+      antes = await lerPular();
+      await tecla("Tab");
+      noPrimeiroTab = await lerPular();
+      await tecla("Enter");
+      depoisDoEnter = await avaliar<string>(FOCADO);
+      await tecla("Tab");
+      depoisDoEnterETab = await avaliar<string>(FOCADO);
+    }, 20_000);
+
+    afterAll(fecharChromium);
+
+    test("sem foco, o link não aparece", () => {
+      expect(antes.visivel).toBe(false);
+    });
+
+    test("o primeiro Tab para no link, que aparece aceso como o botão amarelo", () => {
+      expect(solHoverAqui).toStartWith("rgb");
+      expect(noPrimeiroTab).toEqual({
+        focado: "Pular para o conteúdo",
+        fundo: solHoverAqui,
+        visivel: true,
+      });
+    });
+
+    test("o Enter leva o foco ao conteúdo, e o Tab seguinte ao primeiro controle dele", () => {
+      expect({ depoisDoEnter, depoisDoEnterETab }).toEqual({
+        depoisDoEnter: "conteudo",
+        depoisDoEnterETab: PRIMEIRO_DO_CONTEUDO,
+      });
+    });
+  }
+);

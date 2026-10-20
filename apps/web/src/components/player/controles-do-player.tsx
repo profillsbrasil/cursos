@@ -129,6 +129,7 @@ export function ControlesDoPlayer({
   const idVolume = useId();
   const { legenda, reproducao, volume } = estado;
   const tocando = reproducao.tipo === "tocando";
+  const carregando = reproducao.tipo === "carregando";
   const semPlayer =
     reproducao.tipo === "carregando" || reproducao.tipo === "indisponivel";
   const nivelAudivel = volume.mudo ? 0 : volume.nivel;
@@ -173,7 +174,8 @@ export function ControlesDoPlayer({
     <PortalDoPlayer value={portal}>
       <div className="@container/barra" data-barra="">
         <div className={BARRA}>
-          <span className={cn(GRUPO, LUGAR_A)}>
+          {/* Enquanto o YouTube não fica pronto, os três botões desligados pulsam como o esqueleto. */}
+          <span className={cn(GRUPO, LUGAR_A, carregando && "animate-pulse")}>
             <BotaoComDica
               aria-label={tocando ? "Pausar" : "Reproduzir"}
               dica={tocando ? "Pausar" : "Reproduzir"}
@@ -229,7 +231,9 @@ export function ControlesDoPlayer({
                 min={0}
                 onValueChange={definirVolume}
                 step={5}
-                value={nivelAudivel}
+                // Em array: com um número, o Slider de @cursos/ui conta os polegares por
+                // [min, max] e desenha dois, cada um com uma parada de Tab.
+                value={[nivelAudivel]}
               />
             </span>
           </span>
