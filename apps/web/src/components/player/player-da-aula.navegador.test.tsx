@@ -304,6 +304,8 @@ const teclar = (key: string) =>
   );
 /** Uma tecla de verdade, pelo DevTools, com o keydown e o keyup que o browser gera. */
 const TECLAS: Record<string, { code: string; vk: number }> = {
+  ArrowLeft: { code: "ArrowLeft", vk: 37 },
+  ArrowRight: { code: "ArrowRight", vk: 39 },
   Enter: { code: "Enter", vk: 13 },
   Escape: { code: "Escape", vk: 27 },
   Tab: { code: "Tab", vk: 9 },
@@ -354,6 +356,12 @@ const pressionado = (seletor: string) =>
     `document.querySelector(${JSON.stringify(seletor)})?.getAttribute("aria-pressed") ?? null`
   );
 const FOLHA_DOS_AJUSTES = '[role="dialog"][aria-label="Ajustes"]';
+/** A velocidade marcada nos Ajustes, pelo rótulo dela. */
+const velocidadeMarcada = () =>
+  avaliar<string | null>(
+    enviar,
+    `document.querySelector('${FOLHA_DOS_AJUSTES} input[type="radio"]:checked')?.getAttribute("aria-label") ?? null`
+  );
 
 /** A conquista mais longa: a aula assistida com o bônus da sequência. */
 const CONQUISTA_COM_BONUS = {
@@ -538,13 +546,13 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     expect(
       await avaliar<string[]>(
         enviar,
-        `[...document.querySelectorAll('${FOLHA_DOS_AJUSTES} fieldset button')].map((b) => b.textContent + (b.getAttribute("aria-pressed") === "true" ? "*" : ""))`
+        `[...document.querySelectorAll('${FOLHA_DOS_AJUSTES} fieldset label')].map((l) => l.textContent + (l.querySelector("input").checked ? "*" : ""))`
       )
     ).toEqual(["0,75", "1*", "1,25", "1,5", "1,75", "2"]);
 
-    await clicar(`${FOLHA_DOS_AJUSTES} button[aria-label="1,5×"]`);
+    await clicar(`${FOLHA_DOS_AJUSTES} input[aria-label="1,5×"]`);
     expect(await pedidos()).toEqual(["velocidade:1.5"]);
-    expect(await pressionado('button[aria-label="1,5×"]')).toBe("true");
+    expect(await velocidadeMarcada()).toBe("1,5×");
 
     await clicarNoTexto("LegendasDesligadas");
     expect(await pedidos()).toEqual(["legenda:true"]);
@@ -577,16 +585,43 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    // Do primeiro item da folha até o 2×, como a pessoa do teste fez.
-    await apertarVezes("Tab", 5);
+    // Da velocidade marcada até o 2×, pelas setas.
+    await apertarVezes("ArrowRight", 4);
     expect(await focado()).toBe("2×");
-    await apertar("Enter");
-    expect(await pressionado('button[aria-label="2×"]')).toBe("true");
+    expect(await velocidadeMarcada()).toBe("2×");
     await apertar("Escape");
     // Já no quadro do Esc, com a folha ainda saindo: o 2× que some não segura o foco.
     expect(await focado()).toBe("Ajustes");
     await esperar(`!document.querySelector('${FOLHA_DOS_AJUSTES}')`);
     expect(await focado()).toBe("Ajustes");
+  });
+
+  test("pelo teclado, o foco entra na velocidade marcada e as setas andam entre as velocidades", async () => {
+    await abrir(1440, 900);
+    await emitir({ duracaoSeg: 634, tipo: "pronto" });
+    await avaliar(
+      enviar,
+      `document.querySelector('button[aria-label="Ajustes"]').focus()`
+    );
+    await apertar("Enter");
+    await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+    expect(await focado()).toBe("1×");
+    await pedidos();
+    await apertar("ArrowRight");
+    expect(await focado()).toBe("1,25×");
+    expect(await velocidadeMarcada()).toBe("1,25×");
+    await apertarVezes("ArrowLeft", 2);
+    expect(await focado()).toBe("0,75×");
+    expect(await velocidadeMarcada()).toBe("0,75×");
+    // As setas trocam a velocidade, e nenhuma delas anda no vídeo.
+    expect(await pedidos()).toEqual([
+      "velocidade:1.25",
+      "velocidade:1",
+      "velocidade:0.75",
+    ]);
+    // O Tab sai do grupo para o item seguinte, sem passar pelas outras velocidades.
+    await apertar("Tab");
+    expect(await focado()).toBe("LegendasDesligadas");
   });
 
   test("pelo teclado, o Esc na lista de atalhos devolve o foco à engrenagem", async () => {
@@ -598,7 +633,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    await apertarVezes("Tab", 7);
+    // Da velocidade marcada, o Tab passa por Legendas e chega aos Atalhos.
+    await apertarVezes("Tab", 2);
     expect(await focado()).toBe("Atalhos do teclado?");
     await apertar("Enter");
     await esperar(`document.querySelector('${LISTA_DE_ATALHOS}')`);
@@ -629,7 +665,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         // A transição de cor dura 150 ms: a medida espera ela acabar.
         `new Promise((pronto) => setTimeout(() => {
           const item = document.activeElement;
-          const estilo = getComputedStyle(item);
+          // O rádio da velocidade fica escondido: quem acende é o rótulo dele.
+          const estilo = getComputedStyle(item.type === "radio" ? item.closest("label") : item);
           pronto({
             cor: estilo.color,
             folha: getComputedStyle(document.querySelector('${FOLHA_DOS_AJUSTES}')).backgroundColor,
@@ -643,18 +680,15 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     const TITULO = "rgb(244, 245, 247)";
     const POPOVER = "rgb(58, 63, 69)";
 
-    // O primeiro item, que recebe o foco quando a folha abre.
-    expect(await sinal()).toMatchObject({
-      cor: TITULO,
-      folha: POPOVER,
-      fundo: TRILHO,
-      item: "0,75×",
-    });
-    await apertar("Tab");
+    // A velocidade marcada, que recebe o foco quando a folha abre.
     const marcada = await sinal();
-    expect(marcada).toMatchObject({ fundo: "rgb(255, 214, 51)", item: "1×" });
+    expect(marcada).toMatchObject({
+      folha: POPOVER,
+      fundo: "rgb(255, 214, 51)",
+      item: "1×",
+    });
     expect(marcada.sombra).toContain("rgba(255, 204, 1, 0.28)");
-    await apertarVezes("Tab", 5);
+    await apertar("Tab");
     expect(await sinal()).toMatchObject({
       cor: TITULO,
       fundo: TRILHO,

@@ -75,7 +75,8 @@ function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
   if (e.key === " " || e.key === "Enter") {
     return alvo.closest("button, a, input") !== null;
   }
-  return alvo.closest("[data-slot=slider]") !== null;
+  // As setas andam no slider e no grupo de rádios (a velocidade dos Ajustes).
+  return alvo.closest("[data-slot=slider], input[type=radio]") !== null;
 }
 
 export function usePlayerDaAula(entrada: EntradaDoPlayer) {
