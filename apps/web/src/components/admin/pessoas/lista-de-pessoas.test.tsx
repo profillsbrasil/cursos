@@ -60,4 +60,14 @@ describe("a lista de Pessoas", () => {
     expect(carla).toContain("Ontem");
     expect(ana).not.toContain("Perfil do cadastro");
   });
+
+  test("abaixo de 44rem, o perfil, o papel e o último acesso descem para uma linha sob o e-mail", () => {
+    const [carla, ana] = linhas();
+    expect(carla).toContain(
+      "carla@example.com Perfil do cadastro, fora dos filtros Público aberto Último acesso: ontem"
+    );
+    expect(ana).toContain(
+      "ana@example.com Público aberto Admin Último acesso: ontem"
+    );
+  });
 });
