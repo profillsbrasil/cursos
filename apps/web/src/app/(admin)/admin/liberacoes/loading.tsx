@@ -13,7 +13,10 @@ export default function Carregando() {
   return (
     <div aria-busy="true">
       <span className="sr-only">Carregando as liberações</span>
-      <EsqueletoDoCabecalho />
+      <EsqueletoDoCabecalho
+        resumo="Marque pessoas para liberar um curso, ou abra uma para ver o acesso"
+        titulo="Liberações"
+      />
       <EsqueletoDaTrilha className="mb-7 max-w-[13.5rem]" />
       <EsqueletoDaBusca className="mb-8" />
       <div className="@container">

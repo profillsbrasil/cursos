@@ -8,7 +8,10 @@ export default function Carregando() {
   return (
     <div aria-busy="true">
       <span className="sr-only">Carregando as categorias</span>
-      <EsqueletoDoCabecalho />
+      <EsqueletoDoCabecalho
+        resumo="3 categorias, 5 cursos"
+        titulo="Categorias"
+      />
       <div className="grid gap-8">
         <Skeleton className={`${PULSO} h-[72px] rounded-[20px]`} />
         <div className="grid gap-3.5">

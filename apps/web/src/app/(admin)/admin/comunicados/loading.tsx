@@ -9,7 +9,10 @@ export default function Carregando() {
   return (
     <div aria-busy="true">
       <span className="sr-only">Carregando</span>
-      <EsqueletoDoCabecalho />
+      <EsqueletoDoCabecalho
+        resumo="O aluno vê em Meus cursos só o mais recente que alcança"
+        titulo="Comunicados"
+      />
       <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
         <Skeleton className={`${PULSO} h-[420px] rounded-[20px]`} />
         <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">

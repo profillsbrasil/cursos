@@ -36,24 +36,33 @@ export function CabecalhoDaPagina({
   );
 }
 
+const LINHA_QUE_CARREGA =
+  "animate-pulse rounded-lg bg-card text-transparent [box-decoration-break:clone]";
+
 /**
- * O cabeçalho no loading.tsx, na geometria do de cima: o título de 36 px, o
- * resumo de 24 px a 6 px dele e, quando a página tem, o botão de 44 px.
+ * O cabeçalho no loading.tsx: o mesmo título e o mesmo resumo do de cima, em
+ * texto transparente sobre o pulso, para quebrar nas mesmas linhas em toda
+ * largura; e, quando a página tem, o botão de 44 px. Na página cujo resumo
+ * conta coisas, o resumo aqui é um exemplo do mesmo tamanho.
  */
 export function EsqueletoDoCabecalho({
   acao = false,
-  resumo = true,
+  resumo,
+  titulo,
 }: {
   acao?: boolean;
-  resumo?: boolean;
+  resumo: string;
+  titulo: string;
 }) {
   return (
-    <div className={CABECALHO}>
-      <div className="grid gap-1.5">
-        <Skeleton className="h-9 w-44 rounded-lg bg-card" />
-        {resumo ? (
-          <Skeleton className="h-6 w-[min(22rem,80vw)] rounded-lg bg-card" />
-        ) : null}
+    <div aria-hidden="true" className={CABECALHO}>
+      <div className="grid min-w-0 gap-1.5">
+        <p className="text-balance font-bold text-3xl tracking-tight">
+          <span className={LINHA_QUE_CARREGA}>{titulo}</span>
+        </p>
+        <p className="max-w-[60ch] tabular-nums">
+          <span className={LINHA_QUE_CARREGA}>{resumo}</span>
+        </p>
       </div>
       {acao ? <Skeleton className="h-11 w-36 rounded-full bg-card" /> : null}
     </div>

@@ -8,7 +8,7 @@ export default function Carregando() {
   return (
     <div aria-busy="true">
       <span className="sr-only">Carregando o acesso</span>
-      <EsqueletoDoTopoDaPessoa />
+      <EsqueletoDoTopoDaPessoa comLink />
       <div className="grid gap-10">
         <EsqueletoDaSecao altura="h-[112px]" linhas={3} />
         <EsqueletoDaSecao altura="h-[60px]" linhas={4} />

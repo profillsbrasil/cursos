@@ -47,16 +47,26 @@ export function EsqueletoDaSecao({
   );
 }
 
-/** O topo da ficha e do acesso: a volta à lista, a foto de 56 px, o nome e o e-mail. */
-export function EsqueletoDoTopoDaPessoa() {
+/**
+ * O topo da ficha e do acesso: a volta à lista, a foto de 40 px, o nome, o
+ * e-mail e, no acesso, a linha de 20 px do "Perfil e papel".
+ */
+export function EsqueletoDoTopoDaPessoa({
+  comLink = false,
+}: {
+  comLink?: boolean;
+}) {
   return (
     <>
       <Skeleton className={cn(PULSO, "mb-5 h-10 w-28 rounded-full")} />
       <div className="mb-7 flex items-center gap-4">
-        <Skeleton className={cn(PULSO, "size-14 shrink-0 rounded-full")} />
+        <Skeleton className={cn(PULSO, "size-10 shrink-0 rounded-full")} />
         <div className="grid gap-1">
           <Skeleton className={cn(PULSO, "h-9 w-56 rounded-lg")} />
           <Skeleton className={cn(PULSO, "h-6 w-64 rounded-lg")} />
+          {comLink ? (
+            <Skeleton className={cn(PULSO, "h-5 w-24 rounded-lg")} />
+          ) : null}
         </div>
       </div>
     </>
@@ -65,7 +75,11 @@ export function EsqueletoDoTopoDaPessoa() {
 
 /**
  * O editor do curso: o título a 28 px da capa, os cartões das seções e, de
- * 960 px de formulário para cima, a coluna de publicação.
+ * 960 px de formulário para cima, a coluna de publicação. O cartão da capa
+ * repete a grade da `CapaEDescricao`: abaixo de 768 px de cartão, a capa 3:2
+ * fica sobre os campos, e a altura dele acompanha a largura como a do pronto.
+ * Abaixo de 448 px de cartão, a legenda da capa e o endereço do curso quebram
+ * em duas linhas, e o esqueleto ganha a altura delas.
  */
 export function EsqueletoDoEditor() {
   return (
@@ -75,15 +89,23 @@ export function EsqueletoDoEditor() {
         <div className="grid gap-10">
           <div className="grid gap-7">
             <Skeleton className={cn(PULSO, "h-9 w-72 max-w-full rounded-lg")} />
-            <Skeleton className={cn(PULSO, "h-[420px] rounded-[20px]")} />
+            <Skeleton className={cn(PULSO, "@container rounded-[20px]")}>
+              <div className="grid @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)] gap-7 p-6">
+                <div className="grid content-start">
+                  <div className="aspect-[3/2]" />
+                  <div className="@3xl:h-[68px] @md:h-[50px] h-[68px]" />
+                </div>
+                <div className="@md:h-[364px] h-[384px]" />
+              </div>
+            </Skeleton>
           </div>
-          <Skeleton className={cn(PULSO, "h-[260px] rounded-[20px]")} />
-          <Skeleton className={cn(PULSO, "h-[480px] rounded-[20px]")} />
+          <EsqueletoDaSecao altura="h-[244px]" linhas={1} />
+          <EsqueletoDaSecao altura="h-[144px]" linhas={1} />
         </div>
         <div className="grid @max-[960px]:hidden gap-3.5">
-          <Skeleton className={cn(PULSO, "h-[260px] rounded-[20px]")} />
-          <Skeleton className={cn(PULSO, "h-[230px] rounded-[20px]")} />
-          <Skeleton className={cn(PULSO, "h-[240px] rounded-[20px]")} />
+          <Skeleton className={cn(PULSO, "h-[232px] rounded-[20px]")} />
+          <Skeleton className={cn(PULSO, "h-[266px] rounded-[20px]")} />
+          <Skeleton className={cn(PULSO, "h-[294px] rounded-[20px]")} />
         </div>
       </div>
     </div>
