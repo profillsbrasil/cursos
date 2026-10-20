@@ -67,7 +67,6 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
           alt={PRODUTO}
           className="h-10 w-auto"
           height={LOCKUP.altura}
-          preload
           src={LOCKUP.src}
           width={LOCKUP.largura}
         />
