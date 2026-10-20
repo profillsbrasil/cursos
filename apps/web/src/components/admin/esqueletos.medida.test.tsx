@@ -18,6 +18,7 @@ import { CampoDeCapa } from "./campo-de-capa";
 import { EsqueletoDoEditor, EsqueletoDoTopoDaPessoa } from "./esqueletos";
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
+import { TopicosDoCurso } from "./topicos-do-curso";
 
 // Fora do App Router o useRouter lança; a categoria da Capa e descrição cria pelo useAcao.
 const navegacao = await import("next/navigation");
@@ -47,6 +48,13 @@ const pronto = renderToStaticMarkup(
   />
 );
 const esqueleto = renderToStaticMarkup(<EsqueletoDoEditor />);
+// Cinco tópicos, como o curso de exemplo do dev.
+const topicos = renderToStaticMarkup(
+  <TopicosDoCurso
+    despachar={nada}
+    topicos={["Planejar", "Gravar", "Iluminar", "Captar o som", "Editar"]}
+  />
+);
 const foto = renderToStaticMarkup(
   <FotoDaPessoa foto={null} nome="Ana Admin" size="lg" />
 );
@@ -63,9 +71,16 @@ const cabecalhoQueCarrega = renderToStaticMarkup(
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
 const css = await cssDoApp(
-  [pronto, esqueleto, foto, topo, cabecalho, cabecalhoQueCarrega].flatMap(
-    (html) =>
-      [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
+  [
+    pronto,
+    esqueleto,
+    topicos,
+    foto,
+    topo,
+    cabecalho,
+    cabecalhoQueCarrega,
+  ].flatMap((html) =>
+    [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
   )
 );
 
@@ -83,14 +98,21 @@ async function alturas(formulario: number) {
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
-      `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronto" style="width:${formulario}px">${pronto}</div><div id="esqueleto" style="width:${larguraDoEsqueleto(formulario)}px">${esqueleto}</div></body></html>`
+      `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronto" style="width:${formulario}px">${pronto}</div><div id="topicos" style="width:${formulario}px">${topicos}</div><div id="esqueleto" style="width:${larguraDoEsqueleto(formulario)}px">${esqueleto}</div></body></html>`
     )}); document.close();`
   );
-  return avaliar<{ esqueleto: number; pronto: number }>(
+  return avaliar<{
+    esqueleto: number;
+    esqueletoDosTopicos: number;
+    pronto: number;
+    topicos: number;
+  }>(
     enviar,
     `new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r({
       pronto: document.querySelector("#pronto section > div").getBoundingClientRect().height,
       esqueleto: document.querySelector("#esqueleto .grid.gap-7 > :nth-child(2)").getBoundingClientRect().height,
+      topicos: document.querySelector("#topicos section").getBoundingClientRect().height,
+      esqueletoDosTopicos: document.querySelector("#esqueleto .grid.gap-10 > :nth-child(2)").getBoundingClientRect().height,
     }))))`
   );
 }
@@ -148,6 +170,13 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
   for (const formulario of [358, 754, 1234]) {
     test(`o cartão da capa tem a altura do pronto com ${formulario} px de coluna`, async () => {
       const { esqueleto: e, pronto: p } = await alturas(formulario);
+      expect(Math.abs(e - p)).toBeLessThanOrEqual(4);
+    });
+  }
+
+  for (const formulario of [358, 754, 1234]) {
+    test(`O que você vai aprender tem a altura do pronto com ${formulario} px de coluna`, async () => {
+      const { esqueletoDosTopicos: e, topicos: p } = await alturas(formulario);
       expect(Math.abs(e - p)).toBeLessThanOrEqual(4);
     });
   }

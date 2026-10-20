@@ -80,6 +80,8 @@ export function EsqueletoDoTopoDaPessoa({
  * fica sobre os campos, e a altura dele acompanha a largura como a do pronto.
  * Abaixo de 448 px de cartão, a legenda da capa e o endereço do curso quebram
  * em duas linhas, e o esqueleto ganha a altura delas.
+ * O que você vai aprender repete a grade dos tópicos, com cinco: em duas
+ * colunas só a partir de 768 px de cartão, como a do pronto.
  */
 export function EsqueletoDoEditor() {
   return (
@@ -99,7 +101,19 @@ export function EsqueletoDoEditor() {
               </div>
             </Skeleton>
           </div>
-          <EsqueletoDaSecao altura="h-[244px]" linhas={1} />
+          <div className="grid gap-3.5">
+            <Skeleton className={cn(PULSO, "h-8 w-40 rounded-lg")} />
+            <Skeleton className={cn(PULSO, "rounded-[20px]")}>
+              <div className="@container grid gap-4 p-5">
+                <div className="grid @3xl:grid-cols-2 gap-x-7 gap-y-2.5">
+                  {LINHAS.slice(0, 5).map((linha) => (
+                    <div className="h-11" key={linha} />
+                  ))}
+                </div>
+                <div className="h-9" />
+              </div>
+            </Skeleton>
+          </div>
           <EsqueletoDaSecao altura="h-[144px]" linhas={1} />
         </div>
         <div className="grid @max-[960px]:hidden gap-3.5">
