@@ -64,7 +64,7 @@ describe("fraseDaPessoa", () => {
     );
   });
 
-  test("nunca abriu diz desde quando tem acesso", () => {
+  test("nunca abriu diz desde quando tem acesso, sem repetir o selo", () => {
     expect(
       fraseDaPessoa(
         {
@@ -74,7 +74,7 @@ describe("fraseDaPessoa", () => {
         },
         HOJE
       )
-    ).toBe("Com acesso desde 2 de out. · nenhuma aula aberta");
+    ).toBe("Com acesso desde 2 de out.");
   });
 
   test("nunca abriu, com curso em produção, diz quantos estão em produção", () => {
@@ -87,10 +87,10 @@ describe("fraseDaPessoa", () => {
         },
         HOJE
       )
-    ).toBe("Com acesso desde 2 de out. · 1 em produção · nenhuma aula aberta");
+    ).toBe("Com acesso desde 2 de out. · 1 em produção");
   });
 
-  test("sem liberação: nunca recebeu, uma revogada ou várias", () => {
+  test("sem liberação: sem frase quando o selo já diz tudo; com revogadas, quantas e quando", () => {
     expect(
       [
         { revogadas: 0, ultimaRevogacao: null },
@@ -100,7 +100,7 @@ describe("fraseDaPessoa", () => {
         fraseDaPessoa({ ...r, tipo: "sem_liberacao" } as const, HOJE)
       )
     ).toEqual([
-      "Nunca recebeu liberação",
+      null,
       "1 liberação revogada em 2 de set.",
       "3 liberações revogadas, a última ontem",
     ]);
@@ -164,13 +164,13 @@ describe("fraseDoCurso", () => {
     expect(
       [curso({ tipo: "em_producao" }), curso({ tipo: "nunca_abriu" })].map(
         (c) => [
-          fraseDoCurso(c, HOJE).texto,
+          fraseDoCurso(c, HOJE)?.texto ?? null,
           seloDoCurso(c.situacao.tipo).rotulo,
         ]
       )
     ).toEqual([
       ["Em produção. A pessoa ainda não vê o curso", "Em produção"],
-      ["Nenhuma aula aberta", "Nunca abriu"],
+      [null, "Nunca abriu"],
     ]);
   });
 });
@@ -196,7 +196,7 @@ describe("as datas do item da liberação", () => {
   test("Concluído e Liberada em usam o mesmo formato curto", () => {
     const l = item("2026-08-20T15:00:00.000Z");
     expect([
-      fraseDoCurso(l.acompanhamento, HOJE).texto,
+      fraseDoCurso(l.acompanhamento, HOJE)?.texto,
       dataDaLiberacao(l, HOJE),
     ]).toEqual(["Concluído em 17 de set.", "Liberada em 20 de ago."]);
   });
