@@ -20,8 +20,8 @@
 }
 
 /* The Tabular Numbers Rule do DESIGN.md: todo número que muda ou se compara usa
-   algarismos tabulares. O Body do DESIGN.md tem 14 px, e o texto que não declara
-   tamanho herdava os 16 px do navegador; quem precisa de 16 px ou mais declara. */
+   algarismos tabulares. O Body do DESIGN.md tem 14 px: sem o tamanho aqui, o texto
+   sem classe herda os 16 px do navegador. Quem precisa de 16 px ou mais declara. */
 @layer base {
   body {
     font-size: var(--text-sm);
