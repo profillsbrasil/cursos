@@ -213,7 +213,7 @@
       {
         "name": "flutuante",
         "value": "0 10px 30px rgb(0 0 0 / 0.45)",
-        "purpose": "A barra de salvar presa ao pé do editor do curso, com backdrop-blur, abaixo de 960 px de editor; de 960 px para cima, a situação e o Salvar ficam na coluna de publicação."
+        "purpose": "A barra de salvar presa ao pé do editor do curso, com backdrop-blur, abaixo de 960 px de editor; de 960 px para cima, a situação e o Salvar ficam na coluna de publicação. Também a linha do material de apoio enquanto é arrastada pela alça."
       },
       {
         "name": "menu",

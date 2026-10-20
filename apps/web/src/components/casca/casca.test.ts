@@ -121,6 +121,19 @@ describe("a navegação fica leve e sem disputa de classes (#29)", () => {
     expect(arquivos.flatMap((a) => motionsImportados(ler(a)))).toEqual([]);
   });
 
+  // O Reorder monta o motion.* por dentro, com o arrastar e o layout: fica no
+  // material de apoio do editor, que só o admin abre.
+  test("o Reorder do Motion só entra no material de apoio do editor", () => {
+    const comReorder = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
+      (a) =>
+        !TESTE.test(a) &&
+        [...ler(a).matchAll(IMPORTA_MOTION)].some(([, clausula = ""]) =>
+          clausula.includes("Reorder")
+        )
+    );
+    expect(comReorder).toEqual(["components/admin/material-de-apoio.tsx"]);
+  });
+
   // Com um ! contra outro, o item só saía certo se a classe dele viesse depois da
   // do SidebarMenuButton; as classes da navegação agora não anulam nenhuma.
   test("nenhuma classe da navegação usa !", () => {

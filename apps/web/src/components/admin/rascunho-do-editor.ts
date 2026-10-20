@@ -50,8 +50,6 @@ export type Mudanca =
   | { tipo: "nivel_renomeado"; ordem: number; nome: string }
   | { tipo: "nivel_removido"; ordem: number }
   | { tipo: "material_renomeado"; id: MaterialId; titulo: string }
-  | { tipo: "material_movido"; id: MaterialId; direcao: Direcao }
-  | { tipo: "material_removido"; id: MaterialId }
   | { tipo: "modulo_novo"; id: ModuloId }
   | {
       tipo: "modulo_editado";
@@ -208,18 +206,6 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
           x.id === m.id ? { ...x, titulo: m.titulo } : x
         ),
       };
-    case "material_movido":
-      return {
-        ...r,
-        materiais:
-          trocado(
-            r.materiais,
-            r.materiais.findIndex((x) => x.id === m.id),
-            m.direcao
-          ) ?? r.materiais,
-      };
-    case "material_removido":
-      return { ...r, materiais: r.materiais.filter((x) => x.id !== m.id) };
     case "modulo_novo": {
       const numero = Math.max(0, ...r.modulos.map((x) => numeroDe(x) ?? 0));
       return {
@@ -581,14 +567,89 @@ export interface EnvioDeMaterial {
   tipo: TipoDoMaterial | null;
 }
 
+/** O envio e o lugar da linha dele na seção, contando os materiais e os outros envios. */
+interface EnvioNaLista extends EnvioDeMaterial {
+  posicao: number;
+}
+
+export type LinhaDaLista =
+  | { tipo: "material"; material: MaterialDoDocumento }
+  | { tipo: "envio"; envio: EnvioDeMaterial };
+
+/** As linhas da seção, de cima para baixo: os materiais do rascunho com cada envio no lugar dele. */
+export function linhasDoMaterial(
+  e: Pick<RascunhoDoEditor, "daGeracao" | "rascunho">
+): LinhaDaLista[] {
+  const linhas: LinhaDaLista[] = e.rascunho.materiais.map((material) => ({
+    material,
+    tipo: "material",
+  }));
+  for (const { posicao, ...envio } of e.daGeracao.envios) {
+    linhas.splice(Math.min(posicao, linhas.length), 0, {
+      envio,
+      tipo: "envio",
+    });
+  }
+  return linhas;
+}
+
+export const idDaLinha = (l: LinhaDaLista): MaterialId =>
+  l.tipo === "material" ? l.material.id : l.envio.id;
+
+/**
+ * O inverso de linhasDoMaterial: os materiais vão ao rascunho na ordem das
+ * linhas, e cada envio guarda a posição da linha dele.
+ */
+function comLinhas(
+  e: RascunhoDoEditor,
+  linhas: readonly LinhaDaLista[]
+): RascunhoDoEditor {
+  return {
+    ...naGeracao(e, {
+      envios: linhas.flatMap((l, posicao) =>
+        l.tipo === "envio" ? [{ ...l.envio, posicao }] : []
+      ),
+    }),
+    rascunho: {
+      ...e.rascunho,
+      materiais: linhas.flatMap((l) =>
+        l.tipo === "material" ? [l.material] : []
+      ),
+    },
+  };
+}
+
+/** As setas e o arrastar pela alça põem a linha no índice pedido; fora da lista, nada muda. */
+function movido(
+  e: RascunhoDoEditor,
+  id: MaterialId,
+  para: number
+): RascunhoDoEditor {
+  const linhas = linhasDoMaterial(e);
+  const de = linhas.findIndex((l) => idDaLinha(l) === id);
+  const linha = linhas[de];
+  if (!linha || para === de || para < 0 || para >= linhas.length) {
+    return e;
+  }
+  linhas.splice(de, 1);
+  linhas.splice(para, 0, linha);
+  return comLinhas(e, linhas);
+}
+
+const semALinha = (e: RascunhoDoEditor, id: MaterialId) =>
+  comLinhas(
+    e,
+    linhasDoMaterial(e).filter((l) => idDaLinha(l) !== id)
+  );
+
 export const RECUSA_DO_LIMITE = `O curso tem no máximo ${LIMITES.materiais} arquivos de material de apoio. Tire um para pôr este.`;
 
 /** O que volta ao início a cada recomeço do rascunho. */
 interface DaGeracao {
   /** A capa escolhida e ainda não salva, que também deixa o editor sujo. */
   capa: File | null;
-  /** Os arquivos de material de apoio subindo ou recusados, na ordem em que vieram. */
-  envios: readonly EnvioDeMaterial[];
+  /** Os arquivos de material de apoio subindo ou recusados, cada um no lugar da linha dele. */
+  envios: readonly EnvioNaLista[];
   /** A linha que pede confirmação, como a do Apagar. */
   linha: string | null;
   /** O Salvar foi recusado aqui: a tela marca tudo o que ele recusaria. */
@@ -654,6 +715,9 @@ export type AcaoDoAdmin =
   /** Os arquivos escolhidos, já conferidos no navegador: os recusados vêm com o motivo. */
   | { tipo: "materiais_escolhidos"; envios: readonly EnvioDeMaterial[] }
   | { tipo: "envio_tirado"; id: MaterialId }
+  /** O índice conta todas as linhas da seção, também as dos envios. */
+  | { tipo: "material_movido"; id: MaterialId; para: number }
+  | { tipo: "material_removido"; id: MaterialId }
   | { tipo: "linha_pedida"; chave: string | null }
   | { tipo: "linha_fechada"; chave: string }
   | { tipo: "salvar" }
@@ -662,7 +726,7 @@ export type AcaoDoAdmin =
 
 export type RespostaDoServidor =
   | { tipo: "pagina"; pagina: DocumentoDoCurso }
-  /** O bucket guardou o arquivo; ele entra no rascunho no fim da lista. */
+  /** O bucket guardou o arquivo; ele entra no rascunho no lugar da linha dele. */
   | { tipo: "material_recebido"; material: MaterialDoDocumento }
   | { tipo: "material_recusado"; id: MaterialId; motivo: string }
   /** O servidor gravou o envio; o que o admin editou depois fica. */
@@ -812,15 +876,14 @@ function recebido(
   if (!e.daGeracao.envios.some((x) => x.id === material.id)) {
     return e;
   }
-  return {
-    ...naGeracao(e, {
-      envios: e.daGeracao.envios.filter((x) => x.id !== material.id),
-    }),
-    rascunho: {
-      ...e.rascunho,
-      materiais: [...e.rascunho.materiais, material],
-    },
-  };
+  return comLinhas(
+    e,
+    linhasDoMaterial(e).map((l) =>
+      l.tipo === "envio" && l.envio.id === material.id
+        ? { material, tipo: "material" }
+        : l
+    )
+  );
 }
 
 function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
@@ -845,13 +908,15 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
     case "capa_escolhida":
       return naGeracao(e, { capa: a.arquivo });
     case "materiais_escolhidos":
-      return naGeracao(e, {
-        envios: [...e.daGeracao.envios, ...a.envios],
-      });
+      return comLinhas(e, [
+        ...linhasDoMaterial(e),
+        ...a.envios.map((envio) => ({ envio, tipo: "envio" as const })),
+      ]);
     case "envio_tirado":
-      return naGeracao(e, {
-        envios: e.daGeracao.envios.filter((x) => x.id !== a.id),
-      });
+    case "material_removido":
+      return semALinha(e, a.id);
+    case "material_movido":
+      return movido(e, a.id, a.para);
     case "material_recebido":
       return recebido(e, a.material);
     case "material_recusado":
