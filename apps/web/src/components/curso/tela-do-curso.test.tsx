@@ -8,6 +8,7 @@ import {
   comercial,
   fabrica,
   HOJE,
+  MATERIAIS_DO_COMERCIAL,
   RISCOS,
 } from "./exemplo-de-teste";
 import { TelaDoCurso } from "./tela-do-curso";
@@ -202,5 +203,55 @@ describe("a página", () => {
     expect(texto(linha ?? "")).toBe(
       "Assistida. 1. Riscos do posto de montagem Os pontos de esmagamento, corte e choque que aparecem na bancada. 11 min"
     );
+  });
+});
+
+describe("o material de apoio no cartão", () => {
+  const comMaterial = (n: number) => ({
+    ...comercial.emAndamento,
+    materiais: MATERIAIS_DO_COMERCIAL.slice(0, n),
+  });
+  const links = (html: string) =>
+    [
+      ...(html.match(CARTAO)?.[0] ?? "").matchAll(
+        /<a[^>]*download="([^"]+)"[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/g
+      ),
+    ].map(([, nome, href, conteudo = ""]) => [
+      nome,
+      href,
+      textoDoLeitorDeTela(conteudo),
+    ]);
+
+  test("mostra os 3 primeiros, com título, tipo e tamanho, e Ver todos com a contagem", () => {
+    const html = render(comMaterial(4));
+    expect(cartao(html)).toContain("Material de apoio 4");
+    expect(links(html)).toEqual([
+      [
+        "checklist-da-visita-técnica.pdf",
+        `/material/${MATERIAIS_DO_COMERCIAL[0]?.id}`,
+        "Checklist da visita técnica PDF, 1,2 MB",
+      ],
+      [
+        "planilha-do-cronograma-reverso.xlsx",
+        `/material/${MATERIAIS_DO_COMERCIAL[1]?.id}`,
+        "Planilha do cronograma reverso XLSX, 86 KB",
+      ],
+      [
+        "manual-do-método-comercial,-revisão-7.pdf",
+        `/material/${MATERIAIS_DO_COMERCIAL[2]?.id}`,
+        "Manual do método comercial, revisão 7 PDF, 14,8 MB",
+      ],
+    ]);
+    expect(cartao(html)).toContain("Ver todos (4)");
+  });
+
+  test("com até 3 arquivos, a lista vem inteira e sem Ver todos", () => {
+    const html = render(comMaterial(3));
+    expect(links(html)).toHaveLength(3);
+    expect(cartao(html)).not.toContain("Ver todos");
+  });
+
+  test("sem material, o cartão não mostra nada dele", () => {
+    expect(cartao(render(comMaterial(0)))).not.toContain("Material de apoio");
   });
 });

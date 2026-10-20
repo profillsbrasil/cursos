@@ -51,6 +51,7 @@ import {
   SaiuDoCampo,
   useErroDoCampo,
 } from "./erros-do-editor";
+import { MaterialDeApoio } from "./material-de-apoio";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { ICONE, ROTULO, Secao } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
@@ -378,6 +379,8 @@ export function EditorDoCurso({
                 despachar={despachar}
                 topicos={rascunho.topicos}
               />
+
+              <MaterialDeApoio despachar={despachar} estado={estado} />
 
               <Secao
                 id="publicacao"
