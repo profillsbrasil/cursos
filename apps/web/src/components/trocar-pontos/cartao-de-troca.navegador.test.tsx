@@ -68,8 +68,8 @@ const HTML = renderToString(
     ]}
     extrato={[]}
     hoje="2026-10-14"
+    retomar={{ href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" }}
     temCursoTrocavelNaVitrine
-    voltarAEstudar="/meus-cursos"
   />
 );
 

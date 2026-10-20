@@ -136,7 +136,9 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
       </TooltipTrigger>
       <TooltipContent className={DICA} side="right">
         {chamada}
-        <span className={DICA_SECUNDARIA}>{c.titulo}</span>
+        <span className={DICA_SECUNDARIA}>
+          {c.titulo}, {c.curso}
+        </span>
       </TooltipContent>
     </Tooltip>
   );

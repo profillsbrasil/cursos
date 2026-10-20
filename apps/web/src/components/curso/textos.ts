@@ -172,12 +172,12 @@ export function progressoDoCartao(p: PaginaDoCurso): {
 }
 
 export type IconeDoCartao =
+  | "certificado"
   | "check"
   | "nivel"
   | "niveis"
   | "questionario"
-  | "relogio"
-  | "trofeu";
+  | "relogio";
 
 export interface LinhaDoCartao {
   href?: Route;
@@ -208,7 +208,7 @@ function localizar(p: PaginaDoCurso, aulaId: AulaId) {
 }
 
 const CERTIFICADO_NO_FIM: LinhaDoCartao = {
-  icone: "trofeu",
+  icone: "certificado",
   texto: "Certificado no fim do curso",
 };
 
@@ -236,7 +236,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         botao: {
           href: acao.href as Route,
           icone: "play",
-          texto: "Começar o curso",
+          texto: "Começar curso",
           variante: "principal",
         },
         inclui: [
@@ -301,7 +301,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
                 ? "Falta 1 questionário"
                 : `Faltam ${faltamN} questionários, um por aula`,
           },
-          { icone: "trofeu", texto: "Certificado quando todos passarem" },
+          { icone: "certificado", texto: "Certificado quando todos passarem" },
         ],
         situacao: {
           rotulo: "Próximo questionário",
@@ -327,7 +327,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         inclui: [
           {
             href: caminhoDoCertificado(p.slug),
-            icone: "trofeu",
+            icone: "certificado",
             texto: `Código do certificado: ${certificado.codigo}`,
           },
         ],

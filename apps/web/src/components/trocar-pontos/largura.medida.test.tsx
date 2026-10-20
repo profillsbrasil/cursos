@@ -58,8 +58,8 @@ const TROCAR = naCasca(
         },
       ]}
       hoje="2026-10-14"
+      retomar={{ href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" }}
       temCursoTrocavelNaVitrine={false}
-      voltarAEstudar="/meus-cursos"
     />
   </div>
 );
@@ -117,6 +117,13 @@ const larguraDe = (seletor: string) =>
     `Math.round(document.querySelector(${JSON.stringify(seletor)}).getBoundingClientRect().width)`
   );
 
+// O cartão do vazio de Cursos para trocar, que leva a frase e o botão na mesma linha.
+const larguraDoVazio = () =>
+  avaliar<number>(
+    enviar,
+    `Math.round([...document.querySelectorAll("p")].find((p) => p.textContent.startsWith("Nenhum curso novo")).parentElement.getBoundingClientRect().width)`
+  );
+
 const areaUtil = () =>
   avaliar<number>(
     enviar,
@@ -134,11 +141,12 @@ describe.skipIf(!existsSync(CHROMIUM))("largura de leitura", () => {
   const SUA_SEMANA = '[aria-labelledby="semana-titulo"]';
 
   for (const janela of [1920, 1280]) {
-    test(`${janela} px: o extrato para em 768 px, e Sua semana fica na coluna de 320 px`, async () => {
+    test(`${janela} px: o extrato e o vazio dos cursos param em 768 px, e Sua semana fica na coluna de 320 px`, async () => {
       await abrir(janela, TROCAR);
       expect(await areaUtil()).toBeGreaterThan(768);
       expect(await larguraDe(EXTRATO)).toBe(768);
       expect(await larguraDe(`${EXTRATO} ul`)).toBe(768);
+      expect(await larguraDoVazio()).toBe(768);
       await abrir(janela, SEMANA);
       expect(await larguraDe(SUA_SEMANA)).toBe(320);
     });

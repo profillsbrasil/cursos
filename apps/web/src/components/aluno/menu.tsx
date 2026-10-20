@@ -1,4 +1,4 @@
-import { Award, BookOpen, Gift, Megaphone, ShieldCheck } from "lucide-react";
+import { BookOpen, Gift, Medal, Megaphone, ShieldCheck } from "lucide-react";
 
 import type { ItemDoMenu, LinkDaArea } from "@/components/casca/nav";
 
@@ -19,7 +19,7 @@ export const ITENS_DO_ALUNO: readonly ItemDoMenu[] = [
   },
   {
     href: "/conquistas",
-    icone: <Award />,
+    icone: <Medal />,
     nome: "Conquistas",
     outrosPrefixos: [],
     tipo: "link",

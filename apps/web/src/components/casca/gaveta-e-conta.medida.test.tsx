@@ -66,11 +66,12 @@ async function empacotar() {
                 cartao={resolvida({
                   chamada: "Continuar · faltam 7 min",
                   chamadaAqui: "Assistindo agora",
+                  curso: "Comercial",
                   href: "${AULA}",
                   pct: 40,
-                  rotulo: "Continuar: Pilar Urgência · Aula 1, 40% do curso",
+                  rotulo: "Continuar: Gatilhos, Comercial, 40% do curso",
                   tipo: "continuar",
-                  titulo: "Pilar Urgência · Aula 1",
+                  titulo: "Gatilhos",
                 })}
               />
             ),

@@ -4,7 +4,7 @@ import type { AulaId, Capa } from "@cursos/api/dominio/tipos";
 
 import { hrefDaRetomada } from "@/lib/rotas";
 
-import { continuarDe, estaAqui } from "./continuar";
+import { acaoDaRetomada, continuarDe, estaAqui } from "./continuar";
 
 const capa = {
   alt: "",
@@ -43,15 +43,16 @@ const questionario = (ultima: { acertos: number; total: number } | null) =>
 const NO_QUESTIONARIO = `${NA_AULA}#questionario`;
 
 describe("continuarDe", () => {
-  test("continuar: módulo e aula, minutos que faltam, barra e link da aula", () => {
+  test("continuar: o título da aula, minutos que faltam, barra e link da aula", () => {
     expect<unknown>(continuarDe(continuar(420))).toEqual({
       chamada: "Continuar · faltam 7 min",
       chamadaAqui: "Assistindo agora",
+      curso: "Comercial",
       href: NA_AULA,
       pct: 45,
-      rotulo: "Continuar · faltam 7 min: Pilar Urgência · Aula 4, 45% do curso",
+      rotulo: "Continuar · faltam 7 min: Gatilhos, Comercial, 45% do curso",
       tipo: "continuar",
-      titulo: "Pilar Urgência · Aula 4",
+      titulo: "Gatilhos",
     });
   });
 
@@ -63,11 +64,12 @@ describe("continuarDe", () => {
     expect<unknown>(continuarDe(comecar)).toEqual({
       chamada: "Começar curso",
       chamadaAqui: "Assistindo agora",
+      curso: "Comercial",
       href: NA_AULA,
       pct: null,
-      rotulo: "Começar curso: Pilar Urgência · Aula 4",
+      rotulo: "Começar curso: Gatilhos, Comercial",
       tipo: "comecar",
-      titulo: "Pilar Urgência · Aula 4",
+      titulo: "Gatilhos",
     });
   });
 
@@ -75,9 +77,11 @@ describe("continuarDe", () => {
     expect<unknown>(continuarDe(questionario(null))).toEqual({
       chamada: "Faltam 3 questionários",
       chamadaAqui: "Você está no questionário",
+      curso: "Comercial",
       href: NO_QUESTIONARIO,
       pct: 85,
-      rotulo: "Faltam 3 questionários: Questionário · Gatilhos, 85% do curso",
+      rotulo:
+        "Faltam 3 questionários: Questionário · Gatilhos, Comercial, 85% do curso",
       tipo: "questionario",
       titulo: "Questionário · Gatilhos",
     });
@@ -91,6 +95,33 @@ describe("continuarDe", () => {
     for (const r of [continuar(420), comecar, questionario(null)]) {
       expect(continuarDe(r)?.href).toBe(hrefDaRetomada(r));
     }
+  });
+});
+
+describe("acaoDaRetomada", () => {
+  test("um verbo por tipo de retomada, e quem nunca abriu aula começa o curso", () => {
+    expect<unknown>(acaoDaRetomada(comecar)).toEqual({
+      href: NA_AULA,
+      icone: "play",
+      texto: "Começar curso",
+    });
+    expect(acaoDaRetomada(continuar(420)).texto).toBe("Continuar aula");
+    expect<unknown>(acaoDaRetomada(questionario(null))).toEqual({
+      href: NO_QUESTIONARIO,
+      icone: "questionario",
+      texto: "Fazer o questionário",
+    });
+    expect(acaoDaRetomada(questionario({ acertos: 1, total: 3 })).texto).toBe(
+      "Tentar de novo"
+    );
+  });
+
+  test("sem retomada, leva a Meus cursos sem prometer aula", () => {
+    expect(acaoDaRetomada(null)).toEqual({
+      href: "/meus-cursos",
+      icone: null,
+      texto: "Ver Meus cursos",
+    });
   });
 });
 

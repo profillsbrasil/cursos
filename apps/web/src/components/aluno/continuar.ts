@@ -10,6 +10,8 @@ export interface Continuar {
   chamada: string;
   /** A linha no lugar da chamada quando a pessoa já está no destino. */
   chamadaAqui: string;
+  /** O título do curso, no nome acessível e na dica: a aula sozinha não diz de que curso é. */
+  curso: string;
   href: Route;
   /** % do curso para a barra; null em "comecar", que não tem barra. */
   pct: number | null;
@@ -17,7 +19,7 @@ export interface Continuar {
   rotulo: string;
   /** Escolhe o ícone do botão redondo: a lista de checks no questionário, Play no resto. */
   tipo: Retomada["tipo"];
-  /** "Pilar Urgência · Aula 4"; no questionário, "Questionário · título da aula". */
+  /** O título da aula; no questionário, "Questionário · título da aula". */
   titulo: string;
 }
 
@@ -28,14 +30,14 @@ function textos(r: Retomada) {
         chamada: `Continuar · ${faltam(minutos(r.aula.faltaSeg)).toLowerCase()} ${fmtMin(r.aula.faltaSeg)}`,
         chamadaAqui: "Assistindo agora",
         pct: r.progresso.pct,
-        titulo: `${r.modulo.titulo} · Aula ${r.aula.numeroNoModulo}`,
+        titulo: r.aula.titulo,
       };
     case "comecar":
       return {
         chamada: "Começar curso",
         chamadaAqui: "Assistindo agora",
         pct: null,
-        titulo: `${r.modulo.titulo} · Aula ${r.aula.numeroNoModulo}`,
+        titulo: r.aula.titulo,
       };
     case "questionario": {
       const faltamN = r.questionarios.total - r.questionarios.feitas;
@@ -62,10 +64,39 @@ export function continuarDe(retomada: Retomada | null): Continuar | null {
   const porcentagem = t.pct === null ? "" : `, ${t.pct}% do curso`;
   return {
     ...t,
+    curso: retomada.curso.titulo,
     href: hrefDaRetomada(retomada),
-    rotulo: `${t.chamada}: ${t.titulo}${porcentagem}`,
+    rotulo: `${t.chamada}: ${t.titulo}, ${retomada.curso.titulo}${porcentagem}`,
     tipo: retomada.tipo,
   };
+}
+
+/** O botão que retoma o estudo, com o mesmo verbo no banner de Meus cursos e em Trocar pontos. */
+export interface AcaoDaRetomada {
+  href: Route;
+  icone: "play" | "questionario" | null;
+  texto: string;
+}
+
+export function acaoDaRetomada(retomada: Retomada | null): AcaoDaRetomada {
+  if (!retomada) {
+    return { href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" };
+  }
+  const href = hrefDaRetomada(retomada);
+  switch (retomada.tipo) {
+    case "comecar":
+      return { href, icone: "play", texto: "Começar curso" };
+    case "continuar":
+      return { href, icone: "play", texto: "Continuar aula" };
+    case "questionario":
+      return {
+        href,
+        icone: "questionario",
+        texto: retomada.ultima ? "Tentar de novo" : "Fazer o questionário",
+      };
+    default:
+      return retomada satisfies never;
+  }
 }
 
 /**
