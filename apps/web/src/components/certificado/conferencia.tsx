@@ -18,8 +18,6 @@ import { cargaEmHoras } from "./folha";
 
 const CARTAO = "rounded-[20px] bg-card ring-1 ring-border";
 
-export const CORPO_DA_CONFERENCIA =
-  "grid justify-items-center px-4 pt-7 pb-12 md:px-8 md:pt-12 md:pb-16";
 const NOME = "font-bold text-titulo text-xl leading-[1.3]";
 
 export function ReciboDaConferencia({

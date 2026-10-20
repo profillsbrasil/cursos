@@ -3,11 +3,13 @@ import Link from "next/link";
 
 import { BOTAO } from "@/components/casca/botoes";
 
-// Corpo dos not-found.tsx do app: diz o que faltou e leva de volta a Meus cursos.
+// Corpo dos not-found.tsx do app: diz o que faltou e leva a Meus cursos.
 export function TelaNaoEncontrada({
+  acao = "Voltar para Meus cursos",
   texto,
   titulo,
 }: {
+  acao?: string;
   texto: string;
   titulo: string;
 }) {
@@ -19,7 +21,7 @@ export function TelaNaoEncontrada({
       <p className="text-muted-foreground text-sm">{texto}</p>
       <Link className={BOTAO} href="/meus-cursos">
         <ArrowLeft aria-hidden="true" />
-        Voltar para Meus cursos
+        {acao}
       </Link>
     </div>
   );

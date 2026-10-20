@@ -9,6 +9,7 @@ import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { LARGURAS_DA_SIDEBAR } from "@/components/casca/nav";
+import { CORPO_DA_PAGINA_PUBLICA } from "@/components/casca/pagina-publica";
 
 import {
   abrirChromium,
@@ -18,11 +19,7 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium-de-teste";
-import {
-  CORPO_DA_CONFERENCIA,
-  ReciboDaConferencia,
-  SemCertificado,
-} from "./conferencia";
+import { ReciboDaConferencia, SemCertificado } from "./conferencia";
 import { enderecoDaConferencia, folhaDo } from "./folha";
 import { FolhaNaTela } from "./folha-na-tela";
 import { NOMES_DA_FOLHA } from "./nomes-de-teste";
@@ -69,13 +66,13 @@ const TELAS = {
   emitido: tela(emitido(ANA)),
   longo: tela(emitido(LONGO)),
   naoAchou: renderToStaticMarkup(
-    <div className={CORPO_DA_CONFERENCIA}>
+    <div className={CORPO_DA_PAGINA_PUBLICA}>
       <SemCertificado digitado="7K3M-Q9TX" />
     </div>
   ),
   pendente: tela(PENDENTE),
   recibo: renderToStaticMarkup(
-    <div className={CORPO_DA_CONFERENCIA}>
+    <div className={CORPO_DA_PAGINA_PUBLICA}>
       <ReciboDaConferencia certificado={ANA} hoje={HOJE} />
     </div>
   ),
