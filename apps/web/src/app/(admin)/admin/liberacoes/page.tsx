@@ -11,7 +11,7 @@ import { BOTAO } from "@/components/casca/botoes";
 import { CAMPO } from "@/components/casca/campos";
 import { carregarCatalogo, carregarPessoas } from "@/server/api";
 
-export const metadata: Metadata = { title: "Liberações · Admin" };
+export const metadata: Metadata = { title: "Liberações" };
 
 export default async function Alunos({
   searchParams,

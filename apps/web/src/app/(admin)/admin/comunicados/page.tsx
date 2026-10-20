@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Comunicados } from "@/components/admin/comunicados";
 import { carregarComunicados } from "@/server/api";
 
-export const metadata: Metadata = { title: "Comunicados · Admin" };
+export const metadata: Metadata = { title: "Comunicados" };
 
 export default async function PaginaDeComunicados() {
   const dados = await carregarComunicados();

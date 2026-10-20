@@ -7,29 +7,37 @@ import { EditorDoCurso } from "@/components/admin/editor-do-curso";
 import { abrirOuRascunho } from "@/lib/abrir-ou-rascunho";
 import { carregarCategorias, carregarCurso } from "@/server/api";
 
-export const metadata: Metadata = { title: "Curso · Admin" };
-
-export default async function Curso({
-  params,
-  searchParams,
-}: {
+interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ novo?: string | string[] }>;
-}) {
+}
+
+// React.cache divide o carregarCurso entre o título e a página.
+async function abrir({ params, searchParams }: Props) {
   const [{ id }, { novo }] = await Promise.all([params, searchParams]);
-  const [edicao, categorias] = await Promise.all([
-    abrirOuRascunho(
-      { id, novo },
-      {
-        carregar: carregarCurso,
-        rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
-      }
-    ),
-    carregarCategorias(),
-  ]);
+  const edicao = await abrirOuRascunho(
+    { id, novo },
+    {
+      carregar: carregarCurso,
+      rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
+    }
+  );
   if (!edicao) {
     notFound();
   }
+  return edicao;
+}
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const { documento } = await abrir(props);
+  return { title: documento.titulo.trim() || "Curso novo" };
+}
+
+export default async function Curso(props: Props) {
+  const [edicao, categorias] = await Promise.all([
+    abrir(props),
+    carregarCategorias(),
+  ]);
   return (
     <EditorDoCurso
       categorias={categorias}

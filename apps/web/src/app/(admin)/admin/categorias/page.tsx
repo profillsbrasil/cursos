@@ -4,7 +4,7 @@ import { Categorias } from "@/components/admin/categorias";
 import { plural } from "@/lib/formato";
 import { carregarCategorias } from "@/server/api";
 
-export const metadata: Metadata = { title: "Categorias · Admin" };
+export const metadata: Metadata = { title: "Categorias" };
 
 export default async function PaginaDeCategorias() {
   const categorias = await carregarCategorias();
