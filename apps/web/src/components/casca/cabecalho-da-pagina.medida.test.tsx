@@ -19,7 +19,7 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium-de-teste";
-import { CabecalhoDaPagina } from "../casca/cabecalho-da-pagina";
+import { CabecalhoDaPagina, EsqueletoDoCabecalho } from "./cabecalho-da-pagina";
 
 const naPagina = (filhos: ReactNode) =>
   renderToStaticMarkup(
@@ -46,7 +46,10 @@ const PAGINAS = {
     />
   ),
   cabecalhoNoEsqueleto: naPagina(
-    <CabecalhoDaPagina resumo={null} titulo="Meus cursos" />
+    <EsqueletoDoCabecalho
+      resumo="3 cursos liberados para você"
+      titulo="Meus cursos"
+    />
   ),
   esqueletoDeMeusCursos: naPagina(<CarregandoMeusCursos />),
   meusCursos: naPagina(
@@ -79,12 +82,12 @@ async function topoDoConteudo(largura: number, corpo: string) {
     enviar,
     `document.open(); document.write(${JSON.stringify(
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`
-    )}); document.close(); Math.round(document.querySelector("header").nextElementSibling.getBoundingClientRect().top)`
+    )}); document.close(); Math.round(document.querySelector("main").firstElementChild.nextElementSibling.getBoundingClientRect().top)`
   );
 }
 
 describe.skipIf(!existsSync(CHROMIUM))(
-  "o esqueleto guarda o lugar do resumo do cabeçalho",
+  "o esqueleto guarda o lugar do cabeçalho",
   () => {
     beforeAll(async () => {
       enviar = await abrirChromium("cabecalho-da-pagina");
@@ -93,7 +96,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
     afterAll(fecharChromium);
 
     for (const largura of [1440, 390]) {
-      test(`${largura} px: o conteúdo começa na mesma altura com o resumo e com a linha que pulsa`, async () => {
+      test(`${largura} px: o conteúdo começa na mesma altura com o resumo e com o resumo de exemplo que pulsa`, async () => {
         expect(
           await topoDoConteudo(largura, PAGINAS.cabecalhoNoEsqueleto)
         ).toBe(await topoDoConteudo(largura, PAGINAS.cabecalhoComResumo));

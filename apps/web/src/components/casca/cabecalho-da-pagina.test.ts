@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Glob } from "bun";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import { CabecalhoDaPagina } from "./cabecalho-da-pagina";
 
 const SRC = join(import.meta.dir, "../..");
 
@@ -39,5 +43,17 @@ describe("cabeçalho da página", () => {
       }
     }
     expect(fora).toEqual([]);
+  });
+
+  test("sem resumo, o cabeçalho não deixa linha pulsando na página pronta", () => {
+    // O certificado emitido não tem resumo: a linha do esqueleto ficava ali para sempre.
+    const html = renderToStaticMarkup(
+      createElement(CabecalhoDaPagina, {
+        resumo: null,
+        titulo: "Seu certificado",
+      })
+    );
+    expect(html).toContain("Seu certificado");
+    expect(html).not.toContain('data-slot="skeleton"');
   });
 });
