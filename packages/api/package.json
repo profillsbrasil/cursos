@@ -12,6 +12,7 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
+    "coletar-orfaos": "varlock run --path ../../apps/web/ -- bun scripts/coletar-orfaos.ts",
     "test": "bun test"
   },
   "dependencies": {

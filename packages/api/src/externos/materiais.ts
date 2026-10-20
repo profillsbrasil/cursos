@@ -111,7 +111,8 @@ export function lerMaterial(
 
 /**
  * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT reescreve
- * os mesmos bytes. Material tirado do curso deixa o objeto no bucket; não há coleta.
+ * os mesmos bytes. Material tirado do curso deixa o objeto no bucket até a coleta
+ * de órfãos (scripts/coletar-orfaos.ts).
  */
 export function materiaisNoBucket(
   cfg: BucketDeMateriais,
