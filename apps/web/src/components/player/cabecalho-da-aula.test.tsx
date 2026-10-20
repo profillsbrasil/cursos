@@ -10,7 +10,7 @@ import {
   LINHA_DO_MODULO,
   TITULO_DA_AULA,
 } from "./cabecalho-da-aula";
-import { CAIXA_DO_VIDEO } from "./partes";
+import { ALTURA_DA_BARRA, CAIXA_DO_VIDEO } from "./partes";
 
 // O esqueleto desenha cada linha do cabeçalho com 1lh dentro de um bloco com a mesma
 // tipografia do cabeçalho real: a altura bate em toda largura, e o vídeo não pula
@@ -23,10 +23,14 @@ describe("esqueleto da aula", () => {
     expect(h.match(/h-\[1lh\]/g)?.length).toBe(2);
   });
 
-  test("o vídeo do esqueleto tem a caixa do vídeo real e a altura dos controles", () => {
+  // A altura de cada largura, contra o player de verdade, se mede no Chromium
+  // (player-da-aula.navegador.test.tsx).
+  test("o vídeo do esqueleto tem a caixa do vídeo real e a barra que lê a própria largura", () => {
     const h = renderToStaticMarkup(<CarregandoAula />);
     expect(h).toContain(`class="${CAIXA_DO_VIDEO.replaceAll("&", "&amp;")}"`);
-    expect(h).toContain('class="h-[94px]"');
+    expect(h).toContain(
+      `<div class="@container/barra"><div class="${ALTURA_DA_BARRA}"></div></div>`
+    );
   });
 });
 
