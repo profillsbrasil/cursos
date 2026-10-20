@@ -98,10 +98,9 @@ export const capaDe = (linha: LinhaDaCapa): Capa => ({
 export interface CursoCatalogo {
   capa: Capa;
   categoria: string;
+  codigo: string;
   /** "" quando o admin não escreveu. */
   descricao: string;
-  /** codigo ?? destaque */
-  extra: string | null;
   id: CursoId;
   /** Em ordem de número, aulas em ordem de posição. */
   modulos: readonly ModuloCatalogo[];

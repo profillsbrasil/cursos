@@ -55,6 +55,7 @@ const CATEGORIAS: CategoriaNaLista[] = [
 
 const salvo: EdicaoDoCurso = {
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
+  codigo: "PE-001",
   documento: documentoDeExemplo("v1" as Versao),
   podeApagar: false,
   slug: "operacao-da-envasadora",
@@ -119,5 +120,49 @@ describe("editor do curso: endereço e categoria", () => {
     const html = render(edicaoDeCursoNovo(EDICAO.CURSO));
     expect(texto(html)).toContain("O link do curso sai do título.");
     expect(categoriaNoGatilho(html)).toEqual(["Escolha a categoria", true]);
+  });
+});
+
+const H1 = /<h1[^>]*>(.*?)<\/h1>/;
+const TITULO_ESCONDIDO =
+  /<h2 class="sr-only" id="capa-e-descricao"[^>]*>Capa e descrição<\/h2>/;
+const RESUMO_NO_INDICE = /^[^<]*?2 módulos, 3 aulas, 15 min Capa e descrição/;
+const tituloDaTela = (html: string) => texto(H1.exec(html)?.[1] ?? "").trim();
+
+describe("editor do curso: topo e código", () => {
+  test("o curso novo se chama Novo curso, mesmo com título digitado, e o código sai ao salvar", () => {
+    const novo = edicaoDeCursoNovo(EDICAO.CURSO);
+    const html = render({
+      ...novo,
+      documento: { ...novo.documento, titulo: "Operação da envasadora" },
+    });
+    expect(tituloDaTela(html)).toBe("Novo curso");
+    expect(texto(html)).toContain("Código Gerado ao salvar");
+    expect(html).not.toContain('name="codigo"');
+  });
+
+  test("o curso salvo leva o título no topo e o código só para ler", () => {
+    const html = render(salvo);
+    expect(tituloDaTela(html)).toBe(salvo.documento.titulo);
+    expect(texto(html)).toContain("Código PE-001");
+    expect(html).not.toContain('name="codigo"');
+    expect(html).not.toContain('name="destaque"');
+  });
+
+  test("a capa e a descrição abrem sem título visível, com nome para o leitor de tela e o índice", () => {
+    const html = render(salvo);
+    expect(html).toContain('<section aria-labelledby="capa-e-descricao"');
+    expect(html).toMatch(TITULO_ESCONDIDO);
+    expect(html).toContain('href="#capa-e-descricao"');
+    expect(texto(html)).not.toContain("Vitrine");
+  });
+
+  test("a contagem de módulos e aulas sai do topo e abre o índice das seções", () => {
+    const html = render(salvo);
+    const indice = html.slice(html.indexOf('aria-label="Seções do editor"'));
+    expect(texto(indice)).toMatch(RESUMO_NO_INDICE);
+    expect(texto(html.slice(0, html.indexOf("</h1>")))).not.toContain(
+      "módulos"
+    );
   });
 });

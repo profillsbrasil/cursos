@@ -169,13 +169,22 @@ function useSecaoAtual(ids: readonly string[]): string | null {
   return atual;
 }
 
-function IndiceDasSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] }) {
+function IndiceDasSecoes({
+  resumo,
+  secoes,
+}: {
+  resumo: string;
+  secoes: readonly SecaoDoIndice[];
+}) {
   const atual = useSecaoAtual(secoes.map((s) => s.id));
   return (
     <nav
       aria-label="Seções do editor"
       className="grid gap-0.5 rounded-[20px] bg-card p-2 ring-1 ring-border"
     >
+      <p className="px-2.5 pt-1.5 pb-1 text-muted-foreground text-xs tabular-nums">
+        {resumo}
+      </p>
       {secoes.map((s) => (
         <a
           aria-current={s.id === atual ? "location" : undefined}
@@ -242,6 +251,7 @@ export function ColunaDePublicacao({
   aoMudarStatus,
   descartar,
   estado,
+  resumo,
   secoes,
   status,
 }: {
@@ -249,6 +259,8 @@ export function ColunaDePublicacao({
   aoMudarStatus: (status: StatusDoCurso) => void;
   descartar: () => void;
   estado: EstadoDoSalvar;
+  /** Módulos, aulas e duração do rascunho, no alto do índice. */
+  resumo: string;
   secoes: readonly SecaoDoIndice[];
   status: StatusDoCurso;
 }) {
@@ -280,7 +292,7 @@ export function ColunaDePublicacao({
       </div>
       <div className={cn("grid gap-3.5", largo)}>
         <AntesDePublicar itens={antes} />
-        <IndiceDasSecoes secoes={secoes} />
+        <IndiceDasSecoes resumo={resumo} secoes={secoes} />
       </div>
     </aside>
   );

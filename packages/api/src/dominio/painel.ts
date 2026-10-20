@@ -30,9 +30,8 @@ import { videoDaAula } from "./video";
 
 export interface CursoLinha extends LinhaDaCapa {
   categoria: { nome: string };
-  codigo: string | null;
+  codigo: string;
   descricao: string;
-  destaque: string | null;
   id: string;
   modulos: {
     aulas: {
@@ -87,9 +86,9 @@ export interface CursoVM {
   aulas: number;
   capa: Capa;
   categoria: string;
+  codigo: string;
   duracaoSeg: number;
   estado: EstadoCurso;
-  extra: string | null;
   id: CursoId;
   /**
    * O módulo da aula para onde o Continuar leva (`aulaDaVez`), o mesmo que o
@@ -193,8 +192,8 @@ export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
     capa: capaDe(linha),
     categoria: linha.categoria.nome,
+    codigo: linha.codigo,
     descricao: linha.descricao,
-    extra: linha.codigo ?? linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
@@ -235,9 +234,9 @@ function cursoVM(c: CursoCatalogo, leitura: CursoDoAluno): CursoVM {
     aulas: aulas.length,
     capa: c.capa,
     categoria: c.categoria,
+    codigo: c.codigo,
     duracaoSeg: somaSeg(aulas),
     estado: leitura.estado,
-    extra: c.extra,
     id: c.id,
     moduloAtual: leitura.aulaDaVez?.onde.modulo ?? null,
     progresso: leitura.progresso,

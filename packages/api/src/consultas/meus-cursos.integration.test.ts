@@ -21,7 +21,7 @@ import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
 import {
   carregarPainelDeTroca,
@@ -82,6 +82,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
           capaLargura: 1280,
           capaUrl: "/capas/teste.jpg",
           categoriaId,
+          codigo: codigoDeTeste(),
           slug: `teste-${sufixo}-${i}`,
           status: "publicado" as const,
           titulo: `Curso ${i}`,

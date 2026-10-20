@@ -78,9 +78,7 @@ export function documentoDeExemplo(
 ): DocumentoDoCurso {
   return {
     categoriaId: EDICAO.CATEGORIA,
-    codigo: null,
     descricao: "",
-    destaque: null,
     id: EDICAO.CURSO,
     modulos: [
       {
@@ -138,9 +136,8 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
     capaLargura: 1280,
     capaUrl: `/capas/${chave}.jpg`,
     categoria: { nome: "Categoria" },
-    codigo: null,
+    codigo: "CAT-001",
     descricao: "",
-    destaque: null,
     id: chave,
     modulos: o.aulas.map((qtd, i) => ({
       aulas: Array.from({ length: qtd }, (_, p) => ({
@@ -171,8 +168,8 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   return {
     capa: capaDe(l),
     categoria: l.categoria.nome,
+    codigo: l.codigo,
     descricao: l.descricao,
-    extra: null,
     id: l.id as CursoId,
     modulos: l.modulos.map((m) => ({
       ...m,
@@ -245,7 +242,6 @@ function linhaDoSeed(chave: string): CursoLinha {
     categoria: { nome: c.categoria },
     codigo: c.codigo,
     descricao: c.descricao,
-    destaque: c.destaque,
     id: chave,
     modulos: c.modulos.map((m) => ({
       aulas: m.aulas.map((a, i) => ({

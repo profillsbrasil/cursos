@@ -23,13 +23,13 @@ import { ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 import { NADA_ESCOLHIDO } from "./rascunho-do-editor";
 
-// Fora do App Router o useRouter lança; a categoria da Vitrine cria pelo useAcao.
+// Fora do App Router o useRouter lança; a categoria da Capa e descrição cria pelo useAcao.
 const navegacao = await import("next/navigation");
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
 }));
-const { Vitrine } = await import("./vitrine");
+const { CapaEDescricao } = await import("./capa-e-descricao");
 
 const nada = () => undefined;
 const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
@@ -70,11 +70,11 @@ const CAPA = {
 };
 
 const vitrine = renderToStaticMarkup(
-  <Vitrine
+  <CapaEDescricao
     capa={<CampoDeCapa aoEscolher={nada} arquivo={null} atual={CAPA} />}
     categorias={[{ cursos: [], id: EDICAO.CATEGORIA, nome: "Vendas" }]}
     despachar={nada}
-    mudarTexto={nada}
+    mudarTitulo={nada}
     rascunho={rascunho}
     slug="curso"
   />

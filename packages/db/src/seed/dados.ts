@@ -27,9 +27,9 @@ export interface CursoSeed {
   capaUrl: string;
   categoria: string;
   chave: string;
-  codigo: string | null;
+  /** O que o servidor geraria pela categoria, menos o POP-COM-001, de antes da regra. */
+  codigo: string;
   descricao: string;
-  destaque: string | null;
   modulos: ModuloSeed[];
   niveis: { nome: string; ordem: number }[];
   precoTroca?: number;
@@ -147,10 +147,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/comercial.jpg",
     categoria: "Vendas e negócios",
     chave: "comercial",
-    codigo: null,
+    codigo: "VN-001",
     descricao:
       "A formação comercial completa da Profills, da autoavaliação ao pós-venda. Você aprende o método dos cinco pilares para diagnosticar o cliente, montar uma proposta de valor e conduzir a negociação até o fechamento, com o CRM como apoio em cada etapa.",
-    destaque: null,
     modulos: MODULOS_COMERCIAL.map(([numero, titulo, qtd]) => ({
       aulas: numero === 8 ? AULAS_M8 : geradas(titulo, qtd),
       nivelOrdem: nivelDoComercial(numero),
@@ -180,10 +179,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/seguranca.jpg",
     categoria: "Produção e montagem",
     chave: "fabrica-montagem",
-    codigo: null,
+    codigo: "PM-001",
     descricao:
       "O básico para trabalhar na montagem das máquinas Profills com segurança. O curso começa pelos riscos do posto, apresenta a envasadora conjunto por conjunto e termina com a montagem pneumática a partir do esquema.",
-    destaque: null,
     modulos: [
       ...umModulo(1, "Segurança do posto", [
         {
@@ -249,7 +247,6 @@ export const CURSOS: CursoSeed[] = [
     codigo: "POP-COM-001",
     descricao:
       "A rotina de fechamento que a equipe comercial passou a seguir neste ano. Cada aula cobre um passo da semana, do funil à reunião de previsão, e o curso fecha com o checklist do fim do mês.",
-    destaque: null,
     modulos: umModulo(1, "Rotina de fechamento", [
       "Por que a rotina mudou",
       "O funil da semana",
@@ -279,10 +276,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/gravacao.jpg",
     categoria: "Produtos e aplicações",
     chave: "gravacao",
-    codigo: null,
+    codigo: "PA-001",
     descricao:
       "Como gravar vídeos das máquinas Profills que mostram o equipamento com clareza para o cliente, só com o celular.",
-    destaque: "Regra 5x4",
     modulos: umModulo(1, "Curso de gravação técnica", [
       "A regra 5x4",
       "Ângulos e luz",
@@ -305,10 +301,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/autoavaliacao.jpg",
     categoria: "Vendas e negócios",
     chave: "autoavaliacao",
-    codigo: null,
+    codigo: "VN-002",
     descricao:
       "Trinta afirmações sobre o seu jeito de vender, agrupadas em seis competências. O resultado mostra por onde começar a formação comercial.",
-    destaque: "30 afirmações · 6 competências",
     modulos: umModulo(0, "Autoavaliação", [
       "Como responder",
       "As 6 competências",
@@ -330,10 +325,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/pos-venda.jpg",
     categoria: "Vendas e negócios",
     chave: "pos-venda",
-    codigo: null,
+    codigo: "VN-003",
     descricao:
       "O que acontece depois que a máquina chega ao cliente. O curso mostra como acompanhar a instalação, responder chamados e manter o cliente por perto para a próxima compra.",
-    destaque: null,
     modulos: [
       {
         aulas: geradas("Atendimento pós-venda", 5),
@@ -361,10 +355,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/bpf.jpg",
     categoria: "Processo de envase",
     chave: "bpf",
-    codigo: null,
+    codigo: "PE-001",
     descricao:
       "As boas práticas de fabricação que o cliente de alimentos, bebidas e cosméticos cobra da linha de envase.",
-    destaque: null,
     modulos: [
       {
         aulas: geradas("Boas práticas de fabricação", 3),
@@ -391,10 +384,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/portfolio.jpg",
     categoria: "Produtos e aplicações",
     chave: "portfolio",
-    codigo: null,
+    codigo: "PA-002",
     descricao:
       "Um passeio pelo portfólio da Profills: que máquina resolve cada etapa da linha e para qual cliente ela serve.",
-    destaque: null,
     modulos: [
       {
         aulas: geradas(
@@ -425,10 +417,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/fundamentos.jpg",
     categoria: "Processo de envase",
     chave: "fundamentos",
-    codigo: null,
+    codigo: "PE-002",
     descricao:
       "Os conceitos que explicam por que um líquido se envasa de um jeito e não de outro: viscosidade, espuma, temperatura e o princípio de dosagem de cada máquina.",
-    destaque: null,
     modulos: [
       {
         aulas: geradas("Fundamentos do envase de líquidos", 5),
@@ -456,10 +447,9 @@ export const CURSOS: CursoSeed[] = [
     capaUrl: "/capas/limpeza.jpg",
     categoria: "Operação de linha",
     chave: "limpeza",
-    codigo: null,
+    codigo: "OL-001",
     descricao:
       "Como limpar a linha sem desmontar e trocar de frasco no menor tempo, com a sequência que a fábrica usa.",
-    destaque: null,
     modulos: [
       {
         aulas: geradas("Limpeza CIP e troca de formato", 4),

@@ -41,6 +41,7 @@ function edicao(
 ): EdicaoDoCurso {
   return {
     capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA_ATUAL },
+    codigo: "CT-001",
     documento: doc,
     podeApagar: false,
     slug: "curso-teste",

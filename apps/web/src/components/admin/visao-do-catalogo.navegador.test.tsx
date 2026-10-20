@@ -30,9 +30,9 @@ const capaDe = (nome: string) => ({
 
 const h = (horas: number, min: number) => horas * 3600 + min * 60;
 
-// Os 10 cursos do protótipo aprovado, com o destaque longo que alargava o item.
+// Os 10 cursos do protótipo aprovado, com a categoria longa que alargava o item.
 const CURSOS = [
-  ["Atendimento pós-venda", "pos-venda", 4, 18, h(2, 40), 300, null, null],
+  ["Atendimento pós-venda", "pos-venda", 4, 18, h(2, 40), 300, "VN-003", null],
   [
     "Autoavaliação Comercial",
     "autoavaliacao",
@@ -40,11 +40,11 @@ const CURSOS = [
     3,
     h(0, 15),
     null,
-    null,
-    "30 afirmações · 6 competências",
+    "VN-002",
+    "Vendas, negócios e relacionamento com o cliente na indústria",
   ],
-  ["Boas práticas de fabricação", "bpf", 3, 12, h(1, 35), 200, null, null],
-  ["Fábrica e montagem", "seguranca", 3, 7, h(1, 12), null, null, null],
+  ["Boas práticas de fabricação", "bpf", 3, 12, h(1, 35), 200, "PE-001", null],
+  ["Fábrica e montagem", "seguranca", 3, 7, h(1, 12), null, "PM-001", null],
   [
     "Fundamentos do envase de líquidos",
     "fundamentos",
@@ -52,7 +52,7 @@ const CURSOS = [
     28,
     h(4, 12),
     800,
-    null,
+    "PE-002",
     null,
   ],
   [
@@ -62,8 +62,8 @@ const CURSOS = [
     4,
     h(0, 22),
     null,
+    "PA-001",
     null,
-    "Regra 5x4",
     "em_producao",
   ],
   [
@@ -73,7 +73,7 @@ const CURSOS = [
     0,
     0,
     1000,
-    null,
+    "OL-001",
     null,
     "em_producao",
   ],
@@ -94,7 +94,7 @@ const CURSOS = [
     22,
     h(3, 5),
     500,
-    null,
+    "PA-002",
     null,
   ],
   [
@@ -104,7 +104,7 @@ const CURSOS = [
     90,
     h(15, 51),
     null,
-    null,
+    "VN-001",
     null,
   ],
 ].map(
@@ -116,14 +116,13 @@ const CURSOS = [
     segundosDeVideo,
     precoTroca,
     codigo,
-    destaque,
+    categoria,
     status,
   ]) => ({
     aulas,
     capa: capaDe(imagem as string),
-    categoria: "Vendas e negócios",
+    categoria: categoria ?? "Vendas e negócios",
     codigo,
-    destaque,
     id: imagem,
     modulos,
     precoTroca,
@@ -312,7 +311,7 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
 
   afterAll(fecharChromium);
 
-  test("1280 px: colunas iguais de 250 px ou mais, 20 px entre elas, e o destaque longo não alarga o item", async () => {
+  test("1280 px: colunas iguais de 250 px ou mais, 20 px entre elas, e a categoria longa não alarga o item", async () => {
     await abrirTela(1280);
     await foto("1280");
     const itens = await caixas();

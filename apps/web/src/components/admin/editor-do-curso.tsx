@@ -26,18 +26,23 @@ import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { ALAVANCA, CAMPO } from "@/components/casca/campos";
 import { useAtalhoDeSalvar } from "@/lib/atalho-de-salvar";
 import { focarDepois } from "@/lib/editor";
-import { fmtHoras, plural } from "@/lib/formato";
+import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
-import { antesDePublicar, secoesDoEditor } from "./antes-de-publicar";
+import {
+  antesDePublicar,
+  resumoDoCurso,
+  secoesDoEditor,
+} from "./antes-de-publicar";
 import {
   BarraDeSalvar,
   type EstadoDoSalvar,
   nadaASalvar,
 } from "./barra-de-salvar";
 import { CampoDeCapa } from "./campo-de-capa";
-import { CampoDeTexto, CampoLido } from "./campo-lido";
+import { CampoLido } from "./campo-lido";
+import { CapaEDescricao } from "./capa-e-descricao";
 import { ColunaDePublicacao, STATUS } from "./coluna-de-publicacao";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import {
@@ -48,24 +53,21 @@ import {
 } from "./erros-do-editor";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { ICONE, ROTULO, Secao } from "./partes";
-import { ID, type RascunhoDoCurso, segundosDas } from "./rascunho-do-curso";
+import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
 import { type Mudanca, proximaOrdem } from "./rascunho-do-editor";
 import { TopicosDoCurso } from "./topicos-do-curso";
 import { useRascunhoDoEditor } from "./use-rascunho-do-editor";
-import { Vitrine } from "./vitrine";
 
 type Despachar = Dispatch<Mudanca>;
 
-type CampoDeTextoDoCurso = "codigo" | "destaque" | "titulo";
-const OPCIONAIS = new Set<CampoDeTextoDoCurso>(["codigo", "destaque"]);
-
 function Publicacao({
+  codigo,
   despachar,
-  mudarTexto,
   rascunho,
 }: {
+  /** null até o primeiro salvamento, quando o servidor gera o código. */
+  codigo: string | null;
   despachar: Despachar;
-  mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
   rascunho: RascunhoDoCurso;
 }) {
   const id = useId();
@@ -110,39 +112,17 @@ function Publicacao({
           </div>
         )}
       </div>
-      <CampoDeTexto
-        id={ID.curso("codigo")}
-        maxLength={CARACTERES.codigo}
-        name="codigo"
-        onChange={mudarTexto}
-        placeholder="NR-12"
-        rotulo={
-          <>
-            Código{" "}
-            <span className="font-normal text-muted-foreground">
-              (opcional)
-            </span>
-          </>
-        }
-        value={rascunho.codigo ?? ""}
-      />
-      <CampoDeTexto
-        ajuda="O card mostra o código; sem código, mostra o destaque."
-        id={ID.curso("destaque")}
-        maxLength={CARACTERES.destaque}
-        name="destaque"
-        onChange={mudarTexto}
-        placeholder="Novo"
-        rotulo={
-          <>
-            Destaque{" "}
-            <span className="font-normal text-muted-foreground">
-              (opcional)
-            </span>
-          </>
-        }
-        value={rascunho.destaque ?? ""}
-      />
+      <dl className="grid content-start gap-2">
+        <dt className={ROTULO}>Código</dt>
+        <dd
+          className={cn(
+            "text-sm",
+            codigo === null ? "text-muted-foreground" : "text-foreground"
+          )}
+        >
+          {codigo ?? "Gerado ao salvar"}
+        </dd>
+      </dl>
     </div>
   );
 }
@@ -329,17 +309,9 @@ export function EditorDoCurso({
     pedir: (chave) => despachar({ chave, tipo: "linha_pedida" }),
   };
 
-  const mudarTexto = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const campo = e.target.name as CampoDeTextoDoCurso;
-      const valor = e.target.value;
-      despachar({
-        mudanca: {
-          [campo]: OPCIONAIS.has(campo) && valor === "" ? null : valor,
-        },
-        tipo: "campos",
-      });
-    },
+  const mudarTitulo = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) =>
+      despachar({ mudanca: { titulo: e.target.value }, tipo: "campos" }),
     [despachar]
   );
   const enviar = useCallback(
@@ -365,11 +337,6 @@ export function EditorDoCurso({
   const formulario = useRef<HTMLFormElement>(null);
   useAtalhoDeSalvar(formulario, !nadaASalvar(estadoDoSalvar));
 
-  const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
-  const duracao = rascunho.modulos.reduce(
-    (s, m) => s + segundosDas(m.aulas),
-    0
-  );
   return (
     <ErrosDoEditor value={tela.erros}>
       <SaiuDoCampo value={saiuDoCampo}>
@@ -381,22 +348,17 @@ export function EditorDoCurso({
         >
           <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-x-8 gap-y-10">
             <div className="grid min-w-0 gap-10">
-              <header className="grid gap-1.5">
-                <h1
-                  className="text-balance font-bold text-3xl text-titulo tracking-tight"
-                  ref={titulo}
-                  tabIndex={-1}
-                >
-                  {rascunho.titulo.trim() || "Curso novo"}
-                </h1>
-                <p className="text-muted-foreground tabular-nums">
-                  {plural(rascunho.modulos.length, "módulo", "módulos")},{" "}
-                  {plural(aulas, "aula", "aulas")}
-                  {duracao > 0 ? `, ${fmtHoras(duracao)}` : ""}
-                </p>
-              </header>
+              <h1
+                className="text-balance font-bold text-3xl text-titulo tracking-tight"
+                ref={titulo}
+                tabIndex={-1}
+              >
+                {tela.novo
+                  ? "Novo curso"
+                  : rascunho.titulo.trim() || edicao.documento.titulo}
+              </h1>
 
-              <Vitrine
+              <CapaEDescricao
                 capa={
                   <CampoDeCapa
                     aoEscolher={escolherCapa}
@@ -407,7 +369,7 @@ export function EditorDoCurso({
                 }
                 categorias={categorias}
                 despachar={despachar}
-                mudarTexto={mudarTexto}
+                mudarTitulo={mudarTitulo}
                 rascunho={rascunho}
                 slug={edicao.slug}
               />
@@ -423,8 +385,8 @@ export function EditorDoCurso({
                 titulo="Publicação"
               >
                 <Publicacao
+                  codigo={edicao.codigo}
                   despachar={despachar}
-                  mudarTexto={mudarTexto}
                   rascunho={rascunho}
                 />
               </Secao>
@@ -455,6 +417,7 @@ export function EditorDoCurso({
               aoMudarStatus={mudarStatus}
               descartar={descartar}
               estado={estadoDoSalvar}
+              resumo={resumoDoCurso(rascunho)}
               secoes={secoesDoEditor(rascunho, tela.novo)}
               status={rascunho.status}
             />

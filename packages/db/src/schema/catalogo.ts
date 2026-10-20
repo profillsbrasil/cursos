@@ -43,10 +43,10 @@ export const curso = tabela(
     categoriaId: uuid()
       .notNull()
       .references(() => categoria.id, { onDelete: "restrict" }),
-    codigo: text().unique(), // ex.: POP-COM-001
+    // O servidor gera no primeiro salvamento (dominio/codigo-do-curso.ts); ex.: PE-001.
+    codigo: text().notNull().unique(),
     criadoEm: momento(),
     descricao: text().notNull().default(""),
-    destaque: text(), // ex.: "Regra 5x4"
     id: uuid().primaryKey().defaultRandom(),
     precoTroca: integer(),
     slug: text().notNull().unique(),

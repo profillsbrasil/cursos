@@ -5,10 +5,10 @@ import { type Context, ehAdmin } from "./context";
 import type { AdminId } from "./dominio/tipos";
 
 /**
- * O que a tela decide sem ler o texto: "versao_mudou" pede recarregar, o código
- * repetido aponta o campo. Um nome aqui é contrato com o cliente: não muda.
+ * O que a tela decide sem ler o texto: "versao_mudou" pede recarregar. Um nome
+ * aqui é contrato com o cliente: não muda.
  */
-export type Motivo = "codigo_repetido" | "versao_mudou";
+export type Motivo = "versao_mudou";
 
 /**
  * Recusa com a mensagem escrita para a pessoa, em pt-BR. O errorFormatter marca

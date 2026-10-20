@@ -33,9 +33,6 @@ const esgotou = () =>
   });
 
 const rotas = router({
-  codigoRepetido: adminProcedure.query(() => {
-    throw violou("curso_codigo_key");
-  }),
   doBanco: publicProcedure.query(() => {
     throw new TRPCError({
       code: "CONFLICT",
@@ -129,22 +126,13 @@ describe("errorFormatter marca a mensagem escrita para a pessoa", () => {
 });
 
 describe("errorFormatter leva o motivo, que o editor lê sem ler o texto", () => {
-  test("versao_mudou e código repetido chegam com motivos distintos e a mensagem para a pessoa", async () => {
-    const r = await Promise.all(["versaoMudou", "codigoRepetido"].map(erroDe));
-    expect(r).toEqual([
-      {
-        code: "CONFLICT",
-        message: "Outra pessoa salvou este curso.",
-        motivo: "versao_mudou",
-        paraAPessoa: true,
-      },
-      {
-        code: "CONFLICT",
-        message: "Já existe um curso com este código.",
-        motivo: "codigo_repetido",
-        paraAPessoa: true,
-      },
-    ]);
+  test("versao_mudou chega com o motivo e a mensagem para a pessoa", async () => {
+    expect(await erroDe("versaoMudou")).toEqual({
+      code: "CONFLICT",
+      message: "Outra pessoa salvou este curso.",
+      motivo: "versao_mudou",
+      paraAPessoa: true,
+    });
   });
 
   test("restrição traduzida sem motivo próprio chega marcada e com motivo null", async () => {

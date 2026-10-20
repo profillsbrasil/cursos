@@ -18,7 +18,7 @@ import { inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { Conquistas } from "../dominio/conquistas";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { carregarConquistas } from "./conquistas";
 
 const URL_TESTE = urlDeTeste();
@@ -72,6 +72,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         capaLargura: 900,
         capaUrl: `/capas/${nome}.jpg`,
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         precoTroca: o.precoTroca ?? null,
         slug: `teste-${sufixo}-${nome}`,
         status: o.status ?? "publicado",

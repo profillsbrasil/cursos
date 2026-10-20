@@ -13,6 +13,7 @@ import { inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { CategoriaId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { codigoDeTeste } from "./categoria-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -59,6 +60,7 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId,
+        codigo: codigoDeTeste(),
         slug: `categoria-${S}-${n}`,
         titulo,
       })

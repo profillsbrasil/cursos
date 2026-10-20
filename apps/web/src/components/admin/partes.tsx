@@ -80,6 +80,10 @@ export const SELO = cn(
   "h-6 rounded-full px-2.5 font-semibold text-xs"
 );
 
+/** O cartão do conteúdo de uma Secao. */
+export const CARTAO_DA_SECAO =
+  "overflow-hidden rounded-[20px] bg-card ring-1 ring-border";
+
 /** Seção do admin: título, resumo à direita e o conteúdo num cartão. */
 export function Secao({
   children,
@@ -107,9 +111,7 @@ export function Secao({
         </h2>
         <p className="text-muted-foreground text-sm tabular-nums">{resumo}</p>
       </div>
-      <div className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
-        {children}
-      </div>
+      <div className={CARTAO_DA_SECAO}>{children}</div>
     </section>
   );
 }

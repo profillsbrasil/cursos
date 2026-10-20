@@ -11,7 +11,7 @@ import { inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -34,7 +34,6 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
     titulo: string,
     extra: {
       codigo?: string;
-      destaque?: string;
       precoTroca?: number;
       status?: "publicado";
     } = {}
@@ -47,6 +46,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         slug: `teste-${S}-${cursos.length}`,
         titulo,
         ...extra,
@@ -83,11 +83,11 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       status: "publicado",
     });
     const trocavel = await novoCurso(`B trocável ${S}`, {
-      destaque: "Regra 5x4",
+      codigo: `POQ-${S}`,
       precoTroca: 300,
       status: "publicado",
     });
-    const vazio = await novoCurso(`C vazio ${S}`);
+    const vazio = await novoCurso(`C vazio ${S}`, { codigo: `POR-${S}` });
     const modulos = await db
       .insert(modulo)
       .values([
@@ -120,7 +120,6 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         capa: CAPA,
         categoria: "Categoria dos testes",
         codigo: `POP-${S}`,
-        destaque: null,
         id: comAulas,
         modulos: 2,
         precoTroca: null,
@@ -132,8 +131,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         aulas: 0,
         capa: CAPA,
         categoria: "Categoria dos testes",
-        codigo: null,
-        destaque: "Regra 5x4",
+        codigo: `POQ-${S}`,
         id: trocavel,
         modulos: 1,
         precoTroca: 300,
@@ -145,8 +143,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         aulas: 0,
         capa: CAPA,
         categoria: "Categoria dos testes",
-        codigo: null,
-        destaque: null,
+        codigo: `POR-${S}`,
         id: vazio,
         modulos: 0,
         precoTroca: null,

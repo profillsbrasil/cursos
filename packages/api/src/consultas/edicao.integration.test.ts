@@ -3,13 +3,14 @@
 // sufixo aleatório, e o afterAll apaga tudo.
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import {
   alternativa,
   aula,
   aulaAssistida,
+  categoria,
   curso,
   liberacao,
   modulo,
@@ -98,12 +99,14 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     })
   );
   const cursos: CursoId[] = [];
+  const categorias: string[] = [];
 
   afterAll(async () => {
     await db.delete(aulaAssistida).where(eq(aulaAssistida.userId, ALUNO));
     await db.delete(posicaoAula).where(eq(posicaoAula.userId, ALUNO));
     await db.delete(liberacao).where(eq(liberacao.userId, ALUNO));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db.delete(categoria).where(inArray(categoria.id, categorias));
     await db.$client.end();
   });
 
@@ -154,9 +157,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     cursos.push(id);
     return {
       categoriaId,
-      codigo: null,
       descricao: "",
-      destaque: null,
       id,
       modulos: modulosDoCurso,
       niveis: [],
@@ -861,6 +862,38 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       [`envase-${S}-2`, `envase-${S}-2-2`],
       [`envase-${S}-2`, `envase-${S}-3`],
     ]).toContainEqual(paralelos.map((s) => s.slug).sort());
+  });
+
+  test("o código sai da categoria no primeiro salvamento, -001 e -002 também em paralelo, e não muda com ela", async () => {
+    // Quatro palavras de iniciais sorteadas: a sigla é deste teste, e a contagem começa no 001.
+    const letras = Array.from({ length: 4 }, () =>
+      String.fromCharCode(65 + randomInt(26))
+    );
+    const [nova] = await db
+      .insert(categoria)
+      .values({ nome: `${letras.map((l) => `${l}teste`).join(" ")} ${S}` })
+      .returning({ id: categoria.id });
+    if (!nova) {
+      throw new Error("categoria não criada");
+    }
+    categorias.push(nova.id);
+    const sigla = letras.join("");
+    const doisNaNova = [documentoNovo(), documentoNovo()].map((d) => ({
+      ...d,
+      categoriaId: nova.id as CategoriaId,
+    }));
+    const salvos = await Promise.all(doisNaNova.map((d) => salvarComCapa(d)));
+    const codigos = async () =>
+      Promise.all(doisNaNova.map(async (d) => (await abrir(d.id)).codigo));
+    const criados = await codigos();
+    expect(criados.toSorted()).toEqual([`${sigla}-001`, `${sigla}-002`]);
+
+    await Promise.all(
+      doisNaNova.map((d, i) =>
+        salvar({ ...d, categoriaId, versao: salvos[i]?.versao ?? null })
+      )
+    );
+    expect(await codigos()).toEqual(criados);
   });
 
   test("categoria que não existe é recusada com frase e nada é gravado", async () => {

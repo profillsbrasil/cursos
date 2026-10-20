@@ -5,8 +5,7 @@ export interface CursoNaVisao {
   aulas: number;
   capa: Capa;
   categoria: string;
-  codigo: string | null;
-  destaque: string | null;
+  codigo: string;
   id: CursoId;
   modulos: number;
   precoTroca: number | null;

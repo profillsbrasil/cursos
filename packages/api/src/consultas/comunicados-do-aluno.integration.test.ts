@@ -8,7 +8,7 @@ import { inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { ComunicadosDoAluno } from "../dominio/comunicado";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -37,6 +37,7 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
         capaLargura: 900,
         capaUrl: "/capas/teste.jpg",
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         slug: `com-aluno-${S}-${nome}`,
         titulo: `${nome} ${S}`,
       })

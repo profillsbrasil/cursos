@@ -6,8 +6,6 @@
 
 import type { TRPC_ERROR_CODE_KEY } from "@trpc/server";
 
-import type { Motivo } from "../index";
-
 const CODIGOS = new Set(["23503", "23505", "23514"]);
 
 /** lock_not_available: o lock_timeout da transação venceu esperando uma trava. */
@@ -76,11 +74,6 @@ export const MENSAGEM_DA_RESTRICAO = {
     code: "CONFLICT",
     message: "Já existe uma categoria com este nome.",
   },
-  curso_codigo_key: {
-    code: "CONFLICT",
-    message: "Já existe um curso com este código.",
-    motivo: "codigo_repetido",
-  },
   liberacao_curso_ativa_unica: {
     code: "CONFLICT",
     message: "A pessoa já tem este curso liberado.",
@@ -94,7 +87,6 @@ export const MENSAGEM_DA_RESTRICAO = {
 interface MensagemDoBanco {
   code: TRPC_ERROR_CODE_KEY;
   message: string;
-  motivo?: Motivo;
 }
 
 /**
@@ -107,8 +99,9 @@ interface MensagemDoBanco {
  * inserir o filho de um pai que sumiu. Por isso nenhuma FK tem frase aqui: quem
  * apaga traduz a própria corrida (apagarCurso devolve CURSO_EM_USO).
  *
- * curso_slug_key fica aqui porque o servidor escolhe o slug livre com a trava da
- * raiz dele (salvarCurso): duas criações não chegam ao mesmo endereço.
+ * curso_slug_key e curso_codigo_key ficam aqui porque o servidor escolhe o slug e o
+ * código livres com a trava da raiz e da sigla (salvarCurso): duas criações não
+ * chegam ao mesmo endereço nem ao mesmo código.
  */
 export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "alternativa_certa_unica",
@@ -134,6 +127,7 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "curso_capa_alt_preenchido",
   "curso_capa_dimensoes_positivas",
   "curso_categoria_id_categoria_id_fkey",
+  "curso_codigo_key",
   "curso_descricao_tamanho",
   "curso_pkey",
   "curso_preco_troca_positivo",

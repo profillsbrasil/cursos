@@ -22,8 +22,7 @@ const curso = (
   aulas: 0,
   capa: CAPA,
   categoria: "Vendas e negócios",
-  codigo: null,
-  destaque: null,
+  codigo: "VN-001",
   id: titulo.toLowerCase().replaceAll(" ", "-") as CursoId,
   modulos: 0,
   precoTroca: null,
@@ -40,6 +39,7 @@ const COMERCIAL = curso("Profills School Comercial", {
 });
 const LIMPEZA = curso("Limpeza CIP e troca de formato", {
   categoria: "Operação de linha",
+  codigo: "OL-001",
   modulos: 2,
   precoTroca: 1000,
   status: "em_producao",
@@ -90,20 +90,14 @@ describe("catálogo do admin", () => {
   test("o cartão mostra status, preço, categoria, código e tamanho do curso", () => {
     const t = texto(tela([COMERCIAL, LIMPEZA, ROTINA]));
     expect(t).toContain(
-      "Publicado Profills School Comercial Vendas e negócios 16 módulos 90 aulas · 15 h 51 min"
+      "Publicado Profills School Comercial Vendas e negócios · VN-001 16 módulos 90 aulas · 15 h 51 min"
     );
     expect(t).toContain(
-      "Em produção 1.000 pts Limpeza CIP e troca de formato Operação de linha 2 módulos Nenhuma aula ainda"
+      "Em produção 1.000 pts Limpeza CIP e troca de formato Operação de linha · OL-001 2 módulos Nenhuma aula ainda"
     );
     expect(t).toContain(
       "Nova Rotina de Fechamento Vendas e negócios · POP-COM-001 2 módulos 9 aulas · 58 min"
     );
-  });
-
-  test("o curso sem código mostra o destaque na linha da categoria", () => {
-    expect(
-      texto(tela([curso("Gravação de Máquinas", { destaque: "Regra 5x4" })]))
-    ).toContain("Gravação de Máquinas Vendas e negócios · Regra 5x4");
   });
 
   test("o botão do topo e o atalho no fim da grade abrem um curso novo", () => {

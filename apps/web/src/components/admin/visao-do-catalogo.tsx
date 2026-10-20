@@ -43,7 +43,6 @@ function tamanho(curso: CursoNaVisao) {
  */
 function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
   const apagada = curso.status === "em_producao" && curso.aulas === 0;
-  const marca = curso.codigo ?? curso.destaque;
   return (
     <article className="group relative grid min-w-0 content-start gap-3">
       <div className="relative aspect-[900/604] overflow-hidden rounded-[14px] bg-sidebar ring-1 ring-border transition-shadow group-has-hover:ring-ceu">
@@ -87,7 +86,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
           </Link>
         </h2>
         <p className="break-words text-[13px] text-muted-foreground">
-          {marca ? `${curso.categoria} · ${marca}` : curso.categoria}
+          {curso.categoria} · {curso.codigo}
         </p>
       </div>
       <p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[13px] text-muted-foreground tabular-nums">

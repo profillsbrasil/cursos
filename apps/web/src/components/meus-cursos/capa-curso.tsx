@@ -30,15 +30,15 @@ function etiquetaDe(c: CursoVM): Etiqueta {
 const ESPACO_QUE_NAO_QUEBRA = " ";
 
 /**
- * A linha sob o título: a categoria, o código ou
- * o destaque que o admin escreveu e o tamanho do curso inteiro. Com aula assistida,
- * "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso em produção mostra a categoria e o
- * código ou destaque, sem o tamanho, porque as aulas dele ainda mudam. O tamanho e
- * o "·" que junta as partes vão com espaços que não quebram: a linha quebra dentro
- * de uma parte, nunca em "2 de / 2 aulas" nem com um "·" sozinho na ponta.
+ * A linha sob o título: a categoria, o código do curso e o tamanho do curso
+ * inteiro. Com aula assistida, "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso
+ * em produção mostra a categoria e o código, sem o tamanho, porque as aulas dele
+ * ainda mudam. O tamanho e o "·" que junta as partes vão com espaços que não
+ * quebram: a linha quebra dentro de uma parte, nunca em "2 de / 2 aulas" nem com
+ * um "·" sozinho na ponta.
  */
 export function linhaDoCurso(c: CursoVM): string {
-  const partes = [c.categoria, c.extra];
+  const partes = [c.categoria, c.codigo];
   if (c.estado.tipo !== "em_breve" && c.aulas > 0) {
     const { feitas, total } = c.progresso;
     const tamanho =
@@ -48,7 +48,7 @@ export function linhaDoCurso(c: CursoVM): string {
     partes.push(tamanho.replaceAll(" ", ESPACO_QUE_NAO_QUEBRA));
   }
   return partes
-    .filter((p) => p !== null && p !== "")
+    .filter((p) => p !== "")
     .join(`${ESPACO_QUE_NAO_QUEBRA}·${ESPACO_QUE_NAO_QUEBRA}`);
 }
 

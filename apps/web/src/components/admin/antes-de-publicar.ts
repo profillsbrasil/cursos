@@ -1,8 +1,8 @@
 import { videoDoTexto } from "@cursos/api/dominio/video";
 
-import { plural } from "@/lib/formato";
+import { fmtHoras, plural } from "@/lib/formato";
 
-import type { RascunhoDoCurso } from "./rascunho-do-curso";
+import { type RascunhoDoCurso, segundosDas } from "./rascunho-do-curso";
 
 /** Um item de "Antes de publicar": só informa, nenhum impede o Salvar. */
 export interface ItemAntesDePublicar {
@@ -56,6 +56,22 @@ export function antesDePublicar(
   ];
 }
 
+/** "3 módulos, 14 aulas, 2 h", no alto do índice; sem vídeo, sem a duração. */
+export function resumoDoCurso(
+  rascunho: Pick<RascunhoDoCurso, "modulos">
+): string {
+  const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
+  const duracao = rascunho.modulos.reduce(
+    (s, m) => s + segundosDas(m.aulas),
+    0
+  );
+  return [
+    plural(rascunho.modulos.length, "módulo", "módulos"),
+    plural(aulas, "aula", "aulas"),
+    ...(duracao > 0 ? [fmtHoras(duracao)] : []),
+  ].join(", ");
+}
+
 export interface SecaoDoIndice {
   contagem: number | null;
   /** O id do título da seção, alvo da âncora. */
@@ -68,7 +84,7 @@ export function secoesDoEditor(
   novo: boolean
 ): SecaoDoIndice[] {
   const secoes: SecaoDoIndice[] = [
-    { contagem: null, id: "vitrine", nome: "Vitrine" },
+    { contagem: null, id: "capa-e-descricao", nome: "Capa e descrição" },
     {
       contagem: rascunho.topicos.length,
       id: "topicos",

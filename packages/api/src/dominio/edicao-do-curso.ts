@@ -1,5 +1,6 @@
 // O curso como o admin edita: um documento só (campos do curso, níveis, módulos e
-// aulas), salvo de uma vez. Roda no editor e no servidor, então nada aqui importa
+// aulas), salvo de uma vez. O endereço e o código do curso ficam fora dele: o
+// servidor os escolhe no primeiro salvamento. Roda no editor e no servidor, então nada aqui importa
 // node:crypto, banco ou Clerk. O planejador, que só roda no servidor, mora em
 // plano-do-curso.ts.
 
@@ -38,10 +39,8 @@ export const LIMITES = {
 export const CARACTERES = {
   alternativa: 200,
   categoria: 80,
-  codigo: 40,
   descricao: 2000,
   descricaoDaAula: 2000,
-  destaque: 60,
   enunciado: 500,
   nomeDoNivel: 60,
   slug: 80,
@@ -59,15 +58,6 @@ export const PRECO_MAXIMO = 1_000_000;
 const texto = (max: number) => z.string().trim().min(1).max(max);
 /** Texto que pode ficar vazio: a descrição do curso e a da aula. */
 const livre = (max: number) => z.string().trim().max(max);
-/** "" vira null: campo opcional apagado no formulário. */
-const opcional = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max)
-    .nullable()
-    .transform((s) => (s ? s : null));
-
 /** O Postgres devolve uuid em minúscula; o mesmo id em outra caixa seria outra linha. */
 const uuid = z.uuid().transform((id) => id.toLowerCase());
 
@@ -152,9 +142,7 @@ export const documentoDoCurso = z
   .object({
     /** Uma categoria de admin.categorias.lista; o servidor recusa a que sumiu. */
     categoriaId: uuid.transform((id) => id as CategoriaId),
-    codigo: opcional(CARACTERES.codigo),
     descricao: livre(CARACTERES.descricao),
-    destaque: opcional(CARACTERES.destaque),
     id: uuid.transform((id) => id as CursoId),
     modulos: z.array(modulo).max(LIMITES.modulos),
     niveis: z.array(nivel).max(LIMITES.niveis),
@@ -278,6 +266,11 @@ export interface UsoDoCurso {
 export interface EdicaoDoCurso {
   /** null só no curso novo, antes do primeiro salvamento. */
   capa: Capa | null;
+  /**
+   * O código que o servidor gerou no primeiro salvamento, a partir da categoria
+   * (codigo-do-curso.ts), e que não muda depois. null no curso novo.
+   */
+  codigo: string | null;
   documento: DocumentoDoCurso;
   podeApagar: boolean;
   /**
@@ -313,11 +306,10 @@ const SEM_CATEGORIA = "" as CategoriaId;
 export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
   return {
     capa: null,
+    codigo: null,
     documento: {
       categoriaId: SEM_CATEGORIA,
-      codigo: null,
       descricao: "",
-      destaque: null,
       id,
       modulos: [],
       niveis: [],

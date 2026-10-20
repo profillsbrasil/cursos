@@ -18,7 +18,7 @@ import type {
   PerguntaId,
   Versao,
 } from "@cursos/api/dominio/tipos";
-import { errosPorCampo, recusaNaTela } from "./problemas";
+import { errosPorCampo } from "./problemas";
 import {
   ID,
   lerNumeroDoModulo,
@@ -28,7 +28,6 @@ import {
   mesmoRascunho,
   type RascunhoDoCurso,
   rascunhoDoCurso,
-  recusaDoMotivo,
 } from "./rascunho-do-curso";
 import {
   type AcaoDoEditor,
@@ -114,11 +113,11 @@ const painel = (e: RascunhoDoEditor, aulaId: AulaId) => {
 describe("campos do curso", () => {
   test("muda só os campos pedidos", () => {
     const r = aplicar(exemplo(), {
-      mudanca: { codigo: "NR-12", precoTroca: "300" },
+      mudanca: { descricao: "Nova", precoTroca: "300" },
       tipo: "campos",
     });
     expect(r.precoTroca).toBe("300");
-    expect(r.codigo).toBe("NR-12");
+    expect(r.descricao).toBe("Nova");
     expect(r.titulo).toBe("Curso");
     expect(ordem(r)).toEqual(ordem(exemplo()));
   });
@@ -437,26 +436,6 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
   });
 });
 
-describe("recusa de valor repetido", () => {
-  test("codigo_repetido marca o campo até o valor mudar", () => {
-    const r = mudar(exemplo(), {
-      mudanca: { codigo: "NR-12" },
-      tipo: "campos",
-    });
-    const marcado = (recusa: ReturnType<typeof recusaDoMotivo>, em = r) =>
-      recusaNaTela(recusa, em, ID.curso);
-    expect(marcado(recusaDoMotivo("codigo_repetido", r))).toEqual([
-      {
-        campo: ID.curso("codigo"),
-        mensagem: "Outro curso já usa este código.",
-      },
-    ]);
-    const outro = mudar(r, { mudanca: { codigo: "NR-13" }, tipo: "campos" });
-    expect(marcado(recusaDoMotivo("codigo_repetido", r), outro)).toEqual([]);
-    expect(recusaDoMotivo("versao_mudou", r)).toBe(null);
-  });
-});
-
 test("o rascunho editado vira um documento que passa no schema do servidor", () => {
   const r = aplicar(
     exemplo(),
@@ -693,26 +672,6 @@ describe("nenhum erro fica num bloco fechado", () => {
       { tipo: "fechado" },
       { campos: 1, tipo: "com_erro" },
     ]);
-  });
-
-  test("recusa do servidor: marca o campo do curso, fora dos blocos, sem abrir nenhum, e leva o foco a ele", () => {
-    const pronto = fazer(editor(), {
-      mudanca: { codigo: "NR-12" },
-      tipo: "campos",
-    });
-    const e = fazer(
-      pronto,
-      { tipo: "salvar" },
-      { envio: envioDe(pronto), motivo: "codigo_repetido", tipo: "recusado" }
-    );
-    expect(telaDo(e).erros.get(ID.curso("codigo"))).toBe(
-      "Outro curso já usa este código."
-    );
-    expect(e.foco).toEqual([ID.curso("codigo")]);
-    expect(e.abertos).toBe(pronto.abertos);
-    expect(blocos(e)).toEqual([{ tipo: "fechado" }, { tipo: "fechado" }]);
-    const outro = fazer(e, { mudanca: { codigo: "NR-13" }, tipo: "campos" });
-    expect(telaDo(outro).erros.size).toBe(0);
   });
 });
 
@@ -1125,7 +1084,7 @@ describe("o rascunho apoiado na página", () => {
     const x = fazer(editor(), digitar("X"));
     const avisado = fazer(x, recusado(x, "versao_mudou"));
     const xy = fazer(avisado, digitar("XY"));
-    const durante = fazer(xy, recusado(xy, "codigo_repetido"));
+    const durante = fazer(xy, recusado(xy, null));
     expect(telaDo(durante).versaoMudou).toBe(true);
     expect(telaDo(fazer(durante, salvo(durante))).versaoMudou).toBe(false);
     expect(telaDo(fazer(durante, pagina(documento()))).versaoMudou).toBe(false);
@@ -1134,26 +1093,8 @@ describe("o rascunho apoiado na página", () => {
 
   test("recusa por outro motivo não liga o aviso", () => {
     const inicio = editor();
-    const depois = fazer(
-      inicio,
-      recusado(inicio, "codigo_repetido"),
-      recusado(inicio, null)
-    );
+    const depois = fazer(inicio, recusado(inicio, null));
     expect(telaDo(depois).versaoMudou).toBe(false);
-  });
-
-  test("a resposta de um envio de outra geração não marca a tela", () => {
-    const pronto = fazer(editor(), {
-      mudanca: { codigo: "NR-12" },
-      tipo: "campos",
-    });
-    const depois = fazer(
-      pronto,
-      recarregar,
-      { mudanca: { codigo: "NR-12" }, tipo: "campos" },
-      recusado(pronto, "codigo_repetido")
-    );
-    expect([telaDo(depois).erros.size, depois.foco]).toEqual([0, null]);
   });
 
   test("o curso novo pede a capa, troca a URL no primeiro salvar e não recomeça", () => {
