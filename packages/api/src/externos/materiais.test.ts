@@ -101,20 +101,28 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
-/** Um fetch falso que guarda cada Request assinado e responde com `resposta`. */
+/**
+ * Um fetch falso que guarda cada Request assinado e responde com `resposta`.
+ * `tamanhos` guarda o content-length que o S3 enxerga: só um corpo em bytes tem
+ * tamanho conhecido; o corpo de um Request vai em chunked no runtime do Next.
+ */
 function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
+  const tamanhos: (number | null)[] = [];
   const enviar = ((url: Request | string, init?: RequestInit) => {
     const pedido = url instanceof Request ? url : new Request(url, init);
     pedidos.push(pedido);
+    tamanhos.push(
+      init?.body instanceof Uint8Array ? init.body.byteLength : null
+    );
     return Promise.resolve(resposta(pedido));
   }) as unknown as typeof fetch;
-  return { enviar, pedidos };
+  return { enviar, pedidos, tamanhos };
 }
 
 describe("materiaisNoBucket", () => {
   test("envia com PUT assinado e o content-type do tipo, e devolve a chave e o nome", async () => {
-    const { enviar, pedidos } = bucketFalso(() => new Response(null));
+    const { enviar, pedidos, tamanhos } = bucketFalso(() => new Response(null));
     const arquivo = new File([ZIP], "controle-volume-lote.xlsx", {
       type: "application/octet-stream",
     });
@@ -133,6 +141,8 @@ describe("materiaisNoBucket", () => {
     expect(pedidos.map((p) => [p.method, p.url])).toEqual([
       ["PUT", `https://materiais-teste.t3.storageapi.dev/${sha(ZIP)}.xlsx`],
     ]);
+    expect(tamanhos).toEqual([ZIP.length]);
+    expect(await pedidos[0]?.bytes()).toEqual(ZIP);
     expect(pedidos[0]?.headers.get("content-type")).toBe(
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
