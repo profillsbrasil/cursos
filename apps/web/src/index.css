@@ -218,24 +218,25 @@
   transition-timing-function: var(--ease-forte);
 }
 
-/* O toast (sonner) anima em 400 ms, com a altura junto; o CSS dele mora fora de
-   camada e entra depois deste, então o seletor precisa pesar mais que o dele. O
-   arrasto (data-swiping) segue sem transição, como o sonner pede. */
+/* O toast (sonner) anima em 400 ms, com a altura junto, e o de trás da pilha sai
+   em 500 ms. O CSS dele mora fora de camada e entra depois deste, e as regras da
+   pilha usam o atalho `transition` com até cinco atributos no seletor; por isso o
+   tempo e a curva vão com !important, que também passa o `transition: none
+   !important` dele no movimento reduzido. O arrasto (data-swiping) segue sem
+   transição, como o sonner pede. */
 [data-sonner-toaster] [data-sonner-toast]:not([data-swiping="true"]) {
-  transition-timing-function: var(--ease-forte);
-  transition-duration: 200ms;
   transition-property: transform, opacity, box-shadow;
 }
 
-[data-sonner-toaster] [data-sonner-toast] > * {
-  transition-timing-function: var(--ease-forte);
-  transition-duration: 200ms;
+[data-sonner-toaster] :is([data-sonner-toast], [data-sonner-toast] > *) {
+  transition-timing-function: var(--ease-forte) !important;
+  transition-duration: 200ms !important;
 }
 
 /* Com movimento reduzido, o que desloca, gira ou cresce muda na hora, e a
    opacidade continua: as variáveis do tw-animate voltam ao neutro em todo
-   elemento (menu, dica, diálogo, popover), a gaveta não desliza e o polegar da
-   alavanca não anda. */
+   elemento (menu, dica, diálogo, popover), a gaveta não desliza, o polegar da
+   alavanca não anda e o toast entra e sai só pela opacidade. */
 @media (prefers-reduced-motion: reduce) {
   * {
     --tw-enter-translate-x: 0;
@@ -254,5 +255,13 @@
 
   [data-slot="switch-thumb"] {
     transition-property: none;
+  }
+
+  [data-sonner-toaster]
+    :is(
+      [data-sonner-toast]:not([data-swiping="true"]),
+      [data-sonner-toast] > *
+    ) {
+    transition-property: opacity, box-shadow !important;
   }
 }

@@ -80,6 +80,17 @@ const corpo = renderToStaticMarkup(
       >
         <div data-icon="" />
       </li>
+      <li
+        data-expanded="false"
+        data-front="false"
+        data-removed="true"
+        data-sonner-toast=""
+        data-styled="true"
+        data-swipe-out="false"
+        id="toast-de-tras"
+      >
+        <div data-content="">Saindo de trás da pilha</div>
+      </li>
     </ol>
   </>
 );
@@ -194,6 +205,35 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
     expect(propriedade).not.toContain("height");
     expect(new Set(duracao.split(LISTA))).toEqual(new Set(["0.2s"]));
     expect(new Set(curva.split(LISTA))).toEqual(new Set([EASE_FORTE]));
+  });
+
+  test("o toast de trás da pilha sai em 200 ms no ease-forte", async () => {
+    await abrirPagina(false);
+    const [duracao = "", curva = ""] = await estilo("#toast-de-tras", [
+      "transition-duration",
+      "transition-timing-function",
+    ]);
+    expect(new Set(duracao.split(LISTA))).toEqual(new Set(["0.2s"]));
+    expect(new Set(curva.split(LISTA))).toEqual(new Set([EASE_FORTE]));
+  });
+
+  test("com movimento reduzido, o toast não desliza e segue no fade", async () => {
+    await abrirPagina(true);
+    const transicoes = await Promise.all(
+      ["#toast", "#toast-de-tras", "#toast [data-content]"].map((seletor) =>
+        estilo(seletor, [
+          "transition-property",
+          "transition-duration",
+          "transition-timing-function",
+        ])
+      )
+    );
+    for (const [propriedade = "", duracao = "", curva = ""] of transicoes) {
+      expect(propriedade.split(LISTA)).toContain("opacity");
+      expect(propriedade).not.toContain("transform");
+      expect(new Set(duracao.split(LISTA))).toEqual(new Set(["0.2s"]));
+      expect(new Set(curva.split(LISTA))).toEqual(new Set([EASE_FORTE]));
+    }
   });
 
   test("o ícone do toast leva a cor da paleta: Céu no sucesso, erro no erro", async () => {
