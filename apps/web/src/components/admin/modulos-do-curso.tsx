@@ -508,7 +508,7 @@ function IndiceDosModulos({
   return (
     <nav
       aria-label="Índice dos módulos"
-      className="sticky top-3 z-10 flex items-center gap-3 rounded-[20px] bg-card/95 py-2 pr-2 pl-4 ring-1 ring-border backdrop-blur-sm"
+      className="sticky top-[calc(var(--topo-da-casca,0px)+--spacing(3))] z-10 flex items-center gap-3 rounded-[20px] bg-card/95 py-2 pr-2 pl-4 ring-1 ring-border backdrop-blur-sm"
       ref={reservarOTopo}
     >
       <span
