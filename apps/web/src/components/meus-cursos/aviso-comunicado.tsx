@@ -2,6 +2,7 @@ import type { ComunicadoVM } from "@cursos/api/dominio/painel";
 import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, Megaphone } from "lucide-react";
 
+import { CARTAO } from "@/components/casca/cartoes";
 import { diaCurto, diaEmSaoPaulo, fmtData } from "@/lib/formato";
 
 // O comunicado recente (`lugar: "topo"`): uma linha com o título e a data, no
@@ -52,7 +53,10 @@ export function AvisoComunicado({ comunicado }: { comunicado: ComunicadoVM }) {
   return (
     <section
       aria-labelledby="aviso-titulo"
-      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 rounded-[20px] bg-card px-[22px] py-[18px] text-card-foreground ring-1 ring-border max-[760px]:p-4"
+      className={cn(
+        CARTAO,
+        "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-[22px] py-[18px] text-card-foreground max-[760px]:p-4"
+      )}
     >
       <span className="grid size-11 place-items-center rounded-full bg-ceu text-sobre-cor">
         <Megaphone aria-hidden="true" className="size-5" />

@@ -30,3 +30,5 @@ export const AREA = cn(
 // leva a 45 px: ele parte de dentro da borda de 1,5 px, dos 17 px de dentro.
 export const CAIXA =
   "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors after:-inset-3.5 dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
+
+export const ROTULO = "font-semibold text-foreground text-sm";

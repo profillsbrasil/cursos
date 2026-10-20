@@ -10,13 +10,13 @@ import { ArrowUpRight, Check, Link2 } from "lucide-react";
 import Link from "next/link";
 import { type Dispatch, useCallback, useMemo, useState } from "react";
 
+import { ROTULO } from "@/components/casca/campos";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import { AreaDeTexto, CampoDeTexto } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { CARTAO_DA_SECAO, ROTULO } from "./partes";
+import { CARTAO_DA_SECAO } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
 import type { Mudanca } from "./rascunho-do-editor";
 import { SelecaoComBusca } from "./selecao";

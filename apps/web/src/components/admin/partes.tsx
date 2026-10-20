@@ -1,8 +1,8 @@
-import { badgeVariants } from "@cursos/ui/components/badge";
 import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { NAO_PODE } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 
 /**
  * O gatilho da Selecao. A borda Céu do foco e do cursor vem do index.css pelo
@@ -45,8 +45,6 @@ export const DIVISOR_DA_SELECAO = "-mx-1.5 my-1.5 h-px bg-border";
 export const BUSCA_DA_SELECAO =
   "flex h-[38px] shrink-0 items-center gap-2 border-border border-b px-3.5 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground";
 
-export const ROTULO = "font-semibold text-foreground text-sm";
-
 export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
@@ -56,15 +54,8 @@ export const ICONE = cn(
   "data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
 );
 
-/** Selo em pílula das tabelas do admin; a cor vem de quem chama. */
-export const SELO = cn(
-  badgeVariants({ variant: "secondary" }),
-  "h-6 rounded-full px-2.5 font-semibold text-xs transition-colors"
-);
-
 /** O cartão do conteúdo de uma Secao. */
-export const CARTAO_DA_SECAO =
-  "overflow-hidden rounded-[20px] bg-card ring-1 ring-border";
+export const CARTAO_DA_SECAO = cn(CARTAO, "overflow-hidden");
 
 /** Seção do admin: título, resumo à direita e o conteúdo num cartão. */
 export function Secao({

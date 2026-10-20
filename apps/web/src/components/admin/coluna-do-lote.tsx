@@ -15,11 +15,11 @@ import {
   CONTORNO_DESLIGADO,
   PEQUENO,
 } from "@/components/casca/botoes";
-import { RADIO } from "@/components/casca/campos";
+import { RADIO, ROTULO } from "@/components/casca/campos";
+import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import { type Selo, SeloDeSituacao } from "./acompanhamento";
 import { Carregando } from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";
@@ -42,8 +42,10 @@ const TITULO = "lote";
 const idDoX = (userId: string) => `lote-desmarcar-${userId}`;
 const idDoResultado = (userId: string) => `lote-resultado-${userId}`;
 
-const CARTAO =
-  "grid gap-4 rounded-[20px] bg-card p-5 ring-1 ring-border @min-[47.5rem]:sticky @min-[47.5rem]:top-4";
+const CARTAO_DA_COLUNA = cn(
+  CARTAO,
+  "@min-[47.5rem]:sticky @min-[47.5rem]:top-4 grid gap-4 p-5"
+);
 const TITULO_DA_COLUNA =
   "flex items-baseline justify-between gap-2.5 font-semibold text-lg text-titulo leading-[1.3]";
 
@@ -158,7 +160,7 @@ function Resultado({
     [despacharEFocar]
   );
   return (
-    <aside aria-labelledby={TITULO} className={cn(CARTAO, className)}>
+    <aside aria-labelledby={TITULO} className={cn(CARTAO_DA_COLUNA, className)}>
       <h2 className={TITULO_DA_COLUNA} id={TITULO} tabIndex={-1}>
         Liberado
       </h2>
@@ -315,9 +317,7 @@ function Cursos({ cursos }: { cursos: readonly CursoNaVisao[] }) {
     estado.fase.tipo === "marcando" ? estado.fase.curso?.id : undefined;
   return (
     <fieldset className="grid gap-2">
-      <legend className="mb-2 font-semibold text-[13px] text-foreground">
-        Curso
-      </legend>
+      <legend className={cn(ROTULO, "mb-2")}>Curso</legend>
       <div className="-mx-2 grid max-h-[250px] gap-0.5 overflow-auto p-0.5">
         {cursos.map((c) => (
           <OpcaoDeCurso c={c} escolhido={escolhido === c.id} key={c.id} />
@@ -361,7 +361,7 @@ function Formulario({
     );
   }, [pronto, executar, despacharEFocar]);
   return (
-    <aside aria-labelledby={TITULO} className={cn(CARTAO, className)}>
+    <aside aria-labelledby={TITULO} className={cn(CARTAO_DA_COLUNA, className)}>
       <h2 className={TITULO_DA_COLUNA} id={TITULO} tabIndex={-1}>
         Marcadas
         <small className="font-medium text-[13px] text-muted-foreground tabular-nums">

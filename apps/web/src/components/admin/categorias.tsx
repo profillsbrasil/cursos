@@ -34,7 +34,9 @@ import {
   PEQUENO,
 } from "@/components/casca/botoes";
 import { CAMPO } from "@/components/casca/campos";
+import { CARTAO } from "@/components/casca/cartoes";
 import { DICA } from "@/components/casca/estilo";
+import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -43,8 +45,7 @@ import {
   ConfirmacaoNaLinha,
   type LinhaAberta,
 } from "./confirmacao-na-linha";
-
-import { SELO, Secao, Vazio } from "./partes";
+import { Secao, Vazio } from "./partes";
 
 const NOME_VAZIO = "Escreva o nome da categoria.";
 const TODAS = "todas";
@@ -455,7 +456,7 @@ export function Categorias({
   const [recente, setRecente] = useState<CategoriaId | null>(null);
   return (
     <div className="grid gap-8">
-      <div className="rounded-[20px] bg-card px-5 py-4 ring-1 ring-border">
+      <div className={cn(CARTAO, "px-5 py-4")}>
         <NovaCategoria aoCriar={setRecente} />
       </div>
       <div className="grid gap-3">

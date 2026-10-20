@@ -13,10 +13,10 @@ import Image from "next/image";
 import { useCallback, useState } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import { Carregando } from "./confirmacao-na-linha";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";
 
@@ -193,7 +193,7 @@ export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
           liberados a todos
         </p>
       </div>
-      <div className="@container overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
+      <div className={cn(CARTAO, "@container overflow-hidden")}>
         <div
           aria-hidden="true"
           className={cn(

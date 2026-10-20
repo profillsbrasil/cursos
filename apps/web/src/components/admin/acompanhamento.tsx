@@ -20,9 +20,8 @@ import {
   Play,
 } from "lucide-react";
 
+import { SELO } from "@/components/casca/selos";
 import { diaCurto, diaEmSaoPaulo, fmtNum, noDia, plural } from "@/lib/formato";
-
-import { SELO } from "./partes";
 
 export interface Selo {
   classe: string;
@@ -38,7 +37,7 @@ export function SeloDeSituacao({
   selo: Selo;
 }) {
   return (
-    <span className={cn(SELO, "gap-1.5", classe, className)}>
+    <span className={cn(SELO, classe, className)}>
       <Icone aria-hidden="true" strokeWidth={2.4} />
       {rotulo}
     </span>

@@ -6,8 +6,8 @@ import { ChevronDown, Star, TrendingUp } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, fmtPts } from "@/lib/formato";
-
 import { ComoGanhar } from "./como-ganhar";
 
 export function SaldoDeTroca({
@@ -26,7 +26,10 @@ export function SaldoDeTroca({
   return (
     <section
       aria-labelledby="saldo-titulo"
-      className="relative overflow-clip rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:clamp(20px,3.5vw,32px)]"
+      className={cn(
+        CARTAO,
+        "relative overflow-clip p-(--pad) text-card-foreground [--pad:clamp(20px,3.5vw,32px)]"
+      )}
     >
       {/* O brilho chama para a troca; sem curso trocável na vitrine, o saldo fica em repouso. */}
       {temCursoTrocavelNaVitrine ? (

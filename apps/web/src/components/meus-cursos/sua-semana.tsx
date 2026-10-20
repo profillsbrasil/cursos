@@ -8,6 +8,7 @@ import { Check, Flame, Gift, Play, Star } from "lucide-react";
 import Link from "next/link";
 
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { faltam, fmtPts, plural } from "@/lib/formato";
 
 const DESCRICAO: Record<StatusDia, string> = {
@@ -51,7 +52,10 @@ export function SuaSemana({
   return (
     <aside
       aria-labelledby="semana-titulo"
-      className="grid max-w-3xl content-start gap-3.5 rounded-[20px] bg-card p-(--pad) text-card-foreground ring-1 ring-border [--pad:20px]"
+      className={cn(
+        CARTAO,
+        "grid max-w-3xl content-start gap-3.5 p-(--pad) text-card-foreground [--pad:20px]"
+      )}
     >
       <div className="flex items-center justify-between gap-2.5">
         <h2

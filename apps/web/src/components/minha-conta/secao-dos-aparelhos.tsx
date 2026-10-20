@@ -5,8 +5,8 @@ import { cn } from "@cursos/ui/lib/utils";
 import { ChevronDown, Monitor, Smartphone } from "lucide-react";
 import { useCallback, useEffect, useId, useState } from "react";
 
+import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
-
 import { type Aparelho, aparelhosDe } from "./aparelhos";
 import { fraseDoErro } from "./erros";
 import {
@@ -22,7 +22,6 @@ import {
   NOME_DA_LINHA,
   PE_DO_CARTAO,
   RESUMO_DA_SECAO,
-  SELO,
   TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
 } from "./partes";

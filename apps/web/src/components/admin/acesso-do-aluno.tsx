@@ -13,10 +13,10 @@ import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import {
   BarraDeAulas,
   dataDaLiberacao,
@@ -30,7 +30,7 @@ import {
   type LinhaAberta,
 } from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";
-import { SELO, Secao, Vazio } from "./partes";
+import { Secao, Vazio } from "./partes";
 import { SOBRE_O_PERFIL } from "./pessoas/perfis";
 
 const AVISO =
@@ -254,11 +254,7 @@ function useLiberar({ nome, userId }: Para, cursoId: CursoId, titulo: string) {
 
 function Liberado({ selo }: { selo: (el: HTMLSpanElement | null) => void }) {
   return (
-    <span
-      className={cn(SELO, "gap-1.5 bg-ceu/14 text-ceu")}
-      ref={selo}
-      tabIndex={-1}
-    >
+    <span className={cn(SELO, "bg-ceu/14 text-ceu")} ref={selo} tabIndex={-1}>
       <Check aria-hidden="true" strokeWidth={2.4} />
       Liberado
     </span>

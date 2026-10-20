@@ -32,6 +32,7 @@ import {
   BOTAO_CONTORNO,
   LINK_NO_TEXTO,
 } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { plural } from "@/lib/formato";
 import {
   caminhoDaAula,
@@ -40,7 +41,6 @@ import {
 } from "@/lib/rotas";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
-
 import {
   ENVIO_FALHOU,
   fraseDoResultado,
@@ -549,7 +549,7 @@ export function QuestionarioDaAula({
   return (
     <section
       aria-label="Questionário da aula"
-      className="scroll-mt-6 overflow-hidden rounded-[20px] bg-card ring-1 ring-border"
+      className={cn(CARTAO, "scroll-mt-6 overflow-hidden")}
       id="questionario"
     >
       {fase.tipo === "resultado" ? (

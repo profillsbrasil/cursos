@@ -7,11 +7,11 @@ import Link from "next/link";
 
 import { acaoDaRetomada } from "@/components/aluno/continuar";
 import { BOTAO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
 import { BarraProgresso } from "./barra-progresso";
 
-const CARTAO =
-  "overflow-hidden rounded-[20px] bg-card text-card-foreground ring-1 ring-border";
+const CARTAO_DO_BANNER = cn(CARTAO, "overflow-hidden text-card-foreground");
 const BOTAO_DO_BANNER = cn(BOTAO, "self-start max-[760px]:self-stretch");
 
 // Com o mesmo sizes, as duas imagens escolhem a mesma largura do srcset: a desfocada
@@ -76,7 +76,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
       <section
         aria-labelledby="banner-titulo"
         className={cn(
-          CARTAO,
+          CARTAO_DO_BANNER,
           "grid content-center gap-3 p-[clamp(22px,3.4vw,36px)]"
         )}
       >
@@ -99,7 +99,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
     <section
       aria-labelledby="banner-titulo"
       className={cn(
-        CARTAO,
+        CARTAO_DO_BANNER,
         "grid min-[761px]:grid-cols-[minmax(0,1fr)_minmax(0,44%)]"
       )}
     >
