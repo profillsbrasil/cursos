@@ -14,6 +14,10 @@ const CARTAO =
   "overflow-hidden rounded-[20px] bg-card text-card-foreground ring-1 ring-border";
 const BOTAO_DO_BANNER = cn(BOTAO, "self-start max-[760px]:self-stretch");
 
+// Com o mesmo sizes, as duas imagens escolhem a mesma largura do srcset: a desfocada
+// sai do cache da nítida, que tem preload, e não carrega lazy sendo o LCP da tela.
+const SIZES_DA_CAPA = "(max-width: 760px) 100vw, 44vw";
+
 function Capa({ capa }: { capa: CapaDoCurso }) {
   return (
     // A capa é uma peça com logo e texto: aparece inteira, e a mesma imagem desfocada preenche a sobra.
@@ -23,7 +27,8 @@ function Capa({ capa }: { capa: CapaDoCurso }) {
         aria-hidden="true"
         className="scale-110 object-cover blur-[24px] brightness-[.85] saturate-[1.15]"
         fill
-        sizes="44vw"
+        loading="eager"
+        sizes={SIZES_DA_CAPA}
         src={capa.url}
       />
       <Image
@@ -31,7 +36,7 @@ function Capa({ capa }: { capa: CapaDoCurso }) {
         className="relative h-auto w-full"
         height={capa.altura}
         preload
-        sizes="(max-width: 760px) 100vw, 44vw"
+        sizes={SIZES_DA_CAPA}
         src={capa.url}
         width={capa.largura}
       />
