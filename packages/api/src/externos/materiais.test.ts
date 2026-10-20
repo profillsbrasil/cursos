@@ -104,7 +104,8 @@ const BUCKET = {
 /** Um fetch falso que guarda cada Request assinado e responde com `resposta`. */
 function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
-  const enviar = ((pedido: Request) => {
+  const enviar = ((url: Request | string, init?: RequestInit) => {
+    const pedido = new Request(url, init);
     pedidos.push(pedido);
     return Promise.resolve(resposta(pedido));
   }) as unknown as typeof fetch;

@@ -179,13 +179,19 @@ export function materiaisNoBucket(
       if (lido.tipo === "recusa") {
         return lido;
       }
-      const resposta = await enviar(
-        await aws.sign(doObjeto(lido.arquivo.chave), {
-          body: lido.bytes,
-          headers: { "content-type": lido.contentType },
-          method: "PUT",
-        })
-      );
+      const assinado = await aws.sign(doObjeto(lido.arquivo.chave), {
+        body: lido.bytes,
+        headers: { "content-type": lido.contentType },
+        method: "PUT",
+      });
+      // Os bytes vão de novo, e não o corpo do Request assinado: o fetch do Node
+      // manda o corpo de um Request em chunked, sem content-length, e o S3 que
+      // exige o tamanho responde 411 (o MinIO local responde).
+      const resposta = await enviar(assinado.url, {
+        body: lido.bytes,
+        headers: assinado.headers,
+        method: "PUT",
+      });
       if (!resposta.ok) {
         await falha("o envio", resposta);
         throw new Error("Não foi possível enviar o material. Tente de novo.");
