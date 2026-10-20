@@ -61,7 +61,7 @@ function AcaoDaLiberacao({
   const revogar = useCallback(
     () =>
       executar(
-        () => trpcClient.admin.alunos.revogar.mutate({ liberacaoId: l.id }),
+        () => trpcClient.admin.liberacoes.revogar.mutate({ liberacaoId: l.id }),
         {
           // O botão some e a linha desce para as revogadas: o foco vai para o título da tabela.
           depois: () => {
@@ -230,7 +230,7 @@ function useLiberar({ nome, userId }: Para, cursoId: CursoId, titulo: string) {
   const liberar = useCallback(
     () =>
       executar(
-        () => trpcClient.admin.alunos.liberar.mutate({ cursoId, userId }),
+        () => trpcClient.admin.liberacoes.liberar.mutate({ cursoId, userId }),
         {
           depois: () => {
             focarSelo.current = true;

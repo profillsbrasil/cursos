@@ -133,7 +133,7 @@ async function empacotar() {
         };
         export const trpcClient = {
           admin: {
-            alunos: {
+            liberacoes: {
               liberarVarios: {
                 mutate: async (entrada) => {
                   window.pedidos.push(entrada);

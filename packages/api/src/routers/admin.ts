@@ -80,67 +80,6 @@ const pessoaSumiu = () =>
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
 export const adminRouter = router({
-  alunos: router({
-    // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
-    acesso: adminProcedure
-      .input(z.object({ userId: z.string() }))
-      .query(async ({ ctx, input }) => {
-        if (!USER_ID.test(input.userId)) {
-          return null;
-        }
-        const [pessoa, linhas] = await Promise.all([
-          ctx.pessoas.porId(input.userId),
-          linhasDoAcesso(ctx.db, input.userId),
-        ]);
-        return montarAcesso(input.userId, pessoa, linhas, diaLocal(new Date()));
-      }),
-    // Duas idas em série: o Clerk entrega a página, e o banco lê o estudo dos userIds dela.
-    buscar: adminProcedure
-      .input(z.object({ termo: z.string().trim().max(100) }))
-      .query(async ({ ctx, input }) => {
-        const resultado = await ctx.pessoas.buscar(input.termo);
-        const linhas = await linhasDaBusca(
-          ctx.db,
-          resultado.pessoas.map((p) => p.userId)
-        );
-        return montarBusca(resultado, linhas, diaLocal(new Date()));
-      }),
-    liberar: adminProcedure
-      .input(z.object({ cursoId, userId }))
-      .mutation(async ({ ctx, input }) => {
-        const pessoa = await ctx.pessoas.porId(input.userId);
-        if (!pessoa) {
-          throw new ErroParaAPessoa({
-            code: "NOT_FOUND",
-            message: PESSOA_SUMIU,
-          });
-        }
-        return liberar(ctx.db, ctx.admin, pessoa, input.cursoId, new Date());
-      }),
-    /** Um resultado por pessoa: a falha de uma não recusa o lote. */
-    liberarVarios: adminProcedure
-      .input(
-        z.object({
-          cursoId,
-          userIds: z.array(userId).min(1).max(TETO_DO_LOTE),
-        })
-      )
-      .mutation(({ ctx, input }) =>
-        liberarVarios(
-          ctx.db,
-          (id) => ctx.pessoas.porId(id),
-          ctx.admin,
-          input.userIds,
-          input.cursoId,
-          new Date()
-        )
-      ),
-    revogar: adminProcedure
-      .input(z.object({ liberacaoId: z.uuid() }))
-      .mutation(({ ctx, input }) =>
-        revogar(ctx.db, ctx.admin, input.liberacaoId as LiberacaoId, new Date())
-      ),
-  }),
   catalogo: router({
     /**
      * null quando o id não existe. O curso novo não passa por aqui: quem abre o
@@ -231,6 +170,67 @@ export const adminRouter = router({
           },
           new Date()
         )
+      ),
+  }),
+  liberacoes: router({
+    // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
+    acesso: adminProcedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        if (!USER_ID.test(input.userId)) {
+          return null;
+        }
+        const [pessoa, linhas] = await Promise.all([
+          ctx.pessoas.porId(input.userId),
+          linhasDoAcesso(ctx.db, input.userId),
+        ]);
+        return montarAcesso(input.userId, pessoa, linhas, diaLocal(new Date()));
+      }),
+    // Duas idas em série: o Clerk entrega a página, e o banco lê o estudo dos userIds dela.
+    buscar: adminProcedure
+      .input(z.object({ termo: z.string().trim().max(100) }))
+      .query(async ({ ctx, input }) => {
+        const resultado = await ctx.pessoas.buscar(input.termo);
+        const linhas = await linhasDaBusca(
+          ctx.db,
+          resultado.pessoas.map((p) => p.userId)
+        );
+        return montarBusca(resultado, linhas, diaLocal(new Date()));
+      }),
+    liberar: adminProcedure
+      .input(z.object({ cursoId, userId }))
+      .mutation(async ({ ctx, input }) => {
+        const pessoa = await ctx.pessoas.porId(input.userId);
+        if (!pessoa) {
+          throw new ErroParaAPessoa({
+            code: "NOT_FOUND",
+            message: PESSOA_SUMIU,
+          });
+        }
+        return liberar(ctx.db, ctx.admin, pessoa, input.cursoId, new Date());
+      }),
+    /** Um resultado por pessoa: a falha de uma não recusa o lote. */
+    liberarVarios: adminProcedure
+      .input(
+        z.object({
+          cursoId,
+          userIds: z.array(userId).min(1).max(TETO_DO_LOTE),
+        })
+      )
+      .mutation(({ ctx, input }) =>
+        liberarVarios(
+          ctx.db,
+          (id) => ctx.pessoas.porId(id),
+          ctx.admin,
+          input.userIds,
+          input.cursoId,
+          new Date()
+        )
+      ),
+    revogar: adminProcedure
+      .input(z.object({ liberacaoId: z.uuid() }))
+      .mutation(({ ctx, input }) =>
+        revogar(ctx.db, ctx.admin, input.liberacaoId as LiberacaoId, new Date())
       ),
   }),
   perfis: router({
