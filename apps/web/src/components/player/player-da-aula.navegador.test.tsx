@@ -61,7 +61,42 @@ const DADOS: AulaNoPlayer = {
   questionario: null,
 };
 
-async function empacotar() {
+/**
+ * A IFrame API do YouTube falsa, para o adaptador de verdade (`lib/player/youtube.ts`):
+ * como a real, o `Player` troca o elemento por um iframe, aqui com os três controles
+ * que o YouTube põe no pôster, e anota cada chamada em `window.yt`.
+ */
+const YOUTUBE_FALSO = `
+  window.yt = [];
+  window.YT = {
+    Player: function (alvo, opcoes) {
+      const iframe = document.createElement("iframe");
+      iframe.id = "iframe-do-youtube";
+      iframe.srcdoc = '<button>Play video</button><button>Copy link</button><a href="#">Watch on YouTube</a>';
+      alvo.replaceWith(iframe);
+      window.ytEventos = opcoes.events;
+      const anotar = (nome) => (...a) => { window.yt.push(a.length ? nome + ":" + a.join(",") : nome); };
+      setTimeout(() => opcoes.events.onReady(), 0);
+      return {
+        destroy: anotar("destroy"),
+        getCurrentTime: () => 0,
+        getDuration: () => 634,
+        getPlaybackRate: () => 1,
+        loadModule: anotar("loadModule"),
+        mute: anotar("mute"),
+        pauseVideo: anotar("pauseVideo"),
+        playVideo: anotar("playVideo"),
+        seekTo: anotar("seekTo"),
+        setPlaybackRate: anotar("setPlaybackRate"),
+        setVolume: anotar("setVolume"),
+        unloadModule: anotar("unloadModule"),
+        unMute: anotar("unMute"),
+      };
+    },
+  };
+`;
+
+async function empacotar(comYoutube = false) {
   const pacote = await build({
     define: { "process.env.NODE_ENV": '"development"' },
     entrypoints: [ENTRADA],
@@ -134,7 +169,7 @@ async function empacotar() {
         name: "player-falso",
         setup(construtor) {
           construtor.onResolve({ filter: VIDEO_DO_HOOK }, (args) =>
-            args.importer.endsWith("use-player-da-aula.ts")
+            !comYoutube && args.importer.endsWith("use-player-da-aula.ts")
               ? { path: VIDEO_FALSO }
               : undefined
           );
@@ -201,6 +236,7 @@ const css = await cssDoApp([
 
 let enviar: Enviar;
 let pacote: string;
+let pacoteComYoutube: string;
 
 // No celular a casca não tem sidebar nem moldura, e o conteúdo tem 16 px dos lados.
 const CASCA_DO_COMPUTADOR =
@@ -212,7 +248,8 @@ async function abrir(
   largura: number,
   altura: number,
   assistida = false,
-  celular = false
+  celular = false,
+  codigo = pacote
 ) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -231,7 +268,8 @@ async function abrir(
     enviar,
     `window.assistidaNoTeste = ${assistida}; window.conquistaNoTeste = undefined;`
   );
-  await avaliar(enviar, pacote);
+  await avaliar(enviar, codigo === pacoteComYoutube ? YOUTUBE_FALSO : "");
+  await avaliar(enviar, codigo);
 }
 
 function esperar(condicao: string) {
@@ -283,6 +321,21 @@ async function apertar(key: string) {
     enviar,
     "new Promise((r) => requestAnimationFrame(() => r(0)))"
   );
+}
+/** Cada parada do Tab até o controle com o rótulo pedido, em no máximo 10 Tabs. */
+async function tabAte(
+  rotulo: string,
+  paradas: string[] = []
+): Promise<string[]> {
+  await apertar("Tab");
+  const parada = await avaliar<string>(
+    enviar,
+    `(() => { const a = document.activeElement; return a.tagName + " " + (a.getAttribute("aria-label") ?? a.textContent.trim()); })()`
+  );
+  const ate = [...paradas, parada];
+  return parada.includes(rotulo) || ate.length >= 10
+    ? ate
+    : tabAte(rotulo, ate);
 }
 /** A mesma tecla várias vezes, uma depois da outra. */
 const apertarVezes = (key: string, vezes: number) =>
@@ -353,13 +406,29 @@ const LISTA_DE_ATALHOS = '[role="dialog"]:not([aria-label="Ajustes"])';
 
 describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
   beforeAll(async () => {
-    [enviar, pacote] = await Promise.all([
+    [enviar, pacote, pacoteComYoutube] = await Promise.all([
       abrirChromium("player-da-aula"),
       empacotar(),
+      empacotar(true),
     ]);
   }, 20_000);
 
   afterAll(fecharChromium);
+
+  test("pelo Tab, do topo da aula se chega ao slider de posição sem passar pelo iframe do YouTube, que segue clicável", async () => {
+    await abrir(1440, 900, false, false, pacoteComYoutube);
+    await esperar(
+      `document.querySelector("#iframe-do-youtube")?.contentDocument?.querySelector("button")`
+    );
+    expect(await tabAte("Posição no vídeo")).toEqual(["DIV Posição no vídeo"]);
+    // O clique no meio do vídeo ainda cai no iframe.
+    expect(
+      await avaliar<boolean>(
+        enviar,
+        `(() => { const f = document.getElementById("iframe-do-youtube"); const r = f.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === f && getComputedStyle(f).pointerEvents !== "none"; })()`
+      )
+    ).toBe(true);
+  });
 
   for (const [largura, altura] of [
     [1440, 900],
