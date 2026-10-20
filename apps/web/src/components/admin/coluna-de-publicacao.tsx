@@ -10,6 +10,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import type { ItemAntesDePublicar, SecaoDoIndice } from "./antes-de-publicar";
 import { type EstadoDoSalvar, SituacaoESalvar } from "./barra-de-salvar";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
+import { OPCAO_DA_TRILHA, TRILHA } from "./partes";
 
 export const STATUS: Record<
   StatusDoCurso,
@@ -30,11 +31,6 @@ export const STATUS: Record<
 
 const CARTAO_DA_COLUNA = cn(CARTAO, "grid gap-4 p-5");
 
-// Do lado de quem não está marcado, o hover (e o foco) é o fundo popover; no
-// marcado, o titulo clareia um pouco.
-const OPCAO_DO_STATUS =
-  "inline-flex h-[34px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 font-semibold text-[13px] text-foreground transition-colors hover:bg-popover hover:text-titulo aria-pressed:bg-titulo aria-pressed:text-sobre-cor aria-pressed:hover:bg-titulo/85 aria-pressed:hover:text-sobre-cor [&_svg]:size-[13px]";
-
 function OpcaoDoStatus({
   aoMudar,
   marcado,
@@ -48,7 +44,7 @@ function OpcaoDoStatus({
   return (
     <button
       aria-pressed={marcado}
-      className={OPCAO_DO_STATUS}
+      className={OPCAO_DA_TRILHA}
       onClick={escolher}
       type="button"
     >
@@ -72,7 +68,12 @@ function SeletorDoStatus({
       className="m-0 grid min-w-0 max-w-80 gap-2 border-0 p-0"
     >
       <legend className={cn(ROTULO, "mb-2 p-0")}>Status</legend>
-      <div className="grid grid-cols-2 gap-1 rounded-full bg-background p-1 ring-1 ring-muted-foreground ring-inset">
+      <div
+        className={cn(
+          TRILHA,
+          "grid w-full grid-cols-2 bg-background ring-muted-foreground"
+        )}
+      >
         {(Object.keys(STATUS) as StatusDoCurso[]).map((s) => (
           <OpcaoDoStatus
             aoMudar={aoMudar}

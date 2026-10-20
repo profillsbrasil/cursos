@@ -23,6 +23,7 @@ import {
   GRADE_DO_CATALOGO,
   noFiltro,
 } from "./grade-do-catalogo";
+import { CONTAGEM_DA_OPCAO, OPCAO_DA_TRILHA, TRILHA } from "./partes";
 
 /** O cartão vem pronto do servidor; o filtro só lê o título e o status. */
 export interface CursoNaGrade {
@@ -48,7 +49,7 @@ function Filtros({
   aoFiltrar: (e: MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
-    <fieldset className="m-0 inline-flex min-w-0 gap-1 rounded-full border-0 bg-card p-1 ring-1 ring-border ring-inset">
+    <fieldset className={TRILHA}>
       <legend className="sr-only">Status</legend>
       {FILTROS.map((f) => {
         const ligado = f.filtro === filtro;
@@ -59,26 +60,14 @@ function Filtros({
         return (
           <button
             aria-pressed={ligado}
-            className={cn(
-              "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 font-semibold text-[13px] transition-colors",
-              ligado
-                ? "bg-titulo text-sobre-cor hover:bg-foreground"
-                : "text-foreground hover:bg-popover"
-            )}
+            className={OPCAO_DA_TRILHA}
             key={f.filtro}
             onClick={aoFiltrar}
             type="button"
             value={f.filtro}
           >
             {f.rotulo}
-            <span
-              className={cn(
-                "font-medium tabular-nums",
-                ligado ? "text-sobre-cor/70" : "text-muted-foreground"
-              )}
-            >
-              {fmtNum(n)}
-            </span>
+            <span className={CONTAGEM_DA_OPCAO}>{fmtNum(n)}</span>
           </button>
         );
       })}
