@@ -15,6 +15,7 @@ import {
 import {
   abrirCurso,
   apagarCurso,
+  erroDoMaterial,
   salvarCurso,
 } from "../consultas/edicao-do-curso";
 import {
@@ -32,6 +33,11 @@ import {
   TITULO_MAX,
 } from "../dominio/comunicado";
 import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
+import {
+  arquivoDoFormulario,
+  type MaterialEnviado,
+  tituloSugerido,
+} from "../dominio/material";
 import { diaLocal } from "../dominio/sequencia";
 import type {
   CategoriaId,
@@ -124,6 +130,30 @@ export const adminRouter = router({
     apagarCurso: adminProcedure
       .input(doCurso)
       .mutation(({ ctx, input }) => apagarCurso(ctx.db, input.id)),
+    /**
+     * FormData com "arquivo", montado por formularioDoMaterial. Guarda no bucket
+     * e devolve a chave; o material só entra no curso quando o salvarCurso grava
+     * o documento com ela.
+     */
+    enviarMaterial: adminProcedure
+      .input(z.instanceof(FormData))
+      .mutation(async ({ ctx, input }): Promise<MaterialEnviado> => {
+        const arquivo = arquivoDoFormulario(input);
+        if (!arquivo) {
+          throw new ErroParaAPessoa({
+            code: "BAD_REQUEST",
+            message: "O envio veio sem o arquivo.",
+          });
+        }
+        const recebido = await ctx.materiais.receber(arquivo);
+        if (recebido.tipo === "recusa") {
+          throw erroDoMaterial(recebido.recusa);
+        }
+        return {
+          ...recebido.arquivo,
+          tituloSugerido: tituloSugerido(recebido.arquivo.nomeDoArquivo),
+        };
+      }),
     /**
      * FormData com "documento" (JSON de DocumentoDoCurso) e "capa" (arquivo
      * opcional), montado por formularioDoCurso. O fetch adapter do tRPC lê

@@ -5,6 +5,7 @@
 import type { CursoAberto } from "./aula";
 import { type EstadoQueAbre, niveis, type Progresso } from "./curso";
 import type { OndeNoCurso } from "./curso-do-aluno";
+import type { MaterialDaPagina } from "./material";
 import { type MarcaDoQuestionario, marcaDoQuestionario } from "./questionario";
 import { caminhoDaAula, caminhoDoQuestionario } from "./rotas";
 import type { AulaId, Capa, NivelCatalogo } from "./tipos";
@@ -61,6 +62,8 @@ export interface PaginaDoCurso {
   /** "" quando o admin não escreveu. */
   descricao: string;
   estado: EstadoQueAbre;
+  /** O material de apoio, em ordem; vazio quando o admin não anexou nada. */
+  materiais: readonly MaterialDaPagina[];
   /** Em ordem de número, aulas em ordem de posição. */
   modulos: readonly ModuloDaPagina[];
   /** Em ordem; vazio no curso sem níveis. */
@@ -125,7 +128,10 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
   }
 }
 
-export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
+export function montarPaginaDoCurso(
+  c: CursoAberto,
+  materiais: readonly MaterialDaPagina[]
+): PaginaDoCurso {
   const { curso } = c;
   const { assistidas, questionarios } = c.historico;
   const nivelPorOrdem = new Map(curso.niveis.map((n) => [n.ordem, n]));
@@ -136,6 +142,7 @@ export function montarPaginaDoCurso(c: CursoAberto): PaginaDoCurso {
     categoria: curso.categoria,
     descricao: curso.descricao,
     estado: c.leitura.estado,
+    materiais,
     modulos: curso.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
         assistida: assistidas.has(a.id),

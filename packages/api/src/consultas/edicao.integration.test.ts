@@ -159,6 +159,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       categoriaId,
       descricao: "",
       id,
+      materiais: [],
       modulos: modulosDoCurso,
       niveis: [],
       precoTroca: null,

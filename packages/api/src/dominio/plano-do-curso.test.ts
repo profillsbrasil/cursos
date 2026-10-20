@@ -17,6 +17,7 @@ const { A1, A2, A3, M2, P1, P1A, P1B } = EDICAO;
 const NADA_SAI = {
   alternativas: [],
   aulas: [],
+  materiais: [],
   modulos: [],
   niveis: [],
   perguntas: [],

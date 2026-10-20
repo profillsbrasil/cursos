@@ -7,6 +7,7 @@ import type { DocumentoDoCurso, EdicaoDoCurso } from "./edicao-do-curso";
 import type {
   AlternativaId,
   AulaId,
+  MaterialId,
   ModuloId,
   PerguntaId,
   Versao,
@@ -32,6 +33,7 @@ export type RecusaDaEdicao =
 export interface Apagar {
   alternativas: readonly AlternativaId[];
   aulas: readonly AulaId[];
+  materiais: readonly MaterialId[];
   modulos: readonly ModuloId[];
   niveis: readonly number[];
   perguntas: readonly PerguntaId[];
@@ -139,6 +141,10 @@ export function planejarCurso(
         idsDasAlternativas(desejado)
       ),
       aulas: aulasQueSaem,
+      materiais: fora(
+        atual.documento.materiais.map((m) => m.id),
+        desejado.materiais.map((m) => m.id)
+      ),
       modulos: fora(idsDosModulos(atual.documento), idsDosModulos(desejado)),
       niveis: fora(
         atual.documento.niveis.map((n) => n.ordem),

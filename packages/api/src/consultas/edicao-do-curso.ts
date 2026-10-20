@@ -1,6 +1,6 @@
 // A ordem de gravarCurso é o único lugar que conhece os uniques não deferrable
 // modulo_numero_unico, aula_posicao_unica, pergunta_posicao_unica,
-// alternativa_posicao_unica e alternativa_certa_unica.
+// alternativa_posicao_unica, alternativa_certa_unica e material_posicao_unica.
 
 import type { Database } from "@cursos/db";
 import {
@@ -11,6 +11,7 @@ import {
   certificado,
   curso,
   liberacao,
+  material,
   modulo,
   nivel,
   pergunta,
@@ -31,6 +32,7 @@ import {
   podeApagarCurso,
 } from "../dominio/edicao-do-curso";
 import { raizDoSlug, slugDoTitulo, slugLivre } from "../dominio/endereco";
+import { mensagemDoMaterial, type RecusaDoMaterial } from "../dominio/material";
 import {
   type PlanoDeGravacao,
   planejarCurso,
@@ -43,6 +45,7 @@ import {
   type CategoriaId,
   type CursoId,
   capaDe,
+  type MaterialId,
   type ModuloId,
   type PerguntaId,
   type Versao,
@@ -89,6 +92,17 @@ export async function abrirCurso(
     },
     where: { id },
     with: {
+      materiais: {
+        columns: {
+          bytes: true,
+          chave: true,
+          id: true,
+          nomeDoArquivo: true,
+          tipo: true,
+          titulo: true,
+        },
+        orderBy: { posicao: "asc" },
+      },
       modulos: {
         columns: { id: true, nivelOrdem: true, numero: true, titulo: true },
         orderBy: { numero: "asc" },
@@ -155,6 +169,10 @@ export async function abrirCurso(
     categoriaId: linha.categoriaId as CategoriaId,
     descricao: linha.descricao,
     id: linha.id as CursoId,
+    materiais: linha.materiais.map((m) => ({
+      ...m,
+      id: m.id as MaterialId,
+    })),
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
         descricao: a.descricao,
@@ -283,6 +301,46 @@ function mensagemDaCapa(r: RecusaDaCapa): string {
   }
 }
 
+/** Recusa do envio de material; sai como PRECONDITION_FAILED, que a tela mostra. */
+export function erroDoMaterial(r: RecusaDoMaterial): ErroParaAPessoa {
+  return new ErroParaAPessoa({
+    code: "PRECONDITION_FAILED",
+    message: mensagemDoMaterial(r),
+  });
+}
+
+/**
+ * O material novo do documento (chave que o curso ainda não tem) precisa estar
+ * no bucket: o editor só manda a chave que admin.catalogo.enviarMaterial
+ * devolveu, então chave que não existe é envio forjado ou bucket trocado. Roda
+ * fora da transação (rede). O bucket não apaga objeto, então a conferência não
+ * envelhece até o commit.
+ */
+async function exigirMateriaisNoBucket(
+  s: Pick<Servicos, "db" | "materiais">,
+  documento: DocumentoDoCurso
+) {
+  if (documento.materiais.length === 0) {
+    return;
+  }
+  const doCurso = await s.db
+    .select({ chave: material.chave })
+    .from(material)
+    .where(eq(material.cursoId, documento.id));
+  const conhecidas = new Set(doCurso.map((m) => m.chave));
+  const novos = documento.materiais.filter((m) => !conhecidas.has(m.chave));
+  const existem = await Promise.all(
+    novos.map((m) => s.materiais.existe(m.chave))
+  );
+  const sumido = novos.find((_, i) => !existem[i]);
+  if (sumido) {
+    throw new ErroParaAPessoa({
+      code: "PRECONDITION_FAILED",
+      message: `O arquivo "${sumido.nomeDoArquivo}" não chegou ao armazenamento. Tire da lista e envie de novo.`,
+    });
+  }
+}
+
 /**
  * A categoria do documento fica travada (key share) até o commit: apagarCategoria,
  * que pega FOR UPDATE, espera e depois conta este curso.
@@ -358,7 +416,7 @@ const FK_DO_ALUNO: ReadonlySet<string> = new Set([
 ]);
 
 export async function salvarCurso(
-  s: Pick<Servicos, "capas" | "db">,
+  s: Pick<Servicos, "capas" | "db" | "materiais">,
   formulario: FormData,
   agora = new Date()
 ): Promise<CursoSalvo> {
@@ -371,6 +429,7 @@ export async function salvarCurso(
     throw erroDaCapa(recebida.recusa);
   }
   const { documento } = lido;
+  await exigirMateriaisNoBucket(s, documento);
   const capa = recebida?.imagem ?? null;
   try {
     return await comTrava(s.db, `curso:${documento.id}`, async (tx) => {
@@ -477,6 +536,8 @@ function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
  *  11. alternativas: upsert por id com pergunta, posição e certa finais.
  *  12. módulos que saem: DELETE (já vazios depois dos passos 3 e 7).
  *  13. níveis que saem: DELETE (nenhum módulo aponta para eles depois do passo 6).
+ *  14. materiais que saem: DELETE; os que ficam: posicao + deslocamento; depois
+ *      upsert por id com a posição final.
  *
  * Depois dos passos 4, 5 e 9, todo valor antigo fica acima de TETO_FINAL e todo
  * valor final abaixo dele, então o upsert não colide com linha nova nem mantida.
@@ -635,6 +696,57 @@ async function gravarCurso(
           )
         );
     }
+  }
+
+  await gravarMateriais(tx, plano);
+}
+
+async function gravarMateriais(tx: Transacao, plano: PlanoDeGravacao) {
+  const { documento: d } = plano;
+  const doCurso = eq(material.cursoId, d.id);
+  if (plano.tipo === "atualizar") {
+    if (plano.apagar.materiais.length > 0) {
+      await tx
+        .delete(material)
+        .where(umDe(material.id, plano.apagar.materiais));
+    }
+    await tx
+      .update(material)
+      .set({ posicao: deslocado(material, material.posicao, doCurso) })
+      .where(doCurso);
+  }
+  if (d.materiais.length === 0) {
+    return;
+  }
+  const gravados = await tx
+    .insert(material)
+    .values(
+      d.materiais.map((m, i) => ({
+        bytes: m.bytes,
+        chave: m.chave,
+        cursoId: d.id,
+        id: m.id,
+        nomeDoArquivo: m.nomeDoArquivo,
+        posicao: i + 1,
+        tipo: m.tipo,
+        titulo: m.titulo,
+      }))
+    )
+    .onConflictDoUpdate({
+      set: {
+        bytes: proposto(material.bytes),
+        chave: proposto(material.chave),
+        nomeDoArquivo: proposto(material.nomeDoArquivo),
+        posicao: proposto(material.posicao),
+        tipo: proposto(material.tipo),
+        titulo: proposto(material.titulo),
+      },
+      setWhere: sql`${material.cursoId} = ${proposto(material.cursoId)}`,
+      target: material.id,
+    })
+    .returning({ id: material.id });
+  if (gravados.length !== d.materiais.length) {
+    throw new Error("O documento traz material de outro curso.");
   }
 }
 

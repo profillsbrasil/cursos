@@ -19,6 +19,8 @@ export type Versao = Marca<string, "Versao">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;
 export type ComunicadoId = Marca<string, "ComunicadoId">;
 export type CategoriaId = Marca<string, "CategoriaId">;
+/** Um arquivo do material de apoio do curso. O id nasce no editor. */
+export type MaterialId = Marca<string, "MaterialId">;
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
 /** userId de quem passou pelo adminProcedure. Só o middleware cria um. */
