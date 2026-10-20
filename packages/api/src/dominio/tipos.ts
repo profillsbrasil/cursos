@@ -65,6 +65,8 @@ export interface ResultadoDaBusca {
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
 export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
+/** De onde vem o acesso a um curso, como o admin lê: a liberação da pessoa ou a do perfil dela. */
+export type OrigemDoAcesso = OrigemDaLiberacao | "perfil";
 export type StatusDoCurso = (typeof STATUS_DO_CURSO)[number];
 export type VideoId = Marca<string, "VideoId">;
 

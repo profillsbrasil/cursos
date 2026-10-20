@@ -14,6 +14,20 @@ const nextConfig: NextConfig = {
     proxyClientMaxBodySize: "51mb",
   },
   reactCompiler: true,
+  // A tela de Alunos virou Liberações (ADR 0003): o link guardado continua abrindo.
+  redirects: () =>
+    Promise.resolve([
+      {
+        destination: "/admin/liberacoes",
+        permanent: true,
+        source: "/admin/alunos",
+      },
+      {
+        destination: "/admin/liberacoes/:userId",
+        permanent: true,
+        source: "/admin/alunos/:userId",
+      },
+    ]),
   typedRoutes: true,
 };
 

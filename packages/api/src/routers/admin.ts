@@ -27,6 +27,11 @@ import {
   revogar,
 } from "../consultas/liberacao";
 import {
+  liberarParaPerfil,
+  linhasDaGrade,
+  revogarDoPerfil,
+} from "../consultas/liberacao-do-perfil";
+import {
   contagemPorPerfil,
   definirPerfil,
   linhasDosPerfis,
@@ -39,6 +44,7 @@ import {
   TEXTO_MAX,
   TITULO_MAX,
 } from "../dominio/comunicado";
+import { montarGrade } from "../dominio/grade-dos-perfis";
 import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
 import {
   arquivoDoFormulario,
@@ -51,6 +57,7 @@ import type {
   CategoriaId,
   ComunicadoId,
   CursoId,
+  LiberacaoDoPerfilId,
   LiberacaoId,
 } from "../dominio/tipos";
 import { TETO_DO_FILTRO } from "../externos/pessoas";
@@ -221,6 +228,36 @@ export const adminRouter = router({
             texto: input.texto,
             titulo: input.titulo,
           },
+          new Date()
+        )
+      ),
+  }),
+  perfis: router({
+    grade: adminProcedure.query(async ({ ctx }) => {
+      const [linhas, contagem] = await Promise.all([
+        linhasDaGrade(ctx.db),
+        contagemPorPerfil(ctx.db),
+      ]);
+      return montarGrade(linhas, contagem);
+    }),
+    liberar: adminProcedure
+      .input(z.object({ cursoId, perfil }))
+      .mutation(({ ctx, input }) =>
+        liberarParaPerfil(
+          ctx.db,
+          ctx.admin,
+          input.perfil,
+          input.cursoId,
+          new Date()
+        )
+      ),
+    revogar: adminProcedure
+      .input(z.object({ id: z.uuid() }))
+      .mutation(({ ctx, input }) =>
+        revogarDoPerfil(
+          ctx.db,
+          ctx.admin,
+          input.id as LiberacaoDoPerfilId,
           new Date()
         )
       ),

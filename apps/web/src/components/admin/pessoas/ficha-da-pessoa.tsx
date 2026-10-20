@@ -148,7 +148,7 @@ export function FichaDaPessoaDoAdmin({
           <div className={PE_DO_CARTAO}>
             <Link
               className="justify-self-start font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
-              href={`/admin/alunos/${conta.userId}` as Route}
+              href={`/admin/liberacoes/${conta.userId}` as Route}
             >
               Ver as liberações e o estudo
             </Link>

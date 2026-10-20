@@ -8,7 +8,16 @@ import {
   type LinhasDoAcesso,
   montarAcesso,
 } from "./liberacao";
-import type { CursoId, DiaISO, LiberacaoId, Pessoa } from "./tipos";
+import type {
+  CursoId,
+  DiaISO,
+  LiberacaoDoPerfilId,
+  LiberacaoId,
+  OrigemDaLiberacao,
+  Pessoa,
+} from "./tipos";
+
+type LinhaDaPessoa = Extract<LinhaDaLiberacao, { origem: OrigemDaLiberacao }>;
 
 const C1 = "curso-1" as CursoId;
 const C2 = "curso-2" as CursoId;
@@ -24,8 +33,8 @@ const SEM_HISTORICO: LinhasHistorico = {
 /** Curso de uma aula, o mínimo que a liberação lê. */
 function linha(
   id: CursoId,
-  parcial: Partial<LinhaDaLiberacao> & { titulo?: string } = {}
-): LinhaDaLiberacao {
+  parcial: Partial<LinhaDaPessoa> & { titulo?: string } = {}
+): LinhaDaPessoa {
   const { titulo = id, ...resto } = parcial;
   return {
     curso: { ...cursoCat(id, { aulas: [1] }), titulo },
@@ -57,6 +66,15 @@ describe("acaoNaLiberacao", () => {
   });
 });
 
+const doPerfil = (id: CursoId, titulo: string): LinhaDaLiberacao => ({
+  curso: { ...cursoCat(id, { aulas: [1] }), titulo },
+  id: `lp-${id}` as LiberacaoDoPerfilId,
+  liberadaEm: new Date("2026-10-02T12:00:00Z"),
+  origem: "perfil",
+  perfil: "cliente",
+  revogadaEm: null,
+});
+
 describe("montarAcesso", () => {
   const pessoa: Pessoa = {
     email: "ana@exemplo.com",
@@ -75,6 +93,14 @@ describe("montarAcesso", () => {
     liberacoes: LinhasDoAcesso["liberacoes"],
     historico: LinhasHistorico = SEM_HISTORICO
   ) => montarAcesso(userId, quem, { catalogo, historico, liberacoes }, HOJE);
+
+  test("a liberação do perfil aparece como do perfil e não marca o curso como liberado à pessoa", () => {
+    const acesso = acessoDe("user_ana", pessoa, [doPerfil(C2, "APPCC")]);
+    expect(acesso?.liberacoes.map((l) => [l.curso.titulo, l.acao])).toEqual([
+      ["APPCC", { perfil: "cliente", tipo: "pelo_perfil" }],
+    ]);
+    expect(acesso?.cursos.find((c) => c.curso.id === C2)?.liberado).toBe(false);
+  });
 
   test("marca o que está liberado, de qualquer origem, e o que está em produção", () => {
     const acesso = acessoDe("user_ana", pessoa, [

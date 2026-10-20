@@ -210,4 +210,10 @@ describe("Já tem", () => {
     ).toBe("Já tem Profills School Comercial, liberado pelo admin");
     expect(jaTem(comAtivas([]), COMERCIAL)).toBeNull();
   });
+
+  test("o curso aberto ao perfil ainda se libera à pessoa: a caixa fica", () => {
+    expect(
+      jaTem(comAtivas([{ cursoId: COMERCIAL.id, origem: "perfil" }]), COMERCIAL)
+    ).toBeNull();
+  });
 });

@@ -18,9 +18,9 @@ export const ITENS_DO_ADMIN: readonly ItemDoMenu[] = [
     tipo: "link",
   },
   {
-    href: "/admin/alunos",
+    href: "/admin/liberacoes",
     icone: <KeyRound />,
-    nome: "Alunos",
+    nome: "Liberações",
     outrosPrefixos: [],
     tipo: "link",
   },

@@ -39,7 +39,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const marcada = estado.marcadas.some((m) => m.userId === p.userId);
   const curso = estado.fase.tipo === "marcando" ? estado.fase.curso : null;
   const temOCurso = jaTem(p, curso);
-  const href = `/admin/alunos/${p.userId}` as const;
+  const href = `/admin/liberacoes/${p.userId}` as const;
   const { email, foto, nome, userId } = p;
   const marcar = useCallback(
     (sim: boolean) =>

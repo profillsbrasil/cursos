@@ -150,6 +150,10 @@ export const carregarAcessoDoAluno = cache(async (userId: string) =>
   (await exigirAdmin()).admin.alunos.acesso({ userId })
 );
 
+export const carregarGradeDosPerfis = cache(async () =>
+  (await exigirAdmin()).admin.perfis.grade()
+);
+
 export const carregarComunicados = cache(async () =>
   (await exigirAdmin()).admin.comunicados.lista()
 );

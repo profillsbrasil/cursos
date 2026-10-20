@@ -15,7 +15,7 @@ import type {
   AulaId,
   CursoId,
   DiaISO,
-  OrigemDaLiberacao,
+  OrigemDoAcesso,
   Pessoa,
   ResultadoDaBusca,
   StatusDoCurso,
@@ -77,7 +77,7 @@ export type SituacaoDaPessoa =
 
 export interface CursoQueAPessoaTem {
   cursoId: CursoId;
-  origem: OrigemDaLiberacao;
+  origem: OrigemDoAcesso;
 }
 
 export interface PessoaComSituacao extends Pessoa {
@@ -192,10 +192,11 @@ export interface CursoDaBusca {
   titulo: string;
 }
 
+/** A do perfil vem só ativa: a revogada é do perfil, não da pessoa. */
 export interface LiberacaoDaBusca {
   cursoId: string;
   liberadaEm: Date;
-  origem: OrigemDaLiberacao;
+  origem: OrigemDoAcesso;
   revogadaEm: Date | null;
 }
 
