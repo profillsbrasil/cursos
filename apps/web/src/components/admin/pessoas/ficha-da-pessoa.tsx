@@ -50,7 +50,7 @@ function fraseDoPe({ mudanca, perfil }: FichaDaPessoa, hoje: string) {
     return `Perfil mudado por ${mudanca.por} em ${diaCurto(diaDe(mudanca.em), hoje)}.`;
   }
   return perfil.doCadastro
-    ? "Ainda não entrou no app. Este é o perfil que ela ganha no primeiro acesso, se ninguém mudar antes."
+    ? "Perfil do cadastro, ainda sem registro no app. Ele fica gravado no próximo acesso dela, se ninguém mudar antes."
     : "Perfil do cadastro, sem mudança do admin.";
 }
 

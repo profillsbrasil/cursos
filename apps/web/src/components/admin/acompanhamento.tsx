@@ -146,8 +146,11 @@ const ultimoEstudo = (dia: string, hoje: string) =>
 const aulasVistas = (total: number) =>
   total === 1 ? "Viu a aula" : `Viu as ${fmtNum(total)} aulas`;
 
-/** A situação do curso, como o item da liberação a escreve. */
-export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase {
+/**
+ * A situação do curso, como o item da liberação a escreve. Sem frase quando o
+ * selo ao lado já diz tudo.
+ */
+export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase | null {
   const s = c.situacao;
   switch (s.tipo) {
     case "em_producao":
@@ -156,7 +159,7 @@ export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase {
         texto: "Em produção. A pessoa ainda não vê o curso",
       };
     case "nunca_abriu":
-      return { quando: null, texto: "Nenhuma aula aberta" };
+      return null;
     case "estudando":
       return {
         quando: ultimoEstudo(s.ultimoEstudo, hoje),
@@ -197,12 +200,18 @@ const emProducao = ({ emProducao: n }: NumerosDaPessoa) =>
 const frase = (partes: readonly (string | null)[]) =>
   partes.filter((parte) => parte !== null).join(" · ");
 
-/** A linha de números da busca: "2 de 4 cursos concluídos · 1 em produção · último estudo ontem". */
-export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
+/**
+ * A linha de números da busca: "2 de 4 cursos concluídos · 1 em produção · último
+ * estudo ontem". Null quando o selo já diz tudo.
+ */
+export function fraseDaPessoa(
+  r: SituacaoDaPessoa,
+  hoje: string
+): string | null {
   switch (r.tipo) {
     case "sem_liberacao":
       if (r.revogadas === 0 || r.ultimaRevogacao === null) {
-        return "Nunca recebeu liberação";
+        return null;
       }
       return r.revogadas === 1
         ? `1 liberação revogada ${noDia(r.ultimaRevogacao, hoje)}`
@@ -211,7 +220,6 @@ export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string): string {
       return frase([
         `Com acesso desde ${diaCurto(r.desde, hoje)}`,
         emProducao(r.numeros),
-        "nenhuma aula aberta",
       ]);
     case "estudando":
     case "concluiu_tudo": {

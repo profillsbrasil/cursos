@@ -14,6 +14,11 @@ export const CAMPO = cn(MOLDURA, "h-11 rounded-full");
 export const ALAVANCA =
   "px-0.5 data-[size=default]:h-6 data-[size=default]:w-10 data-unchecked:border-muted-foreground data-unchecked:bg-trilho dark:data-unchecked:bg-trilho [&_[data-slot=switch-thumb]]:size-[18px]";
 
+// O rádio nativo dentro do label: o label lê o has-checked: e acende com o foco do
+// input. Quem usa põe data-campo, que dá a borda Céu do index.css.
+export const RADIO =
+  "m-0 size-[18px] shrink-0 cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground checked:border-[5px] checked:border-sol disabled:cursor-not-allowed";
+
 export const AREA = cn(
   MOLDURA,
   "min-h-0 rounded-[20px] py-[10.5px] leading-normal"

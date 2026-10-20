@@ -2,7 +2,7 @@ import { badgeVariants } from "@cursos/ui/components/badge";
 import { cn } from "@cursos/ui/lib/utils";
 import type { ReactNode } from "react";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { NAO_PODE } from "@/components/casca/botoes";
 
 /**
  * O gatilho da Selecao. A borda Céu do foco e do cursor vem do index.css pelo
@@ -50,28 +50,10 @@ export const ROTULO = "font-semibold text-foreground text-sm";
 export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
-/**
- * O focusableWhenDisabled do Base UI marca data-disabled, não disabled, e as
- * classes disabled: do Button não pegam. O botão do envio pendente fica com
- * opacidade cheia porque nada estiliza o data-disabled dele.
- *
- * O desligado segura o foco de teclado e neutraliza o próprio hover, então sobe de
- * 50% para 80% no foco e sob o cursor (#30): sem isso, ficaria sem sinal de foco.
- */
-export const NAO_PODE =
-  "data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:opacity-80";
-
 export const ICONE = cn(
   "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
   NAO_PODE,
   "data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
-);
-
-/** O dark:hover:border-titulo do BOTAO_CONTORNO vence a classe sem variante. */
-export const CONTORNO_DESLIGADO = cn(
-  BOTAO_CONTORNO,
-  NAO_PODE,
-  "data-disabled:hover:border-muted-foreground dark:data-disabled:hover:border-muted-foreground"
 );
 
 /** Selo em pílula das tabelas do admin; a cor vem de quem chama. */

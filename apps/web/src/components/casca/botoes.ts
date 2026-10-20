@@ -33,5 +33,23 @@ export const BOTAO_PERIGO = cn(
 
 export const PEQUENO = "h-9 px-3.5 text-[13px]";
 
+/**
+ * O focusableWhenDisabled do Base UI marca data-disabled, não disabled, e as
+ * classes disabled: do Button não pegam. O botão do envio pendente fica com
+ * opacidade cheia porque nada estiliza o data-disabled dele.
+ *
+ * O desligado segura o foco de teclado e neutraliza o próprio hover, então sobe de
+ * 50% para 80% no foco e sob o cursor (#30): sem isso, ficaria sem sinal de foco.
+ */
+export const NAO_PODE =
+  "data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:opacity-80";
+
+/** O dark:hover:border-titulo do BOTAO_CONTORNO vence a classe sem variante. */
+export const CONTORNO_DESLIGADO = cn(
+  BOTAO_CONTORNO,
+  NAO_PODE,
+  "data-disabled:hover:border-muted-foreground dark:data-disabled:hover:border-muted-foreground"
+);
+
 export const LINK_NO_TEXTO =
   "underline decoration-muted-foreground underline-offset-4 transition-colors hover:text-titulo hover:decoration-titulo";

@@ -39,6 +39,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const marcada = estado.marcadas.some((m) => m.userId === p.userId);
   const curso = estado.fase.tipo === "marcando" ? estado.fase.curso : null;
   const temOCurso = jaTem(p, curso);
+  const frase = temOCurso ?? fraseDaPessoa(p.situacao, hoje);
   const href = `/admin/liberacoes/${p.userId}` as const;
   const { email, foto, nome, userId } = p;
   const marcar = useCallback(
@@ -82,9 +83,11 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
         <span className="truncate text-muted-foreground text-sm">
           {p.email ?? p.userId}
         </span>
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {temOCurso ?? fraseDaPessoa(p.situacao, hoje)}
-        </span>
+        {frase === null ? null : (
+          <span className="text-muted-foreground text-xs tabular-nums">
+            {frase}
+          </span>
+        )}
       </span>
       <SeloDeSituacao
         className="@min-[35rem]:col-start-4 col-start-3 @min-[35rem]:row-start-1 row-start-2 justify-self-start"

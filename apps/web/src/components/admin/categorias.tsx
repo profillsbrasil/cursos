@@ -27,7 +27,12 @@ import {
   useState,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import {
+  BOTAO,
+  BOTAO_CONTORNO,
+  CONTORNO_DESLIGADO,
+  PEQUENO,
+} from "@/components/casca/botoes";
 import { CAMPO } from "@/components/casca/campos";
 import { DICA } from "@/components/casca/estilo";
 import { plural } from "@/lib/formato";
@@ -39,7 +44,7 @@ import {
   type LinhaAberta,
 } from "./confirmacao-na-linha";
 
-import { CONTORNO_DESLIGADO, SELO, Secao, Vazio } from "./partes";
+import { SELO, Secao, Vazio } from "./partes";
 
 const NOME_VAZIO = "Escreva o nome da categoria.";
 const TODAS = "todas";

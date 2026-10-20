@@ -153,7 +153,7 @@ function ItemDaLiberacao({
             <SeloDeSituacao selo={seloDoCurso(a.situacao.tipo)} />
           )}
         </div>
-        {revogada ? null : (
+        {revogada || frase === null ? null : (
           <p className="text-foreground text-sm">
             {frase.texto}
             {frase.quando ? (

@@ -1,4 +1,5 @@
 import { PERFIS, type Perfil } from "@cursos/api/dominio/perfil";
+import type { PerfilNaTela } from "@cursos/api/dominio/pessoas";
 import {
   Building2,
   Factory,
@@ -47,10 +48,14 @@ export const ORDEM_DOS_PERFIS: readonly Perfil[] = PERFIS;
 export const ehPerfil = (texto: unknown): texto is Perfil =>
   typeof texto === "string" && (PERFIS as readonly string[]).includes(texto);
 
-/** Perfil não é estado: contorno sem cor, como o selo de categoria. */
-export const seloDoPerfil = (perfil: Perfil): Selo => ({
-  classe:
-    "bg-transparent text-foreground ring-1 ring-muted-foreground ring-inset",
+/**
+ * Perfil não é estado: contorno sem cor, como o selo de categoria. O perfil do
+ * cadastro, ainda sem linha no banco e fora dos filtros, vem tracejado e apagado.
+ */
+export const seloDoPerfil = ({ doCadastro, perfil }: PerfilNaTela): Selo => ({
+  classe: doCadastro
+    ? "border-dashed border-muted-foreground bg-transparent text-muted-foreground"
+    : "bg-transparent text-foreground ring-1 ring-muted-foreground ring-inset",
   icone: SOBRE_O_PERFIL[perfil].icone,
   rotulo: SOBRE_O_PERFIL[perfil].nome,
 });

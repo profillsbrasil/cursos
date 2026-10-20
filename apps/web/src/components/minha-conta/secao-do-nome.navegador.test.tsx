@@ -227,7 +227,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
         const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
         const erro = document.querySelector('[data-slot="field-error"]').id;
         return {
-          botao: botao.disabled && botao.getAttribute("aria-describedby") === erro,
+          botao: botao.getAttribute("aria-disabled") === "true" && botao.getAttribute("aria-describedby") === erro,
           campo: campo.getAttribute("aria-invalid") === "true" && campo.getAttribute("aria-describedby") === erro,
           sobrenome: document.querySelector('input[name="sobrenome"]').hasAttribute("aria-invalid"),
         };
@@ -285,11 +285,63 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
         `(() => {
           const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
           const erro = document.querySelector('[data-slot="field-error"]').id;
-          return botao.disabled && botao.getAttribute("aria-describedby") === erro &&
+          return botao.getAttribute("aria-disabled") === "true" && botao.getAttribute("aria-describedby") === erro &&
             document.querySelector('input[name="nome"]').getAttribute("aria-invalid") === "true";
         })()`
       )
     ).toBe(true);
+  });
+
+  test("sem mudança, o Salvar é o contorno desligado, focável, e diz que nada mudou", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    const salvarNome = () =>
+      avaliar<{ desligado: boolean; fundo: string; motivo: string | null }>(
+        enviar,
+        `(() => {
+          const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
+          botao.focus();
+          const motivo = document.getElementById(botao.getAttribute("aria-describedby") ?? "");
+          return {
+            desligado: document.activeElement === botao && botao.getAttribute("aria-disabled") === "true",
+            fundo: getComputedStyle(botao).backgroundColor,
+            motivo: motivo?.textContent ?? null,
+          };
+        })()`
+      );
+    await esperar(
+      `getComputedStyle([...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome")).backgroundColor === "rgba(0, 0, 0, 0)"`
+    );
+    expect(await salvarNome()).toEqual({
+      desligado: true,
+      fundo: "rgba(0, 0, 0, 0)",
+      motivo: "Nada mudou no nome.",
+    });
+    await digitar("nome", "Bia");
+    await estilizar();
+    await esperar(
+      `getComputedStyle([...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome")).backgroundColor === "rgb(255, 204, 1)"`
+    );
+  });
+
+  test("sem mudança, o Enter no campo não envia o nome", async () => {
+    await abrir({ firstName: "Ana", lastName: "Souza" });
+    await avaliar(
+      enviar,
+      `document.querySelector('input[name="nome"]').focus()`
+    );
+    const enter = { code: "Enter", key: "Enter", windowsVirtualKeyCode: 13 };
+    await enviar("Input.dispatchKeyEvent", {
+      ...enter,
+      text: "\r",
+      type: "keyDown",
+    });
+    await enviar("Input.dispatchKeyEvent", { ...enter, type: "keyUp" });
+    await digitar("nome", "Bia");
+    await salvar();
+    await esperar("window.pedidos.length > 0");
+    expect(await avaliar<unknown[]>(enviar, "window.pedidos")).toEqual([
+      { firstName: "Bia", lastName: "Souza" },
+    ]);
   });
 
   test("sem nome salvo e sem mudança, nada acusa erro", async () => {

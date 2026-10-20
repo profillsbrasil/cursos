@@ -9,7 +9,13 @@ import Image from "next/image";
 import { useCallback } from "react";
 import { flushSync } from "react-dom";
 
-import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import {
+  BOTAO,
+  BOTAO_CONTORNO,
+  CONTORNO_DESLIGADO,
+  PEQUENO,
+} from "@/components/casca/botoes";
+import { RADIO } from "@/components/casca/campos";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
@@ -29,7 +35,7 @@ import {
   resumoDoResultado,
   rotuloDoLiberar,
 } from "./lote";
-import { ICONE, NAO_PODE } from "./partes";
+import { ICONE } from "./partes";
 import { useLote } from "./provedor-do-lote";
 
 const TITULO = "lote";
@@ -105,7 +111,7 @@ function LinhaNoResultado({
     [executar, despacharEFocar, curso.id, pessoa.userId]
   );
   return (
-    <li className="grid @min-[28.75rem]:grid-cols-[2.25rem_minmax(0,1fr)_auto] grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 py-3">
+    <li className="grid @min-[28.75rem]:grid-cols-[2.25rem_minmax(0,1fr)_auto] grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 px-5 py-3">
       <FotoDaPessoa className="size-9" foto={pessoa.foto} nome={pessoa.nome} />
       <span className="min-w-0">
         <strong className="block truncate font-medium text-foreground text-sm">
@@ -163,7 +169,7 @@ function Resultado({
           {resumoDoResultado(fase.linhas)}
         </span>
       </p>
-      <ul className="@container -mt-2 divide-y divide-border">
+      <ul className="@container -mx-5 -mt-2 divide-y divide-border">
         {emOrdemDoResultado(fase.linhas).map((l) => (
           <LinhaNoResultado
             curso={fase.curso}
@@ -275,7 +281,8 @@ function OpcaoDeCurso({
     <label className="grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8 has-checked:bg-sol/14">
       <input
         checked={escolhido}
-        className="m-0 size-[18px] cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground checked:border-[5px] checked:border-sol"
+        className={RADIO}
+        data-campo
         name="curso-do-lote"
         onChange={escolher}
         type="radio"
@@ -369,10 +376,8 @@ function Formulario({
           pronto.tipo === "passou_do_teto" ? "lote-teto" : undefined
         }
         className={cn(
-          BOTAO,
-          "w-full",
-          NAO_PODE,
-          "data-disabled:hover:bg-sol data-disabled:hover:shadow-none"
+          pronto.tipo === "pronto" ? BOTAO : CONTORNO_DESLIGADO,
+          "w-full"
         )}
         disabled={pronto.tipo !== "pronto" || pendente}
         focusableWhenDisabled
