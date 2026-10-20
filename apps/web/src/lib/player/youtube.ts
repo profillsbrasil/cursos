@@ -163,6 +163,9 @@ export function criarPlayerDoYoutube(
         },
         videoId,
       });
+      // A barra do app tem os controles, e as 7 paradas de Tab do pôster do YouTube
+      // (em inglês) vinham antes dela. O clique no vídeo continua indo ao iframe.
+      elemento.querySelector("iframe")?.setAttribute("tabindex", "-1");
       instancia = criado;
     },
     () => opcoes.aoEvento({ motivo: "outro", tipo: "falhou" })
