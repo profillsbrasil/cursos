@@ -23,7 +23,7 @@ const TELA = `
   import { Selecao, SelecaoComBusca } from "./selecao";
 
   const STATUS = [
-    { descricao: "Fora do ar para quem não tem certificado.", rotulo: "Em produção", valor: "em_producao" },
+    { descricao: "O aluno vê na lista, sem abrir aula. Quem já tem o certificado continua abrindo.", rotulo: "Em produção", valor: "em_producao" },
     { descricao: "Aberto para quem tem o curso liberado.", rotulo: "Publicado", valor: "publicado" },
   ];
   const PARA_QUEM = [
@@ -197,7 +197,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       abaixo: true,
       largura: true,
       opcoes: [
-        "Em produçãoFora do ar para quem não tem certificado.",
+        "Em produçãoO aluno vê na lista, sem abrir aula. Quem já tem o certificado continua abrindo.",
         "PublicadoAberto para quem tem o curso liberado.",
       ],
       seta: "180deg",
