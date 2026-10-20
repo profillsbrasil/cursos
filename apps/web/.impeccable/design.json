@@ -147,7 +147,7 @@
       },
       "title-page": {
         "displayName": "Título de página",
-        "purpose": "O h1 das páginas, em titulo. No aluno, o resumo vem embaixo, a 6 px, em texto-apagado (o CabecalhoDaPagina); no Catálogo do admin, a 4 px; nunca na outra ponta da linha. 24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula."
+        "purpose": "O h1 das páginas, em titulo. No aluno e no admin, o resumo vem embaixo, a 6 px, em texto-apagado, e a ação da página fica à direita do par (o CabecalhoDaPagina de components/casca/); nunca na outra ponta da linha. O primeiro bloco começa 28 px abaixo. 24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula."
       },
       "title-section": {
         "displayName": "Título de seção",
@@ -375,12 +375,12 @@
       "css": ".ds-selos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .ds-selo-pessoa { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-perfil { background: transparent; color: var(--foreground, #e9ecef); box-shadow: inset 0 0 0 1px var(--muted-foreground, #a8acb0); } .ds-selo-admin { background: rgb(170 210 234 / 0.14); color: var(--ceu, #aad2ea); } .ds-papel-aluno { color: var(--muted-foreground, #a8acb0); font: 400 12px Geist, ui-sans-serif, sans-serif; }"
     },
     {
-      "name": "Abas de Liberações",
+      "name": "Filtro de escolha única do admin",
       "kind": "nav",
       "refersTo": "nav-item",
-      "description": "Por pessoa e Por perfil, links numa trilha em pílula: fundo sidebar, anel de 1 px em borda e 4 px de folga. A aba atual é a pílula popover com texto titulo e aria-current; a outra clareia a branco 8% sob o cursor e com o foco.",
+      "description": "A TRILHA e a OPCAO_DA_TRILHA de admin/partes.tsx: os perfis de Pessoas, os status do Catálogo, as abas de Liberações e o status do editor. Trilha cartao com anel interno de 1 px em borda, 4 px de folga e raio de 22 px, que quebra em duas linhas quando não cabe. Opção de 36 px, 600 em 13 px, com a contagem em texto-apagado. A ligada (aria-pressed ou aria-current) é titulo com texto sobre-cor e escurece para texto sob o cursor e com o foco; a solta ganha popover. Nenhuma opção é Sol.",
       "html": "<nav class=\"ds-abas\" aria-label=\"Liberar por\"><a class=\"ds-aba\" href=\"#\">Por pessoa</a><a class=\"ds-aba\" href=\"#\" aria-current=\"page\">Por perfil</a></nav>",
-      "css": ".ds-abas { display: inline-flex; gap: 4px; padding: 4px; border-radius: 9999px; background: var(--sidebar, #282d33); box-shadow: 0 0 0 1px var(--border, #40454a); } .ds-aba { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 9999px; color: var(--foreground, #e9ecef); font: 600 13px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: background-color 150ms ease-out, color 150ms ease-out; } .ds-aba:hover, .ds-aba:focus-visible { background: rgb(255 255 255 / 0.08); outline: none; } .ds-aba[aria-current=\"page\"], .ds-aba[aria-current=\"page\"]:hover, .ds-aba[aria-current=\"page\"]:focus-visible { background: var(--popover, #3a3f45); color: var(--titulo, #f4f5f7); }"
+      "css": ".ds-abas { display: flex; flex-wrap: wrap; width: fit-content; gap: 4px; padding: 4px; border-radius: 22px; background: var(--card, #33383e); box-shadow: inset 0 0 0 1px var(--border, #40454a); } .ds-aba { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 9999px; color: var(--foreground, #e9ecef); font: 600 13px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-aba:hover, .ds-aba:focus-visible { background: var(--popover, #3a3f45); color: var(--titulo, #f4f5f7); } .ds-aba[aria-current=page] { background: var(--titulo, #f4f5f7); color: var(--sobre-cor, #22262b); } .ds-aba[aria-current=page]:hover, .ds-aba[aria-current=page]:focus-visible { background: var(--foreground, #e9ecef); }"
     },
     {
       "name": "Botões por perfil",
