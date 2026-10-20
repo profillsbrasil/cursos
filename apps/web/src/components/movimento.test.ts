@@ -4,7 +4,10 @@ import { join } from "node:path";
 import { Glob } from "bun";
 
 const SRC = join(import.meta.dir, "..");
-const CURVA_PROPRIA = /ease-\[cubic-bezier/;
+// A curva de cada transição é o ease-forte, que o index.css põe como padrão do
+// Tailwind: as palavras do Tailwind (ease-out, ease-in-out) e o cubic-bezier
+// escrito à mão trocam a curva.
+const CURVA_PROPRIA = /ease-\[cubic-bezier|\bease-(?:in|out|in-out|linear)\b/;
 const DURACAO = /duration-(\d+)\b/g;
 const DURACAO_MAXIMA_MS = 200;
 const DESLIGA_NO_REDUZIDO = /motion-reduce:\S*(transition-none|animate-none)/;

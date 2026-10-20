@@ -133,7 +133,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
             open={m.atual}
           >
             {/* Sob o cursor e com o foco de teclado, fundo branco a 8% e título claro (#44). */}
-            <summary className="group/modulo grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] hover:bg-white/8 [&::-webkit-details-marker]:hidden">
+            <summary className="group/modulo grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] transition-colors duration-150 hover:bg-white/8 [&::-webkit-details-marker]:hidden">
               <span className="w-[26px] text-center font-mono text-muted-foreground text-xs tabular-nums">
                 {m.numero}
               </span>

@@ -19,7 +19,7 @@ import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 // O hover vale também no foco de teclado (#30): o fundo acende nos dois.
 const BOTAO_DE_ICONE = cn(
   "grid size-8 shrink-0 place-items-center rounded-[9px] text-muted-foreground",
-  "transition-[color,background-color] duration-150 ease-out hover:bg-sidebar-accent hover:text-titulo",
+  "transition-[color,background-color] duration-150 hover:bg-sidebar-accent hover:text-titulo",
   "[&_svg]:size-[18px]"
 );
 
@@ -27,7 +27,7 @@ const BOTAO_DE_ICONE = cn(
 const ALTERNAR_RECOLHIDA =
   "group/alternar relative size-10 rounded-[10px] text-titulo hover:bg-sidebar-accent [@media(hover:none)]:bg-sidebar-accent";
 
-const SOME_COM_HOVER = "transition-opacity duration-150 ease-out";
+const SOME_COM_HOVER = "transition-opacity duration-150";
 
 const semInscricao = () => () => undefined;
 

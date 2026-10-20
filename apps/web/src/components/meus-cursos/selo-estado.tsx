@@ -59,7 +59,7 @@ export function SeloEstado({ estado }: { estado: EstadoCurso }) {
     <span
       className={cn(
         badgeVariants({ variant: "secondary" }),
-        "h-6 gap-1.5 rounded-full px-2.5 font-semibold text-xs",
+        "h-6 gap-1.5 rounded-full px-2.5 font-semibold text-xs transition-colors",
         classe
       )}
     >

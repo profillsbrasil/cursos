@@ -34,7 +34,7 @@ const CARTAO = cn(
 const COM_LINK = cn(
   "group/continuar",
   "before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:bg-muted before:opacity-0",
-  "before:transition-opacity before:duration-150 before:ease-out hover:before:opacity-100",
+  "before:transition-opacity before:duration-150 hover:before:opacity-100",
   "group-data-[collapsible=icon]:before:bg-sol-hover group-data-[collapsible=icon]:before:shadow-brilho"
 );
 

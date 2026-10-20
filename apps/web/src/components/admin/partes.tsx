@@ -77,7 +77,7 @@ export const CONTORNO_DESLIGADO = cn(
 /** Selo em pílula das tabelas do admin; a cor vem de quem chama. */
 export const SELO = cn(
   badgeVariants({ variant: "secondary" }),
-  "h-6 rounded-full px-2.5 font-semibold text-xs"
+  "h-6 rounded-full px-2.5 font-semibold text-xs transition-colors"
 );
 
 /** O cartão do conteúdo de uma Secao. */

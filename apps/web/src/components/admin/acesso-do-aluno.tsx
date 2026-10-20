@@ -207,7 +207,7 @@ function Liberacoes({
           <summary className="flex cursor-pointer list-none items-center gap-2 @xl:px-5 px-4 py-3.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-white/8 hover:text-titulo [&::-webkit-details-marker]:hidden">
             <ChevronRight
               aria-hidden="true"
-              className="size-4 transition-transform group-open/revogadas:rotate-90 motion-reduce:transition-none"
+              className="size-4 transition-transform duration-200 group-open/revogadas:rotate-90 motion-reduce:transition-none"
             />
             {plural(revogadas.length, "revogada", "revogadas")}
           </summary>

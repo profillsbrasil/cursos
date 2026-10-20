@@ -1,8 +1,22 @@
 @import "@cursos/ui/globals.css";
 
 @theme {
-  /* Ease-out forte para UI (skill animate): a largura da sidebar e a pílula. */
+  /* Ease-out forte para UI (skill animate): a curva de toda transição do app. */
   --ease-forte: cubic-bezier(0.23, 1, 0.32, 1);
+  --default-transition-timing-function: var(--ease-forte);
+}
+
+@theme inline {
+  /* O tw-animate entra e sai do menu, da dica e do diálogo do packages/ui em
+     "ease" quando a classe não traz curva; aqui o padrão vira o ease-forte. */
+  --animate-in: enter var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, var(--ease-forte)) var(--tw-animation-delay, 0s)
+    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
+    var(--tw-animation-fill-mode, none);
+  --animate-out: exit var(--tw-animation-duration, var(--tw-duration, 0.15s))
+    var(--tw-ease, var(--ease-forte)) var(--tw-animation-delay, 0s)
+    var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal)
+    var(--tw-animation-fill-mode, none);
 }
 
 /* A pílula do item ativo acende com o cursor ou o foco de teclado no link ativo
@@ -153,5 +167,57 @@
     [data-disabled]
   ) {
     border-color: var(--ceu);
+  }
+}
+
+/* O Button e o Switch do packages/ui trazem transition-all, que anima também o
+   deslocamento do clique e qualquer mudança de tamanho. Fora de camada, a regra
+   vence o utilitário: só a cor, a sombra e a opacidade animam. */
+:is([data-slot="button"], [data-slot="switch"]) {
+  transition-property:
+    color, background-color, border-color, box-shadow, opacity;
+}
+
+/* A gaveta do celular é o Sheet do packages/ui, que desliza em ease-in-out. */
+:is([data-slot="sheet-content"], [data-slot="sidebar"][data-mobile="true"]) {
+  transition-timing-function: var(--ease-forte);
+}
+
+/* O toast (sonner) anima em 400 ms, com a altura junto; o CSS dele mora fora de
+   camada e entra depois deste, então o seletor precisa pesar mais que o dele. O
+   arrasto (data-swiping) segue sem transição, como o sonner pede. */
+[data-sonner-toaster] [data-sonner-toast]:not([data-swiping="true"]) {
+  transition-timing-function: var(--ease-forte);
+  transition-duration: 200ms;
+  transition-property: transform, opacity, box-shadow;
+}
+
+[data-sonner-toaster] [data-sonner-toast] > * {
+  transition-timing-function: var(--ease-forte);
+  transition-duration: 200ms;
+}
+
+/* Com movimento reduzido, o que desloca, gira ou cresce muda na hora, e a
+   opacidade continua: as variáveis do tw-animate voltam ao neutro em todo
+   elemento (menu, dica, diálogo, popover), a gaveta não desliza e o polegar da
+   alavanca não anda. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-enter-scale: 1;
+    --tw-enter-rotate: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-exit-scale: 1;
+    --tw-exit-rotate: 0;
+  }
+
+  :is([data-slot="sheet-content"], [data-slot="sidebar"][data-mobile="true"]) {
+    translate: none;
+  }
+
+  [data-slot="switch-thumb"] {
+    transition-property: none;
   }
 }

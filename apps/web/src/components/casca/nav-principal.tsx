@@ -27,7 +27,7 @@ import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 // especificidade, e cor e peso só existem por estado: nenhuma classe anula outra.
 const ITEM = cn(
   "flex h-(--altura-do-item) w-full items-center gap-3 overflow-hidden rounded-[10px] px-[11px] py-2 text-left text-sm",
-  "transition-[color,background-color] duration-150 ease-out",
+  "transition-[color,background-color] duration-150",
   "[&>span:last-child]:truncate [&_svg]:size-[18px] [&_svg]:shrink-0 [&_svg]:transition-colors [&_svg]:duration-150",
   "group-data-[collapsible=icon]:size-(--altura-do-item) group-data-[collapsible=icon]:p-[11px]"
 );
@@ -92,7 +92,7 @@ export function NavPrincipal({
               aria-hidden="true"
               // O Motion escreve só o transform; a cor e o brilho do link ativo sob o
               // cursor e com o foco vêm do CSS, como no botão amarelo.
-              className="pointer-events-none absolute top-0 left-0 h-(--altura-do-item) w-full rounded-[10px] ativo-aceso:bg-sol-hover bg-sidebar-primary ativo-aceso:shadow-brilho transition-[background-color,box-shadow] duration-150 ease-out group-data-[collapsible=icon]:w-(--altura-do-item)"
+              className="pointer-events-none absolute top-0 left-0 h-(--altura-do-item) w-full rounded-[10px] ativo-aceso:bg-sol-hover bg-sidebar-primary ativo-aceso:shadow-brilho transition-[background-color,box-shadow] duration-150 group-data-[collapsible=icon]:w-(--altura-do-item)"
               initial={false}
               transition={movimento.transicao}
             />
