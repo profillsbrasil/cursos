@@ -191,7 +191,7 @@
       },
       "selo-da-area": {
         "displayName": "Selo da área",
-        "purpose": "\"Admin\" ao lado da marca, em 600, 10 px, caixa alta e letra a 0,025em. É o único texto em caixa alta e, com a marca \"sáb e dom\" de 10 px da faixa da sequência em Conquistas, o único legível abaixo de 11 px (o \"10\" de 7 px do ícone de voltar 10 s é parte do glifo)."
+        "purpose": "\"Admin\" ao lado da marca, em 600, 10 px, caixa alta e letra a 0,025em. É o único texto que o CSS põe em caixa alta (uppercase) e o único legível abaixo de 11 px (o \"10\" de 7 px do ícone de voltar 10 s é parte do glifo)."
       }
     },
     "shadows": [
@@ -433,7 +433,7 @@
       },
       {
         "name": "The No Shouting Rule",
-        "body": "Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.",
+        "body": "Só o selo da área ao lado da marca (10 px, 600) põe texto em caixa alta. Nenhum título, rótulo ou linha acima de título usa caixa alta. Sigla e código que se escrevem em maiúsculas, como \"PDF\" no selo do tipo, o código do curso (\"RI-001\") e o do certificado, ficam como se escrevem e não contam como caixa alta.",
         "section": "typography"
       },
       {
@@ -474,7 +474,7 @@
       "Don't desenhar divisória que para antes da borda do cartão: nada de `border-t`, `divide-y`, `<hr>` ou `Separator` dentro de um contêiner com padding lateral. A linha vai de borda a borda (The Edge To Edge Rule).",
       "Don't redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.",
       "Don't pôr pontos ou sequência fora do cartão de conta na casca.",
-      "Don't usar caixa alta ou linha acima de título fora do selo da área.",
+      "Don't pôr texto em caixa alta, nem linha acima de título, fora do selo da área. Sigla e código escritos em maiúsculas não contam.",
       "Don't escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`. Os dois `foco.test.ts` acusam a volta."
     ]
   }

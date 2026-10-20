@@ -253,7 +253,7 @@ Este arquivo chama alguns tokens pelo nome em português. No código, eles são 
 - **Title block** (600, 16 px): o título da coluna do curso no player, o do aviso de comunicado, o do módulo no editor do curso, o de cada liberação na tela de acesso do admin e os valores das placas Saldo e Sequência no menu da conta. "Seu saldo", acima do número grande de Trocar pontos, usa o mesmo degrau em 400.
 - **Mono** (Geist Mono): a voz dos números do player. Os pontos do aviso na barra e do cartão de fim do vídeo ("+10 pts") em 600 e 16 px; o tempo ("03:42 / 10:34", o atual em 500) em 13 px nos controles; as seis velocidades dos Ajustes ("1,25") em 600 e 12 px; na coluna do curso, em 12 px, o número e a contagem ("3/8") do módulo, o número da aula no círculo (600) e a duração de cada aula ("11 min"). O que se compara leva `tabular-nums`. Fora do player, número é Geist com `tabular-nums`.
 - **Tecla** (Geist Mono, 400, 11 px): a tecla da lista de atalhos do player ("espaço", setas, j, l, m, c, f) e o "?" do item Atalhos do teclado nos Ajustes, com borda de 1 px e 2 px embaixo. Fica dois degraus abaixo da frase de 13 px que a acompanha, para a tecla com borda caber na linha sem aumentar a entrelinha. Na dica dos botões do player, a tecla não leva borda: é o texto secundário da Dica ("Reproduzir Espaço").
-- **Selo da área** (600, 10 px, caixa alta, letra a 0,025em): "Admin" ao lado da marca. É o único texto em caixa alta e o único legível abaixo de 11 px (o "10" de 7 px do ícone de voltar 10 s é parte do glifo). `components/texto-minimo.test.ts` acusa outro texto abaixo de 11 px.
+- **Selo da área** (600, 10 px, caixa alta, letra a 0,025em): "Admin" ao lado da marca. É o único texto que o CSS põe em caixa alta (`uppercase`) e o único legível abaixo de 11 px (o "10" de 7 px do ícone de voltar 10 s é parte do glifo). `components/texto-minimo.test.ts` acusa outro texto abaixo de 11 px.
 - **Body** (400, 14 px): texto corrido e campos. Parágrafos longos limitados a 60ch.
 - **Label** (600, 13 a 14 px): botões, nomes no menu, rótulos de campo.
 - **Caption** (400 ou 600, 12 px): selos de estado, números do cartão de conta, rótulos das placas Saldo e Sequência no menu da conta, "Em breve" no menu.
@@ -261,7 +261,7 @@ Este arquivo chama alguns tokens pelo nome em português. No código, eles são 
 ### Named Rules
 **The Tabular Numbers Rule.** Todo número que muda ou se compara (pontos, dias, porcentagem, contagem) usa `tabular-nums`.
 
-**The No Shouting Rule.** Texto em caixa alta existe só no selo da área ao lado da marca (10 px, 600). Nenhum título, rótulo ou linha acima de título usa caixa alta.
+**The No Shouting Rule.** Só o selo da área ao lado da marca (10 px, 600) põe texto em caixa alta. Nenhum título, rótulo ou linha acima de título usa caixa alta. Sigla e código que se escrevem em maiúsculas, como "PDF" no selo do tipo, o código do curso ("RI-001") e o do certificado, ficam como se escrevem e não contam como caixa alta.
 
 **The Two Dates Rule.** Data tem dois formatos, os dois de `lib/formato.ts`: o curto, "7 de out." ("21 de set. de 2025" fora do ano de hoje), nas linhas e frases; e o longo, "20 de agosto de 2026", no texto corrido do comunicado e na lista de comunicados do admin. Um instante entra no curto pelo dia de São Paulo, então a faixa do comunicado de 28 de dezembro, vista em janeiro, diz "28 de dez. de 2025". Datas diferentes no mesmo item usam o mesmo formato: na tela de acesso, "Concluído em 17 de set." e "Liberada em 20 de ago.". A exceção é a faixa do comunicado, que mostra o curto fechada e, aberta, repete a mesma data no longo dentro do texto ("Publicado em 2 de outubro de 2026.").
 
@@ -520,5 +520,5 @@ Em `/admin/categorias`. O cabeçalho conta categorias e cursos ("5 categorias, 1
 - **Don't** desenhar divisória que para antes da borda do cartão: nada de `border-t`, `divide-y`, `<hr>` ou `Separator` dentro de um contêiner com padding lateral. A linha vai de borda a borda (The Edge To Edge Rule).
 - **Don't** redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.
 - **Don't** pôr pontos ou sequência fora do cartão de conta na casca.
-- **Don't** usar caixa alta ou linha acima de título fora do selo da área.
+- **Don't** pôr texto em caixa alta, nem linha acima de título, fora do selo da área. Sigla e código escritos em maiúsculas não contam.
 - **Don't** escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`. Os dois `foco.test.ts` acusam a volta.
