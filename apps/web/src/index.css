@@ -19,6 +19,14 @@
     var(--tw-animation-fill-mode, none);
 }
 
+/* The Tabular Numbers Rule do DESIGN.md: todo número que muda ou se compara usa
+   algarismos tabulares. No body, nenhum elemento precisa lembrar a classe. */
+@layer base {
+  body {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 /* A pílula do item ativo acende com o cursor ou o foco de teclado no link ativo
    (#44). Ela é o primeiro li da lista e o link mora num li depois dela, então o
    hover: do globals.css, que olha o próprio elemento, não chega: o estado vem do
