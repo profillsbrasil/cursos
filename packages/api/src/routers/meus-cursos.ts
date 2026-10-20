@@ -1,8 +1,8 @@
 import { carregarPainel } from "../consultas/meus-cursos";
-import { protectedProcedure, router } from "../index";
+import { alunoProcedure, router } from "../index";
 
 export const meusCursosRouter = router({
-  painel: protectedProcedure.query(({ ctx }) =>
-    carregarPainel(ctx.db, ctx.auth.userId, new Date())
+  painel: alunoProcedure.query(({ ctx }) =>
+    carregarPainel(ctx.db, ctx.aluno, new Date())
   ),
 });

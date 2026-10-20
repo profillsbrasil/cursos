@@ -13,7 +13,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -136,7 +136,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       precoVisto: 300,
     });
     expect(await trocasDe(userId)).toEqual([{ id: r.lancamentoId }]);
-    const painel = await carregarPainelDeTroca(db, userId, AGORA);
+    const painel = await carregarPainelDeTroca(db, alunoDeTeste(userId), AGORA);
     expect(painel.saldo).toBe(200);
     expect(painel.cartoes.find((x) => x.curso.id === c)).toMatchObject({
       pago: 300,
@@ -162,11 +162,11 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const quemTrocou = await aluno(500);
     const outro = await aluno(500);
     const c = await cursoTrocavel(300);
-    await trocar(db, quemTrocou, c, 300, AGORA);
+    await trocar(db, alunoDeTeste(quemTrocou), c, 300, AGORA);
     const cardDe = async (userId: string) =>
-      (await carregarPainelDeTroca(db, userId, AGORA)).cartoes.find(
-        (x) => x.curso.id === c
-      );
+      (
+        await carregarPainelDeTroca(db, alunoDeTeste(userId), AGORA)
+      ).cartoes.find((x) => x.curso.id === c);
     expect(await cardDe(outro)).toMatchObject({ tipo: "pode_trocar" });
     await db.update(curso).set({ precoTroca: null }).where(eq(curso.id, c));
     expect(await cardDe(quemTrocou)).toMatchObject({
@@ -186,8 +186,8 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         cursoTrocavel(300),
       ]);
       const r = await Promise.allSettled([
-        trocar(db, userId, a, 300, AGORA),
-        trocar(db, userId, b, 300, AGORA),
+        trocar(db, alunoDeTeste(userId), a, 300, AGORA),
+        trocar(db, alunoDeTeste(userId), b, 300, AGORA),
       ]);
       rodadas.push({
         codigos: r.map(codigo).map(String).sort(),
@@ -206,8 +206,8 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
     const [um, dois] = await Promise.all([
-      trocar(db, userId, c, 300, AGORA),
-      trocar(db, userId, c, 300, AGORA),
+      trocar(db, alunoDeTeste(userId), c, 300, AGORA),
+      trocar(db, alunoDeTeste(userId), c, 300, AGORA),
     ]);
     expect(um.lancamentoId).toBe(dois.lancamentoId);
     expect(await trocasDe(userId)).toHaveLength(1);
@@ -217,8 +217,8 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   test("retry depois do commit devolve a mesma troca e não debita de novo", async () => {
     const userId = await aluno(600);
     const c = await cursoTrocavel(300);
-    const primeira = await trocar(db, userId, c, 300, AGORA);
-    const retry = await trocar(db, userId, c, 300, AGORA);
+    const primeira = await trocar(db, alunoDeTeste(userId), c, 300, AGORA);
+    const retry = await trocar(db, alunoDeTeste(userId), c, 300, AGORA);
     expect(retry).toEqual(primeira);
     expect(await trocasDe(userId)).toHaveLength(1);
     expect(await saldoDe(userId)).toBe(300);
@@ -246,7 +246,9 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       await portao;
     });
     await inseriu;
-    const troca = trocar(db, userId, c, 300, AGORA).catch((e: unknown) => e);
+    const troca = trocar(db, alunoDeTeste(userId), c, 300, AGORA).catch(
+      (e: unknown) => e
+    );
     await esperarInsertBloqueado(100);
     commitDoAdmin();
     await admin;
@@ -262,7 +264,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const userId = await aluno(1000);
     const c = await cursoTrocavel(300);
     await db.update(curso).set({ precoTroca: 450 }).where(eq(curso.id, c));
-    const erro = await trocar(db, userId, c, 300, AGORA).catch(
+    const erro = await trocar(db, alunoDeTeste(userId), c, 300, AGORA).catch(
       (e: unknown) => e
     );
     expect(erro).toMatchObject({
@@ -282,11 +284,11 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       origem: "admin",
       userId,
     });
-    const erro = await trocar(db, userId, c, 300, AGORA).catch(
+    const erro = await trocar(db, alunoDeTeste(userId), c, 300, AGORA).catch(
       (e: unknown) => e
     );
     expect(erro).toMatchObject({ code: "CONFLICT" });
-    const painel = await carregarPainelDeTroca(db, userId, AGORA);
+    const painel = await carregarPainelDeTroca(db, alunoDeTeste(userId), AGORA);
     expect(painel.cartoes.map((x) => x.curso.id)).not.toContain(c);
   });
 
@@ -295,13 +297,23 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const fora = await cursoTrocavel(null);
     const caro = await cursoTrocavel(300);
     const r = await Promise.allSettled([
-      trocar(db, userId, fora, 300, AGORA),
-      trocar(db, userId, crypto.randomUUID() as CursoId, 300, AGORA),
+      trocar(db, alunoDeTeste(userId), fora, 300, AGORA),
+      trocar(
+        db,
+        alunoDeTeste(userId),
+        crypto.randomUUID() as CursoId,
+        300,
+        AGORA
+      ),
     ]);
     expect(r.map(codigo)).toEqual(["NOT_FOUND", "NOT_FOUND"]);
-    const curto = await trocar(db, userId, caro, 300, AGORA).catch(
-      (e: unknown) => e
-    );
+    const curto = await trocar(
+      db,
+      alunoDeTeste(userId),
+      caro,
+      300,
+      AGORA
+    ).catch((e: unknown) => e);
     expect(curto).toMatchObject({
       code: "PRECONDITION_FAILED",
       message: "Faltam 200 pts para trocar este curso.",

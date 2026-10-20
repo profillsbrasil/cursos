@@ -19,7 +19,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
@@ -212,7 +212,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await db
       .insert(aulaAssistida)
       .values({ aulaId: primeira ?? "", userId: ALUNO_A });
-    const antes = await carregarPainel(db, ALUNO_A, AGORA);
+    const antes = await carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA);
     expect(doPequeno(antes)?.progresso).toEqual({
       feitas: 1,
       pct: 50,
@@ -223,11 +223,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       .update(liberacao)
       .set({ revogadaEm: new Date(), revogadaPor: "user_admin" })
       .where(and(eq(liberacao.userId, ALUNO_A), isNull(liberacao.revogadaEm)));
-    const revogado = await carregarPainel(db, ALUNO_A, AGORA);
+    const revogado = await carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA);
     expect(idsDe(revogado)).not.toContain(pequena.cursos[0] ?? "");
 
     await liberar(ALUNO_A, pequena.cursos);
-    const deNovo = await carregarPainel(db, ALUNO_A, AGORA);
+    const deNovo = await carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA);
     expect(doPequeno(deNovo)?.progresso).toEqual({
       feitas: 1,
       pct: 50,
@@ -241,7 +241,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await db
       .insert(posicaoAula)
       .values({ aulaId: segunda ?? "", posicaoSeg: 120, userId: ALUNO_A });
-    const b = await carregarPainel(db, ALUNO_B, AGORA);
+    const b = await carregarPainel(db, alunoDeTeste(ALUNO_B), AGORA);
     expect(doPequeno(b)).toMatchObject({
       estado: { tipo: "nao_iniciado" },
       progresso: { feitas: 0 },
@@ -354,7 +354,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         titulo: `Aviso alheio ${i}`,
       }))
     );
-    const painel = await carregarPainel(db, ALUNO_AVISO, AGORA);
+    const painel = await carregarPainel(db, alunoDeTeste(ALUNO_AVISO), AGORA);
     expect(painel.comunicado?.titulo).toBe(`Aviso do meu curso ${S}`);
   });
 
@@ -366,7 +366,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     } = await criarCursos(1);
     await liberarCurso(ALUNO_DIRETO, liberado ?? "");
     await publicar(liberado, "2091-01-01T00:00:00Z", `Aviso direto ${S}`);
-    const painel = await carregarPainel(db, ALUNO_DIRETO, AGORA);
+    const painel = await carregarPainel(db, alunoDeTeste(ALUNO_DIRETO), AGORA);
     expect(painel.comunicado?.titulo).toBe(`Aviso direto ${S}`);
   });
 
@@ -379,7 +379,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await liberarCurso(ALUNO_REVOGADO_DIRETO, revogado ?? "", true);
     await publicar(liberada.cursos[0], "2092-01-01T00:00:00Z", `Visível ${S}`);
     await publicar(revogado, "2092-01-02T00:00:00Z", `Revogado ${S}`);
-    const painel = await carregarPainel(db, ALUNO_REVOGADO_DIRETO, AGORA);
+    const painel = await carregarPainel(
+      db,
+      alunoDeTeste(ALUNO_REVOGADO_DIRETO),
+      AGORA
+    );
     expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
   });
 
@@ -404,7 +408,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         userId: ALUNO_MESMO_INSTANTE,
       },
     ]);
-    const painel = await carregarPainel(db, ALUNO_MESMO_INSTANTE, AGORA);
+    const painel = await carregarPainel(
+      db,
+      alunoDeTeste(ALUNO_MESMO_INSTANTE),
+      AGORA
+    );
     expect(idsDe(painel)).toEqual([um ?? "", dois ?? ""]);
   });
 
@@ -425,9 +433,13 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       .set({ precoTroca: 300 })
       .where(eq(curso.id, trocavel));
     expect({
-      semana: await carregarTemCursoTrocavelNaVitrine(db, ALUNO_VITRINE),
-      troca: (await carregarPainelDeTroca(db, ALUNO_VITRINE, AGORA))
-        .temCursoTrocavelNaVitrine,
+      semana: await carregarTemCursoTrocavelNaVitrine(
+        db,
+        alunoDeTeste(ALUNO_VITRINE)
+      ),
+      troca: (
+        await carregarPainelDeTroca(db, alunoDeTeste(ALUNO_VITRINE), AGORA)
+      ).temCursoTrocavelNaVitrine,
     }).toEqual({ semana: true, troca: true });
     class Desfazer extends Error {}
     const vistos: boolean[] = [];
@@ -436,7 +448,10 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         async (tx) => {
           const fato = async () => {
             vistos.push(
-              await carregarTemCursoTrocavelNaVitrine(tx, ALUNO_VITRINE)
+              await carregarTemCursoTrocavelNaVitrine(
+                tx,
+                alunoDeTeste(ALUNO_VITRINE)
+              )
             );
           };
           await fato();
@@ -495,7 +510,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   test("Sua semana lê a vitrine num statement, fora do resumo", async () => {
     statements = 0;
-    await carregarTemCursoTrocavelNaVitrine(db, ALUNO_A);
+    await carregarTemCursoTrocavelNaVitrine(db, alunoDeTeste(ALUNO_A));
     expect(statements).toBe(1);
   });
 
@@ -510,14 +525,18 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       return statements;
     };
     const comUm = {
-      painel: await contar(() => carregarPainel(db, ALUNO_A, AGORA)),
+      painel: await contar(() =>
+        carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA)
+      ),
       resumo: await contar(() => carregarResumo(db, ALUNO_A, AGORA)),
     };
     const comQuarenta = {
-      painel: await contar(() => carregarPainel(db, ALUNO_B, AGORA)),
+      painel: await contar(() =>
+        carregarPainel(db, alunoDeTeste(ALUNO_B), AGORA)
+      ),
       resumo: await contar(() => carregarResumo(db, ALUNO_B, AGORA)),
     };
-    const painelB = await carregarPainel(db, ALUNO_B, AGORA);
+    const painelB = await carregarPainel(db, alunoDeTeste(ALUNO_B), AGORA);
     const doGrande = new Set(grande.cursos);
     expect(painelB.cursos.filter((c) => doGrande.has(c.id))).toHaveLength(40);
     expect(comUm).toEqual({ painel: 6, resumo: 2 });

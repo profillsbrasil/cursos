@@ -1,6 +1,7 @@
 import { initTRPC, type TRPC_ERROR_CODE_KEY, TRPCError } from "@trpc/server";
 
 import { mensagemDoBanco } from "./consultas/erros";
+import { perfilDe } from "./consultas/perfil";
 import { type Context, ehAdmin } from "./context";
 import type { AdminId } from "./dominio/tipos";
 
@@ -79,8 +80,23 @@ export const traduzErroDoBanco = t.middleware(async ({ next }) => {
   return resultado;
 });
 
-// O protegido com a tradução: a base do admin e do aula.registrar.
+// O protegido com a tradução: a base do admin.
 export const protegidoComTraducao = protectedProcedure.use(traduzErroDoBanco);
+
+/**
+ * Todo procedure que lê o que o aluno vê. Entrega ctx.aluno com o perfil, e no
+ * primeiro acesso da pessoa grava o perfil do cadastro (consultas/perfil.ts).
+ */
+export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const { userId } = ctx.auth;
+  const perfil = await perfilDe(ctx.db, userId, () =>
+    ctx.pessoas.conta(userId)
+  );
+  return next({ ctx: { ...ctx, aluno: { perfil, userId } } });
+});
+
+/** O do aluno com a tradução: aula.registrar e questionario.responder. */
+export const alunoComTraducao = alunoProcedure.use(traduzErroDoBanco);
 
 /**
  * Segunda porta do admin; a primeira é exigirAdmin em apps/web/src/server/api.ts.

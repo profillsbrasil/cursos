@@ -11,6 +11,7 @@ import {
   type LinhasDoQuestionario,
   montarCursoAberto,
 } from "../dominio/aula";
+import type { Aluno, Perfil } from "../dominio/perfil";
 import {
   corrigir,
   type PerguntaComGabarito,
@@ -166,9 +167,18 @@ async function gravarTentativa(
   }
 }
 
-async function abrirQuestionario(aluno: AlunoTravado, aulaId: AulaId) {
+async function abrirQuestionario(
+  aluno: AlunoTravado,
+  perfil: Perfil,
+  aulaId: AulaId
+) {
   const aberto = montarCursoAberto(
-    await linhasDoCurso(aluno.tx, aluno.userId, { aulaId }, { serial: true })
+    await linhasDoCurso(
+      aluno.tx,
+      { perfil, userId: aluno.userId },
+      { aulaId },
+      { serial: true }
+    )
   );
   const aula = aberto && aulaPorId(aberto, aulaId);
   if (!(aberto && aula)) {
@@ -233,13 +243,14 @@ const erroIncompleto = (faltam: number) =>
  */
 export function responder(
   db: Database,
-  userId: string,
+  { perfil, userId }: Aluno,
   envio: EnvioDoQuestionario,
   agora: Date
 ): Promise<RespostaAoEnvio> {
   return comAlunoTravado(db, userId, async (aluno) => {
     const { cursoId, perguntas, tentativas } = await abrirQuestionario(
       aluno,
+      perfil,
       envio.aulaId
     );
     const gravado = await resultadoGravado(aluno, envio, perguntas, tentativas);

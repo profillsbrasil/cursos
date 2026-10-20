@@ -12,7 +12,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import type {
   AdminId,
   CursoId,
@@ -155,7 +155,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const soltar = await seguraOsInserts();
     const admin = liberar(db, ADMIN, pessoa(userId), c, AGORA);
     await esperas(1);
-    const troca = trocar(db, userId, c, 300, AGORA);
+    const troca = trocar(db, alunoDeTeste(userId), c, 300, AGORA);
     const paradas = await esperas(2);
     await soltar();
     const [r, rTroca] = await Promise.allSettled([admin, troca]);
@@ -176,7 +176,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
     const soltar = await seguraOsInserts();
-    const troca = trocar(db, userId, c, 300, AGORA);
+    const troca = trocar(db, alunoDeTeste(userId), c, 300, AGORA);
     await esperas(1);
     const admin = liberar(db, ADMIN, pessoa(userId), c, AGORA);
     const paradas = await esperas(2);
@@ -281,7 +281,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
   test("revogar troca é recusado e a liberação continua ativa", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
-    await trocar(db, userId, c, 300, AGORA);
+    await trocar(db, alunoDeTeste(userId), c, 300, AGORA);
     const [troca] = await liberacoesDe(userId);
     const erro = await revogar(
       db,
@@ -431,7 +431,13 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       ];
       const ontem = new Date("2026-08-20T15:00:00Z");
       await liberar(db, ADMIN, pessoa(peloAdmin), c, ontem);
-      await trocar(db, porTroca, c, 300, new Date("2025-12-30T15:00:00Z"));
+      await trocar(
+        db,
+        alunoDeTeste(porTroca),
+        c,
+        300,
+        new Date("2025-12-30T15:00:00Z")
+      );
       const liberarVarios = loteDe(
         [
           nomeado(nova, "Ana"),

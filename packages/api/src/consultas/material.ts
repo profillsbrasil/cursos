@@ -6,9 +6,9 @@ import type { Database } from "@cursos/db";
 import { curso, material } from "@cursos/db/schema/index";
 import { asc, eq } from "drizzle-orm";
 
-import { ehAdmin, type Sessao } from "../context";
 import { montarCursoAberto } from "../dominio/aula";
 import type { MaterialDaPagina, TipoDoMaterial } from "../dominio/material";
+import type { Aluno } from "../dominio/perfil";
 import { caminhoDoMaterial } from "../dominio/rotas";
 import type { MaterialId } from "../dominio/tipos";
 import { linhasDoCurso } from "./aula";
@@ -46,12 +46,13 @@ export interface MaterialParaBaixar {
 
 /**
  * O admin baixa qualquer material. O aluno, só o do curso que a página do curso
- * abre para ele: a mesma porta, montarCursoAberto (liberação ativa e curso que
- * não está em produção). Para os outros, null, que a rota responde como 404.
+ * abre para ele: a mesma porta, montarCursoAberto (liberação ativa, própria ou
+ * do perfil, e curso que não está em produção). Para os outros, null, que a rota
+ * responde como 404.
  */
 export async function materialParaBaixar(
   db: Database,
-  sessao: Sessao,
+  quem: { admin: boolean; aluno: Aluno },
   id: MaterialId
 ): Promise<MaterialParaBaixar | null> {
   const [achado] = await db
@@ -68,11 +69,11 @@ export async function materialParaBaixar(
     return null;
   }
   const { slug, ...arquivo } = achado;
-  if (ehAdmin(sessao)) {
+  if (quem.admin) {
     return arquivo;
   }
   const aberto = montarCursoAberto(
-    await linhasDoCurso(db, sessao.userId, { slug }, { serial: false })
+    await linhasDoCurso(db, quem.aluno, { slug }, { serial: false })
   );
   return aberto ? arquivo : null;
 }

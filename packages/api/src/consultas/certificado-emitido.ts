@@ -13,6 +13,7 @@ import {
   paginaEmitida,
   paginaQueFalta,
 } from "../dominio/pagina-do-certificado";
+import type { Aluno } from "../dominio/perfil";
 import { linhasDoCurso } from "./aula";
 
 type Onde = { codigo: CodigoDoCertificado } | { slug: string; userId: string };
@@ -44,15 +45,16 @@ export async function linhaDoCertificado(
 
 export async function carregarPaginaDoCertificado(
   { db, pessoas }: Servicos,
-  userId: string,
+  aluno: Aluno,
   slug: string
 ): Promise<PaginaDoCertificado | null> {
+  const { userId } = aluno;
   const linha = await linhaDoCertificado(db, { slug, userId });
   if (linha) {
     return paginaEmitida(linha, await pessoas.porId(userId));
   }
   const aberto = montarCursoAberto(
-    await linhasDoCurso(db, userId, { slug }, { serial: false })
+    await linhasDoCurso(db, aluno, { slug }, { serial: false })
   );
   return aberto && paginaQueFalta(aberto);
 }

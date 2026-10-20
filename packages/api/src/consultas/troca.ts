@@ -1,7 +1,7 @@
 import type { Database } from "@cursos/db";
 import { pontoLancamento } from "@cursos/db/schema/index";
 import { DrizzleQueryError } from "drizzle-orm";
-
+import type { Aluno } from "../dominio/perfil";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { CursoId } from "../dominio/tipos";
 import {
@@ -15,7 +15,12 @@ import {
   temCursoTrocavelNaVitrine,
 } from "../dominio/troca";
 import { ErroParaAPessoa } from "../index";
-import { COLUNAS_DA_CAPA, type Executor, filtroLiberacaoAtiva } from "./comum";
+import {
+  COLUNAS_DA_CAPA,
+  type Executor,
+  filtroDoPerfilAtivo,
+  filtroLiberacaoAtiva,
+} from "./comum";
 import { inserirLiberacao } from "./liberacao";
 import { comSaldoTravado, linhasDoExtrato, linhasDoSaldo } from "./pontos";
 import type { AlunoTravado } from "./trava";
@@ -24,10 +29,10 @@ const LIMITE_DO_EXTRATO = 10;
 
 export async function linhasDosCursos(
   exec: Executor,
-  userId: string,
+  aluno: Aluno,
   filtro: { cursoId: CursoId } | "vitrine"
 ): Promise<CursoDaTroca[]> {
-  const ativas = filtroLiberacaoAtiva(userId);
+  const ativas = filtroLiberacaoAtiva(aluno.userId);
   const linhas = await exec.query.curso.findMany({
     columns: {
       ...COLUNAS_DA_CAPA,
@@ -53,6 +58,10 @@ export async function linhasDosCursos(
         where: ativas,
         with: { trocaLancamento: { columns: { id: true, pontos: true } } },
       },
+      liberacoesDoPerfil: {
+        columns: { id: true },
+        where: filtroDoPerfilAtivo(aluno.perfil),
+      },
       modulos: {
         columns: {},
         with: { aulas: { columns: { duracaoSeg: true } } },
@@ -64,12 +73,13 @@ export async function linhasDosCursos(
 
 export async function carregarPainelDeTroca(
   db: Database,
-  userId: string,
+  aluno: Aluno,
   agora: Date
 ): Promise<PainelDeTroca> {
+  const { userId } = aluno;
   const hoje = diaLocal(agora);
   const [cursos, pontos, extrato] = await Promise.all([
-    linhasDosCursos(db, userId, "vitrine"),
+    linhasDosCursos(db, aluno, "vitrine"),
     linhasDoSaldo(db, userId, segundaDaSemana(hoje)),
     linhasDoExtrato(db, userId, LIMITE_DO_EXTRATO),
   ]);
@@ -83,10 +93,10 @@ export async function carregarPainelDeTroca(
  */
 export async function carregarTemCursoTrocavelNaVitrine(
   exec: Executor,
-  userId: string
+  aluno: Aluno
 ): Promise<boolean> {
   return temCursoTrocavelNaVitrine(
-    await linhasDosCursos(exec, userId, "vitrine")
+    await linhasDosCursos(exec, aluno, "vitrine")
   );
 }
 
@@ -165,13 +175,17 @@ async function gravarTroca(
 
 export function trocar(
   db: Database,
-  userId: string,
+  { perfil, userId }: Aluno,
   cursoId: CursoId,
   precoVisto: number,
   agora: Date
 ): Promise<ResultadoDaTroca> {
   return comSaldoTravado(db, userId, async (aluno, saldo) => {
-    const [curso] = await linhasDosCursos(aluno.tx, aluno.userId, { cursoId });
+    const [curso] = await linhasDosCursos(
+      aluno.tx,
+      { perfil, userId: aluno.userId },
+      { cursoId }
+    );
     const d = decidirTroca(curso ?? null, saldo, precoVisto);
     switch (d.tipo) {
       case "recusa":

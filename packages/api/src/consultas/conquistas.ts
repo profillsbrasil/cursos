@@ -16,10 +16,12 @@ import {
   type LinhasDasConquistas,
   montarConquistas,
 } from "../dominio/conquistas";
+import type { Aluno } from "../dominio/perfil";
 import { diaLocal } from "../dominio/sequencia";
-import { COM_CONTEUDO } from "./catalogo";
-import { filtroLiberacaoAtiva } from "./comum";
-import { linhasDosQuestionarios } from "./meus-cursos";
+import {
+  linhasDosCursosQueOAlunoVe,
+  linhasDosQuestionarios,
+} from "./meus-cursos";
 import { linhasDosCursos } from "./troca";
 
 const CURSO_DO_CERTIFICADO = {
@@ -34,8 +36,9 @@ const CURSO_DO_CERTIFICADO = {
 /** Sete statements em paralelo, como o painel de Meus cursos. */
 export async function linhasDasConquistas(
   db: Database,
-  userId: string
+  aluno: Aluno
 ): Promise<LinhasDasConquistas> {
+  const { userId } = aluno;
   const [
     liberacoes,
     assistidas,
@@ -45,13 +48,8 @@ export async function linhasDasConquistas(
     vitrine,
     questionarios,
   ] = await Promise.all([
-    // 1. liberações ativas com o catálogo
-    db.query.liberacao.findMany({
-      columns: { liberadaEm: true },
-      orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
-      where: filtroLiberacaoAtiva(userId),
-      with: { curso: COM_CONTEUDO },
-    }),
+    // 1. os cursos que o aluno vê, com o catálogo
+    linhasDosCursosQueOAlunoVe(db, aluno),
     // 2. toda aula assistida, com os títulos da aula e do curso
     db
       .select({
@@ -112,7 +110,7 @@ export async function linhasDasConquistas(
         )
       ),
     // 6. a vitrine de Trocar pontos
-    linhasDosCursos(db, userId, "vitrine"),
+    linhasDosCursos(db, aluno, "vitrine"),
     // 7. os questionários por aula, como no painel
     linhasDosQuestionarios(db, userId),
   ]);
@@ -129,11 +127,11 @@ export async function linhasDasConquistas(
 
 export async function carregarConquistas(
   db: Database,
-  userId: string,
+  aluno: Aluno,
   agora: Date
 ): Promise<Conquistas> {
   return montarConquistas(
-    await linhasDasConquistas(db, userId),
+    await linhasDasConquistas(db, aluno),
     diaLocal(agora)
   );
 }

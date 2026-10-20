@@ -154,6 +154,7 @@ const linha = (
   categoria: { nome: "Processo de envase" },
   id: "c-1",
   liberacoes: [],
+  liberacoesDoPerfil: [],
   modulos: [
     { aulas: [{ duracaoSeg: 600 }, { duracaoSeg: 300 }] },
     { aulas: [{ duracaoSeg: 60 }] },
@@ -207,6 +208,25 @@ describe("paraCursoDaTroca", () => {
     expect(() =>
       paraCursoDaTroca(linha({ liberacoes: [semLancamento] }))
     ).toThrow();
+  });
+
+  test("curso aberto ao perfil da pessoa dá liberado, sem liberação própria", () => {
+    expect(
+      paraCursoDaTroca(linha({ liberacoesDoPerfil: [{ id: "lp" }] })).acesso
+        .tipo
+    ).toBe("liberado");
+  });
+
+  test("a troca feita vale mais que o perfil: mostra o que ela pagou", () => {
+    const trocada = {
+      origem: "troca",
+      trocaLancamento: { id: "lanc-1", pontos: -300 },
+    } as const;
+    expect(
+      paraCursoDaTroca(
+        linha({ liberacoes: [trocada], liberacoesDoPerfil: [{ id: "lp" }] })
+      ).acesso
+    ).toEqual({ lancamentoId: "lanc-1", pago: 300, tipo: "trocado" });
   });
 
   test("liberação do admin dá liberado", () => {

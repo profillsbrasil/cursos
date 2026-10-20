@@ -4,11 +4,13 @@ import {
   certificado,
   curso,
   liberacao,
+  liberacaoDoPerfil,
   modulo,
+  perfilDaPessoa,
   pergunta,
   pontoLancamento,
 } from "@cursos/db/schema/index";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { gerarCodigo } from "../dominio/certificado";
 import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
@@ -88,18 +90,24 @@ async function cursoParaConcluir(
   };
 }
 
-async function temLiberacaoAtiva(aluno: AlunoTravado, cursoId: CursoId) {
-  const [ativa] = await aluno.tx
-    .select({ id: liberacao.id })
-    .from(liberacao)
-    .where(
-      and(
-        eq(liberacao.userId, aluno.userId),
-        eq(liberacao.cursoId, cursoId),
-        isNull(liberacao.revogadaEm)
-      )
-    );
-  return ativa !== undefined;
+/**
+ * A emissão também roda para quem não está logado (concluirParaQuemCompletou),
+ * então o perfil vem da linha de perfil_da_pessoa, não da sessão.
+ */
+async function temAcessoAtivo(aluno: AlunoTravado, cursoId: CursoId) {
+  const { rows } = await aluno.tx.execute<{ ve: boolean }>(sql`
+    select exists (
+             select 1 from ${liberacao} l
+              where l.user_id = ${aluno.userId}
+                and l.curso_id = ${cursoId}
+                and l.revogada_em is null)
+        or exists (
+             select 1 from ${liberacaoDoPerfil} lp
+               join ${perfilDaPessoa} p on p.perfil = lp.perfil
+              where p.user_id = ${aluno.userId}
+                and lp.curso_id = ${cursoId}
+                and lp.revogada_em is null) as ve`);
+  return rows[0]?.ve === true;
 }
 
 /**
@@ -147,7 +155,7 @@ export async function concluirCurso(
   agora: Date
 ): Promise<Conclusao | null> {
   const alvo = await cursoParaConcluir(aluno.tx, cursoId);
-  if (!(alvo && (await temLiberacaoAtiva(aluno, cursoId)))) {
+  if (!(alvo && (await temAcessoAtivo(aluno, cursoId)))) {
     return null;
   }
   const linhas = await linhasDoHistoricoNoCurso(aluno, {
@@ -187,16 +195,22 @@ export async function concluirParaQuemCompletou(
         join ${modulo} on ${modulo.id} = ${aula.moduloId}
        where ${modulo.cursoId} = ${cursoId}
     )
-    select l.user_id
-      from ${liberacao} l
-     where l.curso_id = ${cursoId}
-       and l.revogada_em is null
-       and not exists (
+    , alcance as (
+      select l.user_id from ${liberacao} l
+       where l.curso_id = ${cursoId} and l.revogada_em is null
+      union
+      select p.user_id from ${perfilDaPessoa} p
+        join ${liberacaoDoPerfil} lp on lp.perfil = p.perfil
+       where lp.curso_id = ${cursoId} and lp.revogada_em is null
+    )
+    select a.user_id
+      from alcance a
+     where not exists (
          select 1 from ${certificado} c
-          where c.user_id = l.user_id and c.curso_id = ${cursoId})
+          where c.user_id = a.user_id and c.curso_id = ${cursoId})
        and (select count(*) from aulas) > 0
        and (select count(*) from ${aulaAssistida} aa
-             where aa.user_id = l.user_id and aa.aula_id in (select id from aulas))
+             where aa.user_id = a.user_id and aa.aula_id in (select id from aulas))
            = (select count(*) from aulas)`);
   for (const { user_id } of rows) {
     // biome-ignore lint/performance/noAwaitInLoops: as travas dividem a transação, um client só.
