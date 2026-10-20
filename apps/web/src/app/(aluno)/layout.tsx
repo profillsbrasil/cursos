@@ -2,6 +2,7 @@ import { CartaoContinuar } from "@/components/aluno/cartao-continuar";
 import { continuarDe } from "@/components/aluno/continuar";
 import { AREA_DO_ADMIN, ITENS_DO_ALUNO } from "@/components/aluno/menu";
 import { Casca } from "@/components/casca/casca";
+import { ProvedorDoClerk } from "@/components/provedor-do-clerk";
 import {
   carregarPainel,
   carregarResumo,
@@ -29,14 +30,16 @@ export default async function LayoutDoAluno({
     }))
   );
   return (
-    <Casca
-      itens={ITENS_DO_ALUNO}
-      outraArea={admin ? AREA_DO_ADMIN : null}
-      placar={placar}
-      rodape={<CartaoContinuar cartao={continuar} />}
-      rotulo="Navegação principal"
-    >
-      {children}
-    </Casca>
+    <ProvedorDoClerk>
+      <Casca
+        itens={ITENS_DO_ALUNO}
+        outraArea={admin ? AREA_DO_ADMIN : null}
+        placar={placar}
+        rodape={<CartaoContinuar cartao={continuar} />}
+        rotulo="Navegação principal"
+      >
+        {children}
+      </Casca>
+    </ProvedorDoClerk>
   );
 }

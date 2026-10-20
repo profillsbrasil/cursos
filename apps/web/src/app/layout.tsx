@@ -1,13 +1,10 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 
 import "../index.css";
 import { Geist, Geist_Mono } from "next/font/google";
-import { APARENCIA_CLERK, TEXTOS_CLERK } from "@/components/entrada/clerk";
 import Providers from "@/components/providers";
 import PwaRegistration from "@/components/pwa-registration";
 import { TITULO_DA_RAIZ } from "@/lib/marca";
-import { CRIAR_CONTA, ENTRAR } from "@/lib/rotas";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -45,16 +42,7 @@ export default function RootLayout({
       <body className="antialiased">
         <PwaRegistration />
 
-        <ClerkProvider
-          appearance={APARENCIA_CLERK}
-          localization={TEXTOS_CLERK}
-          signInFallbackRedirectUrl="/meus-cursos"
-          signInUrl={ENTRAR}
-          signUpFallbackRedirectUrl="/meus-cursos"
-          signUpUrl={CRIAR_CONTA}
-        >
-          <Providers>{children}</Providers>
-        </ClerkProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
