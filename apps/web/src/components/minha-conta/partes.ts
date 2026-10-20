@@ -48,7 +48,7 @@ export const SELO =
 
 /** A ação em texto da linha (Sair, Remover), em Céu, que clareia sob o cursor e no foco. */
 export const ACAO_NA_LINHA =
-  "shrink-0 cursor-pointer font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo disabled:cursor-not-allowed disabled:opacity-50";
+  "toque shrink-0 cursor-pointer font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo disabled:cursor-not-allowed disabled:opacity-50";
 
 export const BOTAO_PEQUENO = cn(BOTAO, PEQUENO);
 
@@ -68,10 +68,6 @@ export const ACOES = "flex flex-wrap items-center gap-2";
 export const ROTULO = "font-semibold text-[13px] text-titulo";
 
 export const AJUDA = "text-muted-foreground text-xs";
-
-/** A caixa de marcar em Sol, como a da busca de alunos do admin. */
-export const CAIXA =
-  "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
 
 export const ICONE_DO_APARELHO =
   "grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-sidebar-accent text-muted-foreground [&_svg]:size-[18px]";

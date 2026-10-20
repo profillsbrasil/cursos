@@ -10,6 +10,7 @@ import { Check, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useCallback } from "react";
 
+import { CAIXA } from "@/components/casca/campos";
 import { fmtNum, plural } from "@/lib/formato";
 
 import {
@@ -28,11 +29,6 @@ const JA_TEM: Selo = {
   icone: Check,
   rotulo: "Já tem",
 };
-
-// Marcada pelo aria-checked: o data-checked: sai num :where e perde para o
-// dark:bg-background que apaga o dark:bg-input/30 do Checkbox do packages/ui.
-const CAIXA =
-  "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";
 
 function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const { despachar, estado } = useLote();
@@ -95,7 +91,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
       />
       <Link
         aria-label={`Abrir ${p.nome}`}
-        className="group/seta @min-[35rem]:col-start-5 col-start-4 @min-[35rem]:row-span-1 row-span-2 row-start-1 -m-1.5 grid size-7 place-items-center rounded-full"
+        className="group/seta toque @min-[35rem]:col-start-5 col-start-4 @min-[35rem]:row-span-1 row-span-2 row-start-1 -m-1.5 grid size-7 place-items-center rounded-full"
         href={href}
       >
         <ChevronRight

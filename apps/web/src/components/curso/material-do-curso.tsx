@@ -77,7 +77,7 @@ export function MaterialDoCurso({
       </ul>
       {escondidos > 0 ? (
         <button
-          className="cursor-pointer justify-self-start font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo"
+          className="toque cursor-pointer justify-self-start font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo"
           onClick={verTodos}
           type="button"
         >
