@@ -10,13 +10,8 @@ import {
   TooltipTrigger,
 } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
-import { ChevronDown, ChevronUp, CircleAlert, Eye, Plus } from "lucide-react";
-import {
-  type ChangeEvent,
-  type Dispatch,
-  type MouseEvent,
-  useCallback,
-} from "react";
+import { ChevronDown, ChevronUp, CircleAlert, Plus, Users } from "lucide-react";
+import { type Dispatch, type MouseEvent, useCallback } from "react";
 
 import {
   BOTAO_CONTORNO,
@@ -207,7 +202,7 @@ function CabecaDoBloco({
           <span>{resumo}</span>
           {assistidas > 0 ? (
             <span className={cn(SELO, "gap-1.5 text-muted-foreground")}>
-              <Eye aria-hidden="true" className="size-3 text-ceu" />
+              <Users aria-hidden="true" className="size-3 text-ceu" />
               {plural(assistidas, "aula assistida", "aulas assistidas")}
             </span>
           ) : null}
@@ -276,8 +271,7 @@ export function BlocoDoModulo({
     [despachar]
   );
   const mudarTitulo = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      editarModulo({ titulo: e.target.value }),
+    (titulo: string) => editarModulo({ titulo }),
     [editarModulo]
   );
   const mudarNivel = useCallback(
@@ -331,15 +325,15 @@ export function BlocoDoModulo({
               texto={modulo.numero}
             />
             <CampoDeTexto
+              aoMudar={mudarTitulo}
               campoClasse="gap-1.5"
               className="font-semibold"
               id={ID.modulo(id, "titulo")}
               maxLength={CARACTERES.tituloDoModulo}
-              onChange={mudarTitulo}
               placeholder="Limpeza e higienização"
               required
               rotulo="Título do módulo"
-              value={modulo.titulo}
+              texto={modulo.titulo}
             />
             <NivelDoModulo
               id={ID.modulo(id, "nivel")}

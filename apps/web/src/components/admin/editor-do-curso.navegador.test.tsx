@@ -478,6 +478,50 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
     });
   });
 
+  describe("título e tópico longos", () => {
+    const LONGO =
+      "Gravar a visão geral, cada etapa e a embalagem final, na horizontal e na vertical, sem cortar a máquina";
+    const inteiro = (seletor: string) =>
+      avaliar<{ alto: boolean; cabe: boolean; valor: string }>(
+        enviar,
+        `(() => {
+          const c = document.querySelector(${JSON.stringify(seletor)});
+          return {
+            alto: c.getBoundingClientRect().height > 50,
+            cabe: c.scrollWidth <= c.clientWidth && c.scrollHeight <= c.clientHeight,
+            valor: c.value,
+          };
+        })()`
+      );
+
+    for (const janela of [1280, 390]) {
+      test(`em ${janela} px, o campo quebra a linha e mostra o texto inteiro`, async () => {
+        await abrirEditor(janela);
+        await escrever("#curso-titulo", LONGO);
+        await escrever("#topico-1", LONGO);
+        expect(await inteiro("#curso-titulo")).toEqual({
+          alto: true,
+          cabe: true,
+          valor: LONGO,
+        });
+        expect(await inteiro("#topico-1")).toEqual({
+          alto: true,
+          cabe: true,
+          valor: LONGO,
+        });
+      });
+    }
+
+    test("a quebra colada vira espaço, e o Enter salva sem quebrar", async () => {
+      await abrirEditor(1280);
+      await escrever("#curso-titulo", "Curso de\nFilmagem");
+      expect((await inteiro("#curso-titulo")).valor).toBe("Curso de Filmagem");
+      await teclar("Enter");
+      await esperar("window.pedidos.length === 1");
+      expect(await pedidos()).toEqual([{ salvarCurso: "Curso de Filmagem" }]);
+    });
+  });
+
   describe("Ctrl+S", () => {
     // O navegador abriria o "salvar página" no Ctrl+S que ninguém impediu.
     const vigiar = () =>

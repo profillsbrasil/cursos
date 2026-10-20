@@ -3,15 +3,14 @@
 import { CARACTERES, LIMITES } from "@cursos/api/dominio/edicao-do-curso";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
-import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Plus, X } from "lucide-react";
-import { type ChangeEvent, type Dispatch, useCallback } from "react";
+import { type Dispatch, useCallback } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO } from "@/components/casca/campos";
 import { focarDepois, vizinhoQueFica } from "@/lib/editor";
 import { plural } from "@/lib/formato";
+import { TextoDeUmaLinha } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { ICONE, ROTULO, Secao } from "./partes";
 import { ID } from "./rascunho-do-curso";
@@ -33,7 +32,7 @@ function LinhaDoTopico({
   const id = ID.topico(indice);
   const { aria, mensagem } = useErroDoCampo(id);
   const editar = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => mudar(indice, e.target.value),
+    (novo: string) => mudar(indice, novo),
     [indice, mudar]
   );
   const tirar = useCallback(() => remover(indice), [indice, remover]);
@@ -46,26 +45,24 @@ function LinhaDoTopico({
         <FieldLabel className={cn(ROTULO, "sr-only")} htmlFor={id}>
           Tópico {indice + 1}
         </FieldLabel>
-        <div className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-2.5">
+        <div className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-start gap-2.5">
           <Check
             aria-hidden="true"
-            className="size-[18px] text-ceu"
+            className="mt-[13px] size-[18px] text-ceu"
             strokeWidth={2.5}
           />
-          <Input
+          <TextoDeUmaLinha
             {...aria}
-            autoComplete="off"
-            className={CAMPO}
+            aoMudar={editar}
             id={id}
             maxLength={CARACTERES.topico}
-            onChange={editar}
             placeholder="Qualificar uma oportunidade com o diagnóstico consultivo"
             required
-            value={texto}
+            texto={texto}
           />
           <Button
             aria-label={`Tirar o tópico ${indice + 1}`}
-            className={ICONE}
+            className={cn(ICONE, "mt-0.5 md:mt-1")}
             id={`${id}-tirar`}
             onClick={tirar}
           >
@@ -118,13 +115,13 @@ export function TopicosDoCurso({
       resumo={`${topicos.length} de ${LIMITES.topicos} tópicos`}
       titulo="O que você vai aprender"
     >
-      <div className="grid gap-4 p-5">
+      <div className="@container grid gap-4 p-5">
         {topicos.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             Sem tópicos, a página do curso não mostra esta seção.
           </p>
         ) : (
-          <ul className="grid gap-x-7 gap-y-2.5 md:grid-cols-2">
+          <ul className="grid @3xl:grid-cols-2 gap-x-7 gap-y-2.5">
             {topicos.map((t, i) => (
               <LinhaDoTopico
                 indice={i}

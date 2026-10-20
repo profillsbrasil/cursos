@@ -9,8 +9,8 @@ import {
   TooltipTrigger,
 } from "@cursos/ui/components/tooltip";
 import { cn } from "@cursos/ui/lib/utils";
-import { ChevronDown, ChevronUp, Eye, Plus, Trash2 } from "lucide-react";
-import { type ChangeEvent, type Dispatch, useCallback } from "react";
+import { ChevronDown, ChevronUp, Plus, Trash2, Users } from "lucide-react";
+import { type Dispatch, useCallback } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { DICA } from "@/components/casca/estilo";
@@ -82,7 +82,7 @@ function AulaAssistida({
         id={ALVO_DA_AULA.remover(id)}
         type="button"
       >
-        <Eye aria-hidden="true" className="size-4" />
+        <Users aria-hidden="true" className="size-4" />
       </TooltipTrigger>
       <TooltipContent className={DICA} side="left">
         {frase}
@@ -163,7 +163,7 @@ function ItemDaAula({
         </span>
         {assistida ? (
           <>
-            <Eye aria-hidden="true" className="mt-0.5 size-[15px] text-ceu" />
+            <Users aria-hidden="true" className="mt-0.5 size-[15px] text-ceu" />
             <span className="sr-only">assistida por alunos</span>
           </>
         ) : (
@@ -212,8 +212,7 @@ function PainelDaAula({
     [despachar, id]
   );
   const mudarTitulo = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      editarAula({ titulo: e.target.value }),
+    (titulo: string) => editarAula({ titulo }),
     [editarAula]
   );
   const mudarDuracao = useCallback(
@@ -312,15 +311,15 @@ function PainelDaAula({
         </span>
       </div>
       <CampoDeTexto
+        aoMudar={mudarTitulo}
         campoClasse="gap-1.5"
-        className="font-semibold text-lg text-titulo md:text-lg"
+        className="py-[7px] font-semibold text-lg text-titulo md:text-lg"
         id={ID.aula(id, "titulo")}
         maxLength={CARACTERES.tituloDaAula}
-        onChange={mudarTitulo}
         placeholder="Título da aula"
         required
         rotulo="Título da aula"
-        value={aula.titulo}
+        texto={aula.titulo}
       />
       <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-3">
         <CampoLido

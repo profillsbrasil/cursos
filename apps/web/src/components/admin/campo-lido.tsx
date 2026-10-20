@@ -12,6 +12,7 @@ import {
   type ChangeEvent,
   type FocusEvent,
   type InputHTMLAttributes,
+  type KeyboardEvent,
   type ReactNode,
   type TextareaHTMLAttributes,
   useCallback,
@@ -23,20 +24,62 @@ import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
 
 import { ROTULO } from "./partes";
 
+const SEM_QUEBRA = /\r?\n/g;
+
+/**
+ * Texto de uma linha que quebra na largura do campo, para o admin ler o título
+ * ou o tópico inteiro. O Enter salva, como num input, e a quebra colada vira espaço.
+ */
+export function TextoDeUmaLinha({
+  aoMudar,
+  className,
+  texto,
+  ...area
+}: {
+  aoMudar: (texto: string) => void;
+  texto: string;
+} & Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "defaultValue" | "onChange" | "onKeyDown" | "rows" | "value"
+>) {
+  const mudar = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) =>
+      aoMudar(e.target.value.replace(SEM_QUEBRA, " ")),
+    [aoMudar]
+  );
+  const enviar = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      e.currentTarget.form?.requestSubmit();
+    }
+  }, []);
+  return (
+    <Textarea
+      {...area}
+      autoComplete="off"
+      className={cn(AREA, "rounded-[22px]", className)}
+      onChange={mudar}
+      onKeyDown={enviar}
+      rows={1}
+      value={texto}
+    />
+  );
+}
+
 export function CampoDeTexto({
   ajuda,
   campoClasse,
   id,
   rotulo,
   rotuloClasse,
-  ...input
+  ...campo
 }: {
   ajuda?: ReactNode;
   campoClasse?: string;
   id: string;
   rotulo: ReactNode;
   rotuloClasse?: string;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, "id">) {
+} & Omit<Parameters<typeof TextoDeUmaLinha>[0], "id">) {
   const { aria, mensagem } = useErroDoCampo(
     id,
     ajuda ? `${id}-ajuda` : undefined
@@ -46,13 +89,7 @@ export function CampoDeTexto({
       <FieldLabel className={cn(ROTULO, rotuloClasse)} htmlFor={id}>
         {rotulo}
       </FieldLabel>
-      <Input
-        {...input}
-        {...aria}
-        autoComplete="off"
-        className={cn(CAMPO, input.className)}
-        id={id}
-      />
+      <TextoDeUmaLinha {...campo} {...aria} id={id} />
       {ajuda ? (
         <FieldDescription className="text-xs" id={`${id}-ajuda`}>
           {ajuda}

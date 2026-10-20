@@ -3,7 +3,7 @@ import type {
   VisaoDoCatalogo as Visao,
 } from "@cursos/api/dominio/catalogo";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check, Layers, Library, Plus, Star } from "lucide-react";
+import { Eye, Layers, Library, Plus, Star } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,7 +22,7 @@ const SOBRE_A_CAPA = "absolute bg-background";
 // Céu a 14% por cima do fundo: o gradiente de uma cor só pinta sobre o bg-background.
 const PUBLICADO = {
   classe: "bg-linear-to-r from-ceu/14 to-ceu/14 text-ceu",
-  icone: Check,
+  icone: Eye,
   rotulo: "Publicado",
 };
 
@@ -113,7 +113,7 @@ function AtalhoNovoCurso() {
       </span>
       <span className="font-semibold text-titulo">Novo curso</span>
       <span className="max-w-[26ch] text-muted-foreground text-xs">
-        Começa em produção, só você vê até publicar
+        Começa em produção: o aluno vê na lista, sem abrir aula
       </span>
     </Link>
   );
@@ -135,8 +135,8 @@ function CatalogoVazio() {
         Nenhum curso no catálogo
       </h2>
       <p className="max-w-[52ch] text-muted-foreground">
-        Crie o primeiro curso. Ele nasce em produção: os alunos só abrem quando
-        você publicar.
+        Crie o primeiro curso. Ele nasce em produção: o aluno vê na lista e só
+        abre aula quando você publicar.
       </p>
       <Link className={BOTAO} href={NOVO_CURSO}>
         <Plus aria-hidden="true" className="size-4" />

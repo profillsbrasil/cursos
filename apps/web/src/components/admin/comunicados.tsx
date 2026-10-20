@@ -389,7 +389,7 @@ export function Comunicados({ comunicados, cursos }: ComunicadosDoAdmin) {
     <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
       <Secao
         id="novo-comunicado"
-        resumo="Aparece em Meus cursos"
+        resumo="Para todos ou para quem tem um curso"
         titulo="Novo comunicado"
       >
         <NovoComunicado cursos={cursos} />
@@ -400,10 +400,7 @@ export function Comunicados({ comunicados, cursos }: ComunicadosDoAdmin) {
         titulo="Publicados"
       >
         {comunicados.length === 0 ? (
-          <Vazio>
-            Nenhum comunicado ainda. O primeiro que você publicar aparece no
-            topo de Meus cursos.
-          </Vazio>
+          <Vazio>Nenhum comunicado ainda.</Vazio>
         ) : (
           <ul className="divide-y divide-border">
             {comunicados.map((c) => (

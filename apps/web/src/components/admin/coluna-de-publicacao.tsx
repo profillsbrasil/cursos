@@ -15,7 +15,8 @@ export const STATUS: Record<
   { descricao: string; icone: ReactNode; rotulo: string }
 > = {
   em_producao: {
-    descricao: "Fora do ar para quem não tem certificado.",
+    descricao:
+      "O aluno vê na lista, sem abrir aula. Quem já tem o certificado continua abrindo.",
     icone: <Clock aria-hidden="true" />,
     rotulo: "Em produção",
   },
