@@ -196,6 +196,10 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));
 const { PlayerDaAula } = await import("./player-da-aula");
+const { default: CarregandoAula } = await import(
+  "../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading"
+);
+const ESQUELETO = renderToStaticMarkup(<CarregandoAula />);
 const { FimDoVideo } = await import("./fim-do-video");
 
 // A página da aula, como o page.tsx a monta, com a coluna do curso no lugar.
@@ -230,6 +234,7 @@ const css = await cssDoApp([
       <FimDoVideo aoRever={nada} assistida conquista={null} dados={DADOS} />
     )
   ),
+  ...classesDe(ESQUELETO),
   ...PAGINA.split(" "),
   ...fontes.join(" ").split(SEPARADOR_DE_CLASSES),
 ]);
@@ -270,6 +275,26 @@ async function abrir(
   );
   await avaliar(enviar, codigo === pacoteComYoutube ? YOUTUBE_FALSO : "");
   await avaliar(enviar, codigo);
+}
+
+/** O loading.tsx da aula na mesma casca, no lugar da página. */
+async function abrirEsqueleto(
+  largura: number,
+  altura: number,
+  celular: boolean
+) {
+  await enviar("Emulation.setDeviceMetricsOverride", {
+    deviceScaleFactor: 1,
+    height: altura,
+    mobile: celular,
+    width: largura,
+  });
+  await avaliar(
+    enviar,
+    `document.open(); document.write(${JSON.stringify(
+      `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div style="display:flex">${celular ? CASCA_DO_CELULAR : CASCA_DO_COMPUTADOR}${ESQUELETO}</main></div></body></html>`
+    )}); document.close(); window.scrollTo(0, 0);`
+  );
 }
 
 function esperar(condicao: string) {
@@ -552,6 +577,35 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       pulso: ["ligado none", "ligado none", "ligado none"],
     });
   });
+
+  // A barra tem uma linha a partir de 40rem de largura dela e duas abaixo disso: no
+  // celular, no tablet e entre 1081 e uns 1230 px, onde a coluna do curso a estreita.
+  for (const [largura, altura, celular] of [
+    [1440, 900, false],
+    [1120, 800, false],
+    [1180, 800, false],
+    [1000, 800, false],
+    [390, 812, true],
+    [320, 640, true],
+  ] as const) {
+    test(`em ${largura} x ${altura}, o esqueleto do player tem a altura do player com os controles`, async () => {
+      await abrirEsqueleto(largura, altura, celular);
+      const esqueleto = await avaliar<number>(
+        enviar,
+        `document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect().height`
+      );
+      await abrir(largura, altura, false, celular);
+      await emitir({ duracaoSeg: 634, tipo: "pronto" });
+      const player = await avaliar<number>(
+        enviar,
+        `document.getElementById("video").getBoundingClientRect().height`
+      );
+      expect({ esqueleto: Math.round(esqueleto), largura }).toEqual({
+        esqueleto: Math.round(player),
+        largura,
+      });
+    });
+  }
 
   test("os Ajustes trocam a velocidade, ligam a legenda e abrem a lista de atalhos, que fecha no Esc", async () => {
     await abrir(1440, 900);
