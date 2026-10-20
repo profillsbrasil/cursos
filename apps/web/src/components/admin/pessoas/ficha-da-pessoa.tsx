@@ -7,16 +7,15 @@ import { ArrowLeft } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { SELO } from "@/components/casca/selos";
 import {
   CABECALHO_DO_CARTAO,
   CARTAO,
   PE_DO_CARTAO,
   RESUMO_DA_SECAO,
-  SELO,
   TITULO_DA_SECAO,
 } from "@/components/minha-conta/partes";
 import { diaCurto, diaEmSaoPaulo, fmtData, quando } from "@/lib/formato";
-
 import { FotoDaPessoa } from "../foto-da-pessoa";
 import { AcessoDaPessoa } from "./acesso-da-pessoa";
 

@@ -5,11 +5,14 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@cursos/ui/components/empty";
+import { cn } from "@cursos/ui/lib/utils";
 import { BookOpen } from "lucide-react";
+
+import { CARTAO } from "@/components/casca/cartoes";
 
 export function PainelVazio() {
   return (
-    <Empty className="rounded-[20px] bg-card px-6 py-14 ring-1 ring-border">
+    <Empty className={cn(CARTAO, "px-6 py-14")}>
       <EmptyHeader className="max-w-md">
         <EmptyMedia
           className="size-12 rounded-full bg-ceu text-sobre-cor"

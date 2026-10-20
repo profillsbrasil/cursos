@@ -1,7 +1,9 @@
+import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { BOTAO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 
 // Corpo dos not-found.tsx do app: diz o que faltou e leva a Meus cursos.
 export function TelaNaoEncontrada({
@@ -14,7 +16,7 @@ export function TelaNaoEncontrada({
   titulo: string;
 }) {
   return (
-    <div className="grid justify-items-start gap-3 rounded-[20px] bg-card p-8 ring-1 ring-border">
+    <div className={cn(CARTAO, "grid justify-items-start gap-3 p-8")}>
       <h1 className="font-bold text-2xl text-titulo tracking-tight">
         {titulo}
       </h1>

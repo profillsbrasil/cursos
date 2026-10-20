@@ -4,7 +4,7 @@ import { Checkbox } from "@cursos/ui/components/checkbox";
 import { Input } from "@cursos/ui/components/input";
 import { type FormEvent, useCallback, useId, useState } from "react";
 
-import { CAIXA, CAMPO } from "@/components/casca/campos";
+import { CAIXA, CAMPO, ROTULO } from "@/components/casca/campos";
 
 import {
   ACOES,
@@ -17,7 +17,6 @@ import {
   LINHA,
   NOME_DA_LINHA,
   PE_DO_CARTAO,
-  ROTULO,
   TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
 } from "./partes";

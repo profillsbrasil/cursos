@@ -18,7 +18,10 @@ import {
   CONTORNO_DESLIGADO,
   PEQUENO,
 } from "@/components/casca/botoes";
+import { ROTULO } from "@/components/casca/campos";
+import { CARTAO } from "@/components/casca/cartoes";
 import { DICA } from "@/components/casca/estilo";
+import { SELO } from "@/components/casca/selos";
 import {
   type Direcao,
   focarDepois,
@@ -27,12 +30,11 @@ import {
   vizinhoQueFica,
 } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
-
 import { AulasDoModulo } from "./aulas-do-modulo";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { ICONE, ROTULO, SELO, Vazio } from "./partes";
+import { ICONE, Vazio } from "./partes";
 import {
   ID,
   type ModuloDoRascunho,
@@ -201,8 +203,8 @@ function CabecaDoBloco({
         <span className="col-start-2 col-end-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-muted-foreground text-xs tabular-nums">
           <span>{resumo}</span>
           {assistidas > 0 ? (
-            <span className={cn(SELO, "gap-1.5 text-muted-foreground")}>
-              <Users aria-hidden="true" className="size-3 text-ceu" />
+            <span className={cn(SELO, "text-muted-foreground")}>
+              <Users aria-hidden="true" className="text-ceu" />
               {plural(assistidas, "aula assistida", "aulas assistidas")}
             </span>
           ) : null}
@@ -506,7 +508,10 @@ function IndiceDosModulos({
   return (
     <nav
       aria-label="Índice dos módulos"
-      className="sticky top-[calc(var(--topo-da-casca,0px)+--spacing(3))] z-10 flex items-center gap-3 rounded-[20px] bg-card/95 py-2 pr-2 pl-4 ring-1 ring-border backdrop-blur-sm"
+      className={cn(
+        CARTAO,
+        "sticky top-[calc(var(--topo-da-casca,0px)+--spacing(3))] z-10 flex items-center gap-3 bg-card/95 py-2 pr-2 pl-4 backdrop-blur-sm"
+      )}
       ref={reservarOTopo}
     >
       <span
@@ -600,7 +605,7 @@ export function ModulosDoCurso({
       {modulos.length > 1 ? (
         <IndiceDosModulos blocos={blocos} irPara={irPara} />
       ) : null}
-      <div className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
+      <div className={cn(CARTAO, "overflow-hidden")}>
         {modulos.length === 0 ? (
           <Vazio>
             O curso ainda não tem módulos. Cada módulo agrupa aulas, e o aluno

@@ -23,7 +23,7 @@ import {
 } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { ALAVANCA, CAMPO } from "@/components/casca/campos";
+import { ALAVANCA, CAMPO, ROTULO } from "@/components/casca/campos";
 import { useAtalhoDeSalvar } from "@/lib/atalho-de-salvar";
 import { focarDepois } from "@/lib/editor";
 import { plural } from "@/lib/formato";
@@ -53,7 +53,7 @@ import {
 } from "./erros-do-editor";
 import { MaterialDeApoio } from "./material-de-apoio";
 import { ModulosDoCurso } from "./modulos-do-curso";
-import { ICONE, ROTULO, Secao } from "./partes";
+import { ICONE, Secao } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
 import { type Mudanca, proximaOrdem } from "./rascunho-do-editor";
 import { TopicosDoCurso } from "./topicos-do-curso";

@@ -9,14 +9,14 @@ import Image from "next/image";
 
 import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { CAMPO } from "@/components/casca/campos";
+import { CARTAO } from "@/components/casca/cartoes";
+import { SELO } from "@/components/casca/selos";
 import { diaCurto, diaEmSaoPaulo } from "@/lib/formato";
 import { ICONE, PRODUTO } from "@/lib/marca";
 import { caminhoDaConferencia } from "@/lib/rotas";
 
 import { Fatos } from "./fatos";
 import { cargaEmHoras } from "./folha";
-
-const CARTAO = "rounded-[20px] bg-card ring-1 ring-border";
 
 const NOME = "font-bold text-titulo text-xl leading-[1.3]";
 
@@ -38,10 +38,10 @@ export function ReciboDaConferencia({
       >
         <Image alt={PRODUTO} height={84} preload src={ICONE.src} width={84} />
         <h1
-          className="inline-flex h-6 items-center gap-1.5 rounded-full bg-ceu px-2.5 font-semibold text-sobre-cor text-xs"
+          className={cn(SELO, "bg-ceu text-sobre-cor")}
           id="certificado-valido"
         >
-          <BadgeCheck aria-hidden="true" className="size-3" strokeWidth={2.4} />
+          <BadgeCheck aria-hidden="true" strokeWidth={2.4} />
           Certificado válido
         </h1>
         <div className="px-(--pad)">

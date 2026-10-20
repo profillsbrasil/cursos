@@ -9,8 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { BOTAO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
+import { SELO } from "@/components/casca/selos";
 import { fmtHoras, fmtPts, plural } from "@/lib/formato";
-
 import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { GradeDoCatalogo } from "./filtro-do-catalogo";
 
@@ -67,11 +68,12 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
         {curso.precoTroca !== null && (
           <span
             className={cn(
+              SELO,
               SOBRE_A_CAPA,
-              "right-2.5 bottom-2.5 inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 font-semibold text-foreground text-xs tabular-nums"
+              "right-2.5 bottom-2.5 text-foreground tabular-nums"
             )}
           >
-            <Star aria-hidden="true" className="size-3 text-sol" />
+            <Star aria-hidden="true" className="text-sol" />
             {fmtPts(curso.precoTroca)}
           </span>
         )}
@@ -123,7 +125,10 @@ function CatalogoVazio() {
   return (
     <section
       aria-labelledby="catalogo-vazio"
-      className="grid max-w-[640px] justify-items-start gap-3.5 rounded-[20px] bg-card px-[clamp(22px,3.4vw,36px)] py-[clamp(28px,5vw,56px)] ring-1 ring-border"
+      className={cn(
+        CARTAO,
+        "grid max-w-[640px] justify-items-start gap-3.5 px-[clamp(22px,3.4vw,36px)] py-[clamp(28px,5vw,56px)]"
+      )}
     >
       <span className="grid size-12 place-items-center rounded-full bg-popover text-ceu">
         <Library aria-hidden="true" className="size-[22px]" />

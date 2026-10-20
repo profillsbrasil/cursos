@@ -19,7 +19,7 @@ import {
 } from "react";
 
 import { CONTORNO_DESLIGADO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO } from "@/components/casca/campos";
+import { CAMPO, ROTULO } from "@/components/casca/campos";
 import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
@@ -32,7 +32,6 @@ import {
   CARTAO,
   DETALHE_DA_LINHA,
   PE_DO_CARTAO,
-  ROTULO,
 } from "./partes";
 import type { FolhaDaConta, Usuario } from "./tipos";
 import { useAcaoDaConta } from "./use-acao-da-conta";

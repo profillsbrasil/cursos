@@ -14,15 +14,14 @@ import {
 import Link from "next/link";
 
 import { BOTAO, LINK_NO_TEXTO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { diaCurto, diaEmSaoPaulo, plural } from "@/lib/formato";
 import { caminhoDoCertificado, caminhoDoCurso, MINHA_CONTA } from "@/lib/rotas";
-
 import { CopiarLink } from "./copiar-link";
 import { Fatos } from "./fatos";
 import { cargaEmHoras, comNome, enderecoDaConferencia, folhaDo } from "./folha";
 import { FolhaNaTela } from "./folha-na-tela";
 
-const CARTAO = "rounded-[20px] bg-card ring-1 ring-border";
 const TITULO_DO_CARTAO = "font-semibold text-lg text-titulo leading-[1.3]";
 
 export const GRADE_DO_CERTIFICADO =

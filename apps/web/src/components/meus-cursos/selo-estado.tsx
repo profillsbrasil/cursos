@@ -1,5 +1,4 @@
 import type { EstadoCurso } from "@cursos/api/dominio/tipos";
-import { badgeVariants } from "@cursos/ui/components/badge";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   BookOpen,
@@ -9,6 +8,8 @@ import {
   type LucideIcon,
   Play,
 } from "lucide-react";
+
+import { SELO } from "@/components/casca/selos";
 
 interface Aparencia {
   classe: string;
@@ -56,13 +57,7 @@ function aparencia(estado: EstadoCurso): Aparencia {
 export function SeloEstado({ estado }: { estado: EstadoCurso }) {
   const { classe, icone: Icone, rotulo } = aparencia(estado);
   return (
-    <span
-      className={cn(
-        badgeVariants({ variant: "secondary" }),
-        "h-6 gap-1.5 rounded-full px-2.5 font-semibold text-xs transition-colors",
-        classe
-      )}
-    >
+    <span className={cn(SELO, classe)}>
       <Icone aria-hidden="true" strokeWidth={2.4} />
       {rotulo}
     </span>

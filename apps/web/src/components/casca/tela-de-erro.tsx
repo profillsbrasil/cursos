@@ -1,8 +1,10 @@
 "use client";
 
+import { cn } from "@cursos/ui/lib/utils";
 import { RotateCcw } from "lucide-react";
 import { useEffect } from "react";
 
+import { CARTAO } from "@/components/casca/cartoes";
 import { BOTAO } from "./botoes";
 
 // Corpo dos error.tsx do app: diz o que falhou e oferece tentar de novo.
@@ -22,7 +24,7 @@ export function TelaDeErro({
   }, [error]);
   return (
     <div
-      className="grid justify-items-start gap-3 rounded-[20px] bg-card p-8 ring-1 ring-border"
+      className={cn(CARTAO, "grid justify-items-start gap-3 p-8")}
       role="alert"
     >
       <h1 className="font-bold text-2xl text-titulo tracking-tight">

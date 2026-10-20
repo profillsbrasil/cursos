@@ -5,10 +5,11 @@ import { cn } from "@cursos/ui/lib/utils";
 import { Check, Clock, Eye, Undo2 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useId, useState } from "react";
 
+import { ROTULO } from "@/components/casca/campos";
+import { CARTAO } from "@/components/casca/cartoes";
 import type { ItemAntesDePublicar, SecaoDoIndice } from "./antes-de-publicar";
 import { type EstadoDoSalvar, SituacaoESalvar } from "./barra-de-salvar";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
-import { ROTULO } from "./partes";
 
 export const STATUS: Record<
   StatusDoCurso,
@@ -27,7 +28,7 @@ export const STATUS: Record<
   },
 };
 
-const CARTAO = "grid gap-4 rounded-[20px] bg-card p-5 ring-1 ring-border";
+const CARTAO_DA_COLUNA = cn(CARTAO, "grid gap-4 p-5");
 
 // Do lado de quem não está marcado, o hover (e o foco) é o fundo popover; no
 // marcado, o titulo clareia um pouco.
@@ -91,7 +92,7 @@ function SeletorDoStatus({
 function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className={CARTAO}>
+    <section aria-labelledby={id} className={CARTAO_DA_COLUNA}>
       <h2 className="font-semibold text-base text-titulo" id={id}>
         Antes de publicar
       </h2>
@@ -181,7 +182,7 @@ function IndiceDasSecoes({
   return (
     <nav
       aria-label="Seções do editor"
-      className="grid gap-0.5 rounded-[20px] bg-card p-2 ring-1 ring-border"
+      className={cn(CARTAO, "grid gap-0.5 p-2")}
     >
       <p className="px-2.5 pt-1.5 pb-1 text-muted-foreground text-xs tabular-nums">
         {resumo}
@@ -277,7 +278,7 @@ export function ColunaDePublicacao({
       aria-label="Publicação do curso"
       className="@min-[960px]:sticky @min-[960px]:top-6 @min-[960px]:row-span-2 grid gap-3.5"
     >
-      <div className={CARTAO}>
+      <div className={CARTAO_DA_COLUNA}>
         <div className={cn("grid gap-2", largo)}>
           <SituacaoESalvar coluna estado={estado} />
           {estado.sujo ? (

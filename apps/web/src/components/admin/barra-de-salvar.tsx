@@ -3,8 +3,8 @@ import { cn } from "@cursos/ui/lib/utils";
 import { useId } from "react";
 
 import { BOTAO, CONTORNO_DESLIGADO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { plural } from "@/lib/formato";
-
 import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
 import { Carregando } from "./confirmacao-na-linha";
 import type { Problema } from "./problemas";
@@ -159,7 +159,8 @@ export function BarraDeSalvar({
   return (
     <div
       className={cn(
-        "sticky bottom-3 z-10 rounded-[20px] bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] ring-1 ring-border backdrop-blur-sm md:px-5",
+        CARTAO,
+        "sticky bottom-3 z-10 bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] backdrop-blur-sm md:px-5",
         className
       )}
     >

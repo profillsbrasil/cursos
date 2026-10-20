@@ -1,6 +1,7 @@
 import type { ItemDoExtrato } from "@cursos/api/dominio/pontos";
 import { cn } from "@cursos/ui/lib/utils";
 
+import { CARTAO } from "@/components/casca/cartoes";
 import { fmtPtsComSinal, quando } from "@/lib/formato";
 
 export function Extrato({
@@ -14,13 +15,13 @@ export function Extrato({
 }) {
   if (itens.length === 0) {
     return (
-      <p className="rounded-[20px] bg-card px-5 py-4 text-muted-foreground text-sm ring-1 ring-border">
+      <p className={cn(CARTAO, "px-5 py-4 text-muted-foreground text-sm")}>
         Nenhum ponto ainda. Cada aula assistida até o fim vale pontos.
       </p>
     );
   }
   return (
-    <ul className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
+    <ul className={cn(CARTAO, "overflow-hidden")}>
       {itens.map((item) => {
         const novo = item.id === lancamentoNovoId;
         return (

@@ -25,10 +25,11 @@ import Link from "next/link";
 import { type CSSProperties, Fragment } from "react";
 
 import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
+import { CARTAO } from "@/components/casca/cartoes";
+import { SELO } from "@/components/casca/selos";
 import { Secao } from "@/components/meus-cursos/secao";
 import { diaCurto, fmtNum, plural } from "@/lib/formato";
 import { caminhoDoCertificado, caminhoDoCurso } from "@/lib/rotas";
-
 import { diasDaSequencia } from "./dias-da-sequencia";
 import {
   colunasDosCertificados,
@@ -108,13 +109,10 @@ function Medalha({
   );
 }
 
-const SELO =
-  "inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 font-semibold text-xs";
-
 function SeloGanho({ children }: { children: string }) {
   return (
     <span className={cn(SELO, "bg-ceu text-sobre-cor")}>
-      <Check aria-hidden="true" className="size-3" strokeWidth={2.4} />
+      <Check aria-hidden="true" strokeWidth={2.4} />
       {children}
     </span>
   );
@@ -145,7 +143,6 @@ function Trilho({
 }
 
 const DICA = "text-[13px] text-muted-foreground text-pretty";
-const CARTAO = "rounded-[20px] bg-card ring-1 ring-border";
 const TITULO_DO_CARTAO = "font-semibold text-lg text-titulo leading-[1.3]";
 
 function TrilhaDeAulas({
@@ -252,7 +249,8 @@ function TextoDaFaixa({ frase }: { frase: string }) {
 const CIRCULO: Record<"feito" | "hoje" | "por_vir", string> = {
   feito: "bg-sol text-sobre-cor",
   hoje: "text-titulo ring-2 ring-titulo ring-inset",
-  por_vir: "text-muted-foreground ring-1 ring-muted-foreground ring-inset",
+  por_vir:
+    "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset",
 };
 
 function SeteDiasSeguidos({
@@ -371,7 +369,7 @@ function PrimeirasVezes({
                 <span
                   className={cn(
                     SELO,
-                    "text-muted-foreground ring-1 ring-muted-foreground ring-inset"
+                    "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset"
                   )}
                 >
                   Por ganhar
@@ -575,7 +573,7 @@ export function TelaDeConquistas({ conquistas }: { conquistas: Conquistas }) {
           {certificados.length > 0 ? (
             <GradeDeCertificados certificados={certificados} hoje={hoje} />
           ) : (
-            <p className="rounded-[20px] bg-card px-6 py-5 text-muted-foreground ring-1 ring-border">
+            <p className={cn(CARTAO, "px-6 py-5 text-muted-foreground")}>
               O certificado de cada curso liberado para você aparece aqui.
             </p>
           )}

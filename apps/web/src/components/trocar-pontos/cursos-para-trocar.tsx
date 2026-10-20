@@ -2,15 +2,16 @@
 
 import type { ItemDoExtrato } from "@cursos/api/dominio/pontos";
 import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
+import { cn } from "@cursos/ui/lib/utils";
 import { Check, ListChecks, Play } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 import type { AcaoDaRetomada } from "@/components/aluno/continuar";
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { sizesDaCapa } from "@/components/meus-cursos/capa-curso";
 import { Secao } from "@/components/meus-cursos/secao";
-
 import { CartaoDeTroca } from "./cartao-de-troca";
 import { Extrato } from "./extrato";
 
@@ -114,7 +115,12 @@ export function CursosParaTrocar({
         {cartoes.length === 0 ? (
           // O vazio é um cartão com o botão na mesma linha, não um texto solto, e
           // para na largura do extrato: esticado, o botão ficava a 800 px da frase.
-          <div className="flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-[20px] bg-card px-5 py-4 ring-1 ring-border">
+          <div
+            className={cn(
+              CARTAO,
+              "flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-4 px-5 py-4"
+            )}
+          >
             <p className="max-w-[60ch] text-muted-foreground text-sm">
               {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
             </p>

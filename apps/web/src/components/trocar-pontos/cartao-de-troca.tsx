@@ -9,6 +9,9 @@ import Link from "next/link";
 import { type KeyboardEvent, useCallback, useEffect, useRef } from "react";
 
 import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
+import { SELO } from "@/components/casca/selos";
+import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { faltam, fmtMin, fmtNum, fmtPts, plural } from "@/lib/formato";
 import { caminhoDoCurso } from "@/lib/rotas";
 import { useAcao } from "@/lib/use-acao";
@@ -68,19 +71,10 @@ function Acao({
               </span>
               <span>{cartao.pct}%</span>
             </div>
-            <div
-              aria-label={`Pontos para ${curso.titulo}`}
-              aria-valuemax={cartao.preco}
-              aria-valuemin={0}
-              aria-valuenow={cartao.saldo}
-              className="h-2 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset"
-              role="progressbar"
-            >
-              <div
-                className="h-full rounded-full bg-sol"
-                style={{ width: `${cartao.pct}%` }}
-              />
-            </div>
+            <BarraProgresso
+              pct={cartao.pct}
+              rotulo={`Pontos para ${curso.titulo}`}
+            />
           </div>
           <Button
             className={cn(
@@ -268,8 +262,9 @@ export function CartaoDeTroca({
     <article
       aria-labelledby={tituloId}
       className={cn(
-        "flex flex-col rounded-[20px] bg-card px-3 pt-3 pb-4 text-card-foreground ring-1 transition-shadow",
-        liberado ? "ring-ceu" : "ring-border hover:ring-input"
+        CARTAO,
+        "flex flex-col px-3 pt-3 pb-4 text-card-foreground transition-shadow",
+        liberado ? "ring-ceu" : "hover:ring-input"
       )}
       ref={card}
     >
@@ -282,12 +277,13 @@ export function CartaoDeTroca({
           src={curso.capa.url}
         />
         {liberado && (
-          <span className="absolute top-2.5 left-2.5 inline-flex h-6 items-center gap-1.5 rounded-full bg-ceu px-2.5 font-semibold text-sobre-cor text-xs">
-            <Check
-              aria-hidden="true"
-              className="size-[13px]"
-              strokeWidth={2.4}
-            />
+          <span
+            className={cn(
+              SELO,
+              "absolute top-2.5 left-2.5 bg-ceu text-sobre-cor"
+            )}
+          >
+            <Check aria-hidden="true" strokeWidth={2.4} />
             Liberado
           </span>
         )}

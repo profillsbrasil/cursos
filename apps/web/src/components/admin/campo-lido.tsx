@@ -18,11 +18,10 @@ import {
   useCallback,
   useContext,
 } from "react";
-import { AREA, CAMPO } from "@/components/casca/campos";
+
+import { AREA, CAMPO, ROTULO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
 import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
-
-import { ROTULO } from "./partes";
 
 const SEM_QUEBRA = /\r?\n/g;
 

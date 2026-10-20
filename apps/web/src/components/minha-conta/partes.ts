@@ -6,13 +6,13 @@ import {
   BOTAO_PERIGO,
   PEQUENO,
 } from "@/components/casca/botoes";
+import { CARTAO as CARTAO_DO_APP } from "@/components/casca/cartoes";
 
 /**
  * O cartão não tem padding lateral: o cabeçalho, cada linha e o pé têm o próprio,
  * e a divisória é o `border-t` da linha, então vai de borda a borda.
  */
-export const CARTAO =
-  "min-w-0 overflow-hidden rounded-[20px] bg-card ring-1 ring-border";
+export const CARTAO = cn(CARTAO_DO_APP, "min-w-0 overflow-hidden");
 
 export const CABECALHO_DO_CARTAO = "grid gap-0.5 px-[22px] pt-5 pb-3.5";
 
@@ -43,9 +43,6 @@ export const NOME_DA_LINHA =
 export const DETALHE_DA_LINHA =
   "break-words text-[12.5px] text-muted-foreground";
 
-export const SELO =
-  "inline-flex h-6 shrink-0 items-center rounded-full px-2.5 font-semibold text-xs";
-
 /** A ação em texto da linha (Sair, Remover), em Céu, que clareia sob o cursor e no foco. */
 export const ACAO_NA_LINHA =
   "toque shrink-0 cursor-pointer font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo disabled:cursor-not-allowed disabled:opacity-50";
@@ -64,8 +61,6 @@ export const PERIGO = cn(
 export const EXCLUIR = cn(BOTAO_PERIGO, PEQUENO);
 
 export const ACOES = "flex flex-wrap items-center gap-2";
-
-export const ROTULO = "font-semibold text-[13px] text-titulo";
 
 export const AJUDA = "text-muted-foreground text-xs";
 

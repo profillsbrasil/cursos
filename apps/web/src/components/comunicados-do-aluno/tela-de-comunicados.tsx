@@ -8,16 +8,17 @@ import { BookOpen, Megaphone } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
+
 import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
 import {
   BOTAO_CONTORNO,
   LINK_NO_TEXTO,
   PEQUENO,
 } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { paragrafos } from "@/components/curso/textos";
 import { Secao } from "@/components/meus-cursos/secao";
 import { fmtData } from "@/lib/formato";
-
 import {
   contagemDoMes,
   diaNaLinha,
@@ -71,7 +72,8 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
     <article
       aria-labelledby="comunicado-destaque"
       className={cn(
-        "grid overflow-hidden rounded-[20px] bg-card ring-1 ring-border",
+        CARTAO,
+        "grid overflow-hidden",
         doCurso
           ? "@min-[641px]:grid-cols-[minmax(0,1fr)_minmax(0,40%)]"
           : "@min-[641px]:grid-cols-[minmax(0,1fr)_auto] gap-7 p-[clamp(22px,3.4vw,36px)]"
@@ -154,7 +156,12 @@ function Linha({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
 
 function Vazio() {
   return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 rounded-[20px] bg-card p-6 ring-1 ring-border">
+    <div
+      className={cn(
+        CARTAO,
+        "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 p-6"
+      )}
+    >
       <Megafone className="bg-popover text-ceu" />
       <div>
         <h2 className="font-semibold text-base text-titulo leading-[1.4]">
@@ -207,7 +214,7 @@ export function TelaDeComunicados({
                     subtitulo={contagemDoMes(m, comunicados.destaque)}
                     titulo={nomeDoMes(m.mes)}
                   >
-                    <ol className="divide-y divide-border rounded-[20px] bg-card ring-1 ring-border">
+                    <ol className={cn(CARTAO, "divide-y divide-border")}>
                       {m.comunicados.map((c) => (
                         <Linha comunicado={c} key={c.id} />
                       ))}

@@ -3,6 +3,8 @@ import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Tag } from "lucide-react";
 
+import { CARTAO } from "@/components/casca/cartoes";
+import { SELO } from "@/components/casca/selos";
 import { CartaoDoCurso } from "./cartao-do-curso";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { paragrafos, resumoDoCurso } from "./textos";
@@ -40,11 +42,13 @@ export function TelaDoCurso({
         <p className="overflow-hidden text-muted-foreground tabular-nums">
           <span className="-ml-7 flex flex-wrap items-center gap-y-2">
             <span className={cn(SEPARADO, "inline-flex items-center gap-3")}>
-              <span className="inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 font-medium text-foreground text-xs ring-1 ring-muted-foreground ring-inset">
-                <Tag
-                  aria-hidden="true"
-                  className="size-3 text-muted-foreground"
-                />
+              <span
+                className={cn(
+                  SELO,
+                  "bg-transparent font-medium text-foreground ring-1 ring-muted-foreground ring-inset"
+                )}
+              >
+                <Tag aria-hidden="true" className="text-muted-foreground" />
                 {pagina.categoria}
               </span>
               {primeira}
@@ -62,7 +66,7 @@ export function TelaDoCurso({
         {pagina.topicos.length > 0 ? (
           <section
             aria-labelledby="o-que-voce-vai-aprender"
-            className="rounded-[20px] bg-card px-[26px] py-6 ring-1 ring-border"
+            className={cn(CARTAO, "px-[26px] py-6")}
           >
             <h2
               className="mb-[18px] font-semibold text-lg text-titulo leading-[1.3]"

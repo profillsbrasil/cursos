@@ -11,9 +11,9 @@ import { Check, ChevronDown, ListChecks, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { type SyntheticEvent, useCallback, useState } from "react";
 
+import { CARTAO } from "@/components/casca/cartoes";
 import { fmtMin, plural } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
-
 import {
   abertosDeSaida,
   aulaAtual,
@@ -290,7 +290,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
           </button>
         </p>
       </div>
-      <div className="overflow-hidden rounded-[20px] bg-card ring-1 ring-border">
+      <div className={cn(CARTAO, "overflow-hidden")}>
         {modulos.map((m) => (
           <ModuloDaSanfona
             aberto={abertos.has(m.numero)}

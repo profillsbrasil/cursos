@@ -9,9 +9,9 @@ import {
 import { cn } from "@cursos/ui/lib/utils";
 import { type FormEvent, useCallback, useId, useState } from "react";
 
-import { CAMPO } from "@/components/casca/campos";
+import { CAMPO, ROTULO } from "@/components/casca/campos";
+import { SELO } from "@/components/casca/selos";
 import { MINHA_CONTA } from "@/lib/rotas";
-
 import { contaDoGoogle, podeDesconectarOGoogle } from "./entrada";
 import { IconeDoGoogle } from "./icone-do-google";
 import {
@@ -26,8 +26,6 @@ import {
   LINHA,
   NOME_DA_LINHA,
   PE_DO_CARTAO,
-  ROTULO,
-  SELO,
   TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
 } from "./partes";

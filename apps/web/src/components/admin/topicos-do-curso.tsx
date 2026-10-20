@@ -8,11 +8,12 @@ import { Check, Plus, X } from "lucide-react";
 import { type Dispatch, useCallback } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { ROTULO } from "@/components/casca/campos";
 import { focarDepois, vizinhoQueFica } from "@/lib/editor";
 import { plural } from "@/lib/formato";
 import { TextoDeUmaLinha } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { ICONE, ROTULO, Secao } from "./partes";
+import { ICONE, Secao } from "./partes";
 import { ID } from "./rascunho-do-curso";
 import type { Mudanca } from "./rascunho-do-editor";
 

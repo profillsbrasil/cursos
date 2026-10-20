@@ -20,9 +20,9 @@ import {
   BOTAO_CONTORNO,
   LINK_NO_TEXTO,
 } from "@/components/casca/botoes";
+import { CARTAO } from "@/components/casca/cartoes";
 import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { SeloEstado } from "@/components/meus-cursos/selo-estado";
-
 import { MaterialDoCurso } from "./material-do-curso";
 import {
   type CartaoDoCurso as Cartao,
@@ -67,10 +67,7 @@ export function CartaoDoCurso({
   return (
     <aside
       aria-label="Seu progresso"
-      className={cn(
-        "@container overflow-hidden rounded-[20px] bg-card ring-1 ring-border",
-        className
-      )}
+      className={cn(CARTAO, "@container overflow-hidden", className)}
     >
       <div className="grid @lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="relative aspect-[900/604] @lg:self-start bg-sidebar">
