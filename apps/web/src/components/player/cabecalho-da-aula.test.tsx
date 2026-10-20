@@ -7,6 +7,7 @@ import CarregandoAula from "@/app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading";
 
 import {
   CabecalhoDaAula,
+  DescricaoDaAula,
   LINHA_DO_MODULO,
   TITULO_DA_AULA,
 } from "./cabecalho-da-aula";
@@ -58,21 +59,21 @@ const DADOS: AulaNoPlayer = {
 };
 
 const PARAGRAFO_DA_DESCRICAO = /<p class="([^"]*)">Por que filmar/;
-const PARAGRAFO = /<p/g;
 
-const comDescricao = (descricao: string) =>
-  renderToStaticMarkup(
-    <CabecalhoDaAula dados={{ ...DADOS, aula: { ...DADOS.aula, descricao } }} />
-  );
+const comDescricao = (descricao: string) => {
+  const dados = { ...DADOS, aula: { ...DADOS.aula, descricao } };
+  return {
+    cabecalho: renderToStaticMarkup(<CabecalhoDaAula dados={dados} />),
+    descricao: renderToStaticMarkup(<DescricaoDaAula dados={dados} />),
+  };
+};
 
 describe("descrição da aula", () => {
-  test("aparece sob a linha do módulo, em 14 px texto, até 72ch, com as quebras do admin", () => {
+  test("fica fora do cabeçalho, em 14 px texto, até 72ch, com as quebras do admin", () => {
     const h = comDescricao("Por que filmar.\nO que o cliente vê.");
-    const modulo = h.indexOf("Módulo 8");
-    const descricao = h.indexOf("Por que filmar.");
-    expect(modulo).toBeGreaterThanOrEqual(0);
-    expect(descricao).toBeGreaterThan(modulo);
-    const classes = h.match(PARAGRAFO_DA_DESCRICAO)?.[1].split(" ");
+    expect(h.cabecalho).not.toContain("Por que filmar.");
+    expect(h.descricao).toContain("Sobre esta aula");
+    const classes = h.descricao.match(PARAGRAFO_DA_DESCRICAO)?.[1].split(" ");
     expect(classes).toEqual(
       expect.arrayContaining([
         "max-w-[72ch]",
@@ -83,9 +84,9 @@ describe("descrição da aula", () => {
     );
   });
 
-  test("vazia ou só com espaços, não deixa parágrafo", () => {
+  test("vazia ou só com espaços, não aparece", () => {
     for (const descricao of ["", "  \n "]) {
-      expect(comDescricao(descricao).match(PARAGRAFO)).toHaveLength(1);
+      expect(comDescricao(descricao).descricao).toBe("");
     }
   });
 });

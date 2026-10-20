@@ -54,10 +54,16 @@ function posicoes(h: string, marcas: string[]) {
   });
 }
 
+const COM_DESCRICAO: AulaNoPlayer = {
+  ...DADOS,
+  aula: { ...DADOS.aula, descricao: "Por que filmar." },
+};
+const SOBRE = "Sobre esta aula";
+
 describe("ordem da página da aula", () => {
-  test("no player, o título e a linha do módulo vêm antes do vídeo, e Anterior e Próxima depois dos controles", () => {
+  test("no player, o título e a linha do módulo vêm antes do vídeo, Anterior e Próxima depois dos controles, e a descrição por último", () => {
     const h = renderToStaticMarkup(
-      <PlayerDaAula dados={DADOS} inicioSeg={222} video={VIDEO} />
+      <PlayerDaAula dados={COM_DESCRICAO} inicioSeg={222} video={VIDEO} />
     );
     const ordem = posicoes(h, [
       TITULO,
@@ -65,6 +71,7 @@ describe("ordem da página da aula", () => {
       'aria-label="Player da aula"',
       'role="status"',
       NAVEGACAO,
+      SOBRE,
     ]);
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
   });
@@ -83,10 +90,13 @@ describe("ordem da página da aula", () => {
     expect(semVideo).not.toContain("<nav");
   });
 
-  test("na aula sem vídeo, o título vem antes do aviso e a navegação depois", () => {
+  test("na aula sem vídeo, o título vem antes do aviso, e a navegação e a descrição depois", () => {
     const h = renderToStaticMarkup(
       <AulaSemVideo
-        dados={{ ...DADOS, aula: { ...DADOS.aula, video: null } }}
+        dados={{
+          ...COM_DESCRICAO,
+          aula: { ...COM_DESCRICAO.aula, video: null },
+        }}
       />
     );
     const ordem = posicoes(h, [
@@ -94,6 +104,7 @@ describe("ordem da página da aula", () => {
       LINHA_DO_MODULO,
       "O vídeo desta aula ainda não foi publicado.",
       NAVEGACAO,
+      SOBRE,
     ]);
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
   });

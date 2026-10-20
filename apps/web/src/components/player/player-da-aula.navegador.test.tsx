@@ -277,6 +277,9 @@ async function abrir(
   await avaliar(enviar, codigo);
 }
 
+const COM_BARRA_DE_ROLAGEM =
+  'document.documentElement.style.overflowY = "scroll"';
+
 /** O loading.tsx da aula na mesma casca, no lugar da página. */
 async function abrirEsqueleto(
   largura: number,
@@ -467,10 +470,11 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     [1440, 900],
     [1896, 915],
   ] as const) {
-    test(`em ${largura} x ${altura}, a barra de controles inteira cabe na janela sem rolar`, async () => {
+    test(`em ${largura} x ${altura}, a barra de controles e a Próxima aula cabem na janela sem rolar`, async () => {
       await abrir(largura, altura);
       const medida = await avaliar<{
         controles: number;
+        navegacao: number;
         rolou: number;
         visivel: number;
         video: { altura: number; largura: number };
@@ -481,6 +485,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
           const video = player.firstElementChild.firstElementChild.getBoundingClientRect();
           return {
             controles: Math.ceil(player.lastElementChild.getBoundingClientRect().bottom),
+            navegacao: Math.ceil(document.querySelector('nav[aria-label="Navegação entre aulas"]').getBoundingClientRect().bottom),
             rolou: window.scrollY,
             // A moldura de 10 px fica parada por cima do pé da janela.
             visivel: window.innerHeight - 10,
@@ -490,6 +495,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       );
       expect(medida.rolou).toBe(0);
       expect(medida.controles).toBeLessThanOrEqual(medida.visivel);
+      expect(medida.navegacao).toBeLessThanOrEqual(medida.visivel);
       // O vídeo continua 16:9, só menor.
       expect(
         Math.abs(medida.video.largura / medida.video.altura - 16 / 9)
@@ -588,22 +594,32 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     [390, 812, true],
     [320, 640, true],
   ] as const) {
-    test(`em ${largura} x ${altura}, o esqueleto do player tem a altura do player com os controles`, async () => {
+    test(`em ${largura} x ${altura}, o esqueleto do player tem o topo e a altura do player com os controles`, async () => {
       await abrirEsqueleto(largura, altura, celular);
-      const esqueleto = await avaliar<number>(
+      // A barra de rolagem depende do que vem abaixo do player, que o esqueleto não sabe.
+      await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
+      const esqueleto = await avaliar<{ altura: number; topo: number }>(
         enviar,
-        `document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect().height`
+        `(() => { const r = document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`
       );
       await abrir(largura, altura, false, celular);
       await emitir({ duracaoSeg: 634, tipo: "pronto" });
-      const player = await avaliar<number>(
+      await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
+      const player = await avaliar<{ altura: number; topo: number }>(
         enviar,
-        `document.getElementById("video").getBoundingClientRect().height`
+        `(() => { const r = document.getElementById("video").getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`
       );
-      expect({ esqueleto: Math.round(esqueleto), largura }).toEqual({
-        esqueleto: Math.round(player),
+      expect({ altura: esqueleto.altura, largura }).toEqual({
+        altura: player.altura,
         largura,
       });
+      // Em 320 px a linha do módulo desta aula quebra em duas, e o esqueleto tem uma.
+      if (largura > 320) {
+        expect({ largura, topo: esqueleto.topo }).toEqual({
+          largura,
+          topo: player.topo,
+        });
+      }
     });
   }
 

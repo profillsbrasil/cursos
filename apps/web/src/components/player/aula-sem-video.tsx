@@ -1,7 +1,11 @@
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import { VideoOff } from "lucide-react";
 
-import { CabecalhoDaAula, NavegacaoEntreAulas } from "./cabecalho-da-aula";
+import {
+  CabecalhoDaAula,
+  DescricaoDaAula,
+  NavegacaoEntreAulas,
+} from "./cabecalho-da-aula";
 
 export function AulaSemVideo({ dados }: { dados: AulaNoPlayer }) {
   return (
@@ -22,6 +26,7 @@ export function AulaSemVideo({ dados }: { dados: AulaNoPlayer }) {
         dados={dados}
         destacarProxima={dados.estudo.assistida}
       />
+      <DescricaoDaAula dados={dados} />
     </div>
   );
 }

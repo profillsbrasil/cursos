@@ -14,8 +14,9 @@ export const TITULO_DA_AULA =
 export const LINHA_DO_MODULO = "mt-1 text-muted-foreground text-sm";
 
 /**
- * O título da aula, a linha do módulo e a descrição que o admin escreveu, acima do
- * vídeo: a primeira coisa que a pessoa lê na aula.
+ * O título da aula e a linha do módulo, acima do vídeo: a primeira coisa que a pessoa
+ * lê na aula. A descrição fica abaixo da navegação, para o cabeçalho ter sempre a
+ * altura do esqueleto e o vídeo não pular quando a aula chega.
  */
 export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
   const { aula } = dados;
@@ -27,12 +28,24 @@ export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
         {aula.numeroNoModulo} de {aula.totalNoModulo} ·{" "}
         {fmtMin(aula.duracaoSeg)}
       </p>
-      {aula.descricao.trim() ? (
-        <p className="mt-2.5 max-w-[72ch] whitespace-pre-line text-pretty text-foreground text-sm">
-          {aula.descricao}
-        </p>
-      ) : null}
     </div>
+  );
+}
+
+export function DescricaoDaAula({ dados }: { dados: AulaNoPlayer }) {
+  const { descricao } = dados.aula;
+  if (!descricao.trim()) {
+    return null;
+  }
+  return (
+    <section aria-labelledby="sobre-esta-aula" className="grid gap-2">
+      <h2 className="font-semibold text-base text-titulo" id="sobre-esta-aula">
+        Sobre esta aula
+      </h2>
+      <p className="max-w-[72ch] whitespace-pre-line text-pretty text-foreground text-sm">
+        {descricao}
+      </p>
+    </section>
   );
 }
 

@@ -8,7 +8,11 @@ import { useCallback } from "react";
 import { usePlayerDaAula } from "@/lib/player/use-player-da-aula";
 
 import { BarraDeTrechos } from "./barra-de-trechos";
-import { CabecalhoDaAula, NavegacaoEntreAulas } from "./cabecalho-da-aula";
+import {
+  CabecalhoDaAula,
+  DescricaoDaAula,
+  NavegacaoEntreAulas,
+} from "./cabecalho-da-aula";
 import { ControlesDoPlayer } from "./controles-do-player";
 import { FimDoVideo } from "./fim-do-video";
 import { CAIXA_DO_VIDEO } from "./partes";
@@ -93,6 +97,7 @@ export function PlayerDaAula({
         dados={dados}
         destacarProxima={p.estado.assistida && !terminou}
       />
+      <DescricaoDaAula dados={dados} />
     </div>
   );
 }
