@@ -170,7 +170,8 @@ export function trocar(
   precoVisto: number,
   agora: Date
 ): Promise<ResultadoDaTroca> {
-  return comSaldoTravado(db, userId, async (aluno, saldo) => {
+  const segunda = segundaDaSemana(diaLocal(agora));
+  return comSaldoTravado(db, userId, segunda, async (aluno, saldo) => {
     const [curso] = await linhasDosCursos(aluno.tx, aluno.userId, { cursoId });
     const d = decidirTroca(curso ?? null, saldo, precoVisto);
     switch (d.tipo) {

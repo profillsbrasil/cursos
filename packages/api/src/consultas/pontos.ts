@@ -29,16 +29,6 @@ export async function linhasDoSaldo(
   return linha;
 }
 
-async function saldoDe(exec: Executor, userId: string): Promise<number> {
-  const [linha] = await exec
-    .select({
-      saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
-    })
-    .from(pontoLancamento)
-    .where(eq(pontoLancamento.userId, userId));
-  return linha?.saldo ?? 0;
-}
-
 export function linhasDoExtrato(
   exec: Executor,
   userId: string,
@@ -67,14 +57,18 @@ export function linhasDoExtrato(
 /**
  * Trava o aluno e só então lê o saldo, num statement separado (ver comAlunoTravado).
  * Todo débito passa por aqui, por convenção: o tipo não garante, porque
- * comAlunoTravado também entrega um AlunoTravado, sem saldo lido.
+ * comAlunoTravado também entrega um AlunoTravado, sem saldo lido. A segunda
+ * só existe porque linhasDoSaldo é a única leitura do saldo; o débito ignora
+ * as entradas da semana.
  */
 export function comSaldoTravado<T>(
   db: Database,
   userId: string,
+  segunda: DiaISO,
   fn: (aluno: AlunoTravado, saldo: number) => Promise<T>
 ): Promise<T> {
-  return comAlunoTravado(db, userId, async (aluno) =>
-    fn(aluno, await saldoDe(aluno.tx, aluno.userId))
-  );
+  return comAlunoTravado(db, userId, async (aluno) => {
+    const { saldo } = await linhasDoSaldo(aluno.tx, aluno.userId, segunda);
+    return fn(aluno, saldo);
+  });
 }
