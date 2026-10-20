@@ -118,7 +118,7 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
     <>
       <div
         className={cn(
-          "relative aspect-video overflow-hidden rounded-lg bg-sidebar ring-1 ring-border transition-shadow",
+          "relative aspect-video overflow-hidden rounded-lg bg-sidebar ring-1 ring-border transition-shadow duration-200",
           !fechado && "group-hover:ring-ceu"
         )}
       >

@@ -45,7 +45,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
   const apagada = curso.status === "em_producao" && curso.aulas === 0;
   return (
     <article className="group relative grid min-w-0 content-start gap-3">
-      <div className="relative aspect-[900/604] overflow-hidden rounded-[14px] bg-sidebar ring-1 ring-border transition-shadow group-has-hover:ring-ceu">
+      <div className="relative aspect-[900/604] overflow-hidden rounded-[14px] bg-sidebar ring-1 ring-border transition-shadow duration-200 group-has-hover:ring-ceu">
         <Image
           alt=""
           className={cn(

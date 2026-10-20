@@ -5,6 +5,7 @@ import { Toaster } from "@cursos/ui/components/sonner";
 import { TooltipProvider } from "@cursos/ui/components/tooltip";
 import { useEffect } from "react";
 
+import { OPCOES_DO_TOAST } from "@/components/opcoes-do-toast";
 import { setClerkAuthTokenGetter } from "@/utils/clerk-auth";
 
 function ClerkApiAuthBridge() {
@@ -27,7 +28,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <ClerkApiAuthBridge />
       <TooltipProvider>{children}</TooltipProvider>
       {/* Sem ThemeProvider, o Toaster cairia em "system"; a prop vence o useTheme(). */}
-      <Toaster richColors theme="dark" />
+      <Toaster theme="dark" toastOptions={OPCOES_DO_TOAST} />
     </>
   );
 }
