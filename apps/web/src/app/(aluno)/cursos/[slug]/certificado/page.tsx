@@ -11,13 +11,23 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const metadata: Metadata = { title: "Seu certificado" };
-
-export default async function Certificado({ params }: Props) {
+const paginaDaUrl = async (params: Props["params"]) => {
   const pagina = await carregarPaginaDoCertificado((await params).slug);
   if (!pagina) {
     notFound();
   }
+  return pagina;
+};
+
+// O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx
+// do curso.
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await paginaDaUrl(params);
+  return { title: "Seu certificado" };
+}
+
+export default async function Certificado({ params }: Props) {
+  const pagina = await paginaDaUrl(params);
   return (
     <>
       <h1 className="text-balance font-bold text-3xl text-titulo leading-[1.2] tracking-tight">
