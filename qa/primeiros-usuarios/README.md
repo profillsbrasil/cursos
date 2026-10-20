@@ -65,7 +65,7 @@ Fora da tabela, corrigido sem persona:
 | Ponto | Correção | Como se conferiu |
 |---|---|---|
 | Setas não andavam na velocidade, e o Enter no primeiro item aplicava 0,75× | A velocidade virou grupo de opções: o foco entra na marcada e as setas aplicam cada uma | relato r3 (teclado) |
-| Uma seta ou o `k` dentro dos Ajustes tocava o vídeo | A tecla dentro da folha fica com ela, e o `seekTo` antes do primeiro play só guarda a posição | teste com o YouTube real num harness; a persona da r3 não viu o vídeo tocar sozinho |
+| Uma seta ou o `k` dentro dos Ajustes tocava o vídeo | A tecla dentro da folha fica com ela, e o `seekTo` antes do primeiro play só guarda a posição | só o teste com o YouTube real num harness, fora da tela logada; o roteiro da persona da r2 não reproduziu o defeito nem no código antigo |
 | Sem link de pular para o conteúdo | "Pular para o conteúdo" é a primeira parada, no aluno e no admin | print no Chrome do dono, com o app real |
 | Controles desligados por 3 s sem sinal | Os botões pulsam e a seção fica `aria-busy` enquanto o vídeo carrega | relato r3 (celular): o sinal ainda passa despercebido. Parcial |
 | O esqueleto da aula pulava ao trocar pelo player | A reserva da barra segue a largura (38, 78 ou 80 px) | teste no Chromium em 6 larguras |
@@ -76,10 +76,12 @@ Fora da tabela, corrigido sem persona:
 | "sáb e dom" girado | Na horizontal, 12 px, contraste 5,18:1 | teste no Chromium em 1280 e 390 px |
 | A aba da aula inexistente dizia "Aula" | Aula, curso, certificado e a 404 do app têm título de não encontrado | teste |
 | Dois controles "Volume", cada um com uma parada de Tab (visto na r2 e na r3) | O volume vai ao `Slider` em array; com um número ele desenhava dois polegares | teste e contagem no app real: 1 polegar |
-| Duas consultas de saldo na API | Uma só, `linhasDoSaldo` | suíte da API igual antes e depois (479 pass) |
+| Duas consultas de saldo na API | Uma só, `linhasDoSaldo` | suíte da API igual antes e depois (479 pass); os testes de ataque do PR #112 passam em cima desta branch (18 pass), e sem o filtro por `userId` no `linhasDoSaldo` os dois de saldo ficam vermelhos |
 | `db:migrate:local` migrava a 54322 mesmo com outro banco local | `LOCAL_DATABASE_URL`, com host remoto recusado | antes 0 tabelas no banco pedido, depois 16 |
 
-Ficou para depois, da rodada 3: o sinal de carregamento ainda fraco, o "% visto" que recebe Tab só para abrir a dica, e a velocidade escondida atrás da engrenagem (impaciente e celular pediram à vista).
+A rodada 3 rodou só as quatro personas de aluno: admin e pessoa nova ficaram de fora, e o "Pular para o conteúdo" do admin foi provado só no teste. A persona de teclado não usou o link de pular (contou 9 Tabs até o "Começar curso"); o link foi conferido no print.
+
+Ficou para depois, da rodada 3: o sinal de carregamento ainda fraco, o "% visto" que recebe Tab só para abrir a dica, a velocidade escondida atrás da engrenagem (impaciente e celular pediram à vista), e nada na tela diz que a aula conta aos 90%: o painel "Aula assistida" só aparece no fim do vídeo, e aos 90% o aviso é o "+10 pts" na barra.
 
 ## O que não foi verificado
 
@@ -93,6 +95,6 @@ Ficou para depois, da rodada 3: o sinal de carregamento ainda fraco, o "% visto"
 - O nome tem limite de 100 caracteres e de 20 letras por palavra, medido no PDF do certificado. Nome com `<`, `>`, `&` ou `://` é barrado antes de enviar.
 - O cartão de Minha conta mostra o nome salvo, e só a prévia do certificado acompanha a digitação, com a legenda "Prévia: este nome ainda não foi salvo". Isso muda o `DESIGN.md`.
 - No celular, o slider de volume sai da barra do player; ficam o botão de som e o volume do aparelho.
-- O item focado dos Ajustes ficou em `trilho`: 1,35:1 contra o fundo da folha, ainda abaixo de 3:1.
+- O item focado dos Ajustes ficou em `trilho`: 1,35:1 contra o fundo da folha. Fica abaixo dos 3:1 que o `PRODUCT.md` pede para indicador de estado; precisa de outro sinal ou de outra cor.
 - Na velocidade, as setas já aplicam cada velocidade por onde passam, como num grupo de rádio comum, e o Enter não fecha a folha.
 - O nome cortado na folha pode terminar no meio de uma palavra ("Apareci…").
