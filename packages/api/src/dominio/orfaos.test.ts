@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { type ChavesEmUso, DIAS_ATE_COLETAR, orfaosDoBucket } from "./orfaos";
+import {
+  type ChavesEmUso,
+  DIAS_ATE_COLETAR,
+  orfaosDoBucket,
+  recusaDoApagar,
+} from "./orfaos";
 
 const AGORA = new Date("2026-10-20T12:00:00Z");
 const diasAtras = (dias: number) =>
@@ -74,11 +79,43 @@ describe("orfaosDoBucket", () => {
   });
 
   test("capa do public/ não protege a chave de mesmo nome no bucket", () => {
+    const mesmoNome = chave("9", "jpg");
     const orfaos = orfaosDoBucket(
-      { capaUrls: ["/capas/comercial.jpg"], chavesDeMaterial: [] },
-      [objeto("comercial.jpg", 30)],
+      { capaUrls: [`/capas/${mesmoNome}`], chavesDeMaterial: [] },
+      [objeto(mesmoNome, 30)],
       AGORA
     );
-    expect(orfaos.map((o) => o.chave)).toEqual(["comercial.jpg"]);
+    expect(orfaos.map((o) => o.chave)).toEqual([mesmoNome]);
+  });
+});
+
+describe("só o que o app gravou é candidato", () => {
+  test("objeto com chave fora do formato <sha256>.<ext> nunca é órfão", () => {
+    const alheios = [
+      objeto("backup/dump.sql", 30),
+      objeto("LEIAME.txt", 30),
+      objeto(`${"a".repeat(63)}.jpg`, 30),
+      objeto(`${"A".repeat(64)}.jpg`, 30),
+    ];
+    expect(orfaosDoBucket(EM_USO, alheios, AGORA)).toEqual([]);
+  });
+});
+
+describe("recusaDoApagar", () => {
+  test("recusa quando o banco não usa nenhuma chave, como num DATABASE_URL vazio ou errado", () => {
+    expect(recusaDoApagar({ capaUrls: [], chavesDeMaterial: [] })).toBeString();
+    expect(
+      recusaDoApagar({
+        capaUrls: ["/capas/comercial.jpg"],
+        chavesDeMaterial: [],
+      })
+    ).toBeString();
+  });
+
+  test("deixa apagar quando o banco usa alguma chave do bucket", () => {
+    expect(recusaDoApagar(EM_USO)).toBeNull();
+    expect(
+      recusaDoApagar({ capaUrls: [], chavesDeMaterial: [MATERIAL] })
+    ).toBeNull();
   });
 });

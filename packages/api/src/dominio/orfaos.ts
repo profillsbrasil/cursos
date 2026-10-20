@@ -28,6 +28,8 @@ export const DIAS_ATE_COLETAR = 7;
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 const PREFIXO_DA_CAPA = "/capa/";
+/** A chave que o app grava, de capa e de material. Objeto com outro nome não é do app e fica. */
+const CHAVE_DO_APP = /^[0-9a-f]{64}\.[a-z0-9]+$/;
 
 export interface Orfao extends ObjetoDoBucket {
   idadeEmDias: number;
@@ -51,11 +53,22 @@ export function orfaosDoBucket(
 ): Orfao[] {
   const referenciadas = chavesReferenciadas(emUso);
   return objetos
-    .filter((o) => !referenciadas.has(o.chave))
+    .filter((o) => CHAVE_DO_APP.test(o.chave) && !referenciadas.has(o.chave))
     .map((o) => ({
       ...o,
       idadeEmDias: (agora.getTime() - o.modificadoEm.getTime()) / DIA_MS,
     }))
     .filter((o) => o.idadeEmDias > DIAS_ATE_COLETAR)
     .sort((a, b) => b.idadeEmDias - a.idadeEmDias);
+}
+
+/**
+ * Banco sem nenhuma chave em uso faz todo objeto com mais de 7 dias virar órfão.
+ * Isso é o que um DATABASE_URL vazio ou de outro ambiente produz, então o
+ * apagar recusa em vez de esvaziar o bucket.
+ */
+export function recusaDoApagar(emUso: ChavesEmUso): string | null {
+  return chavesReferenciadas(emUso).size === 0
+    ? "O banco não usa nenhuma chave dos buckets. Confira o DATABASE_URL antes de apagar."
+    : null;
 }

@@ -8,7 +8,11 @@ import { createDb } from "@cursos/db";
 
 import { chavesEmUso } from "../src/consultas/orfaos";
 import { tamanhoDoArquivo } from "../src/dominio/material";
-import { DIAS_ATE_COLETAR, orfaosDoBucket } from "../src/dominio/orfaos";
+import {
+  DIAS_ATE_COLETAR,
+  orfaosDoBucket,
+  recusaDoApagar,
+} from "../src/dominio/orfaos";
 import { type BucketDeCapas, bucketAssinado } from "../src/externos/capas";
 
 const { values } = parseArgs({ options: { apagar: { type: "boolean" } } });
@@ -64,6 +68,12 @@ if (buckets.length === 0) {
 const db = createDb({ DATABASE_URL });
 const emUso = await chavesEmUso(db);
 await db.$client.end();
+
+// Antes de listar: com o banco errado, nenhum bucket é tocado.
+const recusa = apagar ? recusaDoApagar(emUso) : null;
+if (recusa) {
+  throw new Error(recusa);
+}
 
 const agora = new Date();
 const coletas = await Promise.all(
