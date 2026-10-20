@@ -1,32 +1,16 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
-let aberto: {
-  contentType: string;
-  nomeDoArquivo: string;
-  resposta: Response;
-} | null = null;
+import { respostaDoMaterial } from "./resposta-do-material";
 
-mock.module("@/server/api", () => ({
-  abrirMaterial: () => Promise.resolve(aberto),
-}));
-
-const { GET } = await import("@/app/material/[id]/route");
-
-const baixar = () =>
-  GET(new Request("http://localhost/material/x"), {
-    params: Promise.resolve({ id: "x" }),
-  });
-
-describe("a rota do material de apoio", () => {
+describe("a resposta do download do material de apoio", () => {
   test("quem pode ver baixa o arquivo como anexo, com o nome original, e nada fica em cache", async () => {
-    aberto = {
+    const r = respostaDoMaterial({
       contentType: "application/pdf",
       nomeDoArquivo: "Checklist técnico.pdf",
       resposta: new Response("%PDF-1.7", {
         headers: { "content-length": "8" },
       }),
-    };
-    const r = await baixar();
+    });
     expect([
       r.status,
       r.headers.get("content-type"),
@@ -45,8 +29,7 @@ describe("a rota do material de apoio", () => {
   });
 
   test("quem não pode ver, ou o id que não existe, recebe 404 sem corpo", async () => {
-    aberto = null;
-    const r = await baixar();
+    const r = respostaDoMaterial(null);
     expect([r.status, await r.text()]).toEqual([404, ""]);
   });
 });

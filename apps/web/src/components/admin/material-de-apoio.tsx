@@ -333,13 +333,12 @@ export function MaterialDeApoio({
       resumo={resumoDoMaterial(materiais)}
       titulo="Material de apoio"
     >
-      {/* biome-ignore lint/a11y: as duas regras de interação acusam o alvo de soltar; soltar arquivo é atalho do mouse; o teclado usa o botão Escolher arquivos. */}
+      {/* biome-ignore lint/a11y: soltar arquivo é atalho do mouse, e o teclado usa o Escolher arquivos. */}
       <div
         className={cn(
           "rounded-[20px] transition-shadow duration-150 ease-forte",
           arrastando && "shadow-[inset_0_0_0_1.5px_var(--ceu)]"
         )}
-        data-arrastando={arrastando || undefined}
         onDragLeave={fora}
         onDragOver={sobre}
         onDrop={soltou}

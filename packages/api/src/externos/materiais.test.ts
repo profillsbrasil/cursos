@@ -105,7 +105,7 @@ const BUCKET = {
 function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
   const enviar = ((url: Request | string, init?: RequestInit) => {
-    const pedido = new Request(url, init);
+    const pedido = url instanceof Request ? url : new Request(url, init);
     pedidos.push(pedido);
     return Promise.resolve(resposta(pedido));
   }) as unknown as typeof fetch;
