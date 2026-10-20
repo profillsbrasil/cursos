@@ -315,8 +315,8 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     expect(await linhasDaBusca(db, [])).toEqual({ cursos: [], pessoas: [] });
   });
 
-  test("admin.alunos.buscar devolve a página do Clerk com a situação de cada pessoa", async () => {
-    const busca = await admin.admin.alunos.buscar({ termo: `${S}nunca` });
+  test("admin.liberacoes.buscar devolve a página do Clerk com a situação de cada pessoa", async () => {
+    const busca = await admin.admin.liberacoes.buscar({ termo: `${S}nunca` });
     expect(busca.total).toBe(1);
     expect(busca.pessoas.map((p) => [p.userId, p.situacao.tipo])).toEqual([
       [NUNCA, "nunca_abriu"],
@@ -326,10 +326,10 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       "admin",
       "admin",
     ]);
-    const revogada = await admin.admin.alunos.buscar({ termo: REVOGADA });
+    const revogada = await admin.admin.liberacoes.buscar({ termo: REVOGADA });
     expect(revogada.pessoas.map((p) => p.ativas)).toEqual([[]]);
     expect(busca.hoje).toBe(diaLocal(new Date()));
-    const ninguem = await admin.admin.alunos.buscar({ termo: `${S}zzz` });
+    const ninguem = await admin.admin.liberacoes.buscar({ termo: `${S}zzz` });
     expect(ninguem).toMatchObject({ pessoas: [], total: 0 });
   });
 
@@ -337,7 +337,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     const comparacoes = await Promise.all(
       [ESTUDA, NUNCA, DIRETO, ONDE].map(async (userId) => {
         const [acesso, painel] = await Promise.all([
-          admin.admin.alunos.acesso({ userId }),
+          admin.admin.liberacoes.acesso({ userId }),
           painelDe(userId),
         ]);
         // Os títulos levam o sufixo do teste, então identificam o curso.
@@ -368,7 +368,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   });
 
   test("a revogada mostra o estudo que ficou", async () => {
-    const estuda = await admin.admin.alunos.acesso({ userId: ESTUDA });
+    const estuda = await admin.admin.liberacoes.acesso({ userId: ESTUDA });
     const doD = estuda?.liberacoes.find(
       (l) => l.curso.titulo === `Curso ${S} d`
     );
@@ -377,7 +377,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       tipo: "estudando",
       ultimoEstudo: "2026-10-12" as DiaISO,
     });
-    const revogada = await admin.admin.alunos.acesso({ userId: REVOGADA });
+    const revogada = await admin.admin.liberacoes.acesso({ userId: REVOGADA });
     expect(
       revogada?.liberacoes.map((l) => [l.acao.tipo, l.acompanhamento])
     ).toEqual([
@@ -395,7 +395,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     const comparacoes = await Promise.all(
       [ESTUDA, DIRETO, ONDE].map(async (userId) => {
         const [acesso, painel] = await Promise.all([
-          admin.admin.alunos.acesso({ userId }),
+          admin.admin.liberacoes.acesso({ userId }),
           painelDe(userId),
         ]);
         const r = painel.retomada;

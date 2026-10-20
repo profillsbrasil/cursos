@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T00:00:00-03:00",
+  "generatedAt": "2026-10-20T00:00:00-03:00",
   "title": "Design System: Profills Cursos",
   "extensions": {
     "colorMeta": {
@@ -147,11 +147,11 @@
       },
       "title-page": {
         "displayName": "Título de página",
-        "purpose": "O h1 das páginas, em titulo; 24 px nas telas de erro e de não encontrado."
+        "purpose": "O h1 das páginas, em titulo. No aluno, o resumo vem embaixo, a 6 px, em texto-apagado (o CabecalhoDaPagina); no Catálogo do admin, a 4 px; nunca na outra ponta da linha. 24 px nas telas de erro e de não encontrado, e de 22 a 30 px no título da aula."
       },
       "title-section": {
         "displayName": "Título de seção",
-        "purpose": "O h2 das seções do aluno e do admin, 24 px sobre os 18 px do título de cartão (razão 1,33)."
+        "purpose": "O h2 das seções do aluno e do admin (a Secao de admin/partes.tsx), com o resumo em 14 px: embaixo no aluno, à direita no admin. 24 px sobre os 18 px do título de cartão (razão 1,33), e 30 px do título de página sobre os 24 px (razão 1,25): o tamanho sozinho separa os três níveis."
       },
       "title-card": {
         "displayName": "Título de cartão",
@@ -159,7 +159,7 @@
       },
       "title-block": {
         "displayName": "Título de bloco",
-        "purpose": "O título da coluna do curso e do aviso de comunicado, os valores das placas do menu da conta e \"Seu saldo\" em 400."
+        "purpose": "O título da coluna do curso no player, do aviso de comunicado, do módulo no editor do curso e de cada liberação na tela de acesso do admin, e os valores das placas Saldo e Sequência do menu da conta. \"Seu saldo\", acima do número grande de Trocar pontos, usa o mesmo degrau em 400."
       },
       "body": {
         "displayName": "Corpo",
@@ -167,19 +167,19 @@
       },
       "label": {
         "displayName": "Rótulo",
-        "purpose": "Botões, nomes de menu, rótulos de campo."
+        "purpose": "Botões, nomes de menu, rótulos de campo, em 600 de 13 a 14 px."
       },
       "caption": {
         "displayName": "Legenda",
-        "purpose": "Selos, números do cartão de conta, rótulos das placas do menu da conta."
+        "purpose": "Selos de estado, números do cartão de conta, rótulos das placas Saldo e Sequência do menu da conta e \"Em breve\" no menu, em 400 ou 600."
       },
       "mono": {
         "displayName": "Mono",
-        "purpose": "A voz dos números do player: os pontos do aviso na barra e do cartão de fim do vídeo, em 600 e 16 px. Fora do player, número é Geist com tabular-nums."
+        "purpose": "A voz dos números do player: os pontos do aviso na barra e do cartão de fim do vídeo (\"+10 pts\"), em 600 e 16 px; as seis velocidades dos Ajustes, em 600 e 12 px. Fora do player, só o endereço do curso e a tecla \"Ctrl S\" do editor; o resto dos números é Geist com tabular-nums."
       },
       "mono-player": {
         "displayName": "Mono dos controles",
-        "purpose": "O tempo nos controles do player, em 13 px."
+        "purpose": "O tempo nos controles do player (\"03:42 / 10:34\", o atual em 500), em 13 px."
       },
       "mono-coluna": {
         "displayName": "Mono da coluna",
@@ -187,23 +187,23 @@
       },
       "tecla": {
         "displayName": "Tecla",
-        "purpose": "A tecla na lista de atalhos do player e no item Atalhos do teclado dos Ajustes, em 11 px."
+        "purpose": "A tecla na lista de atalhos do player e o \"?\" do item Atalhos do teclado nos Ajustes, em 11 px, com borda de 1 px e 2 px embaixo. Dois degraus abaixo da frase de 13 px, para caber na linha sem aumentar a entrelinha. Na dica dos botões do player, a tecla não leva borda."
       },
       "selo-da-area": {
         "displayName": "Selo da área",
-        "purpose": "\"Admin\" ao lado da marca, em 600, 10 px e caixa alta. O único texto legível abaixo de 11 px (o \"10\" de 7 px do ícone de voltar 10 s é parte do glifo)."
+        "purpose": "\"Admin\" ao lado da marca, em 600, 10 px, caixa alta e letra a 0,025em. É o único texto em caixa alta e, com a marca \"sáb e dom\" de 10 px da faixa da sequência em Conquistas, o único legível abaixo de 11 px (o \"10\" de 7 px do ícone de voltar 10 s é parte do glifo)."
       }
     },
     "shadows": [
       {
         "name": "brilho-do-botao",
         "value": "0 6px 18px rgb(255 204 1 / 0.28)",
-        "purpose": "Botão principal sob o cursor."
+        "purpose": "O botão amarelo e a pílula do link ativo sob o cursor e com o foco de teclado (o token shadow-brilho)."
       },
       {
         "name": "brilho-do-saldo",
         "value": "0 10px 30px rgb(255 204 1 / 0.25)",
-        "purpose": "Círculo amarelo do saldo em Trocar pontos."
+        "purpose": "O círculo amarelo do saldo em Trocar pontos, junto com o gradiente radial em Sol a 16% no canto do cartão. Só enquanto a vitrine tem curso trocável; sem ele, o saldo fica plano."
       },
       {
         "name": "painel",
@@ -213,24 +213,29 @@
       {
         "name": "flutuante",
         "value": "0 10px 30px rgb(0 0 0 / 0.45)",
-        "purpose": "Barra de salvar presa ao pé do editor do curso, abaixo de 960 px de editor; de 960 px para cima, a situação e o Salvar ficam na coluna de publicação."
+        "purpose": "A barra de salvar presa ao pé do editor do curso, com backdrop-blur, abaixo de 960 px de editor; de 960 px para cima, a situação e o Salvar ficam na coluna de publicação."
       },
       {
         "name": "menu",
         "value": "0 20px 25px -5px rgb(0 0 0 / 0.45), 0 8px 10px -6px rgb(0 0 0 / 0.45)",
-        "purpose": "Menu do cartão de conta."
+        "purpose": "O menu da conta, a lista aberta da seleção e a folha dos Ajustes do player."
       },
       {
         "name": "anel-de-conquista",
         "value": "0 0 0 3px rgb(255 204 1 / 0.35)",
         "purpose": "Cartão de conta quando o player registra pontos."
+      },
+      {
+        "name": "cursor-da-barra",
+        "value": "0 2px 6px rgb(0 0 0 / 0.5)",
+        "purpose": "O cursor da barra de posição do player, uma das duas marcas pequenas com sombra em repouso."
       }
     ],
     "motion": [
       {
         "name": "ease-forte",
         "value": "cubic-bezier(0.23, 1, 0.32, 1)",
-        "purpose": "Largura da sidebar e deslize da pílula ativa."
+        "purpose": "A curva única da interface (o token --ease-forte do index.css, ease-forte no Tailwind): largura da sidebar, deslize da pílula ativa, capa que cresce, seta que gira, lista da seleção e folha dos Ajustes."
       },
       {
         "name": "pilula-ativa",
@@ -245,12 +250,55 @@
       {
         "name": "estado",
         "value": "150ms ease-out",
-        "purpose": "Cor e fundo de hover em itens, botões de ícone e cartões."
+        "purpose": "Cor, fundo e sombra de hover e de foco em itens, botões de ícone e cartões. Continua com movimento reduzido."
+      },
+      {
+        "name": "capa-sob-o-cursor",
+        "value": "200ms ease-forte, scale 1.03",
+        "purpose": "A imagem da capa cresce 3% dentro da moldura sob o cursor e com o foco (Meus cursos, Catálogo, certificados de Conquistas); com movimento reduzido, cresce sem transição."
+      },
+      {
+        "name": "seta-que-gira",
+        "value": "200ms ease-forte, rotate 180deg",
+        "purpose": "A seta da seleção, do módulo da página do curso e de \"Mais N acessos antigos\"; com movimento reduzido, não anima. A seta do bloco no editor do curso vira sem animação."
+      },
+      {
+        "name": "lista-da-selecao",
+        "value": "150ms ease-forte ao abrir, 100ms ao fechar; opacidade e transform inteiro (4 px acima e 98%)",
+        "purpose": "A lista da seleção e o popover de data; com movimento reduzido, só a opacidade."
+      },
+      {
+        "name": "folha-dos-ajustes",
+        "value": "150ms ease-forte, de 95% com a opacidade",
+        "purpose": "A folha dos Ajustes e a lista de atalhos do player; com movimento reduzido, só a opacidade."
+      },
+      {
+        "name": "aviso-da-conquista",
+        "value": "200ms, sobe 8 px com a opacidade",
+        "purpose": "O \"+10 pts\" no lugar do \"% visto\"; com movimento reduzido, só a opacidade."
       }
     ],
     "breakpoints": [
-      { "name": "gaveta", "value": "768px" },
-      { "name": "banner-uma-coluna", "value": "760px" }
+      {
+        "name": "gaveta",
+        "value": "768px"
+      },
+      {
+        "name": "banner-uma-coluna",
+        "value": "760px"
+      },
+      {
+        "name": "coluna-do-player",
+        "value": "1080px"
+      },
+      {
+        "name": "pagina-do-curso-duas-colunas",
+        "value": "1081px"
+      },
+      {
+        "name": "comunicado-em-duas-colunas",
+        "value": "1181px"
+      }
     ]
   },
   "components": [
@@ -258,7 +306,7 @@
       "name": "Botão principal",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Pílula amarela, uma por contexto.",
+      "description": "O BOTAO de casca/botoes.ts: pílula amarela, uma por contexto; sob o cursor e com o foco, sol-hover e o brilho.",
       "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 3l14 9-14 9z\"/></svg>Continuar aula</button>",
       "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: none; border-radius: 9999px; background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { background: #ffd633; box-shadow: 0 6px 18px rgb(255 204 1 / 0.28); outline: none; }"
     },
@@ -266,7 +314,7 @@
       "name": "Botão em contorno",
       "kind": "button",
       "refersTo": "button-outline",
-      "description": "Ação secundária ao lado do botão principal.",
+      "description": "O BOTAO_CONTORNO: ação secundária ao lado do botão principal, com a borda em texto-apagado que passa de 3:1.",
       "html": "<button class=\"ds-btn-outline\">Ver extrato</button>",
       "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 9999px; background: transparent; color: var(--foreground, #e9ecef); font: 600 14px/1 Geist, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color 150ms ease-out; } .ds-btn-outline:hover, .ds-btn-outline:focus-visible { border-color: var(--titulo, #f4f5f7); outline: none; }"
     },
@@ -274,7 +322,7 @@
       "name": "Campo",
       "kind": "input",
       "refersTo": "input",
-      "description": "Campo de texto dos formulários do admin.",
+      "description": "O CAMPO de casca/campos.ts: pílula de 44 px que o admin e a conferência do certificado dividem; a borda vira Céu sob o cursor e com o foco.",
       "html": "<label class=\"ds-field\"><span>Título do curso</span><input class=\"ds-input\" value=\"Operação da envasadora\"></label>",
       "css": ".ds-field { display: grid; gap: 6px; font: 600 14px Geist, ui-sans-serif, sans-serif; color: var(--foreground, #e9ecef); } .ds-input { height: 44px; padding: 0 14px; border: 1px solid var(--muted-foreground, #a8acb0); border-radius: 9999px; background: var(--background, #1a1d22); color: var(--foreground, #e9ecef); font: 400 14px Geist, ui-sans-serif, sans-serif; } .ds-input:hover, .ds-input:focus-visible { border-color: var(--ceu, #aad2ea); outline: none; }"
     },
@@ -282,7 +330,7 @@
       "name": "Navegação da sidebar",
       "kind": "nav",
       "refersTo": "nav-item",
-      "description": "Itens de 40 px com a pílula amarela atrás do ativo. Sob o cursor e com o foco, a pílula clareia e brilha, e o \"Em breve\" clareia o nome e o ícone, sem fundo.",
+      "description": "Itens de 40 px com a pílula amarela atrás do ativo. Sob o cursor e com o foco, a pílula clareia e brilha. O estado \"Em breve\" continua desenhado, mas nenhum item do menu o usa hoje.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-ativo\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 10l9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z\"/></svg>Meus cursos</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>Trocar pontos</a><span class=\"ds-nav-item ds-nav-breve\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/></svg>Certificados<small>Em breve</small></span></nav>",
       "css": ".ds-nav { display: grid; gap: 4px; width: 212px; padding: 6px 14px; background: var(--sidebar, #282d33); } .ds-nav-item { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 11px; border-radius: 10px; color: var(--sidebar-foreground, #e9ecef); font: 500 14px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-nav-item svg { color: var(--muted-foreground, #a8acb0); } .ds-nav-item:hover, .ds-nav-item:focus-visible { background: var(--sidebar-accent, #2f343a); color: var(--titulo, #f4f5f7); outline: none; } .ds-nav-ativo { background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); font-weight: 600; } .ds-nav-ativo:hover, .ds-nav-ativo:focus-visible { background: var(--sol-hover, #ffd633); color: var(--sobre-cor, #22262b); box-shadow: 0 6px 18px rgb(255 204 1 / 0.28); } .ds-nav-ativo svg, .ds-nav-ativo:hover svg, .ds-nav-ativo:focus-visible svg { color: var(--sobre-cor, #22262b); } .ds-nav-breve { background: transparent; color: var(--muted-foreground, #a8acb0); cursor: default; } .ds-nav-breve:hover, .ds-nav-breve:focus-visible { background: transparent; color: var(--foreground, #e9ecef); } .ds-nav-breve:hover svg, .ds-nav-breve:focus-visible svg { color: var(--foreground, #e9ecef); } .ds-nav-breve small { color: var(--muted-foreground, #a8acb0); } .ds-nav-breve small { margin-left: auto; font-size: 12px; font-weight: 400; }"
     },
@@ -290,9 +338,9 @@
       "name": "Selos de estado",
       "kind": "chip",
       "refersTo": "badge-status",
-      "description": "Estado do curso em pílula de 24 px.",
-      "html": "<div class=\"ds-selos\"><span class=\"ds-selo ds-selo-concluido\">Concluído</span><span class=\"ds-selo ds-selo-andamento\">Em andamento</span><span class=\"ds-selo ds-selo-prova\">Faltam questionários</span><span class=\"ds-selo ds-selo-producao\">Em produção</span></div>",
-      "css": ".ds-selos { display: flex; flex-wrap: wrap; gap: 8px; } .ds-selo { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-concluido { background: var(--ceu, #aad2ea); color: var(--sobre-cor, #22262b); } .ds-selo-andamento { background: rgb(255 204 1 / 0.14); color: var(--sol, #ffcc01); } .ds-selo-prova { background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); } .ds-selo-producao { background: transparent; color: var(--ceu, #aad2ea); box-shadow: inset 0 0 0 1px var(--ceu, #aad2ea); }"
+      "description": "Estado do curso em pílula de 24 px, 600 em 12 px. Concluído em Céu cheio, Em andamento em Sol a 14%, Faltam questionários em Canela cheio, Não iniciado em popover, Em produção em contorno Céu. Nenhum selo é vermelho.",
+      "html": "<div class=\"ds-selos\"><span class=\"ds-selo ds-selo-concluido\">Concluído</span><span class=\"ds-selo ds-selo-andamento\">Em andamento</span><span class=\"ds-selo ds-selo-prova\">Faltam questionários</span><span class=\"ds-selo ds-selo-nao-iniciado\">Não iniciado</span><span class=\"ds-selo ds-selo-producao\">Em produção</span></div>",
+      "css": ".ds-selos { display: flex; flex-wrap: wrap; gap: 8px; } .ds-selo { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-concluido { background: var(--ceu, #aad2ea); color: var(--sobre-cor, #22262b); } .ds-selo-andamento { background: rgb(255 204 1 / 0.14); color: var(--sol, #ffcc01); } .ds-selo-prova { background: var(--canela, #e5977a); color: var(--sobre-cor, #22262b); } .ds-selo-producao { background: transparent; color: var(--ceu, #aad2ea); box-shadow: inset 0 0 0 1px var(--ceu, #aad2ea); } .ds-selo-nao-iniciado { background: var(--popover, #3a3f45); color: var(--foreground, #e9ecef); }"
     },
     {
       "name": "Cartão",
@@ -317,6 +365,38 @@
       "description": "Tooltip claro sobre a sidebar escura.",
       "html": "<span class=\"ds-dica\">Recolher <span>Ctrl B</span></span>",
       "css": ".ds-dica { display: inline-flex; gap: 6px; padding: 6px 10px; border-radius: 7px; background: var(--titulo, #f4f5f7); color: var(--sobre-cor, #22262b); font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-dica span { font-weight: 400; opacity: 0.7; }"
+    },
+    {
+      "name": "Selos de perfil e de papel",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Tela Pessoas: o perfil (Funcionário, Cliente, Público aberto) é contorno de 1 px em texto-apagado com texto em texto e o ícone do perfil, porque perfil não é estado e não leva cor. O papel Admin é Céu a 14% com texto Céu e o escudo, o tom do selo da área; o aluno não ganha selo, só a palavra \"Aluno\" em texto-apagado.",
+      "html": "<div class=\"ds-selos\"><span class=\"ds-selo-pessoa ds-selo-perfil\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10 12h4\"/><path d=\"M10 8h4\"/><path d=\"M14 21v-3a2 2 0 0 0-4 0v3\"/><path d=\"M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2\"/><path d=\"M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16\"/></svg>Funcionário</span><span class=\"ds-selo-pessoa ds-selo-perfil\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 16h.01\"/><path d=\"M16 16h.01\"/><path d=\"M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z\"/><path d=\"M8 16h.01\"/></svg>Cliente</span><span class=\"ds-selo-pessoa ds-selo-perfil\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20\"/><path d=\"M2 12h20\"/></svg>Público aberto</span><span class=\"ds-selo-pessoa ds-selo-admin\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/></svg>Admin</span><span class=\"ds-papel-aluno\">Aluno</span></div>",
+      "css": ".ds-selos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .ds-selo-pessoa { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 9999px; font: 600 12px Geist, ui-sans-serif, sans-serif; } .ds-selo-perfil { background: transparent; color: var(--foreground, #e9ecef); box-shadow: inset 0 0 0 1px var(--muted-foreground, #a8acb0); } .ds-selo-admin { background: rgb(170 210 234 / 0.14); color: var(--ceu, #aad2ea); } .ds-papel-aluno { color: var(--muted-foreground, #a8acb0); font: 400 12px Geist, ui-sans-serif, sans-serif; }"
+    },
+    {
+      "name": "Abas de Liberações",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Por pessoa e Por perfil, links numa trilha em pílula: fundo sidebar, anel de 1 px em borda e 4 px de folga. A aba atual é a pílula popover com texto titulo e aria-current; a outra clareia a branco 8% sob o cursor e com o foco.",
+      "html": "<nav class=\"ds-abas\" aria-label=\"Liberar por\"><a class=\"ds-aba\" href=\"#\">Por pessoa</a><a class=\"ds-aba\" href=\"#\" aria-current=\"page\">Por perfil</a></nav>",
+      "css": ".ds-abas { display: inline-flex; gap: 4px; padding: 4px; border-radius: 9999px; background: var(--sidebar, #282d33); box-shadow: 0 0 0 1px var(--border, #40454a); } .ds-aba { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 9999px; color: var(--foreground, #e9ecef); font: 600 13px Geist, ui-sans-serif, sans-serif; text-decoration: none; transition: background-color 150ms ease-out, color 150ms ease-out; } .ds-aba:hover, .ds-aba:focus-visible { background: rgb(255 255 255 / 0.08); outline: none; } .ds-aba[aria-current=\"page\"], .ds-aba[aria-current=\"page\"]:hover, .ds-aba[aria-current=\"page\"]:focus-visible { background: var(--popover, #3a3f45); color: var(--titulo, #f4f5f7); }"
+    },
+    {
+      "name": "Botões por perfil",
+      "kind": "button",
+      "refersTo": "button-small",
+      "description": "Aba Por perfil de Liberações: cada curso tem um botão pequeno por perfil. Liberado é o botão Sol com o check e aria-pressed; Liberar é o de contorno. Revogar abre na própria linha o aviso Sol a 10% com anel Sol a 40%, com a pergunta, o alcance do perfil e os botões Revogar e Cancelar.",
+      "html": "<div class=\"ds-perfis\"><div class=\"ds-perfis-linha\"><button class=\"ds-perfil ds-perfil-liberado\" aria-pressed=\"true\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Liberado</button><button class=\"ds-perfil ds-perfil-liberar\" aria-pressed=\"false\">Liberar</button><button class=\"ds-perfil ds-perfil-liberado\" aria-pressed=\"true\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Liberado</button></div><div class=\"ds-perfis-aviso\"><p>Fechar Operação da envasadora a Clientes? 12 pessoas perdem o acesso pelo perfil; o estudo delas fica guardado.</p><span><button class=\"ds-perfil ds-perfil-liberado\">Revogar</button><button class=\"ds-perfil ds-perfil-liberar\">Cancelar</button></span></div></div>",
+      "css": ".ds-perfis { display: grid; gap: 12px; max-width: 560px; font: 400 14px Geist, ui-sans-serif, sans-serif; } .ds-perfis-linha { display: grid; grid-template-columns: repeat(3, 8.5rem); gap: 12px; } .ds-perfil { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9999px; font: 600 13px Geist, ui-sans-serif, sans-serif; cursor: pointer; transition: background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-perfil-liberado { border: none; background: var(--sol, #ffcc01); color: var(--sobre-cor, #22262b); } .ds-perfil-liberado:hover, .ds-perfil-liberado:focus-visible { background: var(--sol-hover, #ffd633); box-shadow: 0 6px 18px rgb(255 204 1 / 0.28); outline: none; } .ds-perfil-liberar { border: 1px solid var(--muted-foreground, #a8acb0); background: transparent; color: var(--foreground, #e9ecef); } .ds-perfil-liberar:hover, .ds-perfil-liberar:focus-visible { border-color: var(--titulo, #f4f5f7); outline: none; } .ds-perfis-aviso { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgb(255 204 1 / 0.1); box-shadow: 0 0 0 1px rgb(255 204 1 / 0.4); color: var(--foreground, #e9ecef); } .ds-perfis-aviso p { margin: 0; } .ds-perfis-aviso span { display: flex; gap: 8px; }"
+    },
+    {
+      "name": "Material de apoio",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "No cartão da página do curso: \"Material de apoio\" em 13 px texto-apagado com a contagem, e cada arquivo como link de download com o selo do tipo (a folha de ponta dobrada, PDF em Canela, planilha em Céu e slides em Sol, a 14%, o resto em popover), o título em 500 e 13 px titulo, o tamanho em 12 px e o ícone de baixar, que clareia para titulo com a linha a branco 8% sob o cursor e com o foco. Mostra 3; \"Ver todos (n)\" em Céu mostra o resto. O editor usa o mesmo selo em 38 por 44 px.",
+      "html": "<section class=\"ds-material\"><div class=\"ds-material-topo\"><span>Material de apoio</span><span>4</span></div><a class=\"ds-material-item\" href=\"#\"><span class=\"ds-tipo ds-tipo-pdf\">PDF</span><span class=\"ds-material-texto\"><b>Manual da envasadora</b><small>3,2 MB</small></span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg></a><a class=\"ds-material-item\" href=\"#\"><span class=\"ds-tipo ds-tipo-planilha\">XLSX</span><span class=\"ds-material-texto\"><b>Checklist de manutenção</b><small>480 KB</small></span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg></a><a class=\"ds-material-item\" href=\"#\"><span class=\"ds-tipo ds-tipo-slides\">PPTX</span><span class=\"ds-material-texto\"><b>Slides do módulo 1</b><small>12 MB</small></span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg></a><button class=\"ds-material-mais\">Ver todos (4)</button></section>",
+      "css": ".ds-material { display: grid; gap: 8px; width: 260px; font: 400 13px Geist, ui-sans-serif, sans-serif; } .ds-material-topo { display: flex; justify-content: space-between; color: var(--muted-foreground, #a8acb0); } .ds-material-item { display: grid; grid-template-columns: 30px minmax(0, 1fr) 16px; align-items: center; gap: 10px; margin: 0 -10px; padding: 6px 10px; border-radius: 10px; color: var(--muted-foreground, #a8acb0); text-decoration: none; transition: background-color 150ms cubic-bezier(0.23, 1, 0.32, 1), color 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-material-item:hover, .ds-material-item:focus-visible { background: rgb(255 255 255 / 0.08); color: var(--titulo, #f4f5f7); outline: none; } .ds-material-texto { display: grid; min-width: 0; } .ds-material-texto b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--titulo, #f4f5f7); font-weight: 500; } .ds-material-texto small { color: var(--muted-foreground, #a8acb0); font-size: 12px; } .ds-tipo { position: relative; display: grid; place-items: center; width: 30px; height: 34px; border-radius: 7px; font: 600 9px/1 'Geist Mono', ui-monospace, monospace; letter-spacing: 0.04em; } .ds-tipo::after { content: ''; position: absolute; top: 0; right: 0; width: 10px; height: 10px; border-bottom-left-radius: 4px; background: rgb(26 29 34 / 0.55); } .ds-tipo-pdf { background: rgb(229 151 122 / 0.14); color: var(--canela, #e5977a); } .ds-tipo-planilha { background: rgb(170 210 234 / 0.14); color: var(--ceu, #aad2ea); } .ds-tipo-slides { background: rgb(255 204 1 / 0.14); color: var(--sol, #ffcc01); } .ds-material-mais { justify-self: start; padding: 0; border: none; background: none; color: var(--ceu, #aad2ea); font: 600 13px Geist, ui-sans-serif, sans-serif; cursor: pointer; transition: color 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-material-mais:hover, .ds-material-mais:focus-visible { color: var(--titulo, #f4f5f7); outline: none; }"
     }
   ],
   "narrative": {
@@ -338,7 +418,7 @@
       },
       {
         "name": "The Red Is Only Error Rule",
-        "body": "Vermelho e o salmão `erro` servem só a erro e alerta. Novidade, destaque, progresso e \"em breve\" usam Sol ou Céu.",
+        "body": "Vermelho e o salmão `erro` servem só a erro e alerta, e o alerta inclui a ação que não se desfaz, como Excluir conta. Novidade, destaque, progresso e \"em breve\" usam Sol ou Céu.",
         "section": "colors"
       },
       {
@@ -370,6 +450,11 @@
         "name": "The Focus Is The Hover Rule",
         "body": "O foco de teclado é o hover de cada controle: o botão amarelo e a pílula do link ativo clareiam e brilham, o botão de ícone ganha o fundo `popover`, o item de menu ganha o `sidebar-realce`, o item \"Em breve\" clareia o nome e o ícone, o cartão de curso troca o anel de 1 px por Céu, e o campo ganha a borda Céu. Nenhum controle desenha contorno nem anel de foco, também no alto contraste do Windows (`forced-colors`), por decisão do dono.",
         "section": "colors"
+      },
+      {
+        "name": "The Edge To Edge Rule",
+        "body": "Toda linha divisória dentro de um cartão, de um painel ou de um menu vai de uma borda à outra, sem recuo em nenhum dos lados. Isso vale para a linha entre itens de lista, a linha acima do pé, a linha abaixo do cabeçalho e a divisória vertical entre colunas, que vai do topo ao fundo. O jeito de construir é o de `components/minha-conta/partes.ts`. O cartão não tem padding lateral (`CARTAO`). O cabeçalho, cada linha e o pé têm o próprio padding (`CABECALHO_DO_CARTAO`, `LINHA`, `PE_DO_CARTAO`), e a divisória é o `border-t` da linha que vem embaixo. Uma linha-botão (\"Mais N acessos antigos\") também ocupa a largura toda. Linha que para antes da borda, porque o cartão tem padding e a divisória mora dentro dele, é defeito, e não variação de estilo.",
+        "section": "shapes"
       }
     ],
     "dos": [
@@ -377,8 +462,8 @@
       "Do dar um hover a todo controle, porque o foco de teclado é o hover. Campo e controle sem hover ganham a borda Céu pelo `data-slot`, e moldura própria leva `data-campo`.",
       "Do separar superfícies pelo degrau de tom e pelo anel de 1 px em `borda`.",
       "Do usar raio de 20 px em cartões e pílula em botões, selos e barras.",
-      "Do tirar todo deslocamento, giro e crescimento com `prefers-reduced-motion`, manter as transições de cor, opacidade e sombra, e não animar o que a pessoa dispara pelo teclado (Ctrl+B).",
-      "Do usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface.",
+      "Do tirar todo deslocamento, giro e crescimento com `prefers-reduced-motion`, manter as transições de cor, opacidade e sombra (`movimento.test.ts` acusa um `motion-reduce:transition-none` onde nada se move), e não animar o que a pessoa dispara pelo teclado (Ctrl+B).",
+      "Do usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface; `components/movimento.test.ts` acusa curva escrita à mão e duração acima de 200 ms.",
       "Do usar a marca pelos arquivos de `public/marca/` e o nome por `lib/marca.ts`."
     ],
     "donts": [
@@ -386,10 +471,11 @@
       "Don't pôr texto branco sobre Sol, Céu ou Canela cheios.",
       "Don't criar tema claro nem alternância de tema.",
       "Don't pôr sombra em cartão em repouso.",
+      "Don't desenhar divisória que para antes da borda do cartão: nada de `border-t`, `divide-y`, `<hr>` ou `Separator` dentro de um contêiner com padding lateral. A linha vai de borda a borda (The Edge To Edge Rule).",
       "Don't redesenhar o cubo em CSS ou em SVG à mão no componente: as faces moram em `docs/marca/cubo.ts`.",
       "Don't pôr pontos ou sequência fora do cartão de conta na casca.",
       "Don't usar caixa alta ou linha acima de título fora do selo da área.",
-      "Don't escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`."
+      "Don't escrever `focus-visible:`, `outline-*` ou anel para marcar o foco; o estado de foco se escreve com `hover:`. Os dois `foco.test.ts` acusam a volta."
     ]
   }
 }

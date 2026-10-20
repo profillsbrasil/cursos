@@ -112,14 +112,14 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
     const id = await criarCurso();
     await definirPerfil(db, DONA as AdminId, CLIENTE, "cliente", AGORA);
     const situacao = async () =>
-      (await admin.admin.alunos.buscar({ termo: `Cliente ${S}` })).pessoas[0]
-        ?.situacao.tipo;
+      (await admin.admin.liberacoes.buscar({ termo: `Cliente ${S}` }))
+        .pessoas[0]?.situacao.tipo;
     expect(await situacao()).toBe("sem_liberacao");
 
     await admin.admin.perfis.liberar({ cursoId: id, perfil: "cliente" });
     expect(await situacao()).toBe("nunca_abriu");
 
-    const acesso = await admin.admin.alunos.acesso({ userId: CLIENTE });
+    const acesso = await admin.admin.liberacoes.acesso({ userId: CLIENTE });
     expect(
       acesso?.liberacoes.map((l) => [l.curso.id, l.origem, l.acao.tipo])
     ).toEqual([[id, "perfil", "pelo_perfil"]]);

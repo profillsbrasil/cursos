@@ -132,7 +132,7 @@ export const carregarCategorias = cache(async () =>
 );
 
 export const carregarPessoas = cache(async (termo: string) =>
-  (await exigirAdmin()).admin.alunos.buscar({ termo })
+  (await exigirAdmin()).admin.liberacoes.buscar({ termo })
 );
 
 export const carregarListaDePessoas = cache(
@@ -147,7 +147,7 @@ export const carregarFichaDaPessoa = cache(async (userId: string) =>
 
 /** null: userId fora do formato, ou userId que o Clerk não conhece e que nunca teve liberação. */
 export const carregarAcessoDoAluno = cache(async (userId: string) =>
-  (await exigirAdmin()).admin.alunos.acesso({ userId })
+  (await exigirAdmin()).admin.liberacoes.acesso({ userId })
 );
 
 export const carregarGradeDosPerfis = cache(async () =>

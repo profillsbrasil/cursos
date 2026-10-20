@@ -336,13 +336,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     try {
       await outro.query("begin");
       await outro.query("delete from curso where id = $1", [c]);
-      const liberando = admin.admin.alunos.liberar({ cursoId: c, userId }).then(
-        () => ({ code: "ok", message: "" }),
-        (e: unknown) =>
-          e instanceof TRPCError
-            ? { code: e.code, message: e.message }
-            : { code: "não é TRPCError", message: String(e) }
-      );
+      const liberando = admin.admin.liberacoes
+        .liberar({ cursoId: c, userId })
+        .then(
+          () => ({ code: "ok", message: "" }),
+          (e: unknown) =>
+            e instanceof TRPCError
+              ? { code: e.code, message: e.message }
+              : { code: "não é TRPCError", message: String(e) }
+        );
       const paradas = await esperasNoBanco(db, 1, ['insert into "liberacao"']);
       await outro.query("commit");
 
@@ -371,15 +373,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         userId: dono,
       })
     );
-    const { liberacaoId } = await admin.admin.alunos.liberar({
+    const { liberacaoId } = await admin.admin.liberacoes.liberar({
       cursoId: c,
       userId: dono,
     });
-    const acesso = await admin.admin.alunos.acesso({ userId: dono });
+    const acesso = await admin.admin.liberacoes.acesso({ userId: dono });
     expect(acesso?.liberacoes.map((l) => [l.id, l.acao.tipo])).toEqual([
       [liberacaoId, "revogar"],
     ]);
-    await admin.admin.alunos.revogar({ liberacaoId });
+    await admin.admin.liberacoes.revogar({ liberacaoId });
     expect(await liberacoesDe(dono)).toMatchObject([
       { origem: "admin", revogadaPor: dono },
     ]);
@@ -391,14 +393,14 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const admin = createCaller(
       contextoDeTeste({ db, papel: "admin", userId: "user_dono" })
     );
-    const erro = await admin.admin.alunos
+    const erro = await admin.admin.liberacoes
       .liberar({ cursoId: c, userId: sumiu })
       .catch((e: unknown) => e);
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
     expect(await liberacoesDe(sumiu)).toHaveLength(0);
   });
 
-  describe("admin.alunos.liberarVarios", () => {
+  describe("admin.liberacoes.liberarVarios", () => {
     const nomeado = (userId: string, nome: string): Pessoa => ({
       email: `${nome.toLowerCase()}@exemplo.com`,
       foto: null,
@@ -417,7 +419,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         id === clerkCai
           ? Promise.reject(new Error("Clerk fora do ar"))
           : porId(id);
-      return createCaller(ctx).admin.alunos.liberarVarios;
+      return createCaller(ctx).admin.liberacoes.liberarVarios;
     };
 
     test("libera quem não tem, diz quem já tinha e por onde, e a falha de uma pessoa não derruba as outras", async () => {

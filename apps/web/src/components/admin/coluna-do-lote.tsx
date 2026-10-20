@@ -89,7 +89,7 @@ function LinhaNoResultado({
     () =>
       executar(
         () =>
-          trpcClient.admin.alunos.liberarVarios.mutate({
+          trpcClient.admin.liberacoes.liberarVarios.mutate({
             cursoId: curso.id,
             userIds: [pessoa.userId],
           }),
@@ -339,7 +339,7 @@ function Formulario({
     const { curso, pessoas } = pronto;
     executar(
       () =>
-        trpcClient.admin.alunos.liberarVarios.mutate({
+        trpcClient.admin.liberacoes.liberarVarios.mutate({
           cursoId: curso.id,
           userIds: pessoas.map((p) => p.userId),
         }),
