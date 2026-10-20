@@ -4,6 +4,7 @@ export * from "./catalogo";
 export {
   cursoStatus,
   liberacaoOrigem,
+  materialTipo,
   motivoPonto,
   videoProvedor,
 } from "./comum";

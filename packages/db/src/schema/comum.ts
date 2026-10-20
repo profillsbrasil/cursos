@@ -1,6 +1,10 @@
 import { pgEnum, snakeCase, timestamp } from "drizzle-orm/pg-core";
 
-import { ORIGEM_DA_LIBERACAO, STATUS_DO_CURSO } from "./formatos";
+import {
+  ORIGEM_DA_LIBERACAO,
+  STATUS_DO_CURSO,
+  TIPO_DO_MATERIAL,
+} from "./formatos";
 
 export const tabela = snakeCase.table;
 
@@ -15,6 +19,8 @@ export const motivoPonto = pgEnum("motivo_ponto", [
   "sequencia_7_dias",
   "troca",
 ]);
+
+export const materialTipo = pgEnum("material_tipo", TIPO_DO_MATERIAL);
 
 export const videoProvedor = pgEnum("video_provedor", ["youtube"]);
 
