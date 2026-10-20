@@ -6,7 +6,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createDb } from "@cursos/db";
-import { curso, liberacao, material } from "@cursos/db/schema/index";
+import {
+  curso,
+  liberacao,
+  liberacaoDoPerfil,
+  material,
+  perfilDaPessoa,
+} from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
@@ -20,6 +26,7 @@ import {
   type MaterialDoDocumento,
 } from "../dominio/edicao-do-curso";
 import type {
+  AdminId,
   AulaId,
   CategoriaId,
   CursoId,
@@ -31,12 +38,15 @@ import type { Materiais } from "../externos/materiais";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste } from "./categoria-de-teste";
 import { violacaoDe } from "./erros";
+import { liberarParaPerfil } from "./liberacao-do-perfil";
+import { definirPerfil } from "./perfil";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 const LIBERADO = `user_teste${S}liberado`;
 const SEM_LIBERACAO = `user_teste${S}sem`;
 const REVOGADO = `user_teste${S}revogado`;
+const CLIENTE = `user_teste${S}cliente`;
 
 const capasDeTeste: Capas = {
   abrir: () => Promise.resolve(null),
@@ -111,6 +121,10 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     await db
       .delete(liberacao)
       .where(inArray(liberacao.userId, [LIBERADO, SEM_LIBERACAO, REVOGADO]));
+    await db.delete(perfilDaPessoa).where(eq(perfilDaPessoa.userId, CLIENTE));
+    await db
+      .delete(liberacaoDoPerfil)
+      .where(inArray(liberacaoDoPerfil.cursoId, cursos));
     await db.delete(curso).where(inArray(curso.id, cursos));
     await db.$client.end();
   });
@@ -312,13 +326,26 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     };
 
     expect([
-      await baixar("user_outro_admin", "admin"),
+      await baixar("user_outroadmin", "admin"),
       await baixar(LIBERADO),
       await baixar(SEM_LIBERACAO),
       await baixar(REVOGADO),
       await como(LIBERADO).curso.material({ id: randomUUID() }),
       await como(LIBERADO).curso.material({ id: "nao-e-uuid" }),
     ]).toEqual([arquivo, arquivo, null, null, null, null]);
+  });
+
+  test("quem vê o curso só pelo perfil baixa o material, e o de outro perfil não", async () => {
+    const m = novoMaterial(450);
+    const criado = await salvar(documentoNovo([m]));
+    const ADMIN = "user_admin" as AdminId;
+    await definirPerfil(db, ADMIN, CLIENTE, "cliente", new Date());
+    await definirPerfil(db, ADMIN, SEM_LIBERACAO, "publico", new Date());
+    await liberarParaPerfil(db, ADMIN, "cliente", criado.id, new Date());
+    expect([
+      (await como(CLIENTE).curso.material({ id: m.id }))?.chave,
+      await como(SEM_LIBERACAO).curso.material({ id: m.id }),
+    ]).toEqual([m.chave, null]);
   });
 
   test("a página do curso lista o material em ordem com o link; o curso em produção não abre", async () => {

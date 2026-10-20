@@ -13,15 +13,22 @@ import type {
   LinhasHistorico,
 } from "../dominio/historico";
 import {
+  type LinhasPainel,
   montarPainel,
   montarResumo,
   type PainelMeusCursos,
   type ResumoAluno,
 } from "../dominio/painel";
+import type { Aluno } from "../dominio/perfil";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { AulaId, CursoId, DiaISO } from "../dominio/tipos";
 import { COM_CONTEUDO } from "./catalogo";
-import { type Executor, filtroLiberacaoAtiva } from "./comum";
+import {
+  cursoQueOAlunoVe,
+  type Executor,
+  filtroDoPerfilAtivo,
+  filtroLiberacaoAtiva,
+} from "./comum";
 import { comunicadoVisivelPara, DO_MAIS_NOVO } from "./comunicado";
 import { linhasDoSaldo } from "./pontos";
 import type { AlunoTravado } from "./trava";
@@ -153,17 +160,54 @@ export async function linhasDoHistoricoNoCurso(
   };
 }
 
+/**
+ * Os cursos que o aluno vê, com o catálogo inteiro, num SQL só (left join
+ * lateral). Cada um vale pela liberação ativa mais antiga, própria ou do perfil,
+ * e a lista sai nessa ordem: a data e, no empate, o id da liberação.
+ */
+export async function linhasDosCursosQueOAlunoVe(
+  exec: Executor,
+  aluno: Aluno
+): Promise<LinhasPainel["liberacoes"]> {
+  const DA_LIBERACAO = { id: true, liberadaEm: true } as const;
+  const cursos = await exec.query.curso.findMany({
+    ...COM_CONTEUDO,
+    where: cursoQueOAlunoVe(aluno),
+    with: {
+      ...COM_CONTEUDO.with,
+      liberacoes: {
+        columns: DA_LIBERACAO,
+        where: filtroLiberacaoAtiva(aluno.userId),
+      },
+      liberacoesDoPerfil: {
+        columns: DA_LIBERACAO,
+        where: filtroDoPerfilAtivo(aluno.perfil),
+      },
+    },
+  });
+  const antes = (a: Liberada, b: Liberada) =>
+    a.liberadaEm.getTime() - b.liberadaEm.getTime() || a.id.localeCompare(b.id);
+  return cursos
+    .flatMap(({ liberacoes, liberacoesDoPerfil, ...curso }) => {
+      const [primeira] = [...liberacoes, ...liberacoesDoPerfil].sort(antes);
+      return primeira ? [{ curso, primeira }] : [];
+    })
+    .sort((a, b) => antes(a.primeira, b.primeira))
+    .map(({ curso, primeira }) => ({ curso, liberadaEm: primeira.liberadaEm }));
+}
+
+interface Liberada {
+  id: string;
+  liberadaEm: Date;
+}
+
 // Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita
 // prepared statement nomeado. Os statements correm em paralelo no Pool do node-postgres.
-export async function linhasDoPainel(db: Database, userId: string) {
+export async function linhasDoPainel(db: Database, aluno: Aluno) {
+  const { userId } = aluno;
   const [liberacoes, historico, comunicados] = await Promise.all([
-    // 1. liberações ativas com o catálogo inteiro (um SQL com left join lateral)
-    db.query.liberacao.findMany({
-      columns: { liberadaEm: true },
-      orderBy: (l, { asc }) => [asc(l.liberadaEm), asc(l.id)],
-      where: filtroLiberacaoAtiva(userId),
-      with: { curso: COM_CONTEUDO },
-    }),
+    // 1. os cursos que o aluno vê, com o catálogo inteiro
+    linhasDosCursosQueOAlunoVe(db, aluno),
     // 2 a 5
     linhasDoHistorico(db, userId),
     db
@@ -175,7 +219,7 @@ export async function linhasDoPainel(db: Database, userId: string) {
         titulo: comunicado.titulo,
       })
       .from(comunicado)
-      .where(comunicadoVisivelPara(db, userId))
+      .where(comunicadoVisivelPara(db, aluno))
       .orderBy(...DO_MAIS_NOVO)
       .limit(1),
   ]);
@@ -200,10 +244,10 @@ export async function linhasDoResumo(
 
 export async function carregarPainel(
   db: Database,
-  userId: string,
+  aluno: Aluno,
   agora: Date
 ): Promise<PainelMeusCursos> {
-  return montarPainel(await linhasDoPainel(db, userId), diaLocal(agora));
+  return montarPainel(await linhasDoPainel(db, aluno), diaLocal(agora));
 }
 
 export async function carregarResumo(

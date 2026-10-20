@@ -23,9 +23,13 @@ const LIBERADA = [{ id: "lib" }];
 
 function comAcesso(
   linha: CursoLinha,
-  a: { liberado: boolean }
+  a: { liberado: boolean; peloPerfil?: boolean }
 ): CursoComAcessoLinha {
-  return { ...linha, liberacoes: a.liberado ? LIBERADA : [] };
+  return {
+    ...linha,
+    liberacoes: a.liberado ? LIBERADA : [],
+    liberacoesDoPerfil: a.peloPerfil ? LIBERADA : [],
+  };
 }
 
 const linhas = (
@@ -54,6 +58,17 @@ describe("montarCursoAberto", () => {
     expect(
       montarCursoAberto(linhas(comAcesso(a, { liberado: false })))
     ).toBeNull();
+  });
+
+  test("só com a liberação do perfil, o curso abre como com a própria", () => {
+    expect(
+      montarCursoAberto(
+        linhas(comAcesso(a, { liberado: false, peloPerfil: true }))
+      )?.leitura.estado.tipo
+    ).toBe(
+      montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.leitura
+        .estado.tipo
+    );
   });
 
   test("com liberação ativa, o curso abre no estado dele", () => {

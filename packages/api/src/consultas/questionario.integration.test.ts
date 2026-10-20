@@ -19,7 +19,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { eq, inArray } from "drizzle-orm";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import { FORMATO_DO_CODIGO } from "../dominio/certificado";
 import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
 import {
@@ -507,7 +507,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const terco = (i: 0 | 1 | 2) =>
       registrar(
         db,
-        aluno,
+        alunoDeTeste(aluno),
         a1.id,
         {
           posicaoSeg: (i + 1) * 180,

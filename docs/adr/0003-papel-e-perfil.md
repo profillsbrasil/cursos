@@ -27,6 +27,6 @@ O dono pediu três níveis: usuário, funcionário e admin. Com um campo só, o 
 A decisão entra em quatro PRs:
 
 1. O schema, os escritores e este registro.
-2. A regra de acesso com o perfil, em todo leitor que hoje olha só a liberação da pessoa.
+2. A regra de acesso com o perfil, em todo leitor do aluno: Meus cursos, a página do curso, a aula, o questionário, o certificado, Conquistas, os comunicados e a troca.
 3. A tela Pessoas do admin, com o perfil, o papel e os dados da conta.
-4. A tela de Alunos vira Liberações, com as abas Por pessoa e Por perfil.
+4. A tela de Alunos vira Liberações, com as abas Por pessoa e Por perfil. O acompanhamento e a situação da pessoa passam a contar a liberação do perfil.

@@ -1,6 +1,7 @@
 import type { Database } from "@cursos/db";
 
 import type { Context, Papel } from "./context";
+import type { Aluno, Perfil } from "./dominio/perfil";
 import type { Conta, Pessoa } from "./dominio/tipos";
 import { type Capas, capasDesligadas } from "./externos/capas";
 import { type Materiais, materiaisDesligados } from "./externos/materiais";
@@ -57,6 +58,12 @@ export function pessoasDeTeste(
     },
   };
 }
+
+/** O aluno que as consultas recebem do alunoProcedure. Sem perfil, Público aberto. */
+export const alunoDeTeste = (
+  userId: string,
+  perfil: Perfil = "publico"
+): Aluno => ({ perfil, userId });
 
 /** Context dos testes. Quando Servicos ganha um campo, só este arquivo muda nos testes. */
 export function contextoDeTeste(o: OpcoesDeTeste): Context {

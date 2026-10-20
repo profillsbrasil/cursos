@@ -29,6 +29,7 @@ import { canonizar, type Trecho, type Trechos } from "./trechos";
 
 export interface CursoComAcessoLinha extends CursoLinha {
   liberacoes: readonly { id: string }[];
+  liberacoesDoPerfil: readonly { id: string }[];
 }
 
 export interface LinhasCurso {
@@ -52,10 +53,13 @@ export interface CursoAberto {
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
 }
 
-/** null sem liberação ativa do curso ou com o curso em_breve. */
+/** null sem liberação ativa do curso, própria ou do perfil, ou com o curso em_breve. */
 export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   const linha = linhas.curso;
-  if (!linha || linha.liberacoes.length === 0) {
+  if (
+    !linha ||
+    linha.liberacoes.length + linha.liberacoesDoPerfil.length === 0
+  ) {
     return null;
   }
   const estudo = estudoDe(linhas);

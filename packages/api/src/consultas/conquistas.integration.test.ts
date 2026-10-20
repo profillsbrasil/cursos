@@ -15,7 +15,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import type { Conquistas } from "../dominio/conquistas";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -213,7 +213,9 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
 
   test("a aluna: medalhas pelos fatos do banco, em 7 statements", async () => {
     statements = 0;
-    const c = resumo(await carregarConquistas(db, ALUNA, SEXTA_15H));
+    const c = resumo(
+      await carregarConquistas(db, alunoDeTeste(ALUNA), SEXTA_15H)
+    );
     expect(statements).toBe(7);
     expect(c.marcos).toEqual({
       aulas_10: { estado: "por_ganhar", feitas: 4 },

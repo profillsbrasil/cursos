@@ -16,7 +16,7 @@ import {
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNull } from "drizzle-orm";
-import { contextoDeTeste } from "../contexto-de-teste";
+import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import type { AulaId, StatusDoCurso } from "../dominio/tipos";
 import type { Trecho } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
@@ -151,7 +151,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   const terco = (aluno: string, aulaId: AulaId, base: number, i: 0 | 1 | 2) =>
     registrar(
       db,
-      aluno,
+      alunoDeTeste(aluno),
       aulaId,
       { posicaoSeg: (i + 1) * 180, trechos: [t(i * 180, (i + 1) * 180)] },
       em(base + i * 90)
@@ -236,7 +236,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const respostas = await emSerie(passos, (s) =>
       registrar(
         db,
-        aluno,
+        alunoDeTeste(aluno),
         aulaId,
         { posicaoSeg: s, trechos: [t(s - 15, s)] },
         em(s)
@@ -254,7 +254,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
     const deNovo = await registrar(
       db,
-      aluno,
+      alunoDeTeste(aluno),
       aulaId,
       { posicaoSeg: 540, trechos: [t(525, 540)] },
       em(541)
@@ -264,7 +264,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
     const rever = await registrar(
       db,
-      aluno,
+      alunoDeTeste(aluno),
       aulaId,
       { posicaoSeg: 600, trechos: [t(540, 600)] },
       em(700)
@@ -290,7 +290,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const { aluno, c } = await cursoLiberado();
     const r = await registrar(
       db,
-      aluno,
+      alunoDeTeste(aluno),
       c.aulas[0] as AulaId,
       { posicaoSeg: 600, trechos: [t(0, 600)] },
       QUARTA_15H
@@ -308,10 +308,10 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const aulaId = c.aulas[0] as AulaId;
     const pedido = { posicaoSeg: 100, trechos: [t(0, 100)] };
     const [um, dois] = await Promise.all([
-      registrar(db, aluno, aulaId, pedido, QUARTA_15H),
+      registrar(db, alunoDeTeste(aluno), aulaId, pedido, QUARTA_15H),
       registrar(
         db,
-        aluno,
+        alunoDeTeste(aluno),
         aulaId,
         { posicaoSeg: 150, trechos: [t(50, 150)] },
         QUARTA_15H
@@ -531,12 +531,17 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const { aluno, c } = await cursoLiberado(3);
     await registrar(
       db,
-      aluno,
+      alunoDeTeste(aluno),
       c.aulas[1] as AulaId,
       { posicaoSeg: 42, trechos: [t(0, 42)] },
       QUARTA_15H
     );
-    const vm = await carregarAula(db, aluno, c.slug, c.aulas[1] ?? "");
+    const vm = await carregarAula(
+      db,
+      alunoDeTeste(aluno),
+      c.slug,
+      c.aulas[1] ?? ""
+    );
     expect(vm).toMatchObject({
       anterior: { id: c.aulas[0] },
       aula: {
@@ -550,12 +555,14 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     });
     expect(vm?.estudo.trechos).toEqual([t(0, 42)] as never);
     expect(
-      (await carregarPaginaDoCurso(db, aluno, c.slug))?.acao
+      (await carregarPaginaDoCurso(db, alunoDeTeste(aluno), c.slug))?.acao
     ).toMatchObject({
       aulaId: c.aulas[1] as AulaId,
       tipo: "continuar",
     });
-    expect(await carregarAula(db, aluno, c.slug, cursos[0] ?? "")).toBeNull();
+    expect(
+      await carregarAula(db, alunoDeTeste(aluno), c.slug, cursos[0] ?? "")
+    ).toBeNull();
   });
 
   test("a página do curso abre só para quem tem liberação ativa de curso publicado", async () => {
@@ -630,7 +637,9 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   test("contagem de statements: abrir 7, envio comum 9 e com conquista 18, mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
-    const abrir = await contar(() => carregarAula(db, aluno, c.slug, aulaId));
+    const abrir = await contar(() =>
+      carregarAula(db, alunoDeTeste(aluno), c.slug, aulaId)
+    );
     const comum = await contar(() => terco(aluno, aulaId, 0, 0));
     await terco(aluno, aulaId, 0, 1);
     const comConquista = await contar(() => terco(aluno, aulaId, 0, 2));

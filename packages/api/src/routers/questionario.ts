@@ -8,7 +8,7 @@ import type {
   PerguntaId,
   TentativaId,
 } from "../dominio/tipos";
-import { protegidoComTraducao, router } from "../index";
+import { alunoComTraducao, router } from "../index";
 
 export const envioDoQuestionario = z.object({
   aulaId: z.uuid(),
@@ -20,12 +20,12 @@ export const envioDoQuestionario = z.object({
 
 export const questionarioRouter = router({
   // O servidor corrige: a alternativa certa só volta com a aprovação.
-  responder: protegidoComTraducao
+  responder: alunoComTraducao
     .input(envioDoQuestionario)
     .mutation(({ ctx, input }) =>
       responder(
         ctx.db,
-        ctx.auth.userId,
+        ctx.aluno,
         {
           aulaId: input.aulaId as AulaId,
           respostas: input.respostas.map((r) => ({

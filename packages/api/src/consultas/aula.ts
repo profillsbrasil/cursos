@@ -19,6 +19,7 @@ import {
   montarPaginaDoCurso,
   type PaginaDoCurso,
 } from "../dominio/pagina-do-curso";
+import type { Aluno } from "../dominio/perfil";
 import {
   aplicarRegistro,
   conquistaDe,
@@ -32,7 +33,7 @@ import { cobertura } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
 import { COM_CONTEUDO } from "./catalogo";
 import { concluirCurso } from "./certificado";
-import { type Executor, relacaoLiberacoesAtivas } from "./comum";
+import { type Executor, relacoesDoAcesso } from "./comum";
 import { materiaisDaPagina } from "./material";
 import { linhasDosQuestionarios } from "./meus-cursos";
 import { linhasDoQuestionario } from "./questionario";
@@ -46,10 +47,11 @@ export type ChaveCurso = { aulaId: string } | { slug: string };
  */
 export async function linhasDoCurso(
   exec: Executor,
-  userId: string,
+  aluno: Aluno,
   chave: ChaveCurso,
   { serial }: { serial: boolean }
 ): Promise<LinhasCurso> {
+  const { userId } = aluno;
   const consultas = [
     exec.query.curso.findFirst({
       ...COM_CONTEUDO,
@@ -59,7 +61,7 @@ export async function linhasDoCurso(
           : { modulos: { aulas: { id: chave.aulaId } } },
       with: {
         ...COM_CONTEUDO.with,
-        liberacoes: relacaoLiberacoesAtivas(userId),
+        ...relacoesDoAcesso(aluno),
       },
     }),
     exec
@@ -109,13 +111,13 @@ export async function linhasDoCurso(
 
 export async function carregarAula(
   db: Database,
-  userId: string,
+  aluno: Aluno,
   slug: string,
   aulaId: string
 ): Promise<AulaNoPlayer | null> {
   const [linhas, questionario] = await Promise.all([
-    linhasDoCurso(db, userId, { slug }, { serial: false }),
-    linhasDoQuestionario(db, userId, aulaId as AulaId),
+    linhasDoCurso(db, aluno, { slug }, { serial: false }),
+    linhasDoQuestionario(db, aluno.userId, aulaId as AulaId),
   ]);
   const aberto = montarCursoAberto(linhas);
   const aula = aberto && aulaPorId(aberto, aulaId);
@@ -124,11 +126,11 @@ export async function carregarAula(
 
 export async function carregarPaginaDoCurso(
   db: Database,
-  userId: string,
+  aluno: Aluno,
   slug: string
 ): Promise<PaginaDoCurso | null> {
   const [linhas, materiais] = await Promise.all([
-    linhasDoCurso(db, userId, { slug }, { serial: false }),
+    linhasDoCurso(db, aluno, { slug }, { serial: false }),
     materiaisDaPagina(db, slug),
   ]);
   const aberto = montarCursoAberto(linhas);
@@ -167,11 +169,12 @@ export const ESPERA_PELA_COTA_MS = 3000;
  */
 export function registrar(
   db: Database,
-  userId: string,
+  aluno: Aluno,
   aulaId: AulaId,
   pedido: Pedido,
   agora: Date
 ): Promise<Registro> {
+  const { userId } = aluno;
   return db.transaction(async (tx) => {
     // set_config(..., true) é o SET LOCAL: vale só até o fim desta transação.
     await tx.execute(
@@ -193,7 +196,7 @@ export function registrar(
       throw new Error("O upsert da cota não devolveu a linha.");
     }
     const aberto = montarCursoAberto(
-      await linhasDoCurso(tx, userId, { aulaId }, { serial: true })
+      await linhasDoCurso(tx, aluno, { aulaId }, { serial: true })
     );
     const aula = aberto && aulaPorId(aberto, aulaId);
     if (!(aberto && aula)) {

@@ -41,7 +41,7 @@ const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
   const aberto = montarCursoAberto({
     assistidas: o.assistidas ?? [],
     certificados: o.certificados ?? [],
-    curso: { ...linha(), liberacoes: [{ id: "lib" }] },
+    curso: { ...linha(), liberacoes: [{ id: "lib" }], liberacoesDoPerfil: [] },
     posicoes: o.posicoes ?? [],
     questionarios: o.questionarios ?? [],
   });
@@ -132,6 +132,7 @@ describe("montarPaginaDoCurso", () => {
       curso: {
         ...base,
         liberacoes: [{ id: "lib" }],
+        liberacoesDoPerfil: [],
         modulos: [
           { ...m1, nivelOrdem: 1 },
           { ...m2, nivelOrdem: 2 },
@@ -215,7 +216,11 @@ describe("montarPaginaDoCurso", () => {
     const aberto = montarCursoAberto({
       assistidas: [A1, A2, B1].map(assistida),
       certificados: [],
-      curso: { ...comPerguntas, liberacoes: [{ id: "lib" }] },
+      curso: {
+        ...comPerguntas,
+        liberacoes: [{ id: "lib" }],
+        liberacoesDoPerfil: [],
+      },
       posicoes: [],
       questionarios: [tentativa(B1, false, 2)],
     });
@@ -275,6 +280,7 @@ describe("montarPaginaDoCurso", () => {
       curso: {
         ...base,
         liberacoes: [{ id: "lib" }],
+        liberacoesDoPerfil: [],
         modulos: [{ ...m1, aulas: [], numero: 0 }, ...base.modulos],
       },
       posicoes: [],
