@@ -1,4 +1,5 @@
 import type { VideoId } from "@cursos/api/dominio/tipos";
+import { preconnect, preload } from "react-dom";
 
 import type {
   MotivoIndisponivel,
@@ -50,6 +51,21 @@ declare global {
   }
 }
 
+const API_DO_YOUTUBE = "https://www.youtube.com/iframe_api";
+const HOST_DO_PLAYER = "https://www.youtube-nocookie.com";
+
+/**
+ * Chamada no render da página da aula, põe no HTML a conexão com as três origens
+ * do player e o pedido da IFrame API, que o cliente só injetaria depois de
+ * hidratar. O i.ytimg.com serve o pôster do vídeo.
+ */
+export function adiantarOYoutube(): void {
+  preconnect("https://www.youtube.com");
+  preconnect(HOST_DO_PLAYER);
+  preconnect("https://i.ytimg.com");
+  preload(API_DO_YOUTUBE, { as: "script" });
+}
+
 let carregando: Promise<YtApi> | null = null;
 
 function carregarApi(): Promise<YtApi> {
@@ -65,7 +81,7 @@ function carregarApi(): Promise<YtApi> {
       }
     };
     const script = document.createElement("script");
-    script.src = "https://www.youtube.com/iframe_api";
+    script.src = API_DO_YOUTUBE;
     script.async = true;
     script.onerror = () => {
       carregando = null;
@@ -165,7 +181,7 @@ export function criarPlayerDoYoutube(
             }
           },
         },
-        host: "https://www.youtube-nocookie.com",
+        host: HOST_DO_PLAYER,
         playerVars: {
           controls: 0,
           disablekb: 1,
