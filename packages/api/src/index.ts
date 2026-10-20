@@ -2,7 +2,8 @@ import { initTRPC, type TRPC_ERROR_CODE_KEY, TRPCError } from "@trpc/server";
 
 import { mensagemDoBanco } from "./consultas/erros";
 import { perfilDe } from "./consultas/perfil";
-import { type Context, ehAdmin } from "./context";
+import { type Context, ehAdmin, type Sessao } from "./context";
+import type { Perfil } from "./dominio/perfil";
 import type { AdminId } from "./dominio/tipos";
 
 /**
@@ -84,15 +85,26 @@ export const traduzErroDoBanco = t.middleware(async ({ next }) => {
 export const protegidoComTraducao = protectedProcedure.use(traduzErroDoBanco);
 
 /**
+ * O perfil por pedido. A Sessao nasce uma vez por pedido (contextoDe), e as
+ * chamadas da mesma página dividem a leitura: no primeiro acesso, o Clerk é
+ * lido uma vez, não uma por procedure.
+ */
+const perfilDoPedido = new WeakMap<Sessao, Promise<Perfil>>();
+
+/**
  * Todo procedure que lê o que o aluno vê. Entrega ctx.aluno com o perfil, e no
  * primeiro acesso da pessoa grava o perfil do cadastro (consultas/perfil.ts).
  */
 export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const { userId } = ctx.auth;
-  const perfil = await perfilDe(ctx.db, userId, () =>
-    ctx.pessoas.conta(userId)
-  );
-  return next({ ctx: { ...ctx, aluno: { perfil, userId } } });
+  const { auth } = ctx;
+  let lendo = perfilDoPedido.get(auth);
+  if (!lendo) {
+    lendo = perfilDe(ctx.db, auth.userId, () => ctx.pessoas.conta(auth.userId));
+    perfilDoPedido.set(auth, lendo);
+  }
+  return next({
+    ctx: { ...ctx, aluno: { perfil: await lendo, userId: auth.userId } },
+  });
 });
 
 /** O do aluno com a tradução: aula.registrar e questionario.responder. */

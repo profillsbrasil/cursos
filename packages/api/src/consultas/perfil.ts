@@ -19,7 +19,9 @@ async function lerPerfil(db: Database, userId: string): Promise<Perfil | null> {
 /**
  * O perfil de quem está no app. No primeiro acesso, a linha nasce com o perfil do
  * cadastro, e só aí a conta é lida no Clerk. Dois primeiros acessos ao mesmo
- * tempo gravam uma linha só, e os dois leem a que ficou.
+ * tempo gravam uma linha só, e os dois leem a que ficou. Com o Clerk fora, o
+ * pedido vale como Público aberto, o perfil de menos acesso, e nada se grava:
+ * o acesso seguinte lê a conta de novo.
  */
 export async function perfilDe(
   db: Database,
@@ -30,9 +32,19 @@ export async function perfilDe(
   if (lido) {
     return lido;
   }
+  let conta: Conta | null;
+  try {
+    conta = await lerConta();
+  } catch (erro) {
+    console.warn(
+      `perfil de ${userId}: o Clerk não respondeu no primeiro acesso`,
+      erro
+    );
+    return perfilDoCadastro(null);
+  }
   const [nova] = await db
     .insert(perfilDaPessoa)
-    .values({ perfil: perfilDoCadastro(await lerConta()), userId })
+    .values({ perfil: perfilDoCadastro(conta), userId })
     .onConflictDoNothing()
     .returning({ perfil: perfilDaPessoa.perfil });
   if (nova) {

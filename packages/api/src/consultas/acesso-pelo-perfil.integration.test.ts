@@ -45,12 +45,18 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
   const cursos: string[] = [];
   const comunicados: string[] = [];
 
-  /** Um aluno com o perfil já escolhido pelo admin, e o caller dele. */
+  /** Um aluno com o perfil já escolhido pelo admin, e o caller de um pedido dele. */
   async function aluno(perfil: Perfil, email = "pessoa@exemplo.com") {
     const userId = `user_perfilve${S}x${alunos.length}`;
     alunos.push(userId);
     await definirPerfil(db, ADMIN, userId, perfil, AGORA);
-    return { caller: comoAluno(userId, email), userId };
+    // Cada leitura de caller é um pedido novo, como cada página no app.
+    return {
+      get caller() {
+        return comoAluno(userId, email);
+      },
+      userId,
+    };
   }
 
   const comoAluno = (userId: string, email: string) =>
