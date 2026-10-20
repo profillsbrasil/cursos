@@ -18,6 +18,7 @@ interface Pedido {
 const original = {
   Clerk: Reflect.get(globalThis, "Clerk"),
   fetch: globalThis.fetch,
+  temWindow: "window" in globalThis,
   window: Reflect.get(globalThis, "window"),
 };
 let pedidos: Pedido[] = [];
@@ -69,7 +70,13 @@ beforeEach(() => {
 
 afterEach(() => {
   globalThis.fetch = original.fetch;
-  Reflect.set(globalThis, "window", original.window);
+  // Sem window antes, ele sai de vez: com window valendo undefined, o "window" in
+  // globalThis de outro arquivo de teste acha que o ambiente tem window.
+  if (original.temWindow) {
+    Reflect.set(globalThis, "window", original.window);
+  } else {
+    Reflect.deleteProperty(globalThis, "window");
+  }
   Reflect.set(globalThis, "Clerk", original.Clerk);
   setClerkAuthTokenGetter(null);
 });

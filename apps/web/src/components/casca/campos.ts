@@ -23,3 +23,10 @@ export const AREA = cn(
   MOLDURA,
   "min-h-0 rounded-[20px] py-[10.5px] leading-normal"
 );
+
+// A caixa de marcar em Sol, de 20 px. Marcada pelo aria-checked: o data-checked: sai
+// num :where e perde para o dark:bg-background que apaga o dark:bg-input/30 do
+// Checkbox do packages/ui. O after: do Checkbox recebe o toque, e o -inset-3.5 o
+// leva a 45 px: ele parte de dentro da borda de 1,5 px, dos 17 px de dentro.
+export const CAIXA =
+  "size-5 rounded-[7px] border-[1.5px] border-muted-foreground bg-background transition-colors after:-inset-3.5 dark:bg-background aria-checked:border-sol aria-checked:text-sobre-cor dark:aria-checked:bg-sol dark:aria-checked:hover:bg-sol-hover [&_svg]:size-3.5 [&_svg]:stroke-[3.2]";

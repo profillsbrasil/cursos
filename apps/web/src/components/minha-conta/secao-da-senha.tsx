@@ -4,14 +4,13 @@ import { Checkbox } from "@cursos/ui/components/checkbox";
 import { Input } from "@cursos/ui/components/input";
 import { type FormEvent, useCallback, useId, useState } from "react";
 
-import { CAMPO } from "@/components/casca/campos";
+import { CAIXA, CAMPO } from "@/components/casca/campos";
 
 import {
   ACOES,
   AJUDA,
   BOTAO_PEQUENO,
   CABECALHO_DO_CARTAO,
-  CAIXA,
   CARTAO,
   CONTORNO_PEQUENO,
   DETALHE_DA_LINHA,

@@ -87,7 +87,7 @@ function AcaoDaLiberacao({
     case "pelo_perfil":
       return (
         <Link
-          className="font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+          className="toque font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
           href="/admin/liberacoes/perfis"
         >
           Pelo perfil {SOBRE_O_PERFIL[acao.perfil].nome}

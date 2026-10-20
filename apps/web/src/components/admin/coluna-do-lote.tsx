@@ -253,7 +253,7 @@ function Marcadas() {
       </ul>
       {marcadas.length > 1 ? (
         <button
-          className="justify-self-start rounded-md p-0.5 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+          className="toque justify-self-start rounded-md p-0.5 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
           onClick={desmarcarTodas}
           type="button"
         >

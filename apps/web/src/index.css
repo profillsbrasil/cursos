@@ -27,6 +27,23 @@
   }
 }
 
+/* A ação em texto desenha 20 px de altura, e no celular o toque erra. O ::after
+   centrado estende a área que recebe o toque a 44 por 44 px, sem mudar o desenho
+   nem o layout; o lado que já passa de 44 px fica como está, para não cobrir o
+   vizinho. `alvo-de-toque.medida.test.tsx` mede no Chromium. */
+@utility toque {
+  position: relative;
+  &::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+}
+
 /* A pílula do item ativo acende com o cursor ou o foco de teclado no link ativo
    (#44). Ela é o primeiro li da lista e o link mora num li depois dela, então o
    hover: do globals.css, que olha o próprio elemento, não chega: o estado vem do

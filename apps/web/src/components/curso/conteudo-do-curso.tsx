@@ -282,7 +282,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
           {plural(modulos.length, "módulo", "módulos")} ·{" "}
           {plural(aulas, "aula", "aulas")} ·{" "}
           <button
-            className="cursor-pointer rounded-md font-semibold text-ceu transition-colors hover:text-titulo"
+            className="toque cursor-pointer rounded-md font-semibold text-ceu transition-colors hover:text-titulo"
             onClick={alternarTodos}
             type="button"
           >

@@ -147,7 +147,7 @@ export function FichaDaPessoaDoAdmin({
           </dl>
           <div className={PE_DO_CARTAO}>
             <Link
-              className="justify-self-start font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+              className="toque justify-self-start font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
               href={`/admin/liberacoes/${conta.userId}` as Route}
             >
               Ver as liberações e o estudo
