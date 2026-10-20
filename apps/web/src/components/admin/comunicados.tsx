@@ -352,7 +352,11 @@ function ItemDoComunicado({
             </Button>
           )}
           <ConfirmacaoNaLinha
-            botao={{ nome: `Confirmar: apagar ${c.titulo}`, rotulo: "Apagar" }}
+            botao={{
+              nome: `Confirmar: apagar ${c.titulo}`,
+              perigo: true,
+              rotulo: "Apagar",
+            }}
             chave={`apagar:${c.id}`}
             className="flex flex-wrap items-center justify-end gap-2"
             confirmar={apagar}

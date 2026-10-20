@@ -58,6 +58,7 @@ const clerk = await import("@clerk/nextjs");
 mock.module("@clerk/nextjs", () => ({
   ...clerk,
   useClerk: () => ({ signOut: () => undefined }),
+  useReverification: (acao: unknown) => acao,
   useUser: () => ({
     isLoaded: true,
     user: { fullName: "Ana Souza", hasImage: false },
@@ -76,6 +77,10 @@ const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
 const { ColunaDoCurso } = await import("./player/coluna-do-curso");
 const { ControlesDoPlayer } = await import("./player/controles-do-player");
 const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
+const { ConfirmacaoNaLinha } = await import("./admin/confirmacao-na-linha");
+const { AcessoDaPessoa } = await import("./admin/pessoas/acesso-da-pessoa");
+const { SecaoDeSair } = await import("./minha-conta/secao-de-sair");
+const { EXCLUIR } = await import("./minha-conta/partes");
 
 const ITEM_EM_BREVE_DE_TESTE = {
   icone: <Sparkles />,
@@ -299,6 +304,37 @@ const casca = renderToStaticMarkup(
   })
 );
 
+// Apagar aberto na linha, como a categoria, o comunicado e o curso o montam.
+const apagarNaLinha = renderToStaticMarkup(
+  <ConfirmacaoNaLinha
+    botao={{ nome: "Confirmar: apagar Envase", perigo: true, rotulo: "Apagar" }}
+    chave="apagar"
+    className=""
+    confirmar={nada}
+    enviando={false}
+    gatilho={{ nome: "Apagar Envase", rotulo: "Apagar" }}
+    linhaAberta={{ chave: "apagar", fechar: nada, pedir: nada }}
+    pergunta="Apagar Envase?"
+  />
+);
+const perfilDaPessoa = renderToStaticMarkup(
+  <AcessoDaPessoa
+    nome="Ana Exemplo"
+    papel="aluno"
+    perfil="cliente"
+    souEu={false}
+    userId="user_exemplo"
+  />
+);
+const pedeDaConta = renderToStaticMarkup(
+  <SecaoDeSair
+    certificados={0}
+    user={{} as Parameters<typeof SecaoDeSair>[0]["user"]}
+  />
+);
+// O diálogo de Excluir conta abre num portal, que o HTML do servidor não traz.
+const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;
+
 interface Elemento {
   atributos: Record<string, string>;
   classes: string[];
@@ -335,6 +371,10 @@ const todos = [
   faixa,
   continuar,
   casca,
+  apagarNaLinha,
+  perfilDaPessoa,
+  pedeDaConta,
+  excluirDoDialogo,
 ].flatMap(elementos);
 const css = await cssDoApp(todos.flatMap((e) => e.classes));
 
@@ -843,6 +883,72 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     expect(noFoco(resumo)).toContain(
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
+  });
+});
+
+/** As cores de texto que o foco põe no elemento e que não são a de repouso. */
+const outraCorNoFoco = (e: Elemento, corDeRepouso: string) =>
+  noFoco(e).filter((d) => COR.test(d) && d !== `color: var(--${corDeRepouso})`);
+
+describe("a ação que não se desfaz fica no erro, também com o foco", () => {
+  test("o Apagar da confirmação na linha é o erro cheio, com texto sobre-cor no foco", () => {
+    const apagar = unico(
+      elementos(apagarNaLinha).filter(
+        (e) => e.atributos["aria-label"] === "Confirmar: apagar Envase"
+      ),
+      "Apagar"
+    );
+    expect(apagar.classes).toContain("bg-destructive");
+    expect(apagar.classes).toContain("text-sobre-cor");
+    expect(outraCorNoFoco(apagar, "sobre-cor")).toEqual([]);
+  });
+
+  test("Excluir conta, no pé da página, mantém o texto em erro com o foco", () => {
+    const excluir = unico(
+      elementos(pedeDaConta).filter((e) =>
+        e.classes.includes("text-destructive")
+      ),
+      "Excluir conta"
+    );
+    expect(outraCorNoFoco(excluir, "destructive")).toEqual([]);
+  });
+
+  test("Excluir a conta, no diálogo, mantém o texto sobre-cor com o foco", () => {
+    const excluir = unico(elementos(excluirDoDialogo), "Excluir a conta");
+    expect(outraCorNoFoco(excluir, "sobre-cor")).toEqual([]);
+  });
+});
+
+describe("o foco passa de branco a 4% para o sinal do cursor", () => {
+  test("a aula da coluna do player ganha fundo branco a 8% e o título em titulo", () => {
+    const link = unico(
+      elementos(coluna).filter((e) =>
+        e.atributos.href?.endsWith("22222222-2222-4222-8222-222222222222")
+      ),
+      "aula Limpeza"
+    );
+    expect(noFoco(link)).toContain(
+      "background-color: color-mix(in srgb, #fff 8%, transparent)"
+    );
+    expect(noFoco(link)).toContain("color: var(--titulo)");
+  });
+
+  test("o perfil da pessoa ganha a linha a 8% e o rádio a borda Céu", () => {
+    const doPerfil = elementos(perfilDaPessoa);
+    const radios = doPerfil.filter((e) => e.atributos.type === "radio");
+    expect(radios.length).toBeGreaterThan(1);
+    for (const radio of radios) {
+      expect(radio.atributos).toHaveProperty("data-campo");
+    }
+    const linhas = doPerfil.filter((e) =>
+      e.classes.includes("has-checked:bg-sol/6")
+    );
+    expect(linhas).toHaveLength(radios.length);
+    for (const linha of linhas) {
+      expect(noFoco(linha)).toContain(
+        "background-color: color-mix(in srgb, #fff 8%, transparent)"
+      );
+    }
   });
 });
 

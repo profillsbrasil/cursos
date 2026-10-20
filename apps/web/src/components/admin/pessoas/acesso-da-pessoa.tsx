@@ -27,10 +27,11 @@ function OpcaoDePerfil({
 }) {
   const aoEscolher = useCallback(() => escolher(perfil), [escolher, perfil]);
   return (
-    <label className="flex cursor-pointer items-start gap-3.5 border-border border-t px-[22px] py-3.5 transition-colors hover:bg-white/4 has-checked:bg-sol/6">
+    <label className="flex cursor-pointer items-start gap-3.5 border-border border-t px-[22px] py-3.5 transition-colors hover:bg-white/8 has-checked:bg-sol/6">
       <input
         checked={escolhida}
         className="m-0 mt-px size-[18px] shrink-0 cursor-pointer appearance-none rounded-full border-[1.5px] border-muted-foreground checked:border-[5px] checked:border-sol disabled:cursor-not-allowed"
+        data-campo
         disabled={desligada}
         name={grupo}
         onChange={aoEscolher}

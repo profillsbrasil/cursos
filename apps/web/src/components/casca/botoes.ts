@@ -17,6 +17,13 @@ export const BOTAO_CONTORNO = cn(
   "dark:border-muted-foreground dark:bg-transparent dark:hover:border-titulo dark:hover:bg-transparent"
 );
 
+// A confirmação da ação que não se desfaz (apagar, excluir) fica no erro cheio, e não
+// no Sol: The Red Is Only Error Rule. A variante padrão não troca o texto sob o cursor.
+export const BOTAO_PERIGO = cn(
+  buttonVariants(),
+  "h-11 gap-2 rounded-full bg-destructive px-[18px] font-semibold text-sm text-sobre-cor hover:bg-destructive/85"
+);
+
 export const PEQUENO = "h-9 px-3.5 text-[13px]";
 
 export const LINK_NO_TEXTO =

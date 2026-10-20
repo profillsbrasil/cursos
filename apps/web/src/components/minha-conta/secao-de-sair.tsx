@@ -13,24 +13,11 @@ import { cn } from "@cursos/ui/lib/utils";
 import { LogOut, Trash2 } from "lucide-react";
 import { useCallback } from "react";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
 
-import { ACOES, CONTORNO_PEQUENO } from "./partes";
+import { ACOES, CONTORNO_PEQUENO, EXCLUIR, PERIGO } from "./partes";
 import type { Usuario } from "./tipos";
 import { useAcaoDaConta } from "./use-acao-da-conta";
-
-const PERIGO = cn(
-  CONTORNO_PEQUENO,
-  "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10",
-  "dark:border-destructive dark:hover:border-destructive dark:hover:bg-destructive/10"
-);
-
-const EXCLUIR = cn(
-  BOTAO_CONTORNO,
-  "border-destructive bg-destructive text-sobre-cor hover:border-destructive hover:bg-destructive/85",
-  "dark:border-destructive dark:bg-destructive dark:hover:border-destructive dark:hover:bg-destructive/85"
-);
 
 function ExcluirConta({
   certificados,
@@ -54,7 +41,7 @@ function ExcluirConta({
         <Trash2 aria-hidden="true" className="size-4" />
         Excluir conta
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-[calc(100%-2rem)] gap-4 rounded-[22px] p-6 shadow-black/45 shadow-xl ring-border data-[size=default]:max-w-md data-[size=default]:sm:max-w-md">
+      <AlertDialogContent className="gap-4 rounded-[22px] p-6 shadow-black/45 shadow-xl ring-border data-[size=default]:max-w-[min(28rem,calc(100%-2rem))] data-[size=default]:sm:max-w-md">
         <AlertDialogTitle className="font-semibold text-lg text-titulo">
           Excluir sua conta?
         </AlertDialogTitle>
@@ -84,7 +71,7 @@ function ExcluirConta({
             Manter a conta
           </Primitivo.Close>
           <button
-            className={cn(EXCLUIR, "h-9 px-3.5 text-[13px]")}
+            className={EXCLUIR}
             disabled={pendente}
             onClick={excluir}
             type="button"

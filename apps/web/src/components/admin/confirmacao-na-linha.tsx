@@ -11,7 +11,12 @@ import {
   useRef,
 } from "react";
 
-import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import {
+  BOTAO,
+  BOTAO_CONTORNO,
+  BOTAO_PERIGO,
+  PEQUENO,
+} from "@/components/casca/botoes";
 
 export function Carregando({ ativo }: { ativo: boolean }) {
   return ativo ? (
@@ -45,8 +50,8 @@ export function ConfirmacaoNaLinha({
   linhaAberta,
   pergunta,
 }: {
-  /** O botão de confirmar. */
-  botao: { nome?: string; rotulo: string };
+  /** O botão de confirmar. `perigo` marca o que não se desfaz, como apagar do banco. */
+  botao: { nome?: string; perigo?: true; rotulo: string };
   chave: string;
   /** Layout do grupo aberto: em linha na tabela, em bloco embaixo do título. */
   className: string;
@@ -104,7 +109,7 @@ export function ConfirmacaoNaLinha({
           aria-busy={enviando}
           aria-label={botao.nome}
           autoFocus
-          className={cn(BOTAO, PEQUENO)}
+          className={cn(botao.perigo ? BOTAO_PERIGO : BOTAO, PEQUENO)}
           disabled={enviando}
           focusableWhenDisabled
           onClick={confirmar}

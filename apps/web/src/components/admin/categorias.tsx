@@ -403,7 +403,11 @@ function LinhaDaCategoria({
             <ApagarEmUso categoria={c} />
           ) : (
             <ConfirmacaoNaLinha
-              botao={{ nome: `Confirmar: apagar ${c.nome}`, rotulo: "Apagar" }}
+              botao={{
+                nome: `Confirmar: apagar ${c.nome}`,
+                perigo: true,
+                rotulo: "Apagar",
+              }}
               chave={chaveDoApagar}
               className="flex flex-1 flex-wrap items-center gap-2.5 rounded-[12px] bg-muted/30 px-3 py-2.5 [&>:first-child]:flex-1"
               confirmar={apagar}
