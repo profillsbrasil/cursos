@@ -28,10 +28,14 @@ const AGORA = new Date("2026-10-20T13:00:00Z");
 const ADMIN = "user_admin" as AdminId;
 
 const conta = (email: string | null, emailVerificado = true): Conta => ({
+  criadaEm: AGORA,
   email,
   emailVerificado,
   foto: null,
+  jeitosDeEntrar: [],
   nome: "Pessoa",
+  papel: "aluno",
+  ultimoAcesso: null,
   userId: "user_x",
 });
 

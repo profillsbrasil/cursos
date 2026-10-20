@@ -1,5 +1,9 @@
 import type { PERFIS } from "@cursos/db/schema/formatos";
 
+// O app lê a lista por aqui: só o services.ts dele importa @cursos/db.
+// biome-ignore lint/performance/noBarrelFile: um valor só, a fronteira do @cursos/db.
+export { PERFIS } from "@cursos/db/schema/formatos";
+
 export type Perfil = (typeof PERFIS)[number];
 
 /** Quem está logado, com o perfil que decide parte do que ele vê. */
