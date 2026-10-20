@@ -60,7 +60,7 @@ export function EsqueletoDoTopoDaPessoa({
     <>
       <Skeleton className={cn(PULSO, "mb-5 h-10 w-28 rounded-full")} />
       <div className="mb-7 flex items-center gap-4">
-        <Skeleton className={cn(PULSO, "size-10 shrink-0 rounded-full")} />
+        <Skeleton className={cn(PULSO, "size-14 shrink-0 rounded-full")} />
         <div className="grid gap-1">
           <Skeleton className={cn(PULSO, "h-9 w-56 rounded-lg")} />
           <Skeleton className={cn(PULSO, "h-6 w-64 rounded-lg")} />
