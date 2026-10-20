@@ -523,6 +523,20 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     ]);
   });
 
+  test("entre o resultado e a pergunta 1 fica uma linha só, de 1 px", async () => {
+    await abrir(1280, htmlDe({ ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }));
+    const linha = await avaliar<number>(
+      enviar,
+      `(() => {
+        const resultado = document.getElementById("questionario").firstElementChild;
+        const pergunta = document.querySelector("fieldset").parentElement;
+        const larguraDe = (el, lado) => parseFloat(getComputedStyle(el)[lado]);
+        return larguraDe(resultado, "borderBottomWidth") + larguraDe(pergunta, "borderTopWidth");
+      })()`
+    );
+    expect(linha).toBe(1);
+  });
+
   test("390 px: nada passa da janela, e Tentar de novo e Rever o vídeo preenchem a linha", async () => {
     await abrir(390, htmlDe({ ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }));
     const m = await medir();
