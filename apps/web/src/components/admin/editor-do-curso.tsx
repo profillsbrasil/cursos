@@ -315,8 +315,7 @@ export function EditorDoCurso({
   };
 
   const mudarTitulo = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      despachar({ mudanca: { titulo: e.target.value }, tipo: "campos" }),
+    (novo: string) => despachar({ mudanca: { titulo: novo }, tipo: "campos" }),
     [despachar]
   );
   const enviar = useCallback(

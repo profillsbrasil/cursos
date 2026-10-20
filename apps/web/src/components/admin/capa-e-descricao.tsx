@@ -8,13 +8,7 @@ import { Field, FieldLabel } from "@cursos/ui/components/field";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowUpRight, Check, Link2 } from "lucide-react";
 import Link from "next/link";
-import {
-  type ChangeEvent,
-  type Dispatch,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import { type Dispatch, useCallback, useMemo, useState } from "react";
 
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
@@ -177,7 +171,7 @@ export function CapaEDescricao({
   capa: React.ReactNode;
   categorias: readonly CategoriaNaLista[];
   despachar: Dispatch<Mudanca>;
-  mudarTitulo: (e: ChangeEvent<HTMLInputElement>) => void;
+  mudarTitulo: (titulo: string) => void;
   rascunho: Pick<RascunhoDoCurso, "categoriaId" | "descricao" | "titulo">;
   slug: string | null;
 }) {
@@ -207,16 +201,16 @@ export function CapaEDescricao({
           <div className="grid min-w-0 content-start gap-5">
             <CampoDeTexto
               ajuda={<EnderecoDoCurso slug={slug} titulo={rascunho.titulo} />}
+              aoMudar={mudarTitulo}
               campoClasse="gap-2"
-              className="font-bold text-titulo text-xl tracking-tight md:text-xl"
+              className="py-[7px] font-bold text-titulo text-xl tracking-tight md:text-xl"
               id={ID.curso("titulo")}
               maxLength={CARACTERES.titulo}
               name="titulo"
-              onChange={mudarTitulo}
               placeholder="Operação da envasadora volumétrica"
               required
               rotulo="Título"
-              value={rascunho.titulo}
+              texto={rascunho.titulo}
             />
             <CampoDaCategoria
               categorias={categorias}
