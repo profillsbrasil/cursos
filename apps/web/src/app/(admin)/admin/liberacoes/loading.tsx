@@ -1,19 +1,26 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
-const PULSO = "bg-card";
+import {
+  EsqueletoDaBusca,
+  EsqueletoDaSecao,
+  EsqueletoDaTrilha,
+} from "@/components/admin/esqueletos";
+import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
-// Serve à busca e ao acesso da pessoa: o título e um cartão de linhas, enquanto
-// o Clerk e o banco respondem.
+// A aba Por pessoa: as abas, a busca, a lista e a coluna Marcadas, na grade da
+// TelaDeAlunos, com a coluna antes da lista no container estreito.
 export default function Carregando() {
   return (
-    <div aria-busy="true" className="grid gap-7">
-      <span className="sr-only">Carregando</span>
-      <Skeleton className={`${PULSO} h-9 w-56 rounded-lg`} />
-      <Skeleton className={`${PULSO} h-11 w-full rounded-full`} />
-      <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
-        {["a", "b", "c", "d", "e"].map((linha) => (
-          <Skeleton className={`${PULSO} h-[88px] rounded-none`} key={linha} />
-        ))}
+    <div aria-busy="true">
+      <span className="sr-only">Carregando as liberações</span>
+      <EsqueletoDoCabecalho />
+      <EsqueletoDaTrilha className="mb-7 max-w-[13.5rem]" />
+      <EsqueletoDaBusca className="mb-8" />
+      <div className="@container">
+        <div className="grid @min-[47.5rem]:grid-cols-[minmax(0,1fr)_20rem] items-start gap-7">
+          <EsqueletoDaSecao altura="h-[88px]" linhas={5} />
+          <Skeleton className="@min-[47.5rem]:order-none order-first h-[300px] rounded-[20px] bg-card" />
+        </div>
       </div>
     </div>
   );

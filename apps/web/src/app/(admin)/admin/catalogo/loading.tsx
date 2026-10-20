@@ -1,6 +1,7 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { GRADE_DO_CATALOGO } from "@/components/admin/grade-do-catalogo";
+import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
 const PULSO = "bg-card";
 
@@ -9,13 +10,7 @@ export default function Carregando() {
   return (
     <div aria-busy="true">
       <span className="sr-only">Carregando o catálogo</span>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-5 gap-y-3.5">
-        <div className="grid gap-2">
-          <Skeleton className={`${PULSO} h-9 w-44 rounded-lg`} />
-          <Skeleton className={`${PULSO} h-5 w-64 rounded-lg`} />
-        </div>
-        <Skeleton className={`${PULSO} h-11 w-36 rounded-full`} />
-      </div>
+      <EsqueletoDoCabecalho acao />
       <div className={GRADE_DO_CATALOGO}>
         {["a", "b", "c", "d", "e", "f"].map((capa) => (
           <div className="grid content-start gap-3" key={capa}>
