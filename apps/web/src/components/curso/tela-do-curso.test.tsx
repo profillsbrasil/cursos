@@ -177,7 +177,7 @@ describe("a página", () => {
       new RegExp(`<li[\\s>](?:(?!</li>).)*${BLOQUEIO}.*?</li>`)
     )?.[0];
     expect(textoDoLeitorDeTela(linha ?? "")).toBe(
-      "2. Bloqueio antes de mexer Você parou em 3:42 10 min"
+      "2 Bloqueio antes de mexer Você parou em 3:42 10 min"
     );
     expect(texto(comPosicao).match(/Você parou em/g)).toHaveLength(1);
     expect(render(comercial.emAndamento)).not.toContain("Você parou em");
@@ -189,7 +189,7 @@ describe("a página", () => {
     const atual = html.match(AULA_ATUAL)?.[1];
     expect(atual).toBe(`/cursos/comercial/aulas/${CRONOGRAMA}`);
     expect(texto(html)).toContain(
-      "2. Cronograma reverso Partir da data em que a linha precisa rodar e voltar até o pedido. 11 min"
+      "2 Cronograma reverso 11 min Partir da data em que a linha precisa rodar e voltar até o pedido."
     );
     const fab = render(fabrica.naoIniciado);
     expect(fab).toContain(`href="/cursos/fabrica-e-montagem/aulas/${RISCOS}"`);
@@ -201,7 +201,7 @@ describe("a página", () => {
       new RegExp(`<li[\\s>](?:(?!</li>).)*${RISCOS}.*?</li>`)
     )?.[0];
     expect(texto(linha ?? "")).toBe(
-      "Assistida. 1. Riscos do posto de montagem Os pontos de esmagamento, corte e choque que aparecem na bancada. 11 min"
+      "Assistida. Riscos do posto de montagem 11 min Os pontos de esmagamento, corte e choque que aparecem na bancada."
     );
   });
 });

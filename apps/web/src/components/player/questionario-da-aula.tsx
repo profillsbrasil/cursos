@@ -344,7 +344,7 @@ export function Resultado({
       aria-describedby={`${id}-texto`}
       aria-labelledby={`${id}-titulo`}
       className={cn(
-        "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-border border-b py-[22px] max-sm:grid-cols-[auto_minmax(0,1fr)]",
+        "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-[22px] max-sm:grid-cols-[auto_minmax(0,1fr)]",
         LADO,
         aprovada ? "bg-ceu/8" : "bg-canela/14"
       )}
