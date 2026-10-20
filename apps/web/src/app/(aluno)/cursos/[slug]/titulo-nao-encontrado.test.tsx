@@ -1,7 +1,6 @@
-// Teste de usabilidade (r2/quebra/19): /cursos/x/aulas/nao-existe dizia "Aula não
-// encontrada" na página e "Aula · Profills Cursos" na aba. O Next só troca o título
-// pelo do not-found.tsx quando o generateMetadata chama notFound(); se ele devolve
-// um título, a aba fica com esse título, mesmo com a página no not-found.
+// O Next só troca o título da aba pelo do not-found.tsx quando o generateMetadata
+// chama notFound(); se ele devolve um título, a aba fica com esse título, mesmo com a
+// página no not-found.
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";

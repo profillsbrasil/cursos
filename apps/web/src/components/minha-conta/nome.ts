@@ -5,10 +5,9 @@
  * aceita emoji, número, hífen e "<" solto ("<3"). Aqui a regra é mais simples de
  * dizer: nada de <, > e &, nem "://".
  *
- * Os limites vêm da folha do certificado (`certificado/pdf.tsx`), medidos no PDF com
- * um título de curso de duas linhas: 100 caracteres de nome cabem em até 5 linhas no
- * corpo menor, mesmo em "W" maiúsculo, e uma palavra de 20 "A" cabe numa linha no
- * corpo maior (20 "M" não cabe). O Clerk aceita até 256 por campo.
+ * Os limites mantêm o nome legível na folha do certificado; quem garante que qualquer
+ * nome cabe é a própria folha (`nomeNaFolha`, em `certificado/medidas-da-folha.ts`),
+ * que desce o corpo em degraus e corta com reticências. O Clerk aceita até 256 por campo.
  */
 
 export const LIMITE_DO_NOME = 100;
