@@ -7,8 +7,7 @@ import {
 } from "@cursos/ui/components/empty";
 import { BookOpen } from "lucide-react";
 
-// Zero liberações: diz com qual conta a pessoa entrou e quem libera os cursos.
-export function PainelVazio({ conta }: { conta: string | null }) {
+export function PainelVazio() {
   return (
     <Empty className="rounded-[20px] bg-card px-6 py-14 ring-1 ring-border">
       <EmptyHeader className="max-w-md">
@@ -22,15 +21,7 @@ export function PainelVazio({ conta }: { conta: string | null }) {
           Nenhum curso liberado ainda
         </EmptyTitle>
         <EmptyDescription className="text-muted-foreground text-sm">
-          {conta ? (
-            <>
-              Você entrou como{" "}
-              <b className="font-semibold text-foreground">{conta}</b>.{" "}
-            </>
-          ) : null}
-          Os cursos aparecem aqui quando o admin da Profills libera para a sua
-          conta. Se você esperava ver cursos, confira se entrou com a conta
-          certa ou fale com quem cuida do treinamento.
+          Os cursos aparecem aqui quando forem liberados para você.
         </EmptyDescription>
       </EmptyHeader>
     </Empty>
