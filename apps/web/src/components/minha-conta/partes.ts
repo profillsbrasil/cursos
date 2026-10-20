@@ -49,6 +49,19 @@ export const BOTAO_PEQUENO = cn(BOTAO, PEQUENO);
 
 export const CONTORNO_PEQUENO = cn(BOTAO_CONTORNO, PEQUENO);
 
+export const PERIGO = cn(
+  CONTORNO_PEQUENO,
+  "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10",
+  "dark:border-destructive dark:hover:border-destructive dark:hover:bg-destructive/10"
+);
+
+export const EXCLUIR = cn(
+  BOTAO_CONTORNO,
+  "border-destructive bg-destructive text-sobre-cor hover:border-destructive hover:bg-destructive/85",
+  "dark:border-destructive dark:bg-destructive dark:hover:border-destructive dark:hover:bg-destructive/85",
+  PEQUENO
+);
+
 export const ACOES = "flex flex-wrap items-center gap-2";
 
 export const ROTULO = "font-semibold text-[13px] text-titulo";

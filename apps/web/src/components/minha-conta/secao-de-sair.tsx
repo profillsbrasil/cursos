@@ -13,24 +13,11 @@ import { cn } from "@cursos/ui/lib/utils";
 import { LogOut, Trash2 } from "lucide-react";
 import { useCallback } from "react";
 
-import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { plural } from "@/lib/formato";
 
-import { ACOES, CONTORNO_PEQUENO } from "./partes";
+import { ACOES, CONTORNO_PEQUENO, EXCLUIR, PERIGO } from "./partes";
 import type { Usuario } from "./tipos";
 import { useAcaoDaConta } from "./use-acao-da-conta";
-
-const PERIGO = cn(
-  CONTORNO_PEQUENO,
-  "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10",
-  "dark:border-destructive dark:hover:border-destructive dark:hover:bg-destructive/10"
-);
-
-const EXCLUIR = cn(
-  BOTAO_CONTORNO,
-  "border-destructive bg-destructive text-sobre-cor hover:border-destructive hover:bg-destructive/85",
-  "dark:border-destructive dark:bg-destructive dark:hover:border-destructive dark:hover:bg-destructive/85"
-);
 
 function ExcluirConta({
   certificados,
@@ -84,7 +71,7 @@ function ExcluirConta({
             Manter a conta
           </Primitivo.Close>
           <button
-            className={cn(EXCLUIR, "h-9 px-3.5 text-[13px]")}
+            className={EXCLUIR}
             disabled={pendente}
             onClick={excluir}
             type="button"
