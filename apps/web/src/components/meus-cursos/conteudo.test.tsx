@@ -61,7 +61,6 @@ const hrefs = (html: string) =>
 const render = (painel: ReturnType<typeof montarPainel>) =>
   renderToStaticMarkup(
     <ConteudoMeusCursos
-      conta={null}
       painel={painel}
       resumo={RESUMO}
       temCursoTrocavelNaVitrine={false}
@@ -180,11 +179,18 @@ describe("Meus cursos com curso em produção que tem código", () => {
   });
 });
 
+const PEDE_CONTA_OU_CONTATO = /entrou como|conta certa|fale com/;
+
 describe("Meus cursos sem liberação", () => {
   test("a tela é a do painel vazio", () => {
     const html = render(montar(SEM_LIBERACAO));
     expect(texto(html)).toContain("Nenhum curso liberado ainda");
     expect(html).not.toContain("liberado para você");
+  });
+
+  test("o painel vazio não manda a pessoa conferir a conta nem procurar alguém", () => {
+    const html = texto(render(montar(SEM_LIBERACAO)));
+    expect(html).not.toMatch(PEDE_CONTA_OU_CONTATO);
   });
 });
 

@@ -16,12 +16,10 @@ const liberados = ({ cursos }: PainelMeusCursos) =>
 
 // A página inteira a partir do painel e do resumo. A busca de dados fica na page.tsx.
 export function ConteudoMeusCursos({
-  conta,
   painel,
   resumo,
   temCursoTrocavelNaVitrine,
 }: {
-  conta: string | null;
   painel: PainelMeusCursos;
   resumo: ResumoAluno;
   temCursoTrocavelNaVitrine: boolean;
@@ -32,7 +30,7 @@ export function ConteudoMeusCursos({
         <h1 className="mb-7 font-bold text-3xl text-titulo tracking-tight">
           Meus cursos
         </h1>
-        <PainelVazio conta={conta} />
+        <PainelVazio />
       </>
     );
   }

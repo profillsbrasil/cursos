@@ -80,7 +80,6 @@ const RESUMO: ResumoAluno = {
 
 const SEMANA = naCasca(
   <ConteudoMeusCursos
-    conta={null}
     painel={montarPainel(exemploDoPrototipo(), HOJE_DO_EXEMPLO)}
     resumo={RESUMO}
     temCursoTrocavelNaVitrine={false}
