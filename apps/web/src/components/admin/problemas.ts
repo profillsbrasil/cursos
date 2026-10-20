@@ -48,23 +48,6 @@ export const naoVazia = (
   problemas: readonly Problema[]
 ): problemas is Problemas => problemas.length > 0;
 
-export interface Recusa<C extends string> {
-  campo: C;
-  mensagem: string;
-  valor: string;
-}
-
-export function recusaNaTela<C extends string>(
-  recusa: Recusa<C> | null,
-  valores: Readonly<Record<C, string | null>>,
-  idDe: (campo: C) => string
-): Problema[] {
-  if (recusa === null || (valores[recusa.campo] ?? "") !== recusa.valor) {
-    return [];
-  }
-  return [{ campo: idDe(recusa.campo), mensagem: recusa.mensagem }];
-}
-
 export const errosPorCampo = (
   problemas: readonly Problema[]
 ): ReadonlyMap<string, string> =>

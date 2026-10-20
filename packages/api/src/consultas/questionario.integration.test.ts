@@ -39,7 +39,7 @@ import type {
 import type { Capas } from "../externos/capas";
 import { createCaller } from "../routers/index";
 import { registrar } from "./aula";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { linhasDoHistorico } from "./meus-cursos";
 
 const URL_TESTE = urlDeTeste();
@@ -127,6 +127,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId,
+        codigo: codigoDeTeste(),
         slug,
         status: "publicado",
         titulo: `Curso ${slug}`,
@@ -534,9 +535,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const perguntaId = randomUUID() as PerguntaId;
     const documento: DocumentoDoCurso = {
       categoriaId,
-      codigo: null,
       descricao: "",
-      destaque: null,
       id: randomUUID() as CursoId,
       modulos: [
         {
@@ -614,9 +613,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const certa = randomUUID() as AlternativaId;
     const documento: DocumentoDoCurso = {
       categoriaId,
-      codigo: null,
       descricao: "",
-      destaque: null,
       id: randomUUID() as CursoId,
       modulos: [
         {

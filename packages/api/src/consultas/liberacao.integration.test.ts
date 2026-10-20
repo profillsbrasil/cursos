@@ -21,7 +21,7 @@ import type {
   Pessoa,
 } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import {
   esperas as esperasNoBanco,
   seguraATabela,
@@ -78,6 +78,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         precoTroca,
         slug: `teste-${s}`,
         status: "publicado",

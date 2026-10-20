@@ -1,7 +1,6 @@
 // O texto dos campos lidos mora aqui, e não no input, para sobreviver quando a
 // linha remonta (uma aula movida de módulo).
 
-import type { Motivo } from "@cursos/api";
 import {
   type AulaDoDocumento,
   type DocumentoDoCurso,
@@ -28,7 +27,6 @@ import {
   naoVazia,
   type Problema,
   type Problemas,
-  type Recusa,
   semRepetir,
 } from "./problemas";
 
@@ -76,9 +74,7 @@ const linkDoVideo = (v: AulaDoDocumento["video"]) =>
 export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
   return {
     categoriaId: d.categoriaId,
-    codigo: d.codigo,
     descricao: d.descricao,
-    destaque: d.destaque,
     id: d.id,
     modulos: d.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
@@ -112,9 +108,7 @@ export const mesmoRascunho = (a: RascunhoDoCurso, b: RascunhoDoCurso) =>
 function emOrdem(r: RascunhoDoCurso) {
   return [
     r.categoriaId,
-    r.codigo,
     r.descricao,
-    r.destaque,
     r.id,
     r.modulos.map((m) => [
       m.id,
@@ -188,13 +182,7 @@ export const lerPreco = lerInteiro(
   `Use um preço de 1 a ${fmtNum(PRECO_MAXIMO)} pontos.`
 );
 
-type CampoDoCursoComId =
-  | "categoriaId"
-  | "codigo"
-  | "descricao"
-  | "destaque"
-  | "precoTroca"
-  | "titulo";
+type CampoDoCursoComId = "categoriaId" | "descricao" | "precoTroca" | "titulo";
 
 export type CampoDaAula = "descricao" | "duracao" | "titulo" | "video";
 export type CampoDaPergunta = "alternativas" | "enunciado";
@@ -215,22 +203,6 @@ export type RascunhoLido =
   | { tipo: "lido"; documento: DocumentoDoCurso }
   | { tipo: "problemas"; problemas: Problemas };
 
-export type RecusaDoCurso = Recusa<"codigo">;
-
-export function recusaDoMotivo(
-  motivo: Motivo | null,
-  r: RascunhoDoCurso
-): RecusaDoCurso | null {
-  if (motivo === "codigo_repetido") {
-    return {
-      campo: "codigo",
-      mensagem: "Outro curso já usa este código.",
-      valor: r.codigo ?? "",
-    };
-  }
-  return null;
-}
-
 export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
   aulas.reduce((s, a) => {
     const lido = lerDuracao(a.duracao);
@@ -239,9 +211,7 @@ export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
 
 const CAMPOS_DO_CURSO = new Set<string>([
   "categoriaId",
-  "codigo",
   "descricao",
-  "destaque",
   "precoTroca",
   "titulo",
 ] satisfies CampoDoCursoComId[]);

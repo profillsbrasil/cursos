@@ -102,18 +102,20 @@ describe("Meus cursos com o caso do protótipo", () => {
   test("a linha sob a capa descreve o curso inteiro", () => {
     const [comercial, novaRotina, fabrica, gravacao, autoavaliacao] =
       capas(html);
-    expect(comercial).toContain("Vendas e negócios · 46 de 90 aulas");
+    expect(comercial).toContain("Vendas e negócios · VN-001 · 46 de 90 aulas");
     expect(comercial).toContain("Agora: Módulo 8, Pilar Urgência");
     expect(comercial).not.toContain("Autoavaliação comercial");
     expect(novaRotina).toContain(
       "Vendas e negócios · POP-COM-001 · 3 de 9 aulas"
     );
-    expect(fabrica).toContain("Produção e montagem · 7 aulas · 1 h 14 min");
+    expect(fabrica).toContain(
+      "Produção e montagem · PM-001 · 7 aulas · 1 h 14 min"
+    );
     expect(fabrica).not.toContain("Agora:");
-    expect(gravacao).toContain("Produtos e aplicações · Regra 5x4");
+    expect(gravacao).toContain("Produtos e aplicações · PA-001");
     expect(gravacao).not.toContain("aulas");
     expect(autoavaliacao).toContain(
-      "Vendas e negócios · 30 afirmações · 6 competências · 2 de 2 aulas"
+      "Vendas e negócios · VN-002 · 2 de 2 aulas"
     );
   });
 
@@ -138,13 +140,14 @@ describe("Meus cursos com o caso do protótipo", () => {
     // cai dentro de uma parte, e o "·" nunca abre nem fecha uma linha.
     const N = NBSP;
     expect(html).toContain(
-      `Vendas e negócios${N}·${N}30 afirmações · 6 competências${N}·${N}2${N}de${N}2${N}aulas`
+      `Vendas e negócios${N}·${N}VN-002${N}·${N}2${N}de${N}2${N}aulas`
     );
-    expect(html).toContain(`Produção e montagem${N}·${N}7${N}aulas`);
+    expect(html).toContain(
+      `Produção e montagem${N}·${N}PM-001${N}·${N}7${N}aulas`
+    );
   });
 
   test("o tamanho do curso não quebra no meio quando a linha passa da largura", () => {
-    // Em 390 px, "30 afirmações · 6 competências" empurra o tamanho para a quebra.
     const N = NBSP;
     expect(html).toContain(`2${N}de${N}2${N}aulas`);
     expect(html).toContain(`7${N}aulas${N}·${N}1${N}h${N}14${N}min`);

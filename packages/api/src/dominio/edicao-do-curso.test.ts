@@ -109,12 +109,9 @@ describe("documentoDoCurso", () => {
     expect(erros(d)).toEqual(["O nível 2 não existe."]);
   });
 
-  test("texto opcional vazio vira null e título é aparado", () => {
-    const d = { ...documento(), codigo: "  ", titulo: "  Curso  " };
-    expect(documentoDoCurso.parse(d)).toMatchObject({
-      codigo: null,
-      titulo: "Curso",
-    });
+  test("título é aparado", () => {
+    const d = { ...documento(), titulo: "  Curso  " };
+    expect(documentoDoCurso.parse(d)).toMatchObject({ titulo: "Curso" });
   });
 
   test("descrições e tópicos são aparados, e a descrição vazia passa", () => {

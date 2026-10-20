@@ -16,7 +16,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { carregarPainelDeTroca, trocar } from "./troca";
 
 const URL_TESTE = urlDeTeste();
@@ -58,6 +58,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         precoTroca,
         slug: `teste-${s}`,
         status: "publicado",

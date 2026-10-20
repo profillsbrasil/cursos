@@ -2,7 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { documentoDeExemplo } from "@cursos/api/dominio/exemplo";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 
-import { antesDePublicar, secoesDoEditor } from "./antes-de-publicar";
+import {
+  antesDePublicar,
+  resumoDoCurso,
+  secoesDoEditor,
+} from "./antes-de-publicar";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 
 const rascunho = rascunhoDoCurso(documentoDeExemplo());
@@ -67,7 +71,7 @@ describe("Antes de publicar", () => {
 describe("índice das seções", () => {
   test("o curso novo não tem Apagar, e as listas levam a contagem", () => {
     expect(secoesDoEditor(rascunho, true).map((s) => s.id)).toEqual([
-      "vitrine",
+      "capa-e-descricao",
       "topicos",
       "publicacao",
       "niveis",
@@ -76,5 +80,10 @@ describe("índice das seções", () => {
     const existente = secoesDoEditor(rascunho, false);
     expect(existente.at(-1)?.id).toBe("apagar");
     expect(existente.find((s) => s.id === "modulos")?.contagem).toBe(2);
+  });
+
+  test("o resumo conta módulos e aulas, e a duração só com vídeo", () => {
+    expect(resumoDoCurso(rascunho)).toBe("2 módulos, 3 aulas, 15 min");
+    expect(resumoDoCurso({ modulos: [] })).toBe("0 módulos, 0 aulas");
   });
 });

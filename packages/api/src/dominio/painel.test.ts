@@ -79,7 +79,7 @@ describe("montarPainel com o caso do protótipo", () => {
 
   test("o código do curso e o comunicado do exemplo chegam à tela", () => {
     const painel = prototipo();
-    expect(painel.cursos[1]?.extra).toBe("POP-COM-001");
+    expect(painel.cursos[1]?.codigo).toBe("POP-COM-001");
     expect(painel.comunicado?.titulo).toBe(
       "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM"
     );

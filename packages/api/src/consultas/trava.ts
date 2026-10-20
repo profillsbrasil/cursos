@@ -8,9 +8,14 @@ import type { Transacao } from "./comum";
  * O crédito de aula.registrar não trava: ele só soma e não deixa o saldo negativo.
  * `curso:<id>` serializa a edição e o apagamento pelo admin. salvarCurso e
  * apagarCurso pegam só a `curso:<id>` deles, e a criação pega também a
- * `slug:<raiz>` (raizDoSlug) antes de escolher o endereço livre.
+ * `slug:<raiz>` (raizDoSlug) antes de escolher o endereço livre e, depois dela, a
+ * `codigo:<sigla>` antes de escolher o código livre.
  */
-type ChaveDeTrava = `ponto:${string}` | `curso:${string}` | `slug:${string}`;
+type ChaveDeTrava =
+  | `codigo:${string}`
+  | `ponto:${string}`
+  | `curso:${string}`
+  | `slug:${string}`;
 
 /** A mesma trava de comTrava, numa transação que já segura outra. */
 export async function travarTambem(tx: Transacao, chave: ChaveDeTrava) {

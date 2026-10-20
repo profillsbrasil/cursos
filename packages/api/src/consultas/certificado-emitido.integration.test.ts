@@ -23,7 +23,7 @@ import { contextoDeTeste } from "../contexto-de-teste";
 import { gerarCodigo } from "../dominio/certificado";
 import type { Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -70,6 +70,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
         capaLargura: 900,
         capaUrl: "/capas/teste.jpg",
         categoriaId,
+        codigo: codigoDeTeste(),
         slug: SLUG,
         status: "publicado",
         titulo: "Fábrica e montagem",

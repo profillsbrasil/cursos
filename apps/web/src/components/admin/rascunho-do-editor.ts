@@ -20,7 +20,7 @@ import {
   trocado,
 } from "@/lib/editor";
 
-import { errosPorCampo, type Problema, recusaNaTela } from "./problemas";
+import { errosPorCampo, type Problema } from "./problemas";
 import {
   type AulaDoRascunho,
   ID,
@@ -30,9 +30,7 @@ import {
   mesmoRascunho,
   type PerguntaDoRascunho,
   type RascunhoDoCurso,
-  type RecusaDoCurso,
   rascunhoDoCurso,
-  recusaDoMotivo,
 } from "./rascunho-do-curso";
 
 type CampoDoCurso = Exclude<
@@ -548,7 +546,6 @@ interface DaGeracao {
   capa: File | null;
   /** A linha que pede confirmação, como a do Apagar. */
   linha: string | null;
-  recusa: RecusaDoCurso | null;
   /** O Salvar foi recusado aqui: a tela marca tudo o que ele recusaria. */
   tentou: boolean;
   /** Os campos que o admin já deixou. */
@@ -558,7 +555,6 @@ interface DaGeracao {
 const INICIO_DA_GERACAO: DaGeracao = {
   capa: null,
   linha: null,
-  recusa: null,
   tentou: false,
   tocados: new Set(),
 };
@@ -596,7 +592,6 @@ export function rascunhoDoEditorEm(pagina: DocumentoDoCurso): RascunhoDoEditor {
 export interface Envio {
   capa: File | null;
   documento: DocumentoDoCurso;
-  geracao: number;
   /** O documento novo abre com ?novo=1 e o perde no primeiro salvar. */
   novo: boolean;
   rascunho: RascunhoDoCurso;
@@ -658,7 +653,6 @@ function leitura(e: RascunhoDoEditor): {
     envio: {
       capa,
       documento: lido.documento,
-      geracao: e.geracao,
       novo: ehNovo(e),
       rascunho: e.rascunho,
     },
@@ -678,17 +672,15 @@ export interface Tela {
 /**
  * O que a tela mostra. Antes do Salvar, só o erro dos campos que o admin já
  * deixou, como o "abc" na duração; depois do Salvar recusado, tudo o que o
- * Salvar recusaria. A recusa do servidor aparece sempre, enquanto o valor
- * recusado continua no campo.
+ * Salvar recusaria.
  */
 export function telaDo(e: RascunhoDoEditor): Tela {
   const { achados, envio } = leitura(e);
-  const { recusa, tentou, tocados } = e.daGeracao;
+  const { tentou, tocados } = e.daGeracao;
   const deixados = comGrupoDasLetrasTocado(tocados, e.rascunho);
-  const vistos = tentou
+  const problemas = tentou
     ? achados
     : achados.filter((p) => p.campo !== null && deixados.has(p.campo));
-  const problemas = [...vistos, ...recusaNaTela(recusa, e.rascunho, ID.curso)];
   return {
     envio,
     erros: errosPorCampo(problemas),
@@ -719,7 +711,7 @@ const recomecado = (
 function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
   const { achados, envio } = leitura(e);
   if (envio) {
-    return naGeracao(e, { recusa: null, tentou: false });
+    return naGeracao(e, { tentou: false });
   }
   const campos = achados.flatMap((p) => (p.campo ? [p.campo] : []));
   return {
@@ -781,20 +773,10 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
           : e.rascunho,
       };
     }
-    case "recusado": {
-      const apoio =
-        a.motivo === "versao_mudou"
-          ? { ...e.apoio, versaoDeFora: true }
-          : e.apoio;
-      if (a.envio.geracao !== e.geracao) {
-        return { ...e, apoio };
-      }
-      const recusa = recusaDoMotivo(a.motivo, a.envio.rascunho);
-      return {
-        ...naGeracao({ ...e, apoio }, { recusa }),
-        foco: recusa ? [ID.curso(recusa.campo)] : e.foco,
-      };
-    }
+    case "recusado":
+      return a.motivo === "versao_mudou"
+        ? { ...e, apoio: { ...e.apoio, versaoDeFora: true } }
+        : e;
     default:
       return {
         ...e,

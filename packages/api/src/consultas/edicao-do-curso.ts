@@ -22,6 +22,7 @@ import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { Servicos } from "../context";
 import type { ImagemDaCapa, RecusaDaCapa } from "../dominio/capa";
 import { CATEGORIA_SUMIU } from "../dominio/categoria";
+import { codigoLivre, siglaDaCategoria } from "../dominio/codigo-do-curso";
 import {
   type DocumentoDoCurso,
   type EdicaoDoCurso,
@@ -79,7 +80,6 @@ export async function abrirCurso(
       categoriaId: true,
       codigo: true,
       descricao: true,
-      destaque: true,
       id: true,
       precoTroca: true,
       slug: true,
@@ -153,9 +153,7 @@ export async function abrirCurso(
 
   const semVersao: DocumentoDoCurso = {
     categoriaId: linha.categoriaId as CategoriaId,
-    codigo: linha.codigo,
     descricao: linha.descricao,
-    destaque: linha.destaque,
     id: linha.id as CursoId,
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
@@ -198,6 +196,7 @@ export async function abrirCurso(
   };
   return {
     capa: capaDe(linha),
+    codigo: linha.codigo,
     documento: {
       ...semVersao,
       versao: versaoDoCurso(semVersao, linha.capaUrl),
@@ -290,13 +289,14 @@ function mensagemDaCapa(r: RecusaDaCapa): string {
  */
 async function exigirCategoria(tx: Transacao, id: CategoriaId) {
   const [alvo] = await tx
-    .select({ id: categoria.id })
+    .select({ nome: categoria.nome })
     .from(categoria)
     .where(eq(categoria.id, id))
     .for("key share");
   if (!alvo) {
     throw new ErroParaAPessoa({ code: "NOT_FOUND", message: CATEGORIA_SUMIU });
   }
+  return alvo;
 }
 
 /**
@@ -313,6 +313,37 @@ async function slugParaCursoNovo(tx: Transacao, titulo: string) {
     .from(curso)
     .where(or(eq(curso.slug, base), like(curso.slug, `${base}-%`)));
   return slugLivre(base, new Set(ocupados.map((c) => c.slug)));
+}
+
+/**
+ * O código do curso novo: a sigla da categoria com o menor número livre. A trava
+ * da sigla serializa as criações na mesma sigla, e a leitura vem depois dela.
+ */
+async function codigoParaCursoNovo(tx: Transacao, nomeDaCategoria: string) {
+  const sigla = siglaDaCategoria(nomeDaCategoria);
+  await travarTambem(tx, `codigo:${sigla}`);
+  // A sigla só tem [A-Z0-9], então nem "_" nem "%" escapam do like.
+  const ocupados = await tx
+    .select({ codigo: curso.codigo })
+    .from(curso)
+    .where(like(curso.codigo, `${sigla}-%`));
+  return codigoLivre(sigla, new Set(ocupados.map((c) => c.codigo)));
+}
+
+interface IdentidadeDoCursoNovo {
+  codigo: string;
+  slug: string;
+}
+
+/** Em série e nesta ordem: toda criação pega a trava do slug antes da do código. */
+async function identidadeDoCursoNovo(
+  tx: Transacao,
+  titulo: string,
+  nomeDaCategoria: string
+): Promise<IdentidadeDoCursoNovo> {
+  const slug = await slugParaCursoNovo(tx, titulo);
+  const codigo = await codigoParaCursoNovo(tx, nomeDaCategoria);
+  return { codigo, slug };
 }
 
 /**
@@ -344,20 +375,25 @@ export async function salvarCurso(
   try {
     return await comTrava(s.db, `curso:${documento.id}`, async (tx) => {
       const atual = await abrirCurso(tx, documento.id);
-      await exigirCategoria(tx, documento.categoriaId);
+      const categoriaDoCurso = await exigirCategoria(tx, documento.categoriaId);
       const plano = planejarCurso(atual, documento, capa);
       if (plano.tipo === "recusa") {
         throw erroDaEdicao(plano.recusa);
       }
-      const slug =
+      const novo =
         plano.tipo === "criar"
-          ? await slugParaCursoNovo(tx, documento.titulo)
-          : atual?.slug;
+          ? await identidadeDoCursoNovo(
+              tx,
+              documento.titulo,
+              categoriaDoCurso.nome
+            )
+          : null;
+      const slug = novo?.slug ?? atual?.slug;
       if (!slug) {
         throw new Error(`Curso ${documento.id} salvo sem endereço.`);
       }
       if (plano.tipo !== "nada_mudou") {
-        await gravarCurso(tx, plano, slug);
+        await gravarCurso(tx, plano, novo);
       }
       // A aula ou a pergunta que saiu pode ter sido a última coisa que faltava a alguém.
       if (
@@ -451,16 +487,14 @@ function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
 async function gravarCurso(
   tx: Transacao,
   plano: PlanoDeGravacao,
-  slug: string
+  novo: IdentidadeDoCursoNovo | null
 ) {
   const { documento: d } = plano;
   const cursoId = d.id;
   const campos = {
     capaAlt: altDaCapa(d.titulo),
     categoriaId: d.categoriaId,
-    codigo: d.codigo,
     descricao: d.descricao,
-    destaque: d.destaque,
     precoTroca: d.precoTroca,
     status: d.status,
     titulo: d.titulo,
@@ -480,11 +514,17 @@ async function gravarCurso(
     tx.select({ id: pergunta.id }).from(pergunta).where(nasAulasDoCurso)
   );
 
-  // O slug só entra na criação: depois dela, o endereço do aluno não muda.
+  // O slug e o código só entram na criação: depois dela, não mudam.
   if (plano.tipo === "criar") {
-    await tx
-      .insert(curso)
-      .values({ ...campos, ...colunasDaCapa(plano.capa), id: cursoId, slug });
+    if (!novo) {
+      throw new Error(`Curso ${cursoId} criado sem endereço nem código.`);
+    }
+    await tx.insert(curso).values({
+      ...campos,
+      ...colunasDaCapa(plano.capa),
+      ...novo,
+      id: cursoId,
+    });
   } else {
     await tx
       .update(curso)

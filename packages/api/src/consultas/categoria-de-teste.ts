@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import type { Database } from "@cursos/db";
 import { categoria } from "@cursos/db/schema/index";
 import { eq } from "drizzle-orm";
@@ -24,3 +25,7 @@ export async function categoriaDeTeste(db: Database): Promise<CategoriaId> {
   }
   return linha.id as CategoriaId;
 }
+
+/** O código que o curso plantado direto no banco leva: único e fora de qualquer sigla real. */
+export const codigoDeTeste = () =>
+  `TESTE-${randomBytes(6).toString("hex").toUpperCase()}`;

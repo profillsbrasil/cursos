@@ -5,6 +5,7 @@ import { CARACTERES } from "@cursos/api/dominio/edicao-do-curso";
 import { slugDoTitulo } from "@cursos/api/dominio/endereco";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
+import { cn } from "@cursos/ui/lib/utils";
 import { ArrowUpRight, Check, Link2 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -21,7 +22,7 @@ import { trpcClient } from "@/utils/trpc";
 
 import { AreaDeTexto, CampoDeTexto } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
-import { ROTULO, Secao } from "./partes";
+import { CARTAO_DA_SECAO, ROTULO } from "./partes";
 import { ID, type RascunhoDoCurso } from "./rascunho-do-curso";
 import type { Mudanca } from "./rascunho-do-editor";
 import { SelecaoComBusca } from "./selecao";
@@ -162,18 +163,21 @@ function CampoDaCategoria({
   );
 }
 
-export function Vitrine({
+/** O id do título da seção, alvo do índice (secoesDoEditor). */
+const ID_DA_SECAO = "capa-e-descricao";
+
+export function CapaEDescricao({
   capa,
   categorias,
   despachar,
-  mudarTexto,
+  mudarTitulo,
   rascunho,
   slug,
 }: {
   capa: React.ReactNode;
   categorias: readonly CategoriaNaLista[];
   despachar: Dispatch<Mudanca>;
-  mudarTexto: (e: ChangeEvent<HTMLInputElement>) => void;
+  mudarTitulo: (e: ChangeEvent<HTMLInputElement>) => void;
   rascunho: Pick<RascunhoDoCurso, "categoriaId" | "descricao" | "titulo">;
   slug: string | null;
 }) {
@@ -191,8 +195,13 @@ export function Vitrine({
     [despachar]
   );
   return (
-    <Secao id="vitrine" resumo="O topo da página do curso" titulo="Vitrine">
-      <div className="@container">
+    // O cartão abre o editor sem título visível; o h2 escondido nomeia a região e
+    // é o alvo do índice. A seção relativa segura o h2 no alto dela.
+    <section aria-labelledby={ID_DA_SECAO} className="relative">
+      <h2 className="sr-only" id={ID_DA_SECAO} tabIndex={-1}>
+        Capa e descrição
+      </h2>
+      <div className={cn(CARTAO_DA_SECAO, "@container")}>
         <div className="grid @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)] gap-7 p-6">
           {capa}
           <div className="grid min-w-0 content-start gap-5">
@@ -203,7 +212,7 @@ export function Vitrine({
               id={ID.curso("titulo")}
               maxLength={CARACTERES.titulo}
               name="titulo"
-              onChange={mudarTexto}
+              onChange={mudarTitulo}
               placeholder="Operação da envasadora volumétrica"
               required
               rotulo="Título"
@@ -227,6 +236,6 @@ export function Vitrine({
           </div>
         </div>
       </div>
-    </Secao>
+    </section>
   );
 }

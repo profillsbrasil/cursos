@@ -165,7 +165,6 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
     categoriaId: idDaCategoria(c.categoria),
     codigo: c.codigo,
     descricao: c.descricao,
-    destaque: c.destaque,
     id: idCurso(c.chave),
     precoTroca: c.precoTroca ?? null,
     slug: c.chave,

@@ -12,7 +12,7 @@ import { contextoDeTeste } from "../contexto-de-teste";
 import type { ComunicadoId, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -52,6 +52,7 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         slug: `teste-com-${S}-${cursos.length}`,
         titulo: `Curso do comunicado ${S} ${cursos.length}`,
       })

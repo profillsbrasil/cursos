@@ -27,7 +27,7 @@ import {
   ESPERA_PELA_COTA_MS,
   registrar,
 } from "./aula";
-import { categoriaDeTeste } from "./categoria-de-teste";
+import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { esperas, seguraACota, urlDaCorrida } from "./corrida-de-teste";
 
 const URL_TESTE = urlDeTeste();
@@ -93,6 +93,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         capaLargura: 1280,
         capaUrl: "/capas/teste.jpg",
         categoriaId: await categoriaDeTeste(db),
+        codigo: codigoDeTeste(),
         slug,
         status: o.status ?? "publicado",
         titulo: `Curso ${slug}`,

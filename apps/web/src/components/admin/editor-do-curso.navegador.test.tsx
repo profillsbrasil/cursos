@@ -39,6 +39,7 @@ const CAPA = `data:image/svg+xml,${encodeURIComponent(
 const documento = documentoDeExemplo("v1" as Versao);
 const EDICAO_SALVA: EdicaoDoCurso = {
   capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA },
+  codigo: "PE-001",
   documento: {
     ...documento,
     descricao:
@@ -408,7 +409,7 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
         enviar,
         `(() => {
           const coluna = document.querySelector('aside[aria-label="Publicação do curso"]').getBoundingClientRect();
-          const conteudo = document.querySelector("h1").parentElement.parentElement.getBoundingClientRect();
+          const conteudo = document.querySelector("h1").parentElement.getBoundingClientRect();
           const barra = document.querySelector(".sticky.bottom-3");
           const lista = [...document.querySelectorAll("h2")].find((h) => h.textContent === "Antes de publicar");
           return {

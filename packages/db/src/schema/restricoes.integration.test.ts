@@ -32,8 +32,8 @@ async function montarBase(c: Client): Promise<Base> {
   );
   const categoriaId = categoria.rows[0]?.id ?? "";
   const curso = await c.query<{ id: string }>(
-    `insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura, status)
-     values ($1, 'Curso teste', $2, '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
+    `insert into curso (slug, codigo, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura, status)
+     values ($1, $1, 'Curso teste', $2, '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
     [`teste-${s}`, categoriaId]
   );
   const cursoId = curso.rows[0]?.id ?? "";
@@ -163,8 +163,8 @@ const CASOS: Caso[] = [
     nome: "módulo apontando para nível de outro curso",
     violar: async (c, b) => {
       const outro = await c.query<{ id: string }>(
-        `insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura)
-         values ($1, 'Outro', $2, '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
+        `insert into curso (slug, codigo, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura)
+         values ($1, $1, 'Outro', $2, '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
         [`teste-${sufixo()}`, b.categoriaId]
       );
       await c.query(
@@ -356,7 +356,7 @@ const CASOS: Caso[] = [
     nome: "capa sem texto alternativo",
     violar: (c, b) =>
       c.query(
-        "insert into curso (slug, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura) values ($1, 'Curso', $2, '/capas/x.jpg', '   ', 1280, 720)",
+        "insert into curso (slug, codigo, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura) values ($1, $1, 'Curso', $2, '/capas/x.jpg', '   ', 1280, 720)",
         [`teste-${sufixo()}`, b.categoriaId]
       ),
   },
