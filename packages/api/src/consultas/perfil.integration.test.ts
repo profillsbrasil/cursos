@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
 import {
   curso,
@@ -9,6 +10,7 @@ import {
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { eq, inArray } from "drizzle-orm";
 
+import { contextoDeTeste } from "../contexto-de-teste";
 import type {
   AdminId,
   Conta,
@@ -16,6 +18,7 @@ import type {
   LiberacaoDoPerfilId,
 } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
+import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { apagarCurso } from "./edicao-do-curso";
 import { liberarParaPerfil, revogarDoPerfil } from "./liberacao-do-perfil";
@@ -42,6 +45,14 @@ const conta = (email: string | null, emailVerificado = true): Conta => ({
 describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const pessoas: string[] = [];
+
+  const linhaDe = async (userId: string) =>
+    (
+      await db
+        .select()
+        .from(perfilDaPessoa)
+        .where(eq(perfilDaPessoa.userId, userId))
+    )[0];
 
   const pessoa = () => {
     const userId = `user_perfil${S}${pessoas.length}`;
@@ -71,6 +82,48 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
       .from(perfilDaPessoa)
       .where(eq(perfilDaPessoa.userId, userId));
     expect(linha?.definidoPor).toBeNull();
+  });
+
+  test("com o Clerk fora no primeiro acesso, vale público aberto sem gravar, e o acesso seguinte grava", async () => {
+    const userId = pessoa();
+    expect(
+      await perfilDe(db, userId, () =>
+        Promise.reject(new Error("Clerk respondeu 429"))
+      )
+    ).toBe("publico");
+    expect(await linhaDe(userId)).toBeUndefined();
+    expect(
+      await perfilDe(db, userId, () =>
+        Promise.resolve(conta("nova@profills.com"))
+      )
+    ).toBe("funcionario");
+  });
+
+  test("duas chamadas do mesmo pedido leem a conta no Clerk uma vez só", async () => {
+    const userId = pessoa();
+    let leituras = 0;
+    const base = contextoDeTeste({
+      db,
+      pessoas: [{ email: "x@exemplo.com", foto: null, nome: "X", userId }],
+      userId,
+    });
+    const caller = createCaller({
+      ...base,
+      pessoas: {
+        ...base.pessoas,
+        // A espera põe as duas chamadas no ar ao mesmo tempo, antes de a linha nascer.
+        conta: async (id) => {
+          leituras += 1;
+          await esperar(50);
+          return base.pessoas.conta(id);
+        },
+      },
+    });
+    await Promise.all([
+      caller.meusCursos.painel(),
+      caller.troca.temCursoTrocavelNaVitrine(),
+    ]);
+    expect(leituras).toBe(1);
   });
 
   test("quem o Clerk não conhece entra como público aberto", async () => {

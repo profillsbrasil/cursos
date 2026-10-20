@@ -22,7 +22,7 @@ O dono pediu três níveis: usuário, funcionário e admin. Com um campo só, o 
 - Mudar o perfil grava com o aluno travado (`ponto:<userId>`), então uma troca do mesmo aluno espera e lê o perfil novo. A liberação do perfil não trava aluno nenhum. Uma troca que corre junto com ela pode cobrar um curso que acabou de abrir ao perfil, e a liberação de troca continua valendo depois.
 - Revogar a liberação do perfil fecha o curso a quem só o via pelo perfil. O estudo dessas pessoas fica guardado, como na revogação por pessoa.
 - Curso com liberação do perfil, ativa ou revogada, não se apaga, como o curso com liberação por pessoa.
-- O primeiro acesso de cada pessoa lê a conta no Clerk uma vez. Os acessos seguintes leem só a linha do banco.
+- O primeiro acesso de cada pessoa lê a conta no Clerk uma vez por pedido, por mais procedures que a página chame. Os acessos seguintes leem só a linha do banco. Com o Clerk fora nesse primeiro acesso, o pedido vale como Público aberto, o perfil de menos acesso, e nada se grava: o acesso seguinte tenta de novo.
 
 A decisão entra em quatro PRs:
 
