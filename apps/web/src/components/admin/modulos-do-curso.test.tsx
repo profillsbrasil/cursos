@@ -96,6 +96,13 @@ describe("bloco aberto", () => {
     expect(remover).toContain(`aria-describedby="aula-${EDICAO.A1}-uso"`);
     expect(remover).toContain('type="button"');
   });
+
+  test("a aula assistida usa as pessoas, porque o olho é o Publicado do status", () => {
+    for (const bloco of [html, blocoDoExemplo({ tipo: "fechado" })]) {
+      expect(bloco).toContain("lucide-users");
+      expect(bloco).not.toContain("lucide-eye");
+    }
+  });
 });
 
 describe("campo de vídeo da aula salva", () => {
