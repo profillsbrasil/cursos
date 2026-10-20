@@ -90,15 +90,8 @@ export interface BucketDeCapas {
   segredo: string;
 }
 
-/**
- * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT
- * reescreve os mesmos bytes e o cache pode durar um ano. Capa trocada deixa o
- * objeto antigo no bucket; não há coleta.
- */
-export function capasNoBucket(
-  cfg: BucketDeCapas,
-  enviar: typeof fetch = fetch
-): Capas {
+/** O bucket com pedido assinado (`aws4fetch`), que capas e materiais dividem. */
+export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
   const aws = new AwsClient({
     accessKeyId: cfg.idDaChave,
     region: cfg.regiao,
@@ -110,11 +103,47 @@ export function capasNoBucket(
     `${endpoint.protocol}//${cfg.bucket}.${endpoint.host}/${chave}`;
 
   return {
+    async guardar(
+      chave: string,
+      bytes: Uint8Array<ArrayBuffer>,
+      contentType: string
+    ) {
+      const assinado = await aws.sign(doObjeto(chave), {
+        body: bytes,
+        headers: { "content-type": contentType },
+        method: "PUT",
+      });
+      // Os bytes vão de novo, e não o corpo do Request assinado: o fetch do Next
+      // manda o corpo de um Request em chunked, sem content-length, e o S3 que
+      // exige o tamanho responde 411.
+      return enviar(assinado.url, {
+        body: bytes,
+        headers: assinado.headers,
+        method: "PUT",
+      });
+    },
+    pedir: async (chave: string, method: "GET" | "HEAD" = "GET") =>
+      enviar(await aws.sign(doObjeto(chave), { method })),
+  };
+}
+
+/**
+ * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT
+ * reescreve os mesmos bytes e o cache pode durar um ano. Capa trocada deixa o
+ * objeto antigo no bucket; não há coleta.
+ */
+export function capasNoBucket(
+  cfg: BucketDeCapas,
+  enviar: typeof fetch = fetch
+): Capas {
+  const bucket = bucketAssinado(cfg, enviar);
+
+  return {
     async abrir(chave) {
       if (!CHAVE.test(chave)) {
         return null;
       }
-      const resposta = await enviar(await aws.sign(doObjeto(chave)));
+      const resposta = await bucket.pedir(chave);
       if (resposta.status === 404) {
         return null;
       }
@@ -137,12 +166,10 @@ export function capasNoBucket(
       if (lida.tipo === "recusa") {
         return lida;
       }
-      const resposta = await enviar(
-        await aws.sign(doObjeto(lida.chave), {
-          body: lida.bytes,
-          headers: { "content-type": lida.contentType },
-          method: "PUT",
-        })
+      const resposta = await bucket.guardar(
+        lida.chave,
+        lida.bytes,
+        lida.contentType
       );
       if (!resposta.ok) {
         console.error(

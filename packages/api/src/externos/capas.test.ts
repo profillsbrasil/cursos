@@ -109,19 +109,27 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
-/** Um fetch falso que guarda cada Request assinado e responde com `resposta`. */
+/**
+ * Um fetch falso que guarda cada pedido assinado e responde com `resposta`.
+ * `tamanhos` guarda o content-length que o S3 enxerga: só um corpo em bytes tem
+ * tamanho conhecido; o corpo de um Request vai em chunked no runtime do Next.
+ */
 function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
-  const enviar = ((pedido: Request) => {
-    pedidos.push(pedido);
+  const tamanhos: (number | null)[] = [];
+  const enviar = ((url: Request | string, init?: RequestInit) => {
+    pedidos.push(url instanceof Request ? url : new Request(url, init));
+    tamanhos.push(
+      init?.body instanceof Uint8Array ? init.body.byteLength : null
+    );
     return Promise.resolve(resposta());
   }) as unknown as typeof fetch;
-  return { enviar, pedidos };
+  return { enviar, pedidos, tamanhos };
 }
 
 describe("capasNoBucket", () => {
   test("envia ao bucket com PUT assinado e devolve a URL do app e a medida", async () => {
-    const { enviar, pedidos } = bucketFalso(() => new Response(null));
+    const { enviar, pedidos, tamanhos } = bucketFalso(() => new Response(null));
     const bytes = await ler("comercial.jpg");
     const hash = createHash("sha256").update(bytes).digest("hex");
 
@@ -136,6 +144,8 @@ describe("capasNoBucket", () => {
     expect(pedidos.map((p) => [p.method, p.url])).toEqual([
       ["PUT", `https://capas-teste.t3.storageapi.dev/${hash}.jpg`],
     ]);
+    expect(tamanhos).toEqual([bytes.length]);
+    expect(await pedidos[0]?.bytes()).toEqual(bytes);
     expect(pedidos[0]?.headers.get("content-type")).toBe("image/jpeg");
     expect(pedidos[0]?.headers.get("authorization")).toStartWith(
       "AWS4-HMAC-SHA256 Credential=id-de-teste/"
