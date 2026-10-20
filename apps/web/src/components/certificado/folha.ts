@@ -8,6 +8,7 @@ import { PRODUTO } from "@/lib/marca";
 import {
   FOLHA_EM_PX,
   type FolhaDoCertificado,
+  nomeNaFolha,
   tamanhoPara,
 } from "./medidas-da-folha";
 
@@ -67,16 +68,21 @@ export function folhaDo(
   c: CertificadoComNome,
   endereco: EnderecoDaConferencia
 ): FolhaDoCertificado {
+  const cursoEmTamanho = tamanhoPara(c.tituloDoCurso, FOLHA_EM_PX.curso);
+  const escrito = nomeNaFolha(c.nome, {
+    tamanho: cursoEmTamanho,
+    texto: c.tituloDoCurso,
+  });
   return {
     ...DE_TODA_FOLHA,
     carga: cargaEmHoras(c.horas),
     codigo: c.codigo,
     confira: `Confira em ${endereco.exibido}`,
     curso: c.tituloDoCurso,
-    cursoEmTamanho: tamanhoPara(c.tituloDoCurso, FOLHA_EM_PX.curso),
+    cursoEmTamanho,
     data: fmtData(c.emitidoEm),
-    nome: c.nome,
-    nomeEmTamanho: tamanhoPara(c.nome, FOLHA_EM_PX.nome),
+    nome: escrito.nome,
+    nomeEmTamanho: escrito.tamanho,
     qr: qrDe(endereco.url),
   };
 }
@@ -98,7 +104,7 @@ export function folhaDeExemplo(origem: string): FolhaDoCertificado {
     cursoEmTamanho: FOLHA_EM_PX.curso.tamanho,
     data: "dia da conclusão",
     nome: "",
-    nomeEmTamanho: FOLHA_EM_PX.nome.tamanho,
+    nomeEmTamanho: FOLHA_EM_PX.nome.degraus[0],
     qr: qrDe(url.href),
   };
 }

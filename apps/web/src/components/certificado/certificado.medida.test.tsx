@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import type {
   CertificadoEmitido,
   PaginaDoCertificado,
@@ -22,6 +23,9 @@ import {
   ReciboDaConferencia,
   SemCertificado,
 } from "./conferencia";
+import { enderecoDaConferencia, folhaDo } from "./folha";
+import { FolhaNaTela } from "./folha-na-tela";
+import { NOMES_DA_FOLHA } from "./nomes-de-teste";
 import { TelaDoCertificado } from "./tela-do-certificado";
 
 const HOJE = "2026-10-16" as DiaISO;
@@ -84,6 +88,25 @@ const css = await cssDoApp(
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
   )
 );
+
+const GEIST = ["Regular", "Medium", "SemiBold", "Bold"]
+  .map(
+    (peso, i) =>
+      `@font-face{font-family:Geist;font-weight:${400 + i * 100};src:url(data:font/ttf;base64,${readFileSync(join(import.meta.dir, "fontes", `Geist-${peso}.ttf`)).toString("base64")}) format("truetype")}`
+  )
+  .join("");
+
+const folhaCom = (nome: string) =>
+  renderToStaticMarkup(
+    <div style={{ width: 1123 }}>
+      <FolhaNaTela
+        folha={folhaDo(
+          { ...LONGO, nome },
+          enderecoDaConferencia("https://cursos.exemplo.com.br", LONGO.codigo)
+        )}
+      />
+    </div>
+  );
 
 let enviar: Enviar;
 
@@ -223,6 +246,65 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
       expect(m.centro.at(-1)?.pe ?? Number.POSITIVE_INFINITY).toBeLessThan(
         m.pe.topo
       );
+    }
+  );
+
+  const DO_NOME = `
+    const folha = document.querySelector("figure");
+    const [faixa, centro, pe] = folha.firstElementChild.children;
+    const [abre, nome] = centro.children;
+    const trecho = document.createRange();
+    trecho.selectNodeContents(nome);
+    return {
+      abre: caixa(abre),
+      centro: caixa(centro),
+      faixa: caixa(faixa),
+      linhas: [...trecho.getClientRects()].map((r) => caixa({ getBoundingClientRect: () => r })),
+      pe: caixa(pe),
+      texto: nome.textContent,
+      ultimo: caixa(centro.lastElementChild),
+    };`;
+
+  interface DoNome {
+    abre: Caixa;
+    centro: Caixa;
+    faixa: Caixa;
+    linhas: Caixa[];
+    pe: Caixa;
+    texto: string;
+    ultimo: Caixa;
+  }
+
+  test.each(NOMES_DA_FOLHA)(
+    "folha de 1123 px em Geist, %s: o nome entre a faixa e o pé, dentro das margens, inteiro ou cortado com reticências",
+    async (_, nome) => {
+      await abrir(1280, folhaCom(nome), "");
+      const carregou = await avaliar<boolean>(
+        enviar,
+        `(async () => {
+          const estilo = document.createElement("style");
+          estilo.textContent = ${JSON.stringify(GEIST)};
+          document.head.append(estilo);
+          document.documentElement.style.setProperty("--font-geist-sans", "Geist");
+          await Promise.all([400, 500, 600, 700].map((peso) => document.fonts.load(peso + " 16px Geist")));
+          return document.fonts.check("700 16px Geist");
+        })()`
+      );
+      expect(carregou).toBe(true);
+      const m = await medir<DoNome>(DO_NOME);
+      expect(m.abre.topo).toBeGreaterThan(m.faixa.pe);
+      expect(m.ultimo.pe).toBeLessThanOrEqual(m.pe.topo);
+      expect(m.linhas.length).toBeGreaterThan(0);
+      for (const linha of m.linhas) {
+        expect(linha.topo).toBeGreaterThanOrEqual(m.abre.pe);
+        expect(linha.esquerda).toBeGreaterThanOrEqual(m.centro.esquerda);
+        expect(linha.direita).toBeLessThanOrEqual(m.centro.direita);
+      }
+      const lido = m.texto.replaceAll("\u00ad", "");
+      if (lido !== nome) {
+        expect(lido.endsWith("…")).toBe(true);
+        expect(nome.startsWith(lido.slice(0, -1))).toBe(true);
+      }
     }
   );
 

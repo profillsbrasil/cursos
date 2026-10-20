@@ -4,7 +4,11 @@ import type { CSSProperties } from "react";
 
 import { LOCKUP, PRODUTO } from "@/lib/marca";
 
-import { FOLHA_EM_PX, type FolhaDoCertificado } from "./medidas-da-folha";
+import {
+  FOLHA_EM_PX,
+  type FolhaDoCertificado,
+  quebravel,
+} from "./medidas-da-folha";
 
 const pxDaFolha = (px: number) => `calc(var(--px-da-folha) * ${px})`;
 
@@ -87,7 +91,7 @@ export function FolhaNaTela({
               marginTop: pxDaFolha(nome.acima),
             }}
           >
-            {folha.nome}
+            {quebravel(folha.nome, folha.nomeEmTamanho)}
           </p>
           <span
             aria-hidden="true"
