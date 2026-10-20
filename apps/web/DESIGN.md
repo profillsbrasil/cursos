@@ -351,6 +351,7 @@ Cheios e redondos, com o peso no amarelo.
 - **Na aula:** a sidebar recolhe ao abrir cada aula, para dar espaço ao vídeo; na carga direta ela já chega recolhida do servidor, e na navegação recolhe com a animação do Recolher. Aberta pela pessoa durante a aula, fica aberta até a próxima aula. Ao sair da aula, volta ao que a pessoa tinha deixado: o cookie guarda só o que ela escolhe fora da aula. A gaveta do celular não muda. Recolhido, o botão mostra o ícone da marca e troca para o ícone de abrir sob o cursor ou com foco (sempre, em tela sem hover).
 - **Dica:** fundo `titulo`, texto `sobre-cor` 600 em 12 px, raio de 7 px; o texto secundário ("Ctrl B", "Em breve") em `sobre-cor` a 70%. No Mac, a dica do atalho mostra "⌘ B": o servidor escreve "Ctrl B", e o cliente troca depois da hidratação.
 - **Celular:** gaveta, com o botão de fechar no cabeçalho e a faixa de topo de 56 px no conteúdo.
+- **Toast:** o aviso do `useAcao` e do copiar link sai embaixo à direita, no fundo `popover` com anel de 1 px em `borda`, sem as cores próprias do sonner (`richColors`): só o ícone leva a cor, Céu no sucesso e `erro` no erro. Entra e sai em 200 ms com `ease-forte`, pela opacidade e pelo transform, sem animar a altura; com movimento reduzido, o sonner corta a transição.
 - **Pular para o conteúdo:** a primeira parada do Tab nas duas áreas, antes do Recolher. É o `BOTAO` amarelo, preso a 12 px do canto de cima à esquerda, por cima da sidebar e da moldura; fora do foco ele mora acima da janela, e o foco de teclado o traz já aceso em `sol-hover` com o brilho, sem transição. O Enter leva o foco à moldura das páginas, depois do topo do celular, e o Tab seguinte cai no primeiro controle da página.
 
 ### Cartão de conta
@@ -510,7 +511,7 @@ Em `/admin/categorias`. O cabeçalho conta categorias e cursos ("5 categorias, 1
 - **Do** separar superfícies pelo degrau de tom e pelo anel de 1 px em `borda`.
 - **Do** usar raio de 20 px em cartões e pílula em botões, selos e barras.
 - **Do** tirar todo deslocamento, giro e crescimento com `prefers-reduced-motion`, manter as transições de cor, opacidade e sombra (`movimento.test.ts` acusa um `motion-reduce:transition-none` onde nada se move), e não animar o que a pessoa dispara pelo teclado (Ctrl+B).
-- **Do** usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface; `components/movimento.test.ts` acusa curva escrita à mão e duração acima de 200 ms.
+- **Do** usar a curva `cubic-bezier(0.23, 1, 0.32, 1)` e durações de 150 a 200 ms na interface. Ela é o padrão do Tailwind no app (`--default-transition-timing-function` e o `animate-in`/`animate-out` do tw-animate, no `index.css`), então a classe de transição não precisa repetir `ease-forte`. `components/movimento.test.ts` acusa curva escrita à mão, as palavras do Tailwind (`ease-out`, `ease-in-out`) e duração acima de 200 ms, e `components/movimento.medida.test.tsx` confere no Chromium a curva do menu, da gaveta, do botão, da alavanca e do toast, e o movimento reduzido de cada um.
 - **Do** usar a marca pelos arquivos de `public/marca/` e o nome por `lib/marca.ts`.
 
 ### Don't:
