@@ -266,7 +266,7 @@ export const adminRouter = router({
   pessoas: router({
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(({ ctx, input }) => {
         // Ninguém tira o próprio papel: quem tira o de outro continua admin, e
         // a plataforma nunca fica sem admin.
         if (input.userId === ctx.admin && input.papel === "aluno") {

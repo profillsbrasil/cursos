@@ -141,7 +141,7 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       { email: null, foto: null, nome: "A", papel: "admin", userId: A },
       { email: null, foto: null, nome: "B", papel: "admin", userId: B },
     ]);
-    const definirPapel = clerk.definirPapel;
+    const { definirPapel } = clerk;
     // A espera põe as duas mudanças no ar ao mesmo tempo, antes de uma gravar.
     clerk.definirPapel = async (userId, papel) => {
       await esperar(50);
