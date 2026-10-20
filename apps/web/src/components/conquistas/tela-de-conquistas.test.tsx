@@ -49,6 +49,9 @@ const diasDaSemana = (h: string) =>
     ([, rotulo, estado]) => `${estado} ${rotulo}`
   );
 
+const MARCA_DO_FIM_DE_SEMANA =
+  /<li aria-hidden="true"[^>]*data-fim-de-semana[^>]*>(.*?)<\/li>/;
+
 const MARCOS_SEM_TITULO_A_VISTA =
   /<section aria-labelledby="conquistas-marcos"[^>]*><h2 class="sr-only" id="conquistas-marcos">Marcos<\/h2><div [^>]*data-trilha/;
 
@@ -80,7 +83,7 @@ describe("a aluna com medalhas", () => {
 
   test("a trilha diz onde ela está e quanto falta para a próxima medalha", () => {
     expect(trilha(h)).toBe(
-      "49 aulas assistidas. Falta 1 para a medalha de 50. Cada aula assistida até o fim conta para as três medalhas. Você, 49 10 aulas Ganha em 9 de set. 50 aulas Falta 1 aula 100 aulas Faltam 51 aulas"
+      "49 aulas assistidas. Falta 1 para a medalha de 50. Cada aula assistida até o fim conta para as três medalhas. Você, 49 10 aulas Ganha em 9 de set. 50 aulas 100 aulas Faltam 51 aulas"
     );
     for (const peca of ["data-voce", "data-haste", "data-ponto"]) {
       expect(h).toContain(
@@ -89,9 +92,14 @@ describe("a aluna com medalhas", () => {
     }
   });
 
+  test("a marca do fim de semana escreve as siglas como os outros dias", () => {
+    const marca = MARCA_DO_FIM_DE_SEMANA.exec(h)?.[1];
+    expect(texto(marca ?? "")).toBe("Sáb Dom");
+  });
+
   test("a sequência são sete dias úteis, com hoje pendente e a frase do próximo passo", () => {
     expect(sequencia(h)).toBe(
-      "Sete dias seguidos 3 de 7 dias úteis. Assista uma aula hoje para chegar a 4. Sábado e domingo não quebram. Ter Qua Qui Hoje 16 | Seg 19 Ter 20 Qua 21"
+      "Sete dias seguidos 3 de 7 dias úteis. Assista a uma aula hoje para chegar a 4. Fim de semana não quebra a sequência. Ter Qua Qui Hoje 16 | Seg 19 Ter 20 Qua 21"
     );
     expect(diasDaSemana(h)).toEqual([
       "feito terça, 13 de out.: com aula",
@@ -162,7 +170,7 @@ describe("o aluno novo", () => {
 
   test("a trilha começa na borda, sem o meio da pílula", () => {
     expect(trilha(h)).toBe(
-      "0 aulas assistidas. Faltam 10 para a medalha de 10. Cada aula assistida até o fim conta para as três medalhas. Você, 0 10 aulas Faltam 10 aulas 50 aulas Faltam 50 aulas 100 aulas Faltam 100 aulas"
+      "0 aulas assistidas. Faltam 10 para a medalha de 10. Cada aula assistida até o fim conta para as três medalhas. Você, 0 10 aulas 50 aulas Faltam 50 aulas 100 aulas Faltam 100 aulas"
     );
     const [, classes, estilo] = h.match(PILULA_VOCE) ?? [];
     expect(estilo).toBe("left:calc(0% - 0px)");
@@ -172,7 +180,7 @@ describe("o aluno novo", () => {
 
   test("sem dia feito, a sequência começa hoje e explica a regra", () => {
     expect(sequencia(h)).toBe(
-      "Sete dias seguidos Uma aula por dia útil, por 7 dias. Sábado e domingo não quebram. Hoje 16 | Seg 19 Ter 20 Qua 21 Qui 22 Sex 23 | Seg 26"
+      "Sete dias seguidos Uma aula por dia útil, por 7 dias. Fim de semana não quebra a sequência. Hoje 16 | Seg 19 Ter 20 Qua 21 Qui 22 Sex 23 | Seg 26"
     );
   });
 
@@ -233,7 +241,7 @@ describe("as frases que mudam com o progresso", () => {
       comMarco(NOVO, 4, { dia: "2026-09-25", estado: "ganha", vezes: 3 })
     );
     expect(sequencia(h)).toBe(
-      "Sete dias seguidos Uma aula nova em 7 dias úteis seguidos. Sábado e domingo não quebram. Ganha em 25 de set. 3 vezes até hoje"
+      "Sete dias seguidos Uma aula nova em 7 dias úteis seguidos. Fim de semana não quebra a sequência. Ganha em 25 de set. 3 vezes até hoje"
     );
     expect(diasDaSemana(h)).toEqual([]);
     expect(
