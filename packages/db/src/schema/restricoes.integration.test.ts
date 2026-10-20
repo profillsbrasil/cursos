@@ -136,6 +136,41 @@ const CASOS: Caso[] = [
       ),
   },
   {
+    apagar: "drop index liberacao_do_perfil_ativa_unica",
+    constraint: "liberacao_do_perfil_ativa_unica",
+    nome: "o mesmo curso liberado duas vezes ao mesmo perfil",
+    violar: async (c, b) => {
+      const liberarAoPerfil = () =>
+        c.query(
+          "insert into liberacao_do_perfil (perfil, curso_id, liberada_por) values ('cliente', $1, 'user_admin')",
+          [b.cursoId]
+        );
+      await liberarAoPerfil();
+      await liberarAoPerfil();
+    },
+  },
+  {
+    apagar:
+      "alter table liberacao_do_perfil drop constraint liberacao_do_perfil_revogacao_coerente",
+    constraint: "liberacao_do_perfil_revogacao_coerente",
+    nome: "revogação do perfil sem autor",
+    violar: (c, b) =>
+      c.query(
+        "insert into liberacao_do_perfil (perfil, curso_id, liberada_por, revogada_em) values ('cliente', $1, 'user_admin', now())",
+        [b.cursoId]
+      ),
+  },
+  {
+    apagar:
+      "alter table perfil_da_pessoa drop constraint perfil_da_pessoa_user_id_clerk",
+    constraint: "perfil_da_pessoa_user_id_clerk",
+    nome: "perfil de um e-mail no lugar do userId",
+    violar: (c) =>
+      c.query(
+        "insert into perfil_da_pessoa (user_id, perfil) values ('marina@x.com', 'cliente')"
+      ),
+  },
+  {
     apagar: "alter table liberacao drop constraint liberacao_troca_nao_revoga",
     constraint: "liberacao_troca_nao_revoga",
     nome: "revogar a liberação de uma troca",

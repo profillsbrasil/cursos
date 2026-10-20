@@ -3,7 +3,7 @@
 
 import type { ClerkClient, User } from "@clerk/backend";
 
-import type { Pessoa, ResultadoDaBusca } from "../dominio/tipos";
+import type { Conta, Pessoa, ResultadoDaBusca } from "../dominio/tipos";
 
 export interface Pessoas {
   /**
@@ -12,6 +12,8 @@ export interface Pessoas {
    * recentes, para a tela abrir com alguém.
    */
   buscar: (termo: string) => Promise<ResultadoDaBusca>;
+  /** null quando o Clerk não conhece o userId. */
+  conta: (userId: string) => Promise<Conta | null>;
   /** null quando o Clerk não conhece o userId. */
   porId: (userId: string) => Promise<Pessoa | null>;
 }
@@ -28,6 +30,13 @@ export function paraPessoa(u: User): Pessoa {
   };
 }
 
+function paraConta(u: User): Conta {
+  return {
+    ...paraPessoa(u),
+    emailVerificado: u.primaryEmailAddress?.verification?.status === "verified",
+  };
+}
+
 export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
   return {
     async buscar(termo) {
@@ -38,12 +47,23 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
       );
       return { pessoas: r.data.map(paraPessoa), total: r.totalCount };
     },
-    // A lista filtrada por userId devolve vazio para quem não existe; getUser
-    // lançaria 404 e pediria tradução de erro.
+    async conta(userId) {
+      const u = await umUsuario(clerk, userId);
+      return u ? paraConta(u) : null;
+    },
     async porId(userId) {
-      const r = await clerk.users.getUserList({ limit: 1, userId: [userId] });
-      const [u] = r.data;
+      const u = await umUsuario(clerk, userId);
       return u ? paraPessoa(u) : null;
     },
   };
+}
+
+// A lista filtrada por userId devolve vazio para quem não existe; getUser
+// lançaria 404 e pediria tradução de erro.
+async function umUsuario(
+  clerk: ClerkClient,
+  userId: string
+): Promise<User | null> {
+  const r = await clerk.users.getUserList({ limit: 1, userId: [userId] });
+  return r.data[0] ?? null;
 }

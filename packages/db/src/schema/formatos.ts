@@ -24,6 +24,9 @@ export const TIPO_DO_MATERIAL = [
   "zip",
 ] as const;
 
+/** Que cursos a pessoa vê pela liberação do perfil. O papel (aluno ou admin) é outro eixo. */
+export const PERFIS = ["funcionario", "cliente", "publico"] as const;
+
 export const SLUG = "^[a-z0-9]+(-[a-z0-9]+)*$";
 
 /** O mesmo formato do ramo youtube do check aula_video_formato. */

@@ -2,6 +2,7 @@ import { pgEnum, snakeCase, timestamp } from "drizzle-orm/pg-core";
 
 import {
   ORIGEM_DA_LIBERACAO,
+  PERFIS,
   STATUS_DO_CURSO,
   TIPO_DO_MATERIAL,
 } from "./formatos";
@@ -11,6 +12,8 @@ export const tabela = snakeCase.table;
 export const cursoStatus = pgEnum("curso_status", STATUS_DO_CURSO);
 
 export const liberacaoOrigem = pgEnum("liberacao_origem", ORIGEM_DA_LIBERACAO);
+
+export const perfil = pgEnum("perfil", PERFIS);
 
 export const motivoPonto = pgEnum("motivo_ponto", [
   "aula_assistida",

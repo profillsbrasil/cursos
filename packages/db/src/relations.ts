@@ -17,6 +17,10 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.categoria.id,
     }),
     liberacoes: r.many.liberacao({ from: r.curso.id, to: r.liberacao.cursoId }),
+    liberacoesDoPerfil: r.many.liberacaoDoPerfil({
+      from: r.curso.id,
+      to: r.liberacaoDoPerfil.cursoId,
+    }),
     materiais: r.many.material({ from: r.curso.id, to: r.material.cursoId }),
     modulos: r.many.modulo({ from: r.curso.id, to: r.modulo.cursoId }),
     niveis: r.many.nivel({ from: r.curso.id, to: r.nivel.cursoId }),
@@ -30,6 +34,13 @@ export const relations = defineRelations(schema, (r) => ({
     trocaLancamento: r.one.pontoLancamento({
       from: [r.liberacao.userId, r.liberacao.id],
       to: [r.pontoLancamento.userId, r.pontoLancamento.liberacaoId],
+    }),
+  },
+  liberacaoDoPerfil: {
+    curso: r.one.curso({
+      from: r.liberacaoDoPerfil.cursoId,
+      optional: false,
+      to: r.curso.id,
     }),
   },
   modulo: {
