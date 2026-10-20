@@ -3,11 +3,15 @@ import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import type { CursoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { STATUS } from "./coluna-de-publicacao";
 import { VisaoDoCatalogo } from "./visao-do-catalogo";
 
 const TAG = /<[^>]+>/g;
 const TITULO_DO_CURSO =
   /<h2[^>]*><a [^>]*href="([^"]+)"[^>]*>([^<]+)<\/a><\/h2>/g;
+const ICONE_DO_SELO =
+  /<svg[^>]*class="lucide (lucide-[a-z-]+)[^>]*>(?:(?!<\/svg>).)*<\/svg>(Publicado|Em produção)</g;
+const NOME_DO_ICONE = /lucide (lucide-[a-z-]+)/;
 const SELO_EM_PRODUCAO =
   /<span class="([^"]*)"><svg[^>]*lucide-clock[^>]*>.*?<\/svg>Em produção<\/span>/;
 const texto = (html: string) =>
@@ -104,7 +108,7 @@ describe("catálogo do admin", () => {
     const html = tela([COMERCIAL]);
     expect(vezes(html, NOVO)).toBe(2);
     expect(texto(html)).toContain(
-      "Novo curso Começa em produção, só você vê até publicar"
+      "Novo curso Começa em produção: o aluno vê na lista, sem abrir aula"
     );
   });
 
@@ -113,7 +117,7 @@ describe("catálogo do admin", () => {
     const t = texto(html);
     expect(t).toContain("Catálogo Nenhum curso ainda");
     expect(t).toContain(
-      "Nenhum curso no catálogo Crie o primeiro curso. Ele nasce em produção: os alunos só abrem quando você publicar. Criar o primeiro curso"
+      "Nenhum curso no catálogo Crie o primeiro curso. Ele nasce em produção: o aluno vê na lista e só abre aula quando você publicar. Criar o primeiro curso"
     );
     expect(vezes(html, NOVO)).toBe(1);
     expect(t).not.toContain("Novo curso");
@@ -144,5 +148,22 @@ describe("catálogo do admin", () => {
     const selo = SELO_EM_PRODUCAO.exec(tela([LIMPEZA]))?.[1];
     expect(selo).toContain("text-ceu");
     expect(selo).toContain("ring-ceu");
+  });
+});
+
+describe("ícone do status", () => {
+  test("o selo do cartão usa o ícone da opção do status no editor", () => {
+    const doEditor = Object.fromEntries(
+      Object.values(STATUS).map((s) => [
+        s.rotulo,
+        renderToStaticMarkup(s.icone).match(NOME_DO_ICONE)?.[1] ?? "",
+      ])
+    );
+    const doCatalogo = Object.fromEntries(
+      [...tela([COMERCIAL, LIMPEZA]).matchAll(ICONE_DO_SELO)].map(
+        ([, icone, rotulo]) => [rotulo, icone]
+      )
+    );
+    expect(doCatalogo).toEqual(doEditor);
   });
 });
