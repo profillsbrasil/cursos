@@ -113,7 +113,7 @@ describe.skipIf(!existsSync(CHROMIUM))("os botões dos cartões de troca", () =>
       .map((n) => n.name?.value);
     expect(botoes).toEqual([
       "Faltam 190 pts",
-      "Falta 1 pts",
+      "Falta 1 pt",
       "Trocar por 500 pts",
     ]);
   });
