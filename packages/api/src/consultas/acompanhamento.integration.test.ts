@@ -9,6 +9,7 @@ import {
   liberacao,
   modulo,
   nivel,
+  perfilDaPessoa,
   posicaoAula,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -242,6 +243,9 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, todos));
     await db.delete(liberacao).where(inArray(liberacao.userId, todos));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, todos));
     await db.$client.end();
   });
 

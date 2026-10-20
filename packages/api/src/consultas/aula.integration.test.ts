@@ -10,6 +10,7 @@ import {
   curso,
   liberacao,
   modulo,
+  perfilDaPessoa,
   pontoLancamento,
   posicaoAula,
 } from "@cursos/db/schema/index";
@@ -172,6 +173,9 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db.delete(cotaVideo).where(inArray(cotaVideo.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, ALUNOS));
     await db.$client.end();
     await dbDaCorrida.$client.end();
   });

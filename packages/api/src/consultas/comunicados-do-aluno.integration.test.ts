@@ -1,7 +1,12 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
-import { comunicado, curso, liberacao } from "@cursos/db/schema/index";
+import {
+  comunicado,
+  curso,
+  liberacao,
+  perfilDaPessoa,
+} from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray } from "drizzle-orm";
 
@@ -136,6 +141,9 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
     await db.delete(comunicado).where(inArray(comunicado.id, [...nossos]));
     await db.delete(liberacao).where(inArray(liberacao.cursoId, cursos));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, [ALUNO, SEM_NADA]));
     await db.$client.end();
   });
 

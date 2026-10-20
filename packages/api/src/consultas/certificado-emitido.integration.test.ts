@@ -12,6 +12,7 @@ import {
   curso,
   liberacao,
   modulo,
+  perfilDaPessoa,
   pergunta,
   questionarioTentativa,
 } from "@cursos/db/schema/index";
@@ -154,6 +155,9 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
     await db.delete(curso).where(eq(curso.id, cursoId));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, ALUNOS));
     await db.$client.end();
   });
 

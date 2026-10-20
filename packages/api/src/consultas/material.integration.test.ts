@@ -121,7 +121,17 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     await db
       .delete(liberacao)
       .where(inArray(liberacao.userId, [LIBERADO, SEM_LIBERACAO, REVOGADO]));
-    await db.delete(perfilDaPessoa).where(eq(perfilDaPessoa.userId, CLIENTE));
+    await db
+      .delete(perfilDaPessoa)
+      .where(
+        inArray(perfilDaPessoa.userId, [
+          LIBERADO,
+          SEM_LIBERACAO,
+          REVOGADO,
+          CLIENTE,
+          "user_outroadmin",
+        ])
+      );
     await db
       .delete(liberacaoDoPerfil)
       .where(inArray(liberacaoDoPerfil.cursoId, cursos));
