@@ -4,6 +4,10 @@ import type {
   Marco,
   MetaDeAulas,
 } from "@cursos/api/dominio/conquistas";
+import {
+  FIM_DE_SEMANA_NAO_QUEBRA,
+  siglaDoDia as siglaDaSemana,
+} from "@cursos/api/dominio/sequencia";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 
 import { diaCurto, faltam, fmtNum, fmtPts, plural } from "@/lib/formato";
@@ -142,11 +146,14 @@ export function trilhaDeAulas(marcos: readonly Marco[]): {
   };
 }
 
+const proximoDegrau = (degraus: readonly DegrauDaTrilha[]) =>
+  degraus.find((d) => d.medalha.estado === "por_ganhar");
+
 export function tituloDaTrilha(
   feitas: number,
   degraus: readonly DegrauDaTrilha[]
 ): [string, string] {
-  const proximo = degraus.find((d) => d.medalha.estado === "por_ganhar");
+  const proximo = proximoDegrau(degraus);
   if (!proximo) {
     return [
       `${plural(feitas, "aula assistida", "aulas assistidas")}.`,
@@ -160,19 +167,24 @@ export function tituloDaTrilha(
   ];
 }
 
+/** O degrau seguinte fica só com a meta: o título da trilha já diz quanto falta para ele. */
 export const legendaDoDegrau = (
   d: DegrauDaTrilha,
+  degraus: readonly DegrauDaTrilha[],
   feitas: number,
   hoje: string
 ) => {
   if (d.medalha.estado === "ganha") {
     return ganhaEm(d.medalha.dia, hoje);
   }
+  if (d === proximoDegrau(degraus)) {
+    return null;
+  }
   const resta = d.meta - feitas;
   return `${faltam(resta)} ${plural(resta, "aula", "aulas")}`;
 };
 
-const SEM_QUEBRA = "Sábado e domingo não quebram.";
+const SEM_QUEBRA = `${FIM_DE_SEMANA_NAO_QUEBRA}.`;
 
 export function fraseDaSequencia(
   dias: number,
@@ -184,13 +196,12 @@ export function fraseDaSequencia(
   }
   const conta = `${fmtNum(dias)} de ${fmtNum(meta)} dias úteis.`;
   if (hojePendente) {
-    return `${conta} Assista uma aula hoje para chegar a ${fmtNum(dias + 1)}. ${SEM_QUEBRA}`;
+    return `${conta} Assista a uma aula hoje para chegar a ${fmtNum(dias + 1)}. ${SEM_QUEBRA}`;
   }
   const resta = meta - dias;
   return `${conta} ${faltam(resta)} ${plural(resta, "dia útil", "dias úteis")}.`;
 }
 
-const SIGLAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
 const NOMES = [
   "domingo",
   "segunda",
@@ -206,7 +217,7 @@ const diaDaSemana = (dia: DiaISO) => new Date(`${dia}T12:00:00Z`).getUTCDay();
 export const diaDoMes = (d: DiaDaSequencia) => Number(d.dia.slice(8));
 
 export const siglaDoDia = (d: DiaDaSequencia) =>
-  d.estado === "hoje" ? "Hoje" : SIGLAS[diaDaSemana(d.dia)];
+  d.estado === "hoje" ? "Hoje" : siglaDaSemana(d.dia);
 
 const ESTADO_DO_DIA: Record<DiaDaSequencia["estado"], string> = {
   feito: "com aula",

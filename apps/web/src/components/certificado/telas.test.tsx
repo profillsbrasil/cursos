@@ -40,6 +40,17 @@ const tela = (pagina: PaginaDoCertificado) =>
     />
   );
 
+const ICONE_DO_ITEM = /lucide-(play|list-checks)\b/;
+const LINK_DO_CURSO =
+  /<a[^>]*href="\/cursos\/fabrica-e-montagem"[^>]*>(.*?)<\/a>/;
+
+const PENDENTE: PaginaDoCertificado = {
+  aulas: { feitas: 3, total: 7 },
+  curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+  questionarios: { aprovados: 0, total: 0 },
+  tipo: "falta",
+};
+
 describe("a página do aluno", () => {
   test("com o certificado, mostra a folha, os dados e o PDF da sessão", () => {
     const html = tela(EMITIDO);
@@ -94,6 +105,30 @@ describe("a página do aluno", () => {
     expect(lido.indexOf("aulas assistidas")).toBeLessThan(
       lido.indexOf("questionários aprovados")
     );
+  });
+
+  test("sem certificado, cada item que falta leva o ícone dele, e o botão a seta", () => {
+    const html = tela({
+      aulas: { feitas: 3, total: 7 },
+      curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
+      questionarios: { aprovados: 1, total: 3 },
+      tipo: "falta",
+    });
+    const itens = [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(
+      ([, li = ""]) => li
+    );
+    expect(itens.map((li) => ICONE_DO_ITEM.exec(li)?.[1])).toEqual([
+      "play",
+      "list-checks",
+    ]);
+    const botao = LINK_DO_CURSO.exec(html)?.[1];
+    expect(botao).toContain("lucide-arrow-right");
+    expect(botao).not.toContain("lucide-list-checks");
+  });
+
+  test("sem certificado, a condição da emissão aparece uma vez só", () => {
+    const lido = texto(tela(PENDENTE));
+    expect(lido.match(/concluir/g)).toHaveLength(1);
   });
 
   test("um questionário só fica no singular", () => {

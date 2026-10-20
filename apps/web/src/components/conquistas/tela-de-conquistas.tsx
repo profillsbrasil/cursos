@@ -3,6 +3,10 @@ import type {
   Conquistas,
   Marco,
 } from "@cursos/api/dominio/conquistas";
+import {
+  FIM_DE_SEMANA_NAO_QUEBRA,
+  SIGLAS_DO_FIM_DE_SEMANA,
+} from "@cursos/api/dominio/sequencia";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
 import {
@@ -201,24 +205,29 @@ function TrilhaDeAulas({
           style={{ left: ponto }}
         />
         <ol className="relative grid grid-cols-3">
-          {degraus.map((d) => (
-            <li
-              className="grid justify-items-end gap-2.5 text-right"
-              key={d.meta}
-            >
-              <Medalha
-                figura="aulas"
-                ganha={d.medalha.estado === "ganha"}
-                tamanho={56}
-              />
-              <span className="pl-2.5 font-semibold text-sm text-titulo tabular-nums">
-                {fmtNum(d.meta)} aulas
-                <small className="block font-normal text-muted-foreground text-xs">
-                  {legendaDoDegrau(d, feitas, hoje)}
-                </small>
-              </span>
-            </li>
-          ))}
+          {degraus.map((d) => {
+            const legenda = legendaDoDegrau(d, degraus, feitas, hoje);
+            return (
+              <li
+                className="grid content-start justify-items-end gap-2.5 text-right"
+                key={d.meta}
+              >
+                <Medalha
+                  figura="aulas"
+                  ganha={d.medalha.estado === "ganha"}
+                  tamanho={56}
+                />
+                <span className="pl-2.5 font-semibold text-sm text-titulo tabular-nums">
+                  {fmtNum(d.meta)} aulas
+                  {legenda ? (
+                    <small className="block font-normal text-muted-foreground text-xs">
+                      {legenda}
+                    </small>
+                  ) : null}
+                </span>
+              </li>
+            );
+          })}
         </ol>
       </div>
     </div>
@@ -257,7 +266,9 @@ function SeteDiasSeguidos({
   if (m.estado === "ganha") {
     return (
       <div className={FAIXA} data-sequencia="ganha">
-        <TextoDaFaixa frase="Uma aula nova em 7 dias úteis seguidos. Sábado e domingo não quebram." />
+        <TextoDaFaixa
+          frase={`Uma aula nova em 7 dias úteis seguidos. ${FIM_DE_SEMANA_NAO_QUEBRA}.`}
+        />
         <div className="flex items-center gap-4">
           <Medalha figura="sequencia" ganha tamanho={56} />
           <div className="grid justify-items-start gap-1.5">
@@ -288,8 +299,9 @@ function SeteDiasSeguidos({
                 className="grid @min-[421px]:h-9 h-8 content-center self-end text-center text-muted-foreground text-xs leading-[15px]"
                 data-fim-de-semana
               >
-                <span>sáb</span>
-                <span>dom</span>
+                {SIGLAS_DO_FIM_DE_SEMANA.map((sigla) => (
+                  <span key={sigla}>{sigla}</span>
+                ))}
               </li>
             ) : null}
             <li

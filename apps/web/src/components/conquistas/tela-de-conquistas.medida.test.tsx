@@ -297,7 +297,16 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         }
       });
 
-      test(`${largura} px, ${nome}: "sáb e dom" se lê na horizontal, em 12 px e com contraste de 4,5:1`, async () => {
+      test(`${largura} px, ${nome}: as metas das três medalhas ficam na mesma altura, com ou sem legenda`, async () => {
+        await abrir(largura, html);
+        const metas = await medir<number[]>(
+          `return [...document.querySelectorAll("[data-trilha] ol > li > span:last-child")].map((s) => caixa(s).topo);`
+        );
+        expect(metas).toHaveLength(3);
+        expect(new Set(metas).size).toBe(1);
+      });
+
+      test(`${largura} px, ${nome}: "Sáb e Dom" se lê na horizontal, em 12 px e com contraste de 4,5:1`, async () => {
         await abrir(largura, html);
         const fins = await fimsDeSemana();
         expect(fins.length).toBeGreaterThan(0);

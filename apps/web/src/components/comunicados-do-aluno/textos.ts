@@ -1,4 +1,5 @@
 import type {
+  ComunicadoDoAluno,
   ComunicadosDoAluno,
   MesDeComunicados,
 } from "@cursos/api/dominio/comunicado";
@@ -25,8 +26,16 @@ export function nomeDoMes(mes: string) {
   return `${nome.charAt(0).toUpperCase()}${nome.slice(1)} de ${mes.slice(0, 4)}`;
 }
 
-export const contagemDoMes = (m: MesDeComunicados) =>
-  plural(m.comunicados.length, "comunicado", "comunicados");
+/** O destaque sai da lista, mas o mês dele o conta, senão a contagem fica menor que o mês. */
+export function contagemDoMes(
+  m: MesDeComunicados,
+  destaque: ComunicadoDoAluno
+) {
+  if (!destaque.dia.startsWith(m.mes)) {
+    return plural(m.comunicados.length, "comunicado", "comunicados");
+  }
+  return `${plural(m.comunicados.length + 1, "comunicado", "comunicados")}, contando o destaque`;
+}
 
 export const subtituloDaTela = (c: ComunicadosDoAluno | null) =>
   c?.tipo === "com_comunicados"

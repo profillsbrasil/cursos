@@ -24,7 +24,11 @@ const formatador = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
 });
 
-const SIGLAS = ["S", "T", "Q", "Q", "S", "S", "D"] as const;
+/** Pelo `getUTCDay`: 0 é domingo. Meus cursos e Conquistas escrevem os dias assim. */
+const SIGLAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
+
+export const FIM_DE_SEMANA_NAO_QUEBRA = "Fim de semana não quebra a sequência";
+
 const NOMES = [
   "Segunda",
   "Terça",
@@ -54,6 +58,11 @@ export const diasCorridos = (de: DiaISO, ate: DiaISO): number =>
 
 /** 0 = domingo. */
 const diaDaSemana = (dia: DiaISO) => meioDia(dia).getUTCDay();
+
+export const siglaDoDia = (dia: DiaISO): string =>
+  SIGLAS[diaDaSemana(dia)] ?? "";
+
+export const SIGLAS_DO_FIM_DE_SEMANA = [SIGLAS[6], SIGLAS[0]] as const;
 
 export const ehDiaUtil = (dia: DiaISO): boolean => {
   const d = diaDaSemana(dia);
@@ -109,12 +118,12 @@ function statusDoDia(
 
 export function semana(dias: ReadonlySet<DiaISO>, hoje: DiaISO): DiaDaSemana[] {
   const segunda = segundaDaSemana(hoje);
-  return SIGLAS.map((sigla, i) => {
+  return NOMES.map((nome, i) => {
     const dia = somarDias(segunda, i);
     return {
       dia,
-      nome: NOMES[i] ?? "",
-      sigla,
+      nome,
+      sigla: siglaDoDia(dia),
       status: statusDoDia(dia, hoje, dias),
     };
   });

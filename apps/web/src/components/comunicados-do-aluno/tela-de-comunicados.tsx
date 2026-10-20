@@ -204,7 +204,7 @@ export function TelaDeComunicados({
                   <Secao
                     id={`comunicados-${m.mes}`}
                     key={m.mes}
-                    subtitulo={contagemDoMes(m)}
+                    subtitulo={contagemDoMes(m, comunicados.destaque)}
                     titulo={nomeDoMes(m.mes)}
                   >
                     <ol className="divide-y divide-border rounded-[20px] bg-card ring-1 ring-border">

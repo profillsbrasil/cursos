@@ -71,7 +71,7 @@ describe("Sua semana com sequência zero", () => {
 
   test("a chamada para começar vem logo abaixo dos dias", () => {
     expect(texto(h)).toContain(
-      "D Assista uma aula hoje para começar Fim de semana não quebra a sequência"
+      "Dom Assista a uma aula hoje para começar Fim de semana não quebra a sequência"
     );
     expect(h).toContain("text-ceu");
   });
@@ -80,15 +80,17 @@ describe("Sua semana com sequência zero", () => {
     const sabado = resumo([], SABADO);
     expect(sabado.sequenciaDias).toBe(0);
     const doSabado = html(sabado);
-    expect(texto(doSabado)).not.toContain("Assista uma aula hoje");
-    expect(texto(doSabado)).toContain("D Fim de semana não quebra a sequência");
+    expect(texto(doSabado)).not.toContain("Assista a uma aula hoje");
+    expect(texto(doSabado)).toContain(
+      "Dom Fim de semana não quebra a sequência"
+    );
     expect(doSabado).not.toContain("bg-canela");
   });
 
   test("no sábado, mesmo depois de assistir, a sequência segue zero e a chamada não volta", () => {
     const assistiu = resumo([SABADO], SABADO);
     expect(assistiu.sequenciaDias).toBe(0);
-    expect(texto(html(assistiu))).not.toContain("Assista uma aula hoje");
+    expect(texto(html(assistiu))).not.toContain("Assista a uma aula hoje");
   });
 });
 
@@ -97,7 +99,7 @@ describe("Sua semana com sequência", () => {
     const h = html(TRES_PENDENTE);
     expect(texto(h)).toContain("Sua semana 3 dias seguidos");
     expect(h).toContain("bg-canela");
-    expect(texto(h)).not.toContain("Assista uma aula hoje");
+    expect(texto(h)).not.toContain("Assista a uma aula hoje");
   });
 
   test("um dia só, a quarta estudada: 1 dia seguido", () => {
@@ -112,13 +114,13 @@ describe("a marca de hoje", () => {
   test('a sigla de hoje é "Hoje", e o rótulo diz o dia e o estado', () => {
     const d = dias(html(TRES_PENDENTE));
     expect(d.map((x) => x.sigla)).toEqual([
-      "S",
-      "T",
-      "Q",
+      "Seg",
+      "Ter",
+      "Qua",
       "Hoje",
-      "S",
-      "S",
-      "D",
+      "Sex",
+      "Sáb",
+      "Dom",
     ]);
     expect(d[3]?.rotulo).toBe("Quinta: hoje, ainda sem aula");
     expect(dias(html(QUATRO_FEITO))[3]?.rotulo).toBe("Quinta: hoje, estudou");

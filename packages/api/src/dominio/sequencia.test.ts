@@ -80,7 +80,15 @@ describe("semana", () => {
       "fim_de_semana",
       "fim_de_semana",
     ]);
-    expect(pendente.map((x) => x.sigla).join("")).toBe("STQQSSD");
+    expect(pendente.map((x) => x.sigla)).toEqual([
+      "Seg",
+      "Ter",
+      "Qua",
+      "Qui",
+      "Sex",
+      "Sáb",
+      "Dom",
+    ]);
     expect(pendente[0]).toMatchObject({ dia: "2026-10-05", nome: "Segunda" });
     const estudou = semana(dias("2026-10-05", "2026-10-07"), d("2026-10-07"));
     expect(estudou[2]?.status).toBe("hoje_estudou");

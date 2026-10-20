@@ -1,5 +1,8 @@
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
-import type { StatusDia } from "@cursos/api/dominio/sequencia";
+import {
+  FIM_DE_SEMANA_NAO_QUEBRA,
+  type StatusDia,
+} from "@cursos/api/dominio/sequencia";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Flame, Gift, Play, Star } from "lucide-react";
 import Link from "next/link";
@@ -102,7 +105,7 @@ export function SuaSemana({
             aria-hidden="true"
             className="size-[15px] flex-none fill-current text-ceu"
           />
-          Assista uma aula hoje para começar
+          Assista a uma aula hoje para começar
         </p>
       ) : null}
       <p className="-mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
@@ -110,7 +113,7 @@ export function SuaSemana({
           aria-hidden="true"
           className="size-3.5 flex-none rounded-full border-[1.5px] border-muted-foreground border-dashed"
         />
-        Fim de semana não quebra a sequência
+        {FIM_DE_SEMANA_NAO_QUEBRA}
       </p>
       <p className="-mx-(--pad) flex items-center gap-2.5 border-border border-t px-(--pad) pt-3.5 text-sm">
         <Star aria-hidden="true" className="size-5 text-sol" />
