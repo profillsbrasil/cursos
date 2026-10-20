@@ -318,6 +318,34 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
     expect(m.rolagem).toBe(0);
   });
 
+  test.each([
+    [
+      1280,
+      TELAS.emitido,
+      DO_ALUNO[1280],
+      '[aria-label="Dados do certificado"]',
+    ],
+    [390, TELAS.emitido, DO_ALUNO[390], '[aria-label="Dados do certificado"]'],
+    [1280, TELAS.recibo, DA_CONFERENCIA, "section"],
+    [390, TELAS.recibo, DA_CONFERENCIA, "section"],
+  ] as const)(
+    "%p px: a divisória de cada fato vai de uma borda à outra do cartão",
+    async (largura, corpo, estilo, seletor) => {
+      await abrir(largura, corpo, estilo);
+      const m = await medir<{ cartao: Caixa; linhas: Caixa[] }>(
+        `const cartao = document.querySelector(${JSON.stringify(seletor)});
+        return { cartao: caixa(cartao), linhas: [...cartao.querySelectorAll("dl > div")].map(caixa) };`
+      );
+      expect(m.linhas.length).toBe(4);
+      for (const l of m.linhas) {
+        expect([l.esquerda, l.direita]).toEqual([
+          m.cartao.esquerda,
+          m.cartao.direita,
+        ]);
+      }
+    }
+  );
+
   test("1280 px: o recibo fica estreito, em 440 px, no meio", async () => {
     await abrir(1280, TELAS.recibo, DA_CONFERENCIA);
     const m = await medir<{ recibo: Caixa }>(

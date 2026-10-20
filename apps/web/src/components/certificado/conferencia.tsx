@@ -35,7 +35,7 @@ export function ReciboDaConferencia({
         aria-labelledby="certificado-valido"
         className={cn(
           CARTAO,
-          "grid w-full max-w-[440px] justify-items-center gap-5 px-[26px] py-7 text-center"
+          "grid w-full max-w-[440px] justify-items-center gap-5 py-7 text-center [--pad:26px]"
         )}
       >
         <Image alt={PRODUTO} height={84} preload src={ICONE.src} width={84} />
@@ -46,7 +46,7 @@ export function ReciboDaConferencia({
           <BadgeCheck aria-hidden="true" className="size-3" strokeWidth={2.4} />
           Certificado válido
         </h1>
-        <div>
+        <div className="px-(--pad)">
           <p className="text-muted-foreground text-sm">Certificamos que</p>
           <p className={NOME}>{certificado.nome ?? "Nome não disponível"}</p>
           <p className="text-muted-foreground text-sm">concluiu o curso</p>
@@ -64,21 +64,23 @@ export function ReciboDaConferencia({
             ["Emitido por", "Profills Brasil"],
           ]}
         />
-        {certificado.nome ? (
-          <a
-            className={cn(BOTAO_CONTORNO, "w-full")}
-            download
-            href={`${caminhoDaConferencia(certificado.codigo)}/pdf`}
-          >
-            <Download aria-hidden="true" />
-            Baixar o PDF
-          </a>
-        ) : (
-          <p className="text-pretty text-[13px] text-muted-foreground">
-            A conta de quem recebeu o certificado não tem nome na plataforma,
-            então esta página não mostra o nome nem o PDF.
-          </p>
-        )}
+        <div className="grid w-full px-(--pad)">
+          {certificado.nome ? (
+            <a
+              className={cn(BOTAO_CONTORNO, "w-full")}
+              download
+              href={`${caminhoDaConferencia(certificado.codigo)}/pdf`}
+            >
+              <Download aria-hidden="true" />
+              Baixar o PDF
+            </a>
+          ) : (
+            <p className="text-pretty text-[13px] text-muted-foreground">
+              A conta de quem recebeu o certificado não tem nome na plataforma,
+              então esta página não mostra o nome nem o PDF.
+            </p>
+          )}
+        </div>
       </section>
       <p className="mt-7 max-w-[64ch] text-pretty text-center text-[13px] text-muted-foreground">
         {PRODUTO} é a plataforma de cursos da Profills Brasil.

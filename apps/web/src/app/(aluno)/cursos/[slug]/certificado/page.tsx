@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
 import { origemDoPedido } from "@/components/certificado/folha";
 import { TelaDoCertificado } from "@/components/certificado/tela-do-certificado";
 import { carregarPaginaDoCertificado } from "@/server/api";
@@ -34,9 +35,10 @@ export default async function Certificado({ params }: Props) {
   const pagina = await paginaDaUrl(params);
   return (
     <>
-      <h1 className="text-balance font-bold text-3xl text-titulo leading-[1.2] tracking-tight">
-        Seu certificado
-      </h1>
+      <CabecalhoDaPagina
+        resumo={pagina.tipo === "falta" ? pagina.curso.titulo : null}
+        titulo="Seu certificado"
+      />
       <TelaDoCertificado
         hoje={diaLocal(new Date())}
         origem={origemDoPedido(await headers())}
