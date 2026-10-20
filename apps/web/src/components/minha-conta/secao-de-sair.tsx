@@ -41,7 +41,7 @@ function ExcluirConta({
         <Trash2 aria-hidden="true" className="size-4" />
         Excluir conta
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-[calc(100%-2rem)] gap-4 rounded-[22px] p-6 shadow-black/45 shadow-xl ring-border data-[size=default]:max-w-md data-[size=default]:sm:max-w-md">
+      <AlertDialogContent className="gap-4 rounded-[22px] p-6 shadow-black/45 shadow-xl ring-border data-[size=default]:max-w-[min(28rem,calc(100%-2rem))] data-[size=default]:sm:max-w-md">
         <AlertDialogTitle className="font-semibold text-lg text-titulo">
           Excluir sua conta?
         </AlertDialogTitle>

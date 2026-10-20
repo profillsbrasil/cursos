@@ -1,6 +1,11 @@
 import { cn } from "@cursos/ui/lib/utils";
 
-import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import {
+  BOTAO,
+  BOTAO_CONTORNO,
+  BOTAO_PERIGO,
+  PEQUENO,
+} from "@/components/casca/botoes";
 
 /**
  * O cartão não tem padding lateral: o cabeçalho, cada linha e o pé têm o próprio,
@@ -49,18 +54,14 @@ export const BOTAO_PEQUENO = cn(BOTAO, PEQUENO);
 
 export const CONTORNO_PEQUENO = cn(BOTAO_CONTORNO, PEQUENO);
 
+// A outline troca o texto por foreground sob o cursor e com o foco: o perigo repete o erro.
 export const PERIGO = cn(
   CONTORNO_PEQUENO,
-  "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10",
-  "dark:border-destructive dark:hover:border-destructive dark:hover:bg-destructive/10"
+  "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive",
+  "dark:border-destructive dark:hover:border-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
 );
 
-export const EXCLUIR = cn(
-  BOTAO_CONTORNO,
-  "border-destructive bg-destructive text-sobre-cor hover:border-destructive hover:bg-destructive/85",
-  "dark:border-destructive dark:bg-destructive dark:hover:border-destructive dark:hover:bg-destructive/85",
-  PEQUENO
-);
+export const EXCLUIR = cn(BOTAO_PERIGO, PEQUENO);
 
 export const ACOES = "flex flex-wrap items-center gap-2";
 

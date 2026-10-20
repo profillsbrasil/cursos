@@ -268,7 +268,11 @@ function ApagarCurso({
         de vez.
       </p>
       <ConfirmacaoNaLinha
-        botao={{ nome: `Confirmar: apagar ${titulo}`, rotulo: "Apagar" }}
+        botao={{
+          nome: `Confirmar: apagar ${titulo}`,
+          perigo: true,
+          rotulo: "Apagar",
+        }}
         chave="apagar-curso"
         className="flex flex-wrap items-center gap-2"
         confirmar={apagar}

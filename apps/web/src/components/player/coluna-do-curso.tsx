@@ -158,7 +158,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
                   <Link
                     aria-current={a.atual ? "page" : undefined}
                     className={cn(
-                      "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground text-sm hover:bg-white/[0.04]",
+                      "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground text-sm hover:bg-white/8 hover:text-titulo",
                       a.atual && "bg-sol/[0.08] font-semibold text-titulo"
                     )}
                     href={caminhoDaAula(slug, a.id)}
