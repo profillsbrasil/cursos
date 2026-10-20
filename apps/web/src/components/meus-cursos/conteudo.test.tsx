@@ -108,9 +108,10 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(novaRotina).toContain(
       "Vendas e negócios · POP-COM-001 · 3 de 9 aulas"
     );
-    expect(fabrica).toContain(
-      "Produção e montagem · PM-001 · 7 aulas · 1 h 14 min"
-    );
+    // Sem aula assistida, o tamanho fica só na etiqueta da capa, sem repetir.
+    const linhaDaFabrica = fabrica?.split("Fábrica e montagem")[1];
+    expect(linhaDaFabrica).toContain("Produção e montagem · PM-001");
+    expect(linhaDaFabrica).not.toContain("aulas");
     expect(fabrica).not.toContain("Agora:");
     expect(gravacao).toContain("Produtos e aplicações · PA-001");
     expect(gravacao).not.toContain("aulas");
@@ -142,15 +143,13 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(html).toContain(
       `Vendas e negócios${N}·${N}VN-002${N}·${N}2${N}de${N}2${N}aulas`
     );
-    expect(html).toContain(
-      `Produção e montagem${N}·${N}PM-001${N}·${N}7${N}aulas`
-    );
+    expect(html).toContain(`Vendas e negócios${N}·${N}POP-COM-001${N}·${N}3`);
   });
 
   test("o tamanho do curso não quebra no meio quando a linha passa da largura", () => {
     const N = NBSP;
     expect(html).toContain(`2${N}de${N}2${N}aulas`);
-    expect(html).toContain(`7${N}aulas${N}·${N}1${N}h${N}14${N}min`);
+    expect(html).toContain(`3${N}de${N}9${N}aulas`);
   });
 });
 

@@ -30,22 +30,23 @@ function etiquetaDe(c: CursoVM): Etiqueta {
 const ESPACO_QUE_NAO_QUEBRA = " ";
 
 /**
- * A linha sob o título: a categoria, o código do curso e o tamanho do curso
- * inteiro. Com aula assistida, "46 de 90 aulas"; sem, "3 aulas · 32 min". O curso
- * em produção mostra a categoria e o código, sem o tamanho, porque as aulas dele
- * ainda mudam. O tamanho e o "·" que junta as partes vão com espaços que não
- * quebram: a linha quebra dentro de uma parte, nunca em "2 de / 2 aulas" nem com
- * um "·" sozinho na ponta.
+ * A linha sob o título: a categoria, o código do curso e, com aula assistida, o
+ * quanto andou ("46 de 90 aulas"). Sem aula assistida, o tamanho do curso já está
+ * na etiqueta da capa, e a linha não o repete; o curso em produção também fica sem
+ * ele, porque as aulas dele ainda mudam. O tamanho e o "·" que junta as partes vão
+ * com espaços que não quebram: a linha quebra dentro de uma parte, nunca em
+ * "2 de / 2 aulas" nem com um "·" sozinho na ponta.
  */
 export function linhaDoCurso(c: CursoVM): string {
   const partes = [c.categoria, c.codigo];
-  if (c.estado.tipo !== "em_breve" && c.aulas > 0) {
-    const { feitas, total } = c.progresso;
-    const tamanho =
-      feitas > 0
-        ? `${fmtNum(feitas)} de ${plural(total, "aula", "aulas")}`
-        : aulasEDuracao(c);
-    partes.push(tamanho.replaceAll(" ", ESPACO_QUE_NAO_QUEBRA));
+  const { feitas, total } = c.progresso;
+  if (c.estado.tipo !== "em_breve" && feitas > 0) {
+    partes.push(
+      `${fmtNum(feitas)} de ${plural(total, "aula", "aulas")}`.replaceAll(
+        " ",
+        ESPACO_QUE_NAO_QUEBRA
+      )
+    );
   }
   return partes
     .filter((p) => p !== "")
