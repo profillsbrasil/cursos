@@ -104,7 +104,6 @@ function MarcaDaAula({
   }
   return (
     <span
-      aria-hidden="true"
       className={cn(
         "mt-px grid size-[22px] place-items-center rounded-full font-semibold text-[11px] tabular-nums ring-inset",
         atual
@@ -135,38 +134,28 @@ function Livro({
         return (
           <li
             className={cn(
-              "relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-border border-t py-3.5 first:border-t-0",
-              aqui && "-mx-3.5 rounded-xl border-t-transparent bg-sol/8 px-3.5",
+              "relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-border border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px]",
+              aqui && "border-t-transparent bg-sol/8",
               "[[data-atual]+&]:border-t-transparent"
             )}
             data-atual={aqui ? "" : undefined}
             key={a.id}
           >
             <MarcaDaAula atual={aqui} aula={a} numero={i + 1} />
-            <div className="min-w-0">
-              <p
-                className={cn(
-                  "font-semibold",
-                  aqui ? "text-titulo" : "text-foreground"
-                )}
+            <p
+              className={cn(
+                "font-semibold",
+                aqui ? "text-titulo" : "text-foreground"
+              )}
+            >
+              <Link
+                aria-current={aqui ? "step" : undefined}
+                className={LINK_QUE_COBRE_A_LINHA}
+                href={caminhoDaAula(slug, a.id)}
               >
-                <span className="mr-2 font-medium text-muted-foreground tabular-nums">
-                  {i + 1}.
-                </span>
-                <Link
-                  aria-current={aqui ? "step" : undefined}
-                  className={LINK_QUE_COBRE_A_LINHA}
-                  href={caminhoDaAula(slug, a.id)}
-                >
-                  {a.titulo}
-                </Link>
-              </p>
-              {a.descricao ? (
-                <p className="mt-[3px] max-w-[62ch] text-pretty text-muted-foreground">
-                  {a.descricao}
-                </p>
-              ) : null}
-            </div>
+                {a.titulo}
+              </Link>
+            </p>
             <span className="flex flex-wrap items-center justify-end gap-2.5 whitespace-nowrap pt-px text-[13px] text-muted-foreground tabular-nums">
               {aqui && parou ? (
                 <span className="inline-flex h-[22px] items-center rounded-full bg-sol/14 px-2 font-semibold text-sol text-xs">
@@ -175,6 +164,11 @@ function Livro({
               ) : null}
               {fmtMin(a.duracaoSeg)}
             </span>
+            {a.descricao ? (
+              <p className="col-start-2 col-end-4 line-clamp-2 max-w-[62ch] whitespace-pre-line text-pretty text-muted-foreground sm:col-end-3">
+                {a.descricao}
+              </p>
+            ) : null}
             <SeloDoQuestionario aula={a} />
           </li>
         );
@@ -236,7 +230,7 @@ function ModuloDaSanfona({
           className="size-[18px] text-muted-foreground transition-transform duration-200 ease-forte group-open:rotate-180 motion-reduce:transition-none max-sm:col-start-3 max-sm:row-start-1 sm:col-start-4"
         />
       </summary>
-      <div className="border-border border-t px-5 pt-1 pb-2 sm:pl-[62px]">
+      <div className="border-border border-t">
         <Livro atual={atual} modulo={modulo} parou={parou} slug={slug} />
       </div>
     </details>
