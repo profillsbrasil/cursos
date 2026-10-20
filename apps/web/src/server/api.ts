@@ -3,6 +3,7 @@ import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { contextoDe, ehAdmin } from "@cursos/api/context";
 import { TIPOS_DE_MATERIAL } from "@cursos/api/dominio/material";
+import type { Perfil } from "@cursos/api/dominio/perfil";
 import { createCaller } from "@cursos/api/routers/index";
 import { notFound, unstable_rethrow } from "next/navigation";
 import { cache } from "react";
@@ -132,6 +133,16 @@ export const carregarCategorias = cache(async () =>
 
 export const carregarPessoas = cache(async (termo: string) =>
   (await exigirAdmin()).admin.alunos.buscar({ termo })
+);
+
+export const carregarListaDePessoas = cache(
+  async (termo: string, perfil: Perfil | null) =>
+    (await exigirAdmin()).admin.pessoas.lista({ perfil, termo })
+);
+
+/** null: userId fora do formato, ou que o Clerk não conhece. */
+export const carregarFichaDaPessoa = cache(async (userId: string) =>
+  (await exigirAdmin()).admin.pessoas.ficha({ userId })
 );
 
 /** null: userId fora do formato, ou userId que o Clerk não conhece e que nunca teve liberação. */

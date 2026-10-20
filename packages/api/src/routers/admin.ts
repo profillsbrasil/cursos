@@ -1,3 +1,4 @@
+import { PERFIS } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
 import { linhasDaBusca } from "../consultas/acompanhamento";
@@ -25,6 +26,12 @@ import {
   PESSOA_SUMIU,
   revogar,
 } from "../consultas/liberacao";
+import {
+  contagemPorPerfil,
+  definirPerfil,
+  linhasDosPerfis,
+  quemTemOPerfil,
+} from "../consultas/perfil";
 import { montarBusca } from "../dominio/acompanhamento";
 import { nomeDaCategoria } from "../dominio/categoria";
 import {
@@ -38,6 +45,7 @@ import {
   type MaterialEnviado,
   tituloSugerido,
 } from "../dominio/material";
+import { montarFicha, montarListaDePessoas } from "../dominio/pessoas";
 import { diaLocal } from "../dominio/sequencia";
 import type {
   CategoriaId,
@@ -45,6 +53,7 @@ import type {
   CursoId,
   LiberacaoId,
 } from "../dominio/tipos";
+import { TETO_DO_FILTRO } from "../externos/pessoas";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
 // O mesmo formato do check liberacao_user_id_clerk.
@@ -55,6 +64,11 @@ const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
 const categoriaId = z.uuid().transform((id) => id.toLowerCase() as CategoriaId);
 
 const doCurso = z.object({ id: cursoId });
+
+const perfil = z.enum(PERFIS);
+
+const pessoaSumiu = () =>
+  new ErroParaAPessoa({ code: "NOT_FOUND", message: PESSOA_SUMIU });
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
 export const adminRouter = router({
@@ -210,5 +224,83 @@ export const adminRouter = router({
           new Date()
         )
       ),
+  }),
+  pessoas: router({
+    definirPapel: adminProcedure
+      .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
+      .mutation(async ({ ctx, input }) => {
+        // Ninguém tira o próprio papel: quem tira o de outro continua admin, e
+        // a plataforma nunca fica sem admin.
+        if (input.userId === ctx.admin && input.papel === "aluno") {
+          throw new ErroParaAPessoa({
+            code: "PRECONDITION_FAILED",
+            message: "Você não pode tirar o seu próprio papel de admin.",
+          });
+        }
+        if (!(await ctx.pessoas.conta(input.userId))) {
+          throw pessoaSumiu();
+        }
+        await ctx.pessoas.definirPapel(input.userId, input.papel);
+        return { papel: input.papel };
+      }),
+    definirPerfil: adminProcedure
+      .input(z.object({ perfil, userId }))
+      .mutation(async ({ ctx, input }) => {
+        if (!(await ctx.pessoas.conta(input.userId))) {
+          throw pessoaSumiu();
+        }
+        await definirPerfil(
+          ctx.db,
+          ctx.admin,
+          input.userId,
+          input.perfil,
+          new Date()
+        );
+        return { perfil: input.perfil };
+      }),
+    // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
+    ficha: adminProcedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        if (!USER_ID.test(input.userId)) {
+          return null;
+        }
+        const [conta, [linha]] = await Promise.all([
+          ctx.pessoas.conta(input.userId),
+          linhasDosPerfis(ctx.db, [input.userId]),
+        ]);
+        if (!conta) {
+          return null;
+        }
+        const quemMudou = linha?.definidoPor
+          ? await ctx.pessoas.porId(linha.definidoPor)
+          : null;
+        return montarFicha(conta, linha, quemMudou, ctx.admin);
+      }),
+    /**
+     * Sem filtro, a busca do Clerk. Com o perfil, só quem já entrou no app com
+     * ele: o banco dá os userIds, e o Clerk busca entre eles.
+     */
+    lista: adminProcedure
+      .input(
+        z.object({
+          perfil: perfil.nullable(),
+          termo: z.string().trim().max(100),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const entre = input.perfil
+          ? await quemTemOPerfil(ctx.db, input.perfil, TETO_DO_FILTRO)
+          : undefined;
+        const [busca, contagem] = await Promise.all([
+          ctx.pessoas.buscar(input.termo, entre),
+          contagemPorPerfil(ctx.db),
+        ]);
+        const linhas = await linhasDosPerfis(
+          ctx.db,
+          busca.pessoas.map((p) => p.userId)
+        );
+        return montarListaDePessoas(busca, linhas, contagem, input.perfil);
+      }),
   }),
 });

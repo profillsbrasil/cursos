@@ -314,6 +314,7 @@ Cheios e redondos, com o peso no amarelo.
 ### Chips
 - **Selos de estado:** pílula de 24 px, 600 em 12 px, ícone de 12 px (o `Badge` fixa o tamanho com `size-3!`) a 6 px do texto. Concluído em Céu cheio, Em andamento em Sol a 14% com texto Sol, Faltam questionários em Canela cheio com a lista de checks, Não iniciado em `popover`, Em produção em contorno Céu de 1 px. O aluno vê "Em produção" no curso que o admin pôs em produção e no curso publicado ainda sem aula; "Em breve" é só do menu e de "Como ganhar pontos".
 - **Selos do admin:** a mesma pílula, com a palavra do admin. Estudando em Sol a 14%, Nunca abriu em `popover`, Faltam questionários em Canela cheio com a lista de checks, Concluído e Concluiu tudo em Céu cheio, Em produção em contorno Céu, Sem liberação em contorno `texto-apagado`. Quem parou de estudar não ganha selo nem cor: a frase mostra o dia do último estudo. Nenhum selo é vermelho.
+- **Selos de perfil e de papel (tela Pessoas):** o perfil (Funcionário, Cliente, Público aberto) é contorno de 1 px em `texto-apagado` com o texto em `texto` e o ícone do perfil (prédio, fábrica, globo): perfil não é estado, então não leva cor. O papel Admin é Céu a 14% com texto Céu e o escudo, o mesmo tom do selo da área; o aluno não ganha selo, só a palavra "Aluno" em `texto-apagado`.
 - **Selo da área:** Céu a 14% com texto Céu, 10 px em caixa alta, encaixado à direita de CURSOS no lockup.
 
 ### Cards / Containers

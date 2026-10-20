@@ -4,6 +4,8 @@ import type {
   STATUS_DO_CURSO,
 } from "@cursos/db/schema/formatos";
 
+import type { Papel } from "../context";
+
 declare const marca: unique symbol;
 type Marca<T, M extends string> = T & { readonly [marca]: M };
 
@@ -35,10 +37,24 @@ export interface Pessoa {
   userId: string;
 }
 
-/** A Pessoa com o que só a ficha dela mostra. */
+/** Os jeitos de entrar que a ficha da pessoa mostra. */
+export type JeitoDeEntrar = "google" | "senha";
+
+/** A Pessoa com o que o Clerk sabe da conta dela. */
 export interface Conta extends Pessoa {
+  criadaEm: Date;
   /** O e-mail principal passou pela verificação do Clerk. */
   emailVerificado: boolean;
+  jeitosDeEntrar: readonly JeitoDeEntrar[];
+  /** O Public metadata `papel`; qualquer outro valor vale aluno, como no claim. */
+  papel: Papel;
+  /** null: nunca entrou. */
+  ultimoAcesso: Date | null;
+}
+
+/** A página da busca como o Clerk a devolve, com a conta inteira de cada um. */
+export interface BuscaDeContas extends ResultadoDaBusca {
+  pessoas: readonly Conta[];
 }
 
 /** Uma página da busca de pessoas, e quantas casaram no total. */

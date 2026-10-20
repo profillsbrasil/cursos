@@ -64,7 +64,7 @@ describe("indiceAtivo", () => {
   test("rota filha do próprio href marca true", () => {
     expect(indiceAtivo("/admin/catalogo/cursos/novo", ITENS_DO_ADMIN)).toEqual({
       ariaCurrent: "true",
-      indice: 1,
+      indice: ITENS_DO_ADMIN.findIndex((i) => i.nome === "Catálogo"),
     });
   });
 

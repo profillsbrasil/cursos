@@ -1,11 +1,25 @@
-import { ArrowLeftRight, Library, Megaphone, Tag, Users } from "lucide-react";
+import {
+  ArrowLeftRight,
+  KeyRound,
+  Library,
+  Megaphone,
+  Tag,
+  Users,
+} from "lucide-react";
 
 import type { ItemDoMenu, LinkDaArea } from "@/components/casca/nav";
 
 export const ITENS_DO_ADMIN: readonly ItemDoMenu[] = [
   {
-    href: "/admin/alunos",
+    href: "/admin/pessoas",
     icone: <Users />,
+    nome: "Pessoas",
+    outrosPrefixos: [],
+    tipo: "link",
+  },
+  {
+    href: "/admin/alunos",
+    icone: <KeyRound />,
     nome: "Alunos",
     outrosPrefixos: [],
     tipo: "link",

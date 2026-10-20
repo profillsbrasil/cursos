@@ -24,29 +24,49 @@ export interface OpcoesDeTeste {
   userId: string | null;
 }
 
-/** Clerk falso: busca por trecho de nome, e-mail ou userId, sem caixa, e corta em LIMITE. */
+/**
+ * Clerk falso: busca por trecho de nome, e-mail ou userId, sem caixa, e corta em
+ * LIMITE. A Conta sem os campos da ficha sai com o e-mail verificado, criada no
+ * dia 0, sem jeito de entrar, como aluno e sem acesso. definirPapel grava aqui.
+ */
 export function pessoasDeTeste(
   lista: readonly (Pessoa & Partial<Conta>)[]
 ): Pessoas {
+  const papeis = new Map<string, Papel>();
+  const paraConta = (p: Pessoa & Partial<Conta>): Conta => ({
+    criadaEm: p.criadaEm ?? new Date(0),
+    email: p.email,
+    emailVerificado: p.emailVerificado ?? true,
+    foto: p.foto,
+    jeitosDeEntrar: p.jeitosDeEntrar ?? [],
+    nome: p.nome,
+    papel: papeis.get(p.userId) ?? p.papel ?? "aluno",
+    ultimoAcesso: p.ultimoAcesso ?? null,
+    userId: p.userId,
+  });
   const achar = (userId: string) => lista.find((p) => p.userId === userId);
   return {
-    buscar: (termo) => {
+    buscar: (termo, entre) => {
       const t = termo.toLowerCase();
-      const casadas = lista.filter((p) =>
-        [p.nome, p.email ?? "", p.userId].some((campo) =>
-          campo.toLowerCase().includes(t)
-        )
+      const casadas = lista.filter(
+        (p) =>
+          (entre === undefined || entre.includes(p.userId)) &&
+          [p.nome, p.email ?? "", p.userId].some((campo) =>
+            campo.toLowerCase().includes(t)
+          )
       );
       return Promise.resolve({
-        pessoas: casadas.slice(0, LIMITE),
+        pessoas: casadas.slice(0, LIMITE).map(paraConta),
         total: casadas.length,
       });
     },
     conta: (userId) => {
       const p = achar(userId);
-      return Promise.resolve(
-        p ? { ...p, emailVerificado: p.emailVerificado ?? true } : null
-      );
+      return Promise.resolve(p ? paraConta(p) : null);
+    },
+    definirPapel: (userId, papel) => {
+      papeis.set(userId, papel);
+      return Promise.resolve();
     },
     porId: (userId) => {
       const p = achar(userId);

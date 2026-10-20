@@ -1,7 +1,10 @@
 import type { Database } from "@cursos/db";
+import { PERFIS } from "@cursos/db/schema/formatos";
 import { perfilDaPessoa } from "@cursos/db/schema/index";
+import { count } from "drizzle-orm";
 
 import { type Perfil, perfilDoCadastro } from "../dominio/perfil";
+import type { ContagemPorPerfil, LinhaDoPerfil } from "../dominio/pessoas";
 import type { AdminId, Conta } from "../dominio/tipos";
 import { comAlunoTravado } from "./trava";
 
@@ -62,4 +65,48 @@ export async function definirPerfil(
         target: perfilDaPessoa.userId,
       });
   });
+}
+
+/** As linhas de perfil desses userIds; quem ainda não entrou no app não tem. */
+export function linhasDosPerfis(
+  db: Database,
+  userIds: readonly string[]
+): Promise<LinhaDoPerfil[]> {
+  if (userIds.length === 0) {
+    return Promise.resolve([]);
+  }
+  return db.query.perfilDaPessoa.findMany({
+    where: { userId: { in: [...userIds] } },
+  });
+}
+
+/** Quem tem o perfil, da mudança mais recente para a mais antiga. */
+export async function quemTemOPerfil(
+  db: Database,
+  perfil: Perfil,
+  limite: number
+): Promise<string[]> {
+  const linhas = await db.query.perfilDaPessoa.findMany({
+    columns: { userId: true },
+    limit: limite,
+    orderBy: { definidoEm: "desc", userId: "asc" },
+    where: { perfil },
+  });
+  return linhas.map((l) => l.userId);
+}
+
+export async function contagemPorPerfil(
+  db: Database
+): Promise<ContagemPorPerfil> {
+  const linhas = await db
+    .select({ n: count(), perfil: perfilDaPessoa.perfil })
+    .from(perfilDaPessoa)
+    .groupBy(perfilDaPessoa.perfil);
+  const contagem = Object.fromEntries(
+    PERFIS.map((p) => [p, 0])
+  ) as ContagemPorPerfil;
+  for (const l of linhas) {
+    contagem[l.perfil] = l.n;
+  }
+  return contagem;
 }
