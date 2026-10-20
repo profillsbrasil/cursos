@@ -1,20 +1,24 @@
-import { Skeleton } from "@cursos/ui/components/skeleton";
+import {
+  EsqueletoDaBusca,
+  EsqueletoDaSecao,
+  EsqueletoDaTrilha,
+} from "@/components/admin/esqueletos";
+import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
-const PULSO = "bg-card";
-
-// Serve à lista e à ficha da pessoa: o título e um cartão de linhas, enquanto
-// o Clerk e o banco respondem.
+// A lista de Pessoas: a busca, os filtros por perfil e a seção das linhas. Os
+// quatro perfis com a contagem somam 441 px; abaixo disso a trilha quebra em
+// duas linhas, de 84 px.
 export default function Carregando() {
   return (
-    <div aria-busy="true" className="grid gap-7">
-      <span className="sr-only">Carregando</span>
-      <Skeleton className={`${PULSO} h-9 w-56 rounded-lg`} />
-      <Skeleton className={`${PULSO} h-11 w-full rounded-full`} />
-      <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
-        {["a", "b", "c", "d", "e"].map((linha) => (
-          <Skeleton className={`${PULSO} h-[88px] rounded-none`} key={linha} />
-        ))}
-      </div>
+    <div aria-busy="true" className="@container">
+      <span className="sr-only">Carregando as pessoas</span>
+      <EsqueletoDoCabecalho
+        resumo="Quem tem conta, o perfil e o papel de cada um"
+        titulo="Pessoas"
+      />
+      <EsqueletoDaBusca className="mb-4" />
+      <EsqueletoDaTrilha className="mb-8 @min-[441px]:h-11 h-[84px] max-w-[441px] rounded-[22px]" />
+      <EsqueletoDaSecao altura="h-[68px]" linhas={6} />
     </div>
   );
 }

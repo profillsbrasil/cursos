@@ -9,6 +9,7 @@ import type { CursoId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowLeft, Check, ChevronRight, TriangleAlert } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 
@@ -331,15 +332,23 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
         <ArrowLeft aria-hidden="true" className="size-4" />
         Liberações
       </Link>
-      <header className="mb-9 flex items-center gap-4">
+      <header className="mb-7 flex items-center gap-4">
         <FotoDaPessoa foto={pessoa?.foto ?? null} nome={nome} size="lg" />
         <div className="grid min-w-0 gap-1">
-          <h1 className="truncate font-bold text-3xl text-titulo tracking-tight">
+          <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight [overflow-wrap:anywhere]">
             {nome}
           </h1>
           <p className="truncate text-muted-foreground">
             {pessoa?.email ?? userId}
           </p>
+          {pessoa ? (
+            <Link
+              className="justify-self-start font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+              href={`/admin/pessoas/${userId}` as Route}
+            >
+              Perfil e papel
+            </Link>
+          ) : null}
         </div>
       </header>
       {pessoa ? null : (

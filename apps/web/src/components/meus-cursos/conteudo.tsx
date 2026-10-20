@@ -1,6 +1,6 @@
 import type { PainelMeusCursos, ResumoAluno } from "@cursos/api/dominio/painel";
 
-import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { plural } from "@/lib/formato";
 
 import { AvisoComunicado, FaixaComunicado } from "./aviso-comunicado";
@@ -27,9 +27,7 @@ export function ConteudoMeusCursos({
   if (painel.cursos.length === 0) {
     return (
       <>
-        <h1 className="mb-7 font-bold text-3xl text-titulo tracking-tight">
-          Meus cursos
-        </h1>
+        <CabecalhoDaPagina resumo={null} titulo="Meus cursos" />
         <PainelVazio />
       </>
     );

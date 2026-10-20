@@ -7,7 +7,8 @@ import Form from "next/form";
 
 import { AbasDasLiberacoes } from "@/components/admin/abas-das-liberacoes";
 import { TelaDeAlunos } from "@/components/admin/tela-de-alunos";
-import { BOTAO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CAMPO } from "@/components/casca/campos";
 import { carregarCatalogo, carregarPessoas } from "@/server/api";
 
@@ -26,14 +27,10 @@ export default async function Alunos({
   ]);
   return (
     <>
-      <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
-        <h1 className="font-bold text-3xl text-titulo tracking-tight">
-          Liberações
-        </h1>
-        <p className="text-muted-foreground">
-          Marque pessoas para liberar um curso, ou abra uma para ver o acesso
-        </p>
-      </header>
+      <CabecalhoDaPagina
+        resumo="Marque pessoas para liberar um curso, ou abra uma para ver o acesso"
+        titulo="Liberações"
+      />
       <AbasDasLiberacoes ativa="pessoa" />
       <search className="mb-8 block">
         <Form action="/admin/liberacoes" className="flex flex-wrap gap-2.5">
@@ -57,7 +54,7 @@ export default async function Alunos({
               type="search"
             />
           </div>
-          <Button className={BOTAO} type="submit">
+          <Button className={BOTAO_CONTORNO} type="submit">
             Buscar
           </Button>
         </Form>

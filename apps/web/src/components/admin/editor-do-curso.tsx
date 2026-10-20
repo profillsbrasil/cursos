@@ -352,31 +352,33 @@ export function EditorDoCurso({
         >
           <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-x-8 gap-y-10">
             <div className="grid min-w-0 gap-10">
-              <h1
-                className="text-balance font-bold text-3xl text-titulo tracking-tight"
-                ref={titulo}
-                tabIndex={-1}
-              >
-                {tela.novo
-                  ? "Novo curso"
-                  : rascunho.titulo.trim() || edicao.documento.titulo}
-              </h1>
+              <div className="grid gap-7">
+                <h1
+                  className="text-balance font-bold text-3xl text-titulo tracking-tight"
+                  ref={titulo}
+                  tabIndex={-1}
+                >
+                  {tela.novo
+                    ? "Novo curso"
+                    : rascunho.titulo.trim() || edicao.documento.titulo}
+                </h1>
 
-              <CapaEDescricao
-                capa={
-                  <CampoDeCapa
-                    aoEscolher={escolherCapa}
-                    arquivo={daGeracao.capa}
-                    atual={edicao.capa}
-                    key={geracao}
-                  />
-                }
-                categorias={categorias}
-                despachar={despachar}
-                mudarTitulo={mudarTitulo}
-                rascunho={rascunho}
-                slug={edicao.slug}
-              />
+                <CapaEDescricao
+                  capa={
+                    <CampoDeCapa
+                      aoEscolher={escolherCapa}
+                      arquivo={daGeracao.capa}
+                      atual={edicao.capa}
+                      key={geracao}
+                    />
+                  }
+                  categorias={categorias}
+                  despachar={despachar}
+                  mudarTitulo={mudarTitulo}
+                  rascunho={rascunho}
+                  slug={edicao.slug}
+                />
+              </div>
 
               <TopicosDoCurso
                 despachar={despachar}

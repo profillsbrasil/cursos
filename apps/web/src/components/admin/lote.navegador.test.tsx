@@ -88,6 +88,7 @@ const PAGINA = `
         import { Input } from "@cursos/ui/components/input";
         import { cn } from "@cursos/ui/lib/utils";
         import { Search } from "lucide-react";
+        import { CabecalhoDaPagina } from "../casca/cabecalho-da-pagina";
         import { CAMPO } from "../casca/campos";
         import { TelaDeAlunos } from "./tela-de-alunos";
 
@@ -99,10 +100,7 @@ const PAGINA = `
           window.buscar = (t) => flushSync(() => setTermo(t));
           return (
             <>
-              <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
-                <h1 className="font-bold text-3xl text-titulo tracking-tight">Alunos</h1>
-                <p className="text-muted-foreground">Marque pessoas para liberar um curso, ou abra uma para ver o acesso</p>
-              </header>
+              <CabecalhoDaPagina resumo="Marque pessoas para liberar um curso, ou abra uma para ver o acesso" titulo="Liberações" />
               <div className="relative mb-8"><Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" /><Input className={cn(CAMPO, "pr-4 pl-10")} defaultValue="lima" placeholder="Nome ou e-mail" /></div>
               <TelaDeAlunos cursos={CURSOS} resultado={BUSCAS[termo]} termo={termo} />
             </>

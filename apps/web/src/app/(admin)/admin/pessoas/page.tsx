@@ -7,23 +7,24 @@ import type { Metadata, Route } from "next";
 import Form from "next/form";
 import Link from "next/link";
 
+import {
+  CONTAGEM_DA_OPCAO,
+  OPCAO_DA_TRILHA,
+  TRILHA,
+} from "@/components/admin/partes";
 import { ListaDePessoasDoAdmin } from "@/components/admin/pessoas/lista-de-pessoas";
 import {
   ehPerfil,
   ORDEM_DOS_PERFIS,
   SOBRE_O_PERFIL,
 } from "@/components/admin/pessoas/perfis";
-import { BOTAO } from "@/components/casca/botoes";
+import { BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CAMPO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
 import { carregarListaDePessoas } from "@/server/api";
 
 export const metadata: Metadata = { title: "Pessoas" };
-
-const FILTRO =
-  "inline-flex h-9 items-center gap-2 rounded-full px-3.5 font-semibold text-[13px] ring-1 ring-inset transition-colors";
-const FILTRO_SOLTO = "text-foreground ring-muted-foreground hover:ring-titulo";
-const FILTRO_ATIVO = "bg-sol text-sobre-cor ring-sol";
 
 const umTexto = (v: string | string[] | undefined) =>
   typeof v === "string" ? v : "";
@@ -61,14 +62,10 @@ export default async function Pessoas({
   ];
   return (
     <>
-      <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
-        <h1 className="font-bold text-3xl text-titulo tracking-tight">
-          Pessoas
-        </h1>
-        <p className="text-muted-foreground">
-          Quem tem conta, o perfil e o papel de cada um
-        </p>
-      </header>
+      <CabecalhoDaPagina
+        resumo="Quem tem conta, o perfil e o papel de cada um"
+        titulo="Pessoas"
+      />
       <search className="mb-4 block">
         <Form action="/admin/pessoas" className="flex flex-wrap gap-2.5">
           {perfil ? <input name="perfil" type="hidden" value={perfil} /> : null}
@@ -92,27 +89,25 @@ export default async function Pessoas({
               type="search"
             />
           </div>
-          <Button className={BOTAO} type="submit">
+          <Button className={BOTAO_CONTORNO} type="submit">
             Buscar
           </Button>
         </Form>
       </search>
       <nav aria-label="Filtrar por perfil" className="mb-8">
-        <ul className="flex flex-wrap gap-2">
+        <ul className={TRILHA}>
           {filtros.map((f) => {
             const ativo = f.id === perfil;
             return (
               <li key={f.rotulo}>
                 <Link
                   aria-current={ativo ? "page" : undefined}
-                  className={cn(FILTRO, ativo ? FILTRO_ATIVO : FILTRO_SOLTO)}
+                  className={OPCAO_DA_TRILHA}
                   href={f.href}
                 >
                   {f.rotulo}
                   {f.n === null ? null : (
-                    <span className="tabular-nums opacity-70">
-                      {fmtNum(f.n)}
-                    </span>
+                    <span className={CONTAGEM_DA_OPCAO}>{fmtNum(f.n)}</span>
                   )}
                 </Link>
               </li>

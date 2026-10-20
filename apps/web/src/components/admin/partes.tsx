@@ -45,6 +45,24 @@ export const DIVISOR_DA_SELECAO = "-mx-1.5 my-1.5 h-px bg-border";
 export const BUSCA_DA_SELECAO =
   "flex h-[38px] shrink-0 items-center gap-2 border-border border-b px-3.5 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground";
 
+/**
+ * O filtro de escolha única do admin (os perfis de Pessoas, os status do
+ * Catálogo, as abas de Liberações e o status do editor): a trilha em pílula
+ * e as opções de 36 px. A ligada é `titulo` com texto `sobre-cor`, pelo
+ * aria-pressed do botão ou pelo aria-current do link; a outra ganha `popover`
+ * sob o cursor e com o foco. Com 44 px de altura, o raio de 22 px é a pílula
+ * cheia, e a trilha que quebra em duas linhas vira um retângulo arredondado.
+ */
+export const TRILHA =
+  "m-0 flex w-fit min-w-0 max-w-full flex-wrap gap-1 rounded-[22px] border-0 bg-card p-1 ring-1 ring-border ring-inset";
+
+export const OPCAO_DA_TRILHA =
+  "group/opcao inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 font-semibold text-[13px] text-foreground transition-colors hover:bg-popover hover:text-titulo aria-pressed:bg-titulo aria-pressed:text-sobre-cor aria-pressed:hover:bg-foreground aria-pressed:hover:text-sobre-cor aria-[current=page]:bg-titulo aria-[current=page]:text-sobre-cor aria-[current=page]:hover:bg-foreground aria-[current=page]:hover:text-sobre-cor [&_svg]:size-[13px]";
+
+/** A contagem ao lado do rótulo da opção, apagada na solta e na ligada. */
+export const CONTAGEM_DA_OPCAO =
+  "font-medium text-muted-foreground tabular-nums group-aria-pressed/opcao:text-sobre-cor/70 group-aria-[current=page]/opcao:text-sobre-cor/70";
+
 export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 

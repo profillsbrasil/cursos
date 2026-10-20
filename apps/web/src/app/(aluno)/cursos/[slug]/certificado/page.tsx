@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { CabecalhoDaPagina } from "@/components/aluno/cabecalho-da-pagina";
+import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { origemDoPedido } from "@/components/certificado/folha";
 import { TelaDoCertificado } from "@/components/certificado/tela-do-certificado";
 import { carregarPaginaDoCertificado } from "@/server/api";
