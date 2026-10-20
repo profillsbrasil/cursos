@@ -50,12 +50,12 @@ describe("o cartão em cada estado", () => {
     [
       "não iniciado, sem níveis",
       fabrica.naoIniciado,
-      "Não iniciado 0% 0 de 4 aulas assistidas Comece por: Módulo 1, Segurança do posto Aula 1 · Riscos do posto de montagem Começar o curso 11 min na primeira aula 3 módulos, sem níveis Certificado no fim do curso",
+      "Não iniciado 0% 0 de 4 aulas assistidas Comece por: Módulo 1, Segurança do posto Aula 1 · Riscos do posto de montagem Começar curso 11 min na primeira aula 3 módulos, sem níveis Certificado no fim do curso",
     ],
     [
       "não iniciado, com níveis",
       comercial.naoIniciado,
-      "Não iniciado 0% 0 de 7 aulas assistidas Comece por: Módulo 0, Autoavaliação comercial Aula 1 · Autoavaliação, parte 1 Começar o curso 10 min na primeira aula Próximo nível: Vendedor Profills Certificado Certificado no fim do curso",
+      "Não iniciado 0% 0 de 7 aulas assistidas Comece por: Módulo 0, Autoavaliação comercial Aula 1 · Autoavaliação, parte 1 Começar curso 10 min na primeira aula Próximo nível: Vendedor Profills Certificado Certificado no fim do curso",
     ],
     [
       "em andamento, sem níveis",
@@ -253,5 +253,37 @@ describe("o material de apoio no cartão", () => {
 
   test("sem material, o cartão não mostra nada dele", () => {
     expect(cartao(render(comMaterial(0)))).not.toContain("Material de apoio");
+  });
+});
+
+const LINHA = /<li[^>]*>(.*?)<\/li>/g;
+const ICONE_LUCIDE = /lucide-([a-z-]+)/;
+
+const linhasDoCartao = (html: string) =>
+  [...(html.match(CARTAO)?.[0] ?? "").matchAll(LINHA)].map(([, li = ""]) => [
+    li.match(ICONE_LUCIDE)?.[1],
+    texto(li),
+  ]);
+
+const ICONE_DO_BOTAO =
+  /<a[^>]*href="[^"]*aulas[^"]*"[^>]*><svg[^>]*class="([^"]*)"/;
+
+describe("os ícones do cartão têm um sentido só em todas as telas", () => {
+  test("o certificado é o prêmio, o nível é a bandeira, e o troféu fica para o curso concluído", () => {
+    expect(linhasDoCartao(render(comercial.naoIniciado))).toEqual([
+      ["clock", "10 min na primeira aula"],
+      ["flag", "Próximo nível: Vendedor Profills Certificado"],
+      ["award", "Certificado no fim do curso"],
+    ]);
+    expect(render(comercial.naoIniciado)).not.toContain("lucide-trophy");
+  });
+
+  test("o play de começar e de continuar é cheio, nos 16 px do botão", () => {
+    for (const p of [fabrica.naoIniciado, fabrica.emAndamento]) {
+      const classe = render(p).match(ICONE_DO_BOTAO)?.[1] ?? "";
+      expect(classe).toContain("lucide-play");
+      expect(classe).toContain("fill-current");
+      expect(classe).not.toContain("size-");
+    }
   });
 });

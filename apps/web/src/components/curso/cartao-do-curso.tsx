@@ -5,12 +5,12 @@ import {
   Award,
   Check,
   Clock,
+  Flag,
   Layers,
   ListChecks,
   type LucideIcon,
   Play,
   RotateCcw,
-  Trophy,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -31,13 +31,14 @@ import {
   progressoDoCartao,
 } from "./textos";
 
+// Award é só o certificado, em todas as telas; o nível é a bandeira (DESIGN.md, Ícones).
 const ICONE: Record<IconeDoCartao, LucideIcon> = {
+  certificado: Award,
   check: Check,
   niveis: Layers,
-  nivel: Award,
+  nivel: Flag,
   questionario: ListChecks,
   relogio: Clock,
-  trofeu: Trophy,
 };
 
 /** As aulas assistidas em Céu: a linha que já está feita. */
@@ -115,7 +116,10 @@ export function CartaoDoCurso({
             )}
             href={botao.href}
           >
-            <IconeDoBotao aria-hidden="true" className="size-[15px]" />
+            <IconeDoBotao
+              aria-hidden="true"
+              className={cn(botao.icone === "play" && "fill-current")}
+            />
             {botao.texto}
           </Link>
           {inclui.length > 0 ? (

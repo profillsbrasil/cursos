@@ -32,7 +32,7 @@ export function SaldoDeTroca({
       {temCursoTrocavelNaVitrine ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-[40%] -right-[10%] size-[420px] rounded-full bg-[radial-gradient(closest-side,rgb(255_204_1/0.16),transparent)]"
+          className="pointer-events-none absolute -top-[40%] -right-[10%] size-[420px] rounded-full bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--sol)_16%,transparent),transparent)]"
         />
       ) : null}
       <div className="relative flex flex-wrap items-center gap-x-7 gap-y-5">
@@ -40,8 +40,7 @@ export function SaldoDeTroca({
           aria-hidden="true"
           className={cn(
             "grid size-18 flex-none place-items-center rounded-full bg-sol text-sobre-cor",
-            temCursoTrocavelNaVitrine &&
-              "shadow-[0_10px_30px_rgb(255_204_1/0.25)]"
+            temCursoTrocavelNaVitrine && "shadow-brilho-do-saldo"
           )}
         >
           <Star className="size-9 fill-current" strokeWidth={1.4} />

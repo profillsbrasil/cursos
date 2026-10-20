@@ -90,6 +90,9 @@
   /* O brilho do botão amarelo. O valor fica literal: um --shadow-brilho: var(--shadow-brilho)
      aqui seria uma referência circular. */
   --shadow-brilho: 0 6px 18px rgb(255 204 1 / 0.28);
+  /* O brilho do selo de saldo em Trocar pontos, maior e mais difuso que o do botão. */
+  --shadow-brilho-do-saldo: 0 10px 30px
+    color-mix(in srgb, var(--sol) 25%, transparent);
   --color-ceu: var(--ceu);
   --color-canela: var(--canela);
   --color-sobre-cor: var(--sobre-cor);

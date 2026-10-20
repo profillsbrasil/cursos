@@ -4,6 +4,7 @@ import type { DiaISO } from "@cursos/api/dominio/tipos";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import type { AcaoDaRetomada } from "@/components/aluno/continuar";
 import { caminhoDaAula } from "@/lib/rotas";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
@@ -35,18 +36,24 @@ const curso = {
 } as CartaoDeTroca["curso"];
 
 const AULA = caminhoDaAula("x", "00000000-0000-4000-8000-000000000001");
+const CONTINUAR = {
+  href: AULA,
+  icone: "play",
+  texto: "Continuar aula",
+} as const;
 
 const vitrineEmHtml = (
   cartoes: CartaoDeTroca[],
-  temCursoTrocavelNaVitrine: boolean
+  temCursoTrocavelNaVitrine: boolean,
+  retomar: AcaoDaRetomada = CONTINUAR
 ) =>
   renderToStaticMarkup(
     <CursosParaTrocar
       cartoes={cartoes}
       extrato={[]}
       hoje="2026-10-14"
+      retomar={retomar}
       temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
-      voltarAEstudar={AULA}
     />
   );
 
@@ -55,17 +62,29 @@ const vitrine = (
   temCursoTrocavelNaVitrine: boolean
 ) => texto(vitrineEmHtml(cartoes, temCursoTrocavelNaVitrine));
 
-const LINK_DE_VOLTA =
-  /<a [^>]*href="([^"]*)"[^>]*>(?:<[^>]+>)*Voltar a estudar<\/a>/;
+const linkDeVolta = (rotulo: string) =>
+  new RegExp(`<a [^>]*href="([^"]*)"[^>]*>(?:<[^>]+>)*${rotulo}</a>`);
 
 describe("a vitrine sem curso trocável tem saída", () => {
-  test("vazia: Voltar a estudar leva aonde a pessoa parou", () => {
-    expect(LINK_DE_VOLTA.exec(vitrineEmHtml([], false))?.[1]).toBe(AULA);
+  test("vazia: o botão leva aonde a pessoa parou, com o verbo da retomada", () => {
+    expect(
+      linkDeVolta("Continuar aula").exec(vitrineEmHtml([], false))?.[1]
+    ).toBe(AULA);
   });
 
-  test("só com curso já trocado: Voltar a estudar também aparece", () => {
+  test("quem nunca abriu aula começa o curso, sem 'Voltar a estudar'", () => {
+    const html = vitrineEmHtml([], false, {
+      href: AULA,
+      icone: "play",
+      texto: "Começar curso",
+    });
+    expect(linkDeVolta("Começar curso").exec(html)?.[1]).toBe(AULA);
+    expect(html).not.toContain("Voltar a estudar");
+  });
+
+  test("só com curso já trocado: o botão também aparece", () => {
     const html = vitrineEmHtml([{ curso, pago: 300, tipo: "trocado" }], false);
-    expect(LINK_DE_VOLTA.exec(html)?.[1]).toBe(AULA);
+    expect(linkDeVolta("Continuar aula").exec(html)?.[1]).toBe(AULA);
   });
 
   test("com curso trocável, a vitrine é a ação e o link não aparece", () => {
@@ -73,7 +92,7 @@ describe("a vitrine sem curso trocável tem saída", () => {
       [{ curso, faltam: 200, pct: 60, preco: 500, saldo: 300, tipo: "faltam" }],
       true
     );
-    expect(html).not.toContain("Voltar a estudar");
+    expect(html).not.toContain("Continuar aula");
   });
 });
 
@@ -138,13 +157,13 @@ describe("o saldo só brilha com curso trocável", () => {
   test("sem curso trocável: sem gradiente nem sombra amarela", () => {
     const html = saldo(false);
     expect(html).not.toContain("radial-gradient");
-    expect(html).not.toContain("shadow-[0_10px_30px");
+    expect(html).not.toContain("shadow-brilho-do-saldo");
   });
 
   test("com curso trocável: o gradiente e o brilho do selo voltam", () => {
     const html = saldo(true);
     expect(html).toContain("radial-gradient");
-    expect(html).toContain("shadow-[0_10px_30px");
+    expect(html).toContain("shadow-brilho-do-saldo");
   });
 });
 

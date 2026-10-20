@@ -32,13 +32,13 @@ describe("o cartão preso", () => {
       botao: {
         href: rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`),
         icone: "play",
-        texto: "Começar o curso",
+        texto: "Começar curso",
         variante: "principal",
       },
       inclui: [
         { icone: "relogio", texto: "11 min na primeira aula" },
         { icone: "niveis", texto: "3 módulos, sem níveis" },
-        { icone: "trofeu", texto: "Certificado no fim do curso" },
+        { icone: "certificado", texto: "Certificado no fim do curso" },
       ],
       situacao: {
         rotulo: "Comece por: Módulo 1, Segurança do posto",
@@ -71,7 +71,7 @@ describe("o cartão preso", () => {
       inclui: [
         { icone: "relogio", texto: "Faltam 6 min desta aula" },
         { icone: "niveis", texto: "3 módulos, sem níveis" },
-        { icone: "trofeu", texto: "Certificado no fim do curso" },
+        { icone: "certificado", texto: "Certificado no fim do curso" },
       ],
       situacao: {
         rotulo: "Agora: Módulo 1, Segurança do posto",
@@ -105,7 +105,7 @@ describe("o cartão preso", () => {
       inclui: [
         { icone: "check", texto: "4 de 4 aulas assistidas" },
         { icone: "questionario", texto: "Faltam 2 questionários, um por aula" },
-        { icone: "trofeu", texto: "Certificado quando todos passarem" },
+        { icone: "certificado", texto: "Certificado quando todos passarem" },
       ],
       situacao: {
         rotulo: "Próximo questionário",
@@ -147,7 +147,7 @@ describe("o cartão preso", () => {
       inclui: [
         {
           href: rota("/cursos/comercial/certificado"),
-          icone: "trofeu",
+          icone: "certificado",
           texto: "Código do certificado: CERT-COM-7",
         },
       ],

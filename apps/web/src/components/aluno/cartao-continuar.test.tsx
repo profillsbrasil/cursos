@@ -23,21 +23,24 @@ const DESTINO_FORA_DA_AULA = "/cursos/comercial" as Route;
 const CONTINUAR: Continuar = {
   chamada: "Continuar · faltam 7 min",
   chamadaAqui: "Assistindo agora",
+  curso: "Comercial",
   href: AULA,
   pct: 51,
-  rotulo: "Continuar · faltam 7 min: Pilar Urgência · Aula 4, 51% do curso",
+  rotulo: "Continuar · faltam 7 min: Gatilhos, Comercial, 51% do curso",
   tipo: "continuar",
-  titulo: "Pilar Urgência · Aula 4",
+  titulo: "Gatilhos",
 };
 
 const QUESTIONARIO_FORA_DA_AULA: Continuar = {
   chamada: "Faltam 2 questionários",
   chamadaAqui: "Você está no questionário",
+  curso: "Comercial",
   href: DESTINO_FORA_DA_AULA,
   pct: 100,
-  rotulo: "Faltam 2 questionários: Comercial, 100% do curso",
+  rotulo:
+    "Faltam 2 questionários: Questionário · Gatilhos, Comercial, 100% do curso",
   tipo: "questionario",
-  titulo: "Comercial",
+  titulo: "Questionário · Gatilhos",
 };
 
 // O use() lê na hora uma Promise marcada como cumprida, sem suspender.

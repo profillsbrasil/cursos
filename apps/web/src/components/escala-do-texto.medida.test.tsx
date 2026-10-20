@@ -57,8 +57,8 @@ const PAGINA = renderToStaticMarkup(
       cartoes={[]}
       extrato={[]}
       hoje="2026-10-14"
+      retomar={{ href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" }}
       temCursoTrocavelNaVitrine={false}
-      voltarAEstudar="/meus-cursos"
     />
     <TelaDeComunicados comunicados={VARIOS} />
     <TelaDeComunicados comunicados={VAZIO} />

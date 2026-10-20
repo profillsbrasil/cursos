@@ -2,11 +2,11 @@
 
 import type { ItemDoExtrato } from "@cursos/api/dominio/pontos";
 import type { CartaoDeTroca as Cartao } from "@cursos/api/dominio/troca";
-import { Check, Play } from "lucide-react";
-import type { Route } from "next";
+import { Check, ListChecks, Play } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import type { AcaoDaRetomada } from "@/components/aluno/continuar";
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { sizesDaCapa } from "@/components/meus-cursos/capa-curso";
 import { Secao } from "@/components/meus-cursos/secao";
@@ -42,11 +42,14 @@ function subtitulo(
     : NENHUM_CURSO_NOVO;
 }
 
-function voltar(href: Route) {
+function retomarEstudo({ href, icone, texto }: AcaoDaRetomada) {
   return (
     <Link className={BOTAO_CONTORNO} href={href}>
-      <Play aria-hidden="true" />
-      Voltar a estudar
+      {icone === "questionario" ? <ListChecks aria-hidden="true" /> : null}
+      {icone === "play" ? (
+        <Play aria-hidden="true" className="fill-current" />
+      ) : null}
+      {texto}
     </Link>
   );
 }
@@ -55,14 +58,14 @@ export function CursosParaTrocar({
   cartoes,
   extrato,
   hoje,
+  retomar,
   temCursoTrocavelNaVitrine,
-  voltarAEstudar,
 }: {
   cartoes: readonly Cartao[];
   extrato: readonly ItemDoExtrato[];
   hoje: string;
+  retomar: AcaoDaRetomada;
   temCursoTrocavelNaVitrine: boolean;
-  voltarAEstudar: Route;
 }) {
   const [confirmando, setConfirmando] = useState<CursoId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -109,12 +112,13 @@ export function CursosParaTrocar({
         titulo="Cursos para trocar"
       >
         {cartoes.length === 0 ? (
-          // O vazio é um cartão com o botão na mesma linha, não um texto solto.
-          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-[20px] bg-card px-5 py-4 ring-1 ring-border">
+          // O vazio é um cartão com o botão na mesma linha, não um texto solto, e
+          // para na largura do extrato: esticado, o botão ficava a 800 px da frase.
+          <div className="flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-[20px] bg-card px-5 py-4 ring-1 ring-border">
             <p className="max-w-[60ch] text-muted-foreground text-sm">
               {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
             </p>
-            {temCursoTrocavelNaVitrine ? null : voltar(voltarAEstudar)}
+            {temCursoTrocavelNaVitrine ? null : retomarEstudo(retomar)}
           </div>
         ) : (
           <>
@@ -130,7 +134,7 @@ export function CursosParaTrocar({
               ))}
             </div>
             {temCursoTrocavelNaVitrine ? null : (
-              <div className="mt-5">{voltar(voltarAEstudar)}</div>
+              <div className="mt-5">{retomarEstudo(retomar)}</div>
             )}
           </>
         )}

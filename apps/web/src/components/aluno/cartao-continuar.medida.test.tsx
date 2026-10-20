@@ -27,9 +27,10 @@ const { CartaoContinuar } = await import("./cartao-continuar");
 const COMECAR: Continuar = {
   chamada: "Começar curso",
   chamadaAqui: "Assistindo agora",
+  curso: "Fábrica",
   href: "/cursos/fabrica/aulas/a1" as Route,
   pct: null,
-  rotulo: "Começar curso: Filmagem da instalação",
+  rotulo: "Começar curso: Filmagem da instalação, Fábrica",
   tipo: "comecar",
   titulo: "Filmagem da instalação",
 };

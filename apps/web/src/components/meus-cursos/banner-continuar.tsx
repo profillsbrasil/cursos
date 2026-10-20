@@ -1,13 +1,13 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
 import type { Capa as CapaDoCurso } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import { Award, ListChecks, Play } from "lucide-react";
+import { Flag, ListChecks, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { acaoDaRetomada } from "@/components/aluno/continuar";
 import { BOTAO } from "@/components/casca/botoes";
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
-import { hrefDaRetomada } from "@/lib/rotas";
 import { BarraProgresso } from "./barra-progresso";
 
 const CARTAO =
@@ -94,7 +94,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
     );
   }
   const onde = retomada.curso.titulo;
-  const href = hrefDaRetomada(retomada);
+  const acao = acaoDaRetomada(retomada);
   return (
     <section
       aria-labelledby="banner-titulo"
@@ -133,7 +133,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             <Progresso {...retomada.progresso} titulo={retomada.curso.titulo} />
             {retomada.proximoNivel !== null && (
               <p className="flex items-start gap-1.5 text-muted-foreground text-sm">
-                <Award
+                <Flag
                   aria-hidden="true"
                   className="mt-0.5 size-4 shrink-0 text-ceu"
                 />
@@ -183,22 +183,13 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             </p>
           </>
         )}
-        <Link className={cn(BOTAO_DO_BANNER, "mt-1")} href={href}>
-          {retomada.tipo === "questionario" ? (
+        <Link className={cn(BOTAO_DO_BANNER, "mt-1")} href={acao.href}>
+          {acao.icone === "questionario" ? (
             <ListChecks aria-hidden="true" />
           ) : (
             <Play aria-hidden="true" className="fill-current" />
           )}
-          {
-            {
-              comecar: "Começar curso",
-              continuar: "Continuar aula",
-              questionario:
-                retomada.tipo === "questionario" && retomada.ultima
-                  ? "Tentar de novo"
-                  : "Fazer o questionário",
-            }[retomada.tipo]
-          }
+          {acao.texto}
         </Link>
       </div>
       <Capa capa={retomada.curso.capa} />
