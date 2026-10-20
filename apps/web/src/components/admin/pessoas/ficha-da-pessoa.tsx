@@ -70,10 +70,10 @@ export function FichaDaPessoaDoAdmin({
         <ArrowLeft aria-hidden="true" className="size-4" />
         Pessoas
       </Link>
-      <header className="mb-9 flex items-center gap-4">
+      <header className="mb-7 flex items-center gap-4">
         <FotoDaPessoa foto={conta.foto} nome={conta.nome} size="lg" />
         <div className="grid min-w-0 gap-1">
-          <h1 className="truncate font-bold text-3xl text-titulo tracking-tight">
+          <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight [overflow-wrap:anywhere]">
             {conta.nome}
           </h1>
           <p className="truncate text-muted-foreground">
