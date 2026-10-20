@@ -231,7 +231,9 @@ export function ControlesDoPlayer({
                 min={0}
                 onValueChange={definirVolume}
                 step={5}
-                value={nivelAudivel}
+                // Em array: com um número, o Slider de @cursos/ui conta os polegares por
+                // [min, max] e desenha dois, cada um com uma parada de Tab.
+                value={[nivelAudivel]}
               />
             </span>
           </span>
