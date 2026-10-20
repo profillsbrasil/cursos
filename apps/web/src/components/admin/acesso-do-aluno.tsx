@@ -8,7 +8,7 @@ import type {
 import type { CursoId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
-import { ArrowLeft, Check, ChevronRight, TriangleAlert } from "lucide-react";
+import { Check, ChevronRight, TriangleAlert } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
@@ -33,6 +33,7 @@ import {
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { Secao, Vazio } from "./partes";
 import { SOBRE_O_PERFIL } from "./pessoas/perfis";
+import { VoltaParaALista } from "./volta-para-a-lista";
 
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
@@ -325,13 +326,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
 
   return (
     <>
-      <Link
-        className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-        href="/admin/liberacoes"
-      >
-        <ArrowLeft aria-hidden="true" className="size-4" />
-        Liberações
-      </Link>
+      <VoltaParaALista href="/admin/liberacoes" nome="Liberações" />
       <header className="mb-7 flex items-center gap-4">
         <FotoDaPessoa foto={pessoa?.foto ?? null} nome={nome} size="lg" />
         <div className="grid min-w-0 gap-1">

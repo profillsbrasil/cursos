@@ -3,7 +3,6 @@
 import type { FichaDaPessoa } from "@cursos/api/dominio/pessoas";
 import type { JeitoDeEntrar } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import { ArrowLeft } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -17,6 +16,7 @@ import {
 } from "@/components/minha-conta/partes";
 import { diaCurto, diaEmSaoPaulo, fmtData, quando } from "@/lib/formato";
 import { FotoDaPessoa } from "../foto-da-pessoa";
+import { VoltaParaALista } from "../volta-para-a-lista";
 import { AcessoDaPessoa } from "./acesso-da-pessoa";
 
 const NOME_DO_JEITO: Record<JeitoDeEntrar, string> = {
@@ -63,13 +63,7 @@ export function FichaDaPessoaDoAdmin({
   const { conta, perfil, souEu } = ficha;
   return (
     <>
-      <Link
-        className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-        href="/admin/pessoas"
-      >
-        <ArrowLeft aria-hidden="true" className="size-4" />
-        Pessoas
-      </Link>
+      <VoltaParaALista href="/admin/pessoas" nome="Pessoas" />
       <header className="mb-7 flex items-center gap-4">
         <FotoDaPessoa foto={conta.foto} nome={conta.nome} size="lg" />
         <div className="grid min-w-0 gap-1">

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { EditorDoCurso } from "@/components/admin/editor-do-curso";
+import { VoltaParaALista } from "@/components/admin/volta-para-a-lista";
 import { abrirOuRascunho } from "@/lib/abrir-ou-rascunho";
 import { carregarCategorias, carregarCurso } from "@/server/api";
 
@@ -39,10 +40,13 @@ export default async function Curso(props: Props) {
     carregarCategorias(),
   ]);
   return (
-    <EditorDoCurso
-      categorias={categorias}
-      edicao={edicao}
-      key={edicao.documento.id}
-    />
+    <>
+      <VoltaParaALista href="/admin/catalogo" nome="Catálogo" />
+      <EditorDoCurso
+        categorias={categorias}
+        edicao={edicao}
+        key={edicao.documento.id}
+      />
+    </>
   );
 }
