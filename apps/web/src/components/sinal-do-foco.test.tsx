@@ -604,7 +604,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       daLista.filter(
         (e) =>
           e.texto === "Ana Exemplo" &&
-          e.atributos.href === "/admin/alunos/user_exemplo"
+          e.atributos.href === "/admin/liberacoes/user_exemplo"
       ),
       "nome"
     );

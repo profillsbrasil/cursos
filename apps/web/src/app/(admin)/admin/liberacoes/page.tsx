@@ -5,12 +5,13 @@ import { Search } from "lucide-react";
 import type { Metadata } from "next";
 import Form from "next/form";
 
+import { AbasDasLiberacoes } from "@/components/admin/abas-das-liberacoes";
 import { TelaDeAlunos } from "@/components/admin/tela-de-alunos";
 import { BOTAO } from "@/components/casca/botoes";
 import { CAMPO } from "@/components/casca/campos";
 import { carregarCatalogo, carregarPessoas } from "@/server/api";
 
-export const metadata: Metadata = { title: "Alunos · Admin" };
+export const metadata: Metadata = { title: "Liberações · Admin" };
 
 export default async function Alunos({
   searchParams,
@@ -27,14 +28,15 @@ export default async function Alunos({
     <>
       <header className="mb-7 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1.5">
         <h1 className="font-bold text-3xl text-titulo tracking-tight">
-          Alunos
+          Liberações
         </h1>
         <p className="text-muted-foreground">
           Marque pessoas para liberar um curso, ou abra uma para ver o acesso
         </p>
       </header>
+      <AbasDasLiberacoes ativa="pessoa" />
       <search className="mb-8 block">
-        <Form action="/admin/alunos" className="flex flex-wrap gap-2.5">
+        <Form action="/admin/liberacoes" className="flex flex-wrap gap-2.5">
           <label className="sr-only" htmlFor="busca-de-alunos">
             Nome ou e-mail
           </label>

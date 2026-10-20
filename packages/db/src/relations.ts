@@ -46,6 +46,13 @@ export const relations = defineRelations(schema, (r) => ({
   modulo: {
     aulas: r.many.aula({ from: r.modulo.id, to: r.aula.moduloId }),
   },
+  perfilDaPessoa: {
+    // Sem FK: liga a pessoa às liberações ativas e revogadas do perfil dela.
+    liberacoesDoPerfil: r.many.liberacaoDoPerfil({
+      from: r.perfilDaPessoa.perfil,
+      to: r.liberacaoDoPerfil.perfil,
+    }),
+  },
   pergunta: {
     alternativas: r.many.alternativa({
       from: r.pergunta.id,

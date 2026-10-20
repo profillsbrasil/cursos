@@ -13,6 +13,7 @@ import { diaLocal } from "../dominio/sequencia";
 import type {
   AdminId,
   CursoId,
+  LiberacaoDoPerfilId,
   LiberacaoId,
   OrigemDaLiberacao,
   Pessoa,
@@ -276,15 +277,16 @@ export async function revogar(
 }
 
 /**
- * Tela /admin/alunos/[userId], em 6 statements paralelos: todas as liberações da
- * pessoa com o curso (o statement 1 do painel, revogadas inclusive), o histórico
- * de estudo (os statements 2 a 5 do painel) e o catálogo.
+ * Tela /admin/liberacoes/[userId], em 7 statements paralelos: todas as liberações
+ * da pessoa com o curso (o statement 1 do painel, revogadas inclusive), as
+ * liberações ativas do perfil dela, o histórico de estudo (os statements 2 a 5
+ * do painel) e o catálogo.
  */
 export async function linhasDoAcesso(
   db: Database,
   userId: string
 ): Promise<LinhasDoAcesso> {
-  const [liberacoes, historico, catalogo] = await Promise.all([
+  const [liberacoes, perfil, historico, catalogo] = await Promise.all([
     db.query.liberacao.findMany({
       columns: {
         id: true,
@@ -295,21 +297,45 @@ export async function linhasDoAcesso(
       where: { userId },
       with: { curso: COM_CONTEUDO },
     }),
+    db.query.perfilDaPessoa.findFirst({
+      columns: { perfil: true },
+      where: { userId },
+      with: {
+        liberacoesDoPerfil: {
+          columns: { id: true, liberadaEm: true },
+          where: { revogadaEm: { isNull: true } },
+          with: { curso: COM_CONTEUDO },
+        },
+      },
+    }),
     linhasDoHistorico(db, userId),
     db.query.curso.findMany({
       columns: { id: true, status: true, titulo: true },
       orderBy: { titulo: "asc" },
     }),
   ]);
+  const doPerfil = perfil
+    ? perfil.liberacoesDoPerfil.map((l) => ({
+        curso: paraCatalogo(l.curso),
+        id: l.id as LiberacaoDoPerfilId,
+        liberadaEm: l.liberadaEm,
+        origem: "perfil" as const,
+        perfil: perfil.perfil,
+        revogadaEm: null,
+      }))
+    : [];
   return {
     catalogo: catalogo.map((c) => ({ ...c, id: c.id as CursoId })),
     historico,
-    liberacoes: liberacoes.map((l) => ({
-      curso: paraCatalogo(l.curso),
-      id: l.id as LiberacaoId,
-      liberadaEm: l.liberadaEm,
-      origem: l.origem,
-      revogadaEm: l.revogadaEm,
-    })),
+    liberacoes: [
+      ...liberacoes.map((l) => ({
+        curso: paraCatalogo(l.curso),
+        id: l.id as LiberacaoId,
+        liberadaEm: l.liberadaEm,
+        origem: l.origem,
+        revogadaEm: l.revogadaEm,
+      })),
+      ...doPerfil,
+    ],
   };
 }

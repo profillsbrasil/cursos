@@ -2,9 +2,11 @@ import type { Database } from "@cursos/db";
 import { liberacaoDoPerfil } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
+import type { LinhaDaGrade } from "../dominio/grade-dos-perfis";
 import type { Perfil } from "../dominio/perfil";
 import type { AdminId, CursoId, LiberacaoDoPerfilId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
+import { COLUNAS_DA_CAPA } from "./comum";
 import { violacaoDe } from "./erros";
 
 const ATIVA_UNICA = "liberacao_do_perfil_ativa_unica";
@@ -91,4 +93,19 @@ export async function revogarDoPerfil(
     )
     .returning({ id: liberacaoDoPerfil.id });
   return { revogada: linhas.length > 0 };
+}
+
+/** A aba Por perfil: todo curso, com as liberações ativas de cada perfil, num statement. */
+export function linhasDaGrade(db: Database): Promise<LinhaDaGrade[]> {
+  return db.query.curso.findMany({
+    columns: { ...COLUNAS_DA_CAPA, id: true, status: true, titulo: true },
+    orderBy: { titulo: "asc" },
+    with: {
+      liberacoesDoPerfil: {
+        columns: { id: true, perfil: true },
+        where: { revogadaEm: { isNull: true } },
+      },
+      modulos: { columns: {}, with: { aulas: { columns: { id: true } } } },
+    },
+  });
 }

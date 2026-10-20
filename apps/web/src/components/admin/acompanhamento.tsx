@@ -181,10 +181,11 @@ export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase {
 export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
   const curta = (iso: string) => diaCurto(diaEmSaoPaulo(iso), hoje);
   const quando = curta(l.liberadaEm);
-  const chegou =
-    l.origem === "troca"
-      ? `Trocado por pontos em ${quando}`
-      : `Liberada em ${quando}`;
+  const chegou = {
+    admin: `Liberada em ${quando}`,
+    perfil: `Liberada ao perfil em ${quando}`,
+    troca: `Trocado por pontos em ${quando}`,
+  }[l.origem];
   return l.acao.tipo === "revogada"
     ? `${chegou} · revogada em ${curta(l.acao.em)}`
     : chegou;

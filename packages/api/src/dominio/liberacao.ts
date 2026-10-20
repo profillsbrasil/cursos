@@ -4,12 +4,15 @@
 
 import { type Acompanhamento, acompanharCurso } from "./acompanhamento";
 import { estudoDe, type LinhasHistorico } from "./historico";
+import type { Perfil } from "./perfil";
 import type {
   CursoCatalogo,
   CursoId,
   DiaISO,
+  LiberacaoDoPerfilId,
   LiberacaoId,
   OrigemDaLiberacao,
+  OrigemDoAcesso,
   Pessoa,
   StatusDoCurso,
 } from "./tipos";
@@ -20,23 +23,29 @@ export interface CursoLiberado {
   titulo: string;
 }
 
-/** Linha de liberacao com o curso, módulos e aulas, como a tela de acesso lê. */
-export interface LinhaDaLiberacao {
+/**
+ * Linha de liberação com o curso, módulos e aulas, como a tela de acesso lê. A
+ * do perfil vem só ativa: a revogada é do perfil, não da pessoa.
+ */
+export type LinhaDaLiberacao = {
   curso: CursoCatalogo;
-  id: LiberacaoId;
   liberadaEm: Date;
-  origem: OrigemDaLiberacao;
   revogadaEm: Date | null;
-}
+} & (
+  | { id: LiberacaoId; origem: OrigemDaLiberacao }
+  | { id: LiberacaoDoPerfilId; origem: "perfil"; perfil: Perfil }
+);
 
 export type AcaoNaLiberacao =
   | { tipo: "revogar" }
   | { tipo: "fixa_por_troca" }
   | { tipo: "revogada"; em: Date };
 
-export function acaoNaLiberacao(
-  l: Pick<LinhaDaLiberacao, "origem" | "revogadaEm">
-): AcaoNaLiberacao {
+/** A liberação da pessoa. A do perfil não se revoga pela tela da pessoa (acaoNaTela). */
+export function acaoNaLiberacao(l: {
+  origem: OrigemDaLiberacao;
+  revogadaEm: Date | null;
+}): AcaoNaLiberacao {
   if (l.revogadaEm) {
     return { em: l.revogadaEm, tipo: "revogada" };
   }
@@ -50,27 +59,31 @@ export function acaoNaLiberacao(
   }
 }
 
-/** A ação como a tela recebe: a data já em texto. */
+/** A ação como a tela recebe: a data já em texto, e a do perfil, que se muda em Liberações. */
 export type AcaoNaTela =
   | Exclude<AcaoNaLiberacao, { tipo: "revogada" }>
+  | { tipo: "pelo_perfil"; perfil: Perfil }
   | { tipo: "revogada"; em: string };
 
-/** O que a tela /admin/alunos/[userId] mostra de cada liberação. */
+/** O que a tela /admin/liberacoes/[userId] mostra de cada liberação. */
 export interface LiberacaoNaTela {
   acao: AcaoNaTela;
   /** Na revogada, o estudo de hoje no curso, com a mesma regra da ativa. */
   acompanhamento: Acompanhamento;
   curso: CursoLiberado;
-  id: LiberacaoId;
+  id: LiberacaoId | LiberacaoDoPerfilId;
   liberadaEm: string;
-  origem: OrigemDaLiberacao;
+  origem: OrigemDoAcesso;
 }
 
 export interface CursoParaLiberar {
   curso: CursoLiberado;
   /** O aluno vê o curso como "em breve" até ele ser publicado. */
   emProducao: boolean;
-  /** Já tem liberação ativa do curso, de qualquer origem. */
+  /**
+   * Já tem liberação ativa do curso, do admin ou de troca. A do perfil não
+   * conta: a liberação da pessoa continua valendo se o perfil mudar.
+   */
   liberado: boolean;
 }
 
@@ -98,6 +111,9 @@ const ordemNaTela = (a: LinhaDaLiberacao, b: LinhaDaLiberacao) =>
   b.liberadaEm.getTime() - a.liberadaEm.getTime();
 
 function acaoNaTela(l: LinhaDaLiberacao): AcaoNaTela {
+  if (l.origem === "perfil") {
+    return { perfil: l.perfil, tipo: "pelo_perfil" };
+  }
   const acao = acaoNaLiberacao(l);
   return acao.tipo === "revogada"
     ? { em: acao.em.toISOString(), tipo: "revogada" }
@@ -120,7 +136,7 @@ export function montarAcesso(
   }
   const ativos = new Set(
     linhas.liberacoes
-      .filter((l) => l.revogadaEm === null)
+      .filter((l) => l.revogadaEm === null && l.origem !== "perfil")
       .map((l) => l.curso.id)
   );
   const estudo = estudoDe(linhas.historico);

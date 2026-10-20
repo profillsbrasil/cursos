@@ -31,6 +31,7 @@ import {
 } from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { SELO, Secao, Vazio } from "./partes";
+import { SOBRE_O_PERFIL } from "./pessoas/perfis";
 
 const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 text-foreground text-sm ring-1 ring-sol/40";
@@ -82,6 +83,15 @@ function AcaoDaLiberacao({
         <span className="text-muted-foreground text-sm">
           Troca, não se revoga
         </span>
+      );
+    case "pelo_perfil":
+      return (
+        <Link
+          className="font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+          href="/admin/liberacoes/perfis"
+        >
+          Pelo perfil {SOBRE_O_PERFIL[acao.perfil].nome}
+        </Link>
       );
     case "revogada":
       return null;
@@ -320,10 +330,10 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
     <>
       <Link
         className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
-        href="/admin/alunos"
+        href="/admin/liberacoes"
       >
         <ArrowLeft aria-hidden="true" className="size-4" />
-        Alunos
+        Liberações
       </Link>
       <header className="mb-9 flex items-center gap-4">
         <FotoDaPessoa foto={pessoa?.foto ?? null} nome={nome} size="lg" />

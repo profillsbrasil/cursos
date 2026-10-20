@@ -2,7 +2,7 @@ import type { Database } from "@cursos/db";
 import { sql } from "drizzle-orm";
 
 import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
-import type { OrigemDaLiberacao } from "../dominio/tipos";
+import type { OrigemDoAcesso } from "../dominio/tipos";
 
 /** Literal de text[] do Postgres, com aspas e barras escapadas. */
 const arrayDeTexto = (itens: readonly string[]) =>
@@ -17,7 +17,7 @@ interface PessoaEmJson {
   liberacoes: {
     cursoId: string;
     liberadaEm: Ms;
-    origem: OrigemDaLiberacao;
+    origem: OrigemDoAcesso;
     revogadaEm: Ms | null;
   }[];
   posicoes: { atualizadaEm: Ms; aulaId: string; posicaoSeg: number }[];
@@ -41,8 +41,8 @@ const SEM_PESSOAS: LinhasDaBusca = { cursos: [], pessoas: [] };
 
 /**
  * A busca de alunos: um statement para a página do Clerk (até 20 userIds), que
- * devolve um documento JSON só. Para cada pessoa, todas as liberações e o
- * histórico (as mesmas linhas dos statements 2, 3 e 4 do painel); uma vez só,
+ * devolve um documento JSON só. Para cada pessoa, todas as liberações, as ativas
+ * do perfil dela (origem `perfil`) e o histórico (as mesmas linhas dos statements 2, 3 e 4 do painel); uma vez só,
  * os cursos que alguma delas alcança por liberação ativa, com os ids das aulas
  * em ordem. O SQL só lê: estado, progresso e "abre" são decididos
  * em dominio/acompanhamento.ts pelas regras do painel.
@@ -61,9 +61,15 @@ export async function linhasDaBusca(
       select user_id from unnest(${arrayDeTexto(userIds)}::text[]) as p(user_id)
     ),
     lib as (
-      select l.user_id, l.curso_id, l.liberada_em, l.origem, l.revogada_em
+      select l.user_id, l.curso_id, l.liberada_em, l.origem::text as origem, l.revogada_em
         from liberacao l
        where l.user_id in (select user_id from p)
+      union all
+      select pp.user_id, lp.curso_id, lp.liberada_em, 'perfil', lp.revogada_em
+        from perfil_da_pessoa pp
+        join liberacao_do_perfil lp on lp.perfil = pp.perfil
+       where pp.user_id in (select user_id from p)
+         and lp.revogada_em is null
     ),
     cursos as (
       select distinct curso_id as id from lib where revogada_em is null
