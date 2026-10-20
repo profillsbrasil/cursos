@@ -8,6 +8,7 @@ import {
   curso,
   liberacao,
   modulo,
+  perfilDaPessoa,
   pontoLancamento,
   posicaoAula,
 } from "@cursos/db/schema/index";
@@ -208,6 +209,9 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
     await db.delete(liberacao).where(inArray(liberacao.userId, ALUNOS));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, ALUNOS));
     await db.$client.end();
   });
 

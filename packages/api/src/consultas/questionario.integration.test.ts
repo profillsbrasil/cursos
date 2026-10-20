@@ -10,6 +10,7 @@ import {
   curso,
   liberacao,
   modulo,
+  perfilDaPessoa,
   pergunta,
   pontoLancamento,
   posicaoAula,
@@ -97,6 +98,9 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     await db.delete(cotaVideo).where(inArray(cotaVideo.userId, alunos));
     await db.delete(liberacao).where(inArray(liberacao.userId, alunos));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, alunos));
     await db.$client.end();
   });
 

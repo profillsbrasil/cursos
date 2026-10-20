@@ -7,6 +7,7 @@ import {
   curso,
   liberacao,
   modulo,
+  perfilDaPessoa,
   pontoLancamento,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -125,6 +126,9 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       .where(inArray(pontoLancamento.userId, alunos));
     await db.delete(liberacao).where(inArray(liberacao.userId, alunos));
     await db.delete(curso).where(inArray(curso.id, cursos));
+    await db
+      .delete(perfilDaPessoa)
+      .where(inArray(perfilDaPessoa.userId, alunos));
     await db.$client.end();
   });
 
