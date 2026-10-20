@@ -25,6 +25,7 @@ import Link from "next/link";
 import { Suspense, use, useCallback, useSyncExternalStore } from "react";
 
 import { fmtPts, iniciais, plural } from "@/lib/formato";
+import { fotoNoLado } from "@/lib/foto-do-clerk";
 import { anelDosPontos } from "@/lib/player/sinal";
 import { MINHA_CONTA } from "@/lib/rotas";
 
@@ -158,7 +159,9 @@ export function CartaoDeConta({
           render={<TooltipTrigger />}
         >
           <Avatar className="size-9 after:hidden">
-            {user?.hasImage ? <AvatarImage alt="" src={user.imageUrl} /> : null}
+            {user?.hasImage ? (
+              <AvatarImage alt="" src={fotoNoLado(user.imageUrl, 36)} />
+            ) : null}
             <AvatarFallback className="bg-canela font-bold text-[13px] text-sobre-cor">
               {isLoaded ? iniciais(nome) : null}
             </AvatarFallback>

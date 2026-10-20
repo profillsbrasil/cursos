@@ -261,6 +261,7 @@ export function CampoDeCapa({
               {...imagem}
               className="object-cover"
               fill
+              loading="eager"
               sizes="(max-width: 768px) 100vw, 440px"
             />
             <span aria-hidden="true" className={CAMADA}>

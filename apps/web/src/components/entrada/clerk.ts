@@ -174,10 +174,30 @@ export const APARENCIA_CLERK = {
   },
 } satisfies Props["appearance"];
 
+// O ptBR inteiro tem 62 KB e vai no HTML de toda carga completa. O app só desenha o
+// SignIn, o SignUp e o modal de reverificação do useReverification; os textos
+// soltos do topo são os que eles dividem.
+const PARTES_USADAS = new Set<string>([
+  "dates",
+  "impersonationFab",
+  "reverification",
+  "signIn",
+  "signUp",
+  "taskResetPassword",
+  "taskSetupMfa",
+  "unstable__errors",
+]);
+
+const doApp = Object.fromEntries(
+  Object.entries(ptBR).filter(
+    ([chave, valor]) => typeof valor === "string" || PARTES_USADAS.has(chave)
+  )
+);
+
 // O nome da instância no Clerk ("cursos") entra nos textos por {{applicationName}};
 // o nome que a pessoa lê é o PRODUTO.
 const comOProduto: typeof ptBR = JSON.parse(
-  JSON.stringify(ptBR).replaceAll("{{applicationName}}", PRODUTO)
+  JSON.stringify(doApp).replaceAll("{{applicationName}}", PRODUTO)
 );
 
 // O link de entrada (__clerk_ticket). O Clerk procura a recusa da API em

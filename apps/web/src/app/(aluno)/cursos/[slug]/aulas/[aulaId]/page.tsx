@@ -6,6 +6,7 @@ import { AulaSemVideo } from "@/components/player/aula-sem-video";
 import { ColunaDoCurso } from "@/components/player/coluna-do-curso";
 import { PlayerDaAula } from "@/components/player/player-da-aula";
 import { QuestionarioDaAula } from "@/components/player/questionario-da-aula";
+import { adiantarOYoutube } from "@/lib/player/youtube";
 import { carregarAula } from "@/server/api";
 
 interface Props {
@@ -30,6 +31,9 @@ export default async function PaginaDaAula({ params }: Props) {
   const dados = await aulaDaUrl(params);
   if (!dados) {
     notFound();
+  }
+  if (dados.aula.video) {
+    adiantarOYoutube();
   }
   return (
     <div className="grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]">

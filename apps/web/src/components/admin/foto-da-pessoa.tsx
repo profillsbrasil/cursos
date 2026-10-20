@@ -7,6 +7,7 @@ import {
 import { cn } from "@cursos/ui/lib/utils";
 
 import { iniciais } from "@/lib/formato";
+import { fotoNoLado } from "@/lib/foto-do-clerk";
 
 export function FotoDaPessoa({
   className,
@@ -24,7 +25,9 @@ export function FotoDaPessoa({
       className={cn(size === "lg" ? "size-14" : "size-10", className)}
       size={size}
     >
-      {foto ? <AvatarImage alt="" src={foto} /> : null}
+      {foto ? (
+        <AvatarImage alt="" src={fotoNoLado(foto, size === "lg" ? 56 : 40)} />
+      ) : null}
       <AvatarFallback className="bg-ceu/14 font-semibold text-ceu">
         {iniciais(nome)}
       </AvatarFallback>

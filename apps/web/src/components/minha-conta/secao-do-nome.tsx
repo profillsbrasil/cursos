@@ -21,6 +21,7 @@ import { CAMPO } from "@/components/casca/campos";
 import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
+import { fotoNoLado } from "@/lib/foto-do-clerk";
 import { type CampoDoNome, LIMITE_DO_NOME, problemaDoNome } from "./nome";
 import {
   ACAO_NA_LINHA,
@@ -63,7 +64,9 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
   return (
     <div className="flex min-w-0 items-center gap-4">
       <Avatar className="size-20 shrink-0 after:hidden">
-        {user.hasImage ? <AvatarImage alt="" src={user.imageUrl} /> : null}
+        {user.hasImage ? (
+          <AvatarImage alt="" src={fotoNoLado(user.imageUrl, 80)} />
+        ) : null}
         <AvatarFallback className="bg-canela font-bold text-[26px] text-sobre-cor">
           {iniciais(nome || "?")}
         </AvatarFallback>

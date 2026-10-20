@@ -1,5 +1,4 @@
 import { VELOCIDADES, type Velocidade } from "@cursos/api/dominio/regras";
-import { z } from "zod";
 
 import {
   criarSessaoDeEstudo,
@@ -23,23 +22,44 @@ export const PREFERENCIAS_PADRAO: Preferencias = {
 
 const CHAVE = "cursos:player:preferencias";
 
-// O valor gravado antes da legenda existir não tem o campo, e continua valendo.
-const formato = z.object({
-  legenda: z.boolean().default(false),
-  velocidade: z.literal(VELOCIDADES),
-  volume: z.object({ mudo: z.boolean(), nivel: z.int().min(0).max(100) }),
-});
+const objeto = (valor: unknown): valor is Record<string, unknown> =>
+  typeof valor === "object" && valor !== null;
+
+// Checagem à mão: o Zod levaria cerca de 90 KB em gzip ao cliente da aula.
+function paraVolume(valor: unknown): Volume | null {
+  if (!objeto(valor)) {
+    return null;
+  }
+  const { mudo, nivel } = valor;
+  return typeof mudo === "boolean" &&
+    typeof nivel === "number" &&
+    Number.isInteger(nivel) &&
+    nivel >= 0 &&
+    nivel <= 100
+    ? { mudo, nivel }
+    : null;
+}
 
 export function paraPreferencias(texto: string | null): Preferencias {
   if (texto === null) {
     return PREFERENCIAS_PADRAO;
   }
+  let lido: unknown;
   try {
-    const lido = formato.safeParse(JSON.parse(texto));
-    return lido.success ? lido.data : PREFERENCIAS_PADRAO;
+    lido = JSON.parse(texto);
   } catch {
     return PREFERENCIAS_PADRAO;
   }
+  if (!objeto(lido)) {
+    return PREFERENCIAS_PADRAO;
+  }
+  // O valor gravado antes da legenda existir não tem o campo, e continua valendo.
+  const legenda = lido.legenda ?? false;
+  const velocidade = VELOCIDADES.find((v) => v === lido.velocidade);
+  const volume = paraVolume(lido.volume);
+  return typeof legenda === "boolean" && velocidade !== undefined && volume
+    ? { legenda, velocidade, volume }
+    : PREFERENCIAS_PADRAO;
 }
 
 export function lerPreferencias(): Preferencias {

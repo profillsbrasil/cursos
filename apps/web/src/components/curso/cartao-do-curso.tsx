@@ -77,7 +77,7 @@ export function CartaoDoCurso({
             alt={pagina.capa.alt}
             className="object-cover"
             fill
-            priority
+            preload
             sizes="(min-width: 1081px) 300px, (max-width: 767px) 100vw, 45vw"
             src={pagina.capa.url}
           />

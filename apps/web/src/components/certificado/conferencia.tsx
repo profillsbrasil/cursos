@@ -38,7 +38,7 @@ export function ReciboDaConferencia({
           "grid w-full max-w-[440px] justify-items-center gap-5 px-[26px] py-7 text-center"
         )}
       >
-        <Image alt={PRODUTO} height={84} priority src={ICONE.src} width={84} />
+        <Image alt={PRODUTO} height={84} preload src={ICONE.src} width={84} />
         <h1
           className="inline-flex h-6 items-center gap-1.5 rounded-full bg-ceu px-2.5 font-semibold text-sobre-cor text-xs"
           id="certificado-valido"

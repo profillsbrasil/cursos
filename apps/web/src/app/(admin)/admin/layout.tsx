@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ITENS_DO_ADMIN, VER_COMO_ALUNO } from "@/components/admin/menu";
 import { Casca } from "@/components/casca/casca";
+import { ProvedorDoClerk } from "@/components/provedor-do-clerk";
 import { TEMPLATE_DO_TITULO_DO_ADMIN } from "@/lib/marca";
 import { exigirAdmin } from "@/server/api";
 
@@ -16,14 +17,16 @@ export default async function LayoutDoAdmin({
 }: Readonly<{ children: React.ReactNode }>) {
   await exigirAdmin();
   return (
-    <Casca
-      itens={ITENS_DO_ADMIN}
-      outraArea={VER_COMO_ALUNO}
-      placar={null}
-      rotulo="Navegação do admin"
-      selo="Admin"
-    >
-      {children}
-    </Casca>
+    <ProvedorDoClerk>
+      <Casca
+        itens={ITENS_DO_ADMIN}
+        outraArea={VER_COMO_ALUNO}
+        placar={null}
+        rotulo="Navegação do admin"
+        selo="Admin"
+      >
+        {children}
+      </Casca>
+    </ProvedorDoClerk>
   );
 }

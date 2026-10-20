@@ -43,4 +43,12 @@ describe("textos e aparência do Clerk", () => {
     expect(APARENCIA_CLERK).not.toHaveProperty("options");
     expect(APARENCIA_CLERK.signIn).toBe(APARENCIA_CLERK.signUp);
   });
+
+  test("os textos levam só as telas que o app desenha", () => {
+    expect(JSON.stringify(TEXTOS_CLERK).length).toBeLessThan(30_000);
+    expect(TEXTOS_CLERK).not.toHaveProperty("userProfile");
+    expect(TEXTOS_CLERK).not.toHaveProperty("organizationProfile");
+    expect(TEXTOS_CLERK.reverification).toBeDefined();
+    expect(TEXTOS_CLERK.formButtonPrimary).toBe("Continuar");
+  });
 });
