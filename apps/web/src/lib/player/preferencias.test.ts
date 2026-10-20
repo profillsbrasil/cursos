@@ -52,6 +52,38 @@ describe("paraPreferencias", () => {
     ).toEqual(PREFERENCIAS_PADRAO);
     expect(paraPreferencias("{")).toEqual(PREFERENCIAS_PADRAO);
   });
+
+  test("nível fracionário, legenda que não é sim ou não e JSON que não é objeto voltam ao padrão", () => {
+    const volume = { mudo: false, nivel: 50 };
+    for (const lido of [
+      { velocidade: 1, volume: { mudo: false, nivel: 35.5 } },
+      { legenda: "sim", velocidade: 1, volume },
+      { velocidade: "1", volume },
+      null,
+      [1],
+    ]) {
+      expect(paraPreferencias(JSON.stringify(lido))).toEqual(
+        PREFERENCIAS_PADRAO
+      );
+    }
+  });
+
+  test("campo a mais no que foi gravado não passa adiante", () => {
+    expect(
+      paraPreferencias(
+        JSON.stringify({
+          extra: 1,
+          legenda: true,
+          velocidade: 2,
+          volume: { extra: 1, mudo: false, nivel: 0 },
+        })
+      )
+    ).toEqual({
+      legenda: true,
+      velocidade: 2,
+      volume: { mudo: false, nivel: 0 },
+    });
+  });
 });
 
 describe("sessão e preferências do aparelho", () => {
