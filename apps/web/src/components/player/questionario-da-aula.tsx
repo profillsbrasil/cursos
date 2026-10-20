@@ -53,6 +53,8 @@ type Fase =
   | {
       tipo: "respondendo";
       falhou: boolean;
+      /** Só o Tentar de novo leva o foco ao título; a primeira tentativa, ao abrir a aula, não. */
+      focar: boolean;
       marcadas: Readonly<Record<string, AlternativaId>>;
       tentativaId: TentativaId;
     }
@@ -64,8 +66,9 @@ type Fase =
       resultado: ResultadoDoQuestionario;
     };
 
-const novaTentativa = (): Fase => ({
+const novaTentativa = (focar: boolean): Fase => ({
   falhou: false,
+  focar,
   marcadas: {},
   tentativaId: crypto.randomUUID() as TentativaId,
   tipo: "respondendo",
@@ -79,7 +82,7 @@ const faseInicial = (q: Questionario): Fase =>
         resultado: q.ultima,
         tipo: "resultado",
       }
-    : novaTentativa();
+    : novaTentativa(false);
 
 const LADO = "px-[26px] max-sm:px-[18px]";
 
@@ -423,6 +426,53 @@ export function Resultado({
   );
 }
 
+function Cabecalho({
+  focar,
+  paraPassar,
+  total,
+}: {
+  focar: boolean;
+  paraPassar: number;
+  total: number;
+}) {
+  const id = useId();
+  const titulo = useRef<HTMLHeadingElement>(null);
+  // O Tentar de novo some com o resultado. O foco vai ao título, e não à
+  // primeira alternativa: o leitor de tela anuncia o começo e a regra, e a
+  // seta não marca uma resposta sem querer.
+  useEffect(() => {
+    if (focar) {
+      titulo.current?.focus();
+    }
+  }, [focar]);
+  return (
+    <header
+      className={cn(
+        "flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5 pt-[22px] pb-[18px]",
+        LADO
+      )}
+    >
+      <h2
+        aria-describedby={`${id}-regra`}
+        className="font-bold text-2xl text-titulo leading-[1.33] tracking-tight"
+        ref={titulo}
+        tabIndex={-1}
+      >
+        Questionário
+      </h2>
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground tabular-nums">
+        <Pips cheios={paraPassar} total={total} />
+        <span id={`${id}-regra`}>
+          {plural(total, "pergunta", "perguntas")} · {PREFIXO_DA_REGRA}
+          <b className="font-semibold text-foreground">
+            {paraPassar} de {total}
+          </b>
+        </span>
+      </p>
+    </header>
+  );
+}
+
 export function QuestionarioDaAula({
   aulaId,
   proxima,
@@ -453,7 +503,7 @@ export function QuestionarioDaAula({
       ),
     []
   );
-  const tentarDeNovo = useCallback(() => setFase(novaTentativa()), []);
+  const tentarDeNovo = useCallback(() => setFase(novaTentativa(true)), []);
 
   const respondidas =
     fase.tipo === "respondendo" ? Object.keys(fase.marcadas).length : total;
@@ -513,25 +563,11 @@ export function QuestionarioDaAula({
           tentarDeNovo={tentarDeNovo}
         />
       ) : (
-        <header
-          className={cn(
-            "flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5 pt-[22px] pb-[18px]",
-            LADO
-          )}
-        >
-          <h2 className="font-bold text-2xl text-titulo leading-[1.33] tracking-tight">
-            Questionário
-          </h2>
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground tabular-nums">
-            <Pips cheios={questionario.paraPassar} total={total} />
-            <span>
-              {plural(total, "pergunta", "perguntas")} · {PREFIXO_DA_REGRA}
-              <b className="font-semibold text-foreground">
-                {questionario.paraPassar} de {total}
-              </b>
-            </span>
-          </p>
-        </header>
+        <Cabecalho
+          focar={fase.focar}
+          paraPassar={questionario.paraPassar}
+          total={total}
+        />
       )}
       <div>
         {questionario.perguntas.map((p, i) => (
