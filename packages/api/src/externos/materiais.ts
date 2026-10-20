@@ -5,7 +5,6 @@
 // dominio/material.ts.
 
 import { createHash } from "node:crypto";
-import { AwsClient } from "aws4fetch";
 import { imageSize } from "image-size";
 
 import {
@@ -19,7 +18,7 @@ import {
   type TipoDoMaterial,
   tipoDoNome,
 } from "../dominio/material";
-import type { BucketDeCapas } from "./capas";
+import { type BucketDeCapas, bucketAssinado } from "./capas";
 
 export type BucketDeMateriais = BucketDeCapas;
 
@@ -118,15 +117,7 @@ export function materiaisNoBucket(
   cfg: BucketDeMateriais,
   enviar: typeof fetch = fetch
 ): Materiais {
-  const aws = new AwsClient({
-    accessKeyId: cfg.idDaChave,
-    region: cfg.regiao,
-    secretAccessKey: cfg.segredo,
-    service: "s3",
-  });
-  const endpoint = new URL(cfg.endpoint);
-  const doObjeto = (chave: string) =>
-    `${endpoint.protocol}//${cfg.bucket}.${endpoint.host}/${chave}`;
+  const bucket = bucketAssinado(cfg, enviar);
 
   const falha = async (etapa: string, resposta: Response) => {
     console.error(
@@ -141,7 +132,7 @@ export function materiaisNoBucket(
       if (!CHAVE_DO_MATERIAL.test(chave)) {
         return null;
       }
-      const resposta = await enviar(await aws.sign(doObjeto(chave)));
+      const resposta = await bucket.pedir(chave);
       if (resposta.status === 404) {
         return null;
       }
@@ -155,9 +146,7 @@ export function materiaisNoBucket(
       if (!CHAVE_DO_MATERIAL.test(chave)) {
         return false;
       }
-      const resposta = await enviar(
-        await aws.sign(doObjeto(chave), { method: "HEAD" })
-      );
+      const resposta = await bucket.pedir(chave, "HEAD");
       if (resposta.status === 404) {
         return false;
       }
@@ -179,19 +168,11 @@ export function materiaisNoBucket(
       if (lido.tipo === "recusa") {
         return lido;
       }
-      const assinado = await aws.sign(doObjeto(lido.arquivo.chave), {
-        body: lido.bytes,
-        headers: { "content-type": lido.contentType },
-        method: "PUT",
-      });
-      // Os bytes vão de novo, e não o corpo do Request assinado: o fetch do Node
-      // manda o corpo de um Request em chunked, sem content-length, e o S3 que
-      // exige o tamanho responde 411 (o MinIO local responde).
-      const resposta = await enviar(assinado.url, {
-        body: lido.bytes,
-        headers: assinado.headers,
-        method: "PUT",
-      });
+      const resposta = await bucket.guardar(
+        lido.arquivo.chave,
+        lido.bytes,
+        lido.contentType
+      );
       if (!resposta.ok) {
         await falha("o envio", resposta);
         throw new Error("Não foi possível enviar o material. Tente de novo.");
