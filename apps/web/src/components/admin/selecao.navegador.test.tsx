@@ -125,10 +125,17 @@ function esperar(condicao: string) {
   );
 }
 
+// A transição que outra corta no meio, como a abertura que o Enter fecha,
+// rejeita o `finished` com AbortError: espera até não sobrar nenhuma em voo.
 const transicoesTerminadas = () =>
   avaliar(
     enviar,
-    "Promise.all(document.getAnimations().map((a) => a.finished)).then(() => true)"
+    `(async () => {
+      for (let emVoo = document.getAnimations(); emVoo.length; emVoo = document.getAnimations()) {
+        await Promise.allSettled(emVoo.map((a) => a.finished));
+      }
+      return true;
+    })()`
   );
 
 const CODIGO_DA_TECLA = { ArrowDown: 40, Enter: 13, Escape: 27 } as const;
@@ -148,7 +155,10 @@ async function teclar(tecla: keyof typeof CODIGO_DA_TECLA) {
 }
 
 const LISTA = '[role="listbox"]';
-const listaAberta = `document.querySelector('${LISTA}')?.closest("[data-open]")`;
+const POPUP = `document.querySelector('${LISTA}')?.closest("[data-open]")`;
+// No primeiro quadro o Base UI monta o popup com data-starting-style e
+// `transition: none` inline: a lista só está aberta quando ele sai dessa fase.
+const listaAberta = `${POPUP}?.hasAttribute("data-starting-style") === false`;
 const fechada = (id: string) =>
   `document.getElementById("${id}").getAttribute("aria-expanded") === "false"`;
 const opcoesVisiveis = `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`;
@@ -179,7 +189,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       enviar,
       `(() => {
         const gatilho = document.getElementById("status");
-        const lista = document.querySelector('${LISTA}').closest("[data-open]");
+        const lista = ${POPUP};
         const g = gatilho.getBoundingClientRect();
         const l = lista.getBoundingClientRect();
         return {
@@ -247,7 +257,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       return avaliar<string[]>(
         enviar,
         `(() => {
-          const estilo = getComputedStyle(${listaAberta});
+          const estilo = getComputedStyle(${POPUP});
           return [estilo.transitionProperty, estilo.transitionDuration, estilo.transitionTimingFunction];
         })()`
       );
