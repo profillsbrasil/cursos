@@ -61,7 +61,7 @@ function Pendente({
           linha do pé), para a página não ser um cartão num canto. */}
       <div
         aria-hidden="true"
-        className="relative grid aspect-[1123/794] place-items-center overflow-hidden rounded-[6px] border-[1.5px] border-muted-foreground/40 border-dashed p-6 text-center text-muted-foreground text-sm"
+        className="relative grid aspect-[1123/794] place-items-center overflow-hidden rounded-[6px] border-[1.5px] border-muted-foreground/40 border-dashed p-6 text-center text-muted-foreground"
       >
         <span className="absolute inset-x-0 top-0 h-[14%] bg-sidebar/70" />
         <span className="absolute inset-x-[6%] bottom-[16%] h-px bg-border" />
@@ -78,7 +78,7 @@ function Pendente({
           <h2 className={TITULO_DO_CARTAO} id="certificado-pendente">
             O certificado sai quando você concluir o curso
           </h2>
-          <p className="mt-1 text-muted-foreground text-sm">
+          <p className="mt-1 text-muted-foreground">
             Assista a todas as aulas e passe em todos os questionários.
           </p>
         </div>

@@ -114,10 +114,9 @@ function Publicacao({
       <dl className="grid content-start gap-2">
         <dt className={ROTULO}>Código</dt>
         <dd
-          className={cn(
-            "text-sm",
+          className={
             codigo === null ? "text-muted-foreground" : "text-foreground"
-          )}
+          }
         >
           {codigo ?? "Gerado ao salvar"}
         </dd>
@@ -192,7 +191,7 @@ function Niveis({
   return (
     <div className="grid gap-4 p-5">
       {niveis.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground">
           Níveis agrupam módulos, como Básico e Avançado. Sem nível, os módulos
           aparecem numa lista só.
         </p>
@@ -253,7 +252,7 @@ function ApagarCurso({
   );
   if (!edicao.podeApagar) {
     return (
-      <p className="max-w-[70ch] p-5 text-muted-foreground text-sm">
+      <p className="max-w-[70ch] p-5 text-muted-foreground">
         O curso não se apaga porque {lista(motivosDoUso(edicao.uso))}. Para só
         tirar do ar, mude o status para Em produção e salve.
       </p>

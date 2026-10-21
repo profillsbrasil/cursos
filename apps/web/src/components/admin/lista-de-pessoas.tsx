@@ -76,7 +76,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
         >
           {p.nome}
         </Link>
-        <span className="truncate text-muted-foreground text-sm">
+        <span className="truncate text-muted-foreground">
           {p.email ?? p.userId}
         </span>
         {frase === null ? null : (

@@ -6,7 +6,7 @@ import Link from "next/link";
 export function VoltaParaALista({ href, nome }: { href: Route; nome: string }) {
   return (
     <Link
-      className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+      className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full pr-2 font-medium text-muted-foreground transition-colors hover:text-foreground"
       href={href}
     >
       <ArrowLeft aria-hidden="true" className="size-4" />

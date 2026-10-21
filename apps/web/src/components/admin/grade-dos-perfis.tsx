@@ -188,7 +188,7 @@ export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
         >
           Cursos
         </h2>
-        <p className="text-muted-foreground text-sm tabular-nums">
+        <p className="text-muted-foreground tabular-nums">
           {plural(grade.cursos.length, "curso", "cursos")}, {fmtNum(abertos)}{" "}
           liberados a todos
         </p>

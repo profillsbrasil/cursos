@@ -121,7 +121,7 @@ export function CursosParaTrocar({
               "flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-4 px-5 py-4"
             )}
           >
-            <p className="max-w-[60ch] text-muted-foreground text-sm">
+            <p className="max-w-[60ch] text-muted-foreground">
               {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
             </p>
             {temCursoTrocavelNaVitrine ? null : retomarEstudo(retomar)}

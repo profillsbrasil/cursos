@@ -46,7 +46,7 @@ export function ComoGanhar({
           </li>
         ))}
       </ul>
-      <p className="mt-3.5 text-muted-foreground text-sm">
+      <p className="mt-3.5 text-muted-foreground">
         Rever aula não pontua de novo, e o questionário pontua só na primeira
         tentativa. Sábado e domingo nunca quebram a sequência.
       </p>

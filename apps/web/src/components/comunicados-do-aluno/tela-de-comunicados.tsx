@@ -167,7 +167,7 @@ function Vazio() {
         <h2 className="font-semibold text-base text-titulo leading-[1.4]">
           Nenhum comunicado por enquanto
         </h2>
-        <p className="mt-1 max-w-[56ch] text-pretty text-muted-foreground text-sm">
+        <p className="mt-1 max-w-[56ch] text-pretty text-muted-foreground">
           Quando o admin publicar um aviso para todos ou sobre um dos seus
           cursos, ele aparece aqui, com o texto inteiro.
         </p>

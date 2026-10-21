@@ -137,7 +137,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
               <span className="w-[26px] text-center font-mono text-muted-foreground text-xs tabular-nums">
                 {m.numero}
               </span>
-              <span className="font-semibold text-foreground text-sm group-open:text-titulo group-hover/modulo:text-titulo">
+              <span className="font-semibold text-foreground group-open:text-titulo group-hover/modulo:text-titulo">
                 {m.titulo}
               </span>
               <span
@@ -158,7 +158,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
                   <Link
                     aria-current={a.atual ? "page" : undefined}
                     className={cn(
-                      "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground text-sm hover:bg-white/8 hover:text-titulo",
+                      "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground hover:bg-white/8 hover:text-titulo",
                       a.atual && "bg-sol/[0.08] font-semibold text-titulo"
                     )}
                     href={caminhoDaAula(slug, a.id)}

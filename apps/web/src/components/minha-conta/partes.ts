@@ -37,8 +37,7 @@ export const LINHA_BOTAO = cn(
 
 export const TEXTO_DA_LINHA = "grid min-w-0 flex-1 gap-0.5";
 
-export const NOME_DA_LINHA =
-  "block break-words font-semibold text-sm text-titulo";
+export const NOME_DA_LINHA = "block break-words font-semibold text-titulo";
 
 export const DETALHE_DA_LINHA =
   "break-words text-[12.5px] text-muted-foreground";

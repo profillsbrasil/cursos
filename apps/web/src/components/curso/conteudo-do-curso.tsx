@@ -278,7 +278,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
         >
           Conteúdo do curso
         </h2>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground">
           {plural(modulos.length, "módulo", "módulos")} ·{" "}
           {plural(aulas, "aula", "aulas")} ·{" "}
           <button

@@ -597,7 +597,7 @@ export function ModulosDoCurso({
         >
           Módulos e aulas
         </h2>
-        <p className="text-muted-foreground text-sm tabular-nums">
+        <p className="text-muted-foreground tabular-nums">
           {plural(modulos.length, "módulo", "módulos")},{" "}
           {plural(aulas, "aula", "aulas")}
         </p>

@@ -9,7 +9,7 @@ import { CARTAO } from "@/components/casca/cartoes";
  * data-slot="select-trigger"; a seta gira com o data-popup-open do Base UI.
  */
 export const SELECAO =
-  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-full border border-muted-foreground bg-background px-3.5 text-left text-foreground text-sm transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
+  "flex h-11 w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-full border border-muted-foreground bg-background px-3.5 text-left text-foreground transition-colors aria-invalid:border-destructive data-disabled:cursor-not-allowed data-disabled:opacity-50 data-placeholder:text-muted-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:transition-[rotate] [&>svg]:duration-200 [&>svg]:ease-forte data-popup-open:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none";
 
 export const GATILHO_DA_SELECAO = {
   campo: SELECAO,
@@ -100,7 +100,7 @@ export function Secao({
         >
           {titulo}
         </h2>
-        <p className="text-muted-foreground text-sm tabular-nums">{resumo}</p>
+        <p className="text-muted-foreground tabular-nums">{resumo}</p>
       </div>
       <div className={CARTAO_DA_SECAO}>{children}</div>
     </section>
@@ -108,5 +108,5 @@ export function Secao({
 }
 
 export function Vazio({ children }: { children: ReactNode }) {
-  return <p className="px-5 py-4 text-muted-foreground text-sm">{children}</p>;
+  return <p className="px-5 py-4 text-muted-foreground">{children}</p>;
 }

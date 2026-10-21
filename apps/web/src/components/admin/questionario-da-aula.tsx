@@ -97,9 +97,7 @@ function RegraDaNota({
           />
         ))}
       </span>
-      <b className="font-semibold text-sm text-titulo tabular-nums">
-        {regra.titulo}
-      </b>
+      <b className="font-semibold text-titulo tabular-nums">{regra.titulo}</b>
       <p className="col-span-full max-w-[35em] text-pretty text-foreground text-xs">
         {regra.explicacao}
       </p>
@@ -358,7 +356,7 @@ function Alternativas({
   return (
     <>
       <div className="mt-1 flex items-baseline justify-between gap-2">
-        <span className="font-semibold text-sm" id={rotulo}>
+        <span className="font-semibold" id={rotulo}>
           Alternativas
         </span>
         <span className="text-muted-foreground text-xs">
@@ -459,7 +457,7 @@ function EdicaoDaPergunta({
   return (
     <div className="grid min-w-0 content-start gap-3 p-4 pb-[18px]">
       <div className="-mb-1 flex items-center justify-between gap-2">
-        <span className="font-semibold text-sm">
+        <span className="font-semibold">
           Pergunta {indice + 1} de {total}
         </span>
         <Button
