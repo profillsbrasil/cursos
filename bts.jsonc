@@ -24,8 +24,8 @@
   "auth": "clerk",
   "payments": "none",
   "packageManager": "bun",
-  "dbSetup": "supabase",
+  "dbSetup": "none",
   "api": "trpc",
-  "webDeploy": "vercel",
+  "webDeploy": "none",
   "serverDeploy": "none"
 }

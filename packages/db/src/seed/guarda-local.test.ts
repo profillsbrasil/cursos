@@ -5,18 +5,18 @@ import { BancoNaoLocalError, garantirBancoLocal } from "./guarda-local";
 const CITA_CLAUDE_MD = /seção Banco do CLAUDE\.md/;
 
 describe("garantirBancoLocal", () => {
-  test("recusa o pooler de transação do Supabase cloud", () => {
+  test("recusa o proxy TCP do Postgres de dev da Railway", () => {
     expect(() =>
       garantirBancoLocal(
-        "postgresql://postgres.projeto:senha@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
+        "postgresql://postgres:senha@exemplo.proxy.rlwy.net:41234/railway"
       )
     ).toThrow(BancoNaoLocalError);
   });
 
-  test("recusa o session pooler na porta 5432", () => {
+  test("recusa o Postgres de produção pela rede interna", () => {
     expect(() =>
       garantirBancoLocal(
-        "postgresql://postgres.projeto:senha@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+        "postgresql://postgres:senha@postgres.railway.internal:5432/railway"
       )
     ).toThrow(BancoNaoLocalError);
   });
@@ -32,7 +32,7 @@ describe("garantirBancoLocal", () => {
   test("recusa host e porta sobrescritos pela query, que o pg usa no lugar dos do URL", () => {
     expect(() =>
       garantirBancoLocal(
-        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?host=aws-0-sa-east-1.pooler.supabase.com&port=6543"
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres?host=exemplo.proxy.rlwy.net&port=41234"
       )
     ).toThrow(BancoNaoLocalError);
     expect(() =>
@@ -50,7 +50,7 @@ describe("garantirBancoLocal", () => {
   test("a mensagem cita a seção Banco do CLAUDE.md", () => {
     expect(() =>
       garantirBancoLocal(
-        "postgresql://u:p@db.exemplo.supabase.co:5432/postgres"
+        "postgresql://u:p@exemplo.proxy.rlwy.net:41234/railway"
       )
     ).toThrow(CITA_CLAUDE_MD);
   });
@@ -75,7 +75,7 @@ describe("garantirBancoLocal", () => {
     ).toBe("55499");
     expect(() =>
       garantirBancoLocal(
-        "postgresql://p:p@pooler.supabase.com:6543/postgres",
+        "postgresql://p:p@exemplo.proxy.rlwy.net:41234/railway",
         null
       )
     ).toThrow(BancoNaoLocalError);

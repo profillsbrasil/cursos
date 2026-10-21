@@ -10,7 +10,7 @@ export default function Carregando() {
     <div aria-busy="true">
       <span className="sr-only">Carregando</span>
       <EsqueletoDoCabecalho
-        resumo="O aluno vê em Meus cursos só o mais recente que alcança"
+        resumo="O aluno vê o mais recente em Meus cursos e todos em Comunicados"
         titulo="Comunicados"
       />
       <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
