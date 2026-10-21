@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Glob } from "bun";
 import { createElement } from "react";
@@ -8,6 +8,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CabecalhoDaPagina } from "./cabecalho-da-pagina";
 
 const SRC = join(import.meta.dir, "../..");
+const RESUMO_FIXO = /resumo="([^"]*)"/;
+const ESQUELETO = /loading\.tsx$/;
 
 /**
  * Os h1 que não são o título com resumo: a ficha e o acesso abrem com a foto
@@ -55,5 +57,21 @@ describe("cabeçalho da página", () => {
     );
     expect(html).toContain("Seu certificado");
     expect(html).not.toContain('data-slot="skeleton"');
+  });
+
+  test("o esqueleto repete o resumo fixo da página, para quebrar nas mesmas linhas", () => {
+    const resumo = (arquivo: string) =>
+      readFileSync(join(SRC, arquivo), "utf8").match(RESUMO_FIXO)?.[1];
+    const diferentes: string[] = [];
+    for (const esqueleto of new Glob("app/**/loading.tsx").scanSync(SRC)) {
+      const pagina = esqueleto.replace(ESQUELETO, "page.tsx");
+      const daPagina = existsSync(join(SRC, pagina))
+        ? resumo(pagina)
+        : undefined;
+      if (daPagina !== undefined && resumo(esqueleto) !== daPagina) {
+        diferentes.push(esqueleto);
+      }
+    }
+    expect(diferentes).toEqual([]);
   });
 });
