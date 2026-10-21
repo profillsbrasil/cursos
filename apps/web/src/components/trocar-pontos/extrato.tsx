@@ -15,7 +15,7 @@ export function Extrato({
 }) {
   if (itens.length === 0) {
     return (
-      <p className={cn(CARTAO, "px-5 py-4 text-muted-foreground text-sm")}>
+      <p className={cn(CARTAO, "px-5 py-4 text-muted-foreground")}>
         Nenhum ponto ainda. Cada aula assistida até o fim vale pontos.
       </p>
     );

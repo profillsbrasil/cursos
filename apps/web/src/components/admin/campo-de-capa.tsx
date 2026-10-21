@@ -274,10 +274,7 @@ export function CampoDeCapa({
         ) : (
           <span className="grid justify-items-center gap-1.5 px-6 text-center">
             <ImageUp aria-hidden="true" className="mb-1 size-7 text-ceu" />
-            <span
-              aria-hidden="true"
-              className="font-semibold text-sm text-titulo"
-            >
+            <span aria-hidden="true" className="font-semibold text-titulo">
               Escolher capa
             </span>
             {regra}

@@ -18,7 +18,7 @@ export function Secao({
           {titulo}
         </h2>
         {subtitulo ? (
-          <p className="text-muted-foreground text-sm">{subtitulo}</p>
+          <p className="text-muted-foreground">{subtitulo}</p>
         ) : null}
       </div>
       {children}

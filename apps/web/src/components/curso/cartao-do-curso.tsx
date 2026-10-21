@@ -81,7 +81,7 @@ export function CartaoDoCurso({
           />
         </div>
         <div className="grid content-start gap-3.5 p-5">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <SeloEstado estado={pagina.estado} />
             <span className="font-semibold text-foreground">
               {progresso.pct}%
@@ -91,7 +91,7 @@ export function CartaoDoCurso({
             pct={progresso.pct}
             rotulo={`Progresso no curso ${pagina.titulo}`}
           />
-          <p className="text-muted-foreground text-sm">{linha}</p>
+          <p className="text-muted-foreground">{linha}</p>
           <div className="-mx-5 my-0.5 h-px bg-border" />
           <div className="grid gap-0.5">
             <span className="text-[13px] text-muted-foreground">

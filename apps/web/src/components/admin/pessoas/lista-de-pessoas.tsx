@@ -42,7 +42,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
           <span className="truncate font-medium text-base text-foreground">
             {p.nome}
           </span>
-          <span className="truncate text-muted-foreground text-sm">
+          <span className="truncate text-muted-foreground">
             {p.email ?? p.userId}
           </span>
           {p.perfil.doCadastro ? (
@@ -69,10 +69,10 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
           {p.papel === "admin" ? (
             <SeloDeSituacao selo={SELO_DE_ADMIN} />
           ) : (
-            <span className="text-muted-foreground text-sm">Aluno</span>
+            <span className="text-muted-foreground">Aluno</span>
           )}
         </span>
-        <span className="@min-[44rem]:block hidden text-muted-foreground text-sm tabular-nums">
+        <span className="@min-[44rem]:block hidden text-muted-foreground tabular-nums">
           {acesso ?? "Nunca"}
         </span>
         <ChevronRight

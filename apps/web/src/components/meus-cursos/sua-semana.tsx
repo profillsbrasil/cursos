@@ -104,7 +104,7 @@ export function SuaSemana({
         ))}
       </ul>
       {chamarParaHoje ? (
-        <p className="flex items-center gap-2 font-medium text-foreground text-sm">
+        <p className="flex items-center gap-2 font-medium text-foreground">
           <Play
             aria-hidden="true"
             className="size-[15px] flex-none fill-current text-ceu"
@@ -119,7 +119,7 @@ export function SuaSemana({
         />
         {FIM_DE_SEMANA_NAO_QUEBRA}
       </p>
-      <p className="-mx-(--pad) flex items-center gap-2.5 border-border border-t px-(--pad) pt-3.5 text-sm">
+      <p className="-mx-(--pad) flex items-center gap-2.5 border-border border-t px-(--pad) pt-3.5">
         <Star aria-hidden="true" className="size-5 text-sol" />
         <span>
           {faltam(resumo.faltamParaBonus)}{" "}
@@ -129,7 +129,7 @@ export function SuaSemana({
       </p>
       <dl className="-mx-(--pad) grid">
         <div className="flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5">
-          <dt className="text-muted-foreground text-sm">Pontos na semana</dt>
+          <dt className="text-muted-foreground">Pontos na semana</dt>
           <dd className="font-bold text-lg text-titulo tabular-nums leading-[1.3]">
             {fmtPts(resumo.pontosSemana)}
           </dd>
@@ -140,7 +140,7 @@ export function SuaSemana({
             temCursoTrocavelNaVitrine && "border-b"
           )}
         >
-          <dt className="text-muted-foreground text-sm">Seu saldo</dt>
+          <dt className="text-muted-foreground">Seu saldo</dt>
           <dd className="font-bold text-lg text-sol tabular-nums leading-[1.3]">
             {fmtPts(resumo.saldo)}
           </dd>

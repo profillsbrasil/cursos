@@ -25,7 +25,7 @@ const NOME_DO_JEITO: Record<JeitoDeEntrar, string> = {
 };
 
 const LINHA_DA_CONTA =
-  "grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-3 border-border border-t px-[22px] py-3 text-sm";
+  "grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-3 border-border border-t px-[22px] py-3";
 
 function Dado({
   children,

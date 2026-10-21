@@ -118,7 +118,7 @@ export function TopicosDoCurso({
     >
       <div className="@container grid gap-4 p-5">
         {topicos.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground">
             Sem tópicos, a página do curso não mostra esta seção.
           </p>
         ) : (

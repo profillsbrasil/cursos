@@ -26,7 +26,7 @@ import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 // O group-data da recolhida vence a altura, a largura e o padding da aberta pela
 // especificidade, e cor e peso só existem por estado: nenhuma classe anula outra.
 const ITEM = cn(
-  "flex h-(--altura-do-item) w-full items-center gap-3 overflow-hidden rounded-[10px] px-[11px] py-2 text-left text-sm",
+  "flex h-(--altura-do-item) w-full items-center gap-3 overflow-hidden rounded-[10px] px-[11px] py-2 text-left",
   "transition-[color,background-color] duration-150",
   "[&>span:last-child]:truncate [&_svg]:size-[18px] [&_svg]:shrink-0 [&_svg]:transition-colors [&_svg]:duration-150",
   "group-data-[collapsible=icon]:size-(--altura-do-item) group-data-[collapsible=icon]:p-[11px]"

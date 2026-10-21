@@ -39,7 +39,7 @@ function OpcaoDePerfil({
         value={perfil}
       />
       <span className="grid gap-0.5">
-        <span className="font-semibold text-sm text-titulo">
+        <span className="font-semibold text-titulo">
           {SOBRE_O_PERFIL[perfil].nome}
         </span>
         <span className="text-[12.5px] text-muted-foreground">
@@ -128,7 +128,7 @@ export function AcessoDaPessoa({
           className="grid flex-1 cursor-pointer gap-0.5"
           htmlFor={`admin-${userId}`}
         >
-          <span className="font-semibold text-sm text-titulo">Admin</span>
+          <span className="font-semibold text-titulo">Admin</span>
           <span className="text-[12.5px] text-muted-foreground">
             {souEu
               ? "Você não pode tirar o seu próprio papel de admin. Outro admin pode."

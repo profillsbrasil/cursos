@@ -214,7 +214,7 @@ function TrilhaDeAulas({
                   ganha={d.medalha.estado === "ganha"}
                   tamanho={56}
                 />
-                <span className="pl-2.5 font-semibold text-sm text-titulo tabular-nums">
+                <span className="pl-2.5 font-semibold text-titulo tabular-nums">
                   {fmtNum(d.meta)} aulas
                   {legenda ? (
                     <small className="block font-normal text-muted-foreground text-xs">

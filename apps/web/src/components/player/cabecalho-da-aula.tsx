@@ -11,7 +11,7 @@ import { caminhoDaAula } from "@/lib/rotas";
 // a altura dele bate com a do cabeçalho em toda largura.
 export const TITULO_DA_AULA =
   "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-[1.2] tracking-tight";
-export const LINHA_DO_MODULO = "mt-1 text-muted-foreground text-sm";
+export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
 
 /**
  * O título da aula e a linha do módulo, acima do vídeo: a primeira coisa que a pessoa
