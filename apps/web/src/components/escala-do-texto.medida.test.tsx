@@ -5,7 +5,9 @@ import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { GradeDoCatalogo } from "./admin/filtro-do-catalogo";
 import { Vazio } from "./admin/partes";
+import { VisaoDoCatalogo } from "./admin/visao-do-catalogo";
 import { TelaNaoEncontrada } from "./aluno/tela-nao-encontrada";
 import { TelaDeErro } from "./casca/tela-de-erro";
 import { ReciboDaConferencia } from "./certificado/conferencia";
@@ -53,6 +55,9 @@ const nadaFaz = () => undefined;
 const PAGINA = renderToStaticMarkup(
   <div className="grid gap-10">
     <Vazio>Nenhum comunicado ainda.</Vazio>
+    <p>Texto sem tamanho declarado.</p>
+    <VisaoDoCatalogo visao={{ cursos: [] }} />
+    <GradeDoCatalogo cursos={[]} novo={null} />
     <CursosParaTrocar
       cartoes={[]}
       extrato={[]}
@@ -153,6 +158,8 @@ describe.skipIf(!existsSync(CHROMIUM))("a escala do texto", () => {
     ["Comunicados vazio", "Quando o admin publicar um aviso"],
     ["a tela não encontrada", "Frase da tela não encontrada."],
     ["a tela de erro", "Frase da tela de erro."],
+    ["o Catálogo vazio", "Crie o primeiro curso."],
+    ["o filtro do Catálogo sem resultado", "Nenhum curso com esse filtro."],
   ])("a frase de estado vazio sai em 14 px: %s", async (_, trecho) => {
     expect((await letraDe(trecho))?.tamanho).toBe("14px");
   });
@@ -181,6 +188,13 @@ describe.skipIf(!existsSync(CHROMIUM))("a escala do texto", () => {
       entrelinha: "36px",
       espacamento: "-0.75px",
       tamanho: "30px",
+    });
+  });
+
+  test("o texto que não declara tamanho herda os 14 px do body", async () => {
+    expect(await letraDe("Texto sem tamanho declarado.")).toMatchObject({
+      entrelinha: "20px",
+      tamanho: "14px",
     });
   });
 

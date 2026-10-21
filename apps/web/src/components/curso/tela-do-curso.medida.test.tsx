@@ -56,7 +56,7 @@ async function abrir(largura: number, corpo: string) {
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
-      `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><main style="${CONTEUDO}">${corpo}</main></body></html>`
+      `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0;padding-bottom:800px"><main style="${CONTEUDO}">${corpo}</main></body></html>`
     )}); document.close(); window.scrollTo(0, 0);`
   );
 }

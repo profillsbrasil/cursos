@@ -114,7 +114,7 @@ function AtalhoNovoCurso() {
       <span className="grid size-11 place-items-center rounded-full bg-sol text-sobre-cor">
         <Plus aria-hidden="true" className="size-5" />
       </span>
-      <span className="font-semibold text-titulo">Novo curso</span>
+      <span className="font-semibold text-base text-titulo">Novo curso</span>
       <span className="max-w-[26ch] text-muted-foreground text-xs">
         Começa em produção: o aluno vê na lista, sem abrir aula
       </span>
