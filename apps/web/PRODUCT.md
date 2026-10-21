@@ -29,9 +29,9 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 ## Operating Context
 
 - Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), respondem ao questionário de cada aula e recebem certificado.
-- Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para o perfil ou a empresa dela.
+- Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para ela ou para o perfil dela.
 - O catálogo tem um tipo só de coisa: o curso, no formato da Udemy, com módulos como seções e aulas em sequência. Não existe ordem entre cursos: um curso liberado abre sem esperar outro (`docs/adr/0001-catalogo-so-de-cursos.md`).
-- Um admin cria os cursos e os libera por pessoa (por exemplo, cursos X e Y para uma pessoa e só X para outra). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
+- Um admin cria os cursos e os libera por pessoa (por exemplo, cursos X e Y para uma pessoa e só X para outra) ou por perfil (aba Por perfil de Liberações). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
 - Clientes e público aberto recebem cursos liberados do mesmo jeito; a compra ou a assinatura só libera cursos.
 - A liberação é permanente. Ela só some se o admin revogar.
 - Não há prazo de conclusão em liberação nenhuma.
@@ -50,10 +50,10 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 
 Confirmado:
 
-- Formatos de aula: vídeo gravado, material para ler, questionário e certificado. Hoje a aula tem vídeo, descrição e questionário; o material para ler ainda não existe.
+- Formatos de aula: vídeo gravado, material para ler, questionário e certificado. Hoje a aula tem vídeo, descrição e questionário; o material para ler dentro da aula ainda não existe. O curso tem material de apoio para baixar.
 - O certificado de um curso sai quando a pessoa assiste a todas as aulas e é aprovada em todos os questionários.
 - Temas: máquinas da Profills, processo de envase e embalagem, vendas e atendimento, rotinas internas.
-- Uma plataforma com controle de acesso por perfil e por empresa cliente. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz). Hoje a liberação é por pessoa; perfil e empresa ainda não existem no código.
+- Uma plataforma com controle de acesso por pessoa e por perfil. A autenticação é do Clerk e a autorização mora nos procedures do tRPC (ver `CLAUDE.md` da raiz). A liberação é por pessoa e por perfil (`funcionario`, `cliente`, `publico`; `docs/adr/0003-papel-e-perfil.md`). Empresa cliente não é conceito: o admin libera à mão cada pessoa do cliente.
 - Cobrança em dois modelos: compra avulsa e assinatura, além de liberação gratuita por usuário.
 
 Fora do escopo confirmado:
@@ -67,7 +67,6 @@ Decisões abertas:
 - Quando os clientes e o público aberto entram depois do lançamento interno.
 - Se o certificado tem validação externa (órgão, entidade de classe) além da conferência pelo código.
 - A métrica de sucesso de cada público (conclusão, venda, menos chamados de assistência).
-- Os perfis de acesso exatos além de aluno e admin. Curso, liberação, admin e o resto do vocabulário estão no `GLOSSARY.md` da raiz.
 
 Decididas pelo dono em 2026-10-16:
 
@@ -78,6 +77,7 @@ Decididas pelo dono em 2026-10-16:
 - O menu do aluno não tem Início: Meus cursos é a primeira tela. A tela Comunicados lista todos os comunicados do aluno, com o mais recente em destaque e a capa do curso cobrindo o lado direito do cartão.
 - A sidebar recolhe sozinha na página da aula e volta como a pessoa a deixou quando ela sai. O app não tem migalha (breadcrumb).
 - A aula sem pergunta não tem questionário a aprovar.
+- Perfil (`funcionario`, `cliente`, `publico`) e papel (`aluno`, `admin`) são eixos separados (`docs/adr/0003-papel-e-perfil.md`). Curso, liberação, admin e o resto do vocabulário estão no `GLOSSARY.md` da raiz.
 - O certificado é uma página do app (A), com a folha do PDF (A) e a conferência pública num recibo (D), das versões do protótipo.
 
 ## Brand Commitments
