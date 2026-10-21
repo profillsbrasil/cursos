@@ -28,11 +28,11 @@ import { codigoLivre, siglaDaCategoria } from "../dominio/codigo-do-curso";
 import {
   type DocumentoDoCurso,
   type EdicaoDoCurso,
-  LIMITES,
   lerFormularioDoCurso,
   podeApagarCurso,
 } from "../dominio/edicao-do-curso";
 import { raizDoSlug, slugDoTitulo, slugLivre } from "../dominio/endereco";
+import { LIMITES } from "../dominio/limites-do-curso";
 import { mensagemDoMaterial, type RecusaDoMaterial } from "../dominio/material";
 import {
   type PlanoDeGravacao,

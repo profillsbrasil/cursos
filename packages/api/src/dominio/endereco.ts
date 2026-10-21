@@ -1,7 +1,7 @@
 // O endereço do curso (o slug de /cursos/<slug>). O servidor escolhe na criação, a
 // partir do título, e não troca depois: o link que o aluno guardou continua abrindo.
 
-import { CARACTERES } from "./edicao-do-curso";
+import { CARACTERES } from "./limites-do-curso";
 
 /** Deixa espaço para o sufixo "-N" sem passar de CARACTERES.slug. */
 const TETO_DA_BASE = CARACTERES.slug - 8;

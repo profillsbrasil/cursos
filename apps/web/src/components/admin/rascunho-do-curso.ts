@@ -6,9 +6,9 @@ import {
   type DocumentoDoCurso,
   DURACAO_MAXIMA_SEG,
   documentoDoCurso,
-  LIMITES,
   PRECO_MAXIMO,
 } from "@cursos/api/dominio/edicao-do-curso";
+import { LIMITES } from "@cursos/api/dominio/limites-do-curso";
 import { ALTERNATIVAS } from "@cursos/api/dominio/questionario";
 import type {
   AlternativaId,

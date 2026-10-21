@@ -21,7 +21,7 @@ export function PaginaPublica({
   return (
     <div className="min-h-dvh bg-background">
       <header className="flex h-14 items-center justify-between border-border border-b bg-sidebar px-4 md:h-[68px] md:px-8">
-        <Image alt={PRODUTO} height={34} preload src={LOCKUP.src} width={120} />
+        <Image alt={PRODUTO} height={34} src={LOCKUP.src} width={120} />
         {direita}
       </header>
       <main className={CORPO_DA_PAGINA_PUBLICA}>{children}</main>

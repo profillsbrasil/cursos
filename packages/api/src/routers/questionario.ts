@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { responder } from "../consultas/questionario";
-import { LIMITES } from "../dominio/edicao-do-curso";
+import { LIMITES } from "../dominio/limites-do-curso";
 import type {
   AlternativaId,
   AulaId,

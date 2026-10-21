@@ -24,14 +24,13 @@ import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
-  CARACTERES,
   type DocumentoDoCurso,
   type EdicaoDoCurso,
   formularioDoCurso,
-  LIMITES,
   type ModuloDoDocumento,
   type PerguntaDoDocumento,
 } from "../dominio/edicao-do-curso";
+import { CARACTERES, LIMITES } from "../dominio/limites-do-curso";
 import type {
   AlternativaId,
   AulaId,

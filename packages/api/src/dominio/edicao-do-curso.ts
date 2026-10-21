@@ -12,6 +12,7 @@ import {
 } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
+import { CARACTERES, LIMITES } from "./limites-do-curso";
 import { CHAVE_DO_MATERIAL, LIMITE_DO_MATERIAL } from "./material";
 import { ALTERNATIVAS } from "./questionario";
 import type {
@@ -27,39 +28,6 @@ import type {
   VideoDaAula,
   VideoId,
 } from "./tipos";
-
-/**
- * Tetos do documento. gravarCurso deriva deles o deslocamento que regrava números
- * e posições sem colidir nos uniques não deferrable.
- */
-export const LIMITES = {
-  aulasPorModulo: 500,
-  /** O teto de cada arquivo; o check material_bytes_limite repete. */
-  bytesDoMaterial: LIMITE_DO_MATERIAL.bytes,
-  materiais: LIMITE_DO_MATERIAL.porCurso,
-  modulos: 200,
-  niveis: 50,
-  numeroDeModulo: 999,
-  perguntasPorAula: 20,
-  /** O check curso_topicos_validos repete este teto. */
-  topicos: 10,
-} as const;
-
-export const CARACTERES = {
-  alternativa: 200,
-  categoria: 80,
-  descricao: 2000,
-  descricaoDaAula: 2000,
-  enunciado: 500,
-  nomeDoArquivo: LIMITE_DO_MATERIAL.nomeDoArquivo,
-  nomeDoNivel: 60,
-  slug: 80,
-  titulo: 120,
-  tituloDaAula: 160,
-  tituloDoMaterial: LIMITE_DO_MATERIAL.titulo,
-  tituloDoModulo: 160,
-  topico: 120,
-} as const;
 
 export const SEM_CERTA = "Marque a alternativa certa: clique na letra dela.";
 

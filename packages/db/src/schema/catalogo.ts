@@ -30,7 +30,7 @@ export const categoria = tabela(
   },
   (t) => [
     unique("categoria_nome_unico").on(t.nome),
-    // O teto repete CARACTERES.categoria de edicao-do-curso.ts.
+    // O teto repete CARACTERES.categoria de limites-do-curso.ts.
     check(
       "categoria_nome_formato",
       sql`${t.nome} = trim(${t.nome}) and char_length(${t.nome}) between 1 and 80`
@@ -62,7 +62,7 @@ export const curso = tabela(
   },
   (t) => [
     check("curso_slug_formato", sql`${t.slug} ~ ${SLUG}`),
-    // Os tetos repetem CARACTERES e LIMITES de edicao-do-curso.ts, e o
+    // Os tetos repetem CARACTERES e LIMITES de limites-do-curso.ts, e o
     // edicao.integration.test.ts confere os dois lados.
     check("curso_descricao_tamanho", sql`char_length(${t.descricao}) <= 2000`),
     // A função vem da migração formato_udemy: um check não pode ter subconsulta.
@@ -200,7 +200,7 @@ export const alternativa = tabela(
 );
 
 // O material de apoio do curso inteiro, que o aluno com liberação ativa baixa na
-// página do curso. Os tetos repetem CARACTERES e LIMITES de edicao-do-curso.ts, e
+// página do curso. Os tetos repetem CARACTERES e LIMITES de limites-do-curso.ts, e
 // o edicao.integration.test.ts confere os dois lados; "até 20 por curso" é regra
 // entre linhas e fica no schema zod. O arquivo mora no bucket de materiais pela
 // chave, o sha256 dos bytes mais a extensão do tipo.

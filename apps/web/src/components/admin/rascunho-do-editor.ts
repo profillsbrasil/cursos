@@ -1,11 +1,11 @@
 // Sem "use client": o editor e os testes importam.
 
 import type { Motivo } from "@cursos/api";
-import {
-  type DocumentoDoCurso,
-  LIMITES,
-  type MaterialDoDocumento,
+import type {
+  DocumentoDoCurso,
+  MaterialDoDocumento,
 } from "@cursos/api/dominio/edicao-do-curso";
+import { LIMITES } from "@cursos/api/dominio/limites-do-curso";
 import type { TipoDoMaterial } from "@cursos/api/dominio/material";
 import { ALTERNATIVAS } from "@cursos/api/dominio/questionario";
 import type {
