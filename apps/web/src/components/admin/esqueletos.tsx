@@ -60,7 +60,7 @@ export function EsqueletoDoTopoDaPessoa({
     <>
       <Skeleton className={cn(PULSO, "mb-5 h-10 w-28 rounded-full")} />
       <div className="mb-7 flex items-center gap-4">
-        <Skeleton className={cn(PULSO, "size-10 shrink-0 rounded-full")} />
+        <Skeleton className={cn(PULSO, "size-14 shrink-0 rounded-full")} />
         <div className="grid gap-1">
           <Skeleton className={cn(PULSO, "h-9 w-56 rounded-lg")} />
           <Skeleton className={cn(PULSO, "h-6 w-64 rounded-lg")} />
@@ -74,7 +74,7 @@ export function EsqueletoDoTopoDaPessoa({
 }
 
 /**
- * O editor do curso: o título a 28 px da capa, os cartões das seções e, de
+ * O editor do curso: a volta ao Catálogo, o título a 28 px da capa, os cartões das seções e, de
  * 960 px de formulário para cima, a coluna de publicação. O cartão da capa
  * repete a grade da `CapaEDescricao`: abaixo de 768 px de cartão, a capa 3:2
  * fica sobre os campos, e a altura dele acompanha a largura como a do pronto.
@@ -87,6 +87,7 @@ export function EsqueletoDoEditor() {
   return (
     <div aria-busy="true" className="@container">
       <span className="sr-only">Carregando o curso</span>
+      <Skeleton className={cn(PULSO, "mb-5 h-10 w-28 rounded-full")} />
       <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
         <div className="grid gap-10">
           <div className="grid gap-7">

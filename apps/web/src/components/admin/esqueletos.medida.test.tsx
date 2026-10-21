@@ -144,6 +144,7 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
         topo: document.querySelector("#topo .rounded-full.shrink-0").getBoundingClientRect().width,
       })`
     );
+    expect(lados.foto).toBe(56);
     expect(lados.topo).toBe(lados.foto);
   });
 

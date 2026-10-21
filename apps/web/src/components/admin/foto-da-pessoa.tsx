@@ -21,10 +21,7 @@ export function FotoDaPessoa({
   size?: "default" | "lg";
 }) {
   return (
-    <Avatar
-      className={cn(size === "lg" ? "size-14" : "size-10", className)}
-      size={size}
-    >
+    <Avatar className={cn(size === "lg" ? "size-14" : "size-10", className)}>
       {foto ? (
         <AvatarImage alt="" src={fotoNoLado(foto, size === "lg" ? 56 : 40)} />
       ) : null}
