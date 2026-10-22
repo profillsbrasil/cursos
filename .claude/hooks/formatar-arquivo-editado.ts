@@ -75,7 +75,21 @@ if (alvo) {
       "--skip=correctness/noUnusedImports",
       alvo,
     ],
-    { cwd: base, stdio: ["ignore", "inherit", "inherit"] }
+    { cwd: base, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
   );
-  process.exitCode = biome.status === 0 ? 0 : 1;
+  // Em PostToolUse, exit 1 só mostra um aviso ao user, e o modelo não lê o
+  // stderr. O additionalContext chega ao modelo junto do resultado da tool.
+  if (biome.status === 0) {
+    process.stdout.write(biome.stdout);
+  } else {
+    const saida = `${biome.stdout}${biome.stderr}`.trim();
+    process.stdout.write(
+      JSON.stringify({
+        hookSpecificOutput: {
+          additionalContext: `O Biome deixou erros que o --write não corrige em ${relative(base, alvo)}:\n${saida}`,
+          hookEventName: "PostToolUse",
+        },
+      })
+    );
+  }
 }
