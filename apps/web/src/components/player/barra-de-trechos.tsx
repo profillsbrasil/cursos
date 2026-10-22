@@ -9,6 +9,13 @@ import { mmss } from "@/lib/formato";
 const pct = (seg: number, duracaoSeg: number) =>
   `${Math.min(100, Math.max(0, (100 * seg) / duracaoSeg))}%`;
 
+// Os trechos guardam segundos inteiros, e o polegar anda com a fração: sem isto, o
+// amarelo fica até 1 s atrás dele, tocando ou pausado.
+const ateOPolegar = (trechos: readonly Trecho[], tempoSeg: number) =>
+  trechos.map((t) =>
+    t.fim <= tempoSeg && tempoSeg < t.fim + 1 ? { ...t, fim: tempoSeg } : t
+  );
+
 export function BarraDeTrechos({
   aoBuscar,
   duracaoSeg,
@@ -73,7 +80,7 @@ export function BarraDeTrechos({
       tabIndex={0}
     >
       <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset">
-        {trechos.map((t) => (
+        {ateOPolegar(trechos, tempoSeg).map((t) => (
           <div
             className="absolute inset-y-0 bg-sol"
             key={t.inicio}
