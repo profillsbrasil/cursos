@@ -14,7 +14,7 @@ export default function CarregandoCurso() {
       <div className="grid gap-3.5">
         <span className="sr-only">Carregando o curso</span>
         <Skeleton className={`${PULSO} h-9 w-2/3 rounded-lg`} />
-        <Skeleton className={`${PULSO} h-[75px] max-w-[60ch] rounded-lg`} />
+        <Skeleton className={`${PULSO} h-[75px] rounded-lg`} />
         <Skeleton className={`${PULSO} h-6 w-80 max-w-full rounded-full`} />
       </div>
       <Skeleton

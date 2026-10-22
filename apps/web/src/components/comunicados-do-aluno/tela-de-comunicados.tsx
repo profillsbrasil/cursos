@@ -58,7 +58,7 @@ function LinkDoCurso({
 
 function Texto({ className, texto }: { className?: string; texto: string }) {
   return (
-    <div className={cn("grid max-w-[64ch] gap-2 text-pretty", className)}>
+    <div className={cn("grid gap-2 text-pretty", className)}>
       {paragrafos(texto).map((p) => (
         <p key={p}>{p}</p>
       ))}
@@ -167,7 +167,7 @@ function Vazio() {
         <h2 className="font-semibold text-base text-titulo leading-[1.4]">
           Nenhum comunicado por enquanto
         </h2>
-        <p className="mt-1 max-w-[56ch] text-pretty text-muted-foreground">
+        <p className="mt-1 text-pretty text-muted-foreground">
           Quando o admin publicar um aviso para todos ou sobre um dos seus
           cursos, ele aparece aqui, com o texto inteiro.
         </p>

@@ -165,7 +165,7 @@ function Livro({
               {fmtMin(a.duracaoSeg)}
             </span>
             {a.descricao ? (
-              <p className="col-start-2 col-end-4 line-clamp-2 max-w-[62ch] whitespace-pre-line text-pretty text-muted-foreground sm:col-end-3">
+              <p className="col-start-2 col-end-4 line-clamp-2 whitespace-pre-line text-pretty text-muted-foreground sm:col-end-3">
                 {a.descricao}
               </p>
             ) : null}

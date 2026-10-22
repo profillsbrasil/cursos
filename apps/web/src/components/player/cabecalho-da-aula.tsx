@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { TextoQueAbre } from "@/components/casca/texto-que-abre";
 import { fmtMin } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
 
@@ -42,9 +43,9 @@ export function DescricaoDaAula({ dados }: { dados: AulaNoPlayer }) {
       <h2 className="font-semibold text-base text-titulo" id="sobre-esta-aula">
         Sobre esta aula
       </h2>
-      <p className="max-w-[72ch] whitespace-pre-line text-pretty text-foreground text-sm">
+      <TextoQueAbre className="whitespace-pre-line text-pretty text-foreground text-sm">
         {descricao}
-      </p>
+      </TextoQueAbre>
     </section>
   );
 }
