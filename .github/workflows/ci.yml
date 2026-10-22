@@ -42,5 +42,9 @@ jobs:
       - run: bun run check
 
       # Os *.integration.test.* pedem o Postgres local (TEST_DATABASE_URL) e
-      # ficam fora.
+      # ficam fora. As suítes que medem no Chromium pulam: o runner tem
+      # /usr/bin/chromium, mas o AppArmor do Ubuntu 24.04 o derruba com
+      # "No usable sandbox", e o CHROMIUM sem binário faz o skipIf delas valer.
       - run: bun run test -- -- '--path-ignore-patterns=**/*.integration.test.*'
+        env:
+          CHROMIUM: /nao-existe/chromium

@@ -39,7 +39,7 @@
     },
     "test": {
       "cache": false,
-      "passThroughEnv": ["TEST_DATABASE_URL", "SEM_RESTRICAO"]
+      "passThroughEnv": ["TEST_DATABASE_URL", "SEM_RESTRICAO", "CHROMIUM"]
     }
   },
   "globalEnv": [
