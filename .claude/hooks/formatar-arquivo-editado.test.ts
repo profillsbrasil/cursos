@@ -94,10 +94,12 @@ test(
     const vizinha = criarSonda(join(raiz, "apps/web/src/lib/sonda-hook.ts"));
 
     const resultado = rodarHook(alvo);
+    const contexto = JSON.parse(resultado.saida).hookSpecificOutput;
 
-    expect(resultado.saida).toContain("Checked 1 file");
-    expect(resultado.saida).toContain("useFilenamingConvention");
-    expect(resultado.codigo).toBe(1);
+    expect(resultado.codigo).toBe(0);
+    expect(contexto.hookEventName).toBe("PostToolUse");
+    expect(contexto.additionalContext).toContain("Checked 1 file");
+    expect(contexto.additionalContext).toContain("useFilenamingConvention");
     expect(conteudo(alvo)).toBe(FORMATADO);
     expect(conteudo(vizinha)).toBe(MAL_FORMATADO);
   },
