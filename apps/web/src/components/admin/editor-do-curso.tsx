@@ -252,7 +252,7 @@ function ApagarCurso({
   );
   if (!edicao.podeApagar) {
     return (
-      <p className="max-w-[70ch] p-5 text-muted-foreground">
+      <p className="p-5 text-muted-foreground">
         O curso não se apaga porque {lista(motivosDoUso(edicao.uso))}. Para só
         tirar do ar, mude o status para Em produção e salve.
       </p>

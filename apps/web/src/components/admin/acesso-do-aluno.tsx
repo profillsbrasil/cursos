@@ -347,7 +347,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
         </div>
       </header>
       {pessoa ? null : (
-        <p className={cn(AVISO, "mb-9 max-w-[70ch] px-4 py-3.5")}>
+        <p className={cn(AVISO, "mb-9 px-4 py-3.5")}>
           <TriangleAlert
             aria-hidden="true"
             className="mt-0.5 size-4 shrink-0 text-sol"
