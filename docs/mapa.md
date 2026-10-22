@@ -1,8 +1,19 @@
 # Mapa do código
 
-O que cada arquivo de `apps/web`, `packages/api` e `packages/db` possui, quem chama quem e o teste que guarda cada regra. O `CLAUDE.md` da raiz traz o resumo das camadas e as cercas; este arquivo traz o detalhe. Quem muda o que uma entrada descreve atualiza a entrada no mesmo PR.
+O que cada arquivo de `apps/web`, `packages/api` e `packages/db` possui, quem chama quem e o teste que guarda cada regra. O `CLAUDE.md` da raiz traz as cercas; este arquivo traz as camadas e o detalhe. Quem muda o que uma entrada descreve atualiza a entrada no mesmo PR.
 
-O pedido do browser percorre as camadas nesta ordem. Cada linha diz o que o arquivo possui.
+O pedido do browser percorre as camadas nesta ordem:
+
+- `apps/web/src/proxy.ts`: `clerkMiddleware()` em todas as rotas, sem regra por caminho. A proteção mora em `src/server/api.ts`.
+- `apps/web/src/app/`: as rotas. `(aluno)/` tem as telas do aluno, `(admin)/admin/` a área do admin, atrás de `exigirAdmin()`, `certificado/` a conferência pública sem login, `capa/` e `material/` servem os arquivos dos buckets, e `api/trpc/[trpc]/route.ts` é o único endpoint HTTP da API.
+- `apps/web/src/server/api.ts`: os `carregar*` que os Server Components chamam, pelo `createCaller` no processo, com `React.cache` por request.
+- `apps/web/src/context.ts` e `src/services.ts`: o contexto do tRPC por request e os serviços (banco, capas e Clerk), montados uma vez.
+- `apps/web/src/components/`: `casca/` (a navegação comum), `aluno/`, `admin/`, `material-de-apoio/` (o que o editor e a página do curso dividem), `entrada/` (a tela de entrar), `minha-conta/` e uma pasta por tela do aluno (`meus-cursos/`, `curso/`, `player/`, `conquistas/`, `comunicados-do-aluno/`, `trocar-pontos/`, `certificado/`).
+- `apps/web/src/lib/`: `use-acao.ts` (toda mutação), `rotas.ts` (os endereços), `formato.ts`, `marca.ts`, as peças do editor do curso e as do player (`player/`).
+- `packages/api/src/`: `index.ts` (os procedures e `ErroParaAPessoa`), `routers/`, `dominio/` (regras puras, sem banco e sem relógio próprio), `consultas/` (o SQL, as travas e o escritor único de cada tabela) e `externos/` (Storage e Clerk).
+- `packages/db/src/`: o schema, as relations v2, as migrações e o seed.
+
+Abaixo, cada linha diz o que o arquivo possui.
 
 ## `apps/web` (Next.js, porta 3001)
 

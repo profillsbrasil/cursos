@@ -49,12 +49,6 @@
       "skillPath": "skills/clerk-webhooks/SKILL.md",
       "computedHash": "c4ff525cdddd20eac3578cd76a70f7b8d5c7f9285661488a9099d33906a467c1"
     },
-    "deploy-to-vercel": {
-      "source": "vercel-labs/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/deploy-to-vercel/SKILL.md",
-      "computedHash": "d2b5bcc7c09fdb649129ffc7dd7b647ec1b155736974b974292675afd588cb39"
-    },
     "next-cache-components-adoption": {
       "source": "vercel/next.js",
       "sourceType": "github",
@@ -90,12 +84,6 @@
       "sourceType": "github",
       "skillPath": "skills/shadcn/SKILL.md",
       "computedHash": "f615de216e085a84e31593ad0fa9062232adc40cd87b7c7ab2b8e49abf6500be"
-    },
-    "supabase-postgres-best-practices": {
-      "source": "supabase/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
-      "computedHash": "e14e276241805c97dbcfe40dcbea1a3035269cc7293cac4b1832dda41a835e60"
     },
     "turborepo": {
       "source": "vercel/turborepo",
