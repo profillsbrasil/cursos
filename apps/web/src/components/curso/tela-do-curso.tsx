@@ -5,6 +5,7 @@ import { Check, Tag } from "lucide-react";
 
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
+import { TextoQueAbre } from "@/components/casca/texto-que-abre";
 import { CartaoDoCurso } from "./cartao-do-curso";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { paragrafos, resumoDoCurso } from "./textos";
@@ -35,9 +36,9 @@ export function TelaDoCurso({
           {pagina.titulo}
         </h1>
         {lead ? (
-          <p className="max-w-[60ch] text-pretty text-base text-foreground leading-[1.55]">
+          <TextoQueAbre className="text-pretty text-base text-foreground leading-[1.55]">
             {lead}
-          </p>
+          </TextoQueAbre>
         ) : null}
         <p className="overflow-hidden text-muted-foreground tabular-nums">
           <span className="-ml-7 flex flex-wrap items-center gap-y-2">
@@ -100,7 +101,7 @@ export function TelaDoCurso({
             >
               Sobre o curso
             </h2>
-            <div className="grid max-w-[64ch] gap-3 text-pretty">
+            <div className="grid gap-3 text-pretty">
               {sobre.map((p) => (
                 <p key={p}>{p}</p>
               ))}

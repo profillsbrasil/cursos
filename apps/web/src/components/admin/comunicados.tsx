@@ -371,7 +371,7 @@ function ItemDoComunicado({
           />
         </div>
       </div>
-      <p className="line-clamp-3 max-w-[70ch] whitespace-pre-line text-muted-foreground text-sm leading-relaxed">
+      <p className="line-clamp-3 whitespace-pre-line text-muted-foreground text-sm leading-relaxed">
         {c.texto}
       </p>
     </li>

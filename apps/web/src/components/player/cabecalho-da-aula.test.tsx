@@ -69,14 +69,14 @@ const comDescricao = (descricao: string) => {
 };
 
 describe("descrição da aula", () => {
-  test("fica fora do cabeçalho, em 14 px texto, até 72ch, com as quebras do admin", () => {
+  test("fica fora do cabeçalho, em 14 px texto, na largura toda e cortada em 3 linhas, com as quebras do admin", () => {
     const h = comDescricao("Por que filmar.\nO que o cliente vê.");
     expect(h.cabecalho).not.toContain("Por que filmar.");
     expect(h.descricao).toContain("Sobre esta aula");
     const classes = h.descricao.match(PARAGRAFO_DA_DESCRICAO)?.[1].split(" ");
     expect(classes).toEqual(
       expect.arrayContaining([
-        "max-w-[72ch]",
+        "line-clamp-3",
         "whitespace-pre-line",
         "text-foreground",
         "text-sm",
