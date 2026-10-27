@@ -32,7 +32,7 @@ import {
   podeApagarCurso,
 } from "../dominio/edicao-do-curso";
 import { raizDoSlug, slugDoTitulo, slugLivre } from "../dominio/endereco";
-import { LIMITES } from "../dominio/limites-do-curso";
+import { LIMITES, PRECO_PARA_PUBLICAR } from "../dominio/limites-do-curso";
 import { mensagemDoMaterial, type RecusaDoMaterial } from "../dominio/material";
 import {
   type PlanoDeGravacao,
@@ -431,6 +431,12 @@ export async function salvarCurso(
     throw erroDaCapa(recebida.recusa);
   }
   const { documento } = lido;
+  if (documento.status === "publicado" && documento.precoTroca === null) {
+    throw new ErroParaAPessoa({
+      code: "PRECONDITION_FAILED",
+      message: `${PRECO_PARA_PUBLICAR} Defina o preço de troca ou salve em produção.`,
+    });
+  }
   await exigirMateriaisNoBucket(s, documento);
   const capa = recebida?.imagem ?? null;
   try {

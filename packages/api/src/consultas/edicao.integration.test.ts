@@ -896,6 +896,39 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect(await codigos()).toEqual(criados);
   });
 
+  test("publicar sem preço de troca é recusado com frase; em produção salva, e com preço publica", async () => {
+    const documento = documentoNovo();
+    await salvarComCapa(documento);
+    const { documento: salvo } = await abrir(documento.id);
+    const SEM_PRECO = {
+      code: "PRECONDITION_FAILED",
+      message:
+        "Todo curso tem preço em pontos para publicar. Defina o preço de troca ou salve em produção.",
+    };
+    expect(await resultado(salvar({ ...salvo, status: "publicado" }))).toEqual(
+      SEM_PRECO
+    );
+    expect((await abrir(documento.id)).documento.status).toBe("em_producao");
+
+    const publicado = {
+      ...salvo,
+      precoTroca: 150,
+      status: "publicado" as const,
+    };
+    await salvar(publicado);
+    expect((await abrir(documento.id)).documento).toMatchObject({
+      precoTroca: 150,
+      status: "publicado",
+    });
+    // O curso publicado antes da regra, sem preço, não salva publicado nem sem mudança.
+    await db
+      .update(curso)
+      .set({ precoTroca: null })
+      .where(eq(curso.id, documento.id));
+    const antigo = (await abrir(documento.id)).documento;
+    expect(await resultado(salvar(antigo))).toEqual(SEM_PRECO);
+  });
+
   test("categoria que não existe é recusada com frase e nada é gravado", async () => {
     const documento = {
       ...documentoNovo(),
