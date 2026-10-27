@@ -95,7 +95,7 @@ function TextoDaSituacao({ situacao }: { situacao: Situacao }) {
 
 /**
  * A situação e o Salvar, numa linha (a barra do pé) ou empilhados na largura
- * da coluna, com a tecla do atalho no botão.
+ * da coluna.
  */
 export function SituacaoESalvar({
   coluna = false,
@@ -138,14 +138,6 @@ export function SituacaoESalvar({
         >
           <Carregando ativo={pendente} />
           Salvar
-          {coluna && !desligado ? (
-            <span
-              aria-hidden="true"
-              className="rounded-[5px] border border-sobre-cor/35 px-1.5 font-mono font-semibold text-[11px] text-sobre-cor leading-4"
-            >
-              Ctrl S
-            </span>
-          ) : null}
         </Button>
       </div>
     </div>

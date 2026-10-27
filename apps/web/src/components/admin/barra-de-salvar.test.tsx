@@ -127,7 +127,7 @@ describe("BarraDeSalvar", () => {
     const situacao = (html: string) => texto(SITUACAO.exec(html)?.[1] ?? "");
     expect(situacao(coluna)).toBe("Mudanças não salvas.");
     expect(situacao(naBarra)).toBe(situacao(coluna));
-    expect(texto(coluna)).toContain("Ctrl S");
+    expect(texto(coluna)).not.toContain("Ctrl");
     expect(BOTAO.exec(coluna)?.[0]).toContain("hover:bg-sol-hover");
   });
 });
