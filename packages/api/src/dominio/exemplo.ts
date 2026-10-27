@@ -271,6 +271,7 @@ const em = (iso: string) => new Date(iso);
 
 export function exemploDoPrototipo(): LinhasPainel {
   const liberacoes = LIBERADOS_A.map((chave, i) => ({
+    amostra: null,
     curso: linhaDoSeed(chave),
     liberadaEm: new Date(Date.UTC(2026, 7, 1 + i, 12)),
   }));

@@ -19,6 +19,14 @@ export type EstadoQueAbre = Exclude<EstadoCurso, { tipo: "em_breve" }>;
 export const podeAbrir = (e: EstadoCurso): e is EstadoQueAbre =>
   e.tipo !== "em_breve";
 
+/**
+ * A aula de amostra: a primeira do primeiro módulo, na ordem do curso. O módulo
+ * sem aula não conta. Só ela toca para quem vê o curso pela liberação do perfil.
+ */
+export const aulaDeAmostra = (c: {
+  modulos: readonly { aulas: readonly { id: AulaId }[] }[];
+}): AulaId | null => c.modulos.flatMap((m) => m.aulas)[0]?.id ?? null;
+
 export const numeroDaAula = (indiceNoModulo: number): number =>
   indiceNoModulo + 1;
 

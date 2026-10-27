@@ -1,12 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  abreAAula,
   aulaPorId,
   type CursoComAcessoLinha,
   inicioDaAula,
   type LinhasCurso,
   montarAulaNoPlayer,
   montarCursoAberto,
+  montarCursoVisto,
 } from "./aula";
 import { podeAbrir } from "./curso";
 import {
@@ -29,6 +31,7 @@ function comAcesso(
     ...linha,
     liberacoes: a.liberado ? LIBERADA : [],
     liberacoesDoPerfil: a.peloPerfil ? LIBERADA : [],
+    precoTroca: null,
   };
 }
 
@@ -60,15 +63,32 @@ describe("montarCursoAberto", () => {
     ).toBeNull();
   });
 
-  test("só com a liberação do perfil, o curso abre como com a própria", () => {
+  test("só com a liberação do perfil, o curso é amostra: só a primeira aula abre", () => {
+    const visto = montarCursoVisto(
+      linhas(comAcesso(a, { liberado: false, peloPerfil: true }))
+    );
+    expect(visto?.amostra).toEqual({
+      aulaId: idAula("a", 0, 1) as AulaId,
+      preco: null,
+    });
     expect(
       montarCursoAberto(
         linhas(comAcesso(a, { liberado: false, peloPerfil: true }))
-      )?.leitura.estado.tipo
-    ).toBe(
-      montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.leitura
-        .estado.tipo
+      )
+    ).toBeNull();
+    if (!visto) {
+      throw new Error("a amostra abriu");
+    }
+    expect(abreAAula(visto, idAula("a", 0, 1))).toBe(true);
+    expect(abreAAula(visto, idAula("a", 0, 2))).toBe(false);
+  });
+
+  test("a liberação própria vence a do perfil: o curso inteiro abre", () => {
+    const visto = montarCursoVisto(
+      linhas(comAcesso(a, { liberado: true, peloPerfil: true }))
     );
+    expect(visto?.amostra).toBeNull();
+    expect(visto && abreAAula(visto, idAula("a", 0, 2))).toBe(true);
   });
 
   test("com liberação ativa, o curso abre no estado dele", () => {
@@ -144,7 +164,7 @@ describe("montarAulaNoPlayer", () => {
     if (!aula) {
       throw new Error(`aula ${id} fora do curso`);
     }
-    return montarAulaNoPlayer(aberto, aula, SEM_QUESTIONARIO);
+    return montarAulaNoPlayer(aberto, aula, SEM_QUESTIONARIO, 0);
   };
 
   test("anterior e próxima atravessam módulos", () => {
@@ -189,7 +209,7 @@ describe("montarAulaNoPlayer", () => {
     const descricao = (id: string) => {
       const aula = e && aulaPorId(e, id);
       return e && aula
-        ? montarAulaNoPlayer(e, aula, SEM_QUESTIONARIO).aula.descricao
+        ? montarAulaNoPlayer(e, aula, SEM_QUESTIONARIO, 0).aula.descricao
         : null;
     };
     expect([
@@ -219,7 +239,9 @@ describe("montarAulaNoPlayer", () => {
     if (!(d && ultima)) {
       throw new Error("curso d não abriu");
     }
-    expect(montarAulaNoPlayer(d, ultima, SEM_QUESTIONARIO).aula).toMatchObject({
+    expect(
+      montarAulaNoPlayer(d, ultima, SEM_QUESTIONARIO, 0).aula
+    ).toMatchObject({
       numeroNoModulo: 3,
       totalNoModulo: 3,
     });

@@ -107,7 +107,11 @@ describe("montarPainel com regras de liberação", () => {
         certificados: [
           { codigo: "CERT-1", cursoId: "concluido", emitidoEm: quando },
         ],
-        liberacoes: liberados.map((curso) => ({ curso, liberadaEm: quando })),
+        liberacoes: liberados.map((curso) => ({
+          amostra: null,
+          curso,
+          liberadaEm: quando,
+        })),
       })
     );
     expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
@@ -131,7 +135,9 @@ describe("montarPainel com regras de liberação", () => {
             aulaId: idAula("e", 0, 1),
           },
         ],
-        liberacoes: [{ curso: e, liberadaEm: em("2026-10-01T15:00:00Z") }],
+        liberacoes: [
+          { amostra: null, curso: e, liberadaEm: em("2026-10-01T15:00:00Z") },
+        ],
         posicoes: [
           {
             atualizadaEm: em("2026-10-09T15:00:00Z"),
@@ -153,7 +159,13 @@ describe("montarPainel com regras de liberação", () => {
     const breve = cursoLinha("breve", { aulas: [2], status: "em_producao" });
     const painel = montar(
       linhas({
-        liberacoes: [{ curso: breve, liberadaEm: em("2026-08-01T00:00:00Z") }],
+        liberacoes: [
+          {
+            amostra: null,
+            curso: breve,
+            liberadaEm: em("2026-08-01T00:00:00Z"),
+          },
+        ],
       })
     );
     expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
@@ -188,11 +200,45 @@ describe("montarPainel com regras de liberação", () => {
             titulo: "Geral",
           },
         ],
-        liberacoes: [{ curso: a, liberadaEm: em("2026-08-02T00:00:00Z") }],
+        liberacoes: [
+          { amostra: null, curso: a, liberadaEm: em("2026-08-02T00:00:00Z") },
+        ],
       })
     );
     expect(painel.comunicado?.titulo).toBe("Do curso a");
     expect(painel.comunicado?.publicadoEm).toBe("2026-10-04T12:00:00.000Z");
+  });
+
+  test("a amostra vem depois dos cursos da pessoa e não vira retomada", () => {
+    const inteiro = cursoLinha("inteiro", { aulas: [2] });
+    const amostra = cursoLinha("amostra", { aulas: [2] });
+    const quando = em("2026-08-01T00:00:00Z");
+    const painel = montar(
+      linhas({
+        assistidas: [
+          {
+            assistidaEm: em("2026-10-07T12:00:00Z"),
+            aulaId: idAula("amostra", 0, 1),
+          },
+        ],
+        liberacoes: [
+          { amostra: { preco: 300 }, curso: amostra, liberadaEm: quando },
+          {
+            amostra: null,
+            curso: inteiro,
+            liberadaEm: em("2026-09-01T00:00:00Z"),
+          },
+        ],
+      })
+    );
+    expect(painel.cursos.map((c) => [c.slug, c.amostra])).toEqual([
+      ["inteiro", null],
+      [
+        "amostra",
+        { aulaId: idAula("amostra", 0, 1) as AulaId, preco: 300, vista: true },
+      ],
+    ]);
+    expect(painel.retomada?.curso.slug).toBe("inteiro");
   });
 
   test("zero liberações dá lista vazia e retomada nula", () => {

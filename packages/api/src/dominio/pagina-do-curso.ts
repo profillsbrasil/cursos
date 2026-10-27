@@ -8,7 +8,7 @@ import type { OndeNoCurso } from "./curso-do-aluno";
 import type { MaterialDaPagina } from "./material";
 import { type MarcaDoQuestionario, marcaDoQuestionario } from "./questionario";
 import { caminhoDaAula, caminhoDoQuestionario } from "./rotas";
-import type { AulaId, Capa, NivelCatalogo } from "./tipos";
+import type { AulaId, Capa, CursoId, NivelCatalogo } from "./tipos";
 
 export interface AulaDaPagina {
   assistida: boolean;
@@ -55,8 +55,22 @@ export type AcaoDaPagina =
     }
   | { tipo: "rever"; aulaId: AulaId; href: string };
 
+/**
+ * A coluna de troca da amostra: a aula que toca e o preço do curso inteiro.
+ * `preco` null é o curso publicado antes da regra do preço, que não se troca.
+ */
+export interface AmostraDaPagina {
+  aulaId: AulaId;
+  cursoId: CursoId;
+  href: string;
+  preco: number | null;
+  saldo: number;
+}
+
 export interface PaginaDoCurso {
   acao: AcaoDaPagina;
+  /** null no curso inteiro. */
+  amostra: AmostraDaPagina | null;
   capa: Capa;
   categoria: string;
   /** "" quando o admin não escreveu. */
@@ -128,9 +142,11 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
   }
 }
 
+/** `saldo` só pesa na amostra. */
 export function montarPaginaDoCurso(
   c: CursoAberto,
-  materiais: readonly MaterialDaPagina[]
+  materiais: readonly MaterialDaPagina[],
+  saldo: number
 ): PaginaDoCurso {
   const { curso } = c;
   const { assistidas, questionarios } = c.historico;
@@ -138,6 +154,13 @@ export function montarPaginaDoCurso(
   const { proximo } = niveis(curso, assistidas);
   return {
     acao: acaoDe(c),
+    amostra: c.amostra && {
+      aulaId: c.amostra.aulaId,
+      cursoId: curso.id,
+      href: caminhoDaAula(curso.slug, c.amostra.aulaId),
+      preco: c.amostra.preco,
+      saldo,
+    },
     capa: curso.capa,
     categoria: curso.categoria,
     descricao: curso.descricao,

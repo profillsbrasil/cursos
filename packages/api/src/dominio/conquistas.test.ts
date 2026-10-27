@@ -19,6 +19,7 @@ const GRAVACAO = cursoLinha("gravacao", { aulas: [3], status: "em_producao" });
 const REVOGADO = cursoLinha("revogado", { aulas: [1] });
 
 const liberado = (curso: typeof AUTO, dia: number) => ({
+  amostra: null,
   curso,
   liberadaEm: new Date(Date.UTC(2026, 7, dia, 12)),
 });

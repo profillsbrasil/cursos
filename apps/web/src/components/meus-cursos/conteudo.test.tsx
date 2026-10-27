@@ -160,6 +160,7 @@ describe("Meus cursos com curso em produção que tem código", () => {
       ...SEM_LIBERACAO,
       liberacoes: [
         {
+          amostra: null,
           curso: { ...curso, codigo: "POP-FAB-002" },
           liberadaEm: new Date("2026-08-01T00:00:00Z"),
         },

@@ -35,6 +35,7 @@ const idDaAula = (modulo: number, aula: number) =>
 function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
   const atual = idDaAula(modulo, aula);
   return {
+    amostra: null,
     anterior: null,
     aula: {
       descricao: "",

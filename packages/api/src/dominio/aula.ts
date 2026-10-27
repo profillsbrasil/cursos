@@ -1,4 +1,5 @@
 import {
+  aulaDeAmostra,
   type EstadoQueAbre,
   numeroDaAula,
   type Progresso,
@@ -20,6 +21,7 @@ import type {
   AulaCatalogo,
   AulaId,
   CursoCatalogo,
+  CursoId,
   DiaISO,
   Historico,
   ModuloCatalogo,
@@ -30,6 +32,7 @@ import { canonizar, type Trecho, type Trechos } from "./trechos";
 export interface CursoComAcessoLinha extends CursoLinha {
   liberacoes: readonly { id: string }[];
   liberacoesDoPerfil: readonly { id: string }[];
+  precoTroca: number | null;
 }
 
 export interface LinhasCurso {
@@ -45,7 +48,19 @@ export interface LinhasCurso {
   questionarios: readonly LinhaDoQuestionario[];
 }
 
+/**
+ * A amostra: a pessoa vê o curso só pela liberação do perfil, sem liberação
+ * própria ativa (do admin ou de troca). Só a aula de amostra abre.
+ */
+export interface Amostra {
+  aulaId: AulaId;
+  /** O preço de troca do curso; null no curso publicado antes da regra do preço. */
+  preco: number | null;
+}
+
 export interface CursoAberto {
+  /** null: o curso inteiro, pela liberação própria ativa. */
+  amostra: Amostra | null;
   curso: CursoCatalogo;
   diasComAulaAssistida: ReadonlySet<DiaISO>;
   historico: Historico;
@@ -53,8 +68,11 @@ export interface CursoAberto {
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
 }
 
-/** null sem liberação ativa do curso, própria ou do perfil, ou com o curso em_breve. */
-export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
+/**
+ * O curso que a pessoa vê, inteiro ou como amostra. null sem liberação ativa
+ * do curso, própria ou do perfil, ou com o curso em_breve.
+ */
+export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
   const linha = linhas.curso;
   if (
     !linha ||
@@ -66,10 +84,15 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   const curso = paraCatalogo(linha);
   const leitura = lerCursoDoAluno(curso, estudo);
   const { estado } = leitura;
-  if (!podeAbrir(estado)) {
+  const primeira = aulaDeAmostra(curso);
+  if (!(podeAbrir(estado) && primeira)) {
     return null;
   }
   return {
+    amostra:
+      linha.liberacoes.length > 0
+        ? null
+        : { aulaId: primeira, preco: linha.precoTroca },
     curso,
     diasComAulaAssistida: new Set(
       linhas.assistidas.map((a) => a.dia as DiaISO)
@@ -81,6 +104,19 @@ export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
     ),
   };
 }
+
+/**
+ * Só o curso inteiro: a porta do questionário, do material de apoio e da página
+ * do certificado. A amostra não abre nenhum deles.
+ */
+export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
+  const visto = montarCursoVisto(linhas);
+  return visto && visto.amostra === null ? visto : null;
+}
+
+/** Se a aula toca: toda aula do curso inteiro, só a aula de amostra na amostra. */
+export const abreAAula = (c: CursoAberto, aulaId: string): boolean =>
+  c.amostra === null || c.amostra.aulaId === aulaId;
 
 export interface AulaNaColuna {
   assistida: boolean;
@@ -104,7 +140,18 @@ export interface VizinhaDaAula {
   titulo: string;
 }
 
+/** O que o player mostra na aula de amostra: a troca no fim do vídeo. */
+export interface AmostraNoPlayer {
+  cursoId: CursoId;
+  preco: number | null;
+  /** A aula seguinte, fechada até a troca; null no curso de uma aula. */
+  proxima: VizinhaDaAula | null;
+  saldo: number;
+}
+
 export interface AulaNoPlayer {
+  /** null fora da amostra. */
+  amostra: AmostraNoPlayer | null;
   anterior: VizinhaDaAula | null;
   aula: {
     /** "" quando o admin não escreveu, e aí o player não mostra a linha. */
@@ -124,8 +171,9 @@ export interface AulaNoPlayer {
   };
   estudo: { assistida: boolean; posicaoSeg: number; trechos: Trechos };
   modulos: readonly ModuloNaColuna[];
+  /** null na última aula e na amostra, em que a próxima aula está fechada. */
   proxima: VizinhaDaAula | null;
-  /** null na aula sem pergunta. */
+  /** null na aula sem pergunta e na amostra. */
   questionario: QuestionarioDaAula | null;
 }
 
@@ -161,10 +209,12 @@ export function estudoDaAula(
   };
 }
 
+/** `saldo` só pesa na amostra, para o convite de troca do fim do vídeo. */
 export function montarAulaNoPlayer(
   c: CursoAberto,
   aula: AulaCatalogo,
-  questionario: LinhasDoQuestionario
+  questionario: LinhasDoQuestionario,
+  saldo: number
 ): AulaNoPlayer {
   const ordem = aulasEmOrdem(c.curso);
   const i = ordem.findIndex((x) => x.aula.id === aula.id);
@@ -173,7 +223,14 @@ export function montarAulaNoPlayer(
     throw new Error(`Aula ${aula.id} fora do curso ${c.curso.slug}`);
   }
   const { assistidas, questionarios } = c.historico;
+  const proxima = vizinha(ordem[i + 1]);
   return {
+    amostra: c.amostra && {
+      cursoId: c.curso.id,
+      preco: c.amostra.preco,
+      proxima,
+      saldo,
+    },
     anterior: vizinha(ordem[i - 1]),
     aula: {
       descricao: aula.descricao,
@@ -207,11 +264,13 @@ export function montarAulaNoPlayer(
       numero: m.numero,
       titulo: m.titulo,
     })),
-    proxima: vizinha(ordem[i + 1]),
-    questionario: montarQuestionarioDaAula(
-      questionario.perguntas,
-      questionario.tentativas
-    ),
+    proxima: c.amostra ? null : proxima,
+    questionario: c.amostra
+      ? null
+      : montarQuestionarioDaAula(
+          questionario.perguntas,
+          questionario.tentativas
+        ),
   };
 }
 

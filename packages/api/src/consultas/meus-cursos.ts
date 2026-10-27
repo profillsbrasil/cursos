@@ -163,7 +163,8 @@ export async function linhasDoHistoricoNoCurso(
 /**
  * Os cursos que o aluno vê, com o catálogo inteiro, num SQL só (left join
  * lateral). Cada um vale pela liberação ativa mais antiga, própria ou do perfil,
- * e a lista sai nessa ordem: a data e, no empate, o id da liberação.
+ * e a lista sai nessa ordem: a data e, no empate, o id da liberação. O curso sem
+ * liberação própria ativa é a amostra, com o preço de troca.
  */
 export async function linhasDosCursosQueOAlunoVe(
   exec: Executor,
@@ -172,6 +173,7 @@ export async function linhasDosCursosQueOAlunoVe(
   const DA_LIBERACAO = { id: true, liberadaEm: true } as const;
   const cursos = await exec.query.curso.findMany({
     ...COM_CONTEUDO,
+    columns: { ...COM_CONTEUDO.columns, precoTroca: true },
     where: cursoQueOAlunoVe(aluno),
     with: {
       ...COM_CONTEUDO.with,
@@ -188,12 +190,17 @@ export async function linhasDosCursosQueOAlunoVe(
   const antes = (a: Liberada, b: Liberada) =>
     a.liberadaEm.getTime() - b.liberadaEm.getTime() || a.id.localeCompare(b.id);
   return cursos
-    .flatMap(({ liberacoes, liberacoesDoPerfil, ...curso }) => {
+    .flatMap(({ liberacoes, liberacoesDoPerfil, precoTroca, ...curso }) => {
       const [primeira] = [...liberacoes, ...liberacoesDoPerfil].sort(antes);
-      return primeira ? [{ curso, primeira }] : [];
+      const amostra = liberacoes.length > 0 ? null : { preco: precoTroca };
+      return primeira ? [{ amostra, curso, primeira }] : [];
     })
     .sort((a, b) => antes(a.primeira, b.primeira))
-    .map(({ curso, primeira }) => ({ curso, liberadaEm: primeira.liberadaEm }));
+    .map(({ amostra, curso, primeira }) => ({
+      amostra,
+      curso,
+      liberadaEm: primeira.liberadaEm,
+    }));
 }
 
 interface Liberada {

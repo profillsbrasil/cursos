@@ -41,11 +41,16 @@ const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
   const aberto = montarCursoAberto({
     assistidas: o.assistidas ?? [],
     certificados: o.certificados ?? [],
-    curso: { ...linha(), liberacoes: [{ id: "lib" }], liberacoesDoPerfil: [] },
+    curso: {
+      ...linha(),
+      liberacoes: [{ id: "lib" }],
+      liberacoesDoPerfil: [],
+      precoTroca: null,
+    },
     posicoes: o.posicoes ?? [],
     questionarios: o.questionarios ?? [],
   });
-  return aberto && montarPaginaDoCurso(aberto, []);
+  return aberto && montarPaginaDoCurso(aberto, [], 0);
 };
 
 const SEM: MarcaDoQuestionario = { tipo: "sem" };
@@ -141,11 +146,12 @@ describe("montarPaginaDoCurso", () => {
           { nome: "Operador", ordem: 1 },
           { nome: "Técnico", ordem: 2 },
         ],
+        precoTroca: null,
       },
       posicoes: [],
       questionarios: [],
     });
-    const p = aberto && montarPaginaDoCurso(aberto, []);
+    const p = aberto && montarPaginaDoCurso(aberto, [], 0);
     expect({
       modulos: p?.modulos.map((m) => [m.numero, m.nivel]),
       niveis: p?.niveis,
@@ -220,11 +226,12 @@ describe("montarPaginaDoCurso", () => {
         ...comPerguntas,
         liberacoes: [{ id: "lib" }],
         liberacoesDoPerfil: [],
+        precoTroca: null,
       },
       posicoes: [],
       questionarios: [tentativa(B1, false, 2)],
     });
-    const p = aberto && montarPaginaDoCurso(aberto, []);
+    const p = aberto && montarPaginaDoCurso(aberto, [], 0);
     expect([p?.estado, p?.acao]).toEqual([
       { aprovados: 0, proximaAula: B1, tipo: "questionarios", total: 2 },
       {
@@ -282,11 +289,12 @@ describe("montarPaginaDoCurso", () => {
         liberacoes: [{ id: "lib" }],
         liberacoesDoPerfil: [],
         modulos: [{ ...m1, aulas: [], numero: 0 }, ...base.modulos],
+        precoTroca: null,
       },
       posicoes: [],
       questionarios: [],
     });
-    expect(aberto && montarPaginaDoCurso(aberto, []).acao).toEqual({
+    expect(aberto && montarPaginaDoCurso(aberto, [], 0).acao).toEqual({
       aulaId: A1,
       href: `/cursos/envase/aulas/${A1}`,
       tipo: "rever",
