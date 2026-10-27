@@ -19,7 +19,9 @@ import type {
   Pessoa,
 } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
+import { lancarAulasAssistidas } from "./aula";
 import { COM_CONTEUDO } from "./catalogo";
+import { concluirCurso } from "./certificado";
 import { type Executor, filtroLiberacaoAtiva } from "./comum";
 import { mensagemDoBanco, violacaoDe } from "./erros";
 import { linhasDoHistorico } from "./meus-cursos";
@@ -53,6 +55,21 @@ export async function inserirLiberacao(
     throw new Error("O insert da liberação não devolveu a linha.");
   }
   return linha.id as LiberacaoId;
+}
+
+/**
+ * O que a liberação própria nova abre além da linha, pelo admin ou pela troca:
+ * os pontos das aulas que a pessoa assistiu na amostra e a conclusão do curso
+ * que ela já completou, como o de uma aula só sem questionário. Roda com o aluno
+ * travado, depois do insert da liberação, e em série.
+ */
+export async function abrirOCursoInteiro(
+  aluno: AlunoTravado,
+  cursoId: CursoId,
+  agora: Date
+): Promise<void> {
+  await lancarAulasAssistidas(aluno, cursoId, agora);
+  await concluirCurso(aluno, cursoId, agora);
 }
 
 async function cursoExiste(exec: Executor, id: CursoId): Promise<boolean> {
@@ -123,12 +140,14 @@ export async function liberar(
       if (existente) {
         return { ...existente, nova: false };
       }
+      const liberacaoId = await inserirLiberacao(
+        aluno,
+        { cursoId, origem: "admin", por: admin },
+        agora
+      );
+      await abrirOCursoInteiro(aluno, cursoId, agora);
       return {
-        liberacaoId: await inserirLiberacao(
-          aluno,
-          { cursoId, origem: "admin", por: admin },
-          agora
-        ),
+        liberacaoId,
         liberadaEm: agora,
         nova: true,
         origem: "admin",

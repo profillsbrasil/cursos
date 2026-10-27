@@ -27,10 +27,12 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { PONTOS } from "../dominio/regras";
 import type { AdminId, AulaId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { concluirParaQuemCompletou } from "./certificado";
+import { liberar } from "./liberacao";
 import { liberarParaPerfil } from "./liberacao-do-perfil";
 import { definirPerfil } from "./perfil";
 
@@ -86,7 +88,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
    * vem depois do 0, embora seja inserido antes.
    */
   async function cursoComAmostra(
-    o: { aulas?: number; preco?: number | null } = {}
+    o: { aulas?: number; perguntas?: boolean; preco?: number | null } = {}
   ) {
     const slug = `teste-${hex()}`;
     const [c] = await db
@@ -129,6 +131,9 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
+      if (o.perguntas === false) {
+        return { certa: "", id: (a?.id ?? "") as AulaId, pergunta: "" };
+      }
       const [p] = await db
         .insert(pergunta)
         .values({ aulaId: a?.id ?? "", enunciado: "Pergunta", posicao: 1 })
@@ -360,6 +365,40 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
         (x) => x.slug === c.slug
       )?.amostra
     ).toBeNull();
+  });
+
+  test("a liberação do admin depois da amostra lança a aula assistida e conclui o curso de uma aula", async () => {
+    const c = await cursoComAmostra({ aulas: 1, perguntas: false });
+    const pessoa = await cliente();
+    const [a1] = c.aulas;
+    if (!a1) {
+      throw new Error("uma aula");
+    }
+    await assistir(pessoa.caller, a1.id);
+    expect(await lancamentosDe(pessoa.userId)).toEqual([]);
+
+    const r = await liberar(
+      db,
+      ADMIN,
+      { email: null, foto: null, nome: "C", userId: pessoa.userId },
+      c.id,
+      AGORA
+    );
+    expect(r.nova).toBe(true);
+    const depois = await lancamentosDe(pessoa.userId);
+    expect(depois.map((l) => [l.motivo, l.pontos]).sort()).toEqual([
+      ["aula_assistida", PONTOS.aula_assistida],
+      ["curso_concluido", PONTOS.curso_concluido],
+    ]);
+    expect(
+      await db.query.certificado.findMany({
+        columns: { cursoId: true },
+        where: { userId: pessoa.userId },
+      })
+    ).toEqual([{ cursoId: c.id }]);
+    expect(
+      (await pessoa.caller.certificado.pagina({ slug: c.slug })) === null
+    ).toBe(false);
   });
 
   test("o curso da amostra sem preço aparece sem troca e continua fechado", async () => {

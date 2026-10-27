@@ -15,10 +15,8 @@ import {
   temCursoTrocavelNaVitrine,
 } from "../dominio/troca";
 import { ErroParaAPessoa } from "../index";
-import { lancarAulasAssistidas } from "./aula";
-import { concluirCurso } from "./certificado";
 import { COLUNAS_DA_CAPA, type Executor, filtroLiberacaoAtiva } from "./comum";
-import { inserirLiberacao } from "./liberacao";
+import { abrirOCursoInteiro, inserirLiberacao } from "./liberacao";
 import { comSaldoTravado, linhasDoExtrato, linhasDoSaldo } from "./pontos";
 import type { AlunoTravado } from "./trava";
 
@@ -163,10 +161,7 @@ async function gravarTroca(
   if (!lancamento) {
     throw new Error("O insert do lançamento não devolveu a linha.");
   }
-  // As aulas que a pessoa assistiu na amostra ganham os pontos agora, e o curso
-  // de uma aula só, já assistida e sem questionário, conclui na troca.
-  await lancarAulasAssistidas(aluno, cursoId, agora);
-  await concluirCurso(aluno, cursoId, agora);
+  await abrirOCursoInteiro(aluno, cursoId, agora);
   return { lancamentoId: lancamento.id };
 }
 
