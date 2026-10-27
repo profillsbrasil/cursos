@@ -1,7 +1,8 @@
 import type { Database } from "@cursos/db";
 import { pontoLancamento } from "@cursos/db/schema/index";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 
+import type { SaldoDaPessoa } from "../dominio/pessoas";
 import {
   FORA_DOS_PONTOS_DA_SEMANA,
   type LinhaDoExtrato,
@@ -77,6 +78,27 @@ export async function saldoDe(exec: Executor, userId: string): Promise<number> {
     .from(pontoLancamento)
     .where(eq(pontoLancamento.userId, userId));
   return linha?.saldo ?? 0;
+}
+
+/**
+ * O saldo de cada userId numa consulta só, para a lista de Pessoas do admin.
+ * Quem não tem lançamento não vem na resposta: o saldo dele é 0.
+ */
+export function saldosDe(
+  exec: Executor,
+  userIds: readonly string[]
+): Promise<SaldoDaPessoa[]> {
+  if (userIds.length === 0) {
+    return Promise.resolve([]);
+  }
+  return exec
+    .select({
+      saldo: sql<number>`sum(${pontoLancamento.pontos})::int`,
+      userId: pontoLancamento.userId,
+    })
+    .from(pontoLancamento)
+    .where(inArray(pontoLancamento.userId, [...userIds]))
+    .groupBy(pontoLancamento.userId);
 }
 
 export function linhasDoExtrato(

@@ -38,7 +38,7 @@ import {
   linhasDosPerfis,
   quemTemOPerfil,
 } from "../consultas/perfil";
-import { linhasDoSaldo } from "../consultas/pontos";
+import { linhasDoSaldo, saldosDe } from "../consultas/pontos";
 import { comTrava } from "../consultas/trava";
 import { montarBusca } from "../dominio/acompanhamento";
 import {
@@ -388,11 +388,18 @@ export const adminRouter = router({
           ctx.pessoas.buscar(input.termo, entre),
           contagemPorPerfil(ctx.db),
         ]);
-        const linhas = await linhasDosPerfis(
-          ctx.db,
-          busca.pessoas.map((p) => p.userId)
+        const ids = busca.pessoas.map((p) => p.userId);
+        const [linhas, saldos] = await Promise.all([
+          linhasDosPerfis(ctx.db, ids),
+          saldosDe(ctx.db, ids),
+        ]);
+        return montarListaDePessoas(
+          busca,
+          linhas,
+          saldos,
+          contagem,
+          input.perfil
         );
-        return montarListaDePessoas(busca, linhas, contagem, input.perfil);
       }),
   }),
 });
