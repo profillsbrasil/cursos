@@ -161,6 +161,7 @@ export const CURSOS: CursoSeed[] = [
       { nome: "Consultor Comercial Profills", ordem: 2 },
       { nome: "Especialista Comercial", ordem: 3 },
     ],
+    precoTroca: 3000,
     status: "publicado",
     titulo: "Profills School Comercial",
     topicos: [
@@ -226,6 +227,7 @@ export const CURSOS: CursoSeed[] = [
       ]),
     ],
     niveis: [],
+    precoTroca: 1500,
     status: "publicado",
     titulo: "Fábrica e montagem",
     topicos: [
@@ -259,6 +261,7 @@ export const CURSOS: CursoSeed[] = [
       "Checklist final",
     ]),
     niveis: [],
+    precoTroca: 1000,
     status: "publicado",
     titulo: "Nova Rotina de Fechamento",
     topicos: [
@@ -309,6 +312,7 @@ export const CURSOS: CursoSeed[] = [
       "As 6 competências",
     ]),
     niveis: [],
+    precoTroca: 500,
     status: "publicado",
     titulo: "Autoavaliação Comercial",
     topicos: [

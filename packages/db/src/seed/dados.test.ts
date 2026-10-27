@@ -34,3 +34,13 @@ describe("as categorias do seed", () => {
     ).toEqual([]);
   });
 });
+
+describe("os cursos do seed", () => {
+  test("todo curso publicado tem preço de troca, como o salvarCurso exige", () => {
+    expect(
+      CURSOS.filter(
+        (c) => c.status === "publicado" && c.precoTroca === undefined
+      ).map((c) => c.titulo)
+    ).toEqual([]);
+  });
+});
