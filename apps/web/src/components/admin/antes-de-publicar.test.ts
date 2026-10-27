@@ -35,6 +35,19 @@ describe("Antes de publicar", () => {
     });
   });
 
+  test("o preço de troca falta sem preço e com o preço que não se lê", () => {
+    const falta = [false, "Todo curso tem preço em pontos para publicar."];
+    expect(lista({ ...rascunho, precoTroca: null })["Preço de troca"]).toEqual(
+      falta
+    );
+    expect(lista({ ...rascunho, precoTroca: "" })["Preço de troca"]).toEqual(
+      falta
+    );
+    expect(
+      lista({ ...rascunho, precoTroca: "2000" })["Preço de troca"]
+    ).toEqual([true, null]);
+  });
+
   test("conta as aulas com vídeo válido e as sem questionário", () => {
     const [m1, m2] = rascunho.modulos;
     if (!(m1 && m2)) {
