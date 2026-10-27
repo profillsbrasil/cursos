@@ -7,6 +7,12 @@ export const PONTOS = {
   sequencia_7_dias: 30,
 } as const;
 
+/**
+ * O bônus de quem vira Funcionário, uma vez por pessoa, para sempre. Ele não
+ * mede estudo, então fica fora de PONTOS e dos pontos da semana.
+ */
+export const BONUS_DE_FUNCIONARIO = 5000;
+
 export const META_SEQUENCIA = 7;
 
 export const PCT_AULA_ASSISTIDA = 90;

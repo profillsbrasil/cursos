@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
 import { createDb } from "@cursos/db";
-import { perfilDaPessoa } from "@cursos/db/schema/index";
+import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
@@ -52,6 +52,10 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     createCaller(contextoDeTeste({ db, pessoas, userId })).meusCursos.painel();
 
   afterAll(async () => {
+    // O primeiro acesso de Funcionário lança o bônus (bonus-de-funcionario.integration.test.ts).
+    await db
+      .delete(pontoLancamento)
+      .where(inArray(pontoLancamento.userId, [DONA, ANA, BRUNO, CARLA]));
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, [DONA, ANA, BRUNO, CARLA]));
