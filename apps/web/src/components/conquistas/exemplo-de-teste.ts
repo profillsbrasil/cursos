@@ -58,15 +58,6 @@ export const ALUNA: Conquistas = {
   hoje: dia("2026-10-16"),
   marcos: [
     {
-      medalha: {
-        aula: "Como responder",
-        curso: "Autoavaliação Comercial",
-        dia: dia("2026-08-18"),
-        estado: "ganha",
-      },
-      tipo: "primeira_aula",
-    },
-    {
       medalha: { dia: dia("2026-09-09"), estado: "ganha" },
       meta: 10,
       tipo: "aulas",
@@ -77,22 +68,65 @@ export const ALUNA: Conquistas = {
       medalha: { dias: 3, estado: "por_ganhar", hojePendente: true, meta: 7 },
       tipo: "sequencia",
     },
+  ],
+  medalhas: [
     {
-      medalha: {
-        curso: "Boas práticas de fabricação",
-        dia: dia("2026-10-13"),
-        estado: "ganha",
-        pontos: 200,
-      },
+      medalha: { dia: dia("2026-08-18"), estado: "ganha" },
+      tipo: "primeira_aula",
+    },
+    {
+      medalha: { dia: dia("2026-10-13"), estado: "ganha" },
       tipo: "primeira_troca",
     },
     {
-      medalha: {
-        curso: "Autoavaliação Comercial",
-        dia: dia("2026-09-02"),
-        estado: "ganha",
-      },
+      medalha: { dia: dia("2026-09-02"), estado: "ganha" },
       tipo: "primeiro_curso",
+    },
+    {
+      medalha: { estado: "por_ganhar", feitas: 1, pct: 33, total: 3 },
+      tipo: "tres_trocas",
+    },
+    {
+      medalha: {
+        amostraVista: "Manutenção básica",
+        estado: "por_ganhar",
+        feitas: 1,
+        pct: 50,
+        total: 2,
+      },
+      tipo: "amostra_e_troca",
+    },
+    {
+      medalha: {
+        estado: "por_ganhar",
+        maisAdiantado: {
+          curso: "Boas práticas de fabricação",
+          feitas: 0,
+          total: 3,
+        },
+        pct: 0,
+      },
+      tipo: "troca_ate_o_fim",
+    },
+    {
+      medalha: { dia: dia("2026-08-25"), estado: "ganha" },
+      tipo: "primeiro_questionario",
+    },
+    {
+      medalha: {
+        estado: "por_ganhar",
+        melhor: { feitas: 4, total: 5 },
+        pct: 80,
+      },
+      tipo: "nota_cheia",
+    },
+    {
+      medalha: { estado: "por_ganhar", feitas: 1, pct: 33, total: 3 },
+      tipo: "tres_cursos",
+    },
+    {
+      medalha: { estado: "por_ganhar", feitas: 580, pct: 58, total: 1000 },
+      tipo: "mil_pontos",
     },
   ],
 };
@@ -109,9 +143,19 @@ export const NOVO: Conquistas = {
   ],
   hoje: dia("2026-10-16"),
   marcos: [
+    { medalha: { estado: "por_ganhar", feitas: 0 }, meta: 10, tipo: "aulas" },
+    { medalha: { estado: "por_ganhar", feitas: 0 }, meta: 50, tipo: "aulas" },
+    { medalha: { estado: "por_ganhar", feitas: 0 }, meta: 100, tipo: "aulas" },
+    {
+      medalha: { dias: 0, estado: "por_ganhar", hojePendente: true, meta: 7 },
+      tipo: "sequencia",
+    },
+  ],
+  medalhas: [
     {
       medalha: {
         estado: "por_ganhar",
+        pct: 0,
         proxima: {
           aula: "Riscos do posto de montagem",
           curso: "Fábrica e montagem",
@@ -120,23 +164,56 @@ export const NOVO: Conquistas = {
       },
       tipo: "primeira_aula",
     },
-    { medalha: { estado: "por_ganhar", feitas: 0 }, meta: 10, tipo: "aulas" },
-    { medalha: { estado: "por_ganhar", feitas: 0 }, meta: 50, tipo: "aulas" },
-    { medalha: { estado: "por_ganhar", feitas: 0 }, meta: 100, tipo: "aulas" },
     {
-      medalha: { dias: 0, estado: "por_ganhar", hojePendente: true, meta: 7 },
-      tipo: "sequencia",
-    },
-    {
-      medalha: { estado: "por_ganhar", maisBarato: 200, pontosPorAula: 10 },
+      medalha: {
+        estado: "por_ganhar",
+        maisBarato: 200,
+        pct: 0,
+        pontosPorAula: 10,
+      },
       tipo: "primeira_troca",
     },
     {
       medalha: {
         estado: "por_ganhar",
         maisPerto: { curso: "Fábrica e montagem", feitas: 0, total: 7 },
+        pct: 0,
       },
       tipo: "primeiro_curso",
+    },
+    {
+      medalha: { estado: "por_ganhar", feitas: 0, pct: 0, total: 3 },
+      tipo: "tres_trocas",
+    },
+    {
+      medalha: {
+        amostraVista: null,
+        estado: "por_ganhar",
+        feitas: 0,
+        pct: 0,
+        total: 2,
+      },
+      tipo: "amostra_e_troca",
+    },
+    {
+      medalha: { estado: "por_ganhar", maisAdiantado: null, pct: 0 },
+      tipo: "troca_ate_o_fim",
+    },
+    {
+      medalha: { estado: "por_ganhar", pct: 0 },
+      tipo: "primeiro_questionario",
+    },
+    {
+      medalha: { estado: "por_ganhar", melhor: null, pct: 0 },
+      tipo: "nota_cheia",
+    },
+    {
+      medalha: { estado: "por_ganhar", feitas: 0, pct: 0, total: 3 },
+      tipo: "tres_cursos",
+    },
+    {
+      medalha: { estado: "por_ganhar", feitas: 0, pct: 0, total: 1000 },
+      tipo: "mil_pontos",
     },
   ],
 };

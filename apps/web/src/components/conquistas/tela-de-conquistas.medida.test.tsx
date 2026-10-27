@@ -170,10 +170,15 @@ const fimsDeSemana = () =>
     });
   `);
 
-const primeiras = () =>
-  medir<Caixa[]>(
-    `return [...document.querySelectorAll("[data-primeira-vez]")].map(caixa);`
-  );
+const gradeMedida = () =>
+  medir<{ cartoes: Caixa[]; ganhas: Caixa[]; medalhas: Caixa[] }>(`
+    const cartoes = [...document.querySelectorAll("[data-por-ganhar]")];
+    return {
+      cartoes: cartoes.map(caixa),
+      ganhas: [...document.querySelectorAll("[data-ganhas] [data-medalha]")].map(caixa),
+      medalhas: cartoes.map((c) => caixa(c.querySelector("[data-medalha]"))),
+    };
+  `);
 
 const cartoes = () =>
   medir<
@@ -338,13 +343,26 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
     }
   }
 
-  test("1280 px: as três primeiras vezes numa linha, e cinco cursos em 3 colunas", async () => {
+  test("1280 px: a grade em três colunas, a primeira em duas, e cinco cursos em 3 colunas", async () => {
     await abrir(1280, TELAS.aluna.html);
-    const pv = await primeiras();
-    expect(pv).toHaveLength(3);
-    expect(new Set(pv.map((c) => c.topo)).size).toBe(1);
-    expect(pv[1]?.esquerda).toBeGreaterThan(pv[0]?.direita ?? 0);
-    expect(pv[2]?.esquerda).toBeGreaterThan(pv[1]?.direita ?? 0);
+    const { cartoes: g, ganhas, medalhas } = await gradeMedida();
+    expect(g).toHaveLength(6);
+    const [destaque, segundo, terceiro, quarto, quinto] = g as Caixa[];
+    expect(segundo?.topo).toBe(destaque?.topo);
+    expect(destaque?.largura).toBeCloseTo((segundo?.largura ?? 0) * 2 + 14, 0);
+    for (const c of [terceiro, quarto, quinto]) {
+      expect(c?.topo).toBe(terceiro?.topo);
+      expect(c?.largura).toBeCloseTo(segundo?.largura ?? 0, 0);
+    }
+    expect(terceiro?.topo).toBeGreaterThan(destaque?.baixo ?? 0);
+    expect(terceiro?.esquerda).toBe(destaque?.esquerda);
+    expect(medalhas.map((m) => m.largura)).toEqual([56, 40, 40, 40, 40, 40]);
+    expect(ganhas.map((m) => [m.largura, m.altura])).toEqual([
+      [40, 40],
+      [40, 40],
+      [40, 40],
+      [40, 40],
+    ]);
     const cs = await cartoes();
     expect(new Set(cs.slice(0, 3).map((c) => c.cartao.topo)).size).toBe(1);
     expect(cs[3]?.cartao.topo).toBeGreaterThan(cs[0]?.cartao.baixo ?? 0);
@@ -357,12 +375,26 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
     expect(c?.cartao.largura).toBe(360);
   });
 
-  test("390 px: tudo numa coluna", async () => {
+  test("700 px: a grade em duas colunas, a primeira na linha toda", async () => {
+    await abrir(700, TELAS.aluna.html);
+    const { cartoes: g } = await gradeMedida();
+    const [destaque, segundo, terceiro] = g as Caixa[];
+    expect(segundo?.topo).toBeGreaterThan(destaque?.baixo ?? 0);
+    expect(terceiro?.topo).toBe(segundo?.topo);
+    expect(destaque?.largura).toBeCloseTo((segundo?.largura ?? 0) * 2 + 14, 0);
+    expect(await rolaDeLado()).toBe(false);
+  });
+
+  test("390 px: tudo numa coluna, a primeira da grade na mesma largura", async () => {
     await abrir(390, TELAS.aluna.html);
-    const pv = await primeiras();
-    expect(new Set(pv.map((c) => c.esquerda)).size).toBe(1);
-    expect(pv[1]?.topo).toBeGreaterThan(pv[0]?.baixo ?? 0);
-    expect(pv[2]?.topo).toBeGreaterThan(pv[1]?.baixo ?? 0);
+    const { cartoes: g } = await gradeMedida();
+    expect(new Set(g.map((c) => c.esquerda)).size).toBe(1);
+    expect(new Set(g.map((c) => Math.round(c.largura))).size).toBe(1);
+    for (const [i, c] of g.entries()) {
+      if (i > 0) {
+        expect(c.topo).toBeGreaterThan(g[i - 1]?.baixo ?? 0);
+      }
+    }
     const cs = await cartoes();
     expect(new Set(cs.map((c) => c.cartao.esquerda)).size).toBe(1);
     expect(cs[0]?.cartao.largura).toBe(cs[0]?.grade.largura);

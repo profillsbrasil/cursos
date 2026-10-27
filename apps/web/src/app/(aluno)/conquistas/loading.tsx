@@ -2,7 +2,8 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import {
   CabecalhoDasConquistas,
-  GRADE_DAS_PRIMEIRAS_VEZES,
+  DESTAQUE_DA_GRADE,
+  GRADE_DAS_MEDALHAS,
 } from "@/components/conquistas/tela-de-conquistas";
 
 const PULSO = "bg-card";
@@ -16,10 +17,11 @@ export default function Carregando() {
         <div className="grid gap-3.5">
           <Skeleton className={`${PULSO} h-[340px] rounded-[20px]`} />
           <Skeleton className={`${PULSO} h-[100px] rounded-[20px]`} />
-          <div className={GRADE_DAS_PRIMEIRAS_VEZES}>
-            {[0, 1, 2].map((i) => (
+          <Skeleton className={`${PULSO} h-[104px] rounded-[20px]`} />
+          <div className={GRADE_DAS_MEDALHAS}>
+            {[0, 1, 2, 3, 4].map((i) => (
               <Skeleton
-                className={`${PULSO} h-[156px] rounded-[20px]`}
+                className={`${PULSO} h-[172px] rounded-[20px] ${i === 0 ? DESTAQUE_DA_GRADE : ""}`}
                 key={i}
               />
             ))}
