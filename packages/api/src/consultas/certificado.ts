@@ -4,9 +4,7 @@ import {
   certificado,
   curso,
   liberacao,
-  liberacaoDoPerfil,
   modulo,
-  perfilDaPessoa,
   pergunta,
   pontoLancamento,
 } from "@cursos/db/schema/index";
@@ -91,8 +89,8 @@ async function cursoParaConcluir(
 }
 
 /**
- * A emissão também roda para quem não está logado (concluirParaQuemCompletou),
- * então o perfil vem da linha de perfil_da_pessoa, não da sessão.
+ * Só o curso inteiro emite: a liberação própria ativa (do admin ou de troca). A
+ * liberação do perfil dá a amostra, que não conclui o curso.
  */
 async function temAcessoAtivo(aluno: AlunoTravado, cursoId: CursoId) {
   const { rows } = await aluno.tx.execute<{ ve: boolean }>(sql`
@@ -100,13 +98,7 @@ async function temAcessoAtivo(aluno: AlunoTravado, cursoId: CursoId) {
              select 1 from ${liberacao} l
               where l.user_id = ${aluno.userId}
                 and l.curso_id = ${cursoId}
-                and l.revogada_em is null)
-        or exists (
-             select 1 from ${liberacaoDoPerfil} lp
-               join ${perfilDaPessoa} p on p.perfil = lp.perfil
-              where p.user_id = ${aluno.userId}
-                and lp.curso_id = ${cursoId}
-                and lp.revogada_em is null) as ve`);
+                and l.revogada_em is null) as ve`);
   return rows[0]?.ve === true;
 }
 
@@ -198,10 +190,6 @@ export async function concluirParaQuemCompletou(
     , alcance as (
       select l.user_id from ${liberacao} l
        where l.curso_id = ${cursoId} and l.revogada_em is null
-      union
-      select p.user_id from ${perfilDaPessoa} p
-        join ${liberacaoDoPerfil} lp on lp.perfil = p.perfil
-       where lp.curso_id = ${cursoId} and lp.revogada_em is null
     )
     select a.user_id
       from alcance a

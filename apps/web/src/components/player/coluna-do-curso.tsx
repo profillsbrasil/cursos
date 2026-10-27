@@ -2,7 +2,7 @@
 
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check, ListChecks } from "lucide-react";
+import { Check, ListChecks, Lock } from "lucide-react";
 import Link from "next/link";
 import { useLayoutEffect, useRef } from "react";
 
@@ -100,6 +100,7 @@ function MarcaDoQuestionario({
 
 export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
   const { progresso, slug, titulo } = dados.curso;
+  const amostra = dados.amostra !== null;
   const coluna = useColunaNaAulaAtual(dados.aula.id);
   return (
     <>
@@ -155,21 +156,37 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
             <ol className="pb-2">
               {m.aulas.map((a, i) => (
                 <li key={a.id}>
-                  <Link
-                    aria-current={a.atual ? "page" : undefined}
-                    className={cn(
-                      "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground hover:bg-white/8 hover:text-titulo",
-                      a.atual && "bg-sol/[0.08] font-semibold text-titulo"
-                    )}
-                    href={caminhoDaAula(slug, a.id)}
-                  >
-                    <Estado aula={a} numero={i + 1} />
-                    <span>{a.titulo}</span>
-                    <span className="inline-flex items-center gap-1.5 font-mono text-muted-foreground text-xs tabular-nums">
-                      <MarcaDoQuestionario marca={a.questionario} />
-                      {fmtMin(a.duracaoSeg)}
+                  {amostra && !a.atual ? (
+                    // Na amostra, só a aula aberta é link; as outras levam o cadeado.
+                    <span className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-muted-foreground">
+                      <span className="grid size-[26px] shrink-0 place-items-center">
+                        <Lock aria-hidden="true" className="size-4" />
+                        <span className="sr-only">
+                          Fechada. Troque para assistir.
+                        </span>
+                      </span>
+                      <span>{a.titulo}</span>
+                      <span className="font-mono text-xs tabular-nums">
+                        {fmtMin(a.duracaoSeg)}
+                      </span>
                     </span>
-                  </Link>
+                  ) : (
+                    <Link
+                      aria-current={a.atual ? "page" : undefined}
+                      className={cn(
+                        "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground hover:bg-white/8 hover:text-titulo",
+                        a.atual && "bg-sol/[0.08] font-semibold text-titulo"
+                      )}
+                      href={caminhoDaAula(slug, a.id)}
+                    >
+                      <Estado aula={a} numero={i + 1} />
+                      <span>{a.titulo}</span>
+                      <span className="inline-flex items-center gap-1.5 font-mono text-muted-foreground text-xs tabular-nums">
+                        <MarcaDoQuestionario marca={a.questionario} />
+                        {fmtMin(a.duracaoSeg)}
+                      </span>
+                    </Link>
+                  )}
                 </li>
               ))}
             </ol>

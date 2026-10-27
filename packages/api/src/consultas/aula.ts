@@ -9,11 +9,13 @@ import {
 import { eq, sql } from "drizzle-orm";
 import {
   type AulaNoPlayer,
+  abreAAula,
   aulaPorId,
+  type CursoAberto,
   estudoDaAula,
   type LinhasCurso,
   montarAulaNoPlayer,
-  montarCursoAberto,
+  montarCursoVisto,
 } from "../dominio/aula";
 import {
   montarPaginaDoCurso,
@@ -27,7 +29,7 @@ import {
   type Pedido,
   type Registro,
 } from "../dominio/registro";
-import { COTA_VIDEO } from "../dominio/regras";
+import { COTA_VIDEO, PONTOS } from "../dominio/regras";
 import type { AulaId, CursoId, DiaISO } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
@@ -36,8 +38,9 @@ import { concluirCurso } from "./certificado";
 import { type Executor, relacoesDoAcesso } from "./comum";
 import { materiaisDaPagina } from "./material";
 import { linhasDosQuestionarios } from "./meus-cursos";
+import { saldoDe } from "./pontos";
 import { linhasDoQuestionario } from "./questionario";
-import { travarAluno } from "./trava";
+import { type AlunoTravado, travarAluno } from "./trava";
 
 export type ChaveCurso = { aulaId: string } | { slug: string };
 
@@ -55,6 +58,7 @@ export async function linhasDoCurso(
   const consultas = [
     exec.query.curso.findFirst({
       ...COM_CONTEUDO,
+      columns: { ...COM_CONTEUDO.columns, precoTroca: true },
       where:
         "slug" in chave
           ? { slug: chave.slug }
@@ -119,10 +123,22 @@ export async function carregarAula(
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
     linhasDoQuestionario(db, aluno.userId, aulaId as AulaId),
   ]);
-  const aberto = montarCursoAberto(linhas);
-  const aula = aberto && aulaPorId(aberto, aulaId);
-  return aberto && aula ? montarAulaNoPlayer(aberto, aula, questionario) : null;
+  const aberto = montarCursoVisto(linhas);
+  const aula = aberto && abreAAula(aberto, aulaId) && aulaPorId(aberto, aulaId);
+  if (!(aberto && aula)) {
+    return null;
+  }
+  return montarAulaNoPlayer(
+    aberto,
+    aula,
+    questionario,
+    await saldoDaAmostra(db, aluno, aberto)
+  );
 }
+
+/** O saldo só entra na amostra, para a troca; o curso inteiro não o lê. */
+const saldoDaAmostra = (db: Database, aluno: Aluno, c: CursoAberto) =>
+  c.amostra ? saldoDe(db, aluno.userId) : Promise.resolve(0);
 
 export async function carregarPaginaDoCurso(
   db: Database,
@@ -133,8 +149,16 @@ export async function carregarPaginaDoCurso(
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
     materiaisDaPagina(db, slug),
   ]);
-  const aberto = montarCursoAberto(linhas);
-  return aberto && montarPaginaDoCurso(aberto, materiais);
+  const aberto = montarCursoVisto(linhas);
+  if (!aberto) {
+    return null;
+  }
+  // A amostra não lista o material de apoio: o download também a recusa.
+  return montarPaginaDoCurso(
+    aberto,
+    aberto.amostra ? [] : materiais,
+    await saldoDaAmostra(db, aluno, aberto)
+  );
 }
 
 const erroSemAcesso = () =>
@@ -160,6 +184,27 @@ const erroSemVideo = () =>
  * ficar abaixo de 300 ms.
  */
 export const ESPERA_PELA_COTA_MS = 3000;
+
+/**
+ * Na troca, com o aluno travado: o lançamento aula_assistida de cada aula do
+ * curso que a pessoa já assistiu na amostra. O unique ponto_aula_uma_vez segura
+ * a aula que já tinha o dela. Só o lançamento da aula: a sequência não entra.
+ */
+export async function lancarAulasAssistidas(
+  aluno: AlunoTravado,
+  cursoId: CursoId,
+  agora: Date
+): Promise<void> {
+  await aluno.tx.execute(sql`
+    insert into ${pontoLancamento} (user_id, motivo, aula_id, pontos, criado_em)
+    select aa.user_id, 'aula_assistida', aa.aula_id, ${PONTOS.aula_assistida}, ${agora}
+      from ${aulaAssistida} aa
+      join aula a on a.id = aa.aula_id
+      join modulo m on m.id = a.modulo_id
+     where aa.user_id = ${aluno.userId}
+       and m.curso_id = ${cursoId}
+    on conflict do nothing`);
+}
 
 /**
  * Uma transação: trava a cota do aluno, relê o acesso, aplica o registro, grava
@@ -195,10 +240,11 @@ export function registrar(
     if (!cota) {
       throw new Error("O upsert da cota não devolveu a linha.");
     }
-    const aberto = montarCursoAberto(
+    const aberto = montarCursoVisto(
       await linhasDoCurso(tx, aluno, { aulaId }, { serial: true })
     );
-    const aula = aberto && aulaPorId(aberto, aulaId);
+    const aula =
+      aberto && abreAAula(aberto, aulaId) && aulaPorId(aberto, aulaId);
     if (!(aberto && aula)) {
       throw erroSemAcesso();
     }
@@ -238,7 +284,9 @@ export function registrar(
         .values({ assistidaEm: agora, aulaId, userId })
         .onConflictDoNothing()
         .returning({ dia: aulaAssistida.dia });
-      if (fato) {
+      // A amostra grava o fato e não lança: os pontos dela entram na troca
+      // (lancarAulasAssistidas), e o curso não conclui sem ela.
+      if (fato && !aberto.amostra) {
         const efeitos = lancamentosDaAssistida(
           aulaId,
           fato.dia as DiaISO,

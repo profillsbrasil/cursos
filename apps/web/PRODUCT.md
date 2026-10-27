@@ -29,7 +29,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 ## Operating Context
 
 - Os alunos assistem a vídeo-aulas gravadas organizadas em módulos, leem material de apoio (apostilas, PDFs, texto na aula), respondem ao questionário de cada aula e recebem certificado.
-- Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para ela ou para o perfil dela.
+- Um mesmo catálogo serve aos três públicos. Cada pessoa vê os cursos liberados para ela ou para o perfil dela. O curso liberado ao perfil é uma amostra: a pessoa assiste à primeira aula, e o curso inteiro abre pela troca com pontos ou pela liberação do admin (`docs/adr/0004-amostra-pelo-perfil.md`).
 - O catálogo tem um tipo só de coisa: o curso, no formato da Udemy, com módulos como seções e aulas em sequência. Não existe ordem entre cursos: um curso liberado abre sem esperar outro (`docs/adr/0001-catalogo-so-de-cursos.md`).
 - Um admin cria os cursos e os libera por pessoa (por exemplo, cursos X e Y para uma pessoa e só X para outra) ou por perfil (aba Por perfil de Liberações). Não existe curso obrigatório. O admin acompanha o progresso de quem recebeu a liberação numa área de admin separada.
 - Clientes e público aberto recebem cursos liberados do mesmo jeito; a compra ou a assinatura só libera cursos.
@@ -39,7 +39,7 @@ Quem fabrica e dá assistência às máquinas é quem ensina. Os cursos sobre op
 - Existe gamificação individual: pontos, sequência de dias e medalhas. Não existe ranking nem comparação entre colegas.
 - Pontos seguem a tabela do protótipo anterior como ponto de partida: 10 por aula assistida (90% do vídeo), 5 por acerto no questionário da aula na primeira tentativa, aprovada ou não, 100 por curso concluído e 30 por 7 dias de sequência. Rever aula não pontua de novo, e o questionário pontua só na primeira tentativa. A regra é só do questionário: a tentativa seguinte não mexe nos pontos da aula assistida, que entram quando o vídeo chega a 90%, e o resultado diz "O questionário pontua só na primeira tentativa", nunca que nada mais pontua. Os valores ficam fixos em `packages/api/src/dominio/regras.ts` até existir a tela em que o admin os ajusta.
 - A sequência conta dias úteis: um dia vale com uma aula concluída, e sábado e domingo nunca quebram a sequência.
-- Pontos são trocados por cursos. O admin marca quais cursos aceitam troca e o preço em pontos. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
+- Pontos são trocados por cursos. Todo curso publicado tem preço em pontos, e o funcionário usa o Bônus de funcionário para trocar. Os três públicos podem trocar, e o curso trocado fica liberado para sempre. A troca tem uma tela própria, separada de "Meus cursos".
 - Cada aula pode ter um questionário, com pontos só na primeira tentativa.
 - O admin publica comunicados (por exemplo, "Módulo 13 atualizado").
 - O protótipo anterior da plataforma é o artifact "Profills School Academia" (https://claude.ai/artifact/U7ySDnhvgN72ky4MgTgbu2). Ele serve de referência de funções, não de regra: o obrigatório, o prazo, o ranking e a paleta dele foram descartados.

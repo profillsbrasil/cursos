@@ -200,6 +200,8 @@ export type MarcaDoQuestionario =
   | { tipo: "reprovado"; ultima: { acertos: number; total: number } }
   | { tipo: "aprovado" };
 
+export const SEM_QUESTIONARIO: MarcaDoQuestionario = { tipo: "sem" };
+
 export function marcaDoQuestionario(
   perguntas: number,
   estudo: EstudoDoQuestionario | undefined

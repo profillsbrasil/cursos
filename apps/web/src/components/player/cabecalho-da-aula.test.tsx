@@ -36,6 +36,7 @@ describe("esqueleto da aula", () => {
 });
 
 const DADOS: AulaNoPlayer = {
+  amostra: null,
   anterior: null,
   aula: {
     descricao: "",

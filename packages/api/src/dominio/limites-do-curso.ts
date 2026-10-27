@@ -36,3 +36,11 @@ export const CARACTERES = {
   tituloDoModulo: 160,
   topico: 120,
 } as const;
+
+/**
+ * Todo curso publicado tem preço de troca: a liberação do perfil dá só a
+ * amostra, e o resto do curso abre pela troca (docs/adr/0004-amostra-pelo-perfil.md).
+ * O "Antes de publicar" do editor e a recusa do salvarCurso dizem esta frase.
+ */
+export const PRECO_PARA_PUBLICAR =
+  "Todo curso tem preço em pontos para publicar.";

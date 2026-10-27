@@ -36,6 +36,7 @@ const FABRICA: PaginaDoCurso = {
     onde: { aula: 1, modulo: { numero: 1, titulo: "Segurança do posto" } },
     tipo: "comecar",
   },
+  amostra: null,
   capa: {
     alt: "Montador na bancada",
     altura: 604,
@@ -130,6 +131,7 @@ const COMERCIAL: PaginaDoCurso = {
     onde: { aula: 1, modulo: { numero: 0, titulo: "Autoavaliação comercial" } },
     tipo: "comecar",
   },
+  amostra: null,
   capa: { alt: "Aperto de mão", altura: 604, largura: 900, url: "/capa.png" },
   categoria: "Vendas e negócios",
   descricao:

@@ -4,6 +4,11 @@ import { ArrowRight, Check, RotateCcw } from "lucide-react";
 import Link from "next/link";
 
 import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
+import { BotaoDeTroca } from "@/components/curso/botao-de-troca";
+import {
+  conviteDaAmostra,
+  trocaDaAmostra,
+} from "@/components/curso/textos-da-amostra";
 import { fmtMin } from "@/lib/formato";
 import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
@@ -12,6 +17,43 @@ import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
  * YouTube. O iframe continua no player, escondido, e o cartão toma o lugar dele no
  * fluxo, sem ficar por cima.
  */
+/** O fim da aula de amostra (a variante D do protótipo): o convite de troca no lugar da próxima aula. */
+function FimDaAmostra({
+  amostra,
+  slug,
+}: {
+  amostra: NonNullable<AulaNoPlayer["amostra"]>;
+  slug: string;
+}) {
+  const convite = conviteDaAmostra(amostra);
+  const troca = trocaDaAmostra(amostra);
+  const idDaRazao = `convite-da-troca-${amostra.cursoId}`;
+  return (
+    <div className="grid min-h-full w-full place-items-center bg-sidebar p-6 text-center">
+      <div className="grid max-w-[460px] justify-items-center gap-2.5">
+        <h2 className="text-balance font-bold text-[22px] text-titulo tracking-[-0.01em]">
+          {convite.titulo}
+        </h2>
+        <p className="text-pretty text-muted-foreground" id={idDaRazao}>
+          {convite.detalhe}
+        </p>
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          {troca.tipo === "sem_preco" ? null : (
+            <BotaoDeTroca
+              cursoId={amostra.cursoId}
+              idDaRazao={idDaRazao}
+              troca={troca}
+            />
+          )}
+          <Link className={BOTAO_CONTORNO} href={caminhoDoCurso(slug)}>
+            Ver o curso
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function FimDoVideo({
   aoRever,
   assistida,
@@ -23,7 +65,10 @@ export function FimDoVideo({
   conquista: Conquista | null;
   dados: AulaNoPlayer;
 }) {
-  const { curso, proxima } = dados;
+  const { amostra, curso, proxima } = dados;
+  if (amostra) {
+    return <FimDaAmostra amostra={amostra} slug={curso.slug} />;
+  }
   const duracaoDaProxima = proxima
     ? dados.modulos.flatMap((m) => m.aulas).find((a) => a.id === proxima.id)
         ?.duracaoSeg

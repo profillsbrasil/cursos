@@ -165,7 +165,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
         },
       ],
       niveis: [],
-      precoTroca: null,
+      precoTroca: 100,
       status: "publicado",
       titulo: `Curso do material ${S} ${cursos.length}`,
       topicos: [],
@@ -344,7 +344,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     ]).toEqual([arquivo, arquivo, null, null, null, null]);
   });
 
-  test("quem vê o curso só pelo perfil baixa o material, e o de outro perfil não", async () => {
+  test("quem vê o curso só pelo perfil (a amostra) não baixa o material, nem o de outro perfil", async () => {
     const m = novoMaterial(450);
     const criado = await salvar(documentoNovo([m]));
     const ADMIN = "user_admin" as AdminId;
@@ -354,7 +354,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     expect([
       (await como(CLIENTE).curso.material({ id: m.id }))?.chave,
       await como(SEM_LIBERACAO).curso.material({ id: m.id }),
-    ]).toEqual([m.chave, null]);
+    ]).toEqual([undefined, null]);
   });
 
   test("a página do curso lista o material em ordem com o link; o curso em produção não abre", async () => {

@@ -111,6 +111,7 @@ const coluna = renderToStaticMarkup(
   <ColunaDoCurso
     dados={
       {
+        amostra: null,
         anterior: null,
         aula: {
           descricao: "",

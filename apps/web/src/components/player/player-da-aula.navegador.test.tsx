@@ -38,6 +38,7 @@ const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
 
 /** Uma aula real de 10:34, com título de uma linha e descrição de duas. */
 const DADOS: AulaNoPlayer = {
+  amostra: null,
   anterior: null,
   aula: {
     descricao:

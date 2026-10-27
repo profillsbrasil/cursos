@@ -7,9 +7,10 @@ import {
 import { and, eq } from "drizzle-orm";
 
 import {
+  abreAAula,
   aulaPorId,
   type LinhasDoQuestionario,
-  montarCursoAberto,
+  montarCursoVisto,
 } from "../dominio/aula";
 import type { Aluno, Perfil } from "../dominio/perfil";
 import {
@@ -186,7 +187,7 @@ async function abrirQuestionario(
   perfil: Perfil,
   aulaId: AulaId
 ) {
-  const aberto = montarCursoAberto(
+  const aberto = montarCursoVisto(
     await linhasDoCurso(
       aluno.tx,
       { perfil, userId: aluno.userId },
@@ -194,9 +195,15 @@ async function abrirQuestionario(
       { serial: true }
     )
   );
-  const aula = aberto && aulaPorId(aberto, aulaId);
+  const aula = aberto && abreAAula(aberto, aulaId) && aulaPorId(aberto, aulaId);
   if (!(aberto && aula)) {
     throw erroSemAcesso();
+  }
+  if (aberto.amostra) {
+    throw new ErroParaAPessoa({
+      code: "PRECONDITION_FAILED",
+      message: "A amostra não tem questionário. Troque o curso para responder.",
+    });
   }
   const { perguntas, tentativas } = await linhasDoQuestionario(
     aluno.tx,

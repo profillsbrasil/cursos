@@ -1,5 +1,7 @@
 // O que o aluno vê pela liberação do perfil, por todos os routers do aluno: o
 // alunoProcedure lê o perfil e cada leitor soma a liberação do perfil à própria.
+// A liberação do perfil dá a amostra (amostra.integration.test.ts prova cada
+// procedure); aqui fica quem vê o curso e quem não vê.
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
@@ -11,6 +13,7 @@ import {
   comunicado,
   cotaVideo,
   curso,
+  liberacao,
   liberacaoDoPerfil,
   modulo,
   perfilDaPessoa,
@@ -18,7 +21,6 @@ import {
   posicaoAula,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
-import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
@@ -27,6 +29,7 @@ import type { AdminId, AulaId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { concluirParaQuemCompletou } from "./certificado";
+import { liberar } from "./liberacao";
 import { liberarParaPerfil, revogarDoPerfil } from "./liberacao-do-perfil";
 import { definirPerfil } from "./perfil";
 
@@ -35,9 +38,6 @@ const hex = () => randomBytes(4).toString("hex");
 const S = hex();
 const ADMIN = "user_admin" as AdminId;
 const AGORA = new Date("2026-10-20T15:00:00Z");
-
-const codigo = (e: unknown) =>
-  e instanceof TRPCError ? e.code : `não é TRPCError: ${String(e)}`;
 
 describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
@@ -124,6 +124,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, alunos));
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, alunos));
     await db.delete(cotaVideo).where(inArray(cotaVideo.userId, alunos));
+    await db.delete(liberacao).where(inArray(liberacao.userId, alunos));
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, alunos));
@@ -188,7 +189,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     ).toContain(c.slug);
   });
 
-  test("assistir a única aula pelo perfil emite o certificado, e a página e Conquistas o mostram", async () => {
+  test("assistir a única aula pelo perfil não emite o certificado: a amostra não conclui o curso", async () => {
     const c = await criarCurso();
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const cliente = await aluno("cliente");
@@ -198,13 +199,14 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
       trechos: [{ fim: 60, inicio: 0 }],
     });
     expect(r.assistida).toBe(true);
-    const pagina = await cliente.caller.certificado.pagina({ slug: c.slug });
-    expect(pagina).not.toBeNull();
+    expect(
+      await cliente.caller.certificado.pagina({ slug: c.slug })
+    ).toBeNull();
     const conquistas = await cliente.caller.aluno.conquistas();
-    expect(JSON.stringify(conquistas.certificados)).toContain(c.slug);
+    expect(JSON.stringify(conquistas.certificados)).not.toContain(c.slug);
   });
 
-  test("a edição do admin conclui também quem vê o curso só pelo perfil", async () => {
+  test("a edição do admin não conclui quem vê o curso só pelo perfil", async () => {
     const c = await criarCurso();
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const cliente = await aluno("cliente");
@@ -217,10 +219,10 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const emitidos = await db.query.certificado.findMany({
       where: { cursoId: c.id, userId: cliente.userId },
     });
-    expect(emitidos).toHaveLength(1);
+    expect(emitidos).toHaveLength(0);
   });
 
-  test("o comunicado do curso aberto ao perfil chega ao aluno do perfil, e só a ele", async () => {
+  test("o comunicado do curso aberto ao perfil não chega à amostra, e chega a quem tem o curso inteiro", async () => {
     const c = await criarCurso();
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const id = crypto.randomUUID();
@@ -237,11 +239,26 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const publico = await aluno("publico");
     const ids = async (x: ReturnType<typeof comoAluno>) =>
       JSON.stringify(await x.aluno.comunicados());
-    expect(await ids(cliente.caller)).toContain(id);
+    const noPainel = async (x: ReturnType<typeof comoAluno>) =>
+      (await x.meusCursos.painel()).comunicado?.id;
+    // O curso aparece como amostra, mas o comunicado dele é conteúdo do curso.
+    expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
+    expect(await ids(cliente.caller)).not.toContain(id);
+    expect(await noPainel(cliente.caller)).not.toBe(id);
     expect(await ids(publico.caller)).not.toContain(id);
+
+    await liberar(
+      db,
+      ADMIN,
+      { email: null, foto: null, nome: "Pessoa", userId: cliente.userId },
+      c.id,
+      AGORA
+    );
+    expect(await ids(cliente.caller)).toContain(id);
+    expect(await noPainel(cliente.caller)).toBe(id);
   });
 
-  test("curso trocável aberto ao perfil sai da vitrine e a troca recusa sem cobrar", async () => {
+  test("curso trocável aberto ao perfil fica na vitrine e a troca cobra o preço", async () => {
     const c = await criarCurso({ precoTroca: 100 });
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const cliente = await aluno("cliente");
@@ -253,15 +270,11 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
       userId: cliente.userId,
     });
     const painel = await cliente.caller.troca.painel();
-    expect(JSON.stringify(painel.cartoes)).not.toContain(c.id);
-    expect(
-      await cliente.caller.troca
-        .trocar({ cursoId: c.id, precoVisto: 100 })
-        .catch(codigo)
-    ).toBe("CONFLICT");
+    expect(JSON.stringify(painel.cartoes)).toContain(c.id);
+    await cliente.caller.troca.trocar({ cursoId: c.id, precoVisto: 100 });
     const lancamentos = await db.query.pontoLancamento.findMany({
       where: { userId: cliente.userId },
     });
-    expect(lancamentos.map((l) => l.pontos)).toEqual([500]);
+    expect(lancamentos.map((l) => l.pontos).sort()).toEqual([-100, 500]);
   });
 });

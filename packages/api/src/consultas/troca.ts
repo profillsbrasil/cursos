@@ -15,13 +15,8 @@ import {
   temCursoTrocavelNaVitrine,
 } from "../dominio/troca";
 import { ErroParaAPessoa } from "../index";
-import {
-  COLUNAS_DA_CAPA,
-  type Executor,
-  filtroDoPerfilAtivo,
-  filtroLiberacaoAtiva,
-} from "./comum";
-import { inserirLiberacao } from "./liberacao";
+import { COLUNAS_DA_CAPA, type Executor, filtroLiberacaoAtiva } from "./comum";
+import { abrirOCursoInteiro, inserirLiberacao } from "./liberacao";
 import { comSaldoTravado, linhasDoExtrato, linhasDoSaldo } from "./pontos";
 import type { AlunoTravado } from "./trava";
 
@@ -57,10 +52,6 @@ export async function linhasDosCursos(
         columns: { origem: true },
         where: ativas,
         with: { trocaLancamento: { columns: { id: true, pontos: true } } },
-      },
-      liberacoesDoPerfil: {
-        columns: { id: true },
-        where: filtroDoPerfilAtivo(aluno.perfil),
       },
       modulos: {
         columns: {},
@@ -170,6 +161,7 @@ async function gravarTroca(
   if (!lancamento) {
     throw new Error("O insert do lançamento não devolveu a linha.");
   }
+  await abrirOCursoInteiro(aluno, cursoId, agora);
   return { lancamentoId: lancamento.id };
 }
 

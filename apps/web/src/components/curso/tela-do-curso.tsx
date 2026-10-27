@@ -9,6 +9,7 @@ import { TextoQueAbre } from "@/components/casca/texto-que-abre";
 import { CartaoDoCurso } from "./cartao-do-curso";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { paragrafos, resumoDoCurso } from "./textos";
+import { TrocaDaAmostra } from "./troca-da-amostra";
 
 export const GRADE_DO_CURSO =
   "grid items-start gap-x-9 gap-y-10 min-[1081px]:grid-cols-[minmax(0,1fr)_300px]";
@@ -62,7 +63,19 @@ export function TelaDoCurso({
           </span>
         </p>
       </header>
-      <CartaoDoCurso className={LUGAR_DO_CARTAO} hoje={hoje} pagina={pagina} />
+      {pagina.amostra ? (
+        <TrocaDaAmostra
+          amostra={pagina.amostra}
+          className={LUGAR_DO_CARTAO}
+          pagina={pagina}
+        />
+      ) : (
+        <CartaoDoCurso
+          className={LUGAR_DO_CARTAO}
+          hoje={hoje}
+          pagina={pagina}
+        />
+      )}
       <div className={LUGAR_DO_RESTO}>
         {pagina.topicos.length > 0 ? (
           <section

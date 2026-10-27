@@ -9,6 +9,7 @@ import { ColunaDoCurso } from "./coluna-do-curso";
 const AULA = "11111111-1111-4111-8111-111111111111" as AulaId;
 
 const DADOS: AulaNoPlayer = {
+  amostra: null,
   anterior: null,
   aula: {
     descricao: "",

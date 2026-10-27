@@ -28,6 +28,7 @@ import { CabecalhoDaAula } from "./player/cabecalho-da-aula";
 import { CursosParaTrocar } from "./trocar-pontos/cursos-para-trocar";
 
 const AULA: AulaNoPlayer = {
+  amostra: null,
   anterior: null,
   aula: {
     descricao: "",

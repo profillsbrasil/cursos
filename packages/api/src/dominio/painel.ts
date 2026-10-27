@@ -1,4 +1,4 @@
-import type { Progresso } from "./curso";
+import { aulaDeAmostra, type Progresso } from "./curso";
 import { type CursoDoAluno, lerCursoDoAluno } from "./curso-do-aluno";
 import { estudoDe, type LinhaDoQuestionario } from "./historico";
 import { PONTOS } from "./regras";
@@ -65,8 +65,15 @@ export interface LinhasPainel {
     texto: string;
     titulo: string;
   }[];
-  /** Liberações ativas em ordem de liberadaEm. */
-  liberacoes: readonly { curso: CursoLinha; liberadaEm: Date }[];
+  /**
+   * Liberações ativas em ordem de liberadaEm. `amostra` é o curso que a pessoa
+   * vê só pela liberação do perfil, com o preço de troca dele; null no inteiro.
+   */
+  liberacoes: readonly {
+    amostra: { preco: number | null } | null;
+    curso: CursoLinha;
+    liberadaEm: Date;
+  }[];
   posicoes: readonly {
     atualizadaEm: Date;
     aulaId: string;
@@ -82,7 +89,20 @@ export interface LinhasResumo {
 
 // ---------- saída: o view model da tela ----------
 
+/**
+ * O curso da amostra. `aulaId` é a aula de amostra, para onde o cartão leva
+ * (null no curso sem aula); `preco` null no curso publicado antes da regra do
+ * preço; `vista` diz se a pessoa já assistiu à aula de amostra.
+ */
+export interface AmostraNoPainel {
+  aulaId: AulaId | null;
+  preco: number | null;
+  vista: boolean;
+}
+
 export interface CursoVM {
+  /** null no curso inteiro. */
+  amostra: AmostraNoPainel | null;
   aulas: number;
   capa: Capa;
   categoria: string;
@@ -228,9 +248,14 @@ const ORDEM_DOS_CURSOS: Record<TipoEstado, number> = {
 const somaSeg = (aulas: readonly { duracaoSeg: number }[]) =>
   aulas.reduce((s, a) => s + a.duracaoSeg, 0);
 
-function cursoVM(c: CursoCatalogo, leitura: CursoDoAluno): CursoVM {
+function cursoVM(
+  c: CursoCatalogo,
+  leitura: CursoDoAluno,
+  amostra: AmostraNoPainel | null
+): CursoVM {
   const aulas = c.modulos.flatMap((m) => m.aulas);
   return {
+    amostra,
     aulas: aulas.length,
     capa: c.capa,
     categoria: c.categoria,
@@ -252,16 +277,32 @@ export function montarPainel(
   hoje: DiaISO
 ): PainelMeusCursos {
   const estudo = estudoDe(linhas);
-  const liberados = linhas.liberacoes.map(({ curso }) => paraCatalogo(curso));
-  // O sort é estável, então o empate fica na ordem da liberação.
-  const telas: CursoNaTela[] = liberados
-    .map((curso) => ({ curso, leitura: lerCursoDoAluno(curso, estudo) }))
+  // O sort é estável, então o empate fica na ordem da liberação. A amostra vem
+  // depois dos cursos da pessoa, na mesma grade.
+  const telas = linhas.liberacoes
+    .map(({ amostra, curso }) => {
+      const c = paraCatalogo(curso);
+      const aulaId = aulaDeAmostra(c);
+      return {
+        amostra: amostra && {
+          aulaId,
+          preco: amostra.preco,
+          vista: aulaId !== null && estudo.historico.assistidas.has(aulaId),
+        },
+        curso: c,
+        leitura: lerCursoDoAluno(c, estudo),
+      };
+    })
     .sort(
       (a, b) =>
+        Number(a.amostra !== null) - Number(b.amostra !== null) ||
         ORDEM_DOS_CURSOS[a.leitura.estado.tipo] -
-        ORDEM_DOS_CURSOS[b.leitura.estado.tipo]
+          ORDEM_DOS_CURSOS[b.leitura.estado.tipo]
     );
-  const acessiveis = new Set<string>(telas.map((x) => x.curso.id));
+  // A retomada só leva ao curso inteiro: a aula da vez da amostra pode estar
+  // fechada. O comunicado de um curso também só chega a quem o tem inteiro.
+  const inteiros: CursoNaTela[] = telas.filter((x) => x.amostra === null);
+  const acessiveis = new Set<string>(inteiros.map((x) => x.curso.id));
   const comunicado = linhas.comunicados.find(
     (c) => c.cursoId === null || acessiveis.has(c.cursoId)
   );
@@ -277,8 +318,8 @@ export function montarPainel(
           titulo: comunicado.titulo,
         }
       : null,
-    cursos: telas.map((x) => cursoVM(x.curso, x.leitura)),
-    retomada: retomada({ cursos: telas, estudo }),
+    cursos: telas.map((x) => cursoVM(x.curso, x.leitura, x.amostra)),
+    retomada: retomada({ cursos: inteiros, estudo }),
   };
 }
 

@@ -110,7 +110,8 @@ export interface CursoDoCertificado {
 
 /**
  * Um por curso: o emitido, que fica mesmo com a liberação revogada, ou o do curso
- * de liberação ativa que ainda abre aula e não tem certificado.
+ * de liberação ativa que ainda abre aula e não tem certificado. A amostra fica
+ * de fora.
  */
 export type CertificadoNaTela = { curso: CursoDoCertificado } & Medalha<
   { codigo: string; horas: number },
@@ -159,8 +160,9 @@ function certificados(
       estado: "ganha" as const,
       horas: cargaHoraria(c.segundosDeVideo),
     }));
+  // A amostra não conclui o curso, então não tem certificado por ganhar.
   const porGanhar = painel.cursos
-    .filter((c) => ABREM_AULA.has(c.estado.tipo))
+    .filter((c) => c.amostra === null && ABREM_AULA.has(c.estado.tipo))
     .map((c) => ({
       categoria: c.categoria,
       curso: { capa: c.capa, id: c.id, slug: c.slug, titulo: c.titulo },

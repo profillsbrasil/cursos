@@ -1,10 +1,19 @@
+import { PRECO_PARA_PUBLICAR } from "@cursos/api/dominio/limites-do-curso";
 import { videoDoTexto } from "@cursos/api/dominio/video";
 
 import { fmtHoras, plural } from "@/lib/formato";
 
-import { type RascunhoDoCurso, segundosDas } from "./rascunho-do-curso";
+import {
+  lerPreco,
+  type RascunhoDoCurso,
+  segundosDas,
+} from "./rascunho-do-curso";
 
-/** Um item de "Antes de publicar": só informa, nenhum impede o Salvar. */
+/**
+ * Um item de "Antes de publicar": só informa, nenhum impede o Salvar. O Preço
+ * de troca é o único que o servidor exige para publicar; o curso sem preço
+ * salva em produção.
+ */
 export interface ItemAntesDePublicar {
   cumprido: boolean;
   detalhe: string | null;
@@ -13,7 +22,7 @@ export interface ItemAntesDePublicar {
 
 type Lido = Pick<
   RascunhoDoCurso,
-  "categoriaId" | "descricao" | "modulos" | "titulo"
+  "categoriaId" | "descricao" | "modulos" | "precoTroca" | "titulo"
 >;
 
 /** `temCapa`: a capa salva ou a escolhida agora, que mora fora do rascunho. */
@@ -24,6 +33,8 @@ export function antesDePublicar(
   const aulas = rascunho.modulos.flatMap((m) => m.aulas);
   const comVideo = aulas.filter((a) => videoDoTexto(a.video) !== null).length;
   const semQuestionario = aulas.filter((a) => a.perguntas.length === 0).length;
+  const temPreco =
+    rascunho.precoTroca !== null && "valor" in lerPreco(rascunho.precoTroca);
   return [
     { cumprido: temCapa, detalhe: null, nome: "Capa" },
     {
@@ -44,6 +55,11 @@ export function antesDePublicar(
           ? "Nenhuma aula ainda."
           : `${comVideo} de ${aulas.length}`,
       nome: "Aulas com vídeo",
+    },
+    {
+      cumprido: temPreco,
+      detalhe: temPreco ? null : PRECO_PARA_PUBLICAR,
+      nome: "Preço de troca",
     },
     {
       cumprido: aulas.length > 0 && semQuestionario === 0,

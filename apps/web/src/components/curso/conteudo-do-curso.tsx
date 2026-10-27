@@ -7,7 +7,7 @@ import type {
 } from "@cursos/api/dominio/pagina-do-curso";
 import type { AulaId } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import { Check, ChevronDown, ListChecks, RotateCcw } from "lucide-react";
+import { Check, ChevronDown, ListChecks, Lock, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { type SyntheticEvent, useCallback, useState } from "react";
 
@@ -116,12 +116,37 @@ function MarcaDaAula({
   );
 }
 
+/** Na amostra, a aula fechada: o cadeado no lugar do número, sem link. */
+function AulaFechada({ aula }: { aula: AulaDaPagina }) {
+  return (
+    <li className="relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-border border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px] [[data-atual]+&]:border-t-transparent">
+      <span className="mt-px grid size-[22px] place-items-center text-muted-foreground">
+        <Lock aria-hidden="true" className="size-4" />
+        <span className="sr-only">Fechada.</span>
+      </span>
+      <p className="font-semibold text-muted-foreground">{aula.titulo}</p>
+      <span className="flex flex-wrap items-center justify-end gap-2.5 whitespace-nowrap pt-px text-[13px] text-muted-foreground tabular-nums">
+        Troque para assistir
+        <span>{fmtMin(aula.duracaoSeg)}</span>
+      </span>
+      {aula.descricao ? (
+        <p className="col-start-2 col-end-4 line-clamp-2 whitespace-pre-line text-pretty text-muted-foreground sm:col-end-3">
+          {aula.descricao}
+        </p>
+      ) : null}
+    </li>
+  );
+}
+
 function Livro({
+  amostra,
   atual,
   modulo,
   parou,
   slug,
 }: {
+  /** A aula de amostra; null no curso inteiro. */
+  amostra: AulaId | null;
   atual: AulaId | null;
   modulo: ModuloDaPagina;
   parou: string | null;
@@ -130,6 +155,9 @@ function Livro({
   return (
     <ol>
       {modulo.aulas.map((a, i) => {
+        if (amostra !== null && a.id !== amostra) {
+          return <AulaFechada aula={a} key={a.id} />;
+        }
         const aqui = a.id === atual;
         return (
           <li
@@ -162,6 +190,11 @@ function Livro({
                   {parou}
                 </span>
               ) : null}
+              {amostra === a.id ? (
+                <span className="inline-flex h-[22px] items-center rounded-full bg-sol px-2 font-semibold text-sobre-cor text-xs">
+                  Amostra
+                </span>
+              ) : null}
               {fmtMin(a.duracaoSeg)}
             </span>
             {a.descricao ? (
@@ -182,6 +215,7 @@ type Alternar = (numero: number, aberto: boolean) => void;
 function ModuloDaSanfona({
   aberto,
   alternar,
+  amostra,
   atual,
   comecou,
   modulo,
@@ -190,6 +224,7 @@ function ModuloDaSanfona({
 }: {
   aberto: boolean;
   alternar: Alternar;
+  amostra: AulaId | null;
   atual: AulaId | null;
   comecou: boolean;
   modulo: ModuloDaPagina;
@@ -231,7 +266,13 @@ function ModuloDaSanfona({
         />
       </summary>
       <div className="border-border border-t">
-        <Livro atual={atual} modulo={modulo} parou={parou} slug={slug} />
+        <Livro
+          amostra={amostra}
+          atual={atual}
+          modulo={modulo}
+          parou={parou}
+          slug={slug}
+        />
       </div>
     </details>
   );
@@ -295,6 +336,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
           <ModuloDaSanfona
             aberto={abertos.has(m.numero)}
             alternar={alternar}
+            amostra={pagina.amostra?.aulaId ?? null}
             atual={atual}
             comecou={comecou}
             key={m.numero}

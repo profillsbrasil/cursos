@@ -43,6 +43,17 @@ export async function linhasDoSaldo(
   return linha;
 }
 
+/** Só o saldo, para a troca da amostra na página do curso e no player. */
+export async function saldoDe(exec: Executor, userId: string): Promise<number> {
+  const [linha] = await exec
+    .select({
+      saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
+    })
+    .from(pontoLancamento)
+    .where(eq(pontoLancamento.userId, userId));
+  return linha?.saldo ?? 0;
+}
+
 export function linhasDoExtrato(
   exec: Executor,
   userId: string,

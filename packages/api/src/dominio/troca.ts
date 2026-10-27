@@ -40,7 +40,6 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
     origem: OrigemDaLiberacao;
     trocaLancamento: { id: string; pontos: number } | null;
   }[];
-  liberacoesDoPerfil: readonly { id: string }[];
   modulos: readonly { aulas: readonly { duracaoSeg: number }[] }[];
   precoTroca: number | null;
   slug: string;
@@ -50,7 +49,8 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
 
 /**
  * A origem decide, como no check liberacao_troca_nao_revoga; o lançamento só dá o
- * id e o valor. O curso aberto ao perfil da pessoa ela já tem, como o liberado pelo admin.
+ * id e o valor. A liberação do perfil não conta: ela dá a amostra, e o curso
+ * continua à venda (ver docs/adr/0004-amostra-pelo-perfil.md).
  */
 function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
   const [ativa] = linha.liberacoes;
@@ -66,9 +66,7 @@ function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
       tipo: "trocado",
     };
   }
-  return ativa || linha.liberacoesDoPerfil.length > 0
-    ? { tipo: "liberado" }
-    : { tipo: "nenhum" };
+  return ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
 }
 
 export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {

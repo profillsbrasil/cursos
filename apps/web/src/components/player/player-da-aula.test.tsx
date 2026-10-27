@@ -20,6 +20,7 @@ const { NavegacaoEntreAulas } = await import("./cabecalho-da-aula");
 const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
 
 const DADOS: AulaNoPlayer = {
+  amostra: null,
   anterior: { id: "a3" as AulaId, titulo: "O custo do atraso para o cliente" },
   aula: {
     descricao: "",

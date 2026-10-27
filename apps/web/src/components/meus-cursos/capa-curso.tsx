@@ -1,11 +1,15 @@
 import type { CursoVM } from "@cursos/api/dominio/painel";
+import type { AulaId } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import { Clock } from "lucide-react";
+import { Clock, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { fmtHoras, fmtNum, plural } from "@/lib/formato";
-import { caminhoDoCurso } from "@/lib/rotas";
+import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
+import { SELO } from "@/components/casca/selos";
+import { linhaDaAmostra } from "@/components/curso/textos-da-amostra";
+import { fmtHoras, fmtNum, fmtPts, plural } from "@/lib/formato";
+import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
 import { SeloEstado } from "./selo-estado";
 
@@ -111,8 +115,95 @@ export const GRADE_CAPAS =
 /** sizes de toda capa da GRADE_CAPAS: com no máximo 3 colunas, a conta é a de 3 capas. */
 const SIZES_DA_GRADE = sizesDaCapa(3);
 
+/**
+ * O curso da amostra (a variante A do protótipo), na mesma grade: a capa velada
+ * com o selo "Amostra" e o preço, e o "Assistir à amostra", que leva à aula de
+ * amostra. O cartão inteiro é o link, como nos outros cursos.
+ */
+function CapaDaAmostra({
+  aulaId,
+  curso,
+  preco,
+  vista,
+}: {
+  aulaId: AulaId;
+  curso: CursoVM;
+  preco: number | null;
+  vista: boolean;
+}) {
+  return (
+    <Link
+      className="group grid content-start gap-2.5 rounded-lg"
+      href={caminhoDaAula(curso.slug, aulaId)}
+    >
+      <div className="relative aspect-video overflow-hidden rounded-lg bg-sidebar ring-1 ring-border transition-shadow duration-200 group-hover:ring-ceu">
+        <Image
+          alt={curso.capa.alt}
+          className="object-cover transition-transform duration-200 ease-forte group-hover:scale-[1.03] motion-reduce:transition-none"
+          fill
+          sizes={SIZES_DA_GRADE}
+          src={curso.capa.url}
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 bg-background/45"
+        />
+        <span
+          className={cn(
+            SELO,
+            "absolute top-2.5 left-2.5 bg-titulo text-sobre-cor"
+          )}
+        >
+          Amostra
+        </span>
+        {preco === null ? null : (
+          <span
+            className={cn(
+              SELO,
+              "absolute right-2.5 bottom-2.5 bg-background text-sol tabular-nums"
+            )}
+          >
+            {fmtPts(preco)}
+          </span>
+        )}
+      </div>
+      <h3 className="font-semibold text-lg text-titulo leading-[1.3] transition-colors group-hover:text-sol">
+        {curso.titulo}
+      </h3>
+      <p className="grid gap-1 text-[13px] text-muted-foreground">
+        <span>{linhaDoCurso({ ...curso, progresso: SEM_AULA })}</span>
+        <span>{linhaDaAmostra({ ...curso, vista })}</span>
+      </p>
+      <span
+        className={cn(
+          BOTAO_CONTORNO,
+          PEQUENO,
+          "w-fit group-hover:border-titulo dark:group-hover:border-titulo"
+        )}
+      >
+        <Play aria-hidden="true" className="fill-current" />
+        Assistir à amostra
+      </span>
+    </Link>
+  );
+}
+
+/** A linha do curso da amostra não conta aula: o progresso é o da amostra. */
+const SEM_AULA = { feitas: 0, pct: 0, total: 0 };
+
 // Link quando o estado abre o curso; div aria-disabled em em_breve.
 export function CapaCurso({ curso }: { curso: CursoVM }) {
+  const { amostra } = curso;
+  if (amostra?.aulaId && curso.estado.tipo !== "em_breve") {
+    return (
+      <CapaDaAmostra
+        aulaId={amostra.aulaId}
+        curso={curso}
+        preco={amostra.preco}
+        vista={amostra.vista}
+      />
+    );
+  }
   const fechado = curso.estado.tipo === "em_breve";
   const agora = moduloDeAgora(curso);
   const conteudo = (
