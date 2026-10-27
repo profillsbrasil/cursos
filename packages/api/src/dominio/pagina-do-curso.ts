@@ -3,10 +3,19 @@
 // regra de quem vê é a de montarCursoAberto, a mesma do player.
 
 import type { CursoAberto } from "./aula";
-import { type EstadoQueAbre, niveis, type Progresso } from "./curso";
+import {
+  type EstadoQueAbre,
+  niveis,
+  numeroDaAula,
+  type Progresso,
+} from "./curso";
 import type { OndeNoCurso } from "./curso-do-aluno";
 import type { MaterialDaPagina } from "./material";
-import { type MarcaDoQuestionario, marcaDoQuestionario } from "./questionario";
+import {
+  type MarcaDoQuestionario,
+  marcaDoQuestionario,
+  SEM_QUESTIONARIO,
+} from "./questionario";
 import { caminhoDaAula, caminhoDoQuestionario } from "./rotas";
 import type { AulaId, Capa, CursoId, NivelCatalogo } from "./tipos";
 
@@ -91,7 +100,33 @@ export interface PaginaDoCurso {
   topicos: readonly string[];
 }
 
+/**
+ * Na amostra, a ação é a aula de amostra: começar, ou continuar onde a pessoa
+ * parou nela. A aula da vez do curso inteiro pode estar fechada.
+ */
+function acaoDaAmostra(c: CursoAberto, aulaId: AulaId): AcaoDaPagina {
+  const { curso, historico } = c;
+  const modulo = curso.modulos.find((m) =>
+    m.aulas.some((a) => a.id === aulaId)
+  );
+  if (!modulo) {
+    throw new Error(`Aula de amostra ${aulaId} fora do curso ${curso.slug}`);
+  }
+  const onde = {
+    aula: numeroDaAula(modulo.aulas.findIndex((a) => a.id === aulaId)),
+    modulo: { numero: modulo.numero, titulo: modulo.titulo },
+  };
+  const href = caminhoDaAula(curso.slug, aulaId);
+  const posicaoSeg = historico.posicoes.get(aulaId)?.posicaoSeg ?? 0;
+  return posicaoSeg > 0 && !historico.assistidas.has(aulaId)
+    ? { aulaId, href, onde, posicaoSeg, tipo: "continuar" }
+    : { aulaId, href, onde, tipo: "comecar" };
+}
+
 function acaoDe(c: CursoAberto): AcaoDaPagina {
+  if (c.amostra) {
+    return acaoDaAmostra(c, c.amostra.aulaId);
+  }
   const { curso, historico } = c;
   const { aulaDaVez, estado, questionarios } = c.leitura;
   const { slug } = curso;
@@ -172,7 +207,10 @@ export function montarPaginaDoCurso(
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id,
-        questionario: marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),
+        // A amostra não tem questionário: nenhuma aula marca pendência.
+        questionario: c.amostra
+          ? SEM_QUESTIONARIO
+          : marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),
         titulo: a.titulo,
       })),
       nivel:

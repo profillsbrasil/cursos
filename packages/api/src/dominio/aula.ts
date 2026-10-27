@@ -14,6 +14,7 @@ import {
   montarQuestionarioDaAula,
   type PerguntaComGabarito,
   type QuestionarioDaAula,
+  SEM_QUESTIONARIO,
   type TentativaGravada,
 } from "./questionario";
 import { MARGEM_REINICIO_SEG } from "./regras";
@@ -257,7 +258,9 @@ export function montarAulaNoPlayer(
         atual: a.id === aula.id,
         duracaoSeg: a.duracaoSeg,
         id: a.id,
-        questionario: marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),
+        questionario: c.amostra
+          ? SEM_QUESTIONARIO
+          : marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),
         titulo: a.titulo,
       })),
       feitas: m.aulas.filter((a) => assistidas.has(a.id)).length,

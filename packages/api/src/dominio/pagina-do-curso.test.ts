@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { type LinhasCurso, montarCursoAberto } from "./aula";
+import { type LinhasCurso, montarCursoAberto, montarCursoVisto } from "./aula";
 import { cursoLinha, idAula } from "./exemplo";
 import { montarPaginaDoCurso } from "./pagina-do-curso";
 import type { CursoLinha } from "./painel";
 import type { MarcaDoQuestionario } from "./questionario";
-import type { AulaId } from "./tipos";
+import type { AulaId, CursoId } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 
@@ -298,6 +298,63 @@ describe("montarPaginaDoCurso", () => {
       aulaId: A1,
       href: `/cursos/envase/aulas/${A1}`,
       tipo: "rever",
+    });
+  });
+});
+
+describe("montarPaginaDoCurso na amostra", () => {
+  const amostra = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
+    const base = linha();
+    const visto = montarCursoVisto({
+      assistidas: o.assistidas ?? [],
+      certificados: [],
+      curso: {
+        ...base,
+        liberacoes: [],
+        liberacoesDoPerfil: [{ id: "lp" }],
+        modulos: base.modulos.map((m) => ({
+          ...m,
+          aulas: m.aulas.map((a) => ({ ...a, perguntas: 2 })),
+        })),
+        precoTroca: 400,
+      },
+      posicoes: o.posicoes ?? [],
+      questionarios: [],
+    });
+    return visto && montarPaginaDoCurso(visto, [], 120);
+  };
+
+  test("a ação é a aula de amostra, com o preço e o saldo, e nenhuma aula deve questionário", () => {
+    const p = amostra({ assistidas: [assistida(A1)] });
+    expect(p?.amostra).toEqual({
+      aulaId: A1,
+      cursoId: "envase" as CursoId,
+      href: `/cursos/envase/aulas/${A1}`,
+      preco: 400,
+      saldo: 120,
+    });
+    // Com a amostra assistida, a aula da vez do curso é a A2, que está fechada.
+    expect(p?.acao).toMatchObject({ aulaId: A1, tipo: "comecar" });
+    expect(
+      p?.modulos.flatMap((m) => m.aulas.map((a) => a.questionario))
+    ).toEqual([SEM, SEM, SEM]);
+  });
+
+  test("com a amostra começada, continua nela", () => {
+    const p = amostra({
+      posicoes: [
+        {
+          atualizadaEm: em("2026-10-06T15:00:00Z"),
+          aulaId: A1,
+          posicaoSeg: 30,
+          trechosVistos: [],
+        },
+      ],
+    });
+    expect(p?.acao).toMatchObject({
+      aulaId: A1,
+      posicaoSeg: 30,
+      tipo: "continuar",
     });
   });
 });
