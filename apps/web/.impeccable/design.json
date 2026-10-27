@@ -179,7 +179,7 @@
       },
       "mono": {
         "displayName": "Mono",
-        "purpose": "A voz dos números do player: os pontos do aviso na barra e do cartão de fim do vídeo (\"+10 pts\"), em 600 e 16 px; as seis velocidades dos Ajustes, em 600 e 12 px. Fora do player, só o endereço do curso e a tecla \"Ctrl S\" do editor; o resto dos números é Geist com tabular-nums."
+        "purpose": "A voz dos números do player: os pontos do aviso na barra e do cartão de fim do vídeo (\"+10 pts\"), em 600 e 16 px; as seis velocidades dos Ajustes, em 600 e 12 px. Fora do player, só o endereço do curso; o resto dos números é Geist com tabular-nums."
       },
       "mono-player": {
         "displayName": "Mono dos controles",
