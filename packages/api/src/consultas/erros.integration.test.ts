@@ -17,6 +17,7 @@ const TABELAS_DO_ADMIN = [
   "aula",
   "categoria",
   "comunicado",
+  "concessao_de_pontos",
   "curso",
   "liberacao",
   "material",

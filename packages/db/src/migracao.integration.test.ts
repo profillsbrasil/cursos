@@ -510,6 +510,7 @@ migracaoComLinhas(
       );
       expect(valores.rows.map((r) => r.v)).toEqual([
         "aula_assistida",
+        "concessao", // da migração concessao_de_pontos, que roda depois
         "curso_concluido",
         "questionario",
         "sequencia_7_dias",
@@ -531,6 +532,60 @@ migracaoComLinhas(
         )
         .then(() => null, codigoDoErro);
       expect(trocaPositiva).toBe("ponto_lancamento_sinal");
+    });
+  }
+);
+
+migracaoComLinhas(
+  "migração da concessão de pontos",
+  "concessao_de_pontos",
+  async (c) => {
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ('user_a', 'sequencia_7_dias', 30, '2026-10-07')"
+    );
+  },
+  (banco) => {
+    test("o lançamento antigo fica, sem concessão, e o enum ganha concessao", async () => {
+      const c = banco();
+      const antigo = await c.query(
+        "select motivo::text as motivo, pontos, concessao_id from ponto_lancamento"
+      );
+      expect(antigo.rows).toEqual([
+        { concessao_id: null, motivo: "sequencia_7_dias", pontos: 30 },
+      ]);
+      const valores = await c.query<{ v: string }>(
+        "select enumlabel as v from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'motivo_ponto' order by enumsortorder"
+      );
+      expect(valores.rows.map((r) => r.v)).toContain("concessao");
+    });
+
+    test("a concessão negativa entra com o lançamento dela, e o de zero pontos é recusado", async () => {
+      const c = banco();
+      const concessao = await c.query<{ id: string }>(
+        "insert into concessao_de_pontos (user_id, pontos, motivo, concedida_por) values ('user_a', -10, 'Ajuste', 'user_admin') returning id"
+      );
+      const id = concessao.rows[0]?.id;
+      await c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, concessao_id) values ('user_a', 'concessao', -10, $1)",
+        [id]
+      );
+      const saldo = await c.query<{ s: number }>(
+        "select sum(pontos)::int as s from ponto_lancamento where user_id = 'user_a'"
+      );
+      expect(saldo.rows[0]?.s).toBe(20);
+      const zero = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos, concessao_id) values ('user_a', 'concessao', 0, $1)",
+          [id]
+        )
+        .then(() => null, codigoDoErro);
+      expect(zero).toBe("ponto_lancamento_sinal");
+      const semConcessao = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos) values ('user_a', 'concessao', 10)"
+        )
+        .then(() => null, codigoDoErro);
+      expect(semConcessao).toBe("ponto_lancamento_referencia");
     });
   }
 );

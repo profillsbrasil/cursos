@@ -17,6 +17,7 @@ export const perfil = pgEnum("perfil", PERFIS);
 
 export const motivoPonto = pgEnum("motivo_ponto", [
   "aula_assistida",
+  "concessao",
   "curso_concluido",
   "questionario",
   "sequencia_7_dias",

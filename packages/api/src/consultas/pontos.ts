@@ -9,6 +9,10 @@ import { type AlunoTravado, comAlunoTravado } from "./trava";
 
 const FUSO = "America/Sao_Paulo";
 
+/**
+ * O saldo e as entradas da semana. A concessão do admin entra no saldo, mas não
+ * na semana: os pontos da semana medem estudo.
+ */
 export async function linhasDoSaldo(
   exec: Executor,
   userId: string,
@@ -18,6 +22,7 @@ export async function linhasDoSaldo(
     .select({
       entradasDaSemana: sql<number>`coalesce(sum(${pontoLancamento.pontos}) filter (
           where ${pontoLancamento.pontos} > 0
+            and ${pontoLancamento.motivo} <> 'concessao'
             and ${pontoLancamento.criadoEm} >= (${segunda}::date)::timestamp at time zone ${FUSO}), 0)::int`,
       saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
     })
@@ -41,6 +46,7 @@ export function linhasDoExtrato(
     where: { userId },
     with: {
       aula: { columns: { titulo: true } },
+      concessao: { columns: { motivo: true } },
       curso: { columns: { titulo: true } },
       liberacao: {
         columns: {},

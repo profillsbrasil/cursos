@@ -16,6 +16,7 @@ import {
   categoria,
   certificado,
   comunicado,
+  concessaoDePontos,
   cotaVideo,
   curso,
   liberacao,
@@ -268,6 +269,9 @@ async function semearNoBanco(db: Database, alunoA: string) {
     await tx
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, alunos));
+    await tx
+      .delete(concessaoDePontos)
+      .where(inArray(concessaoDePontos.userId, alunos));
     await tx.delete(certificado).where(inArray(certificado.userId, alunos));
     await tx.delete(posicaoAula).where(inArray(posicaoAula.userId, alunos));
     await tx.delete(cotaVideo).where(inArray(cotaVideo.userId, alunos));

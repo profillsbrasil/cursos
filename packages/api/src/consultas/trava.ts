@@ -4,7 +4,8 @@ import { sql } from "drizzle-orm";
 import type { Transacao } from "./comum";
 
 /**
- * `ponto:<userId>` trava o aluno: todo débito de pontos e toda escrita de liberação.
+ * `ponto:<userId>` trava o aluno: todo débito de pontos, toda concessão do admin
+ * (a de dar também) e toda escrita de liberação.
  * O crédito de aula.registrar não trava: ele só soma e não deixa o saldo negativo.
  * `curso:<id>` serializa a edição e o apagamento pelo admin. salvarCurso e
  * apagarCurso pegam só a `curso:<id>` deles, e a criação pega também a
