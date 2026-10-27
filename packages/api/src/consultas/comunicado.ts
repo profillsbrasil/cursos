@@ -1,10 +1,5 @@
 import type { Database } from "@cursos/db";
-import {
-  comunicado,
-  curso,
-  liberacao,
-  liberacaoDoPerfil,
-} from "@cursos/db/schema/index";
+import { comunicado, curso, liberacao } from "@cursos/db/schema/index";
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import type {
@@ -16,7 +11,11 @@ import type { Aluno } from "../dominio/perfil";
 import type { AdminId, ComunicadoId, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 
-/** O geral e o de um curso que o aluno vê, pela liberação própria ou do perfil. */
+/**
+ * O geral e o de um curso que o aluno tem inteiro, pela liberação própria. O
+ * comunicado do curso é conteúdo dele: a amostra, pela liberação do perfil, não
+ * o vê (ADR 0004).
+ */
 export const comunicadoVisivelPara = (db: Database, aluno: Aluno) =>
   or(
     isNull(comunicado.cursoId),
@@ -27,18 +26,6 @@ export const comunicadoVisivelPara = (db: Database, aluno: Aluno) =>
         .from(liberacao)
         .where(
           and(eq(liberacao.userId, aluno.userId), isNull(liberacao.revogadaEm))
-        )
-    ),
-    inArray(
-      comunicado.cursoId,
-      db
-        .select({ id: liberacaoDoPerfil.cursoId })
-        .from(liberacaoDoPerfil)
-        .where(
-          and(
-            eq(liberacaoDoPerfil.perfil, aluno.perfil),
-            isNull(liberacaoDoPerfil.revogadaEm)
-          )
         )
     )
   );

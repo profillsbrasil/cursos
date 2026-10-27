@@ -209,6 +209,39 @@ describe("montarPainel com regras de liberação", () => {
     expect(painel.comunicado?.publicadoEm).toBe("2026-10-04T12:00:00.000Z");
   });
 
+  test("o comunicado do curso da amostra não aparece, e o geral sim", () => {
+    const amostra = cursoLinha("amostra", { aulas: [2] });
+    const painel = montar(
+      linhas({
+        comunicados: [
+          {
+            cursoId: "amostra",
+            id: "da-amostra",
+            publicadoEm: em("2026-10-05T12:00:00Z"),
+            texto: "t",
+            titulo: "Do curso da amostra",
+          },
+          {
+            cursoId: null,
+            id: "geral",
+            publicadoEm: em("2026-10-03T12:00:00Z"),
+            texto: "t",
+            titulo: "Geral",
+          },
+        ],
+        liberacoes: [
+          {
+            amostra: { preco: 300 },
+            curso: amostra,
+            liberadaEm: em("2026-08-02T00:00:00Z"),
+          },
+        ],
+      })
+    );
+    expect(painel.cursos.map((c) => c.slug)).toEqual(["amostra"]);
+    expect(painel.comunicado?.id).toBe("geral");
+  });
+
   test("a amostra vem depois dos cursos da pessoa e não vira retomada", () => {
     const inteiro = cursoLinha("inteiro", { aulas: [2] });
     const amostra = cursoLinha("amostra", { aulas: [2] });

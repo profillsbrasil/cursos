@@ -299,9 +299,10 @@ export function montarPainel(
         ORDEM_DOS_CURSOS[a.leitura.estado.tipo] -
           ORDEM_DOS_CURSOS[b.leitura.estado.tipo]
     );
-  const acessiveis = new Set<string>(telas.map((x) => x.curso.id));
-  // A retomada só leva ao curso inteiro: a aula da vez da amostra pode estar fechada.
+  // A retomada só leva ao curso inteiro: a aula da vez da amostra pode estar
+  // fechada. O comunicado de um curso também só chega a quem o tem inteiro.
   const inteiros: CursoNaTela[] = telas.filter((x) => x.amostra === null);
+  const acessiveis = new Set<string>(inteiros.map((x) => x.curso.id));
   const comunicado = linhas.comunicados.find(
     (c) => c.cursoId === null || acessiveis.has(c.cursoId)
   );

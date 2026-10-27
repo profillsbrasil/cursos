@@ -29,6 +29,7 @@ import type { AdminId, AulaId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { concluirParaQuemCompletou } from "./certificado";
+import { liberar } from "./liberacao";
 import { liberarParaPerfil, revogarDoPerfil } from "./liberacao-do-perfil";
 import { definirPerfil } from "./perfil";
 
@@ -221,7 +222,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     expect(emitidos).toHaveLength(0);
   });
 
-  test("o comunicado do curso aberto ao perfil chega ao aluno do perfil, e só a ele", async () => {
+  test("o comunicado do curso aberto ao perfil não chega à amostra, e chega a quem tem o curso inteiro", async () => {
     const c = await criarCurso();
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const id = crypto.randomUUID();
@@ -238,8 +239,23 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const publico = await aluno("publico");
     const ids = async (x: ReturnType<typeof comoAluno>) =>
       JSON.stringify(await x.aluno.comunicados());
-    expect(await ids(cliente.caller)).toContain(id);
+    const noPainel = async (x: ReturnType<typeof comoAluno>) =>
+      (await x.meusCursos.painel()).comunicado?.id;
+    // O curso aparece como amostra, mas o comunicado dele é conteúdo do curso.
+    expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
+    expect(await ids(cliente.caller)).not.toContain(id);
+    expect(await noPainel(cliente.caller)).not.toBe(id);
     expect(await ids(publico.caller)).not.toContain(id);
+
+    await liberar(
+      db,
+      ADMIN,
+      { email: null, foto: null, nome: "Pessoa", userId: cliente.userId },
+      c.id,
+      AGORA
+    );
+    expect(await ids(cliente.caller)).toContain(id);
+    expect(await noPainel(cliente.caller)).toBe(id);
   });
 
   test("curso trocável aberto ao perfil fica na vitrine e a troca cobra o preço", async () => {
