@@ -4,6 +4,7 @@ import { createDb } from "@cursos/db";
 import {
   aula,
   aulaAssistida,
+  certificado,
   curso,
   liberacao,
   liberacaoDoPerfil,
@@ -16,7 +17,7 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { asc, inArray } from "drizzle-orm";
 
 import type { Perfil } from "../dominio/perfil";
-import { BONUS_DE_FUNCIONARIO } from "../dominio/regras";
+import { BONUS_DE_FUNCIONARIO, PONTOS } from "../dominio/regras";
 import type { AdminId, CursoId } from "../dominio/tipos";
 import { nadaAFazer } from "../dominio/virada";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -146,6 +147,7 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, alunos));
     await db.delete(liberacao).where(inArray(liberacao.userId, alunos));
+    await db.delete(certificado).where(inArray(certificado.userId, alunos));
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, alunos));
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, alunos));
     await db
@@ -204,8 +206,11 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
       lancamentos
         .filter((l) => l.userId === userId)
         .map((l) => [l.motivo, l.pontos]);
+    // A troca lança a aula assistida antes dela e conclui o curso de uma aula.
     expect(doAluno(estudou)).toEqual([
       ["troca", -PRECO],
+      ["aula_assistida", PONTOS.aula_assistida],
+      ["curso_concluido", PONTOS.curso_concluido],
       ["bonus_funcionario", BONUS_DE_FUNCIONARIO],
     ]);
     expect(doAluno(naoEstudou)).toEqual([
