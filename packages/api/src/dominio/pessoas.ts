@@ -33,7 +33,14 @@ export const perfilNaTela = (
 export interface PessoaNaLista extends Pessoa {
   papel: Papel;
   perfil: PerfilNaTela;
+  /** A soma dos lançamentos; 0 para quem não tem nenhum. */
+  saldo: number;
   ultimoAcesso: Date | null;
+}
+
+export interface SaldoDaPessoa {
+  saldo: number;
+  userId: string;
 }
 
 export type ContagemPorPerfil = Record<(typeof PERFIS)[number], number>;
@@ -49,10 +56,12 @@ export interface ListaDePessoas {
 export function montarListaDePessoas(
   busca: BuscaDeContas,
   linhas: readonly LinhaDoPerfil[],
+  saldos: readonly SaldoDaPessoa[],
   contagem: ContagemPorPerfil,
   filtro: Perfil | null
 ): ListaDePessoas {
   const porId = new Map(linhas.map((l) => [l.userId, l]));
+  const saldoPorId = new Map(saldos.map((s) => [s.userId, s.saldo]));
   return {
     contagem,
     filtro,
@@ -62,6 +71,7 @@ export function montarListaDePessoas(
       nome: c.nome,
       papel: c.papel,
       perfil: perfilNaTela(c, porId.get(c.userId)),
+      saldo: saldoPorId.get(c.userId) ?? 0,
       ultimoAcesso: c.ultimoAcesso,
       userId: c.userId,
     })),

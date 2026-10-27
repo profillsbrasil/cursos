@@ -22,6 +22,11 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
   const ANA = `user_ana${S}`;
   const BRUNO = `user_bruno${S}`;
   const CARLA = `user_carla${S}`;
+  // Só para o saldo: nunca entram no app, então nenhum bônus soma ao que o teste grava.
+  const DIEGO = `user_diego${S}`;
+  const ELISA = `user_elisa${S}`;
+  const FABIO = `user_fabio${S}`;
+  const TODOS = [DONA, ANA, BRUNO, CARLA, DIEGO, ELISA, FABIO];
   const pessoas: (Pessoa & Partial<Conta>)[] = [
     {
       email: "dona@profills.com",
@@ -44,6 +49,9 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       nome: `Carla ${S}`,
       userId: CARLA,
     },
+    { email: null, foto: null, nome: `Diego ${S}`, userId: DIEGO },
+    { email: null, foto: null, nome: `Elisa ${S}`, userId: ELISA },
+    { email: null, foto: null, nome: `Fabio ${S}`, userId: FABIO },
   ];
   const admin = createCaller(
     contextoDeTeste({ db, papel: "admin", pessoas, userId: DONA })
@@ -55,10 +63,10 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     // O primeiro acesso de Funcionário lança o bônus (bonus-de-funcionario.integration.test.ts).
     await db
       .delete(pontoLancamento)
-      .where(inArray(pontoLancamento.userId, [DONA, ANA, BRUNO, CARLA]));
+      .where(inArray(pontoLancamento.userId, TODOS));
     await db
       .delete(perfilDaPessoa)
-      .where(inArray(perfilDaPessoa.userId, [DONA, ANA, BRUNO, CARLA]));
+      .where(inArray(perfilDaPessoa.userId, TODOS));
     await db.$client.end();
   });
 
@@ -78,6 +86,32 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     });
     expect(porNome[DONA]?.papel).toBe("admin");
     expect(porNome[BRUNO]?.papel).toBe("aluno");
+  });
+
+  test("a lista traz o saldo de cada pessoa, a soma dos lançamentos, e 0 para quem não tem nenhum", async () => {
+    const lancamento = (userId: string, dia: string, pontos: number) => ({
+      criadoEm: new Date(`${dia}T15:00:00Z`),
+      diaMarco: dia,
+      motivo: "sequencia_7_dias" as const,
+      pontos,
+      userId,
+    });
+    await db
+      .insert(pontoLancamento)
+      .values([
+        lancamento(DIEGO, "2026-09-01", 3000),
+        lancamento(DIEGO, "2026-09-02", 2000),
+        lancamento(DIEGO, "2026-09-03", 130),
+        lancamento(ELISA, "2026-09-01", 10),
+      ]);
+    const { pessoas: lista } = await admin.admin.pessoas.lista({
+      perfil: null,
+      termo: S,
+    });
+    const saldo = Object.fromEntries(lista.map((p) => [p.userId, p.saldo]));
+    expect(saldo[DIEGO]).toBe(5130);
+    expect(saldo[ELISA]).toBe(10);
+    expect(saldo[FABIO]).toBe(0);
   });
 
   test("o filtro de perfil lista só quem entrou com ele, e a contagem sobe", async () => {
