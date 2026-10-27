@@ -91,6 +91,32 @@ describe("montarCursoAberto", () => {
     expect(visto && abreAAula(visto, idAula("a", 0, 2))).toBe(true);
   });
 
+  test("o curso concluído que ficou sem aula abre inteiro, e a amostra dele não existe", () => {
+    // O certificado vence a falta de aula (concluido), como antes da amostra.
+    const vazio = cursoLinha("vazio", { aulas: [0] });
+    const certificados = [
+      {
+        codigo: "RI-001",
+        cursoId: vazio.id,
+        emitidoEm: em("2026-10-06T15:00:00Z"),
+      },
+    ];
+    const inteiro = montarCursoAberto(
+      linhas(comAcesso(vazio, { liberado: true, peloPerfil: true }), {
+        certificados,
+      })
+    );
+    expect(inteiro?.amostra).toBeNull();
+    expect(inteiro?.leitura.estado.tipo).toBe("concluido");
+    expect(
+      montarCursoVisto(
+        linhas(comAcesso(vazio, { liberado: false, peloPerfil: true }), {
+          certificados,
+        })
+      )
+    ).toBeNull();
+  });
+
   test("com liberação ativa, o curso abre no estado dele", () => {
     expect(
       montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.leitura

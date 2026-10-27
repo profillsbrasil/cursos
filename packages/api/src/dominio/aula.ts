@@ -69,9 +69,22 @@ export interface CursoAberto {
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
 }
 
+/** null: o curso inteiro. undefined: a amostra que não existe, sem aula. */
+function amostraDe(
+  linha: CursoComAcessoLinha,
+  curso: CursoCatalogo
+): Amostra | null | undefined {
+  if (linha.liberacoes.length > 0) {
+    return null;
+  }
+  const primeira = aulaDeAmostra(curso);
+  return primeira ? { aulaId: primeira, preco: linha.precoTroca } : undefined;
+}
+
 /**
  * O curso que a pessoa vê, inteiro ou como amostra. null sem liberação ativa
- * do curso, própria ou do perfil, ou com o curso em_breve.
+ * do curso, própria ou do perfil, com o curso em_breve ou, na amostra, sem a
+ * aula de amostra. O curso inteiro abre também sem aula.
  */
 export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
   const linha = linhas.curso;
@@ -85,15 +98,15 @@ export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
   const curso = paraCatalogo(linha);
   const leitura = lerCursoDoAluno(curso, estudo);
   const { estado } = leitura;
-  const primeira = aulaDeAmostra(curso);
-  if (!(podeAbrir(estado) && primeira)) {
+  if (!podeAbrir(estado)) {
+    return null;
+  }
+  const amostra = amostraDe(linha, curso);
+  if (amostra === undefined) {
     return null;
   }
   return {
-    amostra:
-      linha.liberacoes.length > 0
-        ? null
-        : { aulaId: primeira, preco: linha.precoTroca },
+    amostra,
     curso,
     diasComAulaAssistida: new Set(
       linhas.assistidas.map((a) => a.dia as DiaISO)
