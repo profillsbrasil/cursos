@@ -1,6 +1,6 @@
 # 0003. Papel e perfil são eixos separados
 
-Data: 20 de outubro de 2026. Situação: aceita.
+Data: 20 de outubro de 2026. Situação: aceita. A regra de acesso (o item "Acesso" da decisão) foi substituída pela ADR 0004: a liberação do perfil passa a dar a amostra do curso, e o curso inteiro abre só pela liberação própria.
 
 ## Contexto
 
@@ -14,7 +14,7 @@ O dono pediu três níveis: usuário, funcionário e admin. Com um campo só, o 
 - **Perfil.** Diz que cursos a pessoa vê pelo perfil: `funcionario`, `cliente` ou `publico`. Mora no Postgres, na tabela `perfil_da_pessoa`, porque entra no SQL do acesso e no filtro da tela Pessoas. A Backend API do Clerk não filtra a lista de usuários por metadata.
 - **Perfil do cadastro.** A linha nasce no primeiro acesso ao app. Quem tem o e-mail principal verificado em `@profills.com` entra como funcionário, e todo o resto entra como público aberto. O admin muda o perfil depois.
 - **Liberação do perfil.** A tabela `liberacao_do_perfil` abre um curso a todo mundo de um perfil, inclusive a quem ganhar o perfil depois. Ela tem a mesma vida da liberação: data, quem liberou, revogação com data e autor, e no máximo uma ativa por perfil e curso. "Liberado para todos" é o curso liberado aos três perfis.
-- **Acesso.** A pessoa vê um curso quando tem uma liberação própria ativa (do admin ou de troca) ou quando o perfil dela tem uma liberação ativa do curso.
+- **Acesso.** A pessoa vê um curso quando tem uma liberação própria ativa (do admin ou de troca) ou quando o perfil dela tem uma liberação ativa do curso. Substituído pela ADR 0004: a liberação do perfil dá só a amostra.
 - **Empresa cliente.** Não vira conceito. O admin libera à mão cada pessoa do cliente, pela liberação por pessoa.
 
 ## Consequências
