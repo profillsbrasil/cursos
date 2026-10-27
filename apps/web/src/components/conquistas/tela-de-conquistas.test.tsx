@@ -16,12 +16,15 @@ const texto = (h: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** O HTML depois da tag que tem `marca`, até o primeiro `fim`. */
+/** O HTML depois da tag que tem `marca`, até a tag do primeiro `fim`. */
 const trecho = (h: string, marca: string, fim: string) => {
   const inicio = h.indexOf(marca);
   return inicio < 0
     ? ""
-    : h.slice(h.indexOf(">", inicio) + 1, h.indexOf(fim, inicio));
+    : h.slice(
+        h.indexOf(">", inicio) + 1,
+        h.lastIndexOf("<", h.indexOf(fim, inicio))
+      );
 };
 
 /** O nome do link: o texto sem o que é `aria-hidden`. */
@@ -34,13 +37,37 @@ const itens = (h: string) =>
 const trilha = (h: string) => texto(trecho(h, "data-trilha", "</ol>"));
 const sequencia = (h: string) =>
   texto(
-    trecho(h, "data-sequencia", '<ol aria-label="Primeiras vezes"').replace(
+    trecho(h, "data-sequencia", "data-ganhas").replace(
       /<li aria-hidden="true"[^>]*>.*?<\/li>/g,
       " | "
     )
   );
-const primeirasVezes = (h: string) =>
-  itens(trecho(h, 'aria-label="Primeiras vezes"', "</ol>"));
+/** O cartão Ganhas vai até a grade, ou até o fim de Marcos sem ela. */
+const cartaoDasGanhas = (h: string) =>
+  trecho(
+    h,
+    "data-ganhas",
+    h.includes('aria-label="Medalhas por ganhar"')
+      ? 'aria-label="Medalhas por ganhar"'
+      : "</section>"
+  );
+const ganhas = (h: string) => texto(cartaoDasGanhas(h));
+const grade = (h: string) =>
+  itens(trecho(h, 'aria-label="Medalhas por ganhar"', "</ol>"));
+const cartoesDaGrade = (h: string) =>
+  [...h.matchAll(/<li class="([^"]*)"([^>]*data-por-ganhar="(\w+)")/g)].map(
+    ([, classes = "", atributos = "", tipo]) => ({
+      destaque: atributos.includes("data-destaque"),
+      largo: classes.includes("col-span-2"),
+      tipo,
+    })
+  );
+const barras = (h: string) =>
+  [
+    ...trecho(h, 'aria-label="Medalhas por ganhar"', "</ol>").matchAll(
+      /<div aria-label="([^"]+)" aria-valuemax="100" aria-valuemin="0" aria-valuenow="(\d+)"/g
+    ),
+  ].map(([, rotulo, valor]) => `${rotulo} ${valor}`);
 const certificados = (h: string) =>
   trecho(h, 'aria-labelledby="conquistas-certificados"', "</section>");
 
@@ -68,11 +95,27 @@ const comMarco = (
   ),
 });
 
+const comMedalha = (
+  base: Conquistas,
+  tipo: string,
+  medalha: object
+): Conquistas => ({
+  ...base,
+  medalhas: base.medalhas.map((m) =>
+    m.tipo === tipo ? ({ ...m, medalha } as (typeof base.medalhas)[number]) : m
+  ),
+});
+
+const naGrade = (c: Conquistas, medalha: string) =>
+  grade(html(c)).find((l) => l.includes(` ${medalha} `));
+
+const PORCENTAGEM_EM_SOL = /class="[^"]*text-sol[^"]*" data-pct/;
+
 describe("a aluna com medalhas", () => {
   const h = html(ALUNA);
 
-  test("o cabeçalho conta as medalhas ganhas entre marcos e certificados", () => {
-    expect(texto(h)).toStartWith("Conquistas 5 medalhas ganhas de 12 Marcos");
+  test("o cabeçalho conta as medalhas ganhas entre marcos, grade e certificados", () => {
+    expect(texto(h)).toStartWith("Conquistas 6 medalhas ganhas de 19 Marcos");
     expect(texto(h)).toContain("Certificados 1 de 5 cursos");
   });
 
@@ -112,11 +155,58 @@ describe("a aluna com medalhas", () => {
     ]);
   });
 
-  test("as primeiras vezes, com o fato e o dia de cada uma", () => {
-    expect(primeirasVezes(h)).toEqual([
-      "Ganha Primeira aula Como responder, em Autoavaliação Comercial 18 de ago.",
-      "Ganha Primeira troca Boas práticas de fabricação, por 200 pts 13 de out.",
-      "Ganha Primeiro curso concluído Autoavaliação Comercial 2 de set.",
+  test("o cartão Ganhas conta as da grade e mostra cada uma pela data", () => {
+    expect(ganhas(h)).toBe(
+      "Ganhas 4 de 10 Primeira aula 18 de ago. Primeiro questionário 25 de ago. Primeiro curso concluído 2 de set. Primeira troca 13 de out."
+    );
+    expect(
+      [...trecho(h, "data-ganhas", "</ul>").matchAll(/data-medalha="(\w+)"/g)]
+        .length
+    ).toBe(4);
+  });
+
+  test("a grade tem só as por ganhar, da maior porcentagem para a menor, e o empate pelo nome", () => {
+    expect(grade(h)).toEqual([
+      "80% Nota cheia Seu melhor de primeira foi 4 de 5. Acerte todas as perguntas de um questionário na primeira tentativa.",
+      "58% Mil pontos estudando 580 de 1.000 pts.",
+      "50% Da amostra à troca Falta trocar Manutenção básica.",
+      "33% Três cursos concluídos Faltam 2 cursos.",
+      "33% Três cursos trocados Faltam 2 trocas.",
+      "0% Troca até o fim 0 de 3 aulas de Boas práticas de fabricação.",
+    ]);
+  });
+
+  test("a primeira da grade ocupa duas colunas, com a medalha de 56 px e a porcentagem em Sol", () => {
+    const cartoes = cartoesDaGrade(h);
+    expect(cartoes.map((c) => [c.tipo, c.destaque, c.largo])).toEqual([
+      ["nota_cheia", true, true],
+      ["mil_pontos", false, false],
+      ["amostra_e_troca", false, false],
+      ["tres_cursos", false, false],
+      ["tres_trocas", false, false],
+      ["troca_ate_o_fim", false, false],
+    ]);
+    const destaque = trecho(h, "data-destaque", "</li>");
+    expect(destaque).toContain("size-14");
+    expect(destaque).toMatch(PORCENTAGEM_EM_SOL);
+    expect(trecho(h, 'data-por-ganhar="mil_pontos"', "</li>")).toContain(
+      "size-10"
+    );
+  });
+
+  test("a medalha e a porcentagem à vista são aria-hidden, e a barra leva o valor", () => {
+    const g = trecho(h, 'aria-label="Medalhas por ganhar"', "</ol>");
+    expect([
+      ...g.matchAll(/aria-hidden="true"[^>]*data-medalha="por_ganhar"/g),
+    ]).toHaveLength(6);
+    expect([...g.matchAll(/aria-hidden="true"[^>]*data-pct/g)]).toHaveLength(6);
+    expect(barras(h)).toEqual([
+      "Nota cheia 80",
+      "Mil pontos estudando 58",
+      "Da amostra à troca 50",
+      "Três cursos concluídos 33",
+      "Três cursos trocados 33",
+      "Troca até o fim 0",
     ]);
   });
 
@@ -156,7 +246,7 @@ describe("a aluna com medalhas", () => {
 
   test("a data de outro ano ganha o ano", () => {
     const virada = { ...ALUNA, hoje: "2027-01-05" as DiaISO };
-    expect(primeirasVezes(html(virada))[0]).toContain("18 de ago. de 2026");
+    expect(ganhas(html(virada))).toContain("Primeira aula 18 de ago. de 2026");
   });
 });
 
@@ -184,11 +274,25 @@ describe("o aluno novo", () => {
     );
   });
 
-  test("cada primeira vez diz o próximo passo", () => {
-    expect(primeirasVezes(h)).toEqual([
-      "Por ganhar Primeira aula Comece por Riscos do posto de montagem, em Fábrica e montagem.",
-      "Por ganhar Primeira troca Cada aula vale 10 pts; o curso mais barato custa 200 pts.",
-      "Por ganhar Primeiro curso concluído Fábrica e montagem tem 7 aulas.",
+  test("sem nenhuma ganha, o cartão Ganhas diz o que fazer para a primeira", () => {
+    expect(ganhas(h)).toBe(
+      "Ganhas 0 de 10 Sua primeira medalha vem com uma aula assistida até o fim. Comece por Riscos do posto de montagem, em Fábrica e montagem."
+    );
+    expect(cartaoDasGanhas(h)).not.toContain("data-medalha");
+  });
+
+  test("tudo em 0%, a grade vai pelo nome, e cada cartão diz o que falta", () => {
+    expect(grade(h)).toEqual([
+      "0% Da amostra à troca Faltam 2 passos: ver uma amostra e trocar o curso. A amostra é a primeira aula de um curso que você ainda não tem.",
+      "0% Mil pontos estudando 0 de 1.000 pts.",
+      "0% Nota cheia Acerte todas as perguntas na primeira tentativa.",
+      "0% Primeira aula Comece por Riscos do posto de montagem, em Fábrica e montagem.",
+      "0% Primeira troca O curso mais barato custa 200 pts.",
+      "0% Primeiro curso concluído Fábrica e montagem tem 7 aulas.",
+      "0% Primeiro questionário Seja aprovado no questionário de uma aula.",
+      "0% Três cursos concluídos Faltam 3 cursos.",
+      "0% Três cursos trocados Faltam 3 trocas.",
+      "0% Troca até o fim Troque um curso e conclua-o.",
     ]);
   });
 
@@ -200,7 +304,7 @@ describe("o aluno novo", () => {
 describe("as frases que mudam com o progresso", () => {
   test("com as três medalhas de aulas, a trilha fecha", () => {
     const ganha = { dia: "2026-10-01", estado: "ganha" };
-    const c = comMarco(comMarco(comMarco(ALUNA, 1, ganha), 2, ganha), 3, ganha);
+    const c = comMarco(comMarco(comMarco(ALUNA, 0, ganha), 1, ganha), 2, ganha);
     expect(trilha(html(c))).toStartWith(
       "100 aulas assistidas. As três medalhas de aulas são suas."
     );
@@ -208,22 +312,38 @@ describe("as frases que mudam com o progresso", () => {
 
   test("continuar a aula começada", () => {
     expect(
-      primeirasVezes(
-        html(
-          comMarco(NOVO, 0, {
-            estado: "por_ganhar",
-            proxima: { aula: "Aula 2", curso: "Curso", tipo: "continuar" },
-          })
-        )
-      )[0]
-    ).toBe("Por ganhar Primeira aula Termine Aula 2, em Curso.");
+      naGrade(
+        comMedalha(NOVO, "primeira_aula", {
+          estado: "por_ganhar",
+          pct: 0,
+          proxima: { aula: "Aula 2", curso: "Curso", tipo: "continuar" },
+        }),
+        "Primeira aula"
+      )
+    ).toBe("0% Primeira aula Termine Aula 2, em Curso.");
+  });
+
+  test("com as dez ganhas, a grade some e o cartão Ganhas mostra as dez", () => {
+    const todas: Conquistas = {
+      ...ALUNA,
+      medalhas: ALUNA.medalhas.map(
+        (m) =>
+          ({
+            ...m,
+            medalha: { dia: "2026-10-01", estado: "ganha" },
+          }) as (typeof ALUNA.medalhas)[number]
+      ),
+    };
+    const h = html(todas);
+    expect(ganhas(h)).toStartWith("Ganhas 10 de 10");
+    expect(h).not.toContain('aria-label="Medalhas por ganhar"');
   });
 
   test("a sequência com hoje já feito conta o que falta", () => {
     expect(
       sequencia(
         html(
-          comMarco(NOVO, 4, {
+          comMarco(NOVO, 3, {
             dias: 6,
             estado: "por_ganhar",
             hojePendente: false,
@@ -238,59 +358,25 @@ describe("as frases que mudam com o progresso", () => {
 
   test("a sequência ganha troca os dias pela medalha e diz quantas vezes", () => {
     const h = html(
-      comMarco(NOVO, 4, { dia: "2026-09-25", estado: "ganha", vezes: 3 })
+      comMarco(NOVO, 3, { dia: "2026-09-25", estado: "ganha", vezes: 3 })
     );
     expect(sequencia(h)).toBe(
       "Sete dias seguidos Uma aula nova em 7 dias úteis seguidos. Fim de semana não quebra a sequência. Ganha em 25 de set. 3 vezes até hoje"
     );
     expect(diasDaSemana(h)).toEqual([]);
-    expect(
-      trecho(h, "data-sequencia", '<ol aria-label="Primeiras vezes"')
-    ).toContain('data-medalha="ganha"');
+    expect(trecho(h, "data-sequencia", "data-ganhas")).toContain(
+      'data-medalha="ganha"'
+    );
   });
 
   test("a sequência ganha uma vez só não conta as vezes", () => {
     expect(
       sequencia(
         html(
-          comMarco(NOVO, 4, { dia: "2026-09-25", estado: "ganha", vezes: 1 })
+          comMarco(NOVO, 3, { dia: "2026-09-25", estado: "ganha", vezes: 1 })
         )
       )
     ).not.toContain("vezes");
-  });
-
-  test("sem curso trocável, a troca não promete preço", () => {
-    expect(
-      primeirasVezes(
-        html(
-          comMarco(NOVO, 5, {
-            estado: "por_ganhar",
-            maisBarato: null,
-            pontosPorAula: 10,
-          })
-        )
-      )[1]
-    ).toBe(
-      "Por ganhar Primeira troca Cada aula vale 10 pts. Nenhum curso novo para trocar agora."
-    );
-  });
-
-  test("o curso mais perto, com aula assistida e sem aula faltando", () => {
-    const perto = (feitas: number) =>
-      primeirasVezes(
-        html(
-          comMarco(NOVO, 6, {
-            estado: "por_ganhar",
-            maisPerto: { curso: "Fábrica e montagem", feitas, total: 7 },
-          })
-        )
-      )[2];
-    expect(perto(5)).toBe(
-      "Por ganhar Primeiro curso concluído Faltam 2 aulas em Fábrica e montagem."
-    );
-    expect(perto(7)).toBe(
-      "Por ganhar Primeiro curso concluído Só faltam os questionários de Fábrica e montagem."
-    );
   });
 
   test("sem curso, os certificados dizem onde vão aparecer", () => {

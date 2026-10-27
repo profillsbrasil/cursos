@@ -72,7 +72,7 @@ Decididas pelo dono em 2026-10-16:
 
 - O questionário de cada aula aprova com 70%, igual em todo curso, e a pessoa tenta de novo quantas vezes quiser. A regra completa está no `GLOSSARY.md` (Questionário, Nota mínima e Tentativa).
 - O certificado é uma página do app e um PDF para baixar, com nome, curso, data, carga horária e código. A carga horária é a soma da duração dos vídeos, arredondada para cima em horas. Uma página pública confere o certificado pelo código.
-- Conquistas são medalhas por marco que o app já registra: primeira aula, 10, 50 e 100 aulas assistidas, sequência de 7 dias, primeira troca, primeiro curso concluído e um certificado por curso. Não há níveis de aluno.
+- Conquistas são medalhas por marco que o app já registra: primeira aula, 10, 50 e 100 aulas assistidas, sequência de 7 dias, primeira troca, primeiro curso concluído e um certificado por curso. Em 27 de outubro de 2026 entraram mais sete: três cursos trocados, da amostra à troca, troca até o fim, primeiro questionário, nota cheia, três cursos concluídos e mil pontos estudando. Cada medalha por ganhar mostra a porcentagem cumprida e o que falta, e a tela abre na mais perto. Não há níveis de aluno.
 - Ponto não vence, e não há teto diário para os pontos de vídeo. O limite de taxa do player já barra abuso.
 - O menu do aluno não tem Início: Meus cursos é a primeira tela. A tela Comunicados lista todos os comunicados do aluno, com o mais recente em destaque e a capa do curso cobrindo o lado direito do cartão.
 - A sidebar recolhe sozinha na página da aula e volta como a pessoa a deixou quando ela sai. O app não tem migalha (breadcrumb).

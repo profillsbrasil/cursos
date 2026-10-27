@@ -39,6 +39,19 @@ interface SoNoCurso {
   cursoId: CursoId;
 }
 
+/** As colunas de `linhasDosQuestionarios`, que Conquistas estende. */
+export const COLUNAS_DO_QUESTIONARIO = {
+  aprovada: sql<boolean>`bool_or(${questionarioTentativa.aprovada})`,
+  aulaId: questionarioTentativa.aulaId,
+  tentativas: sql<number>`count(*)::int`,
+  // O decodificador da coluna devolve Date; o sql cru devolveria texto.
+  ultimaEm: sql`max(${questionarioTentativa.enviadaEm})`.mapWith(
+    questionarioTentativa.enviadaEm
+  ),
+  ultimosAcertos: sql<number>`(array_agg(${questionarioTentativa.acertos} order by ${questionarioTentativa.numero} desc))[1]`,
+  ultimoTotal: sql<number>`(array_agg(${questionarioTentativa.total} order by ${questionarioTentativa.numero} desc))[1]`,
+};
+
 /**
  * As tentativas da pessoa somadas por aula: se aprovou, quantas foram, quando foi
  * a última e a nota dela. Uma linha por aula tentada.
@@ -50,15 +63,7 @@ export function linhasDosQuestionarios(
 ): Promise<LinhaDoQuestionario[]> {
   const t = questionarioTentativa;
   return exec
-    .select({
-      aprovada: sql<boolean>`bool_or(${t.aprovada})`,
-      aulaId: t.aulaId,
-      tentativas: sql<number>`count(*)::int`,
-      // O decodificador da coluna devolve Date; o sql cru devolveria texto.
-      ultimaEm: sql`max(${t.enviadaEm})`.mapWith(t.enviadaEm),
-      ultimosAcertos: sql<number>`(array_agg(${t.acertos} order by ${t.numero} desc))[1]`,
-      ultimoTotal: sql<number>`(array_agg(${t.total} order by ${t.numero} desc))[1]`,
-    })
+    .select(COLUNAS_DO_QUESTIONARIO)
     .from(t)
     .where(
       and(

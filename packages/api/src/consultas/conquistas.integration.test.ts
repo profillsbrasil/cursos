@@ -5,12 +5,14 @@ import {
   aula,
   aulaAssistida,
   certificado,
+  concessaoDePontos,
   curso,
   liberacao,
   modulo,
   perfilDaPessoa,
   pontoLancamento,
   posicaoAula,
+  questionarioTentativa,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
@@ -27,7 +29,8 @@ const hex = () => randomBytes(4).toString("hex");
 const S = hex();
 const ALUNA = `user_teste${S}a`;
 const NOVO = `user_teste${S}b`;
-const ALUNOS = [ALUNA, NOVO];
+const TROCADORA = `user_teste${S}c`;
+const ALUNOS = [ALUNA, NOVO, TROCADORA];
 
 const SEXTA_15H = new Date("2026-10-16T15:00:00-03:00");
 
@@ -38,7 +41,7 @@ const resumo = (c: Conquistas) => ({
       : [x.curso.slug, x.categoria, x.feitas, x.total]
   ),
   marcos: Object.fromEntries(
-    c.marcos.map((m): [string, object] => [
+    [...c.marcos, ...c.medalhas].map((m): [string, object] => [
       m.tipo === "aulas" ? `aulas_${m.meta}` : m.tipo,
       m.medalha,
     ])
@@ -198,12 +201,139 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       posicaoSeg: 0,
       userId: NOVO,
     });
+
+    await plantarATrocadora();
   });
+
+  /**
+   * A trocadora: três trocas (a de `vista` depois de assistir à amostra dela,
+   * a de `depois` antes de qualquer aula), o certificado de `depois`, a nota
+   * de 2 de 3 de primeira e 990 pts de estudo, mais o bônus e a concessão.
+   */
+  async function plantarATrocadora() {
+    const vista = await criarCurso("vista", 3, { precoTroca: 300 });
+    const depois = await criarCurso("depois", 2, { precoTroca: 200 });
+    const terceiro = await criarCurso("terceiro", 1, { precoTroca: 100 });
+    const quando = (iso: string) => new Date(iso);
+    const trocar = async (cursoId: string, iso: string) => {
+      const [l] = await db
+        .insert(liberacao)
+        .values({
+          cursoId,
+          liberadaEm: quando(iso),
+          liberadaPor: TROCADORA,
+          origem: "troca",
+          userId: TROCADORA,
+        })
+        .returning({ id: liberacao.id });
+      await db.insert(pontoLancamento).values({
+        criadoEm: quando(iso),
+        liberacaoId: l?.id,
+        motivo: "troca",
+        pontos: -100,
+        userId: TROCADORA,
+      });
+    };
+    await trocar(depois.id, "2026-09-20T15:00:00Z");
+    await trocar(vista.id, "2026-10-05T15:00:00Z");
+    await trocar(terceiro.id, "2026-10-10T15:00:00Z");
+
+    const aulas: [string | undefined, string, number][] = [
+      [vista.aulas[0], "2026-10-01T14:00:00Z", 400],
+      [depois.aulas[0], "2026-09-21T14:00:00Z", 300],
+      [depois.aulas[1], "2026-09-22T14:00:00Z", 280],
+    ];
+    await db.insert(aulaAssistida).values(
+      aulas.map(([aulaId, iso]) => ({
+        assistidaEm: quando(iso),
+        aulaId: aulaId ?? "",
+        userId: TROCADORA,
+      }))
+    );
+    await db.insert(pontoLancamento).values(
+      aulas.map(([aulaId, iso, pontos]) => ({
+        aulaId,
+        criadoEm: quando(iso),
+        motivo: "aula_assistida" as const,
+        pontos,
+        userId: TROCADORA,
+      }))
+    );
+    await db.insert(certificado).values({
+      codigo: `PS-TESTE-${S}-3`,
+      cursoId: depois.id,
+      emitidoEm: quando("2026-10-12T12:00:00Z"),
+      segundosDeVideo: 1200,
+      userId: TROCADORA,
+    });
+
+    const [primeira, segunda] = [crypto.randomUUID(), crypto.randomUUID()];
+    await db.insert(questionarioTentativa).values([
+      {
+        acertos: 2,
+        aprovada: false,
+        aulaId: vista.aulas[0] ?? "",
+        enviadaEm: quando("2026-10-06T14:00:00Z"),
+        id: primeira,
+        numero: 1,
+        total: 3,
+        userId: TROCADORA,
+      },
+      {
+        acertos: 3,
+        aprovada: true,
+        aulaId: vista.aulas[0] ?? "",
+        enviadaEm: quando("2026-10-07T14:00:00Z"),
+        id: segunda,
+        numero: 2,
+        total: 3,
+        userId: TROCADORA,
+      },
+    ]);
+    const [concessao] = await db
+      .insert(concessaoDePontos)
+      .values({
+        concedidaPor: "user_admin",
+        motivo: "Teste das medalhas",
+        pontos: 2000,
+        userId: TROCADORA,
+      })
+      .returning({ id: concessaoDePontos.id });
+    await db.insert(pontoLancamento).values([
+      {
+        criadoEm: quando("2026-10-06T14:00:00Z"),
+        motivo: "questionario",
+        pontos: 10,
+        tentativaId: primeira,
+        userId: TROCADORA,
+      },
+      // Fora dos Mil pontos estudando: com eles, a soma passaria de 1.000.
+      {
+        criadoEm: quando("2026-10-08T14:00:00Z"),
+        motivo: "bonus_funcionario",
+        pontos: 5000,
+        userId: TROCADORA,
+      },
+      {
+        concessaoId: concessao?.id,
+        criadoEm: quando("2026-10-08T15:00:00Z"),
+        motivo: "concessao",
+        pontos: 2000,
+        userId: TROCADORA,
+      },
+    ]);
+  }
 
   afterAll(async () => {
     await db
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, ALUNOS));
+    await db
+      .delete(concessaoDePontos)
+      .where(inArray(concessaoDePontos.userId, ALUNOS));
+    await db
+      .delete(questionarioTentativa)
+      .where(inArray(questionarioTentativa.userId, ALUNOS));
     await db.delete(certificado).where(inArray(certificado.userId, ALUNOS));
     await db.delete(posicaoAula).where(inArray(posicaoAula.userId, ALUNOS));
     await db.delete(aulaAssistida).where(inArray(aulaAssistida.userId, ALUNOS));
@@ -215,34 +345,22 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await db.$client.end();
   });
 
-  test("a aluna: medalhas pelos fatos do banco, em 7 statements", async () => {
+  test("a aluna: medalhas pelos fatos do banco, em 8 statements", async () => {
     statements = 0;
     const c = resumo(
       await carregarConquistas(db, alunoDeTeste(ALUNA), SEXTA_15H)
     );
-    expect(statements).toBe(7);
-    expect(c.marcos).toEqual({
+    expect(statements).toBe(8);
+    expect(c.marcos).toMatchObject({
       aulas_10: { estado: "por_ganhar", feitas: 4 },
       aulas_50: { estado: "por_ganhar", feitas: 4 },
       aulas_100: { estado: "por_ganhar", feitas: 4 },
-      primeira_aula: {
-        aula: "auto aula 1",
-        curso: `auto ${sufixo}`,
-        dia: "2026-08-18",
-        estado: "ganha",
-      },
-      primeira_troca: {
-        curso: `bpf ${sufixo}`,
-        dia: "2026-10-13",
-        estado: "ganha",
-        pontos: 200,
-      },
-      primeiro_curso: {
-        curso: `auto ${sufixo}`,
-        dia: "2026-09-02",
-        estado: "ganha",
-      },
+      primeira_aula: { dia: "2026-08-18", estado: "ganha" },
+      primeira_troca: { dia: "2026-10-13", estado: "ganha" },
+      primeiro_curso: { dia: "2026-09-02", estado: "ganha" },
       sequencia: { dia: "2026-09-25", estado: "ganha", vezes: 2 },
+      tres_cursos: { estado: "por_ganhar", feitas: 2, pct: 66, total: 3 },
+      tres_trocas: { estado: "por_ganhar", feitas: 1, pct: 33, total: 3 },
     });
     expect(c.certificados).toEqual([
       [`teste-${sufixo}-auto`, "2026-09-02", `PS-TESTE-${S}-1`, 2],
@@ -260,6 +378,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     );
     expect(c.marcos.primeira_aula).toEqual({
       estado: "por_ganhar",
+      pct: 0,
       proxima: {
         aula: "fabrica aula 1",
         curso: `fabrica ${sufixo}`,
@@ -269,6 +388,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     expect(c.marcos.primeiro_curso).toEqual({
       estado: "por_ganhar",
       maisPerto: { curso: `fabrica ${sufixo}`, feitas: 0, total: 4 },
+      pct: 0,
     });
     expect(c.marcos.primeira_troca).toMatchObject({
       estado: "por_ganhar",
@@ -277,6 +397,32 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     expect(c.certificados).toEqual([
       [`teste-${sufixo}-fabrica`, "Categoria dos testes", 0, 4],
     ]);
+  });
+
+  test("a trocadora: as sete medalhas novas pelos fatos do banco", async () => {
+    statements = 0;
+    const c = await carregarConquistas(db, alunoDeTeste(TROCADORA), SEXTA_15H);
+    expect(statements).toBe(8);
+    expect(
+      Object.fromEntries(
+        c.medalhas.map((m): [string, object] => [m.tipo, m.medalha])
+      )
+    ).toEqual({
+      amostra_e_troca: { dia: "2026-10-05", estado: "ganha" },
+      mil_pontos: { estado: "por_ganhar", feitas: 990, pct: 99, total: 1000 },
+      nota_cheia: {
+        estado: "por_ganhar",
+        melhor: { feitas: 2, total: 3 },
+        pct: 66,
+      },
+      primeira_aula: { dia: "2026-09-21", estado: "ganha" },
+      primeira_troca: { dia: "2026-09-20", estado: "ganha" },
+      primeiro_curso: { dia: "2026-10-12", estado: "ganha" },
+      primeiro_questionario: { dia: "2026-10-07", estado: "ganha" },
+      tres_cursos: { estado: "por_ganhar", feitas: 1, pct: 33, total: 3 },
+      tres_trocas: { dia: "2026-10-10", estado: "ganha" },
+      troca_ate_o_fim: { dia: "2026-10-12", estado: "ganha" },
+    });
   });
 
   test("sem login, conquistas lança UNAUTHORIZED", async () => {

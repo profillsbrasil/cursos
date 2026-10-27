@@ -230,7 +230,9 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await db.insert(comunicado).values({
       cursoId: c.id,
       id,
-      publicadoEm: AGORA,
+      // Agora, e não AGORA: o painel mostra o comunicado mais novo, e o banco
+      // local tem os gerais do seed, publicados depois de 20 de outubro.
+      publicadoEm: new Date(),
       publicadoPor: ADMIN,
       texto: "Módulo novo.",
       titulo: "Do curso do perfil",

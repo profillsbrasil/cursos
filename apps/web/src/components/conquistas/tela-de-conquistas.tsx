@@ -2,6 +2,8 @@ import type {
   CertificadoNaTela,
   Conquistas,
   Marco,
+  MedalhaDaGrade,
+  TipoDaGrade,
 } from "@cursos/api/dominio/conquistas";
 import {
   FIM_DE_SEMANA_NAO_QUEBRA,
@@ -16,8 +18,10 @@ import {
   Check,
   Flame,
   Gift,
+  ListChecks,
   type LucideIcon,
   Play,
+  Star,
   Trophy,
 } from "lucide-react";
 import Image from "next/image";
@@ -27,6 +31,7 @@ import { type CSSProperties, Fragment } from "react";
 import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
+import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { Secao } from "@/components/meus-cursos/secao";
 import { diaCurto, fmtNum, plural } from "@/lib/formato";
 import { caminhoDoCertificado, caminhoDoCurso } from "@/lib/rotas";
@@ -38,33 +43,47 @@ import {
   pontoNaTrilha,
 } from "./geometria";
 import {
+  contagemDaGrade,
   contagemDasMedalhas,
   contagemDosCertificados,
   diaDoMes,
-  ehPrimeiraVez,
   emitidoEm,
   fraseDaSequencia,
   ganhaEm,
+  gradeDasMedalhas,
+  type LinhaDaGrade,
   legendaDoDegrau,
-  linhaDaPrimeiraVez,
   type MarcoDo,
   porcentagem,
   rotuloDoDia,
+  semGanha,
   siglaDoDia,
   tituloDaTrilha,
   trilhaDeAulas,
 } from "./textos";
 
 type Cor = "sol" | "ceu" | "canela";
-type Figura = Marco["tipo"] | "certificado";
+type Figura = Marco["tipo"] | TipoDaGrade | "certificado";
 
+/**
+ * A cor e o ícone saem do fato: Sol na aula, na troca, nos pontos e no
+ * certificado; Céu nas aulas da trilha, no curso concluído e no questionário;
+ * Canela na sequência. Um ícone, um sentido (DESIGN.md, "Ícones").
+ */
 const APARENCIA: Record<Figura, { cor: Cor; icone: LucideIcon }> = {
+  amostra_e_troca: { cor: "sol", icone: Gift },
   aulas: { cor: "ceu", icone: BookOpenCheck },
   certificado: { cor: "sol", icone: Award },
+  mil_pontos: { cor: "sol", icone: Star },
+  nota_cheia: { cor: "ceu", icone: ListChecks },
   primeira_aula: { cor: "sol", icone: Play },
   primeira_troca: { cor: "sol", icone: Gift },
   primeiro_curso: { cor: "ceu", icone: Trophy },
+  primeiro_questionario: { cor: "ceu", icone: ListChecks },
   sequencia: { cor: "canela", icone: Flame },
+  tres_cursos: { cor: "ceu", icone: Trophy },
+  tres_trocas: { cor: "sol", icone: Gift },
+  troca_ate_o_fim: { cor: "ceu", icone: Trophy },
 };
 
 const DISCO: Record<Cor, string> = {
@@ -144,6 +163,7 @@ function Trilho({
 
 const DICA = "text-[13px] text-muted-foreground text-pretty";
 const TITULO_DO_CARTAO = "font-semibold text-lg text-titulo leading-[1.3]";
+const TITULO_DO_BLOCO = "font-semibold text-base text-titulo leading-[1.4]";
 
 function TrilhaDeAulas({
   hoje,
@@ -336,62 +356,109 @@ function SeteDiasSeguidos({
   );
 }
 
-/** Os três cartões de Primeiras vezes, lado a lado de 760 px de container para cima. */
-export const GRADE_DAS_PRIMEIRAS_VEZES =
-  "grid gap-3.5 @min-[760px]:grid-cols-3";
+type Ganha = Extract<LinhaDaGrade, { estado: "ganha" }>;
+type PorGanhar = Extract<LinhaDaGrade, { estado: "por_ganhar" }>;
 
-function PrimeirasVezes({
+/** A fila das ganhas da grade: a medalha de 40 px, o nome e a data curta. */
+function CartaoDasGanhas({
+  ganhas,
   hoje,
-  marcos,
+  medalhas,
 }: {
+  ganhas: readonly Ganha[];
   hoje: string;
-  marcos: readonly Marco[];
+  medalhas: readonly MedalhaDaGrade[];
 }) {
   return (
-    <ol aria-label="Primeiras vezes" className={GRADE_DAS_PRIMEIRAS_VEZES}>
-      {marcos.filter(ehPrimeiraVez).map((m) => {
-        const l = linhaDaPrimeiraVez(m);
-        return (
-          <li
-            className={cn(CARTAO, "grid content-start gap-3 p-5")}
-            data-primeira-vez
-            key={m.tipo}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <Medalha
-                figura={m.tipo}
-                ganha={l.estado === "ganha"}
-                tamanho={40}
-              />
-              {l.estado === "ganha" ? (
-                <SeloGanho>Ganha</SeloGanho>
-              ) : (
-                <span
-                  className={cn(
-                    SELO,
-                    "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset"
-                  )}
-                >
-                  Por ganhar
+    <div className={cn(CARTAO, "grid gap-3 px-5 py-4")} data-ganhas>
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className={TITULO_DO_BLOCO}>Ganhas</h3>
+        <span className={cn(DICA, "tabular-nums")}>
+          {contagemDaGrade(medalhas)}
+        </span>
+      </div>
+      {ganhas.length > 0 ? (
+        <ul className="flex flex-wrap gap-x-[22px] gap-y-4">
+          {ganhas.map((l) => (
+            <li className="flex items-center gap-2.5" key={l.tipo}>
+              <Medalha figura={l.tipo} ganha tamanho={40} />
+              <span className="grid">
+                <span className="font-semibold text-[13px] text-titulo leading-[18px]">
+                  {l.nome}
                 </span>
-              )}
-            </div>
-            <div className="grid gap-0.5">
-              <h3 className="font-semibold text-base text-titulo leading-[1.4]">
-                {l.nome}
-              </h3>
-              <p className={DICA}>
-                {l.estado === "ganha" ? l.fato : l.proximoPasso}
-              </p>
-              {l.estado === "ganha" ? (
                 <span className="text-muted-foreground text-xs tabular-nums">
                   {diaCurto(l.dia, hoje)}
                 </span>
-              ) : null}
-            </div>
-          </li>
-        );
-      })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={DICA}>{semGanha(medalhas)}</p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * As medalhas por ganhar: três colunas de 760 px de container para cima, duas
+ * de 480 px, uma abaixo. A primeira, a mais perto, ocupa duas colunas.
+ */
+export const GRADE_DAS_MEDALHAS =
+  "grid gap-3.5 @min-[480px]:grid-cols-2 @min-[760px]:grid-cols-3";
+export const DESTAQUE_DA_GRADE = "@min-[480px]:col-span-2";
+
+function CartaoPorGanhar({
+  destaque,
+  linha: l,
+}: {
+  destaque: boolean;
+  linha: PorGanhar;
+}) {
+  return (
+    <li
+      className={cn(
+        CARTAO,
+        "flex flex-col gap-3 p-5",
+        destaque && DESTAQUE_DA_GRADE
+      )}
+      data-destaque={destaque || undefined}
+      data-por-ganhar={l.tipo}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <Medalha figura={l.tipo} ganha={false} tamanho={destaque ? 56 : 40} />
+        {/* A barra leva o valor para o leitor de tela. */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "font-bold tabular-nums",
+            destaque ? "text-[28px] text-sol leading-8" : "text-titulo"
+          )}
+          data-pct
+        >
+          {l.pct}%
+        </span>
+      </div>
+      <div className="grid gap-1">
+        <h3 className={destaque ? TITULO_DO_CARTAO : TITULO_DO_BLOCO}>
+          {l.nome}
+        </h3>
+        <p className={DICA}>{destaque ? `${l.falta} ${l.detalhe}` : l.falta}</p>
+      </div>
+      <BarraProgresso className="mt-auto" pct={l.pct} rotulo={l.nome} />
+    </li>
+  );
+}
+
+function GradeDasMedalhas({ porGanhar }: { porGanhar: readonly PorGanhar[] }) {
+  if (porGanhar.length === 0) {
+    return null;
+  }
+  return (
+    <ol aria-label="Medalhas por ganhar" className={GRADE_DAS_MEDALHAS}>
+      {porGanhar.map((l, i) => (
+        <CartaoPorGanhar destaque={i === 0} key={l.tipo} linha={l} />
+      ))}
     </ol>
   );
 }
@@ -543,7 +610,8 @@ export function CabecalhoDasConquistas({
 }
 
 export function TelaDeConquistas({ conquistas }: { conquistas: Conquistas }) {
-  const { certificados, hoje, marcos } = conquistas;
+  const { certificados, hoje, marcos, medalhas } = conquistas;
+  const grade = gradeDasMedalhas(medalhas);
   const sequencia = marcos.find(
     (m): m is MarcoDo<"sequencia"> => m.tipo === "sequencia"
   );
@@ -559,7 +627,12 @@ export function TelaDeConquistas({ conquistas }: { conquistas: Conquistas }) {
           {sequencia ? (
             <SeteDiasSeguidos hoje={hoje} marco={sequencia} />
           ) : null}
-          <PrimeirasVezes hoje={hoje} marcos={marcos} />
+          <CartaoDasGanhas
+            ganhas={grade.ganhas}
+            hoje={hoje}
+            medalhas={medalhas}
+          />
+          <GradeDasMedalhas porGanhar={grade.porGanhar} />
         </section>
         <Secao
           id="conquistas-certificados"

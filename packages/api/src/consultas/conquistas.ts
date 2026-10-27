@@ -8,8 +8,9 @@ import {
   modulo,
   pontoLancamento,
   posicaoAula,
+  questionarioTentativa,
 } from "@cursos/db/schema/index";
-import { and, eq, gt, inArray } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 
 import {
   type Conquistas,
@@ -18,10 +19,12 @@ import {
 } from "../dominio/conquistas";
 import type { Aluno } from "../dominio/perfil";
 import { diaLocal } from "../dominio/sequencia";
+import type { Executor } from "./comum";
 import {
+  COLUNAS_DO_QUESTIONARIO,
   linhasDosCursosQueOAlunoVe,
-  linhasDosQuestionarios,
 } from "./meus-cursos";
+import { estudoPorDia } from "./pontos";
 import { linhasDosCursos } from "./troca";
 
 const CURSO_DO_CERTIFICADO = {
@@ -33,7 +36,33 @@ const CURSO_DO_CERTIFICADO = {
   titulo: curso.titulo,
 };
 
-/** Sete statements em paralelo, como o painel de Meus cursos. */
+/**
+ * Os questionários por aula de `linhasDosQuestionarios`, mais a data da
+ * aprovação e a nota da tentativa número 1, para Primeiro questionário e Nota
+ * cheia.
+ */
+function linhasDasTentativas(
+  exec: Executor,
+  userId: string
+): Promise<LinhasDasConquistas["questionarios"]> {
+  const t = questionarioTentativa;
+  const daPrimeira = sql`filter (where ${t.numero} = 1)`;
+  return exec
+    .select({
+      ...COLUNAS_DO_QUESTIONARIO,
+      aprovadaEm: sql`min(${t.enviadaEm}) filter (where ${t.aprovada})`.mapWith(
+        t.enviadaEm
+      ),
+      primeiraAcertos: sql<number | null>`max(${t.acertos}) ${daPrimeira}`,
+      primeiraEm: sql`max(${t.enviadaEm}) ${daPrimeira}`.mapWith(t.enviadaEm),
+      primeiraTotal: sql<number | null>`max(${t.total}) ${daPrimeira}`,
+    })
+    .from(t)
+    .where(eq(t.userId, userId))
+    .groupBy(t.aulaId);
+}
+
+/** Oito statements em paralelo, como o painel de Meus cursos. */
 export async function linhasDasConquistas(
   db: Database,
   aluno: Aluno
@@ -47,6 +76,7 @@ export async function linhasDasConquistas(
     lancamentos,
     vitrine,
     questionarios,
+    estudo,
   ] = await Promise.all([
     // 1. os cursos que o aluno vê, com o catálogo
     linhasDosCursosQueOAlunoVe(db, aluno),
@@ -90,9 +120,8 @@ export async function linhasDasConquistas(
     db
       .select({
         criadoEm: pontoLancamento.criadoEm,
-        curso: curso.titulo,
+        cursoId: liberacao.cursoId,
         motivo: pontoLancamento.motivo,
-        pontos: pontoLancamento.pontos,
       })
       .from(pontoLancamento)
       .leftJoin(
@@ -102,7 +131,6 @@ export async function linhasDasConquistas(
           eq(liberacao.id, pontoLancamento.liberacaoId)
         )
       )
-      .leftJoin(curso, eq(curso.id, liberacao.cursoId))
       .where(
         and(
           eq(pontoLancamento.userId, userId),
@@ -111,12 +139,15 @@ export async function linhasDasConquistas(
       ),
     // 6. a vitrine de Trocar pontos
     linhasDosCursos(db, aluno, "vitrine"),
-    // 7. os questionários por aula, como no painel
-    linhasDosQuestionarios(db, userId),
+    // 7. os questionários por aula, como no painel, com a aprovação e a tentativa 1
+    linhasDasTentativas(db, userId),
+    // 8. as entradas de estudo por dia, para Mil pontos estudando
+    estudoPorDia(db, userId),
   ]);
   return {
     assistidas,
     certificados,
+    estudoPorDia: estudo,
     lancamentos,
     liberacoes,
     posicoes,
