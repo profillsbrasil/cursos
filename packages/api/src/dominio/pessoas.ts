@@ -1,6 +1,7 @@
 import type { PERFIS } from "@cursos/db/schema/formatos";
 
 import type { Papel } from "../context";
+import type { ConcessaoNaFicha } from "./concessao";
 import { type Perfil, perfilDoCadastro } from "./perfil";
 import type { BuscaDeContas, Conta, Pessoa } from "./tipos";
 
@@ -73,15 +74,23 @@ export interface FichaDaPessoa {
   /** A última mudança do admin; null enquanto vale o perfil do cadastro. */
   mudanca: { em: Date; por: string } | null;
   perfil: PerfilNaTela;
+  /** O saldo da pessoa e as concessões do admin, da mais recente à mais antiga. */
+  pontos: PontosNaFicha;
   /** O admin está na própria ficha: o papel dele não muda por aqui. */
   souEu: boolean;
+}
+
+export interface PontosNaFicha {
+  concessoes: readonly ConcessaoNaFicha[];
+  saldo: number;
 }
 
 export function montarFicha(
   conta: Conta,
   linha: LinhaDoPerfil | undefined,
   quemMudou: Pessoa | null,
-  adminId: string
+  adminId: string,
+  pontos: PontosNaFicha
 ): FichaDaPessoa {
   return {
     conta,
@@ -89,6 +98,7 @@ export function montarFicha(
       ? { em: linha.definidoEm, por: quemMudou?.nome ?? linha.definidoPor }
       : null,
     perfil: perfilNaTela(conta, linha),
+    pontos,
     souEu: conta.userId === adminId,
   };
 }

@@ -1,6 +1,7 @@
-// Server Component: a ficha monta no servidor, e só o cartão de Acesso é cliente.
+// Server Component: a ficha monta no servidor, e só o cartão de Acesso e o
+// formulário da concessão de pontos são cliente.
 
-import type { FichaDaPessoa } from "@cursos/api/dominio/pessoas";
+import type { FichaDaPessoa, PontosNaFicha } from "@cursos/api/dominio/pessoas";
 import type { JeitoDeEntrar } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
 import type { Route } from "next";
@@ -10,14 +11,26 @@ import { SELO } from "@/components/casca/selos";
 import {
   CABECALHO_DO_CARTAO,
   CARTAO,
+  DETALHE_DA_LINHA,
+  LINHA,
+  NOME_DA_LINHA,
   PE_DO_CARTAO,
   RESUMO_DA_SECAO,
+  TEXTO_DA_LINHA,
   TITULO_DA_SECAO,
 } from "@/components/minha-conta/partes";
-import { diaCurto, diaEmSaoPaulo, fmtData, quando } from "@/lib/formato";
+import {
+  diaCurto,
+  diaEmSaoPaulo,
+  fmtData,
+  fmtPts,
+  fmtPtsComSinal,
+  quando,
+} from "@/lib/formato";
 import { FotoDaPessoa } from "../foto-da-pessoa";
 import { VoltaParaALista } from "../volta-para-a-lista";
 import { AcessoDaPessoa } from "./acesso-da-pessoa";
+import { ConcessaoDePontos } from "./concessao-de-pontos";
 
 const NOME_DO_JEITO: Record<JeitoDeEntrar, string> = {
   google: "Google",
@@ -51,6 +64,66 @@ function fraseDoPe({ mudanca, perfil }: FichaDaPessoa, hoje: string) {
   return perfil.doCadastro
     ? "Perfil do cadastro, ainda sem registro no app. Ele fica gravado no próximo acesso dela, se ninguém mudar antes."
     : "Perfil do cadastro, sem mudança do admin.";
+}
+
+function PontosDaPessoa({
+  hoje,
+  nome,
+  pontos,
+  userId,
+}: {
+  hoje: string;
+  nome: string;
+  pontos: PontosNaFicha;
+  userId: string;
+}) {
+  return (
+    <section aria-labelledby="pontos" className={CARTAO}>
+      <div className={CABECALHO_DO_CARTAO}>
+        <h2 className={TITULO_DA_SECAO} id="pontos">
+          Pontos
+        </h2>
+        <p className={RESUMO_DA_SECAO}>
+          Dê ou tire pontos a pedido, com o motivo. A concessão fica registrada,
+          aparece no extrato da pessoa e não conta nos pontos da semana.
+        </p>
+      </div>
+      <div className={LINHA}>
+        <span className="flex-1 text-muted-foreground">Saldo</span>
+        <span className="font-bold text-sol">{fmtPts(pontos.saldo)}</span>
+      </div>
+      <ConcessaoDePontos nome={nome} userId={userId} />
+      <h3 className="border-border border-t px-[22px] pt-3.5 pb-2.5 font-semibold text-[13px] text-muted-foreground">
+        Concessões feitas
+      </h3>
+      {pontos.concessoes.length === 0 ? (
+        <p className={cn(LINHA, "text-muted-foreground")}>
+          Nenhuma concessão ainda.
+        </p>
+      ) : (
+        <ul className="m-0 list-none p-0">
+          {pontos.concessoes.map((c) => (
+            <li className={LINHA} key={c.id}>
+              <span className={TEXTO_DA_LINHA}>
+                <span className={NOME_DA_LINHA}>{c.motivo}</span>
+                <span className={DETALHE_DA_LINHA}>
+                  {c.por}, {diaCurto(diaDe(c.em), hoje)}
+                </span>
+              </span>
+              <span
+                className={cn(
+                  "shrink-0 whitespace-nowrap font-bold",
+                  c.pontos < 0 ? "text-foreground" : "text-sol"
+                )}
+              >
+                {fmtPtsComSinal(c.pontos)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 }
 
 export function FichaDaPessoaDoAdmin({
@@ -147,6 +220,12 @@ export function FichaDaPessoaDoAdmin({
             </Link>
           </div>
         </section>
+        <PontosDaPessoa
+          hoje={hoje}
+          nome={conta.nome}
+          pontos={ficha.pontos}
+          userId={conta.userId}
+        />
       </div>
     </>
   );

@@ -6,6 +6,7 @@ import type { DiaISO } from "./tipos";
 
 const linha = (mudar: Partial<LinhaDoExtrato>): LinhaDoExtrato => ({
   aula: null,
+  concessao: null,
   criadoEm: new Date("2026-10-07T18:00:00Z"),
   curso: null,
   id: "l-1",
@@ -37,12 +38,24 @@ describe("itemDoExtrato", () => {
         motivo: "troca",
         pontos: -200,
       }),
+      linha({
+        concessao: { motivo: "Campanha de vendas" },
+        motivo: "concessao",
+        pontos: 3000,
+      }),
+      linha({
+        concessao: { motivo: "Lançado em dobro" },
+        motivo: "concessao",
+        pontos: -10,
+      }),
     ];
     expect(linhas.map(itemDoExtrato).map((i) => [i.texto, i.pontos])).toEqual([
       ["Aula assistida: O funil da semana", 10],
       ["Curso concluído: Nova rotina", 100],
       ["7 dias úteis seguidos", 30],
       ["Troca: Boas práticas de fabricação", -200],
+      ["Pontos do admin: Campanha de vendas", 3000],
+      ["Ajuste do admin: Lançado em dobro", -10],
     ]);
   });
 
@@ -57,6 +70,9 @@ describe("itemDoExtrato", () => {
       "sem o fato"
     );
     expect(() => itemDoExtrato(linha({ motivo: "aula_assistida" }))).toThrow(
+      "sem o fato"
+    );
+    expect(() => itemDoExtrato(linha({ motivo: "concessao" }))).toThrow(
       "sem o fato"
     );
   });

@@ -13,6 +13,7 @@ import {
   linhasDosComunicados,
   salvarComunicado,
 } from "../consultas/comunicado";
+import { concederPontos, linhasDasConcessoes } from "../consultas/concessao";
 import {
   abrirCurso,
   apagarCurso,
@@ -37,6 +38,7 @@ import {
   linhasDosPerfis,
   quemTemOPerfil,
 } from "../consultas/perfil";
+import { linhasDoSaldo } from "../consultas/pontos";
 import { comTrava } from "../consultas/trava";
 import { montarBusca } from "../dominio/acompanhamento";
 import {
@@ -44,6 +46,11 @@ import {
   TEXTO_MAX,
   TITULO_MAX,
 } from "../dominio/comunicado";
+import {
+  MOTIVO_DA_CONCESSAO_MAX,
+  montarConcessoes,
+  TETO_DA_CONCESSAO,
+} from "../dominio/concessao";
 import { montarGrade } from "../dominio/grade-dos-perfis";
 import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
 import { CARACTERES } from "../dominio/limites-do-curso";
@@ -53,7 +60,7 @@ import {
   tituloSugerido,
 } from "../dominio/material";
 import { montarFicha, montarListaDePessoas } from "../dominio/pessoas";
-import { diaLocal } from "../dominio/sequencia";
+import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type {
   CategoriaId,
   ComunicadoId,
@@ -266,6 +273,29 @@ export const adminRouter = router({
       ),
   }),
   pessoas: router({
+    /**
+     * Dá (pontos > 0) ou tira (pontos < 0) pontos de quem o Clerk conhece, com o
+     * motivo. Tirar além do saldo é recusado com o saldo na frase.
+     */
+    concederPontos: adminProcedure
+      .input(
+        z.object({
+          motivo: z.string().trim().min(1).max(MOTIVO_DA_CONCESSAO_MAX),
+          pontos: z
+            .number()
+            .int()
+            .min(-TETO_DA_CONCESSAO)
+            .max(TETO_DA_CONCESSAO)
+            .refine((n) => n !== 0),
+          userId,
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (!(await ctx.pessoas.conta(input.userId))) {
+          throw pessoaSumiu();
+        }
+        return concederPontos(ctx.db, ctx.admin, input, new Date());
+      }),
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
       .mutation(({ ctx, input }) => {
@@ -319,17 +349,25 @@ export const adminRouter = router({
         if (!USER_ID.test(input.userId)) {
           return null;
         }
-        const [conta, [linha]] = await Promise.all([
+        const segunda = segundaDaSemana(diaLocal(new Date()));
+        const [conta, [linha], { saldo }, concessoes] = await Promise.all([
           ctx.pessoas.conta(input.userId),
           linhasDosPerfis(ctx.db, [input.userId]),
+          linhasDoSaldo(ctx.db, input.userId, segunda),
+          linhasDasConcessoes(ctx.db, input.userId),
         ]);
         if (!conta) {
           return null;
         }
-        const quemMudou = linha?.definidoPor
-          ? await ctx.pessoas.porId(linha.definidoPor)
-          : null;
-        return montarFicha(conta, linha, quemMudou, ctx.admin);
+        const autores = new Set(concessoes.map((c) => c.concedidaPor));
+        const [quemMudou, ...quemConcedeu] = await Promise.all([
+          linha?.definidoPor ? ctx.pessoas.porId(linha.definidoPor) : null,
+          ...[...autores].map((id) => ctx.pessoas.porId(id)),
+        ]);
+        return montarFicha(conta, linha, quemMudou ?? null, ctx.admin, {
+          concessoes: montarConcessoes(concessoes, quemConcedeu),
+          saldo,
+        });
       }),
     /**
      * Sem filtro, a busca do Clerk. Com o perfil, só quem já entrou no app com

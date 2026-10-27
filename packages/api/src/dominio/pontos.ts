@@ -1,5 +1,6 @@
 import type { motivoPonto } from "@cursos/db/schema/comum";
 
+import { rotuloDaConcessao } from "./concessao";
 import { pontuaHoje } from "./registro";
 import { PONTOS } from "./regras";
 import { diaLocal } from "./sequencia";
@@ -9,6 +10,7 @@ export type MotivoPonto = (typeof motivoPonto.enumValues)[number];
 
 export interface LinhaDoExtrato {
   aula: { titulo: string } | null;
+  concessao: { motivo: string } | null;
   criadoEm: Date;
   curso: { titulo: string } | null;
   id: string;
@@ -35,6 +37,11 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
         throw referenciaAusente(l);
       }
       return `Aula assistida: ${l.aula.titulo}`;
+    case "concessao":
+      if (!l.concessao) {
+        throw referenciaAusente(l);
+      }
+      return `${rotuloDaConcessao(l.pontos)}: ${l.concessao.motivo}`;
     case "curso_concluido":
       if (!l.curso) {
         throw referenciaAusente(l);

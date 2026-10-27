@@ -104,6 +104,30 @@ const pagarTroca = (
     [aluno, pontos, liberacaoId]
   );
 
+async function conceder(
+  c: Client,
+  aluno: string,
+  pontos: number,
+  motivo = "Pedido do RH"
+) {
+  const r = await c.query<{ id: string }>(
+    "insert into concessao_de_pontos (user_id, pontos, motivo, concedida_por) values ($1, $2, $3, 'user_admin') returning id",
+    [aluno, pontos, motivo]
+  );
+  return r.rows[0]?.id ?? "";
+}
+
+const lancarConcessao = (
+  c: Client,
+  aluno: string,
+  concessaoId: string,
+  pontos: number
+) =>
+  c.query(
+    "insert into ponto_lancamento (user_id, motivo, pontos, concessao_id) values ($1, 'concessao', $2, $3)",
+    [aluno, pontos, concessaoId]
+  );
+
 const CASOS: Caso[] = [
   {
     apagar: "drop index liberacao_curso_ativa_unica",
@@ -355,6 +379,86 @@ const CASOS: Caso[] = [
       const id = await liberarParaTroca(c, b.aluno, b.cursoId);
       await pagarTroca(c, b.aluno, id, -200);
       await pagarTroca(c, b.aluno, id, -200);
+    },
+  },
+  {
+    apagar:
+      "alter table concessao_de_pontos drop constraint concessao_de_pontos_user_id_clerk",
+    constraint: "concessao_de_pontos_user_id_clerk",
+    nome: "concessão para um e-mail no lugar do userId",
+    violar: (c) => conceder(c, "marina@x.com", 3000),
+  },
+  {
+    apagar:
+      "alter table concessao_de_pontos drop constraint concessao_de_pontos_nao_zero",
+    constraint: "concessao_de_pontos_nao_zero",
+    nome: "concessão de zero pontos",
+    violar: (c, b) => conceder(c, b.aluno, 0),
+  },
+  {
+    apagar:
+      "alter table concessao_de_pontos drop constraint concessao_de_pontos_motivo_formato",
+    constraint: "concessao_de_pontos_motivo_formato",
+    nome: "concessão com motivo em branco",
+    violar: (c, b) => conceder(c, b.aluno, 3000, "   "),
+  },
+  {
+    apagar:
+      "alter table concessao_de_pontos drop constraint concessao_de_pontos_motivo_formato",
+    constraint: "concessao_de_pontos_motivo_formato",
+    nome: "concessão com motivo de 201 caracteres",
+    violar: (c, b) => conceder(c, b.aluno, 3000, "a".repeat(201)),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_sinal",
+    constraint: "ponto_lancamento_sinal",
+    nome: "lançamento de concessão com zero pontos",
+    violar: async (c, b) =>
+      lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 0),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_referencia",
+    constraint: "ponto_lancamento_referencia",
+    nome: "concessão sem a concessão",
+    violar: (c, b) =>
+      c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos) values ($1, 'concessao', 3000)",
+        [b.aluno]
+      ),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_referencia",
+    constraint: "ponto_lancamento_referencia",
+    nome: "troca que aponta para uma concessão",
+    violar: async (c, b) => {
+      const id = await conceder(c, b.aluno, -200);
+      await c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, concessao_id) values ($1, 'troca', -200, $2)",
+        [b.aluno, id]
+      );
+    },
+  },
+  {
+    apagar: "alter table ponto_lancamento drop constraint ponto_concessao_fk",
+    constraint: "ponto_concessao_fk",
+    nome: "lançamento da concessão de outro aluno",
+    violar: async (c, b) => {
+      const alheia = await conceder(c, `${b.aluno}x`, 3000);
+      await lancarConcessao(c, b.aluno, alheia, 3000);
+    },
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_concessao_uma_vez",
+    constraint: "ponto_concessao_uma_vez",
+    nome: "dois lançamentos da mesma concessão",
+    violar: async (c, b) => {
+      const id = await conceder(c, b.aluno, 3000);
+      await lancarConcessao(c, b.aluno, id, 3000);
+      await lancarConcessao(c, b.aluno, id, 3000);
     },
   },
   {
@@ -867,6 +971,19 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [b.aluno]
       );
       expect(r.rows[0]?.saldo).toBe(-200);
+    });
+  });
+
+  test("aceita concessão positiva e negativa, cada uma com o lançamento dela", async () => {
+    await emTransacao(async () => {
+      const b = await montarBase(c);
+      await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 3000);
+      await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, -500), -500);
+      const r = await c.query<{ saldo: number }>(
+        "select sum(pontos)::int as saldo from ponto_lancamento where user_id = $1",
+        [b.aluno]
+      );
+      expect(r.rows[0]?.saldo).toBe(2500);
     });
   });
 
