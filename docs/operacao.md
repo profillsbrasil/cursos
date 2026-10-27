@@ -18,6 +18,15 @@ O detalhe da infraestrutura, do env, do banco, do deploy e do Clerk. As regras q
 
 `bun run coletar-orfaos`, da raiz, apaga dos buckets a capa trocada e o material tirado do curso, que a chave em sha256 deixaria lá para sempre. Ela roda `packages/api/scripts/coletar-orfaos.ts` pelo `varlock run` com o contrato de `apps/web/.env.schema`: o `DATABASE_URL` e as `S3_*` e `S3_MATERIAIS_*` do `.env`, ou do `process.env`, que vence. Órfão é o objeto que nenhum `curso.capa_url` (a chave depois de `/capa/`) nem `material.chave` usa, olhando as duas tabelas em todo bucket, e com mais de 7 dias (`DIAS_ATE_COLETAR`, de `dominio/orfaos.ts`): o arquivo que o editor enviou e o admin ainda não salvou fica protegido. Só entra objeto com chave no formato do app (`<sha256>.<ext>`); outro nome no bucket fica. Sem flag, ela só lista cada órfão com tamanho e idade e o total; `-- --apagar` apaga, e recusa antes de tocar no bucket quando o banco não usa nenhuma chave, que é o que um `DATABASE_URL` vazio ou de outro ambiente dá. Em produção, a coleta roda pelo `railway ssh --service web`.
 
+## Virada dos pontos
+
+`bun run virada-dos-pontos`, da raiz, roda uma vez antes do deploy que faz a liberação do perfil abrir só a amostra. Ela roda `packages/api/scripts/virada-dos-pontos.ts` pelo `varlock run`, como a coleta de órfãos, e lê o `DATABASE_URL` e o `CLERK_SECRET_KEY` (sem a chave, o relatório sai só com o userId). Todo Funcionário ganha o Bônus de funcionário, se ainda não tem, e troca pelo preço de troca atual cada curso que já estudou e vê só pela liberação do perfil `funcionario`. A regra mora em `dominio/virada.ts`.
+
+- Sem flag, é o ensaio: cada pessoa numa transação `read only`. A primeira linha diz host e banco, sem senha; depois vem uma linha por Funcionário, com o bônus, cada troca com o preço e cada curso pulado com o motivo ("sem preço", "em produção" ou "saldo curto"), e o total de pontos que entram e saem.
+- `-- --gravar` grava uma pessoa por vez, cada uma na transação dela com o aluno travado, e imprime o mesmo relatório. Ela recusa quando o banco não tem nenhuma linha em `perfil_da_pessoa`, que é o que um `DATABASE_URL` vazio ou de outro ambiente dá. Rodar de novo mostra "nada a fazer" para todo mundo; o curso sem preço segue listado como pulado.
+- No banco local: `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres bun run virada-dos-pontos`.
+- Em produção, dentro do container: `railway ssh --service web`, e lá `bun run virada-dos-pontos` para o ensaio e, conferido o relatório, `bun run virada-dos-pontos -- --gravar`.
+
 ## Banco
 
 - O banco de produção é o serviço `Postgres` do projeto `cursos` na Railway, em `iad`, ao lado do `web`. O app chega nele pela rede interna. A ADR 0002 diz por que tudo fica na Railway e o que isso custa em latência.

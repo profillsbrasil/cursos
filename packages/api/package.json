@@ -13,7 +13,8 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "coletar-orfaos": "varlock run --path ../../apps/web/ -- bun scripts/coletar-orfaos.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "virada-dos-pontos": "varlock run --path ../../apps/web/ -- bun scripts/virada-dos-pontos.ts"
   },
   "dependencies": {
     "@clerk/backend": "catalog:",

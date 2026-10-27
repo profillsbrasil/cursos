@@ -213,9 +213,10 @@ export interface LinhasDaBusca {
   pessoas: readonly LinhasDaPessoa[];
 }
 
-type CatalogoDaBusca = (id: string) => CursoComAulas;
+type CatalogoDaBusca =(id: string) => CursoComAulas;
 
-function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
+/** O curso de cada id, como a leitura do curso pede. A virada lê o mesmo catálogo. */
+export function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
   const cursos = new Map(
     linhas.cursos.map((c) => [
       c.id,

@@ -1,8 +1,8 @@
-import type { Database } from "@cursos/db";
 import { sql } from "drizzle-orm";
 
 import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
 import type { OrigemDoAcesso } from "../dominio/tipos";
+import type { Executor } from "./comum";
 
 /** Literal de text[] do Postgres, com aspas e barras escapadas. */
 const arrayDeTexto = (itens: readonly string[]) =>
@@ -48,7 +48,7 @@ const SEM_PESSOAS: LinhasDaBusca = { cursos: [], pessoas: [] };
  * em dominio/acompanhamento.ts pelas regras do painel.
  */
 export async function linhasDaBusca(
-  db: Database,
+  db: Executor,
   userIds: readonly string[]
 ): Promise<LinhasDaBusca> {
   if (userIds.length === 0) {
