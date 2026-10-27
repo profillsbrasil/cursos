@@ -43,7 +43,8 @@
     "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/",
     "fix": "ultracite fix",
     "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "virada-dos-pontos": "bun run --cwd packages/api virada-dos-pontos"
   },
   "overrides": {
     "@next/env": "npm:@varlock/nextjs-integration@1.2.2"

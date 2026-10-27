@@ -173,6 +173,22 @@ async function gravarTroca(
   return { lancamentoId: lancamento.id };
 }
 
+/**
+ * A troca que a virada (scripts/virada-dos-pontos.ts) faz em nome de quem via o
+ * curso só pela liberação do perfil Funcionário. A regra de Trocar pontos
+ * recusaria (o curso aberto ao perfil já é dele), então quem decide é
+ * dominio/virada.ts, com o aluno travado e o saldo lido depois da trava. O que
+ * se grava é o mesmo da troca do aluno: a liberação `troca` e o lançamento.
+ */
+export function trocarNaVirada(
+  aluno: AlunoTravado,
+  cursoId: CursoId,
+  preco: number,
+  agora: Date
+): Promise<ResultadoDaTroca> {
+  return gravarTroca(aluno, cursoId, preco, agora);
+}
+
 export function trocar(
   db: Database,
   { perfil, userId }: Aluno,

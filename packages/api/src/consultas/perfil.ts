@@ -8,7 +8,7 @@ import type { ContagemPorPerfil, LinhaDoPerfil } from "../dominio/pessoas";
 import { BONUS_DE_FUNCIONARIO } from "../dominio/regras";
 import type { AdminId, Conta } from "../dominio/tipos";
 import type { Transacao } from "./comum";
-import { comAlunoTravado } from "./trava";
+import { type AlunoTravado, comAlunoTravado } from "./trava";
 
 async function lerPerfil(db: Database, userId: string): Promise<Perfil | null> {
   const linha = await db.query.perfilDaPessoa.findFirst({
@@ -23,9 +23,8 @@ async function lerPerfil(db: Database, userId: string): Promise<Perfil | null> {
  * BONUS_DE_FUNCIONARIO pontos, uma vez por pessoa, para sempre. Roda na transação
  * que grava o perfil. O índice ponto_bonus_funcionario_uma_vez segura o "uma vez",
  * e o on conflict do nothing faz da repetição um no-op: devolve se o bônus nasceu.
- * Só uma transição gravada a partir deste código dá o bônus. Quem já era
- * Funcionário antes dele não ganha por aqui; esse acerto é a virada, num script
- * separado.
+ * Uma transição gravada a partir deste código dá o bônus. Quem já era
+ * Funcionário antes dele ganha pela virada (darBonusDaVirada).
  */
 async function darBonusDeFuncionario(
   tx: Transacao,
@@ -43,6 +42,17 @@ async function darBonusDeFuncionario(
     .onConflictDoNothing()
     .returning({ id: pontoLancamento.id });
   return novo !== undefined;
+}
+
+/**
+ * O bônus de quem já era Funcionário antes do bônus existir, pela virada
+ * (scripts/virada-dos-pontos.ts), com o aluno travado. Devolve se nasceu.
+ */
+export function darBonusDaVirada(
+  aluno: AlunoTravado,
+  agora: Date
+): Promise<boolean> {
+  return darBonusDeFuncionario(aluno.tx, aluno.userId, agora);
 }
 
 /**
