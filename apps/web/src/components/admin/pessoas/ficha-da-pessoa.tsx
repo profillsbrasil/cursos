@@ -84,15 +84,11 @@ function PontosDaPessoa({
           Pontos
         </h2>
         <p className={RESUMO_DA_SECAO}>
-          Dê ou tire pontos a pedido, com o motivo. A concessão fica registrada,
-          aparece no extrato da pessoa e não conta nos pontos da semana.
+          Saldo de {fmtPts(pontos.saldo)}. A concessão fica no extrato da pessoa
+          e não conta nos pontos da semana.
         </p>
       </div>
-      <div className={LINHA}>
-        <span className="flex-1 text-muted-foreground">Saldo</span>
-        <span className="font-bold text-sol">{fmtPts(pontos.saldo)}</span>
-      </div>
-      <ConcessaoDePontos nome={nome} userId={userId} />
+      <ConcessaoDePontos nome={nome} saldo={pontos.saldo} userId={userId} />
       <h3 className="border-border border-t px-[22px] pt-3.5 pb-2.5 font-semibold text-[13px] text-muted-foreground">
         Concessões feitas
       </h3>
