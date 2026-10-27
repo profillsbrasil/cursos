@@ -10,7 +10,11 @@ import { ALAVANCA, RADIO } from "@/components/casca/campos";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
-import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./perfis";
+import {
+  ORDEM_DOS_PERFIS,
+  SOBRE_O_PERFIL,
+  textoDaTrocaDePerfil,
+} from "./perfis";
 
 function OpcaoDePerfil({
   desligada,
@@ -85,7 +89,9 @@ export function AcessoDaPessoa({
             perfil: novo,
             userId,
           }),
-        { sucesso: `${nome} agora é ${SOBRE_O_PERFIL[novo].nome}.` }
+        {
+          sucesso: ({ bonus }) => textoDaTrocaDePerfil(nome, novo, bonus),
+        }
       );
     },
     [executarPerfil, nome, userId]

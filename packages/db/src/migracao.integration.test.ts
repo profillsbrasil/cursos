@@ -510,6 +510,7 @@ migracaoComLinhas(
       );
       expect(valores.rows.map((r) => r.v)).toEqual([
         "aula_assistida",
+        "bonus_funcionario", // da migração bonus_de_funcionario, que roda depois
         "concessao", // da migração concessao_de_pontos, que roda depois
         "curso_concluido",
         "questionario",
@@ -586,6 +587,40 @@ migracaoComLinhas(
         )
         .then(() => null, codigoDoErro);
       expect(semConcessao).toBe("ponto_lancamento_referencia");
+    });
+  }
+);
+
+migracaoComLinhas(
+  "migração do bônus de funcionário",
+  "bonus_de_funcionario",
+  async (c) => {
+    await c.query(
+      "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ('user_a', 'sequencia_7_dias', 30, '2026-10-07')"
+    );
+  },
+  (banco) => {
+    test("o lançamento antigo fica, e o bônus entra sem fato, uma vez por pessoa", async () => {
+      const c = banco();
+      const antigo = await c.query(
+        "select motivo::text as motivo, pontos from ponto_lancamento"
+      );
+      expect(antigo.rows).toEqual([{ motivo: "sequencia_7_dias", pontos: 30 }]);
+      await c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos) values ('user_a', 'bonus_funcionario', 5000)"
+      );
+      const segundo = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos) values ('user_a', 'bonus_funcionario', 5000)"
+        )
+        .then(() => null, codigoDoErro);
+      expect(segundo).toBe("ponto_bonus_funcionario_uma_vez");
+      const comFato = await c
+        .query(
+          "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ('user_b', 'bonus_funcionario', 5000, '2026-10-08')"
+        )
+        .then(() => null, codigoDoErro);
+      expect(comFato).toBe("ponto_lancamento_referencia");
     });
   }
 );

@@ -6,6 +6,7 @@ import {
   curso,
   liberacaoDoPerfil,
   perfilDaPessoa,
+  pontoLancamento,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { eq, inArray } from "drizzle-orm";
@@ -61,6 +62,10 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   };
 
   afterAll(async () => {
+    // O primeiro acesso de Funcionário lança o bônus (bonus-de-funcionario.integration.test.ts).
+    await db
+      .delete(pontoLancamento)
+      .where(inArray(pontoLancamento.userId, pessoas));
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, pessoas));

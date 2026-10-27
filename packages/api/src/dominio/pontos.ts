@@ -8,6 +8,15 @@ import type { DiaISO } from "./tipos";
 
 export type MotivoPonto = (typeof motivoPonto.enumValues)[number];
 
+/**
+ * Os motivos que entram no saldo e não nos pontos da semana, que medem estudo:
+ * a concessão do admin e o bônus de funcionário. linhasDoSaldo lê esta lista.
+ */
+export const FORA_DOS_PONTOS_DA_SEMANA: readonly MotivoPonto[] = [
+  "bonus_funcionario",
+  "concessao",
+];
+
 export interface LinhaDoExtrato {
   aula: { titulo: string } | null;
   concessao: { motivo: string } | null;
@@ -37,6 +46,8 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
         throw referenciaAusente(l);
       }
       return `Aula assistida: ${l.aula.titulo}`;
+    case "bonus_funcionario":
+      return "Bônus de funcionário";
     case "concessao":
       if (!l.concessao) {
         throw referenciaAusente(l);

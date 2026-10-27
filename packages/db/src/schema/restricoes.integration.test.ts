@@ -128,6 +128,12 @@ const lancarConcessao = (
     [aluno, pontos, concessaoId]
   );
 
+const darBonus = (c: Client, aluno: string, pontos = 5000) =>
+  c.query(
+    "insert into ponto_lancamento (user_id, motivo, pontos) values ($1, 'bonus_funcionario', $2)",
+    [aluno, pontos]
+  );
+
 const CASOS: Caso[] = [
   {
     apagar: "drop index liberacao_curso_ativa_unica",
@@ -460,6 +466,44 @@ const CASOS: Caso[] = [
       await lancarConcessao(c, b.aluno, id, 3000);
       await lancarConcessao(c, b.aluno, id, 3000);
     },
+  },
+  {
+    apagar: "drop index ponto_bonus_funcionario_uma_vez",
+    constraint: "ponto_bonus_funcionario_uma_vez",
+    nome: "dois bônus de funcionário da mesma pessoa",
+    violar: async (c, b) => {
+      await darBonus(c, b.aluno);
+      await darBonus(c, b.aluno);
+    },
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_referencia",
+    constraint: "ponto_lancamento_referencia",
+    nome: "bônus de funcionário que aponta para um fato",
+    violar: (c, b) =>
+      c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ($1, 'bonus_funcionario', 5000, '2026-10-07')",
+        [b.aluno]
+      ),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_referencia",
+    constraint: "ponto_lancamento_referencia",
+    nome: "lançamento de outro motivo sem fato",
+    violar: (c, b) =>
+      c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos) values ($1, 'sequencia_7_dias', 30)",
+        [b.aluno]
+      ),
+  },
+  {
+    apagar:
+      "alter table ponto_lancamento drop constraint ponto_lancamento_sinal",
+    constraint: "ponto_lancamento_sinal",
+    nome: "bônus de funcionário negativo",
+    violar: (c, b) => darBonus(c, b.aluno, -5000),
   },
   {
     apagar: "alter table curso drop constraint curso_preco_troca_positivo",
@@ -984,6 +1028,23 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [b.aluno]
       );
       expect(r.rows[0]?.saldo).toBe(2500);
+    });
+  });
+
+  test("aceita um bônus por pessoa, ao lado dos lançamentos com fato", async () => {
+    await emTransacao(async () => {
+      const b = await montarBase(c);
+      await darBonus(c, b.aluno);
+      await darBonus(c, `${b.aluno}x`);
+      await c.query(
+        "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ($1, 'sequencia_7_dias', 30, '2026-10-07'), ($1, 'sequencia_7_dias', 30, '2026-10-08')",
+        [b.aluno]
+      );
+      const r = await c.query<{ saldo: number }>(
+        "select sum(pontos)::int as saldo from ponto_lancamento where user_id = $1",
+        [b.aluno]
+      );
+      expect(r.rows[0]?.saldo).toBe(5060);
     });
   });
 

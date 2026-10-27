@@ -7,6 +7,7 @@ import {
   integer,
   text,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -61,14 +62,21 @@ export const pontoLancamento = tabela(
     tentativaId: uuid(),
     userId: text().notNull(),
   },
-  (t) => [
-    // ::text porque a migração concessao_de_pontos faz ALTER TYPE ... ADD VALUE, e o
-    // Postgres recusa o valor novo do enum na mesma transação (ver schema/acesso.ts).
-    check(
-      "ponto_lancamento_referencia",
-      sql`num_nonnulls(${t.aulaId}, ${t.concessaoId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}, ${t.tentativaId}) = 1
+  (t) => {
+    // Quantos fatos o lançamento referencia. O check e o índice do bônus leem a
+    // mesma lista: coluna de referência nova entra aqui, nos dois de uma vez.
+    const fatos = sql`num_nonnulls(${t.aulaId}, ${t.concessaoId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}, ${t.tentativaId})`;
+    return [
+      // ::text porque as migrações concessao_de_pontos e bonus_de_funcionario fazem
+      // ALTER TYPE ... ADD VALUE, e o Postgres recusa o valor novo do enum na mesma
+      // transação (ver schema/acesso.ts). O bônus de funcionário é o único lançamento
+      // sem fato: ele é um por pessoa, e quem segura isso é ponto_bonus_funcionario_uma_vez.
+      check(
+        "ponto_lancamento_referencia",
+        sql`${fatos} = case ${t.motivo}::text when 'bonus_funcionario' then 0 else 1 end
           and case ${t.motivo}::text
             when 'aula_assistida' then ${t.aulaId} is not null
+            when 'bonus_funcionario' then true
             when 'concessao' then ${t.concessaoId} is not null
             when 'curso_concluido' then ${t.cursoId} is not null
             when 'questionario' then ${t.tentativaId} is not null
@@ -76,47 +84,58 @@ export const pontoLancamento = tabela(
             when 'troca' then ${t.liberacaoId} is not null
             else false
           end`
-    ),
-    check(
-      "ponto_lancamento_sinal",
-      sql`case ${t.motivo}::text
+      ),
+      check(
+        "ponto_lancamento_sinal",
+        sql`case ${t.motivo}::text
             when 'troca' then ${t.pontos} < 0
             when 'concessao' then ${t.pontos} <> 0
             else ${t.pontos} > 0
           end`
-    ),
-    // NULL é distinto de NULL: cada unique só morde o motivo que preenche a coluna
-    unique("ponto_aula_uma_vez").on(t.userId, t.aulaId),
-    unique("ponto_curso_uma_vez").on(t.userId, t.cursoId),
-    unique("ponto_sequencia_uma_vez").on(t.userId, t.diaMarco),
-    unique("ponto_troca_uma_vez").on(t.userId, t.liberacaoId),
-    unique("ponto_questionario_uma_vez").on(t.userId, t.tentativaId),
-    unique("ponto_concessao_uma_vez").on(t.userId, t.concessaoId),
-    foreignKey({
-      columns: [t.userId, t.aulaId],
-      foreignColumns: [aulaAssistida.userId, aulaAssistida.aulaId],
-      name: "ponto_aula_assistida_fk",
-    }).onDelete("restrict"),
-    foreignKey({
-      columns: [t.userId, t.cursoId],
-      foreignColumns: [certificado.userId, certificado.cursoId],
-      name: "ponto_certificado_fk",
-    }).onDelete("restrict"),
-    foreignKey({
-      columns: [t.userId, t.concessaoId],
-      foreignColumns: [concessaoDePontos.userId, concessaoDePontos.id],
-      name: "ponto_concessao_fk",
-    }).onDelete("restrict"),
-    foreignKey({
-      columns: [t.userId, t.liberacaoId],
-      foreignColumns: [liberacao.userId, liberacao.id],
-      name: "ponto_liberacao_fk",
-    }).onDelete("restrict"),
-    foreignKey({
-      columns: [t.userId, t.tentativaId],
-      foreignColumns: [questionarioTentativa.userId, questionarioTentativa.id],
-      name: "ponto_tentativa_fk",
-    }).onDelete("restrict"),
-    index("ponto_lancamento_por_data").on(t.userId, t.criadoEm),
-  ]
+      ),
+      // NULL é distinto de NULL: cada unique só morde o motivo que preenche a coluna
+      unique("ponto_aula_uma_vez").on(t.userId, t.aulaId),
+      unique("ponto_curso_uma_vez").on(t.userId, t.cursoId),
+      unique("ponto_sequencia_uma_vez").on(t.userId, t.diaMarco),
+      unique("ponto_troca_uma_vez").on(t.userId, t.liberacaoId),
+      unique("ponto_questionario_uma_vez").on(t.userId, t.tentativaId),
+      unique("ponto_concessao_uma_vez").on(t.userId, t.concessaoId),
+      // Uma vez por pessoa, para sempre: sair de Funcionário e voltar não dá outro.
+      // O predicado não compara o motivo: o cast do enum para texto não é IMMUTABLE,
+      // e o valor novo não vale na transação do ADD VALUE. Pelo check de referência,
+      // o lançamento sem fato é o bônus.
+      uniqueIndex("ponto_bonus_funcionario_uma_vez")
+        .on(t.userId)
+        .where(sql`${fatos} = 0`),
+      foreignKey({
+        columns: [t.userId, t.aulaId],
+        foreignColumns: [aulaAssistida.userId, aulaAssistida.aulaId],
+        name: "ponto_aula_assistida_fk",
+      }).onDelete("restrict"),
+      foreignKey({
+        columns: [t.userId, t.cursoId],
+        foreignColumns: [certificado.userId, certificado.cursoId],
+        name: "ponto_certificado_fk",
+      }).onDelete("restrict"),
+      foreignKey({
+        columns: [t.userId, t.concessaoId],
+        foreignColumns: [concessaoDePontos.userId, concessaoDePontos.id],
+        name: "ponto_concessao_fk",
+      }).onDelete("restrict"),
+      foreignKey({
+        columns: [t.userId, t.liberacaoId],
+        foreignColumns: [liberacao.userId, liberacao.id],
+        name: "ponto_liberacao_fk",
+      }).onDelete("restrict"),
+      foreignKey({
+        columns: [t.userId, t.tentativaId],
+        foreignColumns: [
+          questionarioTentativa.userId,
+          questionarioTentativa.id,
+        ],
+        name: "ponto_tentativa_fk",
+      }).onDelete("restrict"),
+      index("ponto_lancamento_por_data").on(t.userId, t.criadoEm),
+    ];
+  }
 );

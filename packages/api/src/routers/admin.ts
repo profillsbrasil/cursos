@@ -333,14 +333,14 @@ export const adminRouter = router({
         if (!(await ctx.pessoas.conta(input.userId))) {
           throw pessoaSumiu();
         }
-        await definirPerfil(
+        const { bonus } = await definirPerfil(
           ctx.db,
           ctx.admin,
           input.userId,
           input.perfil,
           new Date()
         );
-        return { perfil: input.perfil };
+        return { bonus, perfil: input.perfil };
       }),
     // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
     ficha: adminProcedure

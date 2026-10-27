@@ -1,5 +1,6 @@
 import { PERFIS, type Perfil } from "@cursos/api/dominio/perfil";
 import type { PerfilNaTela } from "@cursos/api/dominio/pessoas";
+import { BONUS_DE_FUNCIONARIO } from "@cursos/api/dominio/regras";
 import {
   Building2,
   Factory,
@@ -7,6 +8,8 @@ import {
   type LucideIcon,
   ShieldCheck,
 } from "lucide-react";
+
+import { fmtPts } from "@/lib/formato";
 
 import type { Selo } from "../acompanhamento";
 
@@ -44,6 +47,14 @@ export const SOBRE_O_PERFIL: Record<Perfil, SobreOPerfil> = {
 
 /** Na ordem da ficha e dos filtros. */
 export const ORDEM_DOS_PERFIS: readonly Perfil[] = PERFIS;
+
+/** O toast da troca de perfil, com o bônus quando ele nasceu nesta troca. */
+export const textoDaTrocaDePerfil = (
+  nome: string,
+  perfil: Perfil,
+  bonus: boolean
+) =>
+  `${nome} agora é ${SOBRE_O_PERFIL[perfil].nome}.${bonus ? ` +${fmtPts(BONUS_DE_FUNCIONARIO)} de bônus.` : ""}`;
 
 export const ehPerfil = (texto: unknown): texto is Perfil =>
   typeof texto === "string" && (PERFIS as readonly string[]).includes(texto);

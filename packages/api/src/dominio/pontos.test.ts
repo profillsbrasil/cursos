@@ -48,6 +48,7 @@ describe("itemDoExtrato", () => {
         motivo: "concessao",
         pontos: -10,
       }),
+      linha({ motivo: "bonus_funcionario", pontos: 5000 }),
     ];
     expect(linhas.map(itemDoExtrato).map((i) => [i.texto, i.pontos])).toEqual([
       ["Aula assistida: O funil da semana", 10],
@@ -56,6 +57,7 @@ describe("itemDoExtrato", () => {
       ["Troca: Boas práticas de fabricação", -200],
       ["Pontos do admin: Campanha de vendas", 3000],
       ["Ajuste do admin: Lançado em dobro", -10],
+      ["Bônus de funcionário", 5000],
     ]);
   });
 
