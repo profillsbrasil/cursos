@@ -1,0 +1,2 @@
+# Arquivos ignorados que o `claude --worktree` copia para cada worktree novo.
+apps/web/.env
