@@ -78,6 +78,22 @@ describe("lerEmails", () => {
     });
   });
 
+  test("o e-mail com nome, como o Outlook e o Gmail copiam, vira um e-mail só", () => {
+    expect(
+      lerEmails(`Ana Lima <ana@x.com>, "Bruno" <bruno@x.com>; carla@x.com`)
+    ).toEqual({
+      emails: ["ana@x.com", "bruno@x.com", "carla@x.com"] as Email[],
+      ruins: [],
+    });
+  });
+
+  test("o nome entre aspas pode ter vírgula, e o que está entre < e > segue a regra do e-mail", () => {
+    expect(lerEmails(`"Lima, Ana" <Ana@X.com>; Bia <bia@exemplo>`)).toEqual({
+      emails: ["ana@x.com"] as Email[],
+      ruins: ["Bia <bia@exemplo>"],
+    });
+  });
+
   test("texto vazio não tem e-mail nem pedaço ruim", () => {
     expect(lerEmails("  \n ")).toEqual({ emails: [], ruins: [] });
   });

@@ -47,22 +47,39 @@ export function lerEmail(texto: string): Email | null {
     : null;
 }
 
+// O que fica entre vírgula, ponto e vírgula ou quebra de linha; a vírgula entre
+// aspas, como em "Lima, Ana", fica dentro.
+const TRECHO = /(?:"[^"]*"|[^,;\r\n"]|")+/g;
+// O nome sem aspas não tem @: em "ana@x.com Bia <bia@x.com>" a ana não some
+// dentro do nome, e o trecho cai na separação por espaço.
+const COM_NOME = /^(?:"[^"]*"|[^"@<>])*<([^<>]*)>$/;
+
 /**
  * O texto colado no campo: separa por vírgula, ponto e vírgula, espaço e quebra
- * de linha, sem repetir. `ruins` são os pedaços que não são e-mail, como vieram.
+ * de linha, sem repetir. O trecho `Nome <ana@x.com>`, que o Outlook e o Gmail
+ * copiam, é um e-mail só. `ruins` são os pedaços que não são e-mail, como vieram.
  */
 export function lerEmails(texto: string): { emails: Email[]; ruins: string[] } {
   const emails = new Set<Email>();
   const ruins = new Set<string>();
-  for (const pedaco of texto.split(SEPARADOR)) {
-    if (pedaco === "") {
-      continue;
-    }
-    const email = lerEmail(pedaco);
+  const guardar = (email: Email | null, comoVeio: string) => {
     if (email) {
       emails.add(email);
     } else {
-      ruins.add(pedaco);
+      ruins.add(comoVeio);
+    }
+  };
+  for (const trecho of texto.match(TRECHO) ?? []) {
+    const aparado = trecho.trim();
+    const comNome = COM_NOME.exec(aparado);
+    if (comNome) {
+      guardar(lerEmail(comNome[1] ?? ""), aparado);
+      continue;
+    }
+    for (const pedaco of aparado.split(SEPARADOR)) {
+      if (pedaco !== "") {
+        guardar(lerEmail(pedaco), pedaco);
+      }
     }
   }
   return { emails: [...emails], ruins: [...ruins] };
