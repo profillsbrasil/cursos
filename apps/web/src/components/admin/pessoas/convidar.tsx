@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import type {
   CursoDoConvite,
   ResultadoDoConvite,
@@ -311,9 +312,13 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
   // A razão fica à vista quando há o que corrigir; com o campo vazio, só o leitor de tela a ouve.
   const razaoAVista = envio.tipo === "desligado" && rascunho.fichas.length > 0;
 
+  const temRascunho = rascunho.fichas.length > 0 || rascunho.texto !== "";
+
+  // Com rascunho, só o Cancelar fecha: um Escape sem querer jogaria fora a lista colada.
   const abrirOuFechar = useCallback(
-    (aberto: boolean) => {
-      if (pendente) {
+    (aberto: boolean, detalhes: DialogPrimitive.Root.ChangeEventDetails) => {
+      if (pendente || (temRascunho && detalhes.reason === "escape-key")) {
+        detalhes.cancel();
         return;
       }
       setFase({ tipo: aberto ? "editando" : "fechado" });
@@ -321,7 +326,7 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
         setRascunho(VAZIO);
       }
     },
-    [pendente]
+    [pendente, temRascunho]
   );
   const mudarFichas = useCallback(
     (fichas: readonly Ficha[], texto: string) =>
@@ -390,7 +395,6 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
     fase.tipo === "com_sobras"
       ? fase.sobras.filter((s) => naTela.has(s.email))
       : [];
-  const temRascunho = rascunho.fichas.length > 0 || rascunho.texto !== "";
   return (
     <Dialog
       disablePointerDismissal={temRascunho}

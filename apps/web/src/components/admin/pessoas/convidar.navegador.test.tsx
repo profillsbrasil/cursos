@@ -278,6 +278,23 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     expect(await focado()).toBe("email");
   });
 
+  test("com rascunho, o Escape não fecha o diálogo; sem rascunho, fecha", async () => {
+    await abrir();
+    await rodar(
+      `await escrever("ana@x.com "); dialogo().querySelector('input[inputmode="email"]').focus();`
+    );
+    await tecla("Escape");
+    expect(await aberto()).toBe(true);
+    expect(await fichas()).toEqual(["ana@x.com"]);
+
+    await rodar(
+      `botaoCom(dialogo(), "Tirar ana@x.com").click(); await esperar(0);`
+    );
+    await tecla("Escape");
+    await rodar("await esperar(100);");
+    expect(await aberto()).toBe(false);
+  });
+
   test("Cancelar fecha e esquece o rascunho", async () => {
     await abrir();
     await rodar(`
