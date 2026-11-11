@@ -140,6 +140,11 @@ export const carregarListaDePessoas = cache(
     (await exigirAdmin()).admin.pessoas.lista({ perfil, termo })
 );
 
+/** Os convites vivos que casam o termo, o total deles e os cursos do diálogo de convidar. */
+export const carregarConvites = cache(async (termo: string) =>
+  (await exigirAdmin()).admin.convites.painel({ termo })
+);
+
 /** null: userId fora do formato, ou que o Clerk não conhece. */
 export const carregarFichaDaPessoa = cache(async (userId: string) =>
   (await exigirAdmin()).admin.pessoas.ficha({ userId })

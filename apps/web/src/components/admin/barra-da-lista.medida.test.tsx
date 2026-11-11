@@ -31,6 +31,12 @@ const PESSOAS = [
     n: [3, 2, 9][i] ?? 0,
     rotulo: SOBRE_O_PERFIL[p].plural,
   })),
+  {
+    ativa: false,
+    href: "/admin/pessoas?ver=convidados" as Route,
+    n: 3,
+    rotulo: "Convidados",
+  },
 ];
 
 const TELAS = {

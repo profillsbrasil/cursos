@@ -176,6 +176,8 @@ describe("estadoDoConvite", () => {
   });
 });
 
+const CONTAGEM = { cliente: 2, funcionario: 3, publico: 9 };
+
 describe("montarPainelDeConvites", () => {
   const convidado = (
     email: string,
@@ -203,10 +205,12 @@ describe("montarPainelDeConvites", () => {
         cursos: [],
         total: 7,
       },
+      CONTAGEM,
       AGORA
     );
     expect<string>(painel.hoje).toBe("2026-11-11");
     expect(painel.total).toBe(7);
+    expect(painel.contagem).toEqual(CONTAGEM);
     expect<unknown>(painel.convidados.map((c) => [c.email, c.estado])).toEqual([
       [
         "ana@x.com",
@@ -236,6 +240,7 @@ describe("montarPainelDeConvites", () => {
         cursos: [],
         total: 0,
       },
+      CONTAGEM,
       AGORA
     );
     expect(painel.convidados).toEqual([]);

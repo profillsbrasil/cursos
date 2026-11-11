@@ -21,8 +21,12 @@ export interface BuscaDaBarra {
   acao: Route;
   campos?: Record<string, string>;
   id: string;
+  /** O que a busca casa, no rótulo e no placeholder. Sem ele, "Nome ou e-mail". */
+  rotulo?: string;
   termo: string;
 }
+
+const ROTULO_DA_BUSCA = "Nome ou e-mail";
 
 /**
  * A contagem cresce mil vezes mais que a busca: na linha única, ela empurra a
@@ -93,7 +97,7 @@ export function BarraDaLista({
               <input key={nome} name={nome} type="hidden" value={valor} />
             ))}
             <label className="sr-only" htmlFor={busca.id}>
-              Nome ou e-mail
+              {busca.rotulo ?? ROTULO_DA_BUSCA}
             </label>
             <Search
               aria-hidden="true"
@@ -107,7 +111,7 @@ export function BarraDaLista({
               key={busca.termo}
               maxLength={100}
               name="q"
-              placeholder="Nome ou e-mail"
+              placeholder={busca.rotulo ?? ROTULO_DA_BUSCA}
               type="search"
             />
           </Form>

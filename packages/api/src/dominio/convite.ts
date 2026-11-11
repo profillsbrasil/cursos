@@ -1,4 +1,5 @@
 import type { Perfil } from "./perfil";
+import type { ContagemPorPerfil } from "./pessoas";
 import { diaLocal } from "./sequencia";
 import type {
   AdminId,
@@ -188,6 +189,8 @@ export interface CursoDoConvite {
 }
 
 export interface PainelDeConvites {
+  /** Quem já entrou no app, por perfil: os números das outras opções da trilha. */
+  contagem: ContagemPorPerfil;
   /** Os convidados que casam o termo, do mais novo ao mais antigo, até 100. */
   convidados: readonly ConvidadoNaTela[];
   /** Os cursos do diálogo, por título. */
@@ -231,6 +234,7 @@ function estadoNaTela(estado: EstadoVivo): ConvidadoNaTela["estado"] {
 
 export function montarPainelDeConvites(
   linhas: LinhasDosConvites,
+  contagem: ContagemPorPerfil,
   agora: Date
 ): PainelDeConvites {
   const convidados: ConvidadoNaTela[] = [];
@@ -249,6 +253,7 @@ export function montarPainelDeConvites(
     }
   }
   return {
+    contagem,
     convidados,
     cursos: linhas.cursos,
     hoje: diaLocal(agora),

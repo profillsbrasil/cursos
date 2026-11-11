@@ -158,6 +158,24 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     ]);
   });
 
+  test("já tem conta leva o userId, e a ficha dele abre mesmo sem a pessoa ter entrado no app", async () => {
+    const bia = email("bia");
+    const userId = `user_soconta${S}`;
+    const admin = createCaller(
+      contextoDeTeste({
+        db,
+        papel: "admin",
+        pessoas: [{ email: bia, foto: null, nome: "Bia", userId }],
+        userId: ADMIN,
+      })
+    );
+    const r = await admin.admin.convites.enviar(pedido([bia]));
+    expect(r.convites).toEqual([{ email: bia, tipo: "ja_tem_conta", userId }]);
+    const ficha = await admin.admin.pessoas.ficha({ userId });
+    expect(ficha?.conta.email).toBe(bia);
+    expect(ficha?.perfil).toEqual({ doCadastro: true, perfil: "publico" });
+  });
+
   test("enviar duas vezes o mesmo pedido grava uma vez e manda um e-mail", async () => {
     const [ana, bia] = [email("ana"), email("bia")];
     const carteiro = convitesDeTeste(new Map([[bia, "erro"]]));

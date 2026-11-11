@@ -251,12 +251,13 @@ export const adminRouter = router({
       }),
     painel: adminProcedure
       .input(z.object({ termo: z.string().trim().max(100) }))
-      .query(async ({ ctx, input }) =>
-        montarPainelDeConvites(
-          await linhasDosConvites(ctx.db, input.termo),
-          new Date()
-        )
-      ),
+      .query(async ({ ctx, input }) => {
+        const [linhas, contagem] = await Promise.all([
+          linhasDosConvites(ctx.db, input.termo),
+          contagemPorPerfil(ctx.db),
+        ]);
+        return montarPainelDeConvites(linhas, contagem, new Date());
+      }),
     reenviar: adminProcedure
       .input(z.object({ id: conviteId }))
       .mutation(async ({ ctx, input }) => {
