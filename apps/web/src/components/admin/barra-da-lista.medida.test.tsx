@@ -15,7 +15,7 @@ import {
 } from "../chromium-de-teste";
 
 import { abasDasLiberacoes } from "./abas-das-liberacoes";
-import { BarraDaLista } from "./barra-da-lista";
+import { BarraDaLista, contagemDePessoas } from "./barra-da-lista";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";
 
 const PESSOAS = [
@@ -38,6 +38,9 @@ const PESSOAS = [
     rotulo: "Convidados",
   },
 ];
+
+/** O teto da busca, sem espaço: nada na palavra convida a quebrar. */
+const TERMO_LONGO = "anabeatrizdesouzaelimadasilva".repeat(4).slice(0, 100);
 
 const TELAS = {
   liberacoes: {
@@ -80,6 +83,21 @@ const TELAS = {
       />
     ),
   },
+  termoLongo: {
+    esqueleto: renderToStaticMarkup(<CarregandoPessoas />),
+    pronta: renderToStaticMarkup(
+      <BarraDaLista
+        busca={{
+          acao: "/admin/pessoas" as Route,
+          id: "busca-de-pessoas",
+          termo: TERMO_LONGO,
+        }}
+        contagem={contagemDePessoas(0, 0, TERMO_LONGO)}
+        opcoes={PESSOAS}
+        rotuloDasOpcoes="Filtrar por perfil"
+      />
+    ),
+  },
 };
 
 const CLASSES = /class="([^"]*)"/g;
@@ -98,6 +116,8 @@ interface Medida {
   altura: number;
   alturaDoEsqueleto: number;
   busca: number | null;
+  /** A largura do texto da contagem, com o que transborda. */
+  contagem: number;
   sobra: number;
 }
 
@@ -116,6 +136,7 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
       const barra = document.querySelector("#pronta").firstElementChild;
       const busca = barra.querySelector("search");
       r({
+        contagem: barra.querySelector("p").scrollWidth,
         altura: barra.getBoundingClientRect().height,
         alturaDoEsqueleto: document.querySelector("#esqueleto [aria-busy] > :nth-child(3)").getBoundingClientRect().height,
         busca: busca ? busca.getBoundingClientRect().width : null,
@@ -155,6 +176,12 @@ describe.skipIf(!existsSync(CHROMIUM))("a barra da lista no browser", () => {
       expect(m.sobra).toBe(0);
     });
   }
+
+  test("a contagem com um termo de 100 letras sem espaço quebra a palavra, sem rolagem lateral no celular", async () => {
+    const m = await medir("termoLongo", 358);
+    expect(m.sobra).toBe(0);
+    expect(m.contagem).toBeLessThanOrEqual(358);
+  });
 
   test("em perfis, sem busca, a barra tem uma linha só também no celular", async () => {
     expect((await medir("perfis", 358)).altura).toBe(44);
