@@ -1,6 +1,10 @@
 import { Skeleton } from "@cursos/ui/components/skeleton";
 import { cn } from "@cursos/ui/lib/utils";
 
+import { LINHA_QUE_CARREGA } from "@/components/casca/cabecalho-da-pagina";
+
+import { BARRA, BUSCA_DA_BARRA, CONTAGEM_DA_BARRA } from "./barra-da-lista";
+
 /**
  * As peças dos loading.tsx do admin, cada uma na altura da peça pronta, para
  * o conteúdo não pular quando a página chega.
@@ -8,21 +12,49 @@ import { cn } from "@cursos/ui/lib/utils";
 const PULSO = "bg-card";
 const LINHAS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
-/** A trilha das abas de Liberações e dos filtros: 36 px de opção e 4 px de folga. */
-export function EsqueletoDaTrilha({ className }: { className?: string }) {
+/**
+ * A BarraDaLista, com as mesmas classes de vão e de quebra: a trilha de 44 px
+ * na largura dada (`trilha`), a contagem de exemplo em texto transparente e,
+ * com `busca`, a pílula que fica nos 320 px na linha única e desce na largura
+ * inteira quando não cabe.
+ */
+export function EsqueletoDaBarra({
+  busca = false,
+  contagem,
+  trilha,
+}: {
+  busca?: boolean;
+  contagem: string;
+  trilha: string;
+}) {
   return (
-    <Skeleton
-      className={cn(PULSO, "h-11 w-full max-w-[21rem] rounded-full", className)}
-    />
+    <div aria-hidden="true" className={BARRA}>
+      <Skeleton
+        className={cn(PULSO, "h-11 max-w-full rounded-[22px]", trilha)}
+      />
+      <p className={CONTAGEM_DA_BARRA}>
+        <span className={LINHA_QUE_CARREGA}>{contagem}</span>
+      </p>
+      {busca ? (
+        <Skeleton className={cn(PULSO, BUSCA_DA_BARRA, "h-11 rounded-full")} />
+      ) : null}
+    </div>
   );
 }
 
-/** O campo de busca de 44 px com o Buscar ao lado. */
-export function EsqueletoDaBusca({ className }: { className?: string }) {
+/** O cartão de linhas de uma Secao, ou sozinho sob a BarraDaLista. */
+export function EsqueletoDoCartao({
+  altura,
+  linhas,
+}: {
+  altura: string;
+  linhas: number;
+}) {
   return (
-    <div className={cn("flex gap-2.5", className)}>
-      <Skeleton className={cn(PULSO, "h-11 flex-1 rounded-full")} />
-      <Skeleton className={cn(PULSO, "h-11 w-[6.5rem] rounded-full")} />
+    <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
+      {LINHAS.slice(0, linhas).map((linha) => (
+        <Skeleton className={cn(PULSO, altura, "rounded-none")} key={linha} />
+      ))}
     </div>
   );
 }
@@ -38,11 +70,7 @@ export function EsqueletoDaSecao({
   return (
     <div className="grid gap-3.5">
       <Skeleton className={cn(PULSO, "h-8 w-40 rounded-lg")} />
-      <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
-        {LINHAS.slice(0, linhas).map((linha) => (
-          <Skeleton className={cn(PULSO, altura, "rounded-none")} key={linha} />
-        ))}
-      </div>
+      <EsqueletoDoCartao altura={altura} linhas={linhas} />
     </div>
   );
 }
