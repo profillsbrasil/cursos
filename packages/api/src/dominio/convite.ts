@@ -10,7 +10,7 @@ import type {
 } from "./tipos";
 
 declare const lido: unique symbol;
-/** E-mail aparado e em minúsculas, no formato do check convite_email_formato. Só lerEmail cria um. */
+/** E-mail aparado, em ASCII e em minúsculas, no formato do check convite_email_formato. Só lerEmail cria um. */
 export type Email = string & { readonly [lido]: true };
 
 /** Um envio por e-mail no Clerk, que aceita 100 por hora. */
@@ -33,17 +33,17 @@ export const aceitoDesde = (agora: Date): Date =>
   new Date(agora.getTime() - PRAZO_DO_PAPEL_MS);
 
 const TAMANHO_MAXIMO = 254;
-// Mais estreito que o [:space:] do check: \s não cobre o U+0085, e as categorias
-// de controle e de separador cobrem todo espaço do Unicode. O que passa aqui
-// passa no banco.
-const FORMATO = /^[^@\s\p{Cc}\p{Z}]+@[^@\s\p{Cc}\p{Z}]+\.[^@\s\p{Cc}\p{Z}]+$/u;
+// Só ASCII imprimível, sem espaço e sem @ fora do meio: o toLowerCase do JS e o
+// lower() do Postgres divergem fora do ASCII ("İ"), e o check
+// convite_email_formato recusaria o lote inteiro. O que passa aqui passa no banco.
+const FORMATO = /^[!-?A-~]+@[!-?A-~]+\.[!-?A-~]+$/;
 const SEPARADOR = /[\s,;]+/;
 
-/** null quando o texto não é um e-mail. A mesma regra do check do banco. */
+/** null quando o texto não é um e-mail. Mais estreita que o check do banco. */
 export function lerEmail(texto: string): Email | null {
-  const email = texto.trim().toLowerCase();
-  return email.length <= TAMANHO_MAXIMO && FORMATO.test(email)
-    ? (email as Email)
+  const aparado = texto.trim();
+  return aparado.length <= TAMANHO_MAXIMO && FORMATO.test(aparado)
+    ? (aparado.toLowerCase() as Email)
     : null;
 }
 

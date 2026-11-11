@@ -35,6 +35,12 @@ describe("lerEmail", () => {
     expect(ruins.map(lerEmail)).toEqual(ruins.map(() => null));
   });
 
+  test("recusa o e-mail com caractere fora do ASCII", () => {
+    expect(lerEmail("İlker@exemplo.com")).toBeNull();
+    expect(lerEmail("joão@exemplo.com")).toBeNull();
+    expect(lerEmail("ana@exemplo.com.br ")).toBe("ana@exemplo.com.br" as Email);
+  });
+
   test("aceita até 254 caracteres e recusa 255", () => {
     const dominio = "@exemplo.com";
     const limite = `${"a".repeat(254 - dominio.length)}${dominio}`;
