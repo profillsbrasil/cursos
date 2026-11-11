@@ -836,7 +836,100 @@ const CASOS: Caso[] = [
         [b.aluno, b.aulaId]
       ),
   },
+  {
+    apagar: "alter table convite drop constraint convite_email_formato",
+    constraint: "convite_email_formato",
+    nome: "convite com maiúscula no e-mail",
+    violar: (c) => convidar(c, { email: "Ana@Exemplo.com" }),
+  },
+  {
+    apagar: "alter table convite drop constraint convite_convidado_por_clerk",
+    constraint: "convite_convidado_por_clerk",
+    nome: "convite com e-mail no lugar de quem convidou",
+    violar: (c) => convidar(c, { convidado_por: "admin@x.com" }),
+  },
+  {
+    apagar: "alter table convite drop constraint convite_envio_coerente",
+    constraint: "convite_envio_coerente",
+    nome: "convite enviado sem o id do convite do Clerk",
+    violar: (c) => convidar(c, { enviado_em: AGORA }),
+  },
+  {
+    apagar: "alter table convite drop constraint convite_aceite_coerente",
+    constraint: "convite_aceite_coerente",
+    nome: "convite aceito sem quem aceitou",
+    violar: (c) => convidar(c, { aceito_em: AGORA }),
+  },
+  {
+    apagar: "alter table convite drop constraint convite_cancelamento_coerente",
+    constraint: "convite_cancelamento_coerente",
+    nome: "convite cancelado sem quem cancelou",
+    violar: (c) => convidar(c, { cancelado_em: AGORA }),
+  },
+  {
+    apagar: "alter table convite drop constraint convite_um_fim_so",
+    constraint: "convite_um_fim_so",
+    nome: "convite aceito e cancelado",
+    violar: (c, b) =>
+      convidar(c, {
+        aceito_em: AGORA,
+        aceito_por: b.aluno,
+        cancelado_em: AGORA,
+        cancelado_por: "user_admin",
+      }),
+  },
+  {
+    apagar:
+      "alter table convite drop constraint convite_papel_aplicado_coerente",
+    constraint: "convite_papel_aplicado_coerente",
+    nome: "papel aplicado num convite que não dá o papel de admin",
+    violar: (c, b) =>
+      convidar(c, {
+        aceito_em: AGORA,
+        aceito_por: b.aluno,
+        papel_aplicado_em: AGORA,
+      }),
+  },
+  {
+    apagar: "drop index convite_vivo_por_email",
+    constraint: "convite_vivo_por_email",
+    nome: "dois convites vivos para o mesmo e-mail",
+    violar: async (c, b) => {
+      const email = `${b.aluno}@exemplo.com`;
+      await convidar(c, { email });
+      await convidar(c, { email });
+    },
+  },
+  {
+    apagar: "drop index convite_aceito_por_unico",
+    constraint: "convite_aceito_por_unico",
+    nome: "a mesma pessoa aceitando dois convites",
+    violar: async (c, b) => {
+      await convidar(c, { aceito_em: AGORA, aceito_por: b.aluno });
+      await convidar(c, { aceito_em: AGORA, aceito_por: b.aluno });
+    },
+  },
 ];
+
+const AGORA = "2026-11-11T12:00:00Z";
+
+/** Um convite válido, com as colunas de `mudar` por cima. */
+function convidar(c: Client, mudar: Record<string, string | boolean> = {}) {
+  const linha = {
+    como_admin: false,
+    convidado_por: "user_admin",
+    email: `convidado${sufixo()}@exemplo.com`,
+    expira_em: "2099-01-01T00:00:00Z",
+    perfil: "publico",
+    ...mudar,
+  };
+  const colunas = Object.keys(linha);
+  return c.query(
+    `insert into convite (${colunas.join(", ")})
+     values (${colunas.map((_, i) => `$${i + 1}`).join(", ")}) returning id`,
+    Object.values(linha)
+  );
+}
 
 async function perguntar(
   c: Client,
@@ -1076,5 +1169,45 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
       );
       expect(r.rows[0]?.dia).toBe("2026-10-06");
     });
+  });
+
+  test("aceita convidar de novo o e-mail de um convite cancelado ou aceito", async () => {
+    const vivos = await emTransacao(async () => {
+      const b = await montarBase(c);
+      const email = `${b.aluno}@exemplo.com`;
+      await convidar(c, {
+        cancelado_em: AGORA,
+        cancelado_por: "user_admin",
+        email,
+      });
+      await convidar(c, { aceito_em: AGORA, aceito_por: b.aluno, email });
+      await convidar(c, { email });
+      const r = await c.query(
+        "select 1 from convite where email = $1 and aceito_em is null and cancelado_em is null",
+        [email]
+      );
+      return r.rowCount;
+    });
+    expect(vivos).toBe(1);
+  });
+
+  test("apagar o curso tira o curso do convite e deixa o convite", async () => {
+    const lido = await emTransacao(async () => {
+      const b = await montarBase(c);
+      const convite = await convidar(c);
+      const conviteId = convite.rows[0]?.id;
+      await c.query(
+        "insert into convite_curso (convite_id, curso_id) values ($1, $2)",
+        [conviteId, b.cursoId]
+      );
+      await c.query("delete from curso where id = $1", [b.cursoId]);
+      const r = await c.query<{ convites: number; cursos: number }>(
+        `select (select count(*)::int from convite where id = $1) as convites,
+                (select count(*)::int from convite_curso where convite_id = $1) as cursos`,
+        [conviteId]
+      );
+      return r.rows[0];
+    });
+    expect(lido).toEqual({ convites: 1, cursos: 0 });
   });
 });
