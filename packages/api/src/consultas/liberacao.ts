@@ -118,6 +118,34 @@ const cursoSumiu = (cause?: unknown) =>
   });
 
 /**
+ * A liberação de admin numa transação que já segura o aluno. null: o curso não
+ * existe. Com liberação ativa, devolve a que existe (nova: false). É o único
+ * caminho para a liberação de admin: liberar e a chegada do convite passam aqui.
+ */
+export async function liberarNoAlunoTravado(
+  aluno: AlunoTravado,
+  admin: AdminId,
+  cursoId: CursoId,
+  agora: Date
+): Promise<(LiberacaoAtiva & { nova: boolean }) | null> {
+  // Em série: a transação tem um client só (consultas/aula.ts).
+  if (!(await cursoExiste(aluno.tx, cursoId))) {
+    return null;
+  }
+  const existente = await ativaDoCurso(aluno.tx, aluno.userId, cursoId);
+  if (existente) {
+    return { ...existente, nova: false };
+  }
+  const liberacaoId = await inserirLiberacao(
+    aluno,
+    { cursoId, origem: "admin", por: admin },
+    agora
+  );
+  await abrirOCursoInteiro(aluno, cursoId, agora);
+  return { liberacaoId, liberadaEm: agora, nova: true, origem: "admin" };
+}
+
+/**
  * Admin libera um curso. Com a trava do aluno, uma troca concorrente espera, lê
  * a liberação nova e devolve "já tem" sem debitar. Liberar o que já está ativo
  * devolve a liberação existente. A Pessoa vem de Pessoas.porId: só libera para
@@ -132,26 +160,16 @@ export async function liberar(
 ): Promise<LiberacaoAtiva & { nova: boolean }> {
   try {
     return await comAlunoTravado(db, pessoa.userId, async (aluno) => {
-      // Em série: a transação tem um client só (consultas/aula.ts).
-      if (!(await cursoExiste(aluno.tx, cursoId))) {
-        throw cursoSumiu();
-      }
-      const existente = await ativaDoCurso(aluno.tx, aluno.userId, cursoId);
-      if (existente) {
-        return { ...existente, nova: false };
-      }
-      const liberacaoId = await inserirLiberacao(
+      const liberada = await liberarNoAlunoTravado(
         aluno,
-        { cursoId, origem: "admin", por: admin },
+        admin,
+        cursoId,
         agora
       );
-      await abrirOCursoInteiro(aluno, cursoId, agora);
-      return {
-        liberacaoId,
-        liberadaEm: agora,
-        nova: true,
-        origem: "admin",
-      };
+      if (!liberada) {
+        throw cursoSumiu();
+      }
+      return liberada;
     });
   } catch (erro) {
     // O curso foi lido antes de o DELETE dele comitar: liberar trava o aluno,

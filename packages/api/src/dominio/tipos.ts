@@ -20,6 +20,7 @@ export type TentativaId = Marca<string, "TentativaId">;
 export type Versao = Marca<string, "Versao">;
 export type LiberacaoId = Marca<string, "LiberacaoId">;
 export type LiberacaoDoPerfilId = Marca<string, "LiberacaoDoPerfilId">;
+export type ConviteId = Marca<string, "ConviteId">;
 export type ComunicadoId = Marca<string, "ComunicadoId">;
 export type CategoriaId = Marca<string, "CategoriaId">;
 /** Um arquivo do material de apoio do curso. O id nasce no editor. */

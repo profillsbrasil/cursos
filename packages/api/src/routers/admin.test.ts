@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
 import { type AuthDoClerk, contextoDe } from "../context";
-import { contextoDeTeste, pessoasDeTeste } from "../contexto-de-teste";
+import {
+  contextoDeTeste,
+  convitesDeTeste,
+  pessoasDeTeste,
+} from "../contexto-de-teste";
 import { capasDesligadas } from "../externos/capas";
 import { materiaisDesligados } from "../externos/materiais";
 import { appRouter, createCaller } from "./index";
@@ -9,6 +13,7 @@ import { appRouter, createCaller } from "./index";
 const db = {} as never;
 const servicos = {
   capas: capasDesligadas,
+  convites: convitesDeTeste(),
   db,
   materiais: materiaisDesligados,
   pessoas: pessoasDeTeste([]),

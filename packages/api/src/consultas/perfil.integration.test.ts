@@ -43,6 +43,13 @@ const conta = (email: string | null, emailVerificado = true): Conta => ({
   userId: "user_x",
 });
 
+/** O login como perfilDe o vê. Sem convite, a chegada nunca grava papel. */
+const login = (lerConta: () => Promise<Conta | null>) => ({
+  conta: lerConta,
+  definirPapel: () =>
+    Promise.reject(new Error("sem convite, o papel não muda")),
+});
+
 describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const pessoas: string[] = [];
@@ -79,8 +86,12 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
       leituras += 1;
       return Promise.resolve(conta("bruno@profills.com"));
     };
-    expect(await perfilDe(db, userId, lerConta)).toBe("funcionario");
-    expect(await perfilDe(db, userId, lerConta)).toBe("funcionario");
+    expect(await perfilDe(db, userId, login(lerConta), AGORA)).toBe(
+      "funcionario"
+    );
+    expect(await perfilDe(db, userId, login(lerConta), AGORA)).toBe(
+      "funcionario"
+    );
     expect(leituras).toBe(1);
     const [linha] = await db
       .select()
@@ -92,14 +103,20 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   test("com o Clerk fora no primeiro acesso, vale público aberto sem gravar, e o acesso seguinte grava", async () => {
     const userId = pessoa();
     expect(
-      await perfilDe(db, userId, () =>
-        Promise.reject(new Error("Clerk respondeu 429"))
+      await perfilDe(
+        db,
+        userId,
+        login(() => Promise.reject(new Error("Clerk respondeu 429"))),
+        AGORA
       )
     ).toBe("publico");
     expect(await linhaDe(userId)).toBeUndefined();
     expect(
-      await perfilDe(db, userId, () =>
-        Promise.resolve(conta("nova@profills.com"))
+      await perfilDe(
+        db,
+        userId,
+        login(() => Promise.resolve(conta("nova@profills.com"))),
+        AGORA
       )
     ).toBe("funcionario");
   });
@@ -132,16 +149,22 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   });
 
   test("quem o Clerk não conhece entra como público aberto", async () => {
-    expect(await perfilDe(db, pessoa(), () => Promise.resolve(null))).toBe(
-      "publico"
-    );
+    expect(
+      await perfilDe(
+        db,
+        pessoa(),
+        login(() => Promise.resolve(null)),
+        AGORA
+      )
+    ).toBe("publico");
   });
 
   test("dois primeiros acessos ao mesmo tempo gravam uma linha e leem a mesma", async () => {
     const userId = pessoa();
+    const ana = login(() => Promise.resolve(conta("ana@profills.com")));
     const respostas = await Promise.all([
-      perfilDe(db, userId, () => Promise.resolve(conta("ana@profills.com"))),
-      perfilDe(db, userId, () => Promise.resolve(conta("ana@profills.com"))),
+      perfilDe(db, userId, ana, AGORA),
+      perfilDe(db, userId, ana, AGORA),
     ]);
     expect(respostas).toEqual(["funcionario", "funcionario"]);
     const linhas = await db
@@ -153,12 +176,22 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
 
   test("o admin muda o perfil, com quem mudou e quando", async () => {
     const userId = pessoa();
-    await perfilDe(db, userId, () => Promise.resolve(conta("c@exemplo.com")));
+    await perfilDe(
+      db,
+      userId,
+      login(() => Promise.resolve(conta("c@exemplo.com"))),
+      AGORA
+    );
     await definirPerfil(db, ADMIN, userId, "cliente", AGORA);
     expect(
-      await perfilDe(db, userId, () => {
-        throw new Error("não lê o Clerk com a linha gravada");
-      })
+      await perfilDe(
+        db,
+        userId,
+        login(() => {
+          throw new Error("não lê o Clerk com a linha gravada");
+        }),
+        AGORA
+      )
     ).toBe("cliente");
     const [linha] = await db
       .select()
@@ -174,9 +207,14 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   test("o admin define o perfil de quem ainda não entrou no app", async () => {
     const userId = pessoa();
     await definirPerfil(db, ADMIN, userId, "funcionario", AGORA);
-    expect(await perfilDe(db, userId, () => Promise.resolve(null))).toBe(
-      "funcionario"
-    );
+    expect(
+      await perfilDe(
+        db,
+        userId,
+        login(() => Promise.resolve(null)),
+        AGORA
+      )
+    ).toBe("funcionario");
   });
 });
 

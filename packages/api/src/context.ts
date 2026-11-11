@@ -2,6 +2,7 @@ import type { SessionAuthObject } from "@clerk/backend";
 import type { Database } from "@cursos/db";
 
 import type { Capas } from "./externos/capas";
+import type { Convites } from "./externos/convites";
 import type { Materiais } from "./externos/materiais";
 import type { Pessoas } from "./externos/pessoas";
 import { type marca, sessaoDe } from "./sessao";
@@ -30,6 +31,7 @@ export const ehAdmin = (sessao: Sessao | null): sessao is SessaoDeAdmin =>
  */
 export interface Servicos {
   readonly capas: Capas;
+  readonly convites: Convites;
   readonly db: Database;
   readonly materiais: Materiais;
   readonly pessoas: Pessoas;

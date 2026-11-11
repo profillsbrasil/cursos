@@ -18,6 +18,8 @@ const TABELAS_DO_ADMIN = [
   "categoria",
   "comunicado",
   "concessao_de_pontos",
+  "convite",
+  "convite_curso",
   "curso",
   "liberacao",
   "material",

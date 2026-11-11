@@ -1,6 +1,7 @@
 import { createClerkClient } from "@clerk/backend";
 import type { Servicos } from "@cursos/api/context";
 import { capasDesligadas, capasNoBucket } from "@cursos/api/externos/capas";
+import { convitesDoClerk } from "@cursos/api/externos/convites";
 import {
   materiaisDesligados,
   materiaisNoBucket,
@@ -9,6 +10,7 @@ import { pessoasDoClerk } from "@cursos/api/externos/pessoas";
 import { createDb } from "@cursos/db";
 
 import { ENV } from "./env.server";
+import { CRIAR_CONTA } from "./lib/rotas";
 
 const capas =
   ENV.S3_ENDPOINT &&
@@ -50,6 +52,10 @@ export const clerk = createClerkClient({
 /** Montados uma vez por processo. Os dois construtores de Context (context.ts e server/api.ts) usam estes. */
 export const servicos: Servicos = {
   capas,
+  // O link do convite cai em /criar-conta com o __clerk_ticket, que o <SignUp /> trata.
+  convites: convitesDoClerk(clerk, {
+    criarConta: new URL(CRIAR_CONTA, ENV.CORS_ORIGIN).href,
+  }),
   db: createDb(ENV),
   materiais,
   pessoas: pessoasDoClerk(clerk),

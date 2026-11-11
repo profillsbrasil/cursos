@@ -30,6 +30,13 @@ const conta = (userId: string, email: string): Conta => ({
   userId,
 });
 
+/** O login como perfilDe o vê. Sem convite, a chegada nunca grava papel. */
+const login = (daPessoa: Conta) => ({
+  conta: () => Promise.resolve(daPessoa),
+  definirPapel: () =>
+    Promise.reject(new Error("sem convite, o papel não muda")),
+});
+
 describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const ids: string[] = [];
@@ -77,9 +84,9 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
 
   test("o primeiro acesso com e-mail da empresa dá o bônus, fora dos pontos da semana", async () => {
     const userId = pessoa();
-    const ler = () => Promise.resolve(conta(userId, "bia@profills.com"));
-    expect(await perfilDe(db, userId, ler)).toBe("funcionario");
-    expect(await perfilDe(db, userId, ler)).toBe("funcionario");
+    const ler = login(conta(userId, "bia@profills.com"));
+    expect(await perfilDe(db, userId, ler, new Date())).toBe("funcionario");
+    expect(await perfilDe(db, userId, ler, new Date())).toBe("funcionario");
     expect(await bonusDe(userId)).toEqual([BONUS_DE_FUNCIONARIO]);
     expect(await linhasDoSaldo(db, userId, semana())).toEqual({
       entradasDaSemana: 0,
@@ -89,17 +96,17 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
 
   test("o primeiro acesso de outro e-mail não dá o bônus", async () => {
     const userId = pessoa();
-    const ler = () => Promise.resolve(conta(userId, "caio@cliente.example"));
-    expect(await perfilDe(db, userId, ler)).toBe("publico");
+    const ler = login(conta(userId, "caio@cliente.example"));
+    expect(await perfilDe(db, userId, ler, new Date())).toBe("publico");
     expect(await bonusDe(userId)).toEqual([]);
   });
 
   test("dois primeiros acessos ao mesmo tempo dão um bônus só", async () => {
     const userId = pessoa();
-    const ler = () => Promise.resolve(conta(userId, "duda@profills.com"));
+    const ler = login(conta(userId, "duda@profills.com"));
     const lidos = await Promise.all([
-      perfilDe(db, userId, ler),
-      perfilDe(db, userId, ler),
+      perfilDe(db, userId, ler, new Date()),
+      perfilDe(db, userId, ler, new Date()),
     ]);
     expect(lidos).toEqual(["funcionario", "funcionario"]);
     expect(await bonusDe(userId)).toEqual([BONUS_DE_FUNCIONARIO]);
@@ -107,8 +114,8 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
 
   test("o admin muda Público aberto para Funcionário e o bônus nasce, uma vez", async () => {
     const userId = pessoa();
-    const ler = () => Promise.resolve(conta(userId, "eva@cliente.example"));
-    expect(await perfilDe(db, userId, ler)).toBe("publico");
+    const ler = login(conta(userId, "eva@cliente.example"));
+    expect(await perfilDe(db, userId, ler, new Date())).toBe("publico");
     expect(await mudar(userId, "funcionario")).toEqual({
       bonus: true,
       perfil: "funcionario",

@@ -10,6 +10,19 @@ export const relations = defineRelations(schema, (r) => ({
   categoria: {
     cursos: r.many.curso({ from: r.categoria.id, to: r.curso.categoriaId }),
   },
+  convite: {
+    cursos: r.many.conviteCurso({
+      from: r.convite.id,
+      to: r.conviteCurso.conviteId,
+    }),
+  },
+  conviteCurso: {
+    curso: r.one.curso({
+      from: r.conviteCurso.cursoId,
+      optional: false,
+      to: r.curso.id,
+    }),
+  },
   curso: {
     categoria: r.one.categoria({
       from: r.curso.categoriaId,

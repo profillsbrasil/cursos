@@ -102,6 +102,10 @@ interface MensagemDoBanco {
  * curso_slug_key e curso_codigo_key ficam aqui porque o servidor escolhe o slug e o
  * código livres com a trava da raiz e da sigla (salvarCurso): duas criações não
  * chegam ao mesmo endereço nem ao mesmo código.
+ *
+ * As de convite ficam aqui porque consultas/convite.ts as respeita antes do banco:
+ * o e-mail é um Email de lerEmail, o convite vivo repetido cai no on conflict do
+ * nothing, e cada UPDATE filtra o estado que a restrição guarda.
  */
 export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "alternativa_certa_unica",
@@ -129,6 +133,19 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "concessao_de_pontos_pkey",
   "concessao_de_pontos_user_id_clerk",
   "concessao_do_aluno",
+  "convite_aceite_coerente",
+  "convite_aceito_por_unico",
+  "convite_cancelamento_coerente",
+  "convite_convidado_por_clerk",
+  "convite_curso_convite_id_convite_id_fkey",
+  "convite_curso_curso_id_curso_id_fkey",
+  "convite_curso_pkey",
+  "convite_email_formato",
+  "convite_envio_coerente",
+  "convite_papel_aplicado_coerente",
+  "convite_pkey",
+  "convite_um_fim_so",
+  "convite_vivo_por_email",
   "curso_capa_alt_preenchido",
   "curso_capa_dimensoes_positivas",
   "curso_categoria_id_categoria_id_fkey",

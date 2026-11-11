@@ -4,6 +4,7 @@
 import type { ClerkClient, User } from "@clerk/backend";
 
 import type { Papel } from "../context";
+import type { Email } from "../dominio/convite";
 import type { BuscaDeContas, Conta, Pessoa } from "../dominio/tipos";
 
 export interface Pessoas {
@@ -16,6 +17,11 @@ export interface Pessoas {
   buscar: (termo: string, entre?: readonly string[]) => Promise<BuscaDeContas>;
   /** null quando o Clerk não conhece o userId. */
   conta: (userId: string) => Promise<Conta | null>;
+  /**
+   * Quais destes e-mails já são de uma conta, principal ou não, com o userId dela.
+   * O e-mail casa inteiro, sem caixa: `ana@x.com` não é a conta de `diana@x.com`.
+   */
+  contasCom: (emails: readonly Email[]) => Promise<ReadonlyMap<Email, string>>;
   /** Grava o Public metadata `papel`; o token da pessoa muda quando renova, em até 60 s. */
   definirPapel: (userId: string, papel: Papel) => Promise<void>;
   /** null quando o Clerk não conhece o userId. */
@@ -74,6 +80,35 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
     async conta(userId) {
       const u = await umUsuario(clerk, userId);
       return u ? paraConta(u) : null;
+    },
+    async contasCom(emails) {
+      const pedidos = new Set<string>(emails);
+      const achadas = new Map<Email, string>();
+      // O filtro emailAddress do Clerk casa trecho: `ana@x.com` traz também
+      // `diana@x.com`. Por isso a igualdade é conferida aqui, e a busca segue
+      // pelas páginas até achar todos ou acabar.
+      let offset = 0;
+      while (pedidos.size > 0 && achadas.size < pedidos.size) {
+        // biome-ignore lint/performance/noAwaitInLoops: a página seguinte só existe depois da anterior.
+        const r = await clerk.users.getUserList({
+          emailAddress: [...pedidos],
+          limit: TETO_DO_FILTRO,
+          offset,
+        });
+        for (const u of r.data) {
+          for (const e of u.emailAddresses) {
+            const email = e.emailAddress.toLowerCase();
+            if (pedidos.has(email)) {
+              achadas.set(email as Email, u.id);
+            }
+          }
+        }
+        offset += r.data.length;
+        if (r.data.length === 0 || offset >= r.totalCount) {
+          break;
+        }
+      }
+      return achadas;
     },
     async definirPapel(userId, papel) {
       // null tira a chave no merge do Clerk: sem papel, o claim vale aluno.

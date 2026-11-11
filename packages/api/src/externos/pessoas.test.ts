@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { ClerkClient, User } from "@clerk/backend";
 
+import type { Email } from "../dominio/convite";
 import { paraPessoa, pessoasDoClerk } from "./pessoas";
 
 function usuario(parcial: Partial<User>): User {
@@ -115,6 +116,85 @@ describe("a conta que o Clerk devolve na busca", () => {
     expect(await verificado("verified")).toBe(true);
     expect(await verificado("unverified")).toBe(false);
     expect(await verificado(null)).toBe(false);
+  });
+});
+
+describe("pessoasDoClerk.contasCom", () => {
+  const comEmails = (id: string, ...emails: string[]) =>
+    usuario({
+      emailAddresses: emails.map((emailAddress) => ({
+        emailAddress,
+      })) as User["emailAddresses"],
+      id,
+    });
+
+  /** O filtro emailAddress do Clerk: trecho do e-mail, sem caixa, em páginas. */
+  const clerkCom = (usuarios: User[], pedidos: unknown[] = []) =>
+    ({
+      users: {
+        getUserList: (p: {
+          emailAddress: string[];
+          limit: number;
+          offset?: number;
+        }) => {
+          pedidos.push(p);
+          const casados = usuarios.filter((u) =>
+            u.emailAddresses.some((e) =>
+              p.emailAddress.some((trecho) =>
+                e.emailAddress.toLowerCase().includes(trecho.toLowerCase())
+              )
+            )
+          );
+          const inicio = p.offset ?? 0;
+          return Promise.resolve({
+            data: casados.slice(inicio, inicio + p.limit),
+            totalCount: casados.length,
+          });
+        },
+      },
+    }) as unknown as ClerkClient;
+
+  test("ana@ não é a conta de diana@: o trecho que o Clerk casa não conta", async () => {
+    const clerk = clerkCom([comEmails("user_diana", "diana@x.com")]);
+    const contas = await pessoasDoClerk(clerk).contasCom([
+      "ana@x.com" as Email,
+    ]);
+    expect([...contas]).toEqual([]);
+  });
+
+  test("acha a conta pelo e-mail inteiro, sem caixa, principal ou não", async () => {
+    const clerk = clerkCom([
+      comEmails("user_diana", "diana@x.com"),
+      comEmails("user_ana", "pessoal@y.com", "Ana@X.com"),
+    ]);
+    const contas = await pessoasDoClerk(clerk).contasCom([
+      "ana@x.com" as Email,
+      "bia@x.com" as Email,
+    ]);
+    expect([...contas]).toEqual([["ana@x.com" as Email, "user_ana"]]);
+  });
+
+  test("segue pelas páginas quando o trecho casa mais gente que o limite", async () => {
+    const parecidas = Array.from({ length: 100 }, (_, i) =>
+      comEmails(`user_d${i}`, `d${i}ana@x.com`)
+    );
+    const pedidos: { offset?: number }[] = [];
+    const clerk = clerkCom(
+      [...parecidas, comEmails("user_ana", "ana@x.com")],
+      pedidos
+    );
+    const contas = await pessoasDoClerk(clerk).contasCom([
+      "ana@x.com" as Email,
+    ]);
+    expect(contas.get("ana@x.com" as Email)).toBe("user_ana");
+    expect(pedidos.map((p) => p.offset)).toEqual([0, 100]);
+  });
+
+  test("a lista vazia não chega ao Clerk, que leria sem filtro", async () => {
+    const pedidos: unknown[] = [];
+    const contas = await pessoasDoClerk(clerkCom([], pedidos)).contasCom([]);
+    expect([...contas]).toEqual([]);
+    expect(pedidos).toEqual([]);
   });
 });
 

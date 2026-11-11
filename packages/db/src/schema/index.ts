@@ -10,5 +10,6 @@ export {
   videoProvedor,
 } from "./comum";
 export * from "./comunicado";
+export * from "./convite";
 export * from "./estudo";
 export * from "./pontos";

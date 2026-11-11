@@ -42,6 +42,9 @@ O serviço `web` da Railway builda com `bun run --cwd apps/web build` (sem turbo
 
 - App "cursos" na workspace PROFILLS DO BRASIL, só a instância Development (`pk_test`/`sk_test`). A instância de produção exige domínio próprio.
 - Papel de admin: `{ "papel": "admin" }` no Public metadata do usuário, e o claim `{ "papel": "{{user.public_metadata.papel}}" }` em Sessions, "Customize session token".
+- Convite por e-mail (ADR 0005): o app chama `createInvitation` sem `publicMetadata`, com `ignoreExisting`, validade de 30 dias e `redirectUrl` em `<CORS_ORIGIN>/criar-conta`, onde o `<SignUp />` trata o `__clerk_ticket` do link. O perfil, o papel e os cursos ficam na tabela `convite` e valem pelo e-mail principal verificado, com ou sem o link. O Clerk aceita 100 `createInvitation` por hora na instância; no 429, o app para o envio, guarda os convites que faltam como "Não enviado" e mostra a hora do `Retry-After`. Reenviar cria outro convite no Clerk e revoga o anterior, porque o Clerk não tem reenvio.
+- O papel de admin do convite vai ao Clerk depois do aceite. Se o Clerk falha, a chegada tenta de novo a cada pedido da pessoa, mas só até 1 hora depois do aceite (`PRAZO_DO_PAPEL_MS` em `packages/api/src/dominio/convite.ts`). Depois disso, o papel tirado pelo painel do Clerk não volta sozinho, e quem ficou sem o papel o recebe pela ficha da pessoa no admin.
+- O texto e a marca do e-mail de convite são configuração do painel do Clerk, que só o dono edita. Nenhum teste do repo chama a API de convites do Clerk: o primeiro envio real é quem confirma o texto do e-mail, a marca e a chegada do link em `/criar-conta`.
 
 ## Tipos
 

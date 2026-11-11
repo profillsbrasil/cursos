@@ -21,17 +21,23 @@ export interface BuscaDaBarra {
   acao: Route;
   campos?: Record<string, string>;
   id: string;
+  /** O que a busca casa, no rótulo e no placeholder. Sem ele, "Nome ou e-mail". */
+  rotulo?: string;
   termo: string;
 }
+
+const ROTULO_DA_BUSCA = "Nome ou e-mail";
 
 /**
  * A contagem cresce mil vezes mais que a busca: na linha única, ela empurra a
  * busca para a ponta e a busca fica nos 320 px da base; quando a busca desce
- * para a linha de baixo, sozinha, ela cresce até a largura inteira.
+ * para a linha de baixo, sozinha, ela cresce até a largura inteira. A contagem
+ * repete o termo da busca, que pode ser uma palavra só de 100 letras: ela quebra
+ * a palavra em vez de alargar a página.
  */
 export const BARRA = "mb-3.5 flex flex-wrap items-center gap-x-3.5 gap-y-2.5";
 export const CONTAGEM_DA_BARRA =
-  "min-w-0 grow-[999] text-right text-muted-foreground tabular-nums";
+  "min-w-0 grow-[999] break-words text-right text-muted-foreground";
 export const BUSCA_DA_BARRA = "block min-w-0 grow basis-80";
 
 /**
@@ -93,7 +99,7 @@ export function BarraDaLista({
               <input key={nome} name={nome} type="hidden" value={valor} />
             ))}
             <label className="sr-only" htmlFor={busca.id}>
-              Nome ou e-mail
+              {busca.rotulo ?? ROTULO_DA_BUSCA}
             </label>
             <Search
               aria-hidden="true"
@@ -107,7 +113,7 @@ export function BarraDaLista({
               key={busca.termo}
               maxLength={100}
               name="q"
-              placeholder="Nome ou e-mail"
+              placeholder={busca.rotulo ?? ROTULO_DA_BUSCA}
               type="search"
             />
           </Form>

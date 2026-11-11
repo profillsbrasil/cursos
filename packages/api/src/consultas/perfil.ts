@@ -1,17 +1,24 @@
 import type { Database } from "@cursos/db";
 import { PERFIS } from "@cursos/db/schema/formatos";
 import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
-import { count } from "drizzle-orm";
+import { count, sql } from "drizzle-orm";
 
+import { aceitoDesde, type ConviteAceito, lerEmail } from "../dominio/convite";
 import { type Perfil, perfilDoCadastro } from "../dominio/perfil";
 import type { ContagemPorPerfil, LinhaDoPerfil } from "../dominio/pessoas";
 import { BONUS_DE_FUNCIONARIO } from "../dominio/regras";
 import type { AdminId, Conta } from "../dominio/tipos";
-import type { Transacao } from "./comum";
+import type { Pessoas } from "../externos/pessoas";
+import type { Executor, Transacao } from "./comum";
+import { aplicarPapelDoConvite, reivindicarConvite } from "./convite";
+import { liberarNoAlunoTravado } from "./liberacao";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
-async function lerPerfil(db: Database, userId: string): Promise<Perfil | null> {
-  const linha = await db.query.perfilDaPessoa.findFirst({
+async function lerPerfil(
+  exec: Executor,
+  userId: string
+): Promise<Perfil | null> {
+  const linha = await exec.query.perfilDaPessoa.findFirst({
     columns: { perfil: true },
     where: { userId },
   });
@@ -55,26 +62,101 @@ export function darBonusDaVirada(
   return darBonusDeFuncionario(aluno.tx, aluno.userId, agora);
 }
 
+interface Chegada {
+  /**
+   * Há convite de admin aceito por esta pessoa, dentro de PRAZO_DO_PAPEL_MS, que
+   * o Clerk ainda não gravou.
+   */
+  papelPorAplicar: boolean;
+  perfil: Perfil;
+}
+
 /**
- * O perfil de quem está no app. No primeiro acesso, a linha nasce com o perfil do
- * cadastro, e só aí a conta é lida no Clerk. Dois primeiros acessos ao mesmo
- * tempo gravam uma linha só, e os dois leem a que ficou. Com o Clerk fora, o
- * pedido vale como Público aberto, o perfil de menos acesso, e nada se grava:
- * o acesso seguinte lê a conta de novo. A linha que nasce Funcionário leva o
- * bônus na mesma transação.
+ * A linha do perfil e, na mesma ida, se há papel de convite por aplicar. É o
+ * statement de todo pedido do aluno: o exists é uma sonda no índice
+ * convite_aceito_por_unico.
+ */
+async function lerChegada(
+  db: Database,
+  userId: string,
+  agora: Date
+): Promise<Chegada | null> {
+  const {
+    rows: [linha],
+  } = await db.execute<{
+    papel_por_aplicar: boolean;
+    perfil: Perfil;
+  }>(sql`
+    select p.perfil,
+           exists (select 1 from convite c
+                    where c.aceito_por = p.user_id and c.como_admin
+                      and c.papel_aplicado_em is null
+                      and c.aceito_em > ${aceitoDesde(agora).toISOString()}::timestamptz
+                  ) as papel_por_aplicar
+      from perfil_da_pessoa p
+     where p.user_id = ${userId}`);
+  return linha
+    ? { papelPorAplicar: linha.papel_por_aplicar, perfil: linha.perfil }
+    : null;
+}
+
+/** O curso que sumiu (null) fica de fora, e a chegada libera os outros. */
+async function liberarOsCursosDoConvite(
+  aluno: AlunoTravado,
+  convite: ConviteAceito,
+  agora: Date
+): Promise<void> {
+  for (const cursoId of convite.cursoIds) {
+    // biome-ignore lint/performance/noAwaitInLoops: a transação tem um client só.
+    await liberarNoAlunoTravado(aluno, convite.convidadoPor, cursoId, agora);
+  }
+}
+
+/** A falha do Clerk aqui tira poder, nunca dá: a pessoa segue aluno, e o pedido seguinte tenta de novo. */
+async function tentarOPapelDoConvite(
+  db: Database,
+  pessoas: Pick<Pessoas, "definirPapel">,
+  userId: string,
+  agora: Date
+): Promise<void> {
+  try {
+    await aplicarPapelDoConvite(db, pessoas, userId, agora);
+  } catch (erro) {
+    console.warn(
+      `papel de ${userId}: o convite dá admin, e o Clerk ainda não gravou`,
+      erro
+    );
+  }
+}
+
+/**
+ * O perfil de quem está no app. No primeiro acesso, com o aluno travado e numa
+ * transação: reivindica o convite do e-mail principal verificado, grava a linha
+ * com o perfil do convite (ou o do cadastro), dá o bônus de quem nasce
+ * Funcionário e libera os cursos do convite. Dois primeiros acessos ao mesmo
+ * tempo esperam a trava, e o segundo lê a linha que o primeiro gravou. O papel
+ * de admin do convite vai ao Clerk depois do commit, e todo pedido seguinte
+ * tenta de novo enquanto ele não foi gravado, até PRAZO_DO_PAPEL_MS depois do
+ * aceite. Com o Clerk fora na leitura da
+ * conta, o pedido vale como Público aberto, o perfil de menos acesso, e nada se
+ * grava: o acesso seguinte lê a conta de novo.
  */
 export async function perfilDe(
   db: Database,
   userId: string,
-  lerConta: () => Promise<Conta | null>
+  pessoas: Pick<Pessoas, "conta" | "definirPapel">,
+  agora: Date
 ): Promise<Perfil> {
-  const lido = await lerPerfil(db, userId);
+  const lido = await lerChegada(db, userId, agora);
   if (lido) {
-    return lido;
+    if (lido.papelPorAplicar) {
+      await tentarOPapelDoConvite(db, pessoas, userId, agora);
+    }
+    return lido.perfil;
   }
   let conta: Conta | null;
   try {
-    conta = await lerConta();
+    conta = await pessoas.conta(userId);
   } catch (erro) {
     console.warn(
       `perfil de ${userId}: o Clerk não respondeu no primeiro acesso`,
@@ -82,25 +164,36 @@ export async function perfilDe(
     );
     return perfilDoCadastro(null);
   }
-  const nova = await db.transaction(async (tx) => {
-    const [linha] = await tx
-      .insert(perfilDaPessoa)
-      .values({ perfil: perfilDoCadastro(conta), userId })
-      .onConflictDoNothing()
-      .returning({ perfil: perfilDaPessoa.perfil });
-    if (linha?.perfil === "funcionario") {
-      await darBonusDeFuncionario(tx, userId);
+  const chegada = await comAlunoTravado(db, userId, async (aluno) => {
+    // Depois da trava, num statement próprio: outro pedido já gravou a linha?
+    const ja = await lerPerfil(aluno.tx, userId);
+    if (ja) {
+      return { papelPorAplicar: false, perfil: ja };
     }
-    return linha;
+    const email =
+      conta?.emailVerificado && conta.email ? lerEmail(conta.email) : null;
+    const convite = email
+      ? await reivindicarConvite(aluno, email, agora)
+      : null;
+    const perfil = convite?.perfil ?? perfilDoCadastro(conta);
+    await aluno.tx.insert(perfilDaPessoa).values({
+      definidoEm: agora,
+      definidoPor: convite?.convidadoPor ?? null,
+      perfil,
+      userId,
+    });
+    if (perfil === "funcionario") {
+      await darBonusDeFuncionario(aluno.tx, userId, agora);
+    }
+    if (convite) {
+      await liberarOsCursosDoConvite(aluno, convite, agora);
+    }
+    return { papelPorAplicar: convite?.comoAdmin ?? false, perfil };
   });
-  if (nova) {
-    return nova.perfil;
+  if (chegada.papelPorAplicar) {
+    await tentarOPapelDoConvite(db, pessoas, userId, agora);
   }
-  const outra = await lerPerfil(db, userId);
-  if (!outra) {
-    throw new Error(`O perfil de ${userId} não ficou gravado.`);
-  }
-  return outra;
+  return chegada.perfil;
 }
 
 /**

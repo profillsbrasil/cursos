@@ -15,6 +15,13 @@ import {
 } from "../consultas/comunicado";
 import { concederPontos, linhasDasConcessoes } from "../consultas/concessao";
 import {
+  cancelarConvite,
+  convidar,
+  encerrarPapelDoConvite,
+  linhasDosConvites,
+  reenviarConvite,
+} from "../consultas/convite";
+import {
   abrirCurso,
   apagarCurso,
   erroDoMaterial,
@@ -51,6 +58,12 @@ import {
   montarConcessoes,
   TETO_DA_CONCESSAO,
 } from "../dominio/concessao";
+import {
+  lerEmail,
+  montarPainelDeConvites,
+  TETO_DE_CURSOS,
+  TETO_DE_EMAILS,
+} from "../dominio/convite";
 import { montarGrade } from "../dominio/grade-dos-perfis";
 import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
 import { CARACTERES } from "../dominio/limites-do-curso";
@@ -64,6 +77,7 @@ import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type {
   CategoriaId,
   ComunicadoId,
+  ConviteId,
   CursoId,
   LiberacaoDoPerfilId,
   LiberacaoId,
@@ -84,8 +98,29 @@ const doCurso = z.object({ id: cursoId });
 
 const perfil = z.enum(PERFIS);
 
+const conviteId = z.uuid().transform((id) => id.toLowerCase() as ConviteId);
+
+/** O e-mail de um convite, já lido por lerEmail: a mesma regra do diálogo e do banco. */
+const email = z
+  .string()
+  .max(254)
+  .transform((texto, ctx) => {
+    const lido = lerEmail(texto);
+    if (!lido) {
+      ctx.addIssue({ code: "custom", message: "e-mail" });
+      return z.NEVER;
+    }
+    return lido;
+  });
+
 const pessoaSumiu = () =>
   new ErroParaAPessoa({ code: "NOT_FOUND", message: PESSOA_SUMIU });
+
+const naoEMaisAdmin = () =>
+  new ErroParaAPessoa({
+    code: "FORBIDDEN",
+    message: "Você não é mais admin.",
+  });
 
 // Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
 export const adminRouter = router({
@@ -180,6 +215,60 @@ export const adminRouter = router({
           new Date()
         )
       ),
+  }),
+  convites: router({
+    cancelar: adminProcedure
+      .input(z.object({ id: conviteId }))
+      .mutation(({ ctx, input }) =>
+        cancelarConvite(ctx.db, ctx.convites, ctx.admin, input.id, new Date())
+      ),
+    /** Um resultado por e-mail: a recusa de um não recusa o envio. */
+    enviar: adminProcedure
+      .input(
+        z.object({
+          comoAdmin: z.boolean(),
+          cursoIds: z.array(cursoId).max(TETO_DE_CURSOS),
+          emails: z.array(email).min(1).max(TETO_DE_EMAILS),
+          perfil,
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Dar o papel pede o papel de verdade, lido no Clerk como em
+        // pessoas.definirPapel: o token diz admin por até 60 s depois de perder.
+        if (
+          input.comoAdmin &&
+          (await ctx.pessoas.conta(ctx.admin))?.papel !== "admin"
+        ) {
+          throw naoEMaisAdmin();
+        }
+        return convidar(
+          ctx.db,
+          ctx,
+          ctx.admin,
+          { ...input, cursoIds: [...new Set(input.cursoIds)] },
+          new Date()
+        );
+      }),
+    painel: adminProcedure
+      .input(z.object({ termo: z.string().trim().max(100) }))
+      .query(async ({ ctx, input }) => {
+        const [linhas, contagem] = await Promise.all([
+          linhasDosConvites(ctx.db, input.termo),
+          contagemPorPerfil(ctx.db),
+        ]);
+        return montarPainelDeConvites(linhas, contagem, new Date());
+      }),
+    reenviar: adminProcedure
+      .input(z.object({ id: conviteId }))
+      .mutation(async ({ ctx, input }) => {
+        const { enviadoEm } = await reenviarConvite(
+          ctx.db,
+          ctx.convites,
+          input.id,
+          new Date()
+        );
+        return { enviadoEm: diaLocal(enviadoEm) };
+      }),
   }),
   liberacoes: router({
     // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
@@ -309,20 +398,21 @@ export const adminRouter = router({
         }
         // Sob a trava, o papel de quem pede vem do Clerk, não do token: o token
         // diz admin por até 60 s depois de outro admin tirar o papel dele.
-        return comTrava(ctx.db, "papel", async () => {
+        return comTrava(ctx.db, "papel", async (tx) => {
           const [eu, alvo] = await Promise.all([
             ctx.pessoas.conta(ctx.admin),
             ctx.pessoas.conta(input.userId),
           ]);
           if (eu?.papel !== "admin") {
-            throw new ErroParaAPessoa({
-              code: "FORBIDDEN",
-              message: "Você não é mais admin.",
-            });
+            throw naoEMaisAdmin();
           }
           if (!alvo) {
             throw pessoaSumiu();
           }
+          // Antes do Clerk: se o Clerk falha, o rollback desfaz o encerramento.
+          // Na ordem contrária, a falha daqui deixaria o convite regravar admin
+          // por cima do papel que a ficha acabou de gravar.
+          await encerrarPapelDoConvite(tx, input.userId, new Date());
           await ctx.pessoas.definirPapel(input.userId, input.papel);
           return { papel: input.papel };
         });
