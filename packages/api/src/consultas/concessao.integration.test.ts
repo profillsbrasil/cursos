@@ -30,8 +30,11 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
 
-  /** Um aluno com `antes` pontos de semanas passadas e 30 desta semana. */
-  async function aluno(antes: number) {
+  /** Um aluno com `antes` pontos de semanas passadas e 30 na semana de `nestaSemana`. */
+  async function aluno(
+    antes: number,
+    nestaSemana = new Date("2026-10-26T15:00:00Z")
+  ) {
     const userId = `user_concessao${S}${alunos.length}`;
     alunos.push(userId);
     await db.insert(pontoLancamento).values([
@@ -43,8 +46,8 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
         userId,
       })),
       {
-        criadoEm: new Date("2026-10-26T15:00:00Z"),
-        diaMarco: "2026-10-26",
+        criadoEm: nestaSemana,
+        diaMarco: diaLocal(nestaSemana),
         motivo: "sequencia_7_dias" as const,
         pontos: 30,
         userId,
@@ -129,7 +132,8 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
   });
 
   test("tirar desconta do saldo, e o aluno vê no extrato o rótulo e o motivo", async () => {
-    const userId = await aluno(100);
+    // O painel lê a semana pelo relógio do servidor, não por AGORA.
+    const userId = await aluno(100, new Date());
     await comoAdmin().admin.pessoas.concederPontos({
       motivo: "Lançado em dobro",
       pontos: -40,
