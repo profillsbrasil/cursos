@@ -6,11 +6,10 @@ import { createCaller } from "./index";
 // O banco só sabe ler o perfil já gravado, que o alunoProcedure lê antes do input:
 // o slug fora do formato não chega a nenhuma outra consulta.
 const soOPerfil = {
-  query: {
-    perfilDaPessoa: {
-      findFirst: () => Promise.resolve({ perfil: "publico" }),
-    },
-  },
+  execute: () =>
+    Promise.resolve({
+      rows: [{ papel_por_aplicar: false, perfil: "publico" }],
+    }),
 };
 const caller = createCaller(
   contextoDeTeste({ db: soOPerfil as never, userId: "user_x" })

@@ -4,9 +4,10 @@
 
 import type { Database } from "@cursos/db";
 import { convite, conviteCurso } from "@cursos/db/schema/index";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import {
+  type ConviteAceito,
   type Email,
   ESPERA_DO_REENVIO_SEG,
   type EstadoDoConvite,
@@ -22,7 +23,9 @@ import type { AdminId, ConviteId, CursoId } from "../dominio/tipos";
 import type { Convites } from "../externos/convites";
 import type { Pessoas } from "../externos/pessoas";
 import { ErroParaAPessoa } from "../index";
+import type { Transacao } from "./comum";
 import { violacaoDe } from "./erros";
+import { type AlunoTravado, comTrava } from "./trava";
 
 interface PortasDoConvite {
   convites: Convites;
@@ -439,4 +442,93 @@ export async function linhasDosConvites(
     cursos: cursos.map((c) => ({ ...c, id: c.id as CursoId })),
     total,
   };
+}
+
+/**
+ * A chegada reivindica o convite vivo e não vencido do e-mail, num UPDATE só, e
+ * lê os cursos dele. O AlunoTravado diz para quem grava. O cancelar concorrente
+ * espera a linha e encontra o convite aceito, ou chega antes e este UPDATE não
+ * acha nada: o convite se aceita uma vez.
+ */
+export async function reivindicarConvite(
+  aluno: AlunoTravado,
+  email: Email,
+  agora: Date
+): Promise<ConviteAceito | null> {
+  const [aceito] = await aluno.tx
+    .update(convite)
+    .set({ aceitoEm: agora, aceitoPor: aluno.userId })
+    .where(and(eq(convite.email, email), VIVO, gt(convite.expiraEm, agora)))
+    .returning({
+      comoAdmin: convite.comoAdmin,
+      convidadoPor: convite.convidadoPor,
+      id: convite.id,
+      perfil: convite.perfil,
+    });
+  if (!aceito) {
+    return null;
+  }
+  const cursos = await aluno.tx
+    .select({ cursoId: conviteCurso.cursoId })
+    .from(conviteCurso)
+    .where(eq(conviteCurso.conviteId, aceito.id));
+  return {
+    comoAdmin: aceito.comoAdmin,
+    // Só o adminProcedure chega ao INSERT de convite.
+    convidadoPor: aceito.convidadoPor as AdminId,
+    cursoIds: cursos.map((c) => c.cursoId as CursoId),
+    id: aceito.id as ConviteId,
+    perfil: aceito.perfil,
+  };
+}
+
+const papelPorAplicar = (userId: string) =>
+  and(
+    eq(convite.aceitoPor, userId),
+    eq(convite.comoAdmin, true),
+    isNull(convite.papelAplicadoEm)
+  );
+
+/**
+ * Leva ao Clerk o papel de admin de um convite aceito, sob a trava `papel`.
+ * Depois da trava relê o marcador: quem chega em segundo não chama o Clerk. Se
+ * o Clerk grava e o marcador não, o pedido seguinte grava admin de novo, que é a
+ * mesma escrita. Só convite aceito tem aceito_por, então o cancelado nunca chega
+ * aqui.
+ */
+export function aplicarPapelDoConvite(
+  db: Database,
+  pessoas: Pick<Pessoas, "definirPapel">,
+  userId: string,
+  agora: Date
+): Promise<void> {
+  return comTrava(db, "papel", async (tx) => {
+    const [pendente] = await tx
+      .select({ id: convite.id })
+      .from(convite)
+      .where(papelPorAplicar(userId));
+    if (!pendente) {
+      return;
+    }
+    await pessoas.definirPapel(userId, "admin");
+    await tx
+      .update(convite)
+      .set({ papelAplicadoEm: agora })
+      .where(eq(convite.id, pendente.id));
+  });
+}
+
+/**
+ * A mudança de papel feita na ficha encerra o papel por aplicar: a decisão do
+ * admin na ficha vence o convite. Roda na transação da trava `papel`.
+ */
+export async function encerrarPapelDoConvite(
+  tx: Transacao,
+  userId: string,
+  agora: Date
+): Promise<void> {
+  await tx
+    .update(convite)
+    .set({ papelAplicadoEm: agora })
+    .where(papelPorAplicar(userId));
 }

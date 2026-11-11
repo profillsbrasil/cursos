@@ -93,13 +93,14 @@ const perfilDoPedido = new WeakMap<Sessao, Promise<Perfil>>();
 
 /**
  * Todo procedure que lê o que o aluno vê. Entrega ctx.aluno com o perfil, e no
- * primeiro acesso da pessoa grava o perfil do cadastro (consultas/perfil.ts).
+ * primeiro acesso da pessoa grava o perfil do convite ou o do cadastro e aplica
+ * o resto do convite (consultas/perfil.ts).
  */
 export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const { auth } = ctx;
   let lendo = perfilDoPedido.get(auth);
   if (!lendo) {
-    lendo = perfilDe(ctx.db, auth.userId, () => ctx.pessoas.conta(auth.userId));
+    lendo = perfilDe(ctx.db, auth.userId, ctx.pessoas, new Date());
     perfilDoPedido.set(auth, lendo);
   }
   return next({

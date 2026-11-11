@@ -17,6 +17,7 @@ import { concederPontos, linhasDasConcessoes } from "../consultas/concessao";
 import {
   cancelarConvite,
   convidar,
+  encerrarPapelDoConvite,
   linhasDosConvites,
   reenviarConvite,
 } from "../consultas/convite";
@@ -396,7 +397,7 @@ export const adminRouter = router({
         }
         // Sob a trava, o papel de quem pede vem do Clerk, não do token: o token
         // diz admin por até 60 s depois de outro admin tirar o papel dele.
-        return comTrava(ctx.db, "papel", async () => {
+        return comTrava(ctx.db, "papel", async (tx) => {
           const [eu, alvo] = await Promise.all([
             ctx.pessoas.conta(ctx.admin),
             ctx.pessoas.conta(input.userId),
@@ -407,6 +408,10 @@ export const adminRouter = router({
           if (!alvo) {
             throw pessoaSumiu();
           }
+          // Antes do Clerk: se o Clerk falha, o rollback desfaz o encerramento.
+          // Na ordem contrária, a falha daqui deixaria o convite regravar admin
+          // por cima do papel que a ficha acabou de gravar.
+          await encerrarPapelDoConvite(tx, input.userId, new Date());
           await ctx.pessoas.definirPapel(input.userId, input.papel);
           return { papel: input.papel };
         });
