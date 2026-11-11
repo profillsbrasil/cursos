@@ -55,6 +55,17 @@ export function lerEmails(texto: string): { emails: Email[]; ruins: string[] } {
   return { emails: [...emails], ruins: [...ruins] };
 }
 
+const HORA = new Intl.DateTimeFormat("pt-BR", {
+  hour: "2-digit",
+  hourCycle: "h23",
+  minute: "2-digit",
+  timeZone: "America/Sao_Paulo",
+});
+
+/** A hora de São Paulo como a frase do limite a escreve: "15h40". */
+export const horaDeSaoPaulo = (instante: Date): string =>
+  HORA.format(instante).replace(":", "h");
+
 /** O que a pessoa recebe na chegada. */
 export interface OQueOConviteDa {
   comoAdmin: boolean;
