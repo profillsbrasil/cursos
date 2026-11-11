@@ -1,9 +1,11 @@
 import type { Database } from "@cursos/db";
 
 import type { Context, Papel } from "./context";
+import type { Email } from "./dominio/convite";
 import type { Aluno, Perfil } from "./dominio/perfil";
 import type { Conta, Pessoa } from "./dominio/tipos";
 import { type Capas, capasDesligadas } from "./externos/capas";
+import type { Convites } from "./externos/convites";
 import { type Materiais, materiaisDesligados } from "./externos/materiais";
 import { LIMITE, type Pessoas } from "./externos/pessoas";
 import { sessaoDe } from "./sessao";
@@ -11,6 +13,8 @@ import { sessaoDe } from "./sessao";
 export interface OpcoesDeTeste {
   /** Sem a porta, o envio de capa recusa como num ambiente sem Storage. */
   capas?: Capas;
+  /** Sem a porta, todo envio de convite sai e nada falha. */
+  convites?: Convites;
   db: Database;
   /** Sem a porta, o envio de material recusa como num ambiente sem Storage. */
   materiais?: Materiais;
@@ -64,6 +68,16 @@ export function pessoasDeTeste(
       const p = achar(userId);
       return Promise.resolve(p ? paraConta(p) : null);
     },
+    contasCom: (emails) => {
+      const achadas = new Map<Email, string>();
+      for (const email of emails) {
+        const p = lista.find((q) => q.email?.toLowerCase() === email);
+        if (p) {
+          achadas.set(email, p.userId);
+        }
+      }
+      return Promise.resolve(achadas);
+    },
     definirPapel: (userId, papel) => {
       papeis.set(userId, papel);
       return Promise.resolve();
@@ -79,6 +93,44 @@ export function pessoasDeTeste(
   };
 }
 
+/**
+ * Carteiro falso. `enviados` e `revogados` guardam o que saiu, na ordem. `falhas`
+ * roteiriza o envio por e-mail e é lido a cada envio: "limite" devolve o 429, com
+ * a volta uma hora depois, e "erro" lança.
+ */
+export function convitesDeTeste(
+  falhas?: ReadonlyMap<string, "erro" | "limite">
+): Convites & {
+  enviados: { clerkConviteId: string; email: string }[];
+  revogados: string[];
+} {
+  const enviados: { clerkConviteId: string; email: string }[] = [];
+  const revogados: string[] = [];
+  return {
+    enviados,
+    enviar: (email, agora) => {
+      const falha = falhas?.get(email);
+      if (falha === "erro") {
+        return Promise.reject(new Error(`o Clerk recusou ${email}`));
+      }
+      if (falha === "limite") {
+        return Promise.resolve({
+          tentarEm: new Date(agora.getTime() + 3_600_000),
+          tipo: "limite",
+        });
+      }
+      const clerkConviteId = `inv_teste${enviados.length + 1}`;
+      enviados.push({ clerkConviteId, email });
+      return Promise.resolve({ clerkConviteId, tipo: "enviado" });
+    },
+    revogados,
+    revogar: (clerkConviteId) => {
+      revogados.push(clerkConviteId);
+      return Promise.resolve();
+    },
+  };
+}
+
 /** O aluno que as consultas recebem do alunoProcedure. Sem perfil, Público aberto. */
 export const alunoDeTeste = (
   userId: string,
@@ -90,6 +142,7 @@ export function contextoDeTeste(o: OpcoesDeTeste): Context {
   return {
     auth: o.userId ? sessaoDe(o.papel ?? "aluno", o.userId) : null,
     capas: o.capas ?? capasDesligadas,
+    convites: o.convites ?? convitesDeTeste(),
     db: o.db,
     materiais: o.materiais ?? materiaisDesligados,
     pessoas: pessoasDeTeste(o.pessoas ?? []),
