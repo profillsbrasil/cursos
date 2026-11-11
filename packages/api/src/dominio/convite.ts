@@ -33,10 +33,12 @@ export const aceitoDesde = (agora: Date): Date =>
   new Date(agora.getTime() - PRAZO_DO_PAPEL_MS);
 
 const TAMANHO_MAXIMO = 254;
-// Só ASCII imprimível, sem espaço e sem @ fora do meio: o toLowerCase do JS e o
-// lower() do Postgres divergem fora do ASCII ("İ"), e o check
-// convite_email_formato recusaria o lote inteiro. O que passa aqui passa no banco.
-const FORMATO = /^[!-?A-~]+@[!-?A-~]+\.[!-?A-~]+$/;
+// Só ASCII: o toLowerCase do JS e o lower() do Postgres divergem fora dele ("İ"),
+// e o check convite_email_formato recusaria o lote inteiro. O que passa aqui
+// passa no banco. A parte local é a sem aspas, e o domínio, rótulos com ponto:
+// sem < > " ( ) , : ; [ ] \, um "<b@x.com>" viraria convite que nunca se aplica.
+const FORMATO =
+  /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
 const SEPARADOR = /[\s,;]+/;
 
 /** null quando o texto não é um e-mail. Mais estreita que o check do banco. */

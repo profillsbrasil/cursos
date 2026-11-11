@@ -35,6 +35,26 @@ describe("lerEmail", () => {
     expect(ruins.map(lerEmail)).toEqual(ruins.map(() => null));
   });
 
+  test("recusa os caracteres que só cabem entre aspas ou no nome", () => {
+    const especiais = ["<", ">", '"', "(", ")", ",", ":", ";", "[", "]", "\\"];
+    const textos = especiais.flatMap((c) => [
+      `ana${c}@x.com`,
+      `${c}ana@x.com`,
+      `ana@x${c}.com`,
+      `ana@x.com${c}`,
+    ]);
+    expect(textos.map(lerEmail)).toEqual(textos.map(() => null));
+  });
+
+  test("aceita os caracteres da parte local sem aspas", () => {
+    const local = "a.b!c#d$e%f&g'h*i+j/k=l?m^n_o`p{q|r}s~t-u";
+    expect(lerEmail(`${local}@sub-dominio.x.com`)).toBe(
+      `${local}@sub-dominio.x.com` as Email
+    );
+    expect(lerEmail("ana@x..com")).toBeNull();
+    expect(lerEmail("ana@x_y.com")).toBeNull();
+  });
+
   test("recusa o e-mail com caractere fora do ASCII", () => {
     expect(lerEmail("İlker@exemplo.com")).toBeNull();
     expect(lerEmail("joão@exemplo.com")).toBeNull();
@@ -91,6 +111,25 @@ describe("lerEmails", () => {
     expect(lerEmails(`"Lima, Ana" <Ana@X.com>; Bia <bia@exemplo>`)).toEqual({
       emails: ["ana@x.com"] as Email[],
       ruins: ["Bia <bia@exemplo>"],
+    });
+  });
+
+  test("o < e o > fora do par Nome <e-mail> ficam à vista como pedaço ruim", () => {
+    expect(lerEmails("a@x.com <b@x.com>")).toEqual({
+      emails: ["a@x.com"] as Email[],
+      ruins: ["<b@x.com>"],
+    });
+    expect(lerEmails("<<a@x.com>>")).toEqual({
+      emails: [],
+      ruins: ["<<a@x.com>>"],
+    });
+    expect(lerEmails("Ana <ana@x.com")).toEqual({
+      emails: [],
+      ruins: ["Ana", "<ana@x.com"],
+    });
+    expect(lerEmails("ana@x.com Bia <bia@x.com>")).toEqual({
+      emails: ["ana@x.com"] as Email[],
+      ruins: ["Bia", "<bia@x.com>"],
     });
   });
 
