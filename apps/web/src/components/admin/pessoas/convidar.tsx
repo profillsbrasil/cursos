@@ -27,6 +27,7 @@ import {
   type KeyboardEvent,
   useCallback,
   useId,
+  useRef,
   useState,
 } from "react";
 
@@ -188,12 +189,16 @@ function CampoDeEmails({
       mudar(fichasCom(fichas, texto), "");
     }
   }, [fichas, mudar, texto]);
+  const campo = useRef<HTMLInputElement>(null);
+  // O botão Tirar some com a ficha; sem isto, o foco do teclado cairia no corpo do diálogo.
   const tirar = useCallback(
-    (qual: string) =>
+    (qual: string) => {
       mudar(
         fichas.filter((f) => f.texto !== qual),
         texto
-      ),
+      );
+      campo.current?.focus();
+    },
     [fichas, mudar, texto]
   );
   const temRuim = fichas.some((f) => f.email === null);
@@ -225,6 +230,7 @@ function CampoDeEmails({
         onKeyDown={aoTeclar}
         onPaste={aoColar}
         placeholder={fichas.length === 0 ? "Cole ou digite os e-mails" : ""}
+        ref={campo}
         spellCheck={false}
         value={texto}
       />

@@ -37,6 +37,12 @@ interface BotaoDeEnviar {
 const botaoDeEnviar = () => avaliar<BotaoDeEnviar>(enviar, "window.enviar()");
 const fichas = () => avaliar<string[]>(enviar, "window.fichas()");
 const aberto = () => avaliar<boolean>(enviar, "Boolean(window.dialogo())");
+const focado = () =>
+  avaliar<string>(
+    enviar,
+    `document.activeElement.getAttribute("aria-label") ?? document.activeElement.getAttribute("inputmode") ?? document.activeElement.tagName`
+  );
+
 const TECLAS = {
   Backspace: { codigo: 8, texto: undefined },
   Enter: { codigo: 13, texto: "\r" },
@@ -258,6 +264,18 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     expect(await avaliar<string>(enviar, "window.viva.textContent")).toBe(
       "bia@x.com Já tem convite, mas o e-mail não saiu. Envie em Convidados."
     );
+  });
+
+  test("tirar uma ficha pelo teclado devolve o foco ao campo de e-mails", async () => {
+    await abrir();
+    await rodar(
+      `await escrever("ana@x.com bia@x.com "); dialogo().querySelector('input[inputmode="email"]').focus();`
+    );
+    await tecla("Tab", true);
+    expect(await focado()).toBe("Tirar bia@x.com");
+    await tecla("Enter");
+    expect(await fichas()).toEqual(["ana@x.com"]);
+    expect(await focado()).toBe("email");
   });
 
   test("Cancelar fecha e esquece o rascunho", async () => {
