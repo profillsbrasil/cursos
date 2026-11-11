@@ -43,6 +43,7 @@ import { trpcClient } from "@/utils/trpc";
 import { Carregando } from "../confirmacao-na-linha";
 import { OPCAO_DA_TRILHA, TRILHA } from "../partes";
 import {
+  anuncioDasFichas,
   envioDasFichas,
   type Ficha,
   fichasCom,
@@ -435,7 +436,16 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
                   {envio.razao}
                 </p>
               ) : null}
-              {sobras.length > 0 ? <SobrasDoEnvio sobras={sobras} /> : null}
+              <p className="sr-only" role="status">
+                {anuncioDasFichas(rascunho.fichas, envio)}
+              </p>
+              {/* Montada antes do envio, para o leitor de tela anunciar as sobras que chegam. */}
+              <div
+                aria-live="polite"
+                className={sobras.length > 0 ? undefined : "sr-only"}
+              >
+                {sobras.length > 0 ? <SobrasDoEnvio sobras={sobras} /> : null}
+              </div>
             </div>
             <fieldset className="m-0 grid min-w-0 gap-1.5 border-0 p-0">
               <legend className={cn(ROTULO, "mb-1.5 p-0")}>Perfil</legend>

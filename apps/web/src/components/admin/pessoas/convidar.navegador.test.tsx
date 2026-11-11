@@ -37,6 +37,30 @@ interface BotaoDeEnviar {
 const botaoDeEnviar = () => avaliar<BotaoDeEnviar>(enviar, "window.enviar()");
 const fichas = () => avaliar<string[]>(enviar, "window.fichas()");
 const aberto = () => avaliar<boolean>(enviar, "Boolean(window.dialogo())");
+const TECLAS = {
+  Backspace: { codigo: 8, texto: undefined },
+  Enter: { codigo: 13, texto: "\r" },
+  Escape: { codigo: 27, texto: undefined },
+  Tab: { codigo: 9, texto: undefined },
+} as const;
+
+/** Uma tecla de verdade, pelo CDP; `shift` aperta junto o Shift. */
+async function tecla(nome: keyof typeof TECLAS, shift = false) {
+  const { codigo, texto } = TECLAS[nome];
+  const base = {
+    code: nome,
+    key: nome,
+    modifiers: shift ? 8 : 0,
+    windowsVirtualKeyCode: codigo,
+  };
+  await enviar("Input.dispatchKeyEvent", {
+    ...base,
+    text: texto,
+    type: texto ? "keyDown" : "rawKeyDown",
+  });
+  await enviar("Input.dispatchKeyEvent", { ...base, type: "keyUp" });
+  await avaliar(enviar, "new Promise((r) => setTimeout(r, 50))");
+}
 
 describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
   beforeAll(async () => {
@@ -107,25 +131,10 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     await rodar(
       `await escrever("ana@x.com"); dialogo().querySelector('input[inputmode="email"]').focus();`
     );
-    const tecla = async (key: string, codigo: number) => {
-      await enviar("Input.dispatchKeyEvent", {
-        code: key,
-        key,
-        type: "rawKeyDown",
-        windowsVirtualKeyCode: codigo,
-      });
-      await enviar("Input.dispatchKeyEvent", {
-        code: key,
-        key,
-        type: "keyUp",
-        windowsVirtualKeyCode: codigo,
-      });
-      await rodar("await esperar(0);");
-    };
-    await tecla("Enter", 13);
+    await tecla("Enter");
     expect(await fichas()).toEqual(["ana@x.com"]);
     expect(await avaliar<number>(enviar, "window.chamadas.length")).toBe(0);
-    await tecla("Backspace", 8);
+    await tecla("Backspace");
     expect(await fichas()).toEqual([]);
     expect(
       await rodar<string>(
@@ -193,6 +202,62 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     expect(
       await rodar<string>(`return dialogo().textContent.replace(/\\s+/g, " ");`)
     ).not.toContain("Já tem conta");
+  });
+
+  test("a região de status, sempre na tela, diz quantos e-mails há e por que o envio não sai", async () => {
+    await abrir();
+    const status = () =>
+      avaliar<{ mesma: boolean; texto: string }>(
+        enviar,
+        `({ mesma: window.regiao === dialogo().querySelector('[role="status"]'), texto: window.regiao.textContent })`
+      );
+    expect(
+      await avaliar<boolean>(
+        enviar,
+        `(window.regiao = dialogo().querySelector('[role="status"]')) !== null`
+      )
+    ).toBe(true);
+    expect(await status()).toEqual({
+      mesma: true,
+      texto: "Nenhum e-mail escrito.",
+    });
+    await rodar(`await escrever("ana@x.com ");`);
+    expect(await status()).toEqual({
+      mesma: true,
+      texto: "1 e-mail escrito.",
+    });
+    await rodar(
+      `await escrever("abc"); dialogo().querySelector('input[inputmode="email"]').focus();`
+    );
+    await tecla("Enter");
+    expect(await fichas()).toEqual(["ana@x.com", "abc"]);
+    expect(await status()).toEqual({
+      mesma: true,
+      texto:
+        "2 e-mails escritos. abc não é um e-mail. Corrija ou apague para enviar.",
+    });
+  });
+
+  test("as sobras do envio entram numa região viva que já estava na tela", async () => {
+    await abrir();
+    const regiao = `dialogo().querySelector('[aria-live="polite"]')`;
+    expect(
+      await avaliar<boolean>(enviar, `(window.viva = ${regiao}) !== null`)
+    ).toBe(true);
+    expect(await avaliar<string>(enviar, "window.viva.textContent")).toBe("");
+    await rodar(`
+      window.resposta = () => ({ convites: [
+        { email: "bia@x.com", tipo: "ja_convidado", enviado: false },
+      ] });
+      await escrever("bia@x.com ");
+      await clicarEmEnviar();
+    `);
+    expect(await avaliar<boolean>(enviar, `window.viva === ${regiao}`)).toBe(
+      true
+    );
+    expect(await avaliar<string>(enviar, "window.viva.textContent")).toBe(
+      "bia@x.com Já tem convite, mas o e-mail não saiu. Envie em Convidados."
+    );
   });
 
   test("Cancelar fecha e esquece o rascunho", async () => {

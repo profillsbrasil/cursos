@@ -84,6 +84,21 @@ export function envioDasFichas(
   return { emails, rotulo, tipo: "pronto" };
 }
 
+/**
+ * O que a região de status do campo diz ao leitor de tela: quantos e-mails há e,
+ * com alguma ficha escrita, por que o envio não sai.
+ */
+export function anuncioDasFichas(
+  fichas: readonly Ficha[],
+  envio: EnvioDasFichas
+): string {
+  if (fichas.length === 0) {
+    return "Nenhum e-mail escrito.";
+  }
+  const contagem = `${plural(fichas.length, "e-mail escrito", "e-mails escritos")}.`;
+  return envio.tipo === "desligado" ? `${contagem} ${envio.razao}` : contagem;
+}
+
 /** A frase da ficha que não saiu. O `enviado` não chega aqui: a ficha dele some. */
 export function fraseDoResultado(r: ResultadoDoConvite): string {
   switch (r.tipo) {
