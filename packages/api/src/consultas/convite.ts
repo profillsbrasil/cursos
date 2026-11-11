@@ -7,6 +7,7 @@ import { convite, conviteCurso } from "@cursos/db/schema/index";
 import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import {
+  aceitoDesde,
   type ConviteAceito,
   type Email,
   ESPERA_DO_REENVIO_SEG,
@@ -493,8 +494,8 @@ const papelPorAplicar = (userId: string) =>
  * Leva ao Clerk o papel de admin de um convite aceito, sob a trava `papel`.
  * Depois da trava relê o marcador: quem chega em segundo não chama o Clerk. Se
  * o Clerk grava e o marcador não, o pedido seguinte grava admin de novo, que é a
- * mesma escrita. Só convite aceito tem aceito_por, então o cancelado nunca chega
- * aqui.
+ * mesma escrita, mas só dentro de PRAZO_DO_PAPEL_MS do aceite. Só convite aceito
+ * tem aceito_por, então o cancelado nunca chega aqui.
  */
 export function aplicarPapelDoConvite(
   db: Database,
@@ -506,7 +507,9 @@ export function aplicarPapelDoConvite(
     const [pendente] = await tx
       .select({ id: convite.id })
       .from(convite)
-      .where(papelPorAplicar(userId));
+      .where(
+        and(papelPorAplicar(userId), gt(convite.aceitoEm, aceitoDesde(agora)))
+      );
     if (!pendente) {
       return;
     }

@@ -16,13 +16,14 @@ import { and, eq, inArray } from "drizzle-orm";
 
 import type { Papel } from "../context";
 import { contextoDeTeste, convitesDeTeste } from "../contexto-de-teste";
-import type { Email } from "../dominio/convite";
+import { type Email, PRAZO_DO_PAPEL_MS } from "../dominio/convite";
 import type { Perfil } from "../dominio/perfil";
 import { BONUS_DE_FUNCIONARIO } from "../dominio/regras";
 import type { AdminId, ConviteId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { cancelarConvite, convidar } from "./convite";
+import { perfilDe as chegar } from "./perfil";
 
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
@@ -104,10 +105,17 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     return linha?.id as ConviteId;
   }
 
-  /** O login com esta pessoa, e quantas vezes o app gravou o papel dela. */
+  /**
+   * O login com esta pessoa, e quantas vezes o app gravou o papel dela.
+   * `gravaEFalha`: o login grava o papel e mesmo assim responde com erro.
+   */
   function login(
     p: { email: Email; userId: string },
-    o: { emailVerificado?: boolean; falhasDoPapel?: number } = {}
+    o: {
+      emailVerificado?: boolean;
+      falhasDoPapel?: number;
+      gravaEFalha?: number;
+    } = {}
   ) {
     const base = contextoDeTeste({
       db,
@@ -130,16 +138,21 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       userId: p.userId,
     });
     let falhas = o.falhasDoPapel ?? 0;
+    let gravaEFalha = o.gravaEFalha ?? 0;
     const papeisGravados: Papel[] = [];
     const pessoas = {
       ...base.pessoas,
-      definirPapel: (userId: string, papel: Papel) => {
+      definirPapel: async (userId: string, papel: Papel) => {
         if (falhas > 0) {
           falhas -= 1;
-          return Promise.reject(new Error("o login não gravou o papel"));
+          throw new Error("o login não gravou o papel");
         }
         papeisGravados.push(papel);
-        return base.pessoas.definirPapel(userId, papel);
+        await base.pessoas.definirPapel(userId, papel);
+        if (gravaEFalha > 0) {
+          gravaEFalha -= 1;
+          throw new Error("o login gravou o papel e não respondeu");
+        }
       },
     };
     return {
@@ -149,6 +162,9 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
           ...contextoDeTeste({ db, userId: p.userId }),
           pessoas,
         }).meusCursos.painel(),
+      /** O dono muda o papel pelo painel do Clerk, fora do app. */
+      mudarNoPainelDoClerk: (papel: Papel) =>
+        base.pessoas.definirPapel(p.userId, papel),
       papeisGravados,
       papelNoLogin: async () => (await pessoas.conta(p.userId))?.papel,
       pessoas,
@@ -348,6 +364,47 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
 
     await eu.entrar();
     expect(eu.papeisGravados).toEqual(["admin"]);
+  });
+
+  /**
+   * O login grava admin e responde com erro, então o marcador fica vazio. Depois
+   * o dono tira o papel pelo painel do Clerk, e a pessoa volta `depoisMs` depois
+   * do aceite.
+   */
+  async function voltarDepoisDoPainel(depoisMs: number) {
+    const p = pessoa();
+    const id = await convidarComo(p.email, {
+      comoAdmin: true,
+      perfil: "cliente",
+    });
+    const eu = login(p, { gravaEFalha: 1 });
+    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      await eu.entrar();
+    } finally {
+      aviso.mockRestore();
+    }
+    const aceito = await conviteDe(id);
+    expect(aceito.papelAplicadoEm).toBeNull();
+    expect(eu.papeisGravados).toEqual(["admin"]);
+    await eu.mudarNoPainelDoClerk("aluno");
+    const aceitoEm = aceito.aceitoEm?.getTime() ?? 0;
+    await chegar(db, p.userId, eu.pessoas, new Date(aceitoEm + depoisMs));
+    return { eu, id };
+  }
+
+  test("depois do prazo do aceite, o papel tirado no painel do Clerk não volta", async () => {
+    const { eu, id } = await voltarDepoisDoPainel(PRAZO_DO_PAPEL_MS + 60_000);
+    expect(eu.papeisGravados).toEqual(["admin"]);
+    expect(await eu.papelNoLogin()).toBe("aluno");
+    expect((await conviteDe(id)).papelAplicadoEm).toBeNull();
+  });
+
+  test("dentro do prazo do aceite, a chegada ainda leva o papel ao Clerk", async () => {
+    const { eu, id } = await voltarDepoisDoPainel(PRAZO_DO_PAPEL_MS - 60_000);
+    expect(eu.papeisGravados).toEqual(["admin", "admin"]);
+    expect(await eu.papelNoLogin()).toBe("admin");
+    expect((await conviteDe(id)).papelAplicadoEm).not.toBeNull();
   });
 
   test("mudar o papel na ficha encerra o papel por aplicar do convite", async () => {

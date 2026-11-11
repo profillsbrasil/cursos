@@ -14,7 +14,7 @@ Três fatos do sistema decidem a forma. O perfil e as liberações moram no Post
 - **O Clerk é só o carteiro.** O convite do Clerk vai sem `publicMetadata`, então o link, sozinho, só cria a conta. O app guarda o id dele em `clerk_convite_id` para revogar e nunca lê o status do convite no Clerk. Link órfão, duplicado ou não revogado não dá nada.
 - **O convite vale pelo e-mail principal verificado.** Quem cria a conta sozinho, ou pelo Google, com o e-mail convidado também recebe o que o convite dá. E-mail não verificado não aplica convite.
 - **O convite se aplica no primeiro acesso.** `perfilDe` trava o aluno e, numa transação, reivindica o convite vivo e não vencido do e-mail com um UPDATE condicional, grava a linha de `perfil_da_pessoa` com o perfil do convite e `definido_por` de quem convidou, dá o Bônus de funcionário se o perfil é Funcionário e libera cada curso como liberação de `admin`.
-- **O papel de admin vai ao Clerk depois do commit.** A coluna `papel_aplicado_em` marca que o Clerk gravou. Enquanto ela está vazia num convite de admin aceito, todo pedido da pessoa tenta de novo. Mudar o papel dela na ficha encerra a pendência: a decisão na ficha vence o convite.
+- **O papel de admin vai ao Clerk depois do commit.** A coluna `papel_aplicado_em` marca que o Clerk gravou. Enquanto ela está vazia num convite de admin aceito há menos de 1 hora (`PRAZO_DO_PAPEL_MS`), todo pedido da pessoa tenta de novo. Depois do prazo, a pendência não se tenta mais, e o admin dá o papel pela ficha. O prazo existe porque ler o papel no Clerk não distingue "nunca foi aplicado" de "o dono tirou pelo painel": sem ele, o Clerk que grava e não responde deixaria o papel tirado voltar no pedido seguinte. Ele também limita a espera na trava `papel` quando o Clerk está fora. Mudar o papel dela na ficha encerra a pendência: a decisão na ficha vence o convite.
 - **Um convite vivo por e-mail.** Convidar de novo um e-mail com convite vivo não muda o convite que existe. Para mudar o que ele dá, o admin cancela e convida de novo.
 - **Cancelar vale no banco.** O cancelamento grava `cancelado_em` e depois revoga o link. A pessoa ainda cria a conta sozinha e entra pela regra do e-mail.
 - **E-mail que já tem conta não se convida.** O envio recusa esse e-mail e aponta a ficha da pessoa.
@@ -34,7 +34,7 @@ Vale reabrir a 0003 porque o convite é uma decisão explícita do admin sobre a
 
 ## Consequências
 
-- O admin convidado entra como aluno e vira admin quando o token renova, em até 60 s. Com o Clerk fora depois do commit, ele fica aluno até o próximo pedido dele. Toda falha tira poder, nunca dá.
+- O admin convidado entra como aluno e vira admin quando o token renova, em até 60 s. Com o Clerk fora depois do commit, ele fica aluno até o próximo pedido dele dentro da 1 hora do prazo; com o Clerk fora a hora inteira, ele fica aluno até o admin dar o papel pela ficha. Toda falha tira poder, nunca dá.
 - Todo pedido do aluno soma uma sonda `exists` no índice `convite_aceito_por_unico` à leitura do perfil.
 - O primeiro acesso passa a rodar sob a trava do aluno (`ponto:<userId>`). Dois primeiros acessos juntos aplicam o convite uma vez: o segundo relê o perfil depois da trava.
 - A liberação do convite tem origem `admin` e autor igual a quem convidou. Ela aparece e se revoga na tela Liberações como qualquer outra. A linha não diz que veio de convite; o vínculo fica em `convite.aceito_por` e em `convite_curso`.

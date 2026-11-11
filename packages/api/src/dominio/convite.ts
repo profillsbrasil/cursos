@@ -20,6 +20,18 @@ export const TETO_DE_CURSOS = 50;
 export const VALIDADE_EM_DIAS = 30;
 export const ESPERA_DO_REENVIO_SEG = 60;
 
+/**
+ * O papel de admin do convite que o Clerk não gravou se retoma só até 1 hora
+ * depois do aceite. Ler o papel atual não distingue "nunca foi aplicado" de "o
+ * dono tirou no painel do Clerk": sem prazo, o pedido seguinte devolveria o
+ * papel tirado. Depois dele, o admin dá o papel pela ficha.
+ */
+export const PRAZO_DO_PAPEL_MS = 3_600_000;
+
+/** O aceite mais antigo cujo papel ainda se retoma em `agora`. */
+export const aceitoDesde = (agora: Date): Date =>
+  new Date(agora.getTime() - PRAZO_DO_PAPEL_MS);
+
 const TAMANHO_MAXIMO = 254;
 // Mais estreito que o [:space:] do check: \s não cobre o U+0085, e as categorias
 // de controle e de separador cobrem todo espaço do Unicode. O que passa aqui

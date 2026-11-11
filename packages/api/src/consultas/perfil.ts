@@ -3,7 +3,7 @@ import { PERFIS } from "@cursos/db/schema/formatos";
 import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
 import { count, sql } from "drizzle-orm";
 
-import { type ConviteAceito, lerEmail } from "../dominio/convite";
+import { aceitoDesde, type ConviteAceito, lerEmail } from "../dominio/convite";
 import { type Perfil, perfilDoCadastro } from "../dominio/perfil";
 import type { ContagemPorPerfil, LinhaDoPerfil } from "../dominio/pessoas";
 import { BONUS_DE_FUNCIONARIO } from "../dominio/regras";
@@ -63,7 +63,10 @@ export function darBonusDaVirada(
 }
 
 interface Chegada {
-  /** Há convite de admin aceito por esta pessoa que o Clerk ainda não gravou. */
+  /**
+   * Há convite de admin aceito por esta pessoa, dentro de PRAZO_DO_PAPEL_MS, que
+   * o Clerk ainda não gravou.
+   */
   papelPorAplicar: boolean;
   perfil: Perfil;
 }
@@ -75,7 +78,8 @@ interface Chegada {
  */
 async function lerChegada(
   db: Database,
-  userId: string
+  userId: string,
+  agora: Date
 ): Promise<Chegada | null> {
   const {
     rows: [linha],
@@ -86,7 +90,9 @@ async function lerChegada(
     select p.perfil,
            exists (select 1 from convite c
                     where c.aceito_por = p.user_id and c.como_admin
-                      and c.papel_aplicado_em is null) as papel_por_aplicar
+                      and c.papel_aplicado_em is null
+                      and c.aceito_em > ${aceitoDesde(agora).toISOString()}::timestamptz
+                  ) as papel_por_aplicar
       from perfil_da_pessoa p
      where p.user_id = ${userId}`);
   return linha
@@ -130,7 +136,8 @@ async function tentarOPapelDoConvite(
  * Funcionário e libera os cursos do convite. Dois primeiros acessos ao mesmo
  * tempo esperam a trava, e o segundo lê a linha que o primeiro gravou. O papel
  * de admin do convite vai ao Clerk depois do commit, e todo pedido seguinte
- * tenta de novo enquanto ele não foi gravado. Com o Clerk fora na leitura da
+ * tenta de novo enquanto ele não foi gravado, até PRAZO_DO_PAPEL_MS depois do
+ * aceite. Com o Clerk fora na leitura da
  * conta, o pedido vale como Público aberto, o perfil de menos acesso, e nada se
  * grava: o acesso seguinte lê a conta de novo.
  */
@@ -140,7 +147,7 @@ export async function perfilDe(
   pessoas: Pick<Pessoas, "conta" | "definirPapel">,
   agora: Date
 ): Promise<Perfil> {
-  const lido = await lerChegada(db, userId);
+  const lido = await lerChegada(db, userId, agora);
   if (lido) {
     if (lido.papelPorAplicar) {
       await tentarOPapelDoConvite(db, pessoas, userId, agora);
