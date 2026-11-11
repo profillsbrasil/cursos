@@ -13,11 +13,11 @@ import Image from "next/image";
 import { useCallback, useState } from "react";
 
 import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
-import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 import { Carregando } from "./confirmacao-na-linha";
+import { SecaoSobABarra } from "./partes";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";
 
 const COLUNAS =
@@ -176,24 +176,9 @@ function LinhaDoCurso({
 }
 
 export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
-  const abertos = grade.cursos.filter((c) =>
-    ORDEM_DOS_PERFIS.every((p) => c.liberacoes[p] !== null)
-  ).length;
   return (
-    <section aria-labelledby="cursos-por-perfil" className="grid gap-3.5">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2
-          className="font-bold text-2xl text-titulo tracking-tight"
-          id="cursos-por-perfil"
-        >
-          Cursos
-        </h2>
-        <p className="text-muted-foreground tabular-nums">
-          {plural(grade.cursos.length, "curso", "cursos")}, {fmtNum(abertos)}{" "}
-          liberados a todos
-        </p>
-      </div>
-      <div className={cn(CARTAO, "@container overflow-hidden")}>
+    <SecaoSobABarra id="cursos-por-perfil" titulo="Cursos">
+      <div className="@container">
         <div
           aria-hidden="true"
           className={cn(
@@ -223,6 +208,6 @@ export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
           </ul>
         )}
       </div>
-    </section>
+    </SecaoSobABarra>
   );
 }

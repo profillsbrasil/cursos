@@ -36,7 +36,7 @@ export function CabecalhoDaPagina({
   );
 }
 
-const LINHA_QUE_CARREGA =
+export const LINHA_QUE_CARREGA =
   "animate-pulse rounded-lg bg-card text-transparent [box-decoration-break:clone]";
 
 /**

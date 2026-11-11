@@ -51,14 +51,14 @@ const classesDe = (linha: string, conteudo: string) =>
   linha.match(new RegExp(`class="([^"]*)"[^>]*>${conteudo}<`))?.[1] ?? "";
 
 describe("a lista de Pessoas", () => {
-  test("o título diz a ordem da lista, não que todos estão ativos", () => {
-    expect(
-      texto(
-        renderToStaticMarkup(
-          <ListaDePessoasDoAdmin hoje={HOJE} lista={LISTA} termo="" />
-        )
-      )
-    ).toStartWith("Por último acesso");
+  test("o título diz a ordem da lista só ao leitor de tela, e a contagem fica na barra", () => {
+    const html = renderToStaticMarkup(
+      <ListaDePessoasDoAdmin hoje={HOJE} lista={LISTA} termo="" />
+    );
+    expect(html).toContain(
+      '<h2 class="sr-only" id="pessoas" tabindex="-1">Por último acesso</h2>'
+    );
+    expect(texto(html)).not.toContain("2 pessoas");
   });
 
   test("sem linha de perfil, a frase diz que o perfil é o do cadastro e fica fora dos filtros, sem negar o acesso", () => {

@@ -107,6 +107,30 @@ export function Secao({
   );
 }
 
+/**
+ * A lista sob a BarraDaLista: o cartão sem o título à vista, porque a opção
+ * ligada e a contagem da barra já dizem o que ela mostra. O h2 continua para
+ * o leitor de tela e para quem foca a lista pelo id.
+ */
+export function SecaoSobABarra({
+  children,
+  id,
+  titulo,
+}: {
+  children: ReactNode;
+  id: string;
+  titulo: string;
+}) {
+  return (
+    <section aria-labelledby={id}>
+      <h2 className="sr-only" id={id} tabIndex={-1}>
+        {titulo}
+      </h2>
+      <div className={CARTAO_DA_SECAO}>{children}</div>
+    </section>
+  );
+}
+
 export function Vazio({ children }: { children: ReactNode }) {
   return <p className="px-5 py-4 text-muted-foreground">{children}</p>;
 }
