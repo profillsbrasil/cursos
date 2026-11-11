@@ -1,6 +1,6 @@
 # 0003. Papel e perfil são eixos separados
 
-Data: 20 de outubro de 2026. Situação: aceita. A regra de acesso (o item "Acesso" da decisão) foi substituída pela ADR 0004: a liberação do perfil passa a dar a amostra do curso, e o curso inteiro abre só pela liberação própria.
+Data: 20 de outubro de 2026. Situação: aceita. A regra de acesso (o item "Acesso" da decisão) foi substituída pela ADR 0004: a liberação do perfil passa a dar a amostra do curso, e o curso inteiro abre só pela liberação própria. O item "Perfil do cadastro" foi mudado pela ADR 0005: quem chega com convite entra com o perfil do convite, e a regra do e-mail vale só para quem chega sem convite.
 
 ## Contexto
 
