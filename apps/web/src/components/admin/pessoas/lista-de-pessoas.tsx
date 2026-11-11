@@ -9,11 +9,11 @@ import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
-import { diaEmSaoPaulo, fmtNum, fmtPts, plural, quando } from "@/lib/formato";
+import { diaEmSaoPaulo, fmtNum, fmtPts, quando } from "@/lib/formato";
 
 import { SeloDeSituacao } from "../acompanhamento";
 import { FotoDaPessoa } from "../foto-da-pessoa";
-import { Secao, Vazio } from "../partes";
+import { SecaoSobABarra, Vazio } from "../partes";
 import { SELO_DE_ADMIN, SOBRE_O_PERFIL, seloDoPerfil } from "./perfis";
 
 export const fichaDaPessoa = (userId: string) =>
@@ -123,15 +123,7 @@ export function ListaDePessoasDoAdmin({
     ? `Ninguém com o perfil ${SOBRE_O_PERFIL[lista.filtro].nome} ${termo ? `e "${termo}" no nome ou no e-mail ` : ""}entrou no app ainda.`
     : `Ninguém com "${termo}" no nome ou no e-mail.`;
   return (
-    <Secao
-      id="pessoas"
-      resumo={
-        cortada
-          ? `${fmtNum(pessoas.length)} de ${plural(total, "pessoa", "pessoas")}`
-          : plural(pessoas.length, "pessoa", "pessoas")
-      }
-      titulo={tituloDaLista(termo, lista)}
-    >
+    <SecaoSobABarra id="pessoas" titulo={tituloDaLista(termo, lista)}>
       {pessoas.length === 0 ? (
         <Vazio>
           {termo || lista.filtro
@@ -151,6 +143,6 @@ export function ListaDePessoasDoAdmin({
           ) : null}
         </ul>
       )}
-    </Secao>
+    </SecaoSobABarra>
   );
 }

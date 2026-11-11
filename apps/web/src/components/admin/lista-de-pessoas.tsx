@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useCallback } from "react";
 
 import { CAIXA } from "@/components/casca/campos";
-import { fmtNum, plural } from "@/lib/formato";
+import { fmtNum } from "@/lib/formato";
 
 import {
   fraseDaPessoa,
@@ -21,7 +21,7 @@ import {
 } from "./acompanhamento";
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { jaTem } from "./lote";
-import { Secao, Vazio } from "./partes";
+import { SecaoSobABarra, Vazio } from "./partes";
 import { useLote } from "./provedor-do-lote";
 
 const JA_TEM: Selo = {
@@ -114,13 +114,8 @@ export function ListaDePessoas({
   const marcadas = estado.marcadas.length;
   const cortada = total > pessoas.length;
   return (
-    <Secao
+    <SecaoSobABarra
       id="pessoas"
-      resumo={
-        cortada
-          ? `${fmtNum(pessoas.length)} de ${plural(total, "pessoa", "pessoas")}`
-          : plural(pessoas.length, "pessoa", "pessoas")
-      }
       titulo={termo ? `Resultado para "${termo}"` : "Ativos recentemente"}
     >
       {pessoas.length === 0 ? (
@@ -146,6 +141,6 @@ export function ListaDePessoas({
           ) : null}
         </ul>
       )}
-    </Secao>
+    </SecaoSobABarra>
   );
 }
