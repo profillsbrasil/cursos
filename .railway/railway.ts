@@ -28,6 +28,9 @@ export default defineRailway(() => {
       buildEnvironment: "V3",
       builder: "RAILPACK",
     },
+    // O estático e a capa saem da borda de São Paulo. A página, o material e o
+    // certificado respondem no-store e nunca entram no cache.
+    cdn: { enabled: true },
     domains: ["cursos.profills.com"],
     env: {
       CLERK_PUBLISHABLE_KEY: preserve(),
