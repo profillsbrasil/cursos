@@ -6,7 +6,13 @@
 
 import type { TRPC_ERROR_CODE_KEY } from "@trpc/server";
 
-const CODIGOS = new Set(["23503", "23505", "23514"]);
+/**
+ * A chave estrangeira violada. O Postgres 18 devolve 23001 quando quem recusa é o
+ * ON DELETE RESTRICT; até o 17, toda violação de FK saía como 23503.
+ */
+export const FK_VIOLADA: ReadonlySet<string> = new Set(["23001", "23503"]);
+
+const CODIGOS = new Set([...FK_VIOLADA, "23505", "23514"]);
 
 /** lock_not_available: o lock_timeout da transação venceu esperando uma trava. */
 const ESPERA_VENCIDA = "55P03";

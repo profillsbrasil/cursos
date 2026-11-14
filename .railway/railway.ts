@@ -31,6 +31,9 @@ export default defineRailway(() => {
     // O estático e a capa saem da borda de São Paulo. A página, o material e o
     // certificado respondem no-store e nunca entram no cache.
     cdn: { enabled: true },
+    // Na troca de versão, a antiga atende junto por 15 s e tem 15 s para fechar
+    // os pedidos em voo antes de morrer.
+    deploy: { drainingSeconds: 15, overlapSeconds: 15 },
     domains: ["cursos.profills.com"],
     env: {
       CLERK_PUBLISHABLE_KEY: preserve(),
