@@ -6,6 +6,8 @@ O detalhe da infraestrutura, do env, do banco, do deploy e do Clerk. As regras q
 
 `.railway/railway.ts` descreve o projeto `cursos` da Railway: o serviço `web` em `cursos.profills.com`, o `Postgres` e os buckets `capas` e `materiais`, todos em `iad`, Virgínia. O DNS de `profills.com` fica na KingHost: um CNAME `cursos` para o alvo que a Railway deu e o TXT `_railway-verify.cursos`. `railway config plan` mostra a diferença para o que está no ar.
 
+O CDN da Railway está ligado no `web` (`cdn` no `railway.ts`), com os padrões: o cache segue o `cache-control` da resposta e o deploy limpa só o HTML. Entram no cache o `/_next/static` e a `/capa/[chave]`, que saem da borda `gru1`, em São Paulo: 43 ms contra 168 ms da Virgínia, medido em 14 de novembro de 2026. A página dinâmica, o tRPC, o material de apoio e o PDF do certificado respondem `no-store` e ficam fora. O header `x-cache` da resposta diz `HIT`, `MISS` ou `DYNAMIC`. Rota nova com `cache-control: public` fica igual para todo mundo na borda, então resposta que depende da sessão leva `private, no-store`. `railway cdn purge all --service web` limpa o cache.
+
 ## Env (varlock)
 
 - `packages/db/.env.schema` importa `NODE_ENV` e `DATABASE_*` do app.
