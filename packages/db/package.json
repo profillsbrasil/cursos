@@ -7,13 +7,14 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
+    "db:copiar-producao": "bash scripts/copiar-producao.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:deploy": "drizzle-kit migrate",
     "db:migrate:local": "drizzle-kit migrate --config drizzle.local.config.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "bun run src/seed/index.ts",
-    "db:start": "docker run -d --rm --name cursos-postgres -p 54322:5432 -e POSTGRES_PASSWORD=postgres postgres:17-alpine",
+    "db:start": "docker run -d --rm --name cursos-postgres -p 54322:5432 -e POSTGRES_PASSWORD=postgres postgres:18-alpine",
     "db:stop": "docker stop cursos-postgres",
     "db:studio": "drizzle-kit studio",
     "test": "bun test"

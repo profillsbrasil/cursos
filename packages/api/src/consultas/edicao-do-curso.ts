@@ -55,7 +55,7 @@ import { videoDaAula } from "../dominio/video";
 import { ErroParaAPessoa } from "../index";
 import { concluirParaQuemCompletou } from "./certificado";
 import { COLUNAS_DA_CAPA, type Executor, type Transacao } from "./comum";
-import { CURSO_EM_USO, violacaoDe } from "./erros";
+import { CURSO_EM_USO, FK_VIOLADA, violacaoDe } from "./erros";
 import { comTrava, travarTambem } from "./trava";
 
 /**
@@ -883,7 +883,7 @@ export async function apagarCurso(
   } catch (erro) {
     // O aluno não pega a trava do curso: uma aula assistida, liberação ou
     // certificado que entra depois da conta de uso para no FK restrict.
-    if (violacaoDe(erro)?.codigo === "23503") {
+    if (FK_VIOLADA.has(violacaoDe(erro)?.codigo ?? "")) {
       // biome-ignore lint/style/useErrorCause: o ErroParaAPessoa leva a causa nas opções, como abaixo.
       throw new ErroParaAPessoa({
         cause: erro,

@@ -47,7 +47,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Biome acu
 - O `Postgres-dev` da Railway é compartilhado entre worktrees. Migração entra nele depois do merge na main; teste de migração usa o Postgres local do docker.
 - Migração no dev: `bunx drizzle-kit migrate` dentro de `packages/db`. O Drizzle sabe o que já rodou pelo nome da pasta, gravado em `drizzle.__drizzle_migrations`: migração aplicada no dev e depois regenerada com outro nome na branch faz o `migrate` tentar criar tudo de novo e falhar. Com o schema igual, troque o `name` da linha antiga pelo novo e rode de novo.
 - O `preDeployCommand` do `web` roda `drizzle-kit migrate` antes de cada deploy, então migração que entra na main vai para produção no deploy seguinte. Migração que quebra o código antigo (como a `catalogo_sem_trilha`, ADR 0001) entra no mesmo PR do código que a usa.
-- O Postgres local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`. O `db:stop` apaga o container e os dados.
+- O Postgres local (`bun run db:start` / `db:stop`) existe para testes isolados; para usá-lo, troque o `DATABASE_URL` para `postgresql://postgres:postgres@127.0.0.1:54322/postgres`. O `db:stop` apaga o container e os dados. `bun run db:copiar-producao` copia a produção para o banco `producao` dele, e `bun run --cwd apps/web dev:producao-local` sobe o app contra a cópia (`docs/operacao.md`): mudança arriscada se testa ali, nunca na produção.
 - `bun run db:push` (e `db:generate`, `db:migrate`) da raiz é task interativa do turbo e falha num shell sem TTY. Num agente, rode `bunx drizzle-kit <comando>` dentro de `packages/db`.
 
 ## Auth (Clerk)
