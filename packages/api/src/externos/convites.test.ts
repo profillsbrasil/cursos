@@ -108,7 +108,7 @@ describe("convitesDoClerk.revogar", () => {
   });
 
   test("não lança quando o Clerk recusa: o link já foi revogado, aceito ou expirou", async () => {
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
     try {
       const convites = convitesDoClerk(
         clerkQue({ revokeInvitation: () => Promise.reject(recusa(400)) }),

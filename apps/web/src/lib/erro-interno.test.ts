@@ -31,8 +31,8 @@ const chamar = (caminho: string) =>
   });
 
 describe("registrarErroInterno no fetchRequestHandler", () => {
-  const log = spyOn(console, "error").mockImplementation(() => undefined);
-  const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+  const log = spyOn(console, "error");
+  const aviso = spyOn(console, "warn");
   afterEach(() => {
     log.mockClear();
     aviso.mockClear();

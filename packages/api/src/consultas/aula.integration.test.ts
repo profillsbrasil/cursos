@@ -365,21 +365,29 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
     test("com a cota presa além da espera, recusa TOO_MANY_REQUESTS sem esperar a trava soltar", async () => {
       const { aluno, enviar } = await alunoComCota();
-      const PRESA_MS = ESPERA_PELA_COTA_MS + 3000;
       const soltar = await seguraACota(db, aluno);
-      const solta = esperar(PRESA_MS).then(soltar);
+      let soltou = false;
+      const reserva = setTimeout(() => {
+        soltou = true;
+        void soltar();
+      }, ESPERA_PELA_COTA_MS + 1500);
       const inicio = performance.now();
       const [resposta, paradas] = await Promise.all([
-        enviar(20).then((r) => ({ ms: performance.now() - inicio, r })),
+        enviar(20).then((r) => ({
+          antesDeSoltar: !soltou,
+          ms: performance.now() - inicio,
+          r,
+        })),
         esperas(dbDaCorrida, 1, PARADO_NA_COTA),
       ]);
-      await solta;
+      clearTimeout(reserva);
+      await soltar();
       const [posicao] = await db
         .select({ seg: posicaoAula.posicaoSeg })
         .from(posicaoAula)
         .where(eq(posicaoAula.userId, aluno));
       expect({
-        antesDeSoltar: resposta.ms < PRESA_MS - 1000,
+        antesDeSoltar: resposta.antesDeSoltar,
         depoisDaEspera: resposta.ms >= ESPERA_PELA_COTA_MS - 50,
         paradas,
         posicao,
@@ -391,7 +399,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         posicao: { seg: 10 },
         resposta: "TOO_MANY_REQUESTS",
       });
-    }, 15_000);
+    });
 
     test("dois registrar ao mesmo tempo passam os dois", async () => {
       const { enviar } = await alunoComCota();
@@ -411,7 +419,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
           .then(soltar),
       ]);
       expect(resposta).toBe("passou");
-    }, 15_000);
+    });
   });
 
   test("seis dias úteis antes e a aula numa quarta lançam o bônus uma vez", async () => {

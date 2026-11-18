@@ -9,7 +9,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../components/chromium-de-teste";
+} from "../components/chromium.test-utils";
 import { guardarLinks } from "./use-guarda-de-saida";
 
 const PAGINA = `<!doctype html><html><body>

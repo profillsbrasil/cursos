@@ -392,7 +392,7 @@ describe("sessão de estudo", () => {
   });
 
   test("aoConquistar que lança no meio da sessão não para o envio", async () => {
-    const erro = spyOn(console, "error").mockImplementation(() => undefined);
+    const erro = spyOn(console, "error");
     const { conquistas, relogio, servidor, sessao } = montar(0, {
       conquistaLanca: true,
     });
@@ -679,7 +679,7 @@ describe("a saída pede refresh só quando a retomada do layout ficou velha", ()
   });
 
   test("aoConquistar que lança no envio de saída: o fim assenta e o refresh sai", async () => {
-    const erro = spyOn(console, "error").mockImplementation(() => undefined);
+    const erro = spyOn(console, "error");
     const { conquistas, refreshes, relogio, sair, servidor, sessao } = montar(
       0,
       { conquistaLanca: true }

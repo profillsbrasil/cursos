@@ -20,7 +20,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { OPCOES_DO_TOAST } from "./opcoes-do-toast";
 
 const EASE_FORTE = "cubic-bezier(0.23, 1, 0.32, 1)";

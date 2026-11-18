@@ -19,7 +19,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { CabecalhoDaPagina, EsqueletoDoCabecalho } from "./cabecalho-da-pagina";
 
 const naPagina = (filhos: ReactNode) =>

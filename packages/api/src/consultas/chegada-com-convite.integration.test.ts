@@ -346,7 +346,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       perfil: "cliente",
     });
     const eu = login(p, { falhasDoPapel: 1 });
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
     try {
       await eu.entrar();
     } finally {
@@ -379,7 +379,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       perfil: "cliente",
     });
     const eu = login(p, { gravaEFalha: 1 });
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
     try {
       await eu.entrar();
     } finally {
@@ -415,7 +415,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       perfil: "cliente",
     });
     const eu = login(p, { falhasDoPapel: 1 });
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
     try {
       await eu.entrar();
     } finally {
@@ -448,7 +448,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     const p = pessoa();
     const id = await convidarComo(p.email, { perfil: "cliente" });
     const eu = login(p);
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
     try {
       await createCaller({
         ...contextoDeTeste({ db, userId: p.userId }),

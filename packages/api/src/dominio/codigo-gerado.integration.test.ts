@@ -12,7 +12,7 @@ import { categoria, curso } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray, isNotNull, sql, TransactionRollbackError } from "drizzle-orm";
 
-import { codigoLivre, siglaDaCategoria } from "../dominio/codigo-do-curso";
+import { codigoLivre, siglaDaCategoria } from "./codigo-do-curso";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");

@@ -14,7 +14,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { UM_GERAL, VARIOS } from "./exemplo-de-teste";
 import { TelaDeComunicados } from "./tela-de-comunicados";
 

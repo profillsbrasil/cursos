@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { CampoDeCapa } from "./campo-de-capa";
 import { EsqueletoDoEditor, EsqueletoDoTopoDaPessoa } from "./esqueletos";
 import { FotoDaPessoa } from "./foto-da-pessoa";

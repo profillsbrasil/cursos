@@ -23,7 +23,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ColunaDoCurso } from "./coluna-do-curso";
 
 const MODULOS = 16;

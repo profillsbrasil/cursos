@@ -19,7 +19,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ReciboDaConferencia, SemCertificado } from "./conferencia";
 import { enderecoDaConferencia, folhaDo } from "./folha";
 import { FolhaNaTela } from "./folha-na-tela";

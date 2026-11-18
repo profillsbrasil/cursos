@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { abasDasLiberacoes } from "./abas-das-liberacoes";
 import { BarraDaLista, contagemDePessoas } from "./barra-da-lista";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";

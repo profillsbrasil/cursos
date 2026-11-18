@@ -7,7 +7,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../../chromium-de-teste";
+} from "../../chromium.test-utils";
 import {
   AJUDANTES_DO_CONVIDAR,
   empacotarConvidar,

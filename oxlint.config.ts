@@ -79,6 +79,13 @@ export default defineConfig({
   options: { typeAware: true, typeCheck: true },
   env: core.env,
   extends: [core, react, next],
+  jsPlugins: [
+    { name: "landmines-testing", specifier: "@interfere/landmines/testing" },
+    {
+      name: "landmines-structure",
+      specifier: "@interfere/landmines/structure",
+    },
+  ],
   ignorePatterns: [
     ...core.ignorePatterns,
     "docs/prototipos/**",
@@ -116,6 +123,24 @@ export default defineConfig({
       rules: {
         "typescript/no-implied-eval": "off",
         "typescript/no-unsafe-call": "off",
+      },
+    },
+    {
+      files: [
+        "packages/db/src/migracao.integration.test.ts",
+        "packages/db/src/schema/restricoes.integration.test.ts",
+      ],
+      rules: {
+        "landmines-structure/colocated-tests": "off",
+      },
+    },
+    {
+      files: [
+        "apps/web/src/lib/editor.test.ts",
+        "apps/web/src/utils/trpc.test.ts",
+      ],
+      rules: {
+        "landmines-testing/no-test-doubles": "warn",
       },
     },
     {
@@ -158,6 +183,22 @@ export default defineConfig({
     },
   ],
   rules: {
+    "landmines-structure/colocated-tests": "error",
+    "landmines-structure/package-exports": "error",
+    "landmines-structure/test-file-names": "error",
+    "landmines-testing/no-fixed-sleep": "error",
+    "landmines-testing/no-flake-masking": [
+      "error",
+      {
+        allow: {
+          ".claude/hooks/formatar-arquivo-editado.test.ts": 7,
+          "apps/web/src/equivalencia-dos-tipos.arnes.ts": 2,
+        },
+      },
+    ],
+    "landmines-testing/no-test-doubles": "error",
+    "landmines-testing/no-unsignaled-poll": "error",
+    "landmines-testing/strict-msw": "error",
     complexity: "off",
     "func-style": "off",
     "import/consistent-type-specifier-style": "off",

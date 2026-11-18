@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
 import { createDb } from "@cursos/db";
@@ -451,15 +451,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
         clerkCaiu
       );
       const errosNoLog: unknown[] = [];
-      const logOriginal = console.error;
-      console.error = (...args: unknown[]) => {
-        errosNoLog.push(args[0]);
-      };
+      const log = spyOn(console, "error");
       const r = await liberarVarios({
         cursoId: c,
         userIds: [nova, peloAdmin, porTroca, semLogin, clerkCaiu, nova],
       }).finally(() => {
-        console.error = logOriginal;
+        errosNoLog.push(
+          ...log.mock.calls.map(([primeiro]: unknown[]) => primeiro)
+        );
+        log.mockRestore();
       });
 
       expect(r.pessoas).toEqual([

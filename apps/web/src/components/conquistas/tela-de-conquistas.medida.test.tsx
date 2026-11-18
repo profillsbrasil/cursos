@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ALUNA, NOVO } from "./exemplo-de-teste";
 import { pontoNaTrilha } from "./geometria";
 import { TelaDeConquistas } from "./tela-de-conquistas";

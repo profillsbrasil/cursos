@@ -181,7 +181,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     const [ana, bia] = [email("ana"), email("bia")];
     const carteiro = convitesDeTeste(new Map([[bia, "erro"]]));
     const portas = { convites: carteiro, pessoas: semConta };
-    const erro = spyOn(console, "error").mockImplementation(() => undefined);
+    const erro = spyOn(console, "error");
     try {
       const primeira = await convidar(
         db,

@@ -179,7 +179,7 @@ describe("materiaisNoBucket", () => {
     const { enviar } = bucketFalso(
       () => new Response("sem bucket", { status: 403 })
     );
-    const log = spyOn(console, "error").mockImplementation(() => undefined);
+    const log = spyOn(console, "error");
 
     const erro = await materiaisNoBucket(BUCKET, enviar)
       .receber(new File([PDF], "a.pdf"))

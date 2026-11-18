@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ProvedorDaCasca } from "./provedor-da-casca";
 
 const casca = (aberta: boolean) =>

@@ -21,7 +21,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "player.entrada.tsx");
 const VIDEO_FALSO = join(import.meta.dir, "video-falso.js");

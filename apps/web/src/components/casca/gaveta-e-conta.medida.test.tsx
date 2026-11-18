@@ -16,7 +16,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "gaveta-e-conta.entrada.tsx");
 const FALSOS = join(import.meta.dir, "falsos-da-casca.js");

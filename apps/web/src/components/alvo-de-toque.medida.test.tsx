@@ -20,7 +20,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { ConteudoDoCurso } from "./curso/conteudo-do-curso";
 import { fabrica } from "./curso/exemplo-de-teste";
 import {

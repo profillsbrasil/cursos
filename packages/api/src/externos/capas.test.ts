@@ -166,7 +166,7 @@ describe("capasNoBucket", () => {
       () => new Response("sem bucket", { status: 404 })
     );
     const capas = capasNoBucket(BUCKET, enviar);
-    const log = spyOn(console, "error").mockImplementation(() => undefined);
+    const log = spyOn(console, "error");
 
     expect(await capas.receber(new Blob(["texto"]))).toMatchObject({
       tipo: "recusa",

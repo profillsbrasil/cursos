@@ -8,8 +8,6 @@ import { join } from "node:path";
 
 import { build } from "bun";
 
-import { folhaDeExemplo } from "@/components/certificado/folha";
-
 import {
   abrirChromium,
   avaliar,
@@ -17,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "secao-do-nome.entrada.tsx");
 const CLERK = join(import.meta.dir, "clerk-falso.js");
@@ -26,11 +24,6 @@ const IMAGEM = join(import.meta.dir, "imagem-falsa.js");
 const CLERK_NEXTJS = /^@clerk\/nextjs$/;
 const SONNER_PACOTE = /^sonner$/;
 const NEXT_IMAGE = /^next\/image$/;
-
-const FOLHA = {
-  exemplo: true,
-  folha: folhaDeExemplo("https://cursos.profills.com.br"),
-};
 
 async function empacotar() {
   const pacote = await build({
@@ -41,7 +34,13 @@ async function empacotar() {
         import { ClerkAPIResponseError } from "@clerk/nextjs/errors";
         import { flushSync } from "react-dom";
         import { createRoot } from "react-dom/client";
+        import { folhaDeExemplo } from "../certificado/folha";
         import { SecaoDoNome } from "./secao-do-nome";
+
+        const FOLHA = {
+          exemplo: true,
+          folha: folhaDeExemplo("https://cursos.profills.com.br"),
+        };
 
         // O Clerk falso: grava o pedido e, com window.recusa, recusa como o Clerk recusa.
         window.pedidos = [];
@@ -51,7 +50,7 @@ async function empacotar() {
           flushSync(() =>
             raiz.render(
               <div className="@container">
-                <SecaoDoNome certificados={0} folha={${JSON.stringify(FOLHA)}} key={user.id} user={user} />
+                <SecaoDoNome certificados={0} folha={FOLHA} key={user.id} user={user} />
               </div>
             )
           );

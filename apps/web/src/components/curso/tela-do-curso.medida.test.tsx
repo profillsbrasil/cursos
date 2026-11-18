@@ -13,7 +13,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { fabrica, HOJE } from "./exemplo-de-teste";
 import { TelaDoCurso } from "./tela-do-curso";
 

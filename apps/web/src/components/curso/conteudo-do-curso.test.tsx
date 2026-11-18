@@ -11,7 +11,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { comercial } from "./exemplo-de-teste";
 

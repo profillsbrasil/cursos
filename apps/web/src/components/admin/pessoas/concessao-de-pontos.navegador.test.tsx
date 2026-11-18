@@ -10,7 +10,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../../chromium-de-teste";
+} from "../../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "concessao-de-pontos.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-concessao-falso.js");

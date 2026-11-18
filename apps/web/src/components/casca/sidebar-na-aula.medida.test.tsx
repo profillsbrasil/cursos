@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 let caminhoAtual = "/meus-cursos";
 const navegacao = await import("next/navigation");

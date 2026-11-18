@@ -20,7 +20,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { VARIOS, VAZIO } from "./comunicados-do-aluno/exemplo-de-teste";
 import { TelaDeComunicados } from "./comunicados-do-aluno/tela-de-comunicados";
 import { fabrica, HOJE } from "./curso/exemplo-de-teste";

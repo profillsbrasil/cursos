@@ -32,7 +32,7 @@ import {
   CHROMIUM,
   cssDoApp,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 
 // Fora do App Router o usePathname não tem de onde ler e o useRouter lança; o teste
 // diz o caminho, e o resto do módulo fica o de verdade.
@@ -471,7 +471,7 @@ function unico(lista: Elemento[], descricao: string) {
   return lista[0];
 }
 
-// O Chromium da máquina (chromium-de-teste.ts) avalia o seletor da variante
+// O Chromium da máquina (chromium.test-utils.ts) avalia o seletor da variante
 // ativo-aceso (:has com ~) contra o HTML renderizado, com o CSS compilado.
 // Preenchidos pelo beforeAll da suíte do Chromium; sem Chromium, a suíte pula.
 let enviar: Awaited<ReturnType<typeof abrirChromium>>;
