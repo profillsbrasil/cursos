@@ -19,7 +19,7 @@ const tokens = new Map(
 
 type Rgb = [number, number, number];
 
-function rgb(token: string): Rgb {
+function rgb(token: string) {
   const hex = tokens.get(token);
 
   if (!hex) {
@@ -30,7 +30,7 @@ function rgb(token: string): Rgb {
 }
 
 /** Cor `frente` com opacidade `alfa` composta sobre `fundo`. */
-const mistura = (frente: Rgb, alfa: number, fundo: Rgb): Rgb =>
+const mistura = (frente: Rgb, alfa: number, fundo: Rgb) =>
   frente.map((c, i) =>
     Math.round(c * alfa + (fundo[i] ?? 0) * (1 - alfa))
   ) as Rgb;
