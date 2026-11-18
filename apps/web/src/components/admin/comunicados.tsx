@@ -254,6 +254,8 @@ function ItemDoComunicado({
 }) {
   const edicao = useAcao();
   const remocao = useAcao();
+  const { executar: executarEdicao } = edicao;
+  const { executar: executarRemocao } = remocao;
   const voltou = useRef(false);
   const { fechar, pedir } = linhaAberta;
   const chaveDaEdicao = `editar:${c.id}`;
@@ -268,15 +270,15 @@ function ItemDoComunicado({
   }, [fechar, chaveDaEdicao]);
   const salvar = useCallback(
     (r: Rascunho) =>
-      edicao.executar(
+      executarEdicao(
         () => trpcClient.admin.comunicados.salvar.mutate(paraEnviar(c.id, r)),
         { depois: sair, sucesso: "Comunicado salvo." }
       ),
-    [edicao.executar, c.id, sair]
+    [executarEdicao, c.id, sair]
   );
   const apagar = useCallback(
     () =>
-      remocao.executar(
+      executarRemocao(
         () => trpcClient.admin.comunicados.apagar.mutate({ id: c.id }),
         {
           depois: () => {
@@ -288,7 +290,7 @@ function ItemDoComunicado({
               : `"${c.titulo}" já tinha sido apagado.`,
         }
       ),
-    [remocao.executar, c.id, c.titulo]
+    [executarRemocao, c.id, c.titulo]
   );
 
   if (editando) {

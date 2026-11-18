@@ -146,7 +146,7 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
 
 // O espaço sem quebra (U+00A0) dá altura às linhas de texto invisíveis; um espaço
 // comum sozinho colapsa, e a linha mediria 0 px.
-const LINHA_VAZIA = "\u00a0";
+const LINHA_VAZIA = "\u00A0";
 
 // A altura vem do mesmo miolo do cartão, desenhado invisível, e não de um número:
 // o rodapé não pula quando o cartão chega. Recolhida, vira o círculo de 40 px.

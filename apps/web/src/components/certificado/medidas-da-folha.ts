@@ -196,7 +196,7 @@ export function nomeNaFolha(
   return { nome: cortado(cabeAte), tamanho: menor };
 }
 
-export const HIFEN_OCULTO = "\u00ad";
+export const HIFEN_OCULTO = "\u00AD";
 
 /**
  * O nome com um hífen oculto entre as letras de cada palavra maior que a linha. A

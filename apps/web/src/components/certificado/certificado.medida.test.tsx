@@ -298,7 +298,7 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
         expect(linha.esquerda).toBeGreaterThanOrEqual(m.centro.esquerda);
         expect(linha.direita).toBeLessThanOrEqual(m.centro.direita);
       }
-      const lido = m.texto.replaceAll("\u00ad", "");
+      const lido = m.texto.replaceAll("\u00AD", "");
       if (lido !== nome) {
         expect(lido.endsWith("…")).toBe(true);
         expect(nome.startsWith(lido.slice(0, -1))).toBe(true);

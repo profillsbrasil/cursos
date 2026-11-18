@@ -171,7 +171,7 @@ function aulaDaVezId(
 function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId): OndeNoCurso {
   for (const modulo of curso.modulos) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
-    if (i >= 0) {
+    if (i !== -1) {
       return {
         aula: numeroDaAula(i),
         modulo: { numero: modulo.numero, titulo: modulo.titulo },

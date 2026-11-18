@@ -20,7 +20,7 @@ const texto = (h: string) =>
 /** O HTML depois da tag que tem `marca`, até a tag do primeiro `fim`. */
 const trecho = (h: string, marca: string, fim: string) => {
   const inicio = h.indexOf(marca);
-  return inicio < 0
+  return inicio === -1
     ? ""
     : h.slice(
         h.indexOf(">", inicio) + 1,

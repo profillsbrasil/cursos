@@ -117,7 +117,7 @@ function classeDe(seletor: string) {
 
 /**
  * Cada regra com as declarações dela, inclusive as que o Tailwind aninha num
- * @supports dentro da regra. O @media que envolve uma regra não conta como seletor.
+ * `@supports` dentro da regra. O `@media` que envolve uma regra não conta como seletor.
  */
 function regrasDoCss(css: string): Regra[] {
   const porSeletor = new Map<string, string[]>();

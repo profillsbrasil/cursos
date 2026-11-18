@@ -2,7 +2,7 @@
 // em UTF-8 (RFC 6266 e 5987); o filename simples é a reserva em ASCII para quem
 // não lê o outro, sem aspas nem barra que quebrariam o cabeçalho.
 
-const FORA_DO_ASCII = /[^\x20-\x7e]/g;
+const FORA_DO_ASCII = /[^\x20-\x7E]/g;
 const QUEBRAM_O_CABECALHO = /["\\]/g;
 const ACENTOS = /\p{Diacritic}/gu;
 

@@ -278,18 +278,19 @@ function LinhaDaCategoria({
     sair();
   }, [aoSalvar, c.id, sair]);
   const nome = useSalvarCategoria(c.id, depoisDeSalvar);
-  const { limpar } = nome;
+  const { limpar, salvar: salvarNome } = nome;
+  const { executar: executarRemocao } = remocao;
   const abrir = useCallback(() => {
     limpar();
     pedir(chaveDoNome);
   }, [limpar, pedir, chaveDoNome]);
   const renomear = useCallback(
-    (novo: string) => (novo === c.nome ? sair() : nome.salvar(novo)),
-    [c.nome, sair, nome.salvar]
+    (novo: string) => (novo === c.nome ? sair() : salvarNome(novo)),
+    [c.nome, sair, salvarNome]
   );
   const apagar = useCallback(
     () =>
-      remocao.executar(
+      executarRemocao(
         () => trpcClient.admin.categorias.apagar.mutate({ id: c.id }),
         {
           aoRecusar: () => {
@@ -306,7 +307,7 @@ function LinhaDaCategoria({
               : `"${c.nome}" já tinha sido apagada.`,
         }
       ),
-    [remocao.executar, c.id, c.nome, fechar, chaveDoApagar]
+    [executarRemocao, c.id, c.nome, fechar, chaveDoApagar]
   );
 
   let estado: EstadoDaLinha = "lendo";

@@ -4,7 +4,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
-const css = readFileSync(new URL("./globals.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("globals.css", import.meta.url), "utf8");
 const raiz = css.slice(
   css.indexOf(":root {"),
   css.indexOf("}", css.indexOf(":root {"))
@@ -33,7 +33,7 @@ const mistura = (frente: Rgb, alfa: number, fundo: Rgb): Rgb =>
 function luminancia([r, g, b]: Rgb) {
   const canal = (c: number) => {
     const s = c / 255;
-    return s <= 0.040_45 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
   };
   return 0.2126 * canal(r) + 0.7152 * canal(g) + 0.0722 * canal(b);
 }
