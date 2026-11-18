@@ -20,7 +20,7 @@ const [hook] = editarArquivo.hooks;
 
 const MAL_FORMATADO = "export const sonda = {a:1}\n";
 const FORMATADO = "export const sonda = { a: 1 };\n";
-const LIMITE_SEM_BIOME_MS = 1000;
+const LIMITE_SEM_FORMATADOR_MS = 1000;
 const TIMEOUT_TESTE_MS = 180_000;
 
 const limpezas: (() => void)[] = [];
@@ -72,14 +72,14 @@ test("o hook declara timeout em segundos", () => {
 });
 
 test(
-  "edição em Markdown não roda o Biome nem toca outro arquivo",
+  "edição em Markdown não roda o oxfmt nem toca outro arquivo",
   () => {
     const sonda = criarSonda(join(raiz, "apps/web/src/lib/sonda-hook.ts"));
 
     const resultado = rodarHook(join(raiz, "README.md"));
 
     expect(resultado).toMatchObject({ codigo: 0, saida: "" });
-    expect(resultado.ms).toBeLessThan(LIMITE_SEM_BIOME_MS);
+    expect(resultado.ms).toBeLessThan(LIMITE_SEM_FORMATADOR_MS);
     expect(conteudo(sonda)).toBe(MAL_FORMATADO);
   },
   TIMEOUT_TESTE_MS
@@ -98,8 +98,8 @@ test(
 
     expect(resultado.codigo).toBe(0);
     expect(contexto.hookEventName).toBe("PostToolUse");
-    expect(contexto.additionalContext).toContain("Checked 1 file");
-    expect(contexto.additionalContext).toContain("useFilenamingConvention");
+    expect(contexto.additionalContext).toContain("sonda hook.tsx");
+    expect(contexto.additionalContext).toContain("unicorn(filename-case)");
     expect(conteudo(alvo)).toBe(FORMATADO);
     expect(conteudo(vizinha)).toBe(MAL_FORMATADO);
   },
@@ -120,7 +120,7 @@ test(
 );
 
 test(
-  "arquivo fora do repo sai com 0 sem rodar o Biome",
+  "arquivo fora do repo sai com 0 sem rodar o oxfmt",
   () => {
     const pasta = mkdtempSync(join(tmpdir(), "hook-formatacao-"));
     limpezas.push(() => rmSync(pasta, { force: true, recursive: true }));
@@ -129,25 +129,25 @@ test(
     const resultado = rodarHook(sonda);
 
     expect(resultado).toMatchObject({ codigo: 0, saida: "" });
-    expect(resultado.ms).toBeLessThan(LIMITE_SEM_BIOME_MS);
+    expect(resultado.ms).toBeLessThan(LIMITE_SEM_FORMATADOR_MS);
     expect(conteudo(sonda)).toBe(MAL_FORMATADO);
   },
   TIMEOUT_TESTE_MS
 );
 
 test(
-  "arquivo apagado sai com 0 sem rodar o Biome",
+  "arquivo apagado sai com 0 sem rodar o oxfmt",
   () => {
     const resultado = rodarHook(join(raiz, "apps/web/src/lib/nao-existe.ts"));
 
     expect(resultado).toMatchObject({ codigo: 0, saida: "" });
-    expect(resultado.ms).toBeLessThan(LIMITE_SEM_BIOME_MS);
+    expect(resultado.ms).toBeLessThan(LIMITE_SEM_FORMATADOR_MS);
   },
   TIMEOUT_TESTE_MS
 );
 
 test(
-  "arquivo ignorado pelo git não é tocado pelo Biome",
+  "arquivo ignorado pelo git não é tocado pelo oxfmt",
   () => {
     const sonda = criarSonda(
       join(criarPasta(join(raiz, "build")), "sonda-hook.ts")
@@ -155,7 +155,7 @@ test(
 
     const resultado = rodarHook(sonda);
 
-    expect(resultado.saida).toContain("Checked 0 files");
+    expect(resultado.codigo).toBe(0);
     expect(conteudo(sonda)).toBe(MAL_FORMATADO);
   },
   TIMEOUT_TESTE_MS

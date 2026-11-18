@@ -10,7 +10,7 @@ import {
   sep,
 } from "node:path";
 
-const EXTENSOES_DO_BIOME = new Set([
+const EXTENSOES_DO_OXFMT = new Set([
   ".cjs",
   ".css",
   ".js",
@@ -22,10 +22,19 @@ const EXTENSOES_DO_BIOME = new Set([
   ".tsx",
 ]);
 
+const EXTENSOES_DO_OXLINT = new Set([
+  ".cjs",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".ts",
+  ".tsx",
+]);
+
 const raiz = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
 const evento = JSON.parse(readFileSync(0, "utf8"));
 
-const alvoDoBiome = (arquivo: unknown) => {
+const alvoDoHook = (arquivo: unknown) => {
   if (typeof arquivo !== "string") {
     return;
   }
@@ -37,7 +46,7 @@ const alvoDoBiome = (arquivo: unknown) => {
     isAbsolute(relativo);
   if (
     foraDoProjeto ||
-    !EXTENSOES_DO_BIOME.has(extname(absoluto)) ||
+    !EXTENSOES_DO_OXFMT.has(extname(absoluto)) ||
     !existsSync(absoluto)
   ) {
     return;
@@ -45,8 +54,8 @@ const alvoDoBiome = (arquivo: unknown) => {
   return absoluto;
 };
 
-// Num worktree dentro do projeto, o biome.jsonc dele é outra raiz: rodar o
-// Biome da raiz principal acusa "nested root configuration" ou ignora o arquivo.
+// Num worktree dentro do projeto, o oxlint.config.ts e o oxfmt.config.ts dele
+// valem para os arquivos dele, e o node_modules dele tem as versões da branch.
 const raizDoArquivo = (arquivo: string) => {
   const git = spawnSync(
     "git",
@@ -56,37 +65,46 @@ const raizDoArquivo = (arquivo: string) => {
   return git.status === 0 ? git.stdout.trim() : raiz;
 };
 
-const binarioDoBiome = (base: string) => {
-  const local = join(base, "node_modules/.bin/biome");
-  return existsSync(local) ? local : join(raiz, "node_modules/.bin/biome");
+const binario = (base: string, nome: string) => {
+  const local = join(base, "node_modules/.bin", nome);
+  return existsSync(local) ? local : join(raiz, "node_modules/.bin", nome);
 };
 
-const alvo = alvoDoBiome(evento.tool_input?.file_path);
+const rodar = (base: string, nome: string, argumentos: string[]) =>
+  spawnSync(binario(base, nome), argumentos, {
+    cwd: base,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+const alvo = alvoDoHook(evento.tool_input?.file_path);
 
 if (alvo) {
   const base = raizDoArquivo(alvo);
-  const biome = spawnSync(
-    binarioDoBiome(base),
-    [
-      "check",
-      "--write",
-      "--no-errors-on-unmatched",
-      "--files-ignore-unknown=true",
-      "--skip=correctness/noUnusedImports",
-      alvo,
-    ],
-    { cwd: base, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+  const oxfmt = rodar(base, "oxfmt", [
+    "--write",
+    "--no-error-on-unmatched-pattern",
+    alvo,
+  ]);
+  const oxlint = EXTENSOES_DO_OXLINT.has(extname(alvo))
+    ? rodar(base, "oxlint", ["--fix", alvo])
+    : null;
+  const falhas = [oxfmt, oxlint].filter(
+    (processo) => processo !== null && processo.status !== 0
   );
   // Em PostToolUse, exit 1 só mostra um aviso ao user, e o modelo não lê o
   // stderr. O additionalContext chega ao modelo junto do resultado da tool.
-  if (biome.status === 0) {
-    process.stdout.write(biome.stdout);
+  if (falhas.length === 0) {
+    process.stdout.write(`${oxfmt.stdout}${oxlint?.stdout ?? ""}`);
   } else {
-    const saida = `${biome.stdout}${biome.stderr}`.trim();
+    const saida = falhas
+      .map((processo) => `${processo?.stdout}${processo?.stderr}`)
+      .join("\n")
+      .trim();
     process.stdout.write(
       JSON.stringify({
         hookSpecificOutput: {
-          additionalContext: `O Biome deixou erros que o --write não corrige em ${relative(base, alvo)}:\n${saida}`,
+          additionalContext: `O oxfmt ou o Oxlint deixaram erros que o --write e o --fix não corrigem em ${relative(base, alvo)}:\n${saida}`,
           hookEventName: "PostToolUse",
         },
       })
