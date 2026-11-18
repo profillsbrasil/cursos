@@ -20,7 +20,7 @@ export class BancoNaoLocalError extends Error {
 export function garantirBancoLocal(
   url: string,
   porta: string | null = PORTA_LOCAL
-): { host: string; porta: string } {
+) {
   let destino: URL;
 
   try {
@@ -62,7 +62,7 @@ export function garantirBancoLocal(
 }
 
 /** URL do banco de teste, ou null quando TEST_DATABASE_URL não está definida. Lança se não for local. */
-export function urlDeTeste(): string | null {
+export function urlDeTeste() {
   const url = process.env.TEST_DATABASE_URL;
 
   if (!url) {

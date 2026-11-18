@@ -51,7 +51,7 @@ export const VIDEO_EXEMPLO = {
 export const PONTOS_AULA = 10;
 export const PONTOS_CURSO = 100;
 
-const geradas = (titulo: string, qtd: number): AulaSeed[] =>
+const geradas = (titulo: string, qtd: number) =>
   Array.from({ length: qtd }, (_, i) => ({
     titulo: `${titulo}, parte ${i + 1}`,
   }));
@@ -130,7 +130,7 @@ const umModulo = (
   numero: number,
   titulo: string,
   aulas: (string | AulaSeed)[]
-): ModuloSeed[] => [
+) => [
   {
     aulas: aulas.map((a) => (typeof a === "string" ? { titulo: a } : a)),
     nivelOrdem: null,
@@ -519,7 +519,7 @@ export const CERTIFICADO_A = { curso: "autoavaliacao" };
 
 // O código do certificado é único no banco e sai do userId: cada aluno de exemplo
 // tem o seu, e o mesmo aluno recebe o mesmo código em toda execução.
-export function codigoCertificado(userId: string): string {
+export function codigoCertificado(userId: string) {
   return codigoDosIndices(
     Array.from(
       createHash("sha1").update(userId).digest().subarray(0, 8),

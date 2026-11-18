@@ -24,7 +24,7 @@ interface Base {
   moduloId: string;
 }
 
-async function montarBase(c: Client): Promise<Base> {
+async function montarBase(c: Client) {
   const s = sufixo();
   const aluno = `user_teste${s}`;
 
@@ -1021,7 +1021,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   // Roda o corpo numa transação que sempre volta atrás.
-  async function emTransacao<T>(corpo: () => Promise<T>): Promise<T> {
+  async function emTransacao<T>(corpo: () => Promise<T>) {
     await c.query("begin");
 
     try {

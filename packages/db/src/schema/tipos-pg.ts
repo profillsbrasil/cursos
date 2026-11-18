@@ -14,7 +14,7 @@ const ENTRE_FAIXAS = /,(?=\[)/;
  * "{}" para [] e "{[0,30),[45,90)}" para [{0,30},{45,90}]. O Postgres canoniza int4
  * para "[)", então "(" e "]" nunca chegam; texto fora do formato lança.
  */
-export function lerMultirange(texto: string): FaixaSeg[] {
+export function lerMultirange(texto: string) {
   const miolo = texto.trim().replace(CHAVES, "");
 
   if (miolo === "") {
@@ -32,7 +32,7 @@ export function lerMultirange(texto: string): FaixaSeg[] {
   });
 }
 
-export const escreverMultirange = (faixas: readonly FaixaSeg[]): string =>
+export const escreverMultirange = (faixas: readonly FaixaSeg[]) =>
   `{${faixas.map((f) => `[${f.inicio},${f.fim})`).join(",")}}`;
 
 export const faixasDeSegundos = customType<{

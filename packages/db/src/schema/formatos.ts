@@ -42,7 +42,7 @@ const METADE_DO_CODIGO = SIMBOLOS_DO_CODIGO / 2;
 export const CODIGO_DO_CERTIFICADO = `^[${ALFABETO_DO_CODIGO}]{${METADE_DO_CODIGO}}-[${ALFABETO_DO_CODIGO}]{${METADE_DO_CODIGO}}$`;
 
 /** O código a partir de 8 índices no alfabeto. Índice fora dele é defeito de quem sorteou: lança. */
-export function codigoDosIndices(indices: ArrayLike<number>): string {
+export function codigoDosIndices(indices: ArrayLike<number>) {
   if (indices.length !== SIMBOLOS_DO_CODIGO) {
     throw new Error(
       `O código tem ${SIMBOLOS_DO_CODIGO} símbolos, não ${indices.length}.`

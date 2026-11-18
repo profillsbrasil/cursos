@@ -52,7 +52,7 @@ const USER_ID_CLERK = /^user_[A-Za-z0-9]+$/;
 const FUSO = "America/Sao_Paulo";
 
 /** UUID fixo derivado da chave, para o upsert achar a mesma linha em toda execução. */
-function idFixo(chave: string): string {
+function idFixo(chave: string) {
   const h = createHash("sha1").update(`cursos-seed:${chave}`).digest("hex");
   const variante = ((Number.parseInt(h[16] ?? "0", 16) % 4) + 8).toString(16);
 
@@ -74,7 +74,7 @@ const diaSp = (d: Date) =>
   }).format(d);
 
 /** Instante às `hora` de São Paulo (UTC-3, sem horário de verão desde 2019) do dia `dias` atrás. */
-function diasAtras(hoje: string, dias: number, hora: number): Date {
+function diasAtras(hoje: string, dias: number, hora: number) {
   const d = new Date(`${hoje}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() - dias);
   d.setUTCHours(hora + 3, 0, 0, 0);
@@ -83,7 +83,7 @@ function diasAtras(hoje: string, dias: number, hora: number): Date {
 }
 
 /** Os `n` dias úteis mais recentes até hoje, em dias atrás (0 = hoje). */
-function ultimosDiasUteis(hoje: string, n: number): number[] {
+function ultimosDiasUteis(hoje: string, n: number) {
   const dias: number[] = [];
 
   for (let atras = 0; dias.length < n; atras += 1) {
@@ -97,7 +97,7 @@ function ultimosDiasUteis(hoje: string, n: number): number[] {
   return dias;
 }
 
-function destino(argv: { cloud: boolean; simCloud: boolean }): string {
+function destino(argv: { cloud: boolean; simCloud: boolean }) {
   if (argv.cloud) {
     const url = process.env.DATABASE_URL;
 
@@ -150,9 +150,7 @@ type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
  * As categorias que os cursos de exemplo usam. A que já existe pelo nome, criada
  * pelo admin ou por outra execução, fica com o id dela. Devolve o id por nome.
  */
-async function plantarCategorias(
-  tx: Transacao
-): Promise<ReadonlyMap<string, string>> {
+async function plantarCategorias(tx: Transacao) {
   const nomes = [...new Set(CURSOS.map((c) => c.categoria))];
   await tx
     .insert(categoria)
