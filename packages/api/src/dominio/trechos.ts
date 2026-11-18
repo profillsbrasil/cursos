@@ -31,13 +31,12 @@ export function canonizar(
   duracaoSeg: number
 ): Trechos {
   const cortados = lista
-    .values()
-    .map((t) => ({
-      fim: Math.min(Math.floor(t.fim), duracaoSeg),
-      inicio: Math.max(Math.floor(t.inicio), 0),
-    }))
-    .filter((t) => t.fim > t.inicio)
-    .toArray()
+    .flatMap((t) => {
+      const fim = Math.min(Math.floor(t.fim), duracaoSeg);
+      const inicio = Math.max(Math.floor(t.inicio), 0);
+
+      return fim > inicio ? [{ fim, inicio }] : [];
+    })
     .sort((a, b) => a.inicio - b.inicio);
 
   const saida: Trecho[] = [];
