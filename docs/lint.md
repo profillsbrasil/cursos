@@ -1,6 +1,6 @@
 # Lint e formato
 
-O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware e com check de tipos (`options.typeAware` e `options.typeCheck` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O `bun run check-types` (`tsc`) continua no CI ao lado, como árbitro, enquanto o tsrs for beta. O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O motivo de cada decisão mora neste arquivo, não em comentário no config.
+O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware e com check de tipos (`options.typeAware` e `options.typeCheck` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O `bun run check-types` (`tsc`) continua no CI ao lado, como árbitro, enquanto o tsrs for beta. O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O Oxlint carrega dois plugins JS por `jsPlugins`: o `@interfere/landmines` 0.1.0 (`landmines-testing` e `landmines-structure`) e o anti-slop copiado em `tools/oxlint/anti-slop/`; decisões em "Plugins JS". O motivo de cada decisão mora neste arquivo, não em comentário no config.
 
 ## Custo do type-aware
 
@@ -23,6 +23,7 @@ O `no-restricted-imports` do `oxlint.config.ts` cerca o banco em `apps/web`: só
 - O Oxlint não linta `.claude/skills/*/templates/**`, motivo em "Check de tipos". O oxfmt formata esses arquivos.
 - O Oxlint não linta o código do `shadcn add` (`packages/ui/src/components`, `packages/ui/src/hooks`, `packages/ui/src/lib/utils.ts`) nem `apps/web/public`. O oxfmt formata esses arquivos. O `--type-check` ainda devolve erro de tipo deles, porque o tsrs checa o programa inteiro do tsconfig (detalhe em "Escopo").
 - O oxfmt não formata Markdown (`**/*.md`). O preset Biome da Ultracite já deixava o Markdown de fora; 76 dos 91 arquivos `.md` que o oxfmt mudaria são skills de terceiros travadas por hash no `skills-lock.json`, e o turbo e o `next dev` reescrevem blocos do `AGENTS.md`.
+- `tools/oxlint/anti-slop/**` fica fora do Oxlint, do oxfmt e do programa do tsconfig da raiz ("Plugins JS").
 - O oxfmt não formata SVG. O `docs/marca/cubo.ts` gravava os SVG da marca e chamava o Biome para formatá-los; agora só grava.
 
 ## O que saiu sem substituto
@@ -181,7 +182,92 @@ Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo 
 | JSON | 6 | 0 | 6 |
 | Total | 437 | 177 | 614 |
 
-`packages/api/src` tem 404 deles e `apps/web/src/components`, 192. O `JSON.parse` de `entrada/clerk.ts` é o sétimo cast de JSON, contado no `no-unsafe-assignment`.
+`packages/api/src` tem 404 deles e `apps/web/src/components`, 192. Desde o `comoTrechos` de `dominio/trechos.ts` ("Plugins JS"), o total é 611. O `JSON.parse` de `entrada/clerk.ts` é o sétimo cast de JSON, contado no `no-unsafe-assignment`.
+
+## Plugins JS
+
+Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no `oxlint.config.ts`; o motivo de cada decisão está nas tabelas abaixo. Contagem do `oxlint -f json` em 18 de novembro de 2026, com a regra ligada e antes das correções. Saídas: (a) autofix, (b) desligada ou com opção no config, (c) corrigida à mão.
+
+### landmines
+
+`@interfere/landmines` 0.1.0, exato. Ficam para PRs seguintes o `landmines-style/no-comments` e o `landmines-types/no-explicit-return-types`, que este config não registra. O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
+
+| Regra | Ocorrências | Decisão | Motivo |
+| --- | --- | --- | --- |
+| `landmines-structure/package-exports` | 24 | (c) | Uma causa só, reportada uma vez por arquivo do pacote: o `"./*": "./src/*.ts"` do `packages/db/package.json`. Ele virou as entradas que alguém importa em `apps` e `packages`: `.`, `schema/comum`, `schema/formatos`, `schema/index`, `seed/dados` e `seed/guarda-local`. Quem precisar de outro arquivo do `@cursos/db` acrescenta a entrada. |
+| `landmines-structure/colocated-tests` | 16 | (c) 14, (b) 2 | A regra acha o dono do teste pela pasta dos imports locais. 13 testes de Chromium importavam só o arnês `components/chromium-de-teste.ts`, e o componente testado entra numa string que o `Bun.build` empacota, então a regra tomava o arnês como dono. O arnês virou `components/chromium.test-utils.ts`, o sufixo de companheiro de teste que a regra reconhece (o `bun test` não o descobre como teste). `secao-do-nome.navegador.test.tsx` também importava o `folhaDeExemplo` fora da string e passou a montá-lo dentro do pacote. `cartao-selo-e-rotulo.test.ts` foi para `components/casca/`, ao lado das constantes que ele guarda, e `codigo-gerado.integration.test.ts` foi para `packages/api/src/dominio/`, ao lado do `codigo-do-curso.ts` que ele compara com a migração. `packages/db/src/migracao.integration.test.ts` e `schema/restricoes.integration.test.ts` testam SQL (as migrações e as constraints), sem módulo TS de assunto; o único import local deles é o `urlDeTeste` de `seed/guarda-local.ts`, e a regra fica desligada nos 2 por override. |
+| `landmines-testing/no-flake-masking` | 11 | (c) 2, allowlist 9 | Os 2 `15_000` de `consultas/aula.integration.test.ts` saíram. O teste da cota presa soltava a trava num timer fixo de 6 s; agora solta quando a recusa chega, com um timer de reserva em 4,5 s só para a regressão, e caiu de 6,08 s para 3,12 a 3,18 s em 3 rodadas, dentro dos 5 s padrão do `bun test`. O do envio que espera roda em 1,6 s. Allowlist com contagem exata: `.claude/hooks/formatar-arquivo-editado.test.ts` (7), cujos testes rodam o oxfmt e o Oxlint de verdade por `spawnSync` e levaram até 3,4 s com os plugins JS e o load average em 32; e `apps/web/src/equivalencia-dos-tipos.arnes.ts` (2), que roda o `tsc` dos 4 pacotes a cada categoria, 68 s no total. A allowlist acusa quando a contagem do arquivo muda. |
+| `landmines-testing/no-test-doubles` | 19 | (c) 13, warn 6 | 12 `spyOn(console, ...).mockImplementation(() => undefined)` e o `console.error =` de `liberacao.integration.test.ts` viraram `spyOn` que só observa: cada teste já lia as chamadas (`toHaveBeenCalledTimes`, `mock.calls`), e o texto do aviso passa a sair na saída do teste. A mensagem do commit `961e4ea` diz 14; são esses 13. `utils/trpc.test.ts` e `lib/editor.test.ts` pedem redesenho e ficam em warn por override ("O que fica em warn"). |
+| `landmines-testing/no-fixed-sleep` | 0 | error | A regra acusa `setTimeout` em `new Promise`, `Bun.sleep` e `scheduler.wait` no corpo do teste; os `sleep` e `esperar` por ajudante passam. |
+| `landmines-testing/no-unsignaled-poll` | 0 | error | |
+| `landmines-testing/strict-msw` | 0 | error | O repo não usa MSW. |
+| `landmines-structure/test-file-names` | 0 | error | `.integration.test.ts`, `.medida.test.tsx` e `.navegador.test.tsx` passam; ajudante de teste leva `.test-utils.ts`. |
+
+### anti-slop
+
+Cópia de `src/` de `dmmulroy/anti-slop` no commit `13909c9`, sem a pasta `effect` (o repo não usa Effect), em `tools/oxlint/anti-slop/`, com a licença e o `ORIGEM.md`. O projeto não publica no npm, e o README dele manda copiar a pasta. O `@oxlint/plugins` fica em 1.94.0, a versão exata do `oxlint`. A pasta sai do Oxlint e do oxfmt pelo `ignorePatterns` e do programa do tsconfig da raiz pelo `exclude` ("Check de tipos"). O `tsconfig.json` dela tem as opções do upstream: `bunx tsc -p tools/oxlint/anti-slop/tsconfig.json` passa sem erro, e cada regra tem o teste do `RuleTester` ao lado, que roda com `node tools/oxlint/anti-slop/rules/<regra>.test.ts` na raiz. Os dois ficam fora do `bun run test` e do CI.
+
+A mudança local é o `no-module-mocking`, que só conhecia o `vi` do Vitest e o `jest`. Uma tabela diz que import, com que nome, aceita que métodos, e o `mock` do `bun:test` entra com o `module`; o `mock(() => 1)` e o `mock.restore()` continuam valendo. O teste da regra ganhou 3 casos inválidos e 4 válidos, falhou na regra antiga (`Should have 1 error but had 0`) e passa na nova.
+
+| Regra | Ocorrências | Decisão | Motivo |
+| --- | --- | --- | --- |
+| `require-readable-spacing` | 4.721 | (a) autofix, error | O commit `d87f5b4` só tem o autofix, rodado por um config que liga só essa regra: 4.721 linhas vazias em 435 arquivos, nenhuma removida, e `git diff -w --ignore-blank-lines` vazio. |
+| `no-module-mocking` | 25 | warn | Os 25 `mock.module` de `apps/web`, que a regra passou a ver. Trocar cada um pede uma costura de dependência no componente; lista em "O que fica em warn". |
+| `no-unknown-parameters` | 74 | (b) desligada | Os 15 de produção são erro de `catch` e `.catch`, que o TS tipa como `unknown`, e parser de borda (`paraVolume` do localStorage, `versaoDe` do JSON da versão). A exceção da regra é o parâmetro chamado `cause`, e o repo nomeia `erro`, como no `unicorn/catch-error-name` desligado. Os 58 de teste são dublês e ajudantes; 1 é o hook do Claude Code. |
+| `no-known-value-widening` | 41 | (b) desligada | Dois padrões. Tabela `Record<string, T>` indexada por texto de fora (código de erro do Clerk, tecla, entidade HTML, estado do player do YouTube), e objeto devolvido a um tipo de retorno anônimo escrito à mão, que sai com o PR do `no-explicit-return-types`. A fraqueza real que fica: em `apps/web`, sem `noUncheckedIndexedAccess`, a leitura de uma dessas tabelas sai `T`, e não `T \| undefined`; corrigir pede trocar o tipo das tabelas e as leituras delas. |
+| `no-runtime-typeof` | 32 | (b) desligada | Testado com `allowInTypeGuards`. A regra pede parser de borda no lugar de `typeof`. Os casos estreitam união conhecida (`searchParams` com `string \| string[] \| undefined`, o valor `number \| number[]` do Slider, o `sucesso` função ou texto do `useAcao`) ou são os parsers de borda à mão (`preferencias.ts`, `consultas/erros.ts`, `versao.ts`). `preferencias.ts` é módulo do cliente, onde o Zod não entra (`zod-no-cliente.test.ts`). |
+| `no-unsafe-dictionary-type` | 19 | (b) desligada | `Record<string, unknown>` é o JSON aberto: a resposta do DevTools no arnês do Chromium, o `appearance` do Clerk em `entrada/clerk.ts`, o JSON do localStorage antes do parser e o JSON canônico de `versao.ts`. Os 15 de teste são dublês e fixtures. |
+| `no-chained-type-assertions` | 17 | (c) produção, (b) nos testes | `dominio/trechos.ts` fazia `saida as readonly Trecho[] as Trechos` em 3 retornos e `[] as unknown as Trechos` no `SEM_TRECHOS`. Agora o `comoTrechos` é o único cast da marca, e o `no-unsafe-type-assertion` foi de 614 para 611. Os 13 de teste montam dublê de `ClerkClient`, `fetch` e `AuthDoClerk` por `as unknown as` e saem com o redesenho dos dublês. |
+| `no-array-filter-map` | 15 | (c) | 11 cadeias (a regra acusa cada par vizinho) viraram pipeline de iterador, a forma que ela aceita: `.values().filter().map().toArray()`, ou `matchAll(...)` e `Iterator.from(glob)` sem o spread. O resultado é o mesmo array; `docs/marca/cubo.ts` grava os 3 SVG iguais, byte a byte, aos da versão anterior. |
+| `no-reflect-get` | 4 | (c) | `"x" in valor` e a leitura direta, no arnês de tipos e no `trpc.test.ts`. |
+| `no-unknown-returns` | 5 | (b) desligada | Os 4 de teste são callback cujo retorno ninguém lê (as `limpezas` do arnês do Chromium, o `violar` das restrições, o `contar` de statements, o procedimento chamado pelo caminho no `admin.test.ts`). O de produção é o `useReverification` do Clerk em `use-acao-da-conta.ts`, cujo tipo apaga o genérico da função que recebe. |
+| `no-conditional-empty-object-spread` | 5 | (b) desligada | O spread condicional omite a chave de propósito: o filtro opcional do Drizzle em `consultas/convite.ts` e campos opcionais de fábricas de teste. Trocar por `undefined` muda o objeto, e a regra não tem autofix por isso. |
+| `no-object-parameters` | 4 | (b) nos testes | Os 4 são fábricas de `tela-de-conquistas.test.tsx` e `textos.test.ts` que recebem a medalha como `object` e a encaixam por cast. Em produção a regra fica ligada, com 0. |
+| `no-shape-in-symbol-names` | 5 | (b) desligada | O repo nomeia em português; os 5 são nomes de terceiros, o atributo SVG `shapeRendering` e o `shape` do `errorFormatter` do tRPC. |
+| `no-reduce-accumulator-copy`, `no-reflect-apply`, `no-unknown-type-aliases`, `no-widen-then-assert` e `oxc/no-accumulating-spread` | 0 | error | |
+| `require-safety-comment-for-type-assertion` | não medida | desligada | Decisão do dono: pede comentário em cada cast, e o `landmines-style/no-comments` vence (landmines#4). |
+
+### O que fica em warn
+
+`no-test-doubles`, 6 em 2 arquivos, por override:
+
+| Arquivo | Linhas | O que troca |
+| --- | --- | --- |
+| `apps/web/src/utils/trpc.test.ts` | 61 e 72 | o `fetch` global, por um que grava o pedido (headers, `keepalive`, URL) e nunca responde, e a volta dele no `afterEach` |
+| `apps/web/src/lib/editor.test.ts` | 125, 126, 140 e 141 | `requestAnimationFrame`, por um que guarda o quadro, e `document`, por um `getElementById` sobre um `Map`, e a volta dos dois |
+
+`no-module-mocking`, 25 `mock.module` em 22 arquivos de `apps/web/src/components`:
+
+| Módulo trocado | Usos | Arquivos |
+| --- | --- | --- |
+| `next/navigation` | 19 | `admin/categorias.test.tsx`, `admin/comunicados.test.tsx`, `admin/editor-do-curso.test.tsx`, `admin/editor-do-curso.medida.test.tsx`, `admin/esqueletos.medida.test.tsx`, `admin/material-de-apoio.test.ts`, `admin/pessoas/concessao-de-pontos.test.tsx`, `admin/pessoas/convidar.test.tsx`, `aluno/cartao-continuar.test.tsx`, `aluno/cartao-continuar.medida.test.tsx`, `casca/provedor-da-casca.test.tsx`, `casca/sidebar-na-aula.medida.test.tsx`, `curso/amostra.test.tsx`, `player/player-da-aula.test.tsx`, `player/player-da-aula.navegador.test.tsx`, `player/questionario-da-aula.test.tsx`, `sinal-do-foco.test.tsx`, `trocar-pontos/cartao-de-troca.navegador.test.tsx`, `trocar-pontos/vitrine-sem-troca.test.tsx` |
+| `@clerk/nextjs` | 3 | `casca/cartao-de-conta.test.tsx`, `minha-conta/tela-da-minha-conta.test.tsx`, `sinal-do-foco.test.tsx` |
+| `@cursos/ui/components/dropdown-menu` | 1 | `casca/cartao-de-conta.test.tsx` |
+| `next/headers` | 1 | `sinal-do-foco.test.tsx` |
+| `@/server/api` | 1 | `certificado/rotas-do-pdf.test.ts` |
+
+### Custo dos plugins JS
+
+Medido em 18 de novembro de 2026, por `systemd-run --user --same-dir --wait --pipe -p MemoryMax=4G -p MemorySwapMax=4G`, 5 rodadas de cada lado, alternadas, no mesmo código. "Antes" é o `oxlint.config.ts` do commit `1be10e6` com o ignore de `tools/oxlint/anti-slop/**`, para lintar os mesmos 584 arquivos. Parede é o "Service runtime", CPU é o "CPU time consumed" e memória é o "Memory peak" do cgroup. O load average ficou entre 13,5 e 19,1 em 16 núcleos, com outras sessões rodando, então os números absolutos ficam acima dos de "Custo do check de tipos".
+
+| Comando | Parede, mediana (faixa) | CPU, mediana | Pico de memória, mediana | Saída |
+| --- | --- | --- | --- | --- |
+| `bun run check`, antes | 4,12 s (3,86 a 4,71) | 17,6 s | 823 MB | exit 0 nas 5 |
+| `bun run check`, depois | 7,05 s (6,82 a 7,70) | 24,6 s | 897 MB | exit 0 nas 5 |
+| `oxlint --fix` do hook em `admin/categorias.tsx`, antes | 1,44 s (1,15 a 1,73) | 4,07 s | 429 MB | exit 0 nas 5 |
+| `oxlint --fix` do hook em `admin/categorias.tsx`, depois | 1,97 s (1,81 a 2,07) | 4,97 s | 474 MB | exit 0 nas 5 |
+
+As faixas não se cruzam: o `check` ganha cerca de 3 s de parede e 7 s de CPU, e o hook, cerca de 0,5 s por arquivo editado. Para ver de onde vem, o `oxlint` sozinho rodou 3 vezes em cada config, alternadas:
+
+| Config do `oxlint` | Parede, mediana | CPU, mediana |
+| --- | --- | --- |
+| antes | 1,92 s | 9,6 s |
+| depois | 4,89 s | 16,2 s |
+| só o landmines (regras do anti-slop em off) | 4,36 s | 15,0 s |
+| só o anti-slop (regras do landmines em off) | 3,44 s | 14,0 s |
+| os dois plugins registrados, todas as regras JS em off | 1,56 s, contra 1,16 s do antes na mesma série | 9,2 s, contra 7,8 s |
+
+Registrar os plugins custa cerca de 0,4 s. Ligar qualquer regra JS custa a maior parte, e o custo não soma por plugin: só landmines, 4,36 s; só anti-slop, 3,44 s; os dois, 4,89 s. Inferido, sem perfil: o custo dominante é passar cada arquivo ao Node uma vez, pago quando alguma regra JS está ligada; das regras, a mais cara é a `colocated-tests`, que relê e resolve os imports de cada teste.
 
 ## Check de tipos
 
@@ -206,6 +292,7 @@ O tsrs devolve os erros de todo o programa de cada tsconfig que algum arquivo li
 
 - `.claude/tsconfig.json`, `.railway/tsconfig.json` e `docs/marca/tsconfig.json` estendem o tsconfig da raiz e ligam o `noCheck`. O tsrs não checa tipos nessas pastas, e o lint sintático continua: um `debugger` plantado em `.claude/hooks` e em `docs/marca` acusa, e um `const x: number = "x"` não. Antes, o tsconfig mais próximo delas já era o da raiz, e as outras opções seguem iguais às dele. O editor também lê esses tsconfig, então deixa de mostrar erro de tipo em `.claude`, `.railway` e `docs/marca` (inferido do `noCheck`, não medido no editor).
 - Os templates de `.claude/skills/clerk-nextjs-patterns/templates/` trazem o próprio `tsconfig.json`, mais próximo que o de `.claude`, e a skill é travada por hash no `skills-lock.json`. Eles saem do Oxlint pelo `ignorePatterns` (`.claude/skills/*/templates/**`). Perde-se o lint sintático de 3 arquivos de terceiro que o repo não pode editar.
+- `tools/oxlint/anti-slop` sai do programa do tsconfig da raiz pelo `exclude`. Sem `include`, esse programa abrange a árvore toda, e o tsrs devolve o erro de todo arquivo dele que nenhum outro tsconfig reivindica: lintando só o `oxlint.config.ts`, saem 4.488 diagnósticos de `apps/web`. Os arquivos de `tools/` não são lintados, ninguém os reivindica, e o `tsconfig.json` deles, com `noCheck` ou sem, não mudava nada: o tsrs devolvia 57 TS5097 (import com `.ts`) e 1 TS2322 de lá.
 - O TS2353 de `.railway/railway.ts:64` fica sem decisão: corrigir muda o que o `railway config apply` aplica, e isso é do dono.
 
 ### Custo do check de tipos

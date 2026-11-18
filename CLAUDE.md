@@ -14,7 +14,8 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Oxlint ac
 - O cartão, o selo e o rótulo de campo vêm de `casca/cartoes.ts`, `casca/selos.ts` e `casca/campos.ts` (`components/casca/cartao-selo-e-rotulo.test.ts` acusa cópia à mão). O `h1` de página sai só do `CabecalhoDaPagina`, com as exceções em `H1_PROPRIO` (`components/casca/cabecalho-da-pagina.test.ts`). Só o grafo de `admin/editor-do-curso.tsx` chega ao `zod` num módulo "use client" (`components/zod-no-cliente.test.ts`); os tetos do curso moram em `packages/api/src/dominio/limites-do-curso.ts`, sem Zod. O app não tem migalha (`components/sem-migalha.test.ts`).
 - `routers/admin.ts` usa só `adminProcedure`, e `admin.test.ts` percorre todo `admin.*` sem sessão e com aluno.
 - Cada tabela tem um escritor só em `packages/api/src/consultas/`, e o mapa diz qual. Todo débito de pontos e toda escrita de liberação rodam com o aluno travado (`trava.ts`). Dentro da transação as consultas rodam em série, nunca em `Promise.all`.
-- O `package.json` do `@cursos/api` fecha os `exports`: `consultas/` e `sessao.ts` não saem do pacote.
+- O `package.json` do `@cursos/api` fecha os `exports`: `consultas/` e `sessao.ts` não saem do pacote. O do `@cursos/db` exporta só os arquivos que alguém importa, sem curinga (`landmines-structure/package-exports`).
+- O teste mora ao lado do que ele testa (`landmines-structure/colocated-tests`), e o ajudante de teste leva o sufixo `.test-utils.ts`, como `components/chromium.test-utils.ts`. Teste não levanta timeout nem repete (`landmines-testing/no-flake-masking`, com a allowlist do `oxlint.config.ts`) e não troca dependência nem global: espião só observa (`landmines-testing/no-test-doubles`), e o `mock.module` está em warn (`anti-slop/no-module-mocking`) até o redesenho dos testes que o usam (`docs/lint.md`).
 
 ### `packages/ui` (`@cursos/ui`)
 
@@ -29,6 +30,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Oxlint ac
 - `.railway/railway.ts`: o projeto `cursos` da Railway como código. `railway config apply` só com pedido do dono.
 - `AGENTS.md` e `apps/web/AGENTS.md`: blocos que o turbo e o `next dev` reescrevem sozinhos. Commite as mudanças deles junto com o trabalho.
 - `apps/web/PRODUCT.md`: o produto, o público e as decisões do dono. `apps/web/DESIGN.md` (com o sidecar `apps/web/.impeccable/design.json`): o sistema visual. UI nova segue o `DESIGN.md`; mudança que o contradiz atualiza o arquivo no mesmo PR.
+- `tools/oxlint/anti-slop/`: a cópia do plugin anti-slop do Oxlint, com a origem em `ORIGEM.md`. Fora do lint e do formato; as decisões das regras moram em `docs/lint.md`.
 - `docs/marca/`: os arquivos da marca. O logo oficial da Profills fica ali como referência, fora do `public/`.
 
 ## Env (varlock)
