@@ -1,6 +1,6 @@
 # Lint e formato
 
-O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware (`options.typeAware` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O check de tipos continua no `bun run check-types` (`tsc`). O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O motivo de cada decisão mora neste arquivo, não em comentário no config.
+O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware e com check de tipos (`options.typeAware` e `options.typeCheck` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O `bun run check-types` (`tsc`) continua no CI ao lado, como árbitro, enquanto o tsrs for beta. O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O motivo de cada decisão mora neste arquivo, não em comentário no config.
 
 ## Custo do type-aware
 
@@ -20,6 +20,7 @@ O `no-restricted-imports` do `oxlint.config.ts` cerca o banco em `apps/web`: só
 ## Fora do lint e do formato
 
 - `docs/prototipos`, `.claude/settings.local.json` e `.impeccable/config.json` ficam fora dos dois, como no `biome.jsonc`.
+- O Oxlint não linta `.claude/skills/*/templates/**`, motivo em "Check de tipos". O oxfmt formata esses arquivos.
 - O Oxlint não linta o código do `shadcn add` (`packages/ui/src/components`, `packages/ui/src/hooks`, `packages/ui/src/lib/utils.ts`) nem `apps/web/public`. O oxfmt formata esses arquivos.
 - O oxfmt não formata Markdown (`**/*.md`). O preset Biome da Ultracite já deixava o Markdown de fora; 76 dos 91 arquivos `.md` que o oxfmt mudaria são skills de terceiros travadas por hash no `skills-lock.json`, e o turbo e o `next dev` reescrevem blocos do `AGENTS.md`.
 - O oxfmt não formata SVG. O `docs/marca/cubo.ts` gravava os SVG da marca e chamava o Biome para formatá-los; agora só grava.
@@ -181,3 +182,15 @@ Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo 
 | Total | 437 | 177 | 614 |
 
 `packages/api/src` tem 404 deles e `apps/web/src/components`, 192. O `JSON.parse` de `entrada/clerk.ts` é o sétimo cast de JSON, contado no `no-unsafe-assignment`.
+
+## Check de tipos
+
+O `options.typeCheck` do `oxlint.config.ts` liga o `--type-check`: o Oxlint devolve os diagnósticos do compilador do tsrs como `typescript(TSxxxx)`, com severidade de erro, e o `bun run check` sai com 1. O hook de formato do Claude Code roda o mesmo config no arquivo editado, então também devolve o erro de tipo dele.
+
+### Escopo
+
+O `--type-check` checa os arquivos que o Oxlint linta, não os que os tsconfig listam (issue oxc#16748; o mantenedor recusou separar os dois). Para cada arquivo, o tsrs usa o tsconfig mais próximo. Sem ajuste, 26 erros acusavam em arquivos que nenhum dos 4 tsconfig inclui: 14 em `.claude/hooks` (sem os tipos do bun e do node), 11 nos templates da skill `clerk-nextjs-patterns` (sem `@clerk/nextjs` nem React) e 1 em `.railway/railway.ts:64` (TS2353, `variables` no `project`, que o `tsc` nunca checou).
+
+- `.claude/tsconfig.json`, `.railway/tsconfig.json` e `docs/marca/tsconfig.json` estendem o tsconfig da raiz e ligam o `noCheck`. O tsrs não checa tipos nessas pastas, e o lint sintático continua: um `debugger` plantado em `.claude/hooks` e em `docs/marca` acusa, e um `const x: number = "x"` não. Antes, o tsconfig mais próximo delas já era o da raiz, e as outras opções seguem iguais às dele.
+- Os templates de `.claude/skills/clerk-nextjs-patterns/templates/` trazem o próprio `tsconfig.json`, mais próximo que o de `.claude`, e a skill é travada por hash no `skills-lock.json`. Eles saem do Oxlint pelo `ignorePatterns` (`.claude/skills/*/templates/**`). Perde-se o lint sintático de 3 arquivos de terceiro que o repo não pode editar.
+- O TS2353 de `.railway/railway.ts:64` fica sem decisão: corrigir muda o que o `railway config apply` aplica, e isso é do dono.

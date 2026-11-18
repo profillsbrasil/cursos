@@ -76,12 +76,13 @@ const REGRAS_COM_TIPOS = [
 ];
 
 export default defineConfig({
-  options: { typeAware: true },
+  options: { typeAware: true, typeCheck: true },
   env: core.env,
   extends: [core, react, next],
   ignorePatterns: [
     ...core.ignorePatterns,
     "docs/prototipos/**",
+    ".claude/skills/*/templates/**",
     ".claude/settings.local.json",
     ".impeccable/config.json",
     "packages/ui/src/components/**",
