@@ -1,6 +1,17 @@
 # Lint e formato
 
-O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O motivo de cada decisão mora neste arquivo, não em comentário no config.
+O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware (`options.typeAware` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O check de tipos continua no `bun run check-types` (`tsc`). O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O motivo de cada decisão mora neste arquivo, não em comentário no config.
+
+## Custo do type-aware
+
+Medido em 18 de novembro de 2026: `bun run check` por `systemd-run --user --same-dir --wait --pipe -p MemoryMax=4G -p MemorySwapMax=4G`, 5 rodadas de cada lado, alternadas, no mesmo código. O lado sem type-aware usa o `oxlint.config.ts` do commit `3c86299`. Parede é o "Service runtime", CPU é o "CPU time consumed" e memória é o "Memory peak" do cgroup, que soma bun, Ultracite, oxfmt, Oxlint e tsrs. O load average ficou entre 5 e 11 em 16 núcleos.
+
+| Lado | Parede, mediana (faixa) | CPU, mediana | Pico de memória, mediana | Diagnósticos |
+| --- | --- | --- | --- | --- |
+| Sem type-aware | 1,38 s (1,16 a 1,61) | 7,55 s | 647 MB | 0 |
+| Com type-aware | 2,10 s (1,97 a 2,97) | 12,74 s | 754 MB | 614 avisos, 0 erros |
+
+As faixas não se cruzam. Os 5,2 s de CPU a mais vêm do tsrs, o único processo novo; não perfilei. O `oxlint --fix` que o hook do Claude Code roda no arquivo editado passou de 200 ms para 377 ms em `categorias.tsx`, mediana de 3 rodadas.
 
 ## Cercas de import
 
