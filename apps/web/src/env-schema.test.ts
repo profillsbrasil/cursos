@@ -8,6 +8,7 @@ const SCHEMA = await readFile(join(import.meta.dir, "../.env.schema"), "utf8");
 function decoradores(chave: string) {
   const linhas = SCHEMA.split("\n");
   const i = linhas.findIndex((l) => l.startsWith(`${chave}=`));
+
   return i > 0 ? (linhas[i - 1] ?? "") : "";
 }
 

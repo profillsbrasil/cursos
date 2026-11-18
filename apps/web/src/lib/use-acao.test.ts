@@ -48,6 +48,7 @@ async function rodar<T>(fazer: () => Promise<T>, opcoes: OpcoesDaAcao<T>) {
       },
     }
   );
+
   return feito;
 }
 
@@ -81,9 +82,11 @@ describe("rodarAcao", () => {
       erroDoServidor("BAD_REQUEST", "Invalid input", false),
       new Error("Failed to fetch"),
     ];
+
     const toasts = await Promise.all(
       semMarca.map(async (e) => (await rodar(() => Promise.reject(e), {}))[0])
     );
+
     expect(toasts).toEqual([GENERICO, GENERICO, GENERICO]);
     expect(
       await rodar(() => Promise.reject(semMarca[0]), {
@@ -99,6 +102,7 @@ describe("rodarAcao", () => {
       true,
       "versao_mudou"
     );
+
     const motivos: unknown[] = [];
     expect(
       await rodar(() => Promise.reject(recusa), {
@@ -143,6 +147,7 @@ describe("rodarAcao", () => {
       true,
       "versao_mudou"
     );
+
     const motivos: unknown[] = [];
     expect(
       await rodar(() => Promise.reject(recusa), {
@@ -156,6 +161,7 @@ describe("rodarAcao", () => {
 
   test("erro de rede não recarrega e chega sem motivo", async () => {
     const motivos: unknown[] = [];
+
     const feitos = await Promise.all(
       [erroDeRede(), new Error("Failed to fetch")].map((e) =>
         rodar(() => Promise.reject(e), {
@@ -165,6 +171,7 @@ describe("rodarAcao", () => {
         })
       )
     );
+
     expect(feitos).toEqual([[GENERICO], [GENERICO]]);
     expect(motivos).toEqual([null, null]);
   });
@@ -186,8 +193,10 @@ describe("useAcao é o caminho das mutações que a pessoa dispara", () => {
       .filter((arquivo) => !(arquivo in FORA_DO_USE_ACAO))
       .filter((arquivo) => {
         const texto = readFileSync(join(SRC, arquivo), "utf8");
+
         return MUTACAO.test(texto) && !texto.includes("useAcao(");
       });
+
     expect(fora).toEqual([]);
   });
 });

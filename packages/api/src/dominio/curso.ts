@@ -38,7 +38,9 @@ export function niveis(
     const aulas = curso.modulos
       .filter((m) => m.nivelOrdem === n.ordem)
       .flatMap((m) => m.aulas);
+
     const feitas = aulas.filter((a) => assistidas.has(a.id)).length;
+
     return {
       ...n,
       feitas,
@@ -46,6 +48,7 @@ export function niveis(
       total: aulas.length,
     };
   });
+
   // Nível sem aulas nunca é obtido, então não pode ser o próximo.
   return {
     faixas,

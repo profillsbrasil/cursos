@@ -13,9 +13,11 @@ const em = (iso: string) => new Date(iso);
 function linha(): CursoLinha {
   const base = cursoLinha("envase", { aulas: [2, 1], primeiroNumero: 1 });
   const [m1, m2] = base.modulos;
+
   if (!(m1 && m2)) {
     throw new Error("o exemplo tem dois módulos");
   }
+
   return {
     ...base,
     categoria: { nome: "Processo de envase" },
@@ -50,6 +52,7 @@ const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
     posicoes: o.posicoes ?? [],
     questionarios: o.questionarios ?? [],
   });
+
   return aberto && montarPaginaDoCurso(aberto, [], 0);
 };
 
@@ -128,9 +131,11 @@ describe("montarPaginaDoCurso", () => {
   test("com níveis, cada módulo leva o dele e o próximo é o primeiro ainda por terminar", () => {
     const base = linha();
     const [m1, m2] = base.modulos;
+
     if (!(m1 && m2)) {
       throw new Error("o exemplo tem dois módulos");
     }
+
     const aberto = montarCursoAberto({
       assistidas: [A1, A2].map(assistida),
       certificados: [],
@@ -151,6 +156,7 @@ describe("montarPaginaDoCurso", () => {
       posicoes: [],
       questionarios: [],
     });
+
     const p = aberto && montarPaginaDoCurso(aberto, [], 0);
     expect({
       modulos: p?.modulos.map((m) => [m.numero, m.nivel]),
@@ -190,6 +196,7 @@ describe("montarPaginaDoCurso", () => {
         },
       ],
     });
+
     expect([p?.estado.tipo, p?.acao]).toEqual([
       "em_andamento",
       {
@@ -204,6 +211,7 @@ describe("montarPaginaDoCurso", () => {
 
   test("com todas as aulas assistidas e questionário por aprovar, a ação leva ao questionário reprovado, e cada aula diz o dela", () => {
     const base = linha();
+
     const comPerguntas: CursoLinha = {
       ...base,
       modulos: base.modulos.map((m) => ({
@@ -211,6 +219,7 @@ describe("montarPaginaDoCurso", () => {
         aulas: m.aulas.map((a) => ({ ...a, perguntas: a.id === A1 ? 0 : 3 })),
       })),
     };
+
     const tentativa = (aulaId: string, aprovada: boolean, acertos: number) => ({
       aprovada,
       aulaId,
@@ -219,6 +228,7 @@ describe("montarPaginaDoCurso", () => {
       ultimosAcertos: acertos,
       ultimoTotal: 3,
     });
+
     const aberto = montarCursoAberto({
       assistidas: [A1, A2, B1].map(assistida),
       certificados: [],
@@ -231,6 +241,7 @@ describe("montarPaginaDoCurso", () => {
       posicoes: [],
       questionarios: [tentativa(B1, false, 2)],
     });
+
     const p = aberto && montarPaginaDoCurso(aberto, [], 0);
     expect([p?.estado, p?.acao]).toEqual([
       { aprovados: 0, proximaAula: B1, tipo: "questionarios", total: 2 },
@@ -263,6 +274,7 @@ describe("montarPaginaDoCurso", () => {
         },
       ],
     });
+
     expect([p?.estado.tipo, p?.acao]).toEqual([
       "concluido",
       { aulaId: A1, href: `/cursos/envase/aulas/${A1}`, tipo: "rever" },
@@ -272,9 +284,11 @@ describe("montarPaginaDoCurso", () => {
   test("com certificado e um módulo vazio na frente, rever leva à primeira aula que existe", () => {
     const base = linha();
     const [m1] = base.modulos;
+
     if (!m1) {
       throw new Error("o exemplo tem dois módulos");
     }
+
     const aberto = montarCursoAberto({
       assistidas: [A1, A2, B1].map(assistida),
       certificados: [
@@ -294,6 +308,7 @@ describe("montarPaginaDoCurso", () => {
       posicoes: [],
       questionarios: [],
     });
+
     expect(aberto && montarPaginaDoCurso(aberto, [], 0).acao).toEqual({
       aulaId: A1,
       href: `/cursos/envase/aulas/${A1}`,
@@ -305,6 +320,7 @@ describe("montarPaginaDoCurso", () => {
 describe("montarPaginaDoCurso na amostra", () => {
   const amostra = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
     const base = linha();
+
     const visto = montarCursoVisto({
       assistidas: o.assistidas ?? [],
       certificados: [],
@@ -321,6 +337,7 @@ describe("montarPaginaDoCurso na amostra", () => {
       posicoes: o.posicoes ?? [],
       questionarios: [],
     });
+
     return visto && montarPaginaDoCurso(visto, [], 120);
   };
 
@@ -351,6 +368,7 @@ describe("montarPaginaDoCurso na amostra", () => {
         },
       ],
     });
+
     expect(p?.acao).toMatchObject({
       aulaId: A1,
       posicaoSeg: 30,

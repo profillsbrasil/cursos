@@ -38,12 +38,15 @@ const alvoDoHook = (arquivo: unknown) => {
   if (typeof arquivo !== "string") {
     return;
   }
+
   const absoluto = resolve(raiz, arquivo);
   const relativo = relative(raiz, absoluto);
+
   const foraDoProjeto =
     relativo === ".." ||
     relativo.startsWith(`..${sep}`) ||
     isAbsolute(relativo);
+
   if (
     foraDoProjeto ||
     !EXTENSOES_DO_OXFMT.has(extname(absoluto)) ||
@@ -51,6 +54,7 @@ const alvoDoHook = (arquivo: unknown) => {
   ) {
     return;
   }
+
   return absoluto;
 };
 
@@ -60,11 +64,13 @@ const raizDoArquivo = (arquivo: string) => {
     ["-C", dirname(arquivo), "rev-parse", "--show-toplevel"],
     { encoding: "utf8" }
   );
+
   return git.status === 0 ? git.stdout.trim() : raiz;
 };
 
 const binario = (base: string, nome: string) => {
   const local = join(base, "node_modules/.bin", nome);
+
   return existsSync(local) ? local : join(raiz, "node_modules/.bin", nome);
 };
 
@@ -79,17 +85,21 @@ const alvo = alvoDoHook(evento.tool_input?.file_path);
 
 if (alvo) {
   const base = raizDoArquivo(alvo);
+
   const oxfmt = rodar(base, "oxfmt", [
     "--write",
     "--no-error-on-unmatched-pattern",
     alvo,
   ]);
+
   const oxlint = EXTENSOES_DO_OXLINT.has(extname(alvo))
     ? rodar(base, "oxlint", ["--fix", "--no-error-on-unmatched-pattern", alvo])
     : null;
+
   const falhas = [oxfmt, oxlint].filter(
     (processo) => processo !== null && processo.status !== 0
   );
+
   // Em PostToolUse, exit 1 só mostra um aviso ao user, e o modelo não lê o
   // stderr. O additionalContext chega ao modelo junto do resultado da tool.
   if (falhas.length === 0) {
@@ -99,6 +109,7 @@ if (alvo) {
       .map((processo) => `${processo?.stdout}${processo?.stderr}`)
       .join("\n")
       .trim();
+
     process.stdout.write(
       JSON.stringify({
         hookSpecificOutput: {

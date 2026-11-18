@@ -16,14 +16,18 @@ const ENTRE_FAIXAS = /,(?=\[)/;
  */
 export function lerMultirange(texto: string): FaixaSeg[] {
   const miolo = texto.trim().replace(CHAVES, "");
+
   if (miolo === "") {
     return [];
   }
+
   return miolo.split(ENTRE_FAIXAS).map((parte) => {
     const m = FAIXA.exec(parte);
+
     if (!m) {
       throw new Error(`int4multirange fora do formato: ${texto}`);
     }
+
     return { fim: Number(m[2]), inicio: Number(m[1]) };
   });
 }

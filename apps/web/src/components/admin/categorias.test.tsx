@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -18,8 +19,10 @@ mock.module("next/navigation", () => ({
 const { Categorias } = await import("./categorias");
 
 const TAG = /<[^>]+>/g;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
+
 const LINHA = /<li[^>]*>.*?<\/li>/g;
 const BOTAO = /<button[^>]*>.*?<\/button>/g;
 const DESCRITO_POR = /aria-describedby="([^"]+)"/;
@@ -29,6 +32,7 @@ const EM_USO: CategoriaNaLista = {
   id: "00000000-0000-4000-8000-000000000001" as CategoriaId,
   nome: "Vendas e negócios",
 };
+
 const LIVRE: CategoriaNaLista = {
   cursos: [],
   id: "00000000-0000-4000-8000-000000000002" as CategoriaId,
@@ -43,9 +47,11 @@ const apagarDe = (linha: string) =>
 
 function descricaoDe(botao: string) {
   const alvo = DESCRITO_POR.exec(botao)?.[1];
+
   const elemento = alvo
     ? new RegExp(`<[^>]*id="${alvo}"[^>]*>(.*?)</`).exec(tela)?.[1]
     : undefined;
+
   return elemento ? texto(elemento) : null;
 }
 

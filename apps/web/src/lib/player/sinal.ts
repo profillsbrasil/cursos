@@ -6,6 +6,7 @@ export type Agendar = (fn: () => void, ms: number) => () => void;
 
 export const agendarNoNavegador: Agendar = (fn, ms) => {
   const id = setTimeout(fn, ms);
+
   return () => clearTimeout(id);
 };
 
@@ -14,12 +15,15 @@ export function criarSinal(agendar: Agendar, ms: number) {
   let aceso = false;
   let apagar: (() => void) | null = null;
   const ouvintes = new Set<() => void>();
+
   const mudar = (valor: boolean) => {
     aceso = valor;
+
     for (const ouvir of ouvintes) {
       ouvir();
     }
   };
+
   return {
     acender() {
       apagar?.();
@@ -32,6 +36,7 @@ export function criarSinal(agendar: Agendar, ms: number) {
     aceso: () => aceso,
     assinar: (ouvir: () => void) => {
       ouvintes.add(ouvir);
+
       return () => {
         ouvintes.delete(ouvir);
       };

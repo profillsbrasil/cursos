@@ -37,6 +37,7 @@ function FormularioDaSenha({
   const { executar, pendente } = useAcaoDaConta();
   const [sairDosOutros, setSairDosOutros] = useState(true);
   const trocando = user.passwordEnabled;
+
   const salvar = useCallback(
     (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -58,6 +59,7 @@ function FormularioDaSenha({
     },
     [executar, fechar, sairDosOutros, trocando, user]
   );
+
   return (
     <form className="grid gap-3" onSubmit={salvar}>
       {trocando ? (
@@ -127,6 +129,7 @@ export function SecaoDaSenha({ user }: { user: Usuario }) {
   const temSenha = user.passwordEnabled;
   const fechar = useCallback(() => setAberto(false), []);
   const abrir = useCallback(() => setAberto(true), []);
+
   return (
     <section aria-labelledby={id} className={CARTAO}>
       <header className={CABECALHO_DO_CARTAO}>

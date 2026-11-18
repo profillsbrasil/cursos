@@ -14,7 +14,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { UM_GERAL, VARIOS } from "./exemplo-de-teste";
 import { TelaDeComunicados } from "./tela-de-comunicados";
 
@@ -39,6 +39,7 @@ const TELAS = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(TELAS).flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -120,9 +121,11 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Comunicados medida", () => {
     );
     expect(m.lado.esquerda).toBeGreaterThanOrEqual(m.titulo.direita + 28);
     expect(m.dias).toHaveLength(3);
+
     for (const d of m.dias) {
       expect(d.largura).toBe(64);
     }
+
     expect(m.rolaDeLado).toBe(false);
   });
 
@@ -135,12 +138,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Comunicados medida", () => {
       m.cartao.esquerda,
       m.cartao.largura,
     ]);
+
     for (const d of m.dias) {
       expect(d.largura).toBe(44);
     }
+
     for (const l of m.linhas) {
       expect(l.direita).toBeLessThanOrEqual(390);
     }
+
     expect(m.rolaDeLado).toBe(false);
   });
 

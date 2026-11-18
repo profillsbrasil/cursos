@@ -30,6 +30,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
   const DONA = `user_dona${S}`;
   const CLIENTE = `user_cliente${S}`;
   const cursos: string[] = [];
+
   const admin = createCaller(
     contextoDeTeste({
       db,
@@ -44,6 +45,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
 
   async function criarCurso() {
     const slug = `teste-${randomBytes(4).toString("hex")}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -58,20 +60,25 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 0, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     await db.insert(aula).values({
       duracaoSeg: 60,
       moduloId: m?.id ?? "",
       posicao: 1,
       titulo: "Aula",
     });
+
     return c.id as CursoId;
   }
 
@@ -79,29 +86,35 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, [DONA, CLIENTE]));
+
     if (cursos.length > 0) {
       await db
         .delete(liberacaoDoPerfil)
         .where(inArray(liberacaoDoPerfil.cursoId, cursos));
       await db.delete(curso).where(inArray(curso.id, cursos));
     }
+
     await db.$client.end();
   });
 
   test("a aba Por perfil mostra a liberação de cada perfil, e liberar e revogar mudam a grade", async () => {
     const id = await criarCurso();
+
     const naGrade = async () =>
       (await admin.admin.perfis.grade()).cursos.find((c) => c.id === id)
         ?.liberacoes;
+
     expect(await naGrade()).toEqual({
       cliente: null,
       funcionario: null,
       publico: null,
     });
+
     const { id: liberacao } = await admin.admin.perfis.liberar({
       cursoId: id,
       perfil: "cliente",
     });
+
     expect((await naGrade())?.cliente).toBe(liberacao);
     expect(await admin.admin.perfis.revogar({ id: liberacao })).toEqual({
       revogada: true,
@@ -112,9 +125,11 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
   test("a busca e a tela de acesso contam o curso que a pessoa vê pelo perfil", async () => {
     const id = await criarCurso();
     await definirPerfil(db, DONA as AdminId, CLIENTE, "cliente", AGORA);
+
     const situacao = async () =>
       (await admin.admin.liberacoes.buscar({ termo: `Cliente ${S}` }))
         .pessoas[0]?.situacao.tipo;
+
     expect(await situacao()).toBe("sem_liberacao");
 
     await admin.admin.perfis.liberar({ cursoId: id, perfil: "cliente" });

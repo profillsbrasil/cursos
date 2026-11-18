@@ -3,7 +3,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    "./schema/comum": "./src/schema/comum.ts",
+    "./schema/formatos": "./src/schema/formatos.ts",
+    "./schema/index": "./src/schema/index.ts",
+    "./seed/dados": "./src/seed/dados.ts",
+    "./seed/guarda-local": "./src/seed/guarda-local.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

@@ -16,6 +16,7 @@ export default async function LayoutDoAdmin({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   await exigirAdmin();
+
   return (
     <ProvedorDoClerk>
       <Casca

@@ -14,8 +14,10 @@ import { TrocaDaAmostra } from "./troca-da-amostra";
 
 export const GRADE_DO_CURSO =
   "grid items-start gap-x-9 gap-y-10 min-[1081px]:grid-cols-[minmax(0,1fr)_300px]";
+
 export const LUGAR_DO_CARTAO =
   "min-[1081px]:sticky min-[1081px]:top-6 min-[1081px]:col-start-2 min-[1081px]:row-span-2 min-[1081px]:row-start-1";
+
 export const LUGAR_DO_RESTO = "grid min-w-0 content-start gap-10";
 
 // O "·" mora à esquerda de cada parte. A parte que abre uma linha o põe na margem negativa, que o overflow esconde.
@@ -31,6 +33,7 @@ export function TelaDoCurso({
 }) {
   const [lead, ...sobre] = paragrafos(pagina.descricao);
   const [primeira, ...resto] = resumoDoCurso(pagina);
+
   return (
     <div className={GRADE_DO_CURSO}>
       <header className="grid min-w-0 gap-3.5">

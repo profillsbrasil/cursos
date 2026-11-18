@@ -73,10 +73,13 @@ const EXTENSAO = /\.([A-Za-z0-9]+)$/;
 /** O tipo pela extensão do nome, sem diferença de caixa; null fora da lista. */
 export function tipoDoNome(nome: string): TipoDoMaterial | null {
   const ext = EXTENSAO.exec(nome.trim())?.[1]?.toLowerCase();
+
   if (ext === undefined) {
     return null;
   }
+
   const tipo = SINONIMOS[ext] ?? ext;
+
   return (TIPO_DO_MATERIAL as readonly string[]).includes(tipo)
     ? (tipo as TipoDoMaterial)
     : null;
@@ -106,9 +109,11 @@ export type RecusaDoMaterial =
   | { tipo: "desligado" };
 
 const MEGA = 1024 * 1024;
+
 const UM_DECIMAL = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 1,
 });
+
 const INTEIRO = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 
 /** "86 KB", "1,2 MB", "61,6 MB". */
@@ -116,6 +121,7 @@ export function tamanhoDoArquivo(bytes: number): string {
   if (bytes < MEGA) {
     return `${INTEIRO.format(Math.max(1, Math.round(bytes / 1024)))} KB`;
   }
+
   return `${UM_DECIMAL.format(bytes / MEGA)} MB`;
 }
 
@@ -153,19 +159,24 @@ export function recusaAntesDeLer(
   if (tipoDoNome(nome) === null) {
     return { tipo: "formato" };
   }
+
   if (bytes === 0) {
     return { tipo: "vazio" };
   }
+
   return bytes > LIMITE_DO_MATERIAL.bytes ? { bytes, tipo: "pesado" } : null;
 }
 
 /** O nome guardado: aparado e, acima do teto, cortado antes da extensão. */
 export function nomeGuardado(nome: string): string {
   const aparado = nome.trim();
+
   if (aparado.length <= LIMITE_DO_MATERIAL.nomeDoArquivo) {
     return aparado;
   }
+
   const ext = EXTENSAO.exec(aparado)?.[0] ?? "";
+
   return (
     aparado.slice(0, LIMITE_DO_MATERIAL.nomeDoArquivo - ext.length).trimEnd() +
     ext
@@ -178,12 +189,14 @@ const ESPACOS = /\s+/g;
 /** "checklist-setup_ev400.pdf" vira "checklist setup ev400". */
 export function tituloSugerido(nome: string): string {
   const semExtensao = nome.trim().replace(EXTENSAO, "");
+
   const titulo = semExtensao
     .replace(SEPARADORES, " ")
     .replace(ESPACOS, " ")
     .trim()
     .slice(0, LIMITE_DO_MATERIAL.titulo)
     .trim();
+
   return titulo || "Material de apoio";
 }
 
@@ -215,10 +228,12 @@ const CAMPO_DO_ARQUIVO = "arquivo";
 export function formularioDoMaterial(arquivo: File): FormData {
   const fd = new FormData();
   fd.set(CAMPO_DO_ARQUIVO, arquivo);
+
   return fd;
 }
 
 export function arquivoDoFormulario(fd: FormData): File | null {
   const arquivo = fd.get(CAMPO_DO_ARQUIVO);
+
   return arquivo instanceof File ? arquivo : null;
 }

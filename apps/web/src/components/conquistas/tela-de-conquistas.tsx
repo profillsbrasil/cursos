@@ -64,6 +64,7 @@ import {
 } from "./textos";
 
 type Cor = "sol" | "ceu" | "canela";
+
 type Figura = Marco["tipo"] | TipoDaGrade | "certificado";
 
 /**
@@ -111,6 +112,7 @@ function Medalha({
   tamanho: keyof typeof TAMANHO;
 }) {
   const { cor, icone: Icone } = APARENCIA[figura];
+
   return (
     <span
       aria-hidden="true"
@@ -175,11 +177,14 @@ function TrilhaDeAulas({
 }) {
   const { degraus, feitas } = trilhaDeAulas(marcos);
   const [verso, segundoVerso] = tituloDaTrilha(feitas, degraus);
+
   const p = pontoNaTrilha(
     feitas,
     degraus.map((d) => d.meta)
   );
+
   const ponto = cssDoPonto(p);
+
   return (
     <div
       className={cn(CARTAO, "grid gap-[22px] p-[clamp(22px,3.4vw,36px)]")}
@@ -225,6 +230,7 @@ function TrilhaDeAulas({
         <ol className="relative grid grid-cols-3">
           {degraus.map((d) => {
             const legenda = legendaDoDegrau(d, degraus, feitas, hoje);
+
             return (
               <li
                 className="grid content-start justify-items-end gap-2.5 text-right"
@@ -282,6 +288,7 @@ function SeteDiasSeguidos({
   marco: MarcoDo<"sequencia">;
 }) {
   const m = marco.medalha;
+
   if (m.estado === "ganha") {
     return (
       <div className={FAIXA} data-sequencia="ganha">
@@ -300,12 +307,14 @@ function SeteDiasSeguidos({
       </div>
     );
   }
+
   const dias = diasDaSequencia({
     dias: m.dias,
     hoje,
     hojePendente: m.hojePendente,
     meta: m.meta,
   });
+
   return (
     <div className={FAIXA} data-sequencia="por_ganhar">
       <TextoDaFaixa frase={fraseDaSequencia(m.dias, m.hojePendente, m.meta)} />
@@ -358,6 +367,7 @@ function SeteDiasSeguidos({
 }
 
 type Ganha = Extract<LinhaDaGrade, { estado: "ganha" }>;
+
 type PorGanhar = Extract<LinhaDaGrade, { estado: "por_ganhar" }>;
 
 /** A fila das ganhas da grade: a medalha de 40 px, o nome e a data curta. */
@@ -407,6 +417,7 @@ function CartaoDasGanhas({
  */
 export const GRADE_DAS_MEDALHAS =
   "grid gap-3.5 @min-[480px]:grid-cols-2 @min-[760px]:grid-cols-3";
+
 export const DESTAQUE_DA_GRADE = "@min-[480px]:col-span-2";
 
 function CartaoPorGanhar({
@@ -455,6 +466,7 @@ function GradeDasMedalhas({ porGanhar }: { porGanhar: readonly PorGanhar[] }) {
   if (porGanhar.length === 0) {
     return null;
   }
+
   return (
     <ol aria-label="Medalhas por ganhar" className={GRADE_DAS_MEDALHAS}>
       {porGanhar.map((l, i) => (
@@ -472,6 +484,7 @@ function Lacre({ certificado: c }: { certificado: CertificadoNaTela }) {
       <Medalha className={LACRE} figura="certificado" ganha tamanho={56} />
     );
   }
+
   if (c.feitas === 0) {
     return (
       <Medalha
@@ -482,6 +495,7 @@ function Lacre({ certificado: c }: { certificado: CertificadoNaTela }) {
       />
     );
   }
+
   return (
     <span
       aria-hidden="true"
@@ -506,6 +520,7 @@ function CartaoDoCertificado({
   hoje: string;
 }) {
   const apagada = c.estado === "por_ganhar" && c.feitas === 0;
+
   return (
     <li className="grid">
       <Link
@@ -582,6 +597,7 @@ function GradeDeCertificados({
   hoje: string;
 }) {
   const colunas = colunasDosCertificados(certificados.length);
+
   return (
     <ol
       className={cn(
@@ -613,9 +629,11 @@ export function CabecalhoDasConquistas({
 export function TelaDeConquistas({ conquistas }: { conquistas: Conquistas }) {
   const { certificados, hoje, marcos, medalhas } = conquistas;
   const grade = gradeDasMedalhas(medalhas);
+
   const sequencia = marcos.find(
     (m): m is MarcoDo<"sequencia"> => m.tipo === "sequencia"
   );
+
   return (
     <>
       <CabecalhoDasConquistas contagem={contagemDasMedalhas(conquistas)} />

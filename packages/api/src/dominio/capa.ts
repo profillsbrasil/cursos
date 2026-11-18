@@ -36,11 +36,14 @@ export function recusaDaMedida(
   if (altura < 1) {
     return { tipo: "formato" };
   }
+
   if (largura < LIMITE_DA_CAPA.larguraMinima) {
     return { larguraMinima: LIMITE_DA_CAPA.larguraMinima, tipo: "estreita" };
   }
+
   if (Math.max(largura, altura) > LIMITE_DA_CAPA.ladoMaximo) {
     return { ladoMaximo: LIMITE_DA_CAPA.ladoMaximo, tipo: "enorme" };
   }
+
   return null;
 }

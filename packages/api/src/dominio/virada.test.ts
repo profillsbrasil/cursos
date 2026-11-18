@@ -78,6 +78,7 @@ describe("planejarVirada", () => {
       pessoa({
         posicoes: [{ atualizadaEm: AGORA, aulaId: "c1-a2", posicaoSeg }],
       });
+
     expect(planejarVirada(posicao(30)).trocas).toHaveLength(1);
     expect(planejarVirada(posicao(0)).trocas).toEqual([]);
   });
@@ -102,6 +103,7 @@ describe("planejarVirada", () => {
       ...assistiu("c1-a1"),
       liberacoes: [doPerfil("c1"), { ...doPerfil("c1"), origem: "troca" }],
     });
+
     expect(planejarVirada(p).trocas).toEqual([]);
     expect(planejarVirada(p).pulados).toEqual([]);
   });
@@ -114,6 +116,7 @@ describe("planejarVirada", () => {
         { ...doPerfil("c1"), origem: "admin", revogadaEm: AGORA },
       ],
     });
+
     expect(planejarVirada(p).trocas).toHaveLength(1);
   });
 
@@ -132,6 +135,7 @@ describe("planejarVirada", () => {
       ...assistiu("c1-a1"),
       cursos: [cursoDaBusca("c1", { status: "em_producao" })],
     });
+
     expect(planejarVirada(p).pulados).toEqual([
       {
         cursoId: "c1" as CursoId,
@@ -153,6 +157,7 @@ describe("planejarVirada", () => {
       ]),
       saldo: 100,
     });
+
     const plano = planejarVirada(p);
     expect(plano.trocas.map((t) => t.cursoId)).toEqual([
       "c2" as CursoId,

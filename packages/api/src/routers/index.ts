@@ -19,6 +19,7 @@ export const appRouter = router({
   questionario: questionarioRouter,
   troca: trocaRouter,
 });
+
 export type AppRouter = typeof appRouter;
 
 export const createCaller = t.createCallerFactory(appRouter);

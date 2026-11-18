@@ -49,11 +49,14 @@ export async function perguntasDaAula(
       },
     },
   });
+
   return perguntas.map((p) => {
     const certa = p.alternativas.find((a) => a.certa);
+
     if (!certa) {
       throw new Error(`Pergunta ${p.id} sem alternativa certa.`);
     }
+
     return {
       alternativas: p.alternativas.map((a) => ({
         id: a.id as AlternativaId,
@@ -96,6 +99,7 @@ export async function linhasDoQuestionario(
 ): Promise<LinhasDoQuestionario> {
   const perguntas = await perguntasDaAula(exec, aulaId);
   const tentativas = await tentativasDaAula(exec, userId, aulaId);
+
   return { perguntas, tentativas };
 }
 
@@ -129,6 +133,7 @@ async function tentativaPorId(aluno: AlunoTravado, id: TentativaId) {
         eq(questionarioTentativa.userId, aluno.userId)
       )
     );
+
   return t ?? null;
 }
 
@@ -155,9 +160,11 @@ async function gravarTentativa(
     })
     .onConflictDoNothing({ target: questionarioTentativa.id })
     .returning({ id: questionarioTentativa.id });
+
   if (!gravada) {
     throw new ErroParaAPessoa({ code: "CONFLICT", message: TENTATIVA_EM_USO });
   }
+
   await aluno.tx.insert(questionarioResposta).values(
     tentativa.respostas.map((r) => ({
       alternativaId: r.alternativaId,
@@ -167,6 +174,7 @@ async function gravarTentativa(
     }))
   );
   const pontos = pontosDaTentativa(tentativa.numero, tentativa.acertos);
+
   if (pontos > 0) {
     await aluno.tx
       .insert(pontoLancamento)
@@ -194,27 +202,33 @@ async function abrirQuestionario(
       { serial: true }
     )
   );
+
   const aula = aberto && abreAAula(aberto, aulaId) && aulaPorId(aberto, aulaId);
+
   if (!(aberto && aula)) {
     throw erroSemAcesso();
   }
+
   if (aberto.amostra) {
     throw new ErroParaAPessoa({
       code: "PRECONDITION_FAILED",
       message: "A amostra não tem questionário. Troque o curso para responder.",
     });
   }
+
   const { perguntas, tentativas } = await linhasDoQuestionario(
     aluno.tx,
     aluno.userId,
     aulaId
   );
+
   if (perguntas.length === 0) {
     throw new ErroParaAPessoa({
       code: "PRECONDITION_FAILED",
       message: "Esta aula não tem questionário.",
     });
   }
+
   return { cursoId: aberto.curso.id, perguntas, tentativas };
 }
 
@@ -230,16 +244,20 @@ async function resultadoGravado(
 ): Promise<ResultadoDoQuestionario | null> {
   const [primeira] = tentativas;
   const ultima = tentativas.at(-1);
+
   if (!(primeira && ultima)) {
     return null;
   }
+
   const repetida = await tentativaPorId(aluno, envio.tentativaId);
+
   if (repetida && repetida.aulaId !== envio.aulaId) {
     throw new ErroParaAPessoa({
       code: "CONFLICT",
       message: "Esta tentativa é de outra aula.",
     });
   }
+
   return repetida || ultima.aprovada
     ? resultadoDaTentativa(perguntas, ultima, primeira)
     : null;
@@ -273,14 +291,19 @@ export function responder(
       perfil,
       envio.aulaId
     );
+
     const gravado = await resultadoGravado(aluno, envio, perguntas, tentativas);
+
     if (gravado) {
       return { cursoConcluido: null, resultado: gravado };
     }
+
     const correcao = corrigir(perguntas, envio.respostas);
+
     if (correcao.tipo === "incompleta") {
       throw erroIncompleto(correcao.faltam);
     }
+
     const tentativa: TentativaGravada = {
       acertos: correcao.acertos,
       aprovada: correcao.aprovada,
@@ -288,10 +311,13 @@ export function responder(
       respostas: correcao.respostas,
       total: correcao.total,
     };
+
     await gravarTentativa(aluno, envio, tentativa, agora);
+
     const cursoConcluido = tentativa.aprovada
       ? await concluirCurso(aluno, cursoId, agora)
       : null;
+
     return {
       cursoConcluido,
       resultado: resultadoDaTentativa(

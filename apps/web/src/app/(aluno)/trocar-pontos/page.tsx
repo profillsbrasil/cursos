@@ -13,6 +13,7 @@ export default async function TrocarPontos() {
     carregarPainelDeTroca(),
     carregarPainel(),
   ]);
+
   return (
     <>
       <CabecalhoDaTroca />

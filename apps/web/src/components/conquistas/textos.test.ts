@@ -15,6 +15,7 @@ import {
 /** A frase curta e a do destaque de uma medalha por ganhar. */
 const frase = (m: MedalhaDaGrade) => {
   const l = linhaDaGrade(m);
+
   return l.estado === "por_ganhar" ? [l.falta, l.detalhe] : null;
 };
 
@@ -25,6 +26,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         medalha: { estado: "por_ganhar", pct: 0, proxima },
         tipo: "primeira_aula",
       } as MedalhaDaGrade)?.[0];
+
     expect(aula({ aula: "Aula 1", curso: "Curso", tipo: "comecar" })).toBe(
       "Comece por Aula 1, em Curso."
     );
@@ -45,6 +47,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         },
         tipo: "primeira_troca",
       });
+
     expect(troca(200)).toEqual([
       "O curso mais barato custa 200 pts.",
       "Cada aula vale 10 pts.",
@@ -62,6 +65,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         },
         tipo: "primeiro_curso",
       })?.[0];
+
     expect(curso(0)).toBe("Fábrica tem 7 aulas.");
     expect(curso(5)).toBe("Faltam 2 aulas em Fábrica.");
     expect(curso(6)).toBe("Falta 1 aula em Fábrica.");
@@ -74,6 +78,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         medalha: { estado: "por_ganhar", feitas, pct: 0, total: 3 },
         tipo,
       })?.[0];
+
     expect(conta("tres_trocas", 1)).toBe("Faltam 2 trocas.");
     expect(conta("tres_trocas", 2)).toBe("Falta 1 troca.");
     expect(conta("tres_cursos", 0)).toBe("Faltam 3 cursos.");
@@ -92,6 +97,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         },
         tipo: "amostra_e_troca",
       })?.[0];
+
     expect(amostra(null)).toBe(
       "Faltam 2 passos: ver uma amostra e trocar o curso."
     );
@@ -106,6 +112,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         medalha: { estado: "por_ganhar", maisAdiantado, pct: 0 },
         tipo: "troca_ate_o_fim",
       } as MedalhaDaGrade)?.[0];
+
     expect(fim({ curso: "Filmagem", feitas: 4, total: 10 })).toBe(
       "4 de 10 aulas de Filmagem."
     );
@@ -121,6 +128,7 @@ describe("o que falta em cada medalha por ganhar", () => {
         medalha: { estado: "por_ganhar", melhor, pct: 0 },
         tipo: "nota_cheia",
       })?.[0];
+
     expect(nota({ feitas: 4, total: 5 })).toBe(
       "Seu melhor de primeira foi 4 de 5."
     );
@@ -153,11 +161,13 @@ describe("a ordem da grade", () => {
 
   test("ganhas: pela data, e o empate pelo nome", () => {
     const ganha = (dia: string) => ({ dia: dia as DiaISO, estado: "ganha" });
+
     const medalhas = [
       { medalha: ganha("2026-10-02"), tipo: "tres_cursos" },
       { medalha: ganha("2026-10-01"), tipo: "primeira_troca" },
       { medalha: ganha("2026-10-01"), tipo: "primeira_aula" },
     ] as MedalhaDaGrade[];
+
     expect(gradeDasMedalhas(medalhas).ganhas.map((l) => l.nome)).toEqual([
       "Primeira aula",
       "Primeira troca",

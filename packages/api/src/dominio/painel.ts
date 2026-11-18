@@ -254,6 +254,7 @@ function cursoVM(
   amostra: AmostraNoPainel | null
 ): CursoVM {
   const aulas = c.modulos.flatMap((m) => m.aulas);
+
   return {
     amostra,
     aulas: aulas.length,
@@ -277,12 +278,14 @@ export function montarPainel(
   hoje: DiaISO
 ): PainelMeusCursos {
   const estudo = estudoDe(linhas);
+
   // O sort é estável, então o empate fica na ordem da liberação. A amostra vem
   // depois dos cursos da pessoa, na mesma grade.
   const telas = linhas.liberacoes
     .map(({ amostra, curso }) => {
       const c = paraCatalogo(curso);
       const aulaId = aulaDeAmostra(c);
+
       return {
         amostra: amostra && {
           aulaId,
@@ -299,10 +302,12 @@ export function montarPainel(
         ORDEM_DOS_CURSOS[a.leitura.estado.tipo] -
           ORDEM_DOS_CURSOS[b.leitura.estado.tipo]
     );
+
   // A retomada só leva ao curso inteiro: a aula da vez da amostra pode estar
   // fechada. O comunicado de um curso também só chega a quem o tem inteiro.
   const inteiros: CursoNaTela[] = telas.filter((x) => x.amostra === null);
   const acessiveis = new Set<string>(inteiros.map((x) => x.curso.id));
+
   const comunicado = linhas.comunicados.find(
     (c) => c.cursoId === null || acessiveis.has(c.cursoId)
   );
@@ -326,6 +331,7 @@ export function montarPainel(
 export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
   const dias = new Set(linhas.dias.map((d) => d.dia as DiaISO));
   const sequenciaDias = sequenciaDiasUteis(dias, hoje);
+
   return {
     bonus: PONTOS.sequencia_7_dias,
     dias: semana(dias, hoje),

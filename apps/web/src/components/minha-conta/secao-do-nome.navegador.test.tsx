@@ -8,8 +8,6 @@ import { join } from "node:path";
 
 import { build } from "bun";
 
-import { folhaDeExemplo } from "@/components/certificado/folha";
-
 import {
   abrirChromium,
   avaliar,
@@ -17,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "secao-do-nome.entrada.tsx");
 const CLERK = join(import.meta.dir, "clerk-falso.js");
@@ -26,11 +24,6 @@ const IMAGEM = join(import.meta.dir, "imagem-falsa.js");
 const CLERK_NEXTJS = /^@clerk\/nextjs$/;
 const SONNER_PACOTE = /^sonner$/;
 const NEXT_IMAGE = /^next\/image$/;
-
-const FOLHA = {
-  exemplo: true,
-  folha: folhaDeExemplo("https://cursos.profills.com.br"),
-};
 
 async function empacotar() {
   const pacote = await build({
@@ -41,7 +34,13 @@ async function empacotar() {
         import { ClerkAPIResponseError } from "@clerk/nextjs/errors";
         import { flushSync } from "react-dom";
         import { createRoot } from "react-dom/client";
+        import { folhaDeExemplo } from "../certificado/folha";
         import { SecaoDoNome } from "./secao-do-nome";
+
+        const FOLHA = {
+          exemplo: true,
+          folha: folhaDeExemplo("https://cursos.profills.com.br"),
+        };
 
         // O Clerk falso: grava o pedido e, com window.recusa, recusa como o Clerk recusa.
         window.pedidos = [];
@@ -51,7 +50,7 @@ async function empacotar() {
           flushSync(() =>
             raiz.render(
               <div className="@container">
-                <SecaoDoNome certificados={0} folha={${JSON.stringify(FOLHA)}} key={user.id} user={user} />
+                <SecaoDoNome certificados={0} folha={FOLHA} key={user.id} user={user} />
               </div>
             )
           );
@@ -102,10 +101,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote do cartão não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -136,6 +138,7 @@ async function estilizar() {
     enviar,
     `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`
   );
+
   const css = await cssDoApp(classes);
   await avaliar(
     enviar,
@@ -188,6 +191,7 @@ const RECUSA_DE_HTML = {
 };
 
 const FOTO_OU_ARQUIVO = /foto|file|arquivo/i;
+
 // O texto dentro de um controle repete o nome dele na árvore.
 const TEXTO_SOLTO = new Set(["InlineTextBox", "StaticText"]);
 
@@ -241,6 +245,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
 
   test("o nome salvo de 256 letras sem espaço quebra dentro do cartão e da folha", async () => {
     await abrir({ firstName: "A".repeat(256), lastName: "Quebra" });
+
     const m = await avaliar<Record<string, number>>(
       enviar,
       `(() => {
@@ -257,6 +262,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
         };
       })()`
     );
+
     expect(m.titulo).toBeLessThanOrEqual(m.coluna);
     expect(m.tituloRolagem).toBe(0);
     expect(m.nomeDaFolha).toBeLessThanOrEqual(m.folha);
@@ -295,6 +301,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
 
   test("sem mudança, o Salvar é o contorno desligado, focável, e diz que nada mudou", async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
+
     const salvarNome = () =>
       avaliar<{ desligado: boolean; fundo: string; motivo: string | null }>(
         enviar,
@@ -309,6 +316,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
           };
         })()`
       );
+
     await esperar(
       `getComputedStyle([...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome")).backgroundColor === "rgba(0, 0, 0, 0)"`
     );
@@ -352,6 +360,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
 
   test('o campo de arquivo da foto não aparece nem é anunciado ("No file chosen")', async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
+
     const { nodes } = (await enviar("Accessibility.getFullAXTree")) as {
       nodes: {
         ignored: boolean;
@@ -360,18 +369,22 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
         value?: { value: string };
       }[];
     };
+
     const anunciados = nodes
       .filter((n) => !(n.ignored || TEXTO_SOLTO.has(n.role?.value ?? "")))
       .map((n) =>
         [n.role?.value, n.name?.value, n.value?.value].filter(Boolean).join(" ")
       );
+
     expect(anunciados.filter((t) => FOTO_OU_ARQUIVO.test(t))).toEqual([
       "button Trocar foto",
     ]);
+
     const visivel = await avaliar<boolean>(
       enviar,
       `(() => { const r = document.querySelector('input[type="file"]').getBoundingClientRect(); return r.width > 1 && r.height > 1; })()`
     );
+
     expect(visivel).toBe(false);
   });
 

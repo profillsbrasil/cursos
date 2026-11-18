@@ -120,11 +120,13 @@ describe("pontos e resultado da tentativa", () => {
       tentativa: 1,
       total: 3,
     });
+
     const aprovada = resultadoDaTentativa(
       PERGUNTAS,
       gravada(2, [2, 4, 6], true),
       primeira
     );
+
     expect(aprovada).toMatchObject({
       aprovada: true,
       pontos: 0,
@@ -136,6 +138,7 @@ describe("pontos e resultado da tentativa", () => {
 
   test("as respostas saem na ordem das perguntas, sem a pergunta que o admin apagou", () => {
     const fora = { ...gravada(1, [2, 3, 5], false) };
+
     const embaralhada: TentativaGravada = {
       ...fora,
       respostas: [
@@ -143,6 +146,7 @@ describe("pontos e resultado da tentativa", () => {
         { alternativaId: "x", certa: true, perguntaId: "apagada" },
       ],
     };
+
     expect(
       resultadoDaTentativa(PERGUNTAS, embaralhada, embaralhada).respostas.map(
         (r) => r.perguntaId

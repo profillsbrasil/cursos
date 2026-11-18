@@ -16,10 +16,11 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "gaveta-e-conta.entrada.tsx");
 const FALSOS = join(import.meta.dir, "falsos-da-casca.js");
+
 const FALSO =
   /^(@clerk\/nextjs|next\/navigation|next\/headers|next\/link|next\/image)$/;
 
@@ -100,16 +101,20 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da casca não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return `window.process ??= { env: {} }; ${await saida.text()}`;
 }
 
 let enviar: Enviar;
 let pacote: string;
 let css: string;
+
 const servidor = serve({
   fetch: () =>
     new Response("<!doctype html><title>casca</title>", {
@@ -143,6 +148,7 @@ async function montar(
 }
 
 const CODIGOS: Record<string, number> = { Enter: 13, Escape: 27, Tab: 9 };
+
 async function tecla(key: string) {
   const comum = { code: key, key, windowsVirtualKeyCode: CODIGOS[key] };
   await enviar("Input.dispatchKeyEvent", {
@@ -240,6 +246,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     );
     await esperar(300);
     const menu = await retangulo('[data-slot="dropdown-menu-content"]');
+
     const divisorias = await avaliar<{ esquerda: number; largura: number }[]>(
       enviar,
       `[...document.querySelectorAll('[data-slot="dropdown-menu-separator"]')].map((d) => {
@@ -247,7 +254,9 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
         return { esquerda: r.left, largura: r.width };
       })`
     );
+
     expect(divisorias).toHaveLength(2);
+
     for (const d of divisorias) {
       expect(d).toEqual({ esquerda: menu.esquerda, largura: menu.largura });
     }
@@ -255,11 +264,13 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
 
   test("recolhida, o foco no cartão de conta acende o anel e abre a dica", async () => {
     await montar(1280, { aberta: false, caminho: "/meus-cursos" });
+
     const sombra = () =>
       avaliar<string>(
         enviar,
         `getComputedStyle(document.querySelector('[data-slot="sidebar-footer"] [data-slot="dropdown-menu-trigger"]')).boxShadow`
       );
+
     const repouso = await sombra();
     await avaliar(
       enviar,
@@ -297,12 +308,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
         enviar,
         `getComputedStyle(document.querySelector(${JSON.stringify(seletor)})).backgroundColor`
       );
+
     await montar(1280, { aberta: false, caminho: "/meus-cursos" });
     const comLink = await fundo('[aria-label^="Continuar"]');
     await montar(1280, { aberta: false, caminho: AULA });
+
     const aqui = await fundo(
       '[data-slot="sidebar-footer"] [aria-current="page"]'
     );
+
     expect(aqui).not.toBe(comLink);
   });
 });

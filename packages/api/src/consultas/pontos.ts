@@ -38,9 +38,11 @@ export async function linhasDoSaldo(
     })
     .from(pontoLancamento)
     .where(eq(pontoLancamento.userId, userId));
+
   if (!linha) {
     throw new Error("A soma sem group by não devolveu a linha.");
   }
+
   return linha;
 }
 
@@ -56,6 +58,7 @@ export function estudoPorDia(
   // O fuso entra como literal: com parâmetro, o select e o group by teriam $1 e
   // $2, e o Postgres não os reconhece como a mesma expressão.
   const dia = sql<string>`to_char(${pontoLancamento.criadoEm} at time zone ${sql.raw(`'${FUSO}'`)}, 'YYYY-MM-DD')`;
+
   return exec
     .select({ dia, pontos: sql<number>`sum(${pontoLancamento.pontos})::int` })
     .from(pontoLancamento)
@@ -77,6 +80,7 @@ export async function saldoDe(exec: Executor, userId: string): Promise<number> {
     })
     .from(pontoLancamento)
     .where(eq(pontoLancamento.userId, userId));
+
   return linha?.saldo ?? 0;
 }
 
@@ -91,6 +95,7 @@ export function saldosDe(
   if (userIds.length === 0) {
     return Promise.resolve([]);
   }
+
   return exec
     .select({
       saldo: sql<number>`sum(${pontoLancamento.pontos})::int`,
@@ -142,6 +147,7 @@ export function comSaldoTravado<T>(
 ): Promise<T> {
   return comAlunoTravado(db, userId, async (aluno) => {
     const { saldo } = await linhasDoSaldo(aluno.tx, aluno.userId, segunda);
+
     return await fn(aluno, saldo);
   });
 }

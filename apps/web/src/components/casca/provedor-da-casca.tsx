@@ -48,10 +48,12 @@ export function ProvedorDaCasca({
   const animar = useCallback(() => setAnimacao((n) => (n ?? 0) + 1), []);
 
   const seguinte = navegar(abertura, caminho);
+
   if (seguinte !== "mesmo_lugar") {
     if (estaAberta(seguinte) !== estaAberta(abertura)) {
       animar();
     }
+
     setAbertura(seguinte);
   }
 
@@ -59,7 +61,9 @@ export function ProvedorDaCasca({
     if (animacao === null) {
       return;
     }
+
     const id = window.setTimeout(() => setAnimacao(null), PRAZO_DA_ANIMACAO_MS);
+
     return () => window.clearTimeout(id);
   }, [animacao]);
 
@@ -100,12 +104,14 @@ function FecharGavetaAoNavegar() {
       setOpenMobile(false);
     }
   }, [caminho, setOpenMobile]);
+
   return null;
 }
 
 /** O modo da casca: a gaveta do celular, ou a sidebar recolhida no computador. */
 export function useModoDaCasca() {
   const { isMobile, state } = useSidebar();
+
   return {
     noCelular: isMobile,
     recolhida: state === "collapsed" && !isMobile,
@@ -120,17 +126,22 @@ export function useModoDaCasca() {
  */
 export function useAlternarNavegacao() {
   const animar = use(Animar);
+
   if (!animar) {
     throw new Error("useAlternarNavegacao fora do ProvedorDaCasca.");
   }
+
   const { setOpenMobile, toggleSidebar } = useSidebar();
+
   const alternarComAnimacao = useCallback(() => {
     animar();
     toggleSidebar();
   }, [animar, toggleSidebar]);
+
   const fecharNoCelular = useCallback(
     () => setOpenMobile(false),
     [setOpenMobile]
   );
+
   return { alternar: alternarComAnimacao, fecharNoCelular };
 }

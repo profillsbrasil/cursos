@@ -14,6 +14,7 @@ const BOTAO_DA_LEGENDA = /<button[^>]*aria-label="Legendas"[^>]*>/;
 const CLASSE = /class="([^"]*)"/;
 const POLEGAR = /data-slot="slider-thumb"/g;
 const PRESSIONADO = /aria-pressed="([^"]*)"/;
+
 const ABRE_OS_AJUSTES =
   /aria-haspopup="dialog"[^>]*aria-label="Ajustes"|aria-label="Ajustes"[^>]*aria-haspopup="dialog"/;
 
@@ -39,6 +40,7 @@ const html = (legenda = false) =>
 
 function botaoDaLegenda(h: string) {
   const tag = h.match(BOTAO_DA_LEGENDA)?.[0] ?? "";
+
   return {
     classes: (tag.match(CLASSE)?.[1] ?? "").split(" "),
     pressionado: tag.match(PRESSIONADO)?.[1],
@@ -75,11 +77,13 @@ describe("controles do player", () => {
     const h = html();
     expect(h).not.toContain("Velocidade 1×");
     expect(h).not.toContain(">1×<");
+
     const ordem = [
       'aria-label="Legendas"',
       'aria-label="Ajustes"',
       'aria-label="Tela cheia"',
     ].map((m) => h.indexOf(m));
+
     expect(ordem.every((i) => i >= 0)).toBe(true);
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
     expect(h).toMatch(ABRE_OS_AJUSTES);

@@ -18,15 +18,18 @@ import {
 } from "./lote";
 
 const HOJE = "2026-10-16" as DiaISO;
+
 const pessoa = (userId: string, nome: string): Pessoa => ({
   email: `${userId}@exemplo.com`,
   foto: null,
   nome,
   userId,
 });
+
 const ANA = pessoa("user_ana", "Ana Beatriz Lima");
 const CAMILA = pessoa("user_camila", "Camila Rocha");
 const LUANA = pessoa("user_luana", "Luana Ferreira");
+
 const COMERCIAL = {
   id: "11111111-1111-4111-8111-111111111111" as CursoId,
   titulo: "Profills School Comercial",
@@ -43,6 +46,7 @@ describe("a seleção", () => {
       { pessoa: ANA, tipo: "marcar" },
       { pessoa: CAMILA, tipo: "marcar" }
     );
+
     expect(marcadasDe(e)).toEqual(["Camila Rocha", "Ana Beatriz Lima"]);
   });
 
@@ -51,10 +55,12 @@ describe("a seleção", () => {
       pessoa: p,
       tipo: "marcar",
     }));
+
     const semCamila = rodar(...tres, {
       tipo: "desmarcar",
       userId: CAMILA.userId,
     });
+
     expect(marcadasDe(semCamila)).toEqual([
       "Ana Beatriz Lima",
       "Luana Ferreira",
@@ -83,6 +89,7 @@ describe("o Liberar", () => {
       pessoa: pessoa(`user_p${i}`, `Pessoa ${i}`),
       tipo: "marcar",
     }));
+
     const e = rodar(...marcar, { curso: COMERCIAL, tipo: "escolher" });
     expect(prontoParaLiberar(e)).toEqual({ sobram: 3, tipo: "passou_do_teto" });
   });
@@ -129,6 +136,7 @@ describe("o resultado", () => {
     resultado: RESULTADO,
     tipo: "liberou",
   });
+
   const linhas = depois.fase.tipo === "resultado" ? depois.fase.linhas : [];
 
   test("tira da seleção só quem foi enviado", () => {
@@ -162,6 +170,7 @@ describe("o resultado", () => {
       },
       tipo: "repetiu",
     });
+
     const novas = repetiu.fase.tipo === "resultado" ? repetiu.fase.linhas : [];
     expect(resumoDoResultado(novas)).toBe("2 liberadas agora, 1 já tinha");
   });
@@ -182,6 +191,7 @@ describe("o resultado", () => {
       },
       pessoa: ANA,
     }));
+
     expect(resumoDoResultado(tres)).toBe("3 já tinham");
     expect(detalheDoResultado(tres[0], HOJE)).toBe("Liberada em 16 de out.");
   });

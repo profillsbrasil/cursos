@@ -60,6 +60,7 @@ const nivelDoComercial = (numero: number) => {
   if (numero <= 5) {
     return 1;
   }
+
   return numero <= 10 ? 2 : 3;
 };
 

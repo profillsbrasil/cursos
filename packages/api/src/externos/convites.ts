@@ -28,6 +28,7 @@ export interface Convites {
 }
 
 const LIMITE_DE_ENVIOS = 429;
+
 /** O limite de createInvitation é por hora: sem Retry-After, vale a hora inteira. */
 const ESPERA_SEM_RETRY_AFTER_SEG = 3600;
 
@@ -47,15 +48,18 @@ export function convitesDoClerk(
           notify: true,
           redirectUrl: opcoes.criarConta,
         });
+
         return { clerkConviteId: convite.id, tipo: "enviado" };
       } catch (erro) {
         if (isClerkAPIResponseError(erro) && erro.status === LIMITE_DE_ENVIOS) {
           const espera = erro.retryAfter ?? ESPERA_SEM_RETRY_AFTER_SEG;
+
           return {
             tentarEm: new Date(agora.getTime() + espera * 1000),
             tipo: "limite",
           };
         }
+
         throw erro;
       }
     },

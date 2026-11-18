@@ -29,6 +29,7 @@ import {
 
 const LINHA_APAGADA =
   "flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted-foreground tabular-nums";
+
 const LINK_DO_CURSO = cn(LINK_NO_TEXTO, "text-foreground font-medium");
 
 function Megafone({ className }: { className: string }) {
@@ -69,6 +70,7 @@ function Texto({ className, texto }: { className?: string; texto: string }) {
 
 function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
   const doCurso = c.alvo.tipo === "curso" ? c.alvo : null;
+
   return (
     <article
       aria-labelledby="comunicado-destaque"
@@ -124,6 +126,7 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
 
 function Linha({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
   const dia = diaNaLinha(c.dia);
+
   return (
     <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-3.5 px-4 py-[18px] @min-[521px]:grid-cols-[64px_minmax(0,1fr)] @min-[521px]:gap-5 @min-[521px]:px-6 @min-[521px]:py-[22px]">
       <time

@@ -26,6 +26,7 @@ describe("textos e aparência do Clerk", () => {
   // entrada. Os códigos são os da doc de erros da Frontend API do Clerk.
   test("toda recusa do link de entrada tem texto em português", () => {
     const erros: Record<string, unknown> = TEXTOS_CLERK.unstable__errors;
+
     const sem = [
       "sign_in_token_already_used_code",
       "sign_in_token_cannot_be_used_code",
@@ -34,6 +35,7 @@ describe("textos e aparência do Clerk", () => {
       "ticket_expired_code",
       "ticket_invalid_code",
     ].filter((codigo) => typeof erros[codigo] !== "string" || !erros[codigo]);
+
     expect(sem).toEqual([]);
   });
 

@@ -53,10 +53,12 @@ function Filtros({
       <legend className="sr-only">Status</legend>
       {FILTROS.map((f) => {
         const ligado = f.filtro === filtro;
+
         const n =
           f.filtro === "todos"
             ? cursos.length
             : cursos.filter((c) => c.status === f.filtro).length;
+
         return (
           <button
             aria-pressed={ligado}
@@ -119,15 +121,18 @@ export function GradeDoCatalogo({
   const [filtro, setFiltro] = useState<FiltroDeStatus>("todos");
   const [busca, setBusca] = useState("");
   const visiveis = cursos.filter((c) => noFiltro(c, filtro, busca));
+
   const filtrar = useCallback(
     (e: MouseEvent<HTMLButtonElement>) =>
       setFiltro(e.currentTarget.value as FiltroDeStatus),
     []
   );
+
   const buscar = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => setBusca(e.target.value),
     []
   );
+
   return (
     <>
       {cursos.length > CURSOS_SEM_FILTRO && (

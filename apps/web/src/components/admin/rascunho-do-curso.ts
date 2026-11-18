@@ -143,9 +143,11 @@ export type Leitura<T> = { valor: T } | { erro: string };
 
 export function lerDuracao(texto: string): Leitura<number> {
   const seg = duracaoDoTexto(texto);
+
   if (seg === null) {
     return { erro: "Escreva a duração em mm:ss, como 12:30." };
   }
+
   return seg > DURACAO_MAXIMA_SEG
     ? { erro: `Uma aula tem no máximo ${DURACAO_MAXIMA_SEG / 3600} horas.` }
     : { valor: seg };
@@ -155,7 +157,9 @@ export function lerVideo(texto: string): Leitura<AulaDoDocumento["video"]> {
   if (texto.trim() === "") {
     return { valor: null };
   }
+
   const video = videoDoTexto(texto);
+
   return video
     ? { valor: video }
     : { erro: "Cole um link do YouTube ou o id do vídeo." };
@@ -169,6 +173,7 @@ const lerInteiro =
   (texto: string): Leitura<number> => {
     const s = texto.trim();
     const n = Number(s);
+
     return SO_ALGARISMOS.test(s) && n >= min && n <= max
       ? { valor: n }
       : { erro };
@@ -179,6 +184,7 @@ export const lerNumeroDoModulo = lerInteiro(
   LIMITES.numeroDeModulo,
   `Use um número de 0 a ${LIMITES.numeroDeModulo}.`
 );
+
 export const lerPreco = lerInteiro(
   1,
   PRECO_MAXIMO,
@@ -188,6 +194,7 @@ export const lerPreco = lerInteiro(
 type CampoDoCursoComId = "categoriaId" | "descricao" | "precoTroca" | "titulo";
 
 export type CampoDaAula = "descricao" | "duracao" | "titulo" | "video";
+
 export type CampoDaPergunta = "alternativas" | "enunciado";
 
 export const ID = {
@@ -210,6 +217,7 @@ export type RascunhoLido =
 export const segundosDas = (aulas: readonly AulaDoRascunho[]) =>
   aulas.reduce((s, a) => {
     const lido = lerDuracao(a.duracao);
+
     return s + ("valor" in lido ? lido.valor : 0);
   }, 0);
 
@@ -226,20 +234,27 @@ function campoNaLista(
   caminho: readonly PropertyKey[]
 ): string | null | undefined {
   const [a, b, c] = caminho;
+
   if (typeof b !== "number") {
     return undefined;
   }
+
   if (a === "topicos" && caminho.length === 2) {
     return ID.topico(b);
   }
+
   if (a === "materiais" && c === "titulo") {
     const material = r.materiais[b];
+
     return material ? ID.material(material.id) : null;
   }
+
   if (a === "niveis" && c === "nome") {
     const nivel = r.niveis[b];
+
     return nivel ? ID.nivel(nivel.ordem) : null;
   }
+
   return undefined;
 }
 
@@ -248,23 +263,32 @@ function campoDoCaminho(
   caminho: readonly PropertyKey[]
 ): string | null {
   const [a, b, c, d] = caminho;
+
   if (caminho.length === 1 && CAMPOS_DO_CURSO.has(String(a))) {
     return ID.curso(a as CampoDoCursoComId);
   }
+
   const daLista = campoNaLista(r, caminho);
+
   if (daLista !== undefined) {
     return daLista;
   }
+
   const modulo =
     a === "modulos" && typeof b === "number" ? r.modulos[b] : undefined;
+
   if (!modulo) {
     return null;
   }
+
   if (caminho.length === 3) {
     const campo = CAMPO_DO_MODULO[String(c)];
+
     return campo ? ID.modulo(modulo.id, campo) : null;
   }
+
   const aula = c === "aulas" && typeof d === "number" ? modulo.aulas[d] : null;
+
   return aula ? campoNaAula(aula, caminho.slice(4)) : null;
 }
 
@@ -273,22 +297,29 @@ function campoNaAula(
   resto: readonly PropertyKey[]
 ): string | null {
   const [e, f, g, h, i] = resto;
+
   if (resto.length === 1) {
     const campo = CAMPO_DA_AULA[String(e)];
+
     return campo ? ID.aula(aula.id, campo) : null;
   }
+
   const pergunta =
     e === "perguntas" && typeof f === "number" ? aula.perguntas[f] : null;
+
   if (!pergunta) {
     return null;
   }
+
   if (resto.length === 3 && (g === "alternativas" || g === "enunciado")) {
     return ID.pergunta(pergunta.id, g);
   }
+
   const alternativa =
     g === "alternativas" && typeof h === "number"
       ? pergunta.alternativas[h]
       : null;
+
   return alternativa && resto.length === 5 && i === "texto"
     ? ID.alternativa(alternativa.id)
     : null;
@@ -324,20 +355,27 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   if (i.code === "custom") {
     return i.message;
   }
+
   const doTexto = mensagemDoTexto(i);
+
   if (doTexto !== null) {
     return doTexto;
   }
+
   if (i.code === "too_big" && i.origin === "array") {
     const lista = NOME_DA_LISTA[String(i.path.at(-1))] ?? "itens";
+
     return `O limite é de ${fmtNum(Number(i.maximum))} ${lista}.`;
   }
+
   if (i.code === "too_small" && i.path.at(-1) === "alternativas") {
     return MINIMO_DE_ALTERNATIVAS;
   }
+
   if (temCampo) {
     return "Confira este campo.";
   }
+
   return fraseDeReserva(i.path);
 }
 
@@ -346,13 +384,17 @@ export function lerRascunho(
   salvo: Pick<DocumentoDoCurso, "versao">
 ): RascunhoLido {
   const problemas: Problema[] = [];
+
   const ler = <T>(leitura: Leitura<T>, campo: string, substituto: T): T => {
     if ("valor" in leitura) {
       return leitura.valor;
     }
+
     problemas.push({ campo, mensagem: leitura.erro });
+
     return substituto;
   };
+
   const documento = {
     ...r,
     modulos: r.modulos.map((m, i) => ({
@@ -380,7 +422,9 @@ export function lerRascunho(
         : ler(lerPreco(r.precoTroca), ID.curso("precoTroca"), 1),
     versao: salvo.versao,
   };
+
   const lido = documentoDoCurso.safeParse(documento);
+
   if (!lido.success) {
     for (const issue of lido.error.issues) {
       const campo = campoDoCaminho(r, issue.path);
@@ -390,14 +434,17 @@ export function lerRascunho(
       });
     }
   }
+
   if (naoVazia(problemas)) {
     return { problemas: semRepetir(problemas), tipo: "problemas" };
   }
+
   if (!lido.success) {
     return {
       problemas: [{ campo: null, mensagem: fraseDeReserva([]) }],
       tipo: "problemas",
     };
   }
+
   return { documento: lido.data, tipo: "lido" };
 }

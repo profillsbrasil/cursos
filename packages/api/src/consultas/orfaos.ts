@@ -10,6 +10,7 @@ export async function chavesEmUso(exec: Executor): Promise<ChavesEmUso> {
     exec.select({ url: curso.capaUrl }).from(curso),
     exec.select({ chave: material.chave }).from(material),
   ]);
+
   return {
     capaUrls: capas.map((c) => c.url),
     chavesDeMaterial: materiais.map((m) => m.chave),

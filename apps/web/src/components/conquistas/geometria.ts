@@ -19,16 +19,20 @@ export function pontoNaTrilha(
 ): PontoNaTrilha {
   const meia = MEDALHA_DA_TRILHA / 2;
   let antes = 0;
+
   for (const [i, meta] of metas.entries()) {
     if (feitas <= meta) {
       const t = (Math.max(feitas, 0) - antes) / (meta - antes);
+
       return {
         porcento: ((i + t) / metas.length) * 100,
         recuoPx: i === 0 ? meia * t : meia,
       };
     }
+
     antes = meta;
   }
+
   return { porcento: 100, recuoPx: meia };
 }
 
@@ -49,5 +53,6 @@ export function colunasDosCertificados(n: number): number {
   if (n <= 4) {
     return Math.max(n, 1);
   }
+
   return n % 4 === 1 ? 3 : 4;
 }

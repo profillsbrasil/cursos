@@ -28,6 +28,7 @@ function etiquetaDe(c: CursoVM): Etiqueta {
   if (c.estado.tipo === "em_breve") {
     return { tipo: "em_producao" };
   }
+
   return { texto: aulasEDuracao(c), tipo: "duracao" };
 }
 
@@ -44,6 +45,7 @@ const ESPACO_QUE_NAO_QUEBRA = " ";
 export function linhaDoCurso(c: CursoVM): string {
   const partes = [c.categoria, c.codigo];
   const { feitas, total } = c.progresso;
+
   if (c.estado.tipo !== "em_breve" && feitas > 0) {
     partes.push(
       `${fmtNum(feitas)} de ${plural(total, "aula", "aulas")}`.replaceAll(
@@ -52,6 +54,7 @@ export function linhaDoCurso(c: CursoVM): string {
       )
     );
   }
+
   return partes
     .filter((p) => p !== "")
     .join(`${ESPACO_QUE_NAO_QUEBRA}·${ESPACO_QUE_NAO_QUEBRA}`);
@@ -94,13 +97,17 @@ function TextoEtiqueta({ etiqueta }: { etiqueta: Etiqueta }) {
  */
 export function sizesDaCapa(n: number) {
   const celular = "(max-width: 767px) 100vw";
+
   if (n === 1) {
     return `${celular}, calc(100vw - 300px)`;
   }
+
   const umaColuna = "(max-width: 861px) calc(100vw - 300px)";
+
   if (n === 2) {
     return `${celular}, ${umaColuna}, calc((100vw - 362px) / 2)`;
   }
+
   return `${celular}, ${umaColuna}, (max-width: 1147px) calc((100vw - 362px) / 2), calc((100vw - 380px) / 3)`;
 }
 
@@ -194,6 +201,7 @@ const SEM_AULA = { feitas: 0, pct: 0, total: 0 };
 // Link quando o estado abre o curso; div aria-disabled em em_breve.
 export function CapaCurso({ curso }: { curso: CursoVM }) {
   const { amostra } = curso;
+
   if (amostra?.aulaId && curso.estado.tipo !== "em_breve") {
     return (
       <CapaDaAmostra
@@ -204,8 +212,10 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
       />
     );
   }
+
   const fechado = curso.estado.tipo === "em_breve";
   const agora = moduloDeAgora(curso);
+
   const conteudo = (
     <>
       <div
@@ -250,7 +260,9 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
       )}
     </>
   );
+
   const base = "grid content-start gap-2.5 rounded-lg";
+
   if (fechado) {
     return (
       <div aria-disabled="true" className={base}>
@@ -258,6 +270,7 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
       </div>
     );
   }
+
   return (
     // O foco de teclado acende o cartão como o cursor: anel Céu, capa e título (#30).
     <Link className={cn(base, "group")} href={caminhoDoCurso(curso.slug)}>

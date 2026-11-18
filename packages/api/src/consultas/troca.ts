@@ -29,6 +29,7 @@ export async function linhasDosCursos(
   filtro: { cursoId: CursoId } | "vitrine"
 ): Promise<CursoDaTroca[]> {
   const ativas = filtroLiberacaoAtiva(aluno.userId);
+
   const linhas = await exec.query.curso.findMany({
     columns: {
       ...COLUNAS_DA_CAPA,
@@ -60,6 +61,7 @@ export async function linhasDosCursos(
       },
     },
   });
+
   return linhas.map(paraCursoDaTroca);
 }
 
@@ -70,11 +72,13 @@ export async function carregarPainelDeTroca(
 ): Promise<PainelDeTroca> {
   const { userId } = aluno;
   const hoje = diaLocal(agora);
+
   const [cursos, pontos, extrato] = await Promise.all([
     linhasDosCursos(db, aluno, "vitrine"),
     linhasDoSaldo(db, userId, segundaDaSemana(hoje)),
     linhasDoExtrato(db, userId, LIMITE_DO_EXTRATO),
   ]);
+
   return montarPainelDeTroca({ cursos, extrato, pontos }, hoje);
 }
 
@@ -125,6 +129,7 @@ function erroDaRecusa(r: RecusaDaTroca): ErroParaAPessoa {
 
 const violou = (e: unknown, constraint: string): boolean => {
   const causa = e instanceof DrizzleQueryError ? e.cause : undefined;
+
   return (
     causa !== undefined &&
     "code" in causa &&
@@ -149,6 +154,7 @@ async function gravarTroca(
       ? erroDaRecusa({ tipo: "ja_tem" })
       : e;
   });
+
   const [lancamento] = await aluno.tx
     .insert(pontoLancamento)
     .values({
@@ -159,10 +165,13 @@ async function gravarTroca(
       userId: aluno.userId,
     })
     .returning({ id: pontoLancamento.id });
+
   if (!lancamento) {
     throw new Error("O insert do lançamento não devolveu a linha.");
   }
+
   await abrirOCursoInteiro(aluno, cursoId, agora);
+
   return { lancamentoId: lancamento.id };
 }
 
@@ -190,13 +199,16 @@ export function trocar(
   agora: Date
 ): Promise<ResultadoDaTroca> {
   const segunda = segundaDaSemana(diaLocal(agora));
+
   return comSaldoTravado(db, userId, segunda, async (aluno, saldo) => {
     const [curso] = await linhasDosCursos(
       aluno.tx,
       { perfil, userId: aluno.userId },
       { cursoId }
     );
+
     const d = decidirTroca(curso ?? null, saldo, precoVisto);
+
     switch (d.tipo) {
       case "recusa":
         throw erroDaRecusa(d.recusa);

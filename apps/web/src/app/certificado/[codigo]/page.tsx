@@ -24,10 +24,13 @@ function lerSegmento(segmento: string) {
 export default async function Conferencia({ params }: Props) {
   const digitado = lerSegmento((await params).codigo).slice(0, 40);
   const codigo = codigoDigitado(digitado);
+
   if (codigo && codigo !== digitado) {
     redirect(caminhoDaConferencia(codigo));
   }
+
   const certificado = codigo && (await conferirCertificado(codigo));
+
   return certificado ? (
     <ReciboDaConferencia
       certificado={certificado}

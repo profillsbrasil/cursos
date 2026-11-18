@@ -45,6 +45,7 @@ function LinhaDoAparelho({
   pendente: boolean;
 }) {
   const sair = useCallback(() => aoSair?.(aparelho.id), [aoSair, aparelho.id]);
+
   return (
     <li className={LINHA}>
       <span className={ICONE_DO_APARELHO}>
@@ -100,6 +101,7 @@ function ListaDosAparelhos({
   const { executar, pendente } = useAcaoDaConta();
   const { antigos, atual, recentes } = aparelhosDe(sessoes, idDaAtual, agora);
   const outras = sessoes.filter((s) => s.id !== idDaAtual);
+
   const sairDe = useCallback(
     (alvo: SessaoComAtividade[], sucesso: string) =>
       executar(() => Promise.all(alvo.map((s) => s.revoke())), {
@@ -108,6 +110,7 @@ function ListaDosAparelhos({
       }),
     [executar, recarregar]
   );
+
   const sairDeUm = useCallback(
     (id: string) =>
       sairDe(
@@ -116,10 +119,12 @@ function ListaDosAparelhos({
       ),
     [sairDe, sessoes]
   );
+
   const sairDosOutros = useCallback(
     () => sairDe(outras, "Você saiu de todos os outros aparelhos."),
     [outras, sairDe]
   );
+
   return (
     <>
       <ul className="grid">
@@ -194,6 +199,7 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
         }
       }
     );
+
     return () => {
       vivo = false;
     };

@@ -42,6 +42,7 @@ const ALUNO_REVOGADO_DIRETO = `user_teste${S}f`;
 const ALUNO_MESMO_INSTANTE = `user_teste${S}h`;
 const ALUNO_TROCA = `user_teste${S}i`;
 const ALUNO_VITRINE = `user_teste${S}j`;
+
 const ALUNOS = [
   ALUNO_VITRINE,
   ALUNO_A,
@@ -59,6 +60,7 @@ const AGORA = new Date("2026-10-07T18:00:00Z");
 
 describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   let statements = 0;
+
   const db = createDb(
     { DATABASE_URL: URL_TESTE ?? "" },
     {
@@ -69,12 +71,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       },
     }
   );
+
   const cursos: string[] = [];
 
   /** `n` cursos publicados de 1 módulo e 2 aulas cada. */
   async function criarCursos(n: number) {
     const sufixo = hex();
     const categoriaId = await categoriaDeTeste(db);
+
     const novos = await db
       .insert(curso)
       .values(
@@ -91,13 +95,16 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         }))
       )
       .returning({ id: curso.id });
+
     cursos.push(...novos.map((c) => c.id));
+
     const modulos = await db
       .insert(modulo)
       .values(
         novos.map((c) => ({ cursoId: c.id, numero: 1, titulo: "Módulo" }))
       )
       .returning({ id: modulo.id });
+
     const aulas = await db
       .insert(aula)
       .values(
@@ -111,6 +118,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         )
       )
       .returning({ id: aula.id, moduloId: aula.moduloId });
+
     return {
       aulas: aulas.map((a) => a.id),
       cursos: novos.map((c) => c.id),
@@ -161,8 +169,10 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     createCaller(contextoDeTeste({ db, userId }));
 
   let pequena: Awaited<ReturnType<typeof criarCursos>>;
+
   const idsDe = (painel: { cursos: readonly { id: string }[] }) =>
     painel.cursos.map((c) => c.id);
+
   const doPequeno = (painel: {
     cursos: readonly { id: string; progresso: unknown; estado: unknown }[];
   }) => painel.cursos.find((c) => c.id === pequena.cursos[0]);
@@ -187,11 +197,13 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   test("sem login, painel e resumo lançam UNAUTHORIZED", async () => {
     const anonimo = comoAluno(null);
+
     const erros = await Promise.all(
       [anonimo.meusCursos.painel(), anonimo.aluno.resumo()].map((chamada) =>
         chamada.catch((e: unknown) => e)
       )
     );
+
     for (const erro of erros) {
       expect(erro).toBeInstanceOf(TRPCError);
       expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
@@ -297,6 +309,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await db
       .insert(aulaAssistida)
       .values({ aulaId: aulaId ?? "", userId: ALUNO_TROCA });
+
     const [lib] = await db
       .insert(liberacao)
       .values({
@@ -306,6 +319,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         userId: ALUNO_TROCA,
       })
       .returning({ id: liberacao.id });
+
     await db.insert(pontoLancamento).values([
       {
         aulaId,
@@ -369,6 +383,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const {
       cursos: [liberado],
     } = await criarCursos(1);
+
     await liberarCurso(ALUNO_DIRETO, liberado ?? "");
     await publicar(liberado, "2091-01-01T00:00:00Z", `Aviso direto ${S}`);
     const painel = await carregarPainel(db, alunoDeTeste(ALUNO_DIRETO), AGORA);
@@ -377,18 +392,22 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   test("comunicado de curso com liberação revogada não aparece nem toma o limit 1", async () => {
     const liberada = await criarCursos(1);
+
     const {
       cursos: [revogado],
     } = await criarCursos(1);
+
     await liberar(ALUNO_REVOGADO_DIRETO, liberada.cursos);
     await liberarCurso(ALUNO_REVOGADO_DIRETO, revogado ?? "", true);
     await publicar(liberada.cursos[0], "2092-01-01T00:00:00Z", `Visível ${S}`);
     await publicar(revogado, "2092-01-02T00:00:00Z", `Revogado ${S}`);
+
     const painel = await carregarPainel(
       db,
       alunoDeTeste(ALUNO_REVOGADO_DIRETO),
       AGORA
     );
+
     expect(painel.comunicado?.titulo).toBe(`Visível ${S}`);
   });
 
@@ -396,6 +415,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const {
       cursos: [um, dois],
     } = await criarCursos(2);
+
     const [menor, maior] = [crypto.randomUUID(), crypto.randomUUID()].sort();
     await db.insert(liberacao).values([
       {
@@ -413,11 +433,13 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         userId: ALUNO_MESMO_INSTANTE,
       },
     ]);
+
     const painel = await carregarPainel(
       db,
       alunoDeTeste(ALUNO_MESMO_INSTANTE),
       AGORA
     );
+
     expect(idsDe(painel)).toEqual([um ?? "", dois ?? ""]);
   });
 
@@ -430,9 +452,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const {
       cursos: [trocavel],
     } = await criarCursos(1);
+
     if (!trocavel) {
       throw new Error("curso não criado");
     }
+
     await db
       .update(curso)
       .set({ precoTroca: 300 })
@@ -446,8 +470,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         await carregarPainelDeTroca(db, alunoDeTeste(ALUNO_VITRINE), AGORA)
       ).temCursoTrocavelNaVitrine,
     }).toEqual({ semana: true, troca: true });
+
     class Desfazer extends Error {}
+
     const vistos: boolean[] = [];
+
     const desfeito = await db
       .transaction(
         async (tx) => {
@@ -459,11 +486,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
               )
             );
           };
+
           await fato();
+
           const comPreco = await tx
             .select({ id: curso.id })
             .from(curso)
             .where(isNotNull(curso.precoTroca));
+
           await tx.insert(liberacao).values(
             comPreco.map((c) => ({
               cursoId: c.id,
@@ -498,8 +528,10 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         if (e instanceof Desfazer) {
           return true;
         }
+
         throw e;
       });
+
     expect(desfeito).toBe(true);
     expect(vistos).toEqual([
       // o curso novo está à venda
@@ -524,23 +556,28 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   test("painel faz 6 statements e resumo 2, com 1 e com 40 cursos", async () => {
     const grande = await criarCursos(40);
     await liberar(ALUNO_B, grande.cursos);
+
     const contar = async (f: () => Promise<unknown>) => {
       statements = 0;
       await f();
+
       return statements;
     };
+
     const comUm = {
       painel: await contar(() =>
         carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA)
       ),
       resumo: await contar(() => carregarResumo(db, ALUNO_A, AGORA)),
     };
+
     const comQuarenta = {
       painel: await contar(() =>
         carregarPainel(db, alunoDeTeste(ALUNO_B), AGORA)
       ),
       resumo: await contar(() => carregarResumo(db, ALUNO_B, AGORA)),
     };
+
     const painelB = await carregarPainel(db, alunoDeTeste(ALUNO_B), AGORA);
     const doGrande = new Set(grande.cursos);
     expect(painelB.cursos.filter((c) => doGrande.has(c.id))).toHaveLength(40);

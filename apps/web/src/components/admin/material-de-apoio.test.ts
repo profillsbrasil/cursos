@@ -21,6 +21,7 @@ import {
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
@@ -68,10 +69,12 @@ const linhas = (e: RascunhoDoEditor) =>
 describe("material de apoio no rascunho", () => {
   test("o arquivo escolhido fica subindo e prende o admin; o recebido entra no fim com o título sugerido", () => {
     const antes = salvo([material(1)]);
+
     const subindo = aplicar(antes, {
       envios: [enviando(2)],
       tipo: "materiais_escolhidos",
     });
+
     expect(telaDo(subindo).sujo).toBe(true);
     expect(titulos(subindo)).toEqual(["Material 1"]);
 
@@ -79,6 +82,7 @@ describe("material de apoio no rascunho", () => {
       material: { ...material(2), titulo: "arquivo 2" },
       tipo: "material_recebido",
     });
+
     expect(titulos(pronto)).toEqual(["Material 1", "arquivo 2"]);
     expect(pronto.daGeracao.envios).toEqual([]);
     expect(telaDo(pronto).envio?.documento.materiais.map((m) => m.id)).toEqual([
@@ -97,6 +101,7 @@ describe("material de apoio no rascunho", () => {
         tipo: "material_recusado",
       }
     );
+
     expect(recusado.daGeracao.envios.map((x) => x.estado)).toEqual([
       {
         motivo: "Tem 61,6 MB. O limite é 50 MB por arquivo.",
@@ -116,12 +121,14 @@ describe("material de apoio no rascunho", () => {
       { tipo: "descartado" },
       { material: material(4), tipo: "material_recebido" }
     );
+
     expect(titulos(depois)).toEqual([]);
     expect(telaDo(depois).sujo).toBe(false);
   });
 
   test("renomear, mover pelo índice e tirar mexem só no material pedido", () => {
     const e = salvo([material(1), material(2), material(3)]);
+
     const mudado = aplicar(
       e,
       { id: idDe(3), tipo: "material_renomeado", titulo: "Manual" },
@@ -129,6 +136,7 @@ describe("material de apoio no rascunho", () => {
       { id: idDe(1), para: 2, tipo: "material_movido" },
       { id: idDe(2), tipo: "material_removido" }
     );
+
     expect(titulos(mudado)).toEqual(["Manual", "Material 1"]);
     expect(telaDo(mudado).sujo).toBe(true);
     expect(
@@ -144,21 +152,25 @@ describe("material de apoio no rascunho", () => {
       envios: [enviando(2), enviando(3), enviando(4)],
       tipo: "materiais_escolhidos",
     });
+
     const terceiro = aplicar(escolhidos, {
       material: material(4),
       tipo: "material_recebido",
     });
+
     expect(linhas(terceiro)).toEqual([
       "Material 1",
       "subindo arquivo-2.pdf",
       "subindo arquivo-3.pdf",
       "Material 4",
     ]);
+
     const todos = aplicar(
       terceiro,
       { material: material(2), tipo: "material_recebido" },
       { material: material(3), tipo: "material_recebido" }
     );
+
     expect(titulos(todos)).toEqual([
       "Material 1",
       "Material 2",
@@ -176,6 +188,7 @@ describe("material de apoio no rascunho", () => {
       { id: idDe(1), tipo: "material_removido" },
       { material: material(3), tipo: "material_recebido" }
     );
+
     expect(titulos(e)).toEqual(["Material 3", "Material 2"]);
   });
 
@@ -185,6 +198,7 @@ describe("material de apoio no rascunho", () => {
       { id: idDe(1), tipo: "material_renomeado", titulo: "  " },
       { id: ID.material(idDe(1)), tipo: "saiu_do_campo" }
     );
+
     expect(telaDo(vazio).erros.get(ID.material(idDe(1)))).toBeDefined();
     expect(telaDo(vazio).envio).toBeNull();
   });
@@ -194,11 +208,13 @@ describe("material de apoio no rascunho", () => {
       salvo(Array.from({ length: 18 }, (_, i) => material(i + 1))),
       { envios: [enviando(19)], tipo: "materiais_escolhidos" }
     );
+
     const novos = dentroDoLimite(e, [
       enviando(20),
       { ...enviando(21), estado: { motivo: "Tipo", tipo: "recusado" } },
       enviando(22),
     ]);
+
     expect(novos.map((x) => x.estado)).toEqual([
       { tipo: "enviando" },
       { motivo: "Tipo", tipo: "recusado" },
@@ -213,9 +229,11 @@ describe("linhas da seção", () => {
       envios: [enviando(3)],
       tipo: "materiais_escolhidos",
     });
+
     const html = renderToStaticMarkup(
       createElement(MaterialDeApoio, { despachar: () => undefined, estado })
     );
+
     const abertura = html.match(/<li[^>]*>/g) ?? [];
     expect(abertura).toHaveLength(3);
     expect(abertura.filter((l) => l.includes("tabindex"))).toEqual([]);

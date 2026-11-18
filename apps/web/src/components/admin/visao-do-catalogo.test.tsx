@@ -8,13 +8,18 @@ import { STATUS } from "./coluna-de-publicacao";
 import { VisaoDoCatalogo } from "./visao-do-catalogo";
 
 const TAG = /<[^>]+>/g;
+
 const TITULO_DO_CURSO =
   /<h2[^>]*><a [^>]*href="([^"]+)"[^>]*>([^<]+)<\/a><\/h2>/g;
+
 const ICONE_DO_SELO =
   /<svg[^>]*class="lucide (lucide-[a-z-]+)[^>]*>(?:(?!<\/svg>).)*<\/svg>(Publicado|Em produção)</g;
+
 const NOME_DO_ICONE = /lucide (lucide-[a-z-]+)/;
+
 const SELO_EM_PRODUCAO =
   /<span class="([^"]*)"><svg[^>]*lucide-clock[^>]*>.*?<\/svg>Em produção<\/span>/;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
 
@@ -42,6 +47,7 @@ const COMERCIAL = curso("Profills School Comercial", {
   modulos: 16,
   segundosDeVideo: 15 * 3600 + 51 * 60,
 });
+
 const LIMPEZA = curso("Limpeza CIP e troca de formato", {
   categoria: "Operação de linha",
   codigo: "OL-001",
@@ -49,6 +55,7 @@ const LIMPEZA = curso("Limpeza CIP e troca de formato", {
   precoTroca: 1000,
   status: "em_producao",
 });
+
 const ROTINA = curso("Nova Rotina de Fechamento", {
   aulas: 9,
   codigo: "POP-COM-001",
@@ -160,11 +167,13 @@ describe("ícone do status", () => {
         renderToStaticMarkup(s.icone).match(NOME_DO_ICONE)?.[1] ?? "",
       ])
     );
+
     const doCatalogo = Object.fromEntries(
       [...tela([COMERCIAL, LIMPEZA]).matchAll(ICONE_DO_SELO)].map(
         ([, icone, rotulo]) => [rotulo, icone]
       )
     );
+
     expect(doCatalogo).toEqual(doEditor);
   });
 });

@@ -14,9 +14,11 @@ export interface DiaDaSequencia {
 
 function proximoDiaUtil(dia: DiaISO): DiaISO {
   let d = somarDias(dia, 1);
+
   while (!ehDiaUtil(d)) {
     d = somarDias(d, 1);
   }
+
   return d;
 }
 
@@ -38,13 +40,16 @@ export function diasDaSequencia({
 }): DiaDaSequencia[] {
   const fim = ehDiaUtil(hoje) && !hojePendente ? hoje : diaUtilAnterior(hoje);
   const semana: Omit<DiaDaSequencia, "depoisDoFimDeSemana">[] = [];
+
   for (let d = fim; semana.length < dias; d = diaUtilAnterior(d)) {
     semana.unshift({ dia: d, estado: "feito" });
   }
+
   for (let d = proximoDiaUtil(fim); semana.length < meta;) {
     semana.push({ dia: d, estado: d === hoje ? "hoje" : "por_vir" });
     d = proximoDiaUtil(d);
   }
+
   return semana.map((d, i) => ({
     ...d,
     depoisDoFimDeSemana:

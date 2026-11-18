@@ -25,6 +25,7 @@ describe("paraPreferencias", () => {
       velocidade: 1.5,
       volume: { mudo: true, nivel: 35 },
     };
+
     expect(paraPreferencias(JSON.stringify(guardado))).toEqual(guardado);
   });
 
@@ -56,6 +57,7 @@ describe("paraPreferencias", () => {
 
   test("nível fracionário, legenda que não é sim ou não e JSON que não é objeto voltam ao padrão", () => {
     const volume = { mudo: false, nivel: 50 };
+
     for (const lido of [
       { velocidade: 1, volume: { mudo: false, nivel: 35.5 } },
       { legenda: "sim", velocidade: 1, volume },
@@ -99,9 +101,11 @@ describe("sessão e preferências do aparelho", () => {
 
   function montar(texto: string | null) {
     const armazenado = new Map<string, string>();
+
     if (texto !== null) {
       armazenado.set(CHAVE, texto);
     }
+
     const gravacoes: string[] = [];
     Object.assign(globalThis, {
       window: {
@@ -116,6 +120,7 @@ describe("sessão e preferências do aparelho", () => {
     });
     const aplicado = { legenda: false, nivel: 100, velocidade: 1 };
     let emitir: (e: EventoDoVideo) => void = () => undefined;
+
     const player: PlayerDeVideo = {
       buscar: () => undefined,
       definirLegenda: (ligada) => {
@@ -134,6 +139,7 @@ describe("sessão e preferências do aparelho", () => {
       tocar: () => undefined,
       velocidade: () => aplicado.velocidade,
     };
+
     const { pararDeGravar, sessao } = criarSessaoComPreferencias(
       {
         duracaoSeg: 600,
@@ -145,12 +151,14 @@ describe("sessão e preferências do aparelho", () => {
         aoConquistar: () => undefined,
         criarPlayer: (o) => {
           emitir = o.aoEvento;
+
           return player;
         },
         enviar: () => new Promise(() => undefined),
         relogio: () => 0,
       }
     );
+
     return { aplicado, emitir, gravacoes, pararDeGravar, sessao };
   }
 
@@ -164,6 +172,7 @@ describe("sessão e preferências do aparelho", () => {
     const { aplicado, emitir, gravacoes, sessao } = montar(
       JSON.stringify(guardado)
     );
+
     expect(sessao.estado()).toMatchObject(guardado);
     emitir({ duracaoSeg: 600, tipo: "pronto" });
     expect(aplicado).toEqual({ legenda: true, nivel: 35, velocidade: 1.5 });

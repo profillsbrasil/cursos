@@ -56,6 +56,7 @@ function aparencia(estado: EstadoCurso): Aparencia {
 
 export function SeloEstado({ estado }: { estado: EstadoCurso }) {
   const { classe, icone: Icone, rotulo } = aparencia(estado);
+
   return (
     <span className={cn(SELO, classe)}>
       <Icone aria-hidden="true" strokeWidth={2.4} />

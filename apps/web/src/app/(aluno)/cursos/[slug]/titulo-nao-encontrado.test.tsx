@@ -21,6 +21,7 @@ const sonda = spawnSync(
   ["bun", join(import.meta.dir, "titulo-nao-encontrado.sonda.ts")],
   { cwd: join(import.meta.dir, "../../../../..") }
 );
+
 const titulos = JSON.parse(sonda.stdout.toString() || "{}") as Record<
   "aula" | "certificado" | "curso",
   unknown
@@ -34,6 +35,7 @@ function doNaoEncontrado(modulo: {
   metadata?: Metadata;
 }) {
   const Tela = modulo.default;
+
   return {
     h1: H1.exec(renderToStaticMarkup(<Tela />))?.[1],
     titulo: modulo.metadata?.title,

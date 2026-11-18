@@ -19,14 +19,17 @@ const TETO_SEM_VIES =
 /** Um código novo, sorteado. A colisão com o unique é de quem grava. */
 export function gerarCodigo(): CodigoDoCertificado {
   const indices: number[] = [];
+
   while (indices.length < SIMBOLOS) {
     const bytes = crypto.getRandomValues(new Uint8Array(SIMBOLOS));
+
     for (const b of bytes) {
       if (b < TETO_SEM_VIES && indices.length < SIMBOLOS) {
         indices.push(b % ALFABETO_DO_CODIGO.length);
       }
     }
   }
+
   return codigoDosIndices(indices) as CodigoDoCertificado;
 }
 
@@ -43,6 +46,7 @@ const SEPARADORES = /[\s\-\u2010-\u2015]/g;
 export function codigoDigitado(texto: string): CodigoDoCertificado | null {
   const limpo = texto.toUpperCase().replaceAll(SEPARADORES, "");
   const codigo = `${limpo.slice(0, SIMBOLOS / 2)}-${limpo.slice(SIMBOLOS / 2)}`;
+
   return FORMATO_DO_CODIGO.test(codigo)
     ? (codigo as CodigoDoCertificado)
     : null;

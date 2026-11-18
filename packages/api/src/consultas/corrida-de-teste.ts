@@ -13,11 +13,13 @@ export function urlDaCorrida(url: string | null): string {
   if (!url) {
     return "";
   }
+
   const u = new URL(url);
   u.searchParams.set(
     "application_name",
     `corrida-${randomBytes(4).toString("hex")}`
   );
+
   return u.toString();
 }
 
@@ -48,19 +50,25 @@ async function seguraNumaTransacao(
   trava: SQL
 ): Promise<() => Promise<void>> {
   let soltar: () => void = () => undefined;
+
   const portao = new Promise<void>((r) => {
     soltar = r;
   });
+
   let travou: () => void = () => undefined;
+
   const travada = new Promise<void>((r) => {
     travou = r;
   });
+
   const transacao = db.transaction(async (tx) => {
     await tx.execute(trava);
     travou();
     await portao;
   });
+
   await travada;
+
   return async () => {
     soltar();
     await transacao;
@@ -84,15 +92,20 @@ export async function esperas(
     select wait_event as e, query as q from pg_stat_activity
     where datname = current_database() and wait_event_type = 'Lock'
       and application_name = current_setting('application_name')`);
+
   const paradas = rows.filter((r) =>
     comecos.some((c) => r.q.trimStart().startsWith(c))
   );
+
   if (paradas.length >= n) {
     return paradas.map((r) => r.e).sort();
   }
+
   if (tentativas === 0) {
     throw new Error(`Só ${paradas.length} de ${n} statements pararam em lock.`);
   }
+
   await esperar(20);
+
   return await esperas(db, n, comecos, tentativas - 1);
 }

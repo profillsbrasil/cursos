@@ -83,10 +83,12 @@ const SOL_SUAVE = "bg-sol/14 text-sol";
 const CHEIO_CANELA = "bg-canela text-sobre-cor";
 const NEUTRO = "bg-popover text-foreground";
 const CONTORNO_CEU = "bg-transparent text-ceu ring-1 ring-ceu ring-inset";
+
 const CONTORNO_APAGADO =
   "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset";
 
 const ESTUDANDO: Selo = { classe: SOL_SUAVE, icone: Play, rotulo: "Estudando" };
+
 const NUNCA_ABRIU: Selo = {
   classe: NEUTRO,
   icone: BookOpen,
@@ -151,6 +153,7 @@ const aulasVistas = (total: number) =>
  */
 export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase | null {
   const s = c.situacao;
+
   switch (s.tipo) {
     case "em_producao":
       return {
@@ -183,11 +186,13 @@ export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase | null {
 export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
   const curta = (iso: string) => diaCurto(diaEmSaoPaulo(iso), hoje);
   const quando = curta(l.liberadaEm);
+
   const chegou = {
     admin: `Liberada em ${quando}`,
     perfil: `Liberada ao perfil em ${quando}`,
     troca: `Trocado por pontos em ${quando}`,
   }[l.origem];
+
   return l.acao.tipo === "revogada"
     ? `${chegou} · revogada em ${curta(l.acao.em)}`
     : chegou;
@@ -212,6 +217,7 @@ export function fraseDaPessoa(
       if (r.revogadas === 0 || r.ultimaRevogacao === null) {
         return null;
       }
+
       return r.revogadas === 1
         ? `1 liberação revogada ${noDia(r.ultimaRevogacao, hoje)}`
         : `${fmtNum(r.revogadas)} liberações revogadas, a última ${noDia(r.ultimaRevogacao, hoje)}`;
@@ -223,6 +229,7 @@ export function fraseDaPessoa(
     case "estudando":
     case "concluiu_tudo": {
       const { concluidos, cursos } = r.numeros;
+
       return frase([
         cursos === 0
           ? "nenhum curso publicado"
@@ -231,6 +238,7 @@ export function fraseDaPessoa(
         ultimoEstudo(r.ultimoEstudo, hoje),
       ]);
     }
+
     default:
       return r satisfies never;
   }

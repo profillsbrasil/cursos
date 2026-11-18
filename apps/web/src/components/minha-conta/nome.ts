@@ -49,24 +49,34 @@ export function problemaDoNome(
   sobrenome: string
 ): ProblemaDoNome | null {
   const campos = { nome, sobrenome };
+
   if (nome.trim() === "") {
     return { campos: ["nome"], frase: FRASES_DO_NOME.vazio };
   }
+
   const sinais = comProblema(campos, (t) => SINAIS.test(t));
+
   if (sinais.length > 0) {
     return { campos: sinais, frase: FRASES_DO_NOME.sinais };
   }
+
   const site = comProblema(campos, (t) => SITE.test(t));
+
   if (site.length > 0) {
     return { campos: site, frase: FRASES_DO_NOME.site };
   }
+
   const longas = comProblema(campos, temPalavraLonga);
+
   if (longas.length > 0) {
     return { campos: longas, frase: FRASES_DO_NOME.palavra };
   }
+
   const completo = `${nome.trim()} ${sobrenome.trim()}`.trim();
+
   if ([...completo].length > LIMITE_DO_NOME) {
     return { campos: ["nome", "sobrenome"], frase: FRASES_DO_NOME.comprimento };
   }
+
   return null;
 }

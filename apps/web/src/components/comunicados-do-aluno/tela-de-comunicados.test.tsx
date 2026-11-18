@@ -17,6 +17,7 @@ const texto = (h: string) =>
 
 const destaque = (h: string) => {
   const inicio = h.indexOf("<article");
+
   return h.slice(inicio, h.indexOf("</article>", inicio));
 };
 

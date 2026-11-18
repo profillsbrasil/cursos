@@ -6,9 +6,12 @@
  */
 export function fotoNoLado(url: string, lado: number): string {
   const foto = new URL(url);
+
   if (foto.hostname !== "img.clerk.com") {
     return url;
   }
+
   foto.searchParams.set("width", String(lado * 2));
+
   return foto.toString();
 }

@@ -106,18 +106,23 @@ export interface PaginaDoCurso {
  */
 function acaoDaAmostra(c: CursoAberto, aulaId: AulaId): AcaoDaPagina {
   const { curso, historico } = c;
+
   const modulo = curso.modulos.find((m) =>
     m.aulas.some((a) => a.id === aulaId)
   );
+
   if (!modulo) {
     throw new Error(`Aula de amostra ${aulaId} fora do curso ${curso.slug}`);
   }
+
   const onde = {
     aula: numeroDaAula(modulo.aulas.findIndex((a) => a.id === aulaId)),
     modulo: { numero: modulo.numero, titulo: modulo.titulo },
   };
+
   const href = caminhoDaAula(curso.slug, aulaId);
   const posicaoSeg = historico.posicoes.get(aulaId)?.posicaoSeg ?? 0;
+
   return posicaoSeg > 0 && !historico.assistidas.has(aulaId)
     ? { aulaId, href, onde, posicaoSeg, tipo: "continuar" }
     : { aulaId, href, onde, tipo: "comecar" };
@@ -127,24 +132,31 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
   if (c.amostra) {
     return acaoDaAmostra(c, c.amostra.aulaId);
   }
+
   const { curso, historico } = c;
   const { aulaDaVez, estado, questionarios } = c.leitura;
   const { slug } = curso;
+
   if (estado.tipo === "concluido") {
     const [primeira] = curso.modulos.flatMap((m) => m.aulas);
+
     if (!primeira) {
       throw new Error(`Curso ${slug} concluído sem aulas`);
     }
+
     return {
       aulaId: primeira.id,
       href: caminhoDaAula(slug, primeira.id),
       tipo: "rever",
     };
   }
+
   if (!aulaDaVez) {
     throw new Error(`Curso ${slug} em ${estado.tipo} sem aula da vez`);
   }
+
   const { id: aulaId, onde, posicaoSeg } = aulaDaVez;
+
   switch (estado.tipo) {
     case "nao_iniciado":
       return {
@@ -187,6 +199,7 @@ export function montarPaginaDoCurso(
   const { assistidas, questionarios } = c.historico;
   const nivelPorOrdem = new Map(curso.niveis.map((n) => [n.ordem, n]));
   const { proximo } = niveis(curso, assistidas);
+
   return {
     acao: acaoDe(c),
     amostra: c.amostra && {

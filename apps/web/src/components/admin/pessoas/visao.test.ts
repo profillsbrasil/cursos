@@ -49,6 +49,7 @@ describe("hrefDaVisao", () => {
       { perfil: "publico", tipo: "perfil" },
       { tipo: "convidados" },
     ] as const;
+
     for (const visao of visoes) {
       const busca = new URL(hrefDaVisao(visao, "x"), "http://app").searchParams;
       expect(visaoDe(Object.fromEntries(busca))).toEqual(visao);

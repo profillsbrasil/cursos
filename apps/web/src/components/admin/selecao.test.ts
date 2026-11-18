@@ -18,6 +18,7 @@ describe("o app não usa o select do sistema", () => {
         !arquivo.includes(".test.") &&
         SELECT_DO_SISTEMA.test(readFileSync(join(SRC, arquivo), "utf8"))
     );
+
     expect(fora).toEqual([]);
   });
 });

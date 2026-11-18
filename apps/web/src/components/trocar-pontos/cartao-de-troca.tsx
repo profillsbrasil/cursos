@@ -18,6 +18,7 @@ import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
 type PodeTrocar = Extract<Cartao, { tipo: "pode_trocar" }>;
+
 type Momento = "parado" | "confirmando" | "enviando";
 
 const ERRO_DA_TROCA =
@@ -41,6 +42,7 @@ function Acao({
   alvoDoFoco: (el: HTMLElement | null) => void;
 }) {
   const { curso } = cartao;
+
   switch (cartao.tipo) {
     case "trocado":
       return (
@@ -102,6 +104,7 @@ function Acao({
           </Button>
         );
       }
+
       return (
         <Confirmacao
           acoes={acoes}
@@ -128,6 +131,7 @@ function Confirmacao({
 }) {
   const id = `confirma-${cartao.curso.id}`;
   const { cancelar } = acoes;
+
   const aoTeclar = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape" && !enviando) {
@@ -136,6 +140,7 @@ function Confirmacao({
     },
     [cancelar, enviando]
   );
+
   return (
     <fieldset
       aria-labelledby={id}
@@ -203,11 +208,13 @@ export function CartaoDeTroca({
   const titulo = useRef<HTMLHeadingElement>(null);
   const alvoDoFoco = useRef<HTMLElement | null>(null);
   const querFoco = useRef<boolean>(false);
+
   const marcarAlvoDoFoco = useCallback((el: HTMLElement | null) => {
     alvoDoFoco.current = el;
   }, []);
 
   let momento: Momento = "parado";
+
   if (enviando) {
     momento = "enviando";
   } else if (confirmando) {
@@ -218,15 +225,19 @@ export function CartaoDeTroca({
     if (!querFoco.current || momento === "enviando") {
       return;
     }
+
     querFoco.current = false;
     const ativo = document.activeElement;
+
     if (ativo && ativo !== document.body && !card.current?.contains(ativo)) {
       return;
     }
+
     (cartao.tipo === "faltam" ? titulo.current : alvoDoFoco.current)?.focus();
   }, [momento, cartao.tipo]);
 
   const { curso } = cartao;
+
   const acoes: AcoesDoCartao = {
     cancelar: () => {
       querFoco.current = true;
@@ -236,6 +247,7 @@ export function CartaoDeTroca({
       if (cartao.tipo !== "pode_trocar") {
         return;
       }
+
       querFoco.current = true;
       grade.fechar(curso.id);
       executar(
@@ -258,6 +270,7 @@ export function CartaoDeTroca({
 
   const liberado = cartao.tipo === "trocado";
   const tituloId = `troca-titulo-${curso.id}`;
+
   return (
     <article
       aria-labelledby={tituloId}

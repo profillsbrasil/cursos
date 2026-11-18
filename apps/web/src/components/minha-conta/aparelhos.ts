@@ -33,23 +33,27 @@ export const RECENTES_A_VISTA = 3;
 
 const FUSO = "America/Sao_Paulo";
 const DIA = new Intl.DateTimeFormat("en-CA", { timeZone: FUSO });
+
 const HORA = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   hourCycle: "h23",
   minute: "2-digit",
   timeZone: FUSO,
 });
+
 const DATA_CURTA = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "short",
   timeZone: "UTC",
 });
+
 const DATA_CURTA_COM_ANO = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "short",
   timeZone: "UTC",
   year: "numeric",
 });
+
 const DIA_DA_SEMANA = [
   "domingo",
   "segunda",
@@ -59,6 +63,7 @@ const DIA_DA_SEMANA = [
   "sexta",
   "sábado",
 ];
+
 const MS_POR_DIA = 86_400_000;
 
 const diaEmSaoPaulo = (d: Date) => new Date(`${DIA.format(d)}T00:00:00Z`);
@@ -68,6 +73,7 @@ function hora(d: Date) {
   const partes = HORA.formatToParts(d);
   const h = partes.find((p) => p.type === "hour")?.value ?? "";
   const m = partes.find((p) => p.type === "minute")?.value ?? "";
+
   return `${h}h${m}`;
 }
 
@@ -76,19 +82,24 @@ export function quandoFoi(d: Date, agora: Date): string {
   const dia = diaEmSaoPaulo(d);
   const hoje = diaEmSaoPaulo(agora);
   const atras = Math.round((hoje.getTime() - dia.getTime()) / MS_POR_DIA);
+
   if (atras <= 0) {
     return `hoje às ${hora(d)}`;
   }
+
   if (atras === 1) {
     return `ontem às ${hora(d)}`;
   }
+
   if (atras < 7) {
     return `${DIA_DA_SEMANA[dia.getUTCDay()]} às ${hora(d)}`;
   }
+
   const formato =
     dia.getUTCFullYear() === hoje.getUTCFullYear()
       ? DATA_CURTA
       : DATA_CURTA_COM_ANO;
+
   return formato.format(dia);
 }
 
@@ -99,15 +110,18 @@ function nomeDo(a: SessaoDoClerk["latestActivity"]): string {
   const lido = a.deviceType?.trim();
   const sistema = lido ? (SISTEMAS[lido] ?? lido) : undefined;
   const navegador = a.browserName?.trim();
+
   if (navegador && sistema) {
     return `${navegador} no ${sistema}`;
   }
+
   return navegador || sistema || (a.isMobile ? "Celular" : "Computador");
 }
 
 function aparelho(s: SessaoDoClerk, quando: string): Aparelho {
   const a = s.latestActivity;
   const lugar = a.city?.trim() || a.country?.trim();
+
   return {
     celular: a.isMobile === true,
     id: s.id,
@@ -126,10 +140,12 @@ export function aparelhosDe(
   agora: Date
 ): Aparelhos {
   const atual = sessoes.find((s) => s.id === idDaAtual);
+
   const outras = sessoes
     .filter((s) => s.id !== idDaAtual)
     .toSorted((a, b) => b.lastActiveAt.getTime() - a.lastActiveAt.getTime())
     .map((s) => aparelho(s, quandoFoi(s.lastActiveAt, agora)));
+
   return {
     antigos: outras.slice(RECENTES_A_VISTA),
     atual: atual ? aparelho(atual, "agora") : null,

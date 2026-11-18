@@ -33,11 +33,14 @@ function LinhaDoTopico({
 }) {
   const id = ID.topico(indice);
   const { aria, mensagem } = useErroDoCampo(id);
+
   const editar = useCallback(
     (novo: string) => mudar(indice, novo),
     [indice, mudar]
   );
+
   const tirar = useCallback(() => remover(indice), [indice, remover]);
+
   return (
     <li>
       <Field
@@ -89,11 +92,13 @@ export function TopicosDoCurso({
       despachar({ mudanca: { topicos: novos }, tipo: "campos" }),
     [despachar]
   );
+
   const mudar = useCallback(
     (indice: number, texto: string) =>
       trocar(topicos.map((t, i) => (i === indice ? texto : t))),
     [topicos, trocar]
   );
+
   const remover = useCallback(
     (indice: number) => {
       trocar(topicos.filter((_, i) => i !== indice));
@@ -106,11 +111,14 @@ export function TopicosDoCurso({
     },
     [topicos, trocar]
   );
+
   const adicionar = useCallback(() => {
     trocar([...topicos, ""]);
     focarDepois(ID.topico(topicos.length));
   }, [topicos, trocar]);
+
   const cheio = topicos.length >= LIMITES.topicos;
+
   return (
     <Secao
       id="topicos"

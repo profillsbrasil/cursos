@@ -141,6 +141,7 @@ export function transicao(
   if (e.tipo === "indisponivel") {
     return e;
   }
+
   switch (ev.tipo) {
     case "falhou":
       return { motivo: ev.motivo, tipo: "indisponivel" };
@@ -156,6 +157,7 @@ export function transicao(
       return { tipo: "terminou" };
     default: {
       const nenhum: never = ev;
+
       return nenhum;
     }
   }
@@ -183,8 +185,10 @@ export function criarSessaoDeEstudo(
 ): SessaoDeEstudo {
   const { duracaoSeg } = entrada;
   let foto = estadoInicial(entrada);
+
   let { assistida, envio, legenda, reproducao, tempoSeg, velocidade, volume } =
     foto;
+
   let servidor = foto.trechos;
   let pendentes: Trechos = SEM_TRECHOS;
   let medidor: Medidor = MEDIDOR_PARADO;
@@ -207,6 +211,7 @@ export function criarSessaoDeEstudo(
 
   function fotografar(): EstadoDaSessao {
     const trechos = vistos();
+
     return {
       assistida,
       cobertura: cobertura(trechos, duracaoSeg),
@@ -220,8 +225,10 @@ export function criarSessaoDeEstudo(
       volume,
     };
   }
+
   function avisar() {
     foto = fotografar();
+
     for (const o of ouvintes) {
       o();
     }
@@ -229,6 +236,7 @@ export function criarSessaoDeEstudo(
 
   const guardar = (m: Medida) => {
     ({ medidor } = m);
+
     if (m.trechos.length > 0) {
       pendentes = canonizar([...pendentes, ...m.trechos], duracaoSeg);
     }
@@ -250,6 +258,7 @@ export function criarSessaoDeEstudo(
     if (medidor.aberto) {
       medirAgora();
     }
+
     guardar(fechar(medidor));
   }
 
@@ -257,9 +266,11 @@ export function criarSessaoDeEstudo(
     pararEnvio?.();
     pararEnvio = deps.agendar(() => {
       pararEnvio = null;
+
       if (reproducao.tipo === "tocando") {
         guardar(cortar(medidor));
       }
+
       enviar(false);
     }, ms);
   }
@@ -281,14 +292,18 @@ export function criarSessaoDeEstudo(
       if (r.tipo === "ok" && r.registro.conquista) {
         avisarConquista(r.registro.conquista);
       }
+
       return;
     }
+
     if (r.tipo === "definitivo") {
       envio = { motivo: r.motivo, tipo: "parado" };
       pararEnvio?.();
       avisar();
+
       return;
     }
+
     if (r.tipo === "rede") {
       falhasSeguidas += 1;
       envio = { falhasSeguidas, tipo: "esperando_nova_tentativa" };
@@ -299,21 +314,27 @@ export function criarSessaoDeEstudo(
         )
       );
       avisar();
+
       return;
     }
+
     falhasSeguidas = 0;
     posicaoConfirmada = pedido.posicaoSeg;
     servidor = unir(servidor, canonizar(r.registro.trechos, duracaoSeg));
     pendentes = subtrair(pendentes, servidor);
     assistida = assistida || r.registro.assistida;
+
     if (r.registro.conquista) {
       avisarConquista(r.registro.conquista);
     }
+
     const resta = temNovidade();
     envio = resta ? { tipo: "pendente" } : { tipo: "em_dia" };
+
     if ((resta || reproducao.tipo === "tocando") && !pararEnvio) {
       agendarEnvio(ENVIO_MS);
     }
+
     avisar();
   }
 
@@ -321,22 +342,28 @@ export function criarSessaoDeEstudo(
     if (envio.tipo === "parado" || (envio.tipo === "enviando" && !mesmoEmVoo)) {
       return;
     }
+
     if (!temNovidade()) {
       if (envio.tipo !== "enviando" && envio.tipo !== "em_dia") {
         falhasSeguidas = 0;
         envio = { tipo: "em_dia" };
         avisar();
       }
+
       return;
     }
+
     pararEnvio?.();
     pararEnvio = null;
+
     const pedido: Pedido = {
       posicaoSeg: posicaoDe(tempoSeg),
       trechos: pendentes.slice(0, TRECHOS_POR_ENVIO),
     };
+
     envio = { falhasSeguidas, tipo: "enviando" };
     avisar();
+
     const voo = deps
       .enviar(pedido)
       .then(
@@ -346,6 +373,7 @@ export function criarSessaoDeEstudo(
       .finally(() => {
         emVoo.delete(voo);
       });
+
     emVoo.add(voo);
   }
 
@@ -353,6 +381,7 @@ export function criarSessaoDeEstudo(
     if (assistida || pediuNaMeta) {
       return;
     }
+
     if (atingiuMeta(segundos(vistos()), duracaoSeg)) {
       pediuNaMeta = true;
       guardar(cortar(medidor));
@@ -364,8 +393,10 @@ export function criarSessaoDeEstudo(
     pararAmostra = deps.agendar(() => {
       if (reproducao.tipo !== "tocando") {
         pararAmostra = null;
+
         return;
       }
+
       medirAgora();
       cruzouAMeta();
       avisar();
@@ -378,6 +409,7 @@ export function criarSessaoDeEstudo(
     player.definirMudo(volume.mudo);
     player.definirVelocidade(velocidade);
     player.definirLegenda(legenda);
+
     if (Math.abs(duracaoDoVideoSeg - duracaoSeg) > DIFERENCA_DE_DURACAO_SEG) {
       console.warn(
         `duração do vídeo (${duracaoDoVideoSeg} s) difere da aula (${duracaoSeg} s)`
@@ -389,6 +421,7 @@ export function criarSessaoDeEstudo(
     ({ medidor } = amostrar(MEDIDOR_PARADO, amostra()));
     pararAmostra?.();
     tique();
+
     if (!pararEnvio) {
       agendarEnvio(ENVIO_MS);
     }
@@ -398,9 +431,11 @@ export function criarSessaoDeEstudo(
     pararAmostra?.();
     pararAmostra = null;
     fecharTrecho();
+
     if (depois.tipo === "terminou") {
       tempoSeg = duracaoSeg;
     }
+
     if (depois.tipo !== "esperando") {
       enviar(false);
     }
@@ -410,9 +445,11 @@ export function criarSessaoDeEstudo(
     if (encerrada) {
       return;
     }
+
     const antes = reproducao.tipo;
     const depois = transicao(reproducao, ev);
     reproducao = depois;
+
     if (ev.tipo === "pronto") {
       aoFicarPronto(ev.duracaoSeg);
     } else if (depois.tipo === "tocando" && antes !== "tocando") {
@@ -420,6 +457,7 @@ export function criarSessaoDeEstudo(
     } else if (antes === "tocando" && depois.tipo !== "tocando") {
       aoPararDeTocar(depois);
     }
+
     avisar();
   }
 
@@ -430,6 +468,7 @@ export function criarSessaoDeEstudo(
     fecharTrecho();
     player.buscar(destino);
     tempoSeg = destino;
+
     if (reproducao.tipo === "tocando") {
       ({ medidor } = amostrar(MEDIDOR_PARADO, {
         relogioMs: deps.relogio(),
@@ -444,9 +483,11 @@ export function criarSessaoDeEstudo(
   function definirVolume(nivel: number) {
     const novo = limitar(Math.round(nivel), 0, 100);
     player.definirVolume(novo);
+
     if (volume.mudo && novo > 0) {
       player.definirMudo(false);
     }
+
     volume = { mudo: volume.mudo && novo === 0, nivel: novo };
   }
 
@@ -454,6 +495,7 @@ export function criarSessaoDeEstudo(
     if (encerrada) {
       return;
     }
+
     switch (c.tipo) {
       case "alternar":
         if (reproducao.tipo === "tocando") {
@@ -461,6 +503,7 @@ export function criarSessaoDeEstudo(
         } else {
           player.tocar();
         }
+
         break;
       case "buscar":
         mover(c.seg);
@@ -474,6 +517,7 @@ export function criarSessaoDeEstudo(
         if (medidor.aberto) {
           medirAgora();
         }
+
         player.definirVelocidade(c.valor);
         velocidade = c.valor;
         break;
@@ -496,6 +540,7 @@ export function criarSessaoDeEstudo(
         throw new Error(`Comando sem tratamento: ${JSON.stringify(nenhum)}`);
       }
     }
+
     avisar();
   }
 
@@ -504,12 +549,14 @@ export function criarSessaoDeEstudo(
       medirAgora();
       guardar(cortar(medidor));
     }
+
     enviar(true);
   }
 
   return {
     assinar(ouvinte) {
       ouvintes.add(ouvinte);
+
       return () => {
         ouvintes.delete(ouvinte);
       };
@@ -519,26 +566,33 @@ export function criarSessaoDeEstudo(
       if (fim) {
         return fim;
       }
+
       if (reproducao.tipo === "tocando") {
         fecharTrecho();
       }
+
       enviar(true);
       encerrada = true;
       pararAmostra?.();
       pararEnvio?.();
       player.destruir();
       let pararTeto: () => void = () => undefined;
+
       const teto = new Promise<FimDaSessao>((resolver) => {
         pararTeto = deps.agendar(
           () => resolver("passou_do_teto"),
           TETO_DA_SAIDA_MS
         );
       });
+
       const assentou = Promise.allSettled(emVoo).then((): FimDaSessao => {
         pararTeto();
+
         return "assentou";
       });
+
       fim = Promise.race([assentou, teto]);
+
       return fim;
     },
     estado: () => foto,

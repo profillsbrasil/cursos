@@ -12,9 +12,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const raiz = resolve(import.meta.dir, "../..");
+
 const settings = JSON.parse(
   readFileSync(join(raiz, ".claude/settings.json"), "utf8")
 );
+
 const [editarArquivo] = settings.hooks.PostToolUse;
 const [hook] = editarArquivo.hooks;
 
@@ -34,6 +36,7 @@ afterEach(() => {
 const criarSonda = (caminho: string) => {
   writeFileSync(caminho, MAL_FORMATADO);
   limpezas.push(() => rmSync(caminho, { force: true }));
+
   return caminho;
 };
 
@@ -42,6 +45,7 @@ const criarPasta = (caminho: string) => {
     mkdirSync(caminho, { recursive: true });
     limpezas.push(() => rmSync(caminho, { force: true, recursive: true }));
   }
+
   return caminho;
 };
 
@@ -51,13 +55,16 @@ const rodarHook = (arquivo: string, cwd = raiz) => {
     tool_input: { file_path: arquivo },
     tool_name: "Edit",
   };
+
   const inicio = performance.now();
+
   const processo = spawnSync("bash", ["-c", hook.command], {
     cwd,
     encoding: "utf8",
     env: { ...process.env, CLAUDE_PROJECT_DIR: raiz },
     input: JSON.stringify(evento),
   });
+
   return {
     codigo: processo.status,
     ms: performance.now() - inicio,
@@ -91,6 +98,7 @@ test(
     const alvo = criarSonda(
       join(raiz, "apps/web/src/app/(aluno)/sonda hook.tsx")
     );
+
     const vizinha = criarSonda(join(raiz, "apps/web/src/lib/sonda-hook.ts"));
 
     const resultado = rodarHook(alvo);

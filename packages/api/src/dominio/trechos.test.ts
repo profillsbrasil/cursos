@@ -32,6 +32,32 @@ describe("canonizar", () => {
   test("lista vazia dá vazio", () => {
     expect<readonly Trecho[]>(canonizar([], 600)).toEqual([]);
   });
+
+  test("roda num navegador sem iterator helpers", () => {
+    const helpers = ["filter", "flatMap", "map", "toArray"];
+
+    const guardados = helpers.map((nome) => ({
+      descritor: Object.getOwnPropertyDescriptor(Iterator.prototype, nome),
+      nome,
+    }));
+
+    for (const nome of helpers) {
+      Reflect.deleteProperty(Iterator.prototype, nome);
+    }
+
+    try {
+      expect<readonly Trecho[]>(
+        canonizar([t(50, 60), t(0, 10), t(5, 20)], 600)
+      ).toEqual([t(0, 20), t(50, 60)]);
+    } finally {
+      for (const { descritor, nome } of guardados) {
+        if (descritor) {
+          // oxlint-disable-next-line no-extend-native -- devolve o método nativo que o teste tirou.
+          Object.defineProperty(Iterator.prototype, nome, descritor);
+        }
+      }
+    }
+  });
 });
 
 describe("unir", () => {

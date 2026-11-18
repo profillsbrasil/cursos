@@ -23,7 +23,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ColunaDoCurso } from "./coluna-do-curso";
 
 const MODULOS = 16;
@@ -35,6 +35,7 @@ const idDaAula = (modulo: number, aula: number) =>
 /** O curso de 16 módulos de 8 aulas, com a aula atual onde o teste pedir. */
 function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
   const atual = idDaAula(modulo, aula);
+
   return {
     amostra: null,
     anterior: null,
@@ -75,11 +76,13 @@ function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
 
 /** "Cronograma reverso", a aula 4 do módulo 8, a da prova do PR #59. */
 const NO_MEIO = cursoNaAula(8, 3);
+
 /** Longe o bastante do fim da lista para caber no meio da coluna. */
 const MAIS_ABAIXO = cursoNaAula(10, 2);
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [NO_MEIO, MAIS_ABAIXO].flatMap((dados) =>
     [
@@ -94,6 +97,7 @@ const css = await cssDoApp(
 const ENTRADA = join(import.meta.dir, "coluna-do-curso.entrada.tsx");
 const LINK = join(import.meta.dir, "link-sem-roteador.js");
 const NEXT_LINK = /^next\/link$/;
+
 async function empacotar() {
   const pacote = await build({
     define: { "process.env.NODE_ENV": '"development"' },
@@ -151,10 +155,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da coluna não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -239,6 +246,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
         )}</div>${RAIZ("")}`
       );
       await avaliar(enviar, DEPOIS_DO_RENDER);
+
       // O $RC do React: move o conteúdo da caixa escondida para o lugar.
       const medida = await avaliar<Medida>(
         enviar,
@@ -249,6 +257,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
           return ${MEDIR};
         })()`
       );
+
       esperarCentrada(medida);
     });
 

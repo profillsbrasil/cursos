@@ -76,18 +76,28 @@ const REGRAS_COM_TIPOS = [
 ];
 
 export default defineConfig({
-  options: { typeAware: true },
+  options: { typeAware: true, typeCheck: true },
   env: core.env,
   extends: [core, react, next],
+  jsPlugins: [
+    { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
+    { name: "landmines-testing", specifier: "@interfere/landmines/testing" },
+    {
+      name: "landmines-structure",
+      specifier: "@interfere/landmines/structure",
+    },
+  ],
   ignorePatterns: [
     ...core.ignorePatterns,
     "docs/prototipos/**",
+    ".claude/skills/*/templates/**",
     ".claude/settings.local.json",
     ".impeccable/config.json",
     "packages/ui/src/components/**",
     "packages/ui/src/hooks/**",
     "packages/ui/src/lib/utils.ts",
     "apps/web/public/**",
+    "tools/oxlint/anti-slop/**",
   ],
   overrides: [
     {
@@ -99,6 +109,8 @@ export default defineConfig({
     {
       files: ["**/*.test.ts", "**/*.test.tsx"],
       rules: {
+        "anti-slop/no-chained-type-assertions": "off",
+        "anti-slop/no-object-parameters": "off",
         "nextjs/no-html-link-for-pages": "off",
         "no-loop-func": "off",
         "no-new-func": "off",
@@ -115,6 +127,24 @@ export default defineConfig({
       rules: {
         "typescript/no-implied-eval": "off",
         "typescript/no-unsafe-call": "off",
+      },
+    },
+    {
+      files: [
+        "packages/db/src/migracao.integration.test.ts",
+        "packages/db/src/schema/restricoes.integration.test.ts",
+      ],
+      rules: {
+        "landmines-structure/colocated-tests": "off",
+      },
+    },
+    {
+      files: [
+        "apps/web/src/lib/editor.test.ts",
+        "apps/web/src/utils/trpc.test.ts",
+      ],
+      rules: {
+        "landmines-testing/no-test-doubles": "warn",
       },
     },
     {
@@ -157,6 +187,40 @@ export default defineConfig({
     },
   ],
   rules: {
+    "anti-slop/no-array-filter-map": "error",
+    "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-conditional-empty-object-spread": "off",
+    "anti-slop/no-known-value-widening": "off",
+    "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reduce-accumulator-copy": "error",
+    "anti-slop/no-reflect-apply": "error",
+    "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-runtime-typeof": "off",
+    "anti-slop/no-shape-in-symbol-names": "off",
+    "anti-slop/no-unknown-parameters": "off",
+    "anti-slop/no-unknown-returns": "off",
+    "anti-slop/no-unknown-type-aliases": "error",
+    "anti-slop/no-unsafe-dictionary-type": "off",
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-readable-spacing": "error",
+    "anti-slop/no-module-mocking": "warn",
+    "anti-slop/require-safety-comment-for-type-assertion": "off",
+    "landmines-structure/colocated-tests": "error",
+    "landmines-structure/package-exports": "error",
+    "landmines-structure/test-file-names": "error",
+    "landmines-testing/no-fixed-sleep": "error",
+    "landmines-testing/no-flake-masking": [
+      "error",
+      {
+        allow: {
+          ".claude/hooks/formatar-arquivo-editado.test.ts": 7,
+          "apps/web/src/equivalencia-dos-tipos.arnes.ts": 2,
+        },
+      },
+    ],
+    "landmines-testing/no-test-doubles": "error",
+    "landmines-testing/no-unsignaled-poll": "error",
+    "landmines-testing/strict-msw": "error",
     complexity: "off",
     "func-style": "off",
     "import/consistent-type-specifier-style": "off",
@@ -169,6 +233,7 @@ export default defineConfig({
     "no-use-before-define": "off",
     "no-warning-comments": "off",
     "node/callback-return": "off",
+    "oxc/no-accumulating-spread": "error",
     "prefer-named-capture-group": "off",
     "typescript/consistent-return": "off",
     "typescript/no-base-to-string": [

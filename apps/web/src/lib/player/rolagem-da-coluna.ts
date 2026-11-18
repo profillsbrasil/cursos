@@ -21,10 +21,13 @@ export function rolagemDaColuna({
   topoDaAula,
 }: MedidasDaColuna): number | null {
   const maximo = alturaDoConteudo - alturaVisivel;
+
   if (maximo <= 0) {
     return null;
   }
+
   const centro = topoDaAula + alturaDaAula / 2 - alturaVisivel / 2;
+
   return Math.round(Math.min(Math.max(centro, 0), maximo));
 }
 
@@ -48,12 +51,16 @@ export function centrarAAulaAtual(
         centrarAAulaAtual(coluna, calcular, quadros - 1)
       );
     }
+
     return;
   }
+
   const aula = coluna.querySelector<HTMLElement>('[aria-current="page"]');
+
   if (!aula) {
     return;
   }
+
   const top = calcular({
     alturaDaAula: aula.offsetHeight,
     alturaDoConteudo: coluna.scrollHeight,
@@ -64,6 +71,7 @@ export function centrarAAulaAtual(
       coluna.clientTop +
       coluna.scrollTop,
   });
+
   if (top !== null) {
     coluna.scrollTo({ behavior: "instant", top });
   }

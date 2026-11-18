@@ -20,7 +20,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { VARIOS, VAZIO } from "./comunicados-do-aluno/exemplo-de-teste";
 import { TelaDeComunicados } from "./comunicados-do-aluno/tela-de-comunicados";
 import { fabrica, HOJE } from "./curso/exemplo-de-teste";
@@ -103,6 +103,7 @@ const PAGINA = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...PAGINA.matchAll(CLASSES)].flatMap(([, c = ""]) =>
     c.replaceAll("&amp;", "&").split(ESPACO)

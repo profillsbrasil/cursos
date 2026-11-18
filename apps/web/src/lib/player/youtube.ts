@@ -72,14 +72,17 @@ function carregarApi(): Promise<YtApi> {
   if (window.YT?.Player) {
     return Promise.resolve(window.YT);
   }
+
   carregando ??= new Promise<YtApi>((resolve, reject) => {
     const anterior = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
       anterior?.();
+
       if (window.YT) {
         resolve(window.YT);
       }
     };
+
     const script = document.createElement("script");
     script.src = API_DO_YOUTUBE;
     script.async = true;
@@ -87,8 +90,10 @@ function carregarApi(): Promise<YtApi> {
       carregando = null;
       reject(new Error("A IFrame API do YouTube não carregou."));
     };
+
     document.head.append(script);
   });
+
   return carregando;
 }
 
@@ -104,6 +109,7 @@ const motivoDoErro = (codigo: number): MotivoIndisponivel => {
   if (codigo === 100) {
     return "nao_encontrado";
   }
+
   return codigo === 101 || codigo === 150
     ? "sem_permissao_de_incorporar"
     : "outro";
@@ -123,12 +129,14 @@ export function criarPlayerDoYoutube(
   // IFrame API): antes do primeiro play, a posição pedida espera o play.
   let comecou = false;
   let posicaoAntesDoPlay: number | null = null;
+
   const aplicarPosicaoAntesDoPlay = () => {
     if (posicaoAntesDoPlay !== null) {
       playerPronto?.seekTo(posicaoAntesDoPlay, true);
       posicaoAntesDoPlay = null;
     }
   };
+
   const alvo = document.createElement("div");
   elemento.replaceChildren(alvo);
 
@@ -147,13 +155,16 @@ export function criarPlayerDoYoutube(
       if (destruido) {
         return;
       }
+
       const criado = new yt.Player(alvo, {
         events: {
           onApiChange: () => {
             const agora = performance.now();
+
             if (agora - reaplicouEm < ECO_DA_LEGENDA_MS) {
               return;
             }
+
             reaplicouEm = agora;
             aplicarLegenda();
           },
@@ -168,14 +179,17 @@ export function criarPlayerDoYoutube(
           },
           onStateChange: (e) => {
             const tipo = ESTADOS[e.data];
+
             if (tipo && !comecou) {
               // O play pelo clique no vídeo também leva à posição pedida antes dele.
               comecou = true;
               aplicarPosicaoAntesDoPlay();
             }
+
             if (tipo === "tocou") {
               aplicarLegenda();
             }
+
             if (tipo) {
               opcoes.aoEvento({ tipo });
             }
@@ -194,6 +208,7 @@ export function criarPlayerDoYoutube(
         },
         videoId,
       });
+
       // A barra do app tem os controles, e as 7 paradas de Tab do pôster do YouTube
       // (em inglês) vinham antes dela. O clique no vídeo continua indo ao iframe.
       elemento.querySelector("iframe")?.setAttribute("tabindex", "-1");

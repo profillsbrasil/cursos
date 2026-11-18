@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: "Comunicados" };
 
 export default async function PaginaDeComunicados() {
   const dados = await carregarComunicados();
+
   return (
     <>
       <CabecalhoDaPagina

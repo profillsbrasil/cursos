@@ -70,6 +70,7 @@ describe("aparelhosDe", () => {
     }),
     sessao("hoje", "2026-10-19T12:00:00Z", {}),
   ];
+
   const a = aparelhosDe(sessoes, "atual", AGORA);
 
   test("a sessão desta aba fica à parte, agora", () => {

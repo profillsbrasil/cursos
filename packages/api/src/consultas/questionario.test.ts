@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { Glob } from "bun";
 
 const SRC = join(import.meta.dir, "..");
+
 const INSERT_NO_QUESTIONARIO =
   /\binsert\(\s*questionario(?:Tentativa|Resposta)\s*\)/;
 
@@ -16,6 +17,7 @@ describe("responder", () => {
         INSERT_NO_QUESTIONARIO.test(readFileSync(join(SRC, arquivo), "utf8"))
       )
       .sort();
+
     expect(comInsert).toEqual(["consultas/questionario.ts"]);
   });
 });

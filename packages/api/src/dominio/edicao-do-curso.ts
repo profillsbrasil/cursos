@@ -35,8 +35,10 @@ export const DURACAO_MAXIMA_SEG = 24 * 60 * 60;
 export const PRECO_MAXIMO = 1_000_000;
 
 const texto = (max: number) => z.string().trim().min(1).max(max);
+
 /** Texto que pode ficar vazio: a descrição do curso e a da aula. */
 const livre = (max: number) => z.string().trim().max(max);
+
 /** O Postgres devolve uuid em minúscula; o mesmo id em outra caixa seria outra linha. */
 const uuid = z.uuid().transform((id) => id.toLowerCase());
 
@@ -117,14 +119,17 @@ const nivel = z.object({
 function repetidos<T>(valores: readonly T[]): T[] {
   const vistos = new Set<T>();
   const repetido = new Set<T>();
+
   for (const v of valores) {
     (vistos.has(v) ? repetido : vistos).add(v);
   }
+
   return [...repetido];
 }
 
 const porNumero = (a: { numero: number }, b: { numero: number }) =>
   a.numero - b.numero;
+
 const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
   a.ordem - b.ordem;
 
@@ -157,30 +162,41 @@ export const documentoDoCurso = z
   .superRefine((d, ctx) => {
     const falha = (message: string, path: (string | number)[]) =>
       ctx.addIssue({ code: "custom", message, path });
+
     for (const n of repetidos(d.modulos.map((m) => m.numero))) {
       falha(`Dois módulos com o número ${n}.`, ["modulos"]);
     }
+
     for (const id of repetidos(d.modulos.map((m) => m.id))) {
       falha(`Módulo ${id} aparece duas vezes.`, ["modulos"]);
     }
+
     const aulas = d.modulos.flatMap((m) => m.aulas);
+
     for (const id of repetidos(aulas.map((a) => a.id))) {
       falha(`Aula ${id} aparece duas vezes.`, ["modulos"]);
     }
+
     const perguntas = aulas.flatMap((a) => a.perguntas);
+
     for (const id of repetidos(perguntas.map((p) => p.id))) {
       falha(`Pergunta ${id} aparece duas vezes.`, ["modulos"]);
     }
+
     const alternativas = perguntas.flatMap((p) => p.alternativas);
+
     for (const id of repetidos(alternativas.map((a) => a.id))) {
       falha(`Alternativa ${id} aparece duas vezes.`, ["modulos"]);
     }
+
     for (const id of repetidos(d.materiais.map((m) => m.id))) {
       falha(`Material ${id} aparece duas vezes.`, ["materiais"]);
     }
+
     for (const o of repetidos(d.niveis.map((n) => n.ordem))) {
       falha(`Dois níveis com a ordem ${o}.`, ["niveis"]);
     }
+
     const ordens = new Set(d.niveis.map((n) => n.ordem));
     d.modulos.forEach((m, i) => {
       if (m.nivelOrdem !== null && !ordens.has(m.nivelOrdem)) {
@@ -199,10 +215,15 @@ export const documentoDoCurso = z
   }));
 
 export type DocumentoDoCurso = z.output<typeof documentoDoCurso>;
+
 export type ModuloDoDocumento = DocumentoDoCurso["modulos"][number];
+
 export type AulaDoDocumento = ModuloDoDocumento["aulas"][number];
+
 export type PerguntaDoDocumento = AulaDoDocumento["perguntas"][number];
+
 export type MaterialDoDocumento = DocumentoDoCurso["materiais"][number];
+
 export type AlternativaDoDocumento =
   PerguntaDoDocumento["alternativas"][number];
 
@@ -216,9 +237,11 @@ export function formularioDoCurso(
 ): FormData {
   const fd = new FormData();
   fd.set(CAMPO.documento, JSON.stringify(documento));
+
   if (capa) {
     fd.set(CAMPO.capa, capa);
   }
+
   return fd;
 }
 
@@ -233,20 +256,27 @@ export type FormularioLido =
  */
 export function lerFormularioDoCurso(fd: FormData): FormularioLido {
   const json = fd.get(CAMPO.documento);
+
   if (typeof json !== "string") {
     return { mensagem: "O formulário veio sem o documento.", tipo: "invalido" };
   }
+
   let bruto: unknown;
+
   try {
     bruto = JSON.parse(json);
   } catch {
     return { mensagem: "O documento não é JSON.", tipo: "invalido" };
   }
+
   const lido = documentoDoCurso.safeParse(bruto);
+
   if (!lido.success) {
     return { mensagem: "Documento inválido.", tipo: "invalido" };
   }
+
   const capa = fd.get(CAMPO.capa);
+
   return {
     capa: capa instanceof Blob && capa.size > 0 ? capa : null,
     documento: lido.data,

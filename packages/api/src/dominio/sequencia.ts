@@ -17,6 +17,7 @@ export interface DiaDaSemana {
 }
 
 const FUSO = "America/Sao_Paulo";
+
 const formatador = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
   month: "2-digit",
@@ -47,6 +48,7 @@ const meioDia = (dia: DiaISO) => new Date(`${dia}T12:00:00Z`);
 export function somarDias(dia: DiaISO, n: number): DiaISO {
   const d = meioDia(dia);
   d.setUTCDate(d.getUTCDate() + n);
+
   return d.toISOString().slice(0, 10) as DiaISO;
 }
 
@@ -66,14 +68,17 @@ export const SIGLAS_DO_FIM_DE_SEMANA = [SIGLAS[6], SIGLAS[0]] as const;
 
 export const ehDiaUtil = (dia: DiaISO): boolean => {
   const d = diaDaSemana(dia);
+
   return d !== 0 && d !== 6;
 };
 
 export function diaUtilAnterior(dia: DiaISO): DiaISO {
   let d = somarDias(dia, -1);
+
   while (!ehDiaUtil(d)) {
     d = somarDias(d, -1);
   }
+
   return d;
 }
 
@@ -84,10 +89,12 @@ export function sequenciaDiasUteis(
 ): number {
   let cursor = ehDiaUtil(hoje) && dias.has(hoje) ? hoje : diaUtilAnterior(hoje);
   let n = 0;
+
   while (dias.has(cursor)) {
     n += 1;
     cursor = diaUtilAnterior(cursor);
   }
+
   return n;
 }
 
@@ -107,19 +114,24 @@ function statusDoDia(
   if (!ehDiaUtil(dia)) {
     return "fim_de_semana";
   }
+
   if (dia === hoje) {
     return dias.has(dia) ? "hoje_estudou" : "hoje_pendente";
   }
+
   if (dia > hoje) {
     return "futuro";
   }
+
   return dias.has(dia) ? "estudou" : "nao_estudou";
 }
 
 export function semana(dias: ReadonlySet<DiaISO>, hoje: DiaISO): DiaDaSemana[] {
   const segunda = segundaDaSemana(hoje);
+
   return NOMES.map((nome, i) => {
     const dia = somarDias(segunda, i);
+
     return {
       dia,
       nome,

@@ -11,12 +11,13 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "catalogo.entrada.tsx");
 const LINK = join(AQUI, "link-falso.jsx");
 const IMAGEM = join(AQUI, "imagem-falsa.jsx");
+
 const SUBSTITUTOS: [RegExp, string][] = [
   [/^next\/link$/, LINK],
   [/^next\/image$/, IMAGEM],
@@ -180,10 +181,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -199,13 +203,16 @@ const ARQUIVOS_COM_CLASSES = [
   "../../../../../packages/ui/src/components/button.tsx",
   "../../../../../packages/ui/src/components/badge.tsx",
 ].map((f) => join(AQUI, f));
+
 const PALAVRA = /[\s"'`{}]+/;
+
 const css = await cssDoApp(
   ARQUIVOS_COM_CLASSES.flatMap((f) => readFileSync(f, "utf8").split(PALAVRA))
 );
 
 const FOTOS = process.env.FOTOS_DO_CATALOGO;
 const FONTES = join(AQUI, "../certificado/fontes");
+
 const fonte = FOTOS
   ? ["Regular", "Medium", "SemiBold", "Bold"]
       .map(
@@ -225,10 +232,12 @@ async function abrirTela(largura: number) {
     mobile: largura < 768,
     width: largura,
   });
+
   const conteudo =
     largura < 768
       ? "padding:24px 16px 64px"
       : "margin-left:15.5rem;padding:32px 48px 64px";
+
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
@@ -239,15 +248,19 @@ async function abrirTela(largura: number) {
 }
 
 const DEPOIS_DAS_TRANSICOES_MS = 300;
+
 async function foto(nome: string) {
   if (!FOTOS) {
     return;
   }
+
   await sleep(DEPOIS_DAS_TRANSICOES_MS);
+
   const { data } = (await enviar("Page.captureScreenshot", {
     captureBeyondViewport: true,
     format: "png",
   })) as { data: string };
+
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
 
@@ -256,11 +269,13 @@ const titulos = () =>
     enviar,
     `[...document.querySelectorAll("article h2")].map((t) => t.textContent)`
   );
+
 const clicarNoFiltro = (rotulo: string) =>
   avaliar(
     enviar,
     `[...document.querySelectorAll("button[aria-pressed]")].find((b) => b.firstChild.textContent === ${JSON.stringify(rotulo)}).click()`
   );
+
 async function buscar(termo: string) {
   await avaliar(
     enviar,
@@ -275,6 +290,7 @@ interface Caixa {
   largura: number;
   topo: number;
 }
+
 const caixas = () =>
   avaliar<Caixa[]>(
     enviar,
@@ -293,12 +309,15 @@ async function tabAte(seletor: string, tentativas = 20): Promise<void> {
     enviar,
     `document.activeElement?.matches(${JSON.stringify(seletor)}) ?? false`
   );
+
   if (chegou || tentativas === 0) {
     return;
   }
+
   const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
+
   return await tabAte(seletor, tentativas - 1);
 }
 
@@ -319,10 +338,12 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     expect(itens).toHaveLength(CURSOS.length + 1);
     const primeiraLinha = itens.filter((c) => c.topo === itens[0]?.topo);
     expect(primeiraLinha.length).toBeGreaterThanOrEqual(3);
+
     for (const item of itens) {
       expect(item.largura).toBe(itens[0]?.largura ?? 0);
       expect(item.largura).toBeGreaterThanOrEqual(250);
     }
+
     for (const [a, b] of primeiraLinha
       .slice(1)
       .map((c, i) => [primeiraLinha[i], c])) {
@@ -335,6 +356,7 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
     await tabAte("article h2 a");
     await sleep(DEPOIS_DAS_TRANSICOES_MS);
+
     const capa = await avaliar<{ anel: string; escala: string }>(
       enviar,
       `(() => {
@@ -342,6 +364,7 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
         return { anel: getComputedStyle(capa).boxShadow, escala: getComputedStyle(capa.querySelector("img")).scale };
       })()`
     );
+
     expect(capa.anel).toContain(CEU);
     expect(capa.escala).toBe("1.03");
     await tabAte(ATALHO);
@@ -383,6 +406,7 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     await abrirTela(390);
     await foto("390");
     const itens = await caixas();
+
     for (const item of itens) {
       expect(item.esquerda).toBe(16);
       expect(item.largura).toBe(390 - 32);
