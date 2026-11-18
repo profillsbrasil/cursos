@@ -338,7 +338,7 @@ const pedeDaConta = renderToStaticMarkup(
 const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;
 
 interface Elemento {
-  atributos: Record<string, string>;
+  atributos: Partial<Record<string, string>>;
   classes: string[];
   /** O texto que vem logo depois da tag, até a próxima tag. */
   texto: string;
