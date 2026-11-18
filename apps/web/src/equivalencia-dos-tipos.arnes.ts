@@ -13,12 +13,14 @@ import { join, relative, resolve } from "node:path";
 
 const RAIZ = resolve(import.meta.dir, "../../..");
 const PACOTES = ["apps/web", "packages/api", "packages/db", "packages/ui"];
+
 const GERADOS = [
   "apps/web/.next/types",
   "apps/web/next-env.d.ts",
   "apps/web/src/env.ts",
   "packages/db/src/env.ts",
 ];
+
 const GLOBAL = "(global)";
 
 type Plantio =
@@ -262,11 +264,13 @@ const CATEGORIAS: Categoria[] = [
 
 const rodar = async (comando: string[], cwd: string) => {
   const processo = Bun.spawn(comando, { cwd, stderr: "pipe", stdout: "pipe" });
+
   const [saida, erro, codigo] = await Promise.all([
     new Response(processo.stdout).text(),
     new Response(processo.stderr).text(),
     processo.exited,
   ]);
+
   return { codigo, saida: `${saida}${erro}` };
 };
 
@@ -275,8 +279,10 @@ const montarCopia = async () => {
     process.env.XDG_CACHE_HOME ?? join(homedir(), ".cache"),
     "cursos"
   );
+
   await mkdir(cache, { recursive: true });
   const copia = await mkdtemp(join(cache, "equivalencia-dos-tipos-"));
+
   const arquivos = await rodar(
     [
       "sh",
@@ -287,21 +293,26 @@ const montarCopia = async () => {
     ],
     RAIZ
   );
+
   if (arquivos.codigo !== 0) {
     throw new Error(`A cópia falhou:\n${arquivos.saida}`);
   }
+
   await Promise.all(
     GERADOS.map((gerado) =>
       cp(join(RAIZ, gerado), join(copia, gerado), { recursive: true })
     )
   );
+
   const instalacao = await rodar(
     ["bun", "install", "--frozen-lockfile", "--ignore-scripts"],
     copia
   );
+
   if (instalacao.codigo !== 0) {
     throw new Error(`O bun install falhou:\n${instalacao.saida}`);
   }
+
   return copia;
 };
 
@@ -310,35 +321,46 @@ const trocarUmaVez = (
   plantio: { arquivo: string; de: string; para: string }
 ) => {
   const partes = texto.split(plantio.de);
+
   if (partes.length !== 2) {
     throw new Error(
       `"${plantio.de}" não aparece uma vez só em ${plantio.arquivo}`
     );
   }
+
   return partes.join(plantio.para);
 };
 
 const plantarUm = async (copia: string, plantio: Plantio) => {
   const alvo = join(copia, plantio.arquivo);
+
   switch (plantio.tipo) {
     case "criar": {
       await writeFile(alvo, plantio.texto);
+
       return () => rm(alvo);
     }
+
     case "tirar": {
       await rename(alvo, `${alvo}.fora`);
+
       return () => rename(`${alvo}.fora`, alvo);
     }
+
     case "acrescentar":
     case "trocar": {
       const original = await readFile(alvo, "utf8");
+
       const plantado =
         plantio.tipo === "acrescentar"
           ? `${original}${plantio.texto}`
           : trocarUmaVez(original, plantio);
+
       await writeFile(alvo, plantado);
+
       return () => writeFile(alvo, original);
     }
+
     default:
       throw new Error("plantio desconhecido");
   }
@@ -348,6 +370,7 @@ const plantar = async (copia: string, plantios: Plantio[]) => {
   const desfazeres = await Promise.all(
     plantios.map((plantio) => plantarUm(copia, plantio))
   );
+
   return () => Promise.all(desfazeres.map((desfazer) => desfazer()));
 };
 
@@ -361,6 +384,7 @@ const errosDoTsc = async (copia: string) => {
   const saidas = await Promise.all(
     PACOTES.map(async (pacote) => {
       const pasta = join(copia, pacote);
+
       const { codigo, saida } = await rodar(
         [
           join(copia, "node_modules/.bin/tsc"),
@@ -371,27 +395,37 @@ const errosDoTsc = async (copia: string) => {
         ],
         pasta
       );
+
       const linhas = saida.split("\n");
+
       const erros = linhas.flatMap((linha) => {
         const achado = LINHA_DO_TSC.exec(linha);
+
         if (!achado?.[2]) {
           return [];
         }
+
         const arquivo = achado[1]
           ? relative(copia, resolve(pasta, achado[1]))
           : GLOBAL;
+
         return [`${arquivo} ${achado[2]}`];
       });
+
       const esperado = erros.length > 0 ? SAIDA_DO_TSC_COM_ERRO : 0;
+
       if (codigo !== esperado) {
         throw new Error(
           `O tsc de ${pacote} saiu com ${codigo}, e ${erros.length} erros pediam ${esperado}:\n${saida.slice(-2000)}`
         );
       }
+
       const arquivos = linhas.filter((linha) => linha.startsWith(copia)).length;
+
       return { arquivos, erros };
     })
   );
+
   return {
     arquivos: saidas.reduce((soma, saida) => soma + saida.arquivos, 0),
     erros: new Set(saidas.flatMap((saida) => saida.erros)),
@@ -419,21 +453,27 @@ const errosDoTsrs = async (copia: string) => {
     [join(copia, "node_modules/.bin/oxlint"), "-f", "json"],
     copia
   );
+
   const lido: unknown = JSON.parse(saida.slice(saida.indexOf("{")));
+
   if (!ehSaidaDoOxlint(lido)) {
     throw new Error(`O oxlint não devolveu JSON:\n${saida}`);
   }
+
   return {
     arquivos: lido.number_of_files,
     erros: new Set(
       lido.diagnostics.flatMap((diagnostico) => {
         const codigo = CODIGO_DO_OXLINT.exec(diagnostico.code)?.[1];
+
         if (!codigo || diagnostico.severity !== "error") {
           return [];
         }
+
         const arquivo = diagnostico.filename
           ? relative(copia, resolve(copia, diagnostico.filename))
           : GLOBAL;
+
         return [`${arquivo} ${codigo}`];
       })
     ),
@@ -448,9 +488,11 @@ const rodarOsDois = async (copia: string) => {
     errosDoTsc(copia),
     errosDoTsrs(copia),
   ]);
+
   // Prova de que os dois lados rodaram: um lado parado não lê arquivo nenhum.
   expect(tsc.arquivos).toBeGreaterThan(0);
   expect(tsrs.arquivos).toBeGreaterThan(0);
+
   return { tsc: tsc.erros, tsrs: tsrs.erros };
 };
 
@@ -458,11 +500,14 @@ const comparar = (tsc: Set<string>, tsrs: Set<string>): Resultado => {
   if (tsc.size === 0) {
     return tsrs.size === 0 ? "nenhum" : "só o tsrs";
   }
+
   if (tsrs.size === 0) {
     return "só o tsc";
   }
+
   const iguais =
     tsc.size === tsrs.size && [...tsc].every((erro) => tsrs.has(erro));
+
   return iguais ? "os dois" : "os dois, com diferença";
 };
 
@@ -470,9 +515,11 @@ const resumir = (erros: Set<string>) => {
   if (erros.size === 0) {
     return "nada";
   }
+
   if (erros.size <= 3) {
     return [...erros].map((erro) => `\`${erro}\``).join("<br>");
   }
+
   return `${erros.size} erros (${codigos(erros).join(", ")})`;
 };
 
@@ -503,6 +550,7 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
 
   afterAll(async () => {
     console.log(tabela(linhas));
+
     if (copia) {
       await rm(copia, { force: true, recursive: true });
     }
@@ -518,6 +566,7 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
         texto: ATRIBUICAO_ERRADA,
       },
     ]);
+
     try {
       const sentinela = await rodarOsDois(copia);
       expect(codigos(sentinela.tsc)).toEqual(["TS2322"]);
@@ -525,6 +574,7 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
     } finally {
       await desfazer();
     }
+
     const { tsc, tsrs } = await rodarOsDois(copia);
     expect([...tsc]).toEqual([]);
     expect([...tsrs]).toEqual([]);
@@ -534,6 +584,7 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
     "$nome",
     async (categoria) => {
       const desfazer = await plantar(copia, categoria.plantios);
+
       try {
         const { tsc, tsrs } = await rodarOsDois(copia);
         const resultado = comparar(tsc, tsrs);
