@@ -103,6 +103,24 @@ export default defineConfig({
         "no-loop-func": "off",
         "no-new-func": "off",
         "react/no-clone-element": "off",
+        "typescript/await-thenable": "off",
+        "typescript/no-confusing-void-expression": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/require-array-sort-compare": "off",
+      },
+    },
+    {
+      files: ["apps/web/src/components/service-worker.test.ts"],
+      rules: {
+        "typescript/no-implied-eval": "off",
+        "typescript/no-unsafe-call": "off",
+      },
+    },
+    {
+      files: ["apps/web/src/components/entrada/clerk.ts"],
+      rules: {
+        "typescript/no-unsafe-assignment": "off",
       },
     },
     {
@@ -152,6 +170,45 @@ export default defineConfig({
     "no-warning-comments": "off",
     "node/callback-return": "off",
     "prefer-named-capture-group": "off",
+    "typescript/consistent-return": "off",
+    "typescript/no-base-to-string": [
+      "error",
+      {
+        ignoredTypeNames: [
+          "Error",
+          "RegExp",
+          "URL",
+          "URLSearchParams",
+          "BuildMessage",
+          "ResolveMessage",
+        ],
+      },
+    ],
+    "typescript/no-confusing-void-expression": [
+      "error",
+      { ignoreArrowShorthand: true },
+    ],
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        allowForKnownSafeCalls: [
+          { from: "package", name: "module", package: "bun:test" },
+        ],
+      },
+    ],
+    "typescript/no-misused-spread": "off",
+    "typescript/no-unnecessary-type-arguments": "off",
+    "typescript/no-unnecessary-type-parameters": "off",
+    "typescript/no-unsafe-type-assertion": "warn",
+    "typescript/non-nullable-type-assertion-style": "off",
+    "typescript/prefer-nullish-coalescing": "off",
+    "typescript/prefer-regexp-exec": "off",
+    "typescript/promise-function-async": "off",
+    "typescript/strict-boolean-expressions": "off",
+    "typescript/switch-exhaustiveness-check": [
+      "error",
+      { considerDefaultExhaustiveForUnions: true },
+    ],
     "promise/always-return": "off",
     "promise/avoid-new": "off",
     "promise/catch-or-return": "off",

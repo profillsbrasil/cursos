@@ -10,7 +10,7 @@ import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
   type RefObject,
   useCallback,
   useId,
@@ -268,7 +268,7 @@ export function ConcessaoDePontos({
   );
 
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       // O botão desligado segue focável, e o Enter no Motivo ainda envia.
       if (envio.tipo !== "pronto") {

@@ -34,7 +34,10 @@ function relogioFalso() {
   let agora = 0;
   let seq = 0;
   const fila = new Map<number, { em: number; fn: () => void }>();
-  const flush = () => new Promise((r) => setImmediate(r));
+  const flush = () =>
+    new Promise((r) => {
+      setImmediate(r);
+    });
   async function avancar(ms: number): Promise<void> {
     // Respostas já resolvidas agendam timers em microtask: elas rodam antes da varredura.
     await flush();
@@ -54,10 +57,10 @@ function relogioFalso() {
     agora = proximo[1].em;
     proximo[1].fn();
     await flush();
-    return avancar(fim - agora);
+    return await avancar(fim - agora);
   }
   return {
-    agendar(fn: () => void, ms: number) {
+    agendar: (fn: () => void, ms: number) => {
       seq += 1;
       const id = seq;
       fila.set(id, { em: agora + ms, fn });
@@ -408,7 +411,7 @@ describe("sessão de estudo", () => {
     const { relogio, servidor, sessao } = montar();
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(8000);
-    sessao.encerrar();
+    void sessao.encerrar();
     await relogio.avancar(60_000);
     expect(servidor.pedidos).toHaveLength(1);
     expect(servidor.trechos()).toEqual(canonizar([t(0, 8)], DURACAO));
@@ -419,7 +422,7 @@ describe("envio sem mudança", () => {
   test("abrir e sair sem tocar não envia nada", async () => {
     const { relogio, servidor, sessao } = montar(120);
     await relogio.avancar(5000);
-    sessao.encerrar();
+    void sessao.encerrar();
     await relogio.flush();
     expect(servidor.pedidos).toHaveLength(0);
   });
@@ -443,7 +446,7 @@ describe("envio sem mudança", () => {
     await relogio.avancar(1000);
     expect(servidor.pedidos).toHaveLength(1);
     sessao.salvarAgora();
-    sessao.encerrar();
+    void sessao.encerrar();
     await relogio.flush();
     expect(servidor.pedidos).toHaveLength(1);
   });
@@ -593,7 +596,7 @@ describe("encerrar com a rede caída", () => {
     servidor.falhar({ tipo: "rede" });
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(8000);
-    sessao.encerrar();
+    void sessao.encerrar();
     await relogio.avancar(120_000);
     expect(servidor.pedidos).toHaveLength(1);
   });
@@ -606,7 +609,7 @@ describe("encerrar com a rede caída", () => {
     await relogio.avancar(11_000);
     expect(conquistas).toHaveLength(0);
     servidor.falhar(null);
-    sessao.encerrar();
+    void sessao.encerrar();
     await relogio.flush();
     expect(servidor.coberturaSeg()).toBeGreaterThanOrEqual(540);
     expect(conquistas).toHaveLength(1);
@@ -650,7 +653,7 @@ describe("a saída pede refresh só quando a retomada do layout ficou velha", ()
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(8000);
     let fim: unknown = "pendente";
-    sair().then((f) => {
+    void sair().then((f) => {
       fim = f;
     });
     await relogio.flush();
@@ -711,7 +714,7 @@ describe("a saída pede refresh só quando a retomada do layout ficou velha", ()
     expect(servidor.pedidos).toHaveLength(1);
     servidor.enviar = () => new Promise(() => undefined);
     let fim: unknown = "pendente";
-    sair().then((f) => {
+    void sair().then((f) => {
       fim = f;
     });
     await relogio.avancar(TETO_DA_SAIDA_MS - 1);

@@ -3,7 +3,8 @@
 import type { Conquista, Pedido } from "@cursos/api/dominio/registro";
 import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
 import type { Trechos } from "@cursos/api/dominio/trechos";
-import { TRPCClientError } from "@trpc/client";
+import type { AppRouter } from "@cursos/api/routers/index";
+import { isTRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
 import {
   startTransition,
@@ -57,10 +58,9 @@ async function enviarRegistro(
     });
     return { registro, tipo: "ok" };
   } catch (e) {
-    const motivo =
-      e instanceof TRPCClientError
-        ? motivoParadoDe(String(e.data?.code))
-        : undefined;
+    const motivo = isTRPCClientError<AppRouter>(e)
+      ? motivoParadoDe(String(e.data?.code))
+      : undefined;
     return motivo ? { motivo, tipo: "definitivo" } : { tipo: "rede" };
   }
 }
@@ -144,7 +144,7 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       window.removeEventListener("pagehide", aoSair);
       // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
       // página nova e o layout junto, com o "Continuar" do rodapé em dia.
-      s.encerrar().then(ligacao.aoEncerrar);
+      void s.encerrar().then(ligacao.aoEncerrar);
       aviso.encerrar();
     };
   }, [aviso, inicial, router]);

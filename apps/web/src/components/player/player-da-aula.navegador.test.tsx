@@ -189,7 +189,7 @@ async function empacotar(comYoutube = false) {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote do player não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 const navegacao = await import("next/navigation");
@@ -366,7 +366,7 @@ async function tabAte(
   const ate = [...paradas, parada];
   return parada.includes(rotulo) || ate.length >= 10
     ? ate
-    : tabAte(rotulo, ate);
+    : await tabAte(rotulo, ate);
 }
 /** A mesma tecla várias vezes, uma depois da outra. */
 const apertarVezes = (key: string, vezes: number) =>

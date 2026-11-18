@@ -88,7 +88,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da seção não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 const PALAVRA = /[\s"'`{}]+/;

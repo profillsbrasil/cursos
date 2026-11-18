@@ -106,7 +106,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote do cartão não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 let enviar: Enviar;

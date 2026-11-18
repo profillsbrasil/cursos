@@ -241,7 +241,7 @@ export const adminRouter = router({
         ) {
           throw naoEMaisAdmin();
         }
-        return convidar(
+        return await convidar(
           ctx.db,
           ctx,
           ctx.admin,
@@ -305,7 +305,13 @@ export const adminRouter = router({
             message: PESSOA_SUMIU,
           });
         }
-        return liberar(ctx.db, ctx.admin, pessoa, input.cursoId, new Date());
+        return await liberar(
+          ctx.db,
+          ctx.admin,
+          pessoa,
+          input.cursoId,
+          new Date()
+        );
       }),
     /** Um resultado por pessoa: a falha de uma não recusa o lote. */
     liberarVarios: adminProcedure
@@ -383,7 +389,7 @@ export const adminRouter = router({
         if (!(await ctx.pessoas.conta(input.userId))) {
           throw pessoaSumiu();
         }
-        return concederPontos(ctx.db, ctx.admin, input, new Date());
+        return await concederPontos(ctx.db, ctx.admin, input, new Date());
       }),
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))

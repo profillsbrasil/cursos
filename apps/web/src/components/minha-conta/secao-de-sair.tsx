@@ -95,7 +95,13 @@ export function SecaoDeSair({
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
   return (
     <div className={cn(ACOES, "justify-between")}>
-      <button className={CONTORNO_PEQUENO} onClick={sair} type="button">
+      <button
+        className={CONTORNO_PEQUENO}
+        onClick={() => {
+          void sair();
+        }}
+        type="button"
+      >
         <LogOut aria-hidden="true" className="size-4" />
         Sair da conta
       </button>

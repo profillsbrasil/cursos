@@ -25,7 +25,6 @@ import {
 import type {
   AlternativaId,
   AulaId,
-  CursoId,
   PerguntaId,
   TentativaId,
 } from "../dominio/tipos";
@@ -216,7 +215,7 @@ async function abrirQuestionario(
       message: "Esta aula não tem questionário.",
     });
   }
-  return { cursoId: aberto.curso.id as CursoId, perguntas, tentativas };
+  return { cursoId: aberto.curso.id, perguntas, tentativas };
 }
 
 /**

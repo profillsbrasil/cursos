@@ -72,7 +72,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+  return await saida.text();
 }
 
 // Funções da página: clicam no rótulo como a pessoa, escrevem no campo pelo

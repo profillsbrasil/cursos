@@ -155,7 +155,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da coluna não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 let enviar: Enviar;

@@ -16,7 +16,7 @@ export function trocado<T>(
     return null;
   }
   const nova = [...lista];
-  [nova[i], nova[j]] = [nova[j] as T, nova[i] as T];
+  [nova[i], nova[j]] = [nova[j], nova[i]];
   return nova;
 }
 

@@ -238,8 +238,8 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
         return r;
       }
       const j = m.direcao === "acima" ? i - 1 : i + 1;
-      const a = modulos[i] as ModuloDoRascunho;
-      const b = modulos[j] as ModuloDoRascunho;
+      const a = modulos[i];
+      const b = modulos[j];
       modulos[i] = { ...a, numero: b.numero };
       modulos[j] = { ...b, numero: a.numero };
       return { ...r, modulos };

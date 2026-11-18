@@ -2,9 +2,10 @@
 
 import { Checkbox } from "@cursos/ui/components/checkbox";
 import { Input } from "@cursos/ui/components/input";
-import { type FormEvent, useCallback, useId, useState } from "react";
+import { type SubmitEvent, useCallback, useId, useState } from "react";
 
 import { CAIXA, CAMPO, ROTULO } from "@/components/casca/campos";
+import { campoDeTexto } from "@/lib/formulario";
 
 import {
   ACOES,
@@ -37,15 +38,15 @@ function FormularioDaSenha({
   const [sairDosOutros, setSairDosOutros] = useState(true);
   const trocando = user.passwordEnabled;
   const salvar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       const dados = new FormData(e.currentTarget);
-      const atual = String(dados.get("atual") ?? "");
+      const atual = campoDeTexto(dados, "atual");
       executar(
         () =>
           user.updatePassword({
             currentPassword: trocando ? atual : undefined,
-            newPassword: String(dados.get("nova") ?? ""),
+            newPassword: campoDeTexto(dados, "nova"),
             signOutOfOtherSessions: sairDosOutros,
           }),
         {

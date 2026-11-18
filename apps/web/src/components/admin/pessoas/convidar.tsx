@@ -24,7 +24,7 @@ import Link from "next/link";
 import {
   type ChangeEvent,
   type ClipboardEvent,
-  type FormEvent,
+  type SubmitEvent,
   type KeyboardEvent,
   useCallback,
   useId,
@@ -353,7 +353,7 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
   );
 
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       // O Enter no campo com texto fecha a ficha; o clique no botão chega aqui com o blur já feito.
       if (envio.tipo !== "pronto" || rascunho.texto.trim() !== "") {

@@ -52,7 +52,9 @@ describe("sinal com prazo", () => {
     const relogio = relogioFalso();
     const sinal = criarSinal(relogio.agendar, 1000);
     const vistos: boolean[] = [];
-    sinal.assinar(() => vistos.push(sinal.aceso()));
+    sinal.assinar(() => {
+      vistos.push(sinal.aceso());
+    });
     sinal.acender();
     relogio.avancar(1000);
     expect(vistos).toEqual([true, false]);

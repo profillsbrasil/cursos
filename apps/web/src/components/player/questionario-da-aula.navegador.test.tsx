@@ -129,7 +129,7 @@ async function empacotar() {
       `o pacote do questionário não saiu: ${pacote.logs.join("\n")}`
     );
   }
-  return saida.text();
+  return await saida.text();
 }
 
 const navegacao = await import("next/navigation");

@@ -138,7 +138,7 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
         conta: async (id) => {
           leituras += 1;
           await esperar(50);
-          return base.pessoas.conta(id);
+          return await base.pessoas.conta(id);
         },
       },
     });

@@ -127,7 +127,9 @@ describe("focarOPrimeiro", () => {
     try {
       focarOPrimeiro(["aula-duracao"]);
       naPagina.set("aula-duracao", {
-        focus: () => focados.push("aula-duracao"),
+        focus: () => {
+          focados.push("aula-duracao");
+        },
       });
       expect(focados).toEqual([]);
       for (const f of quadros) {

@@ -36,7 +36,7 @@ interface NoDaCadeia {
 function naCadeia<T>(erro: unknown, ler: (no: NoDaCadeia) => T | null) {
   let atual: unknown = erro;
   for (let i = 0; atual && i < 5; i += 1) {
-    const achado = ler(atual as NoDaCadeia);
+    const achado = ler(atual);
     if (achado !== null) {
       return achado;
     }

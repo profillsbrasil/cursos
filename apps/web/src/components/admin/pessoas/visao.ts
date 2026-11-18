@@ -49,5 +49,5 @@ export function hrefDaVisao(visao: VisaoDePessoas, termo: string): Route {
     busca.set("q", termo);
   }
   const texto = busca.toString();
-  return (texto ? `/admin/pessoas?${texto}` : "/admin/pessoas") as Route;
+  return texto ? `/admin/pessoas?${texto}` : "/admin/pessoas";
 }

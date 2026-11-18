@@ -510,7 +510,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     test("o curso que não existe recusa o lote inteiro sem gravar", async () => {
       const userId = await aluno();
       const erro = await loteDe([nomeado(userId, "Ana")])({
-        cursoId: "00000000-0000-4000-8000-000000000000" as CursoId,
+        cursoId: "00000000-0000-4000-8000-000000000000",
         userIds: [userId],
       }).catch((e: unknown) => e);
       expect(erro).toMatchObject({
@@ -527,8 +527,8 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       const liberarVarios = loteDe(userIds.map((u) => nomeado(u, "Pessoa")));
       const recusas = await Promise.all(
         [userIds, []].map((lista) =>
-          liberarVarios({ cursoId: c, userIds: lista }).catch(
-            (e: { code?: string }) => e.code
+          liberarVarios({ cursoId: c, userIds: lista }).catch((e: unknown) =>
+            e instanceof TRPCError ? e.code : undefined
           )
         )
       );

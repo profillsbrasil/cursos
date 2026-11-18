@@ -52,6 +52,12 @@ function fraseDoNomeRecusado(longMessage = "") {
   return FRASES_DO_NOME.recusado;
 }
 
+/** O tipo do Clerk deixa o meta do erro como any. */
+function campoDoErro(erro: { meta?: { paramName?: unknown } } | undefined) {
+  const campo = erro?.meta?.paramName;
+  return typeof campo === "string" ? campo : "";
+}
+
 /** A frase em pt-BR de um erro do Clerk, ou a genérica. */
 export function fraseDoErro(e: unknown): string {
   if (isReverificationCancelledError(e)) {
@@ -64,7 +70,7 @@ export function fraseDoErro(e: unknown): string {
   const codigo = erro?.code ?? "";
   if (
     codigo === "form_param_value_invalid" &&
-    CAMPOS_DO_NOME.has(erro?.meta?.paramName ?? "")
+    CAMPOS_DO_NOME.has(campoDoErro(erro))
   ) {
     return fraseDoNomeRecusado(erro?.longMessage);
   }

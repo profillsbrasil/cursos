@@ -16,8 +16,6 @@ import {
   traduzErroDoBanco,
 } from "./index";
 
-const NEW_TRPC_ERROR = /new TRPCError\(/;
-
 /** O erro do node-postgres, como o drizzle o deixa na cadeia de cause. */
 const violou = (restricao: string) =>
   Object.assign(new Error("duplicate key value violates unique constraint"), {
@@ -93,8 +91,8 @@ describe("recusa de negócio sai como ErroParaAPessoa", () => {
     const comTRPCError = [...new Glob("**/*.ts").scanSync(import.meta.dir)]
       .filter((arquivo) => !arquivo.endsWith(".test.ts"))
       .filter((arquivo) =>
-        NEW_TRPC_ERROR.test(
-          readFileSync(join(import.meta.dir, arquivo), "utf8")
+        readFileSync(join(import.meta.dir, arquivo), "utf8").includes(
+          "new TRPCError("
         )
       );
     expect(comTRPCError).toEqual(["index.ts"]);

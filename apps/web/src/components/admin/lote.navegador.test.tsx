@@ -174,7 +174,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 const ARQUIVOS_COM_CLASSES = [

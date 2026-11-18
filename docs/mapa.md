@@ -9,7 +9,7 @@ O pedido do browser percorre as camadas nesta ordem:
 - `apps/web/src/server/api.ts`: os `carregar*` que os Server Components chamam, pelo `createCaller` no processo, com `React.cache` por request.
 - `apps/web/src/context.ts` e `src/services.ts`: o contexto do tRPC por request e os serviços (banco, capas e Clerk), montados uma vez.
 - `apps/web/src/components/`: `casca/` (a navegação comum), `aluno/`, `admin/`, `material-de-apoio/` (o que o editor e a página do curso dividem), `entrada/` (a tela de entrar), `minha-conta/` e uma pasta por tela do aluno (`meus-cursos/`, `curso/`, `player/`, `conquistas/`, `comunicados-do-aluno/`, `trocar-pontos/`, `certificado/`).
-- `apps/web/src/lib/`: `use-acao.ts` (toda mutação), `rotas.ts` (os endereços), `formato.ts`, `marca.ts`, as peças do editor do curso e as do player (`player/`).
+- `apps/web/src/lib/`: `use-acao.ts` (toda mutação), `rotas.ts` (os endereços), `formato.ts`, `formulario.ts` (o texto de um campo do `FormData`), `marca.ts`, as peças do editor do curso e as do player (`player/`).
 - `packages/api/src/`: `index.ts` (os procedures e `ErroParaAPessoa`), `routers/`, `dominio/` (regras puras, sem banco e sem relógio próprio), `consultas/` (o SQL, as travas e o escritor único de cada tabela) e `externos/` (Storage e Clerk).
 - `packages/db/src/`: o schema, as relations v2, as migrações e o seed.
 

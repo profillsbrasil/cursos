@@ -136,7 +136,7 @@ export async function linhasDaBusca(
     throw new Error("O statement da busca não devolveu linha.");
   }
   const { cursos, pessoas } = linha.linhas;
-  const data = (ms: Ms) => new Date(Number(ms));
+  const data = (ms: Ms) => new Date(ms);
   return {
     cursos,
     pessoas: pessoas.map((p) => ({

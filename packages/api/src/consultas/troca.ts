@@ -203,7 +203,7 @@ export function trocar(
       case "ja_trocado":
         return { lancamentoId: d.lancamentoId };
       case "debitar":
-        return gravarTroca(aluno, cursoId, d.preco, agora);
+        return await gravarTroca(aluno, cursoId, d.preco, agora);
       default:
         return d satisfies never;
     }

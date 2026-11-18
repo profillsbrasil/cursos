@@ -142,6 +142,6 @@ export function comSaldoTravado<T>(
 ): Promise<T> {
   return comAlunoTravado(db, userId, async (aluno) => {
     const { saldo } = await linhasDoSaldo(aluno.tx, aluno.userId, segunda);
-    return fn(aluno, saldo);
+    return await fn(aluno, saldo);
   });
 }

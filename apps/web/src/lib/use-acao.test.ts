@@ -35,10 +35,16 @@ async function rodar<T>(fazer: () => Promise<T>, opcoes: OpcoesDaAcao<T>) {
       },
     },
     {
-      atualizar: () => feito.push("atualizar"),
+      atualizar: () => {
+        feito.push("atualizar");
+      },
       toast: {
-        error: (texto) => feito.push(`erro:${texto}`),
-        success: (texto) => feito.push(`sucesso:${texto}`),
+        error: (texto) => {
+          feito.push(`erro:${texto}`);
+        },
+        success: (texto) => {
+          feito.push(`sucesso:${texto}`);
+        },
       },
     }
   );
@@ -96,7 +102,9 @@ describe("rodarAcao", () => {
     const motivos: unknown[] = [];
     expect(
       await rodar(() => Promise.reject(recusa), {
-        aoRecusar: (m) => motivos.push(m),
+        aoRecusar: (m) => {
+          motivos.push(m);
+        },
       })
     ).toEqual(["erro:Outra pessoa salvou este curso.", "atualizar"]);
     expect(motivos).toEqual(["versao_mudou"]);
@@ -115,7 +123,9 @@ describe("rodarAcao", () => {
         erroDeRede(),
       ].map((e) =>
         rodar(() => Promise.reject(e), {
-          aoRecusar: (_motivo, mensagem) => recebidas.push(mensagem),
+          aoRecusar: (_motivo, mensagem) => {
+            recebidas.push(mensagem);
+          },
         })
       )
     );
@@ -136,7 +146,9 @@ describe("rodarAcao", () => {
     const motivos: unknown[] = [];
     expect(
       await rodar(() => Promise.reject(recusa), {
-        aoRecusar: (m) => motivos.push(m),
+        aoRecusar: (m) => {
+          motivos.push(m);
+        },
       })
     ).toEqual(["erro:Outra pessoa salvou.", "atualizar"]);
     expect(motivos).toEqual(["versao_mudou"]);
@@ -146,7 +158,11 @@ describe("rodarAcao", () => {
     const motivos: unknown[] = [];
     const feitos = await Promise.all(
       [erroDeRede(), new Error("Failed to fetch")].map((e) =>
-        rodar(() => Promise.reject(e), { aoRecusar: (m) => motivos.push(m) })
+        rodar(() => Promise.reject(e), {
+          aoRecusar: (m) => {
+            motivos.push(m);
+          },
+        })
       )
     );
     expect(feitos).toEqual([[GENERICO], [GENERICO]]);

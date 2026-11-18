@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { TRPCError } from "@trpc/server";
+
 import { type AuthDoClerk, contextoDe } from "../context";
 import {
   contextoDeTeste,
@@ -86,7 +88,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
         chamar(anonimo, caminho).then(
           () => "passou",
-          (e: { code?: string }) => e.code
+          (e: unknown) => (e instanceof TRPCError ? e.code : undefined)
         )
       )
     );
@@ -99,7 +101,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
         chamar(aluno, caminho).then(
           () => "passou",
-          (e: { code?: string }) => e.code
+          (e: unknown) => (e instanceof TRPCError ? e.code : undefined)
         )
       )
     );

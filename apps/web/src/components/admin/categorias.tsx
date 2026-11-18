@@ -17,7 +17,7 @@ import {
 import { cn } from "@cursos/ui/lib/utils";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
-  type FormEvent,
+  type SubmitEvent,
   type KeyboardEvent,
   type ReactNode,
   type RefObject,
@@ -38,6 +38,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import { DICA } from "@/components/casca/estilo";
 import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
+import { campoDeTexto } from "@/lib/formulario";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -116,9 +117,9 @@ function CampoDoNome({
 }) {
   const id = useId();
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
-      aoEnviar(String(new FormData(e.currentTarget).get("nome") ?? "").trim());
+      aoEnviar(campoDeTexto(new FormData(e.currentTarget), "nome").trim());
     },
     [aoEnviar]
   );

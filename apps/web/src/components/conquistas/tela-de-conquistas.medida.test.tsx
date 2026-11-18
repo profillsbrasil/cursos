@@ -268,10 +268,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
           [56, 56],
           [56, 56],
         ]);
-        expect(centro(t.medalhas[2] as Caixa)).toBeCloseTo(
-          t.trilho.direita - 28,
-          0
-        );
+        expect(centro(t.medalhas[2])).toBeCloseTo(t.trilho.direita - 28, 0);
       });
 
       test(`${largura} px, ${nome}: a faixa dos sete dias é baixa, e sábado e domingo aparecem entre sexta e segunda`, async () => {
@@ -293,12 +290,12 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         const sextas = nome === "aluna" ? [3] : [0, 5];
         expect(s.fins).toHaveLength(sextas.length);
         for (const [i, sexta] of sextas.entries()) {
-          const fim = s.fins[i] as Caixa;
+          const fim = s.fins[i];
           expect(fim.esquerda).toBeGreaterThanOrEqual(
-            (s.circulos[sexta] as Caixa).direita
+            s.circulos[sexta].direita
           );
           expect(fim.direita).toBeLessThanOrEqual(
-            (s.circulos[sexta + 1] as Caixa).esquerda
+            s.circulos[sexta + 1].esquerda
           );
         }
       });
@@ -348,7 +345,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
     await abrir(1280, TELAS.aluna.html);
     const { cartoes: g, ganhas, medalhas } = await gradeMedida();
     expect(g).toHaveLength(6);
-    const [destaque, segundo, terceiro, quarto, quinto] = g as Caixa[];
+    const [destaque, segundo, terceiro, quarto, quinto] = g;
     expect(segundo?.topo).toBe(destaque?.topo);
     expect(destaque?.largura).toBeCloseTo((segundo?.largura ?? 0) * 2 + 14, 0);
     for (const c of [terceiro, quarto, quinto]) {
@@ -379,7 +376,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
   test("700 px: a grade em duas colunas, a primeira na linha toda", async () => {
     await abrir(700, TELAS.aluna.html);
     const { cartoes: g } = await gradeMedida();
-    const [destaque, segundo, terceiro] = g as Caixa[];
+    const [destaque, segundo, terceiro] = g;
     expect(segundo?.topo).toBeGreaterThan(destaque?.baixo ?? 0);
     expect(terceiro?.topo).toBe(segundo?.topo);
     expect(destaque?.largura).toBeCloseTo((segundo?.largura ?? 0) * 2 + 14, 0);

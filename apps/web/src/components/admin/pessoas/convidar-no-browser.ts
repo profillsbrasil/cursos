@@ -80,7 +80,7 @@ export async function empacotarConvidar() {
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+  return await saida.text();
 }
 
 /**

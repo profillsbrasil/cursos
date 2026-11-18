@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { Retomada } from "@cursos/api/dominio/painel";
-import type { AulaId, Capa } from "@cursos/api/dominio/tipos";
+import type { AulaId } from "@cursos/api/dominio/tipos";
 
 import { hrefDaRetomada } from "@/lib/rotas";
 
@@ -12,7 +12,7 @@ const capa = {
   altura: 720,
   largura: 1280,
   url: "https://x/c.png",
-} as Capa;
+};
 const curso = { capa, slug: "comercial", titulo: "Comercial" };
 const modulo = { numero: 4, titulo: "Pilar Urgência" };
 const aula = {

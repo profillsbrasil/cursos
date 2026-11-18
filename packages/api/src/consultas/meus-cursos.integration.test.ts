@@ -162,7 +162,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   let pequena: Awaited<ReturnType<typeof criarCursos>>;
   const idsDe = (painel: { cursos: readonly { id: string }[] }) =>
-    painel.cursos.map((c) => String(c.id));
+    painel.cursos.map((c) => c.id);
   const doPequeno = (painel: {
     cursos: readonly { id: string; progresso: unknown; estado: unknown }[];
   }) => painel.cursos.find((c) => c.id === pequena.cursos[0]);

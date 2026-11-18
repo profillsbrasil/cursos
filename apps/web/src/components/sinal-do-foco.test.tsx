@@ -468,11 +468,8 @@ const noFoco = (e: Elemento) =>
 
 function unico(lista: Elemento[], descricao: string) {
   expect(lista.map(() => descricao)).toEqual([descricao]);
-  return lista[0] as Elemento;
+  return lista[0];
 }
-
-const COR = /^color:/;
-const FUNDO = /^background-color:/;
 
 // O Chromium da máquina (chromium-de-teste.ts) avalia o seletor da variante
 // ativo-aceso (:has com ~) contra o HTML renderizado, com o CSS compilado.
@@ -509,7 +506,7 @@ async function tabAte(condicao: string, tentativas: number): Promise<void> {
   const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
-  return tabAte(condicao, tentativas - 1);
+  return await tabAte(condicao, tentativas - 1);
 }
 
 const LINK_ATIVO = 'nav a[aria-current="page"]';
@@ -787,11 +784,11 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     expect(emBreve.map((e) => e.texto || "item")).toHaveLength(1);
     for (const item of emBreve) {
       const foco = noFoco(item);
-      expect(foco.filter((d) => COR.test(d))).toEqual([
+      expect(foco.filter((d) => d.startsWith("color:"))).toEqual([
         "color: var(--foreground)",
         "color: var(--foreground)",
       ]);
-      expect(foco.filter((d) => FUNDO.test(d))).toEqual([]);
+      expect(foco.filter((d) => d.startsWith("background-color:"))).toEqual([]);
     }
   });
 
@@ -800,10 +797,10 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     // O módulo 2 está fechado: o título não vem claro do group-open.
     const resumos = daColuna.filter((e) => e.classes.includes("list-none"));
     expect(resumos).toHaveLength(2);
-    const resumo = resumos[1] as Elemento;
-    expect(noFoco(resumo).filter((d) => FUNDO.test(d))).toContain(
-      "background-color: color-mix(in srgb, #fff 8%, transparent)"
-    );
+    const [, resumo] = resumos;
+    expect(
+      noFoco(resumo).filter((d) => d.startsWith("background-color:"))
+    ).toContain("background-color: color-mix(in srgb, #fff 8%, transparent)");
     const titulo = unico(
       daColuna.filter((e) => e.texto === "Limpeza da envasadora"),
       "título do módulo 2"
@@ -840,9 +837,9 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       ),
     ];
     for (const e of comFoco) {
-      expect(noFoco(e).filter((d) => FUNDO.test(d))).toContain(
-        "background-color: var(--accent)"
-      );
+      expect(
+        noFoco(e).filter((d) => d.startsWith("background-color:"))
+      ).toContain("background-color: var(--accent)");
     }
   });
 
@@ -917,7 +914,9 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
 
 /** As cores de texto que o foco põe no elemento e que não são a de repouso. */
 const outraCorNoFoco = (e: Elemento, corDeRepouso: string) =>
-  noFoco(e).filter((d) => COR.test(d) && d !== `color: var(--${corDeRepouso})`);
+  noFoco(e).filter(
+    (d) => d.startsWith("color:") && d !== `color: var(--${corDeRepouso})`
+  );
 
 describe("a ação que não se desfaz fica no erro, também com o foco", () => {
   test("o Apagar da confirmação na linha é o erro cheio, com texto sobre-cor no foco", () => {

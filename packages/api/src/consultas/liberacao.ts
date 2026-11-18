@@ -279,7 +279,7 @@ export async function revogar(
       message: "Esta liberação não existe.",
     });
   }
-  return comAlunoTravado(db, dono.userId, async (aluno) => {
+  return await comAlunoTravado(db, dono.userId, async (aluno) => {
     const linha = await aluno.tx.query.liberacao.findFirst({
       columns: { origem: true, revogadaEm: true },
       where: { id: liberacaoId },

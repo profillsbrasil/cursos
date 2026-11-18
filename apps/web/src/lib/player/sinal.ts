@@ -30,7 +30,7 @@ export function criarSinal(agendar: Agendar, ms: number) {
       mudar(true);
     },
     aceso: () => aceso,
-    assinar(ouvir: () => void) {
+    assinar: (ouvir: () => void) => {
       ouvintes.add(ouvir);
       return () => {
         ouvintes.delete(ouvir);

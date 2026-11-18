@@ -7,7 +7,7 @@ export async function GET(
   { params }: RouteContext<"/cursos/[slug]/certificado/pdf">
 ) {
   const pagina = await carregarPaginaDoCertificado((await params).slug);
-  return respostaDoPdf(
+  return await respostaDoPdf(
     pagina?.tipo === "emitido" ? pagina.certificado : null,
     origemDoPedido(pedido.headers)
   );

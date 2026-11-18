@@ -162,7 +162,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   const assistir540 = async (aluno: string, aulaId: AulaId, base: number) => {
     await terco(aluno, aulaId, base, 0);
     await terco(aluno, aulaId, base, 1);
-    return terco(aluno, aulaId, base, 2);
+    return await terco(aluno, aulaId, base, 2);
   };
 
   afterAll(async () => {

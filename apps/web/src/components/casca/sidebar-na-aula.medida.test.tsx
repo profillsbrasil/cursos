@@ -234,7 +234,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a sidebar na aula, a 1280 px", () => {
 
   afterAll(async () => {
     await fecharChromium();
-    servidor.stop(true);
+    await servidor.stop(true);
   });
 
   test("na carga direta da aula, chega recolhida antes do JS, com o cookie aberto", async () => {

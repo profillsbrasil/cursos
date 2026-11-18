@@ -107,7 +107,7 @@ export type Marco =
   | {
       tipo: "aulas";
       meta: MetaDeAulas;
-      medalha: Medalha<Record<never, never>, { feitas: number }>;
+      medalha: Medalha<unknown, { feitas: number }>;
     }
   | {
       tipo: "sequencia";
@@ -118,7 +118,7 @@ export type Marco =
     };
 
 interface NaGrade<T extends string, PorGanhar> {
-  medalha: Medalha<Record<never, never>, { pct: number } & PorGanhar>;
+  medalha: Medalha<unknown, { pct: number } & PorGanhar>;
   tipo: T;
 }
 
@@ -145,7 +145,7 @@ export type MedalhaDaGrade =
   | NaGrade<"tres_trocas", Contagem>
   | NaGrade<"amostra_e_troca", Contagem & { amostraVista: string | null }>
   | NaGrade<"troca_ate_o_fim", { maisAdiantado: CursoPerto | null }>
-  | NaGrade<"primeiro_questionario", Record<never, never>>
+  | NaGrade<"primeiro_questionario", unknown>
   | NaGrade<"nota_cheia", { melhor: Contagem | null }>
   | NaGrade<"tres_cursos", Contagem>
   | NaGrade<"mil_pontos", Contagem>;

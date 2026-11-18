@@ -183,7 +183,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
 
   afterAll(async () => {
     await fecharChromium();
-    servidor.stop(true);
+    await servidor.stop(true);
   });
 
   test("na gaveta, um Esc com o foco num item fecha a gaveta", async () => {

@@ -132,7 +132,7 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
       // Os bytes vão de novo, e não o corpo do Request assinado: o fetch do Next
       // manda o corpo de um Request em chunked, sem content-length, e o S3 que
       // exige o tamanho responde 411.
-      return enviar(assinado.url, {
+      return await enviar(assinado.url, {
         body: bytes,
         headers: assinado.headers,
         method: "PUT",
@@ -161,7 +161,7 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
       return objetos;
     },
     pedir: async (chave: string, method: "GET" | "HEAD" = "GET") =>
-      enviar(await aws.sign(doObjeto(chave), { method })),
+      await enviar(await aws.sign(doObjeto(chave), { method })),
   };
 }
 

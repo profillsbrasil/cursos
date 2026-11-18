@@ -281,16 +281,20 @@ describe("questionário da aula", () => {
   test("recusa 1 alternativa, 6 alternativas, nenhuma certa e duas certas", () => {
     const base = "modulos.0.aulas.0.perguntas.0.alternativas";
     expect([
-      issues(comPergunta((p) => p.alternativas.shift())),
       issues(
-        comPergunta((p) =>
+        comPergunta((p) => {
+          p.alternativas.shift();
+        })
+      ),
+      issues(
+        comPergunta((p) => {
           p.alternativas.push(
             alternativa(1),
             alternativa(2),
             alternativa(3),
             alternativa(4)
-          )
-        )
+          );
+        })
       ).map(([caminho]) => caminho),
       issues(
         comPergunta((p) => {

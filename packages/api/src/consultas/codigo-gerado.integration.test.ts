@@ -39,91 +39,94 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
     const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
     let esperado: string[][] = [];
     let obtido: (string | null)[][] = [];
-    await db
-      .transaction(async (tx) => {
-        await tx.execute(
-          sql`alter table ${curso} alter column ${sql.identifier("codigo")} drop not null`
-        );
-        await tx
-          .insert(categoria)
-          .values(CATEGORIAS.map(([nome]) => ({ nome })))
-          .onConflictDoNothing({ target: categoria.nome });
-        const categorias = await tx
-          .select({ id: categoria.id, nome: categoria.nome })
-          .from(categoria)
-          .where(
-            inArray(
-              categoria.nome,
-              CATEGORIAS.map(([nome]) => nome)
-            )
+    try {
+      await db
+        .transaction(async (tx) => {
+          await tx.execute(
+            sql`alter table ${curso} alter column ${sql.identifier("codigo")} drop not null`
           );
-        const idDe = (nome: string) =>
-          categorias.find((c) => c.nome === nome)?.id ?? "";
-        // O código que já existe ocupa o número: STMI começa no 002.
-        await tx.insert(curso).values({
-          capaAlt: "Capa de teste",
-          capaAltura: 720,
-          capaLargura: 1280,
-          capaUrl: "/capas/teste.jpg",
-          categoriaId: idDe(
-            "Segurança do trabalho em máquinas industriais pesadas"
-          ),
-          codigo: "STMI-001",
-          slug: `migracao-${S}-com-codigo`,
-          titulo: "Curso com código",
-        });
-        const ocupados = new Set(
-          (
-            await tx
-              .select({ codigo: curso.codigo })
-              .from(curso)
-              .where(isNotNull(curso.codigo))
-          ).map((c) => c.codigo)
-        );
-        const plantados = CATEGORIAS.flatMap(([nome, n]) =>
-          Array.from({ length: n }, () => nome)
-        ).map((nome, i) => ({
-          capaAlt: "Capa de teste",
-          capaAltura: 720,
-          capaLargura: 1280,
-          capaUrl: "/capas/teste.jpg",
-          categoriaId: idDe(nome),
-          codigo: sql`null`,
-          criadoEm: new Date(Date.UTC(2000, 0, 1, 0, 0, i)),
-          nome,
-          slug: `migracao-${S}-${i}`,
-          titulo: `Curso ${i}`,
-        }));
-        await tx
-          .insert(curso)
-          .values(plantados.map(({ nome: _, ...linha }) => linha));
+          await tx
+            .insert(categoria)
+            .values(CATEGORIAS.map(([nome]) => ({ nome })))
+            .onConflictDoNothing({ target: categoria.nome });
+          const categorias = await tx
+            .select({ id: categoria.id, nome: categoria.nome })
+            .from(categoria)
+            .where(
+              inArray(
+                categoria.nome,
+                CATEGORIAS.map(([nome]) => nome)
+              )
+            );
+          const idDe = (nome: string) =>
+            categorias.find((c) => c.nome === nome)?.id ?? "";
+          // O código que já existe ocupa o número: STMI começa no 002.
+          await tx.insert(curso).values({
+            capaAlt: "Capa de teste",
+            capaAltura: 720,
+            capaLargura: 1280,
+            capaUrl: "/capas/teste.jpg",
+            categoriaId: idDe(
+              "Segurança do trabalho em máquinas industriais pesadas"
+            ),
+            codigo: "STMI-001",
+            slug: `migracao-${S}-com-codigo`,
+            titulo: "Curso com código",
+          });
+          const ocupados = new Set(
+            (
+              await tx
+                .select({ codigo: curso.codigo })
+                .from(curso)
+                .where(isNotNull(curso.codigo))
+            ).map((c) => c.codigo)
+          );
+          const plantados = CATEGORIAS.flatMap(([nome, n]) =>
+            Array.from({ length: n }, () => nome)
+          ).map((nome, i) => ({
+            capaAlt: "Capa de teste",
+            capaAltura: 720,
+            capaLargura: 1280,
+            capaUrl: "/capas/teste.jpg",
+            categoriaId: idDe(nome),
+            codigo: sql`null`,
+            criadoEm: new Date(Date.UTC(2000, 0, 1, 0, 0, i)),
+            nome,
+            slug: `migracao-${S}-${i}`,
+            titulo: `Curso ${i}`,
+          }));
+          await tx
+            .insert(curso)
+            .values(plantados.map(({ nome: _, ...linha }) => linha));
 
-        esperado = plantados.map((p) => {
-          const codigo = codigoLivre(siglaDaCategoria(p.nome), ocupados);
-          ocupados.add(codigo);
-          return [p.slug, codigo];
-        });
+          esperado = plantados.map((p) => {
+            const codigo = codigoLivre(siglaDaCategoria(p.nome), ocupados);
+            ocupados.add(codigo);
+            return [p.slug, codigo];
+          });
 
-        await tx.execute(sql.raw(MIGRACAO));
-        const gravados = await tx
-          .select({ codigo: curso.codigo, slug: curso.slug })
-          .from(curso)
-          .where(
-            inArray(
-              curso.slug,
-              plantados.map((p) => p.slug)
+          await tx.execute(sql.raw(MIGRACAO));
+          const gravados = await tx
+            .select({ codigo: curso.codigo, slug: curso.slug })
+            .from(curso)
+            .where(
+              inArray(
+                curso.slug,
+                plantados.map((p) => p.slug)
+              )
             )
-          )
-          .orderBy(curso.criadoEm);
-        obtido = gravados.map((g) => [g.slug, g.codigo]);
-        tx.rollback();
-      })
-      .catch((e: unknown) => {
-        if (!(e instanceof TransactionRollbackError)) {
-          throw e;
-        }
-      })
-      .finally(() => db.$client.end());
+            .orderBy(curso.criadoEm);
+          obtido = gravados.map((g) => [g.slug, g.codigo]);
+          tx.rollback();
+        })
+        .catch((e: unknown) => {
+          if (!(e instanceof TransactionRollbackError)) {
+            throw e;
+          }
+        });
+    } finally {
+      await db.$client.end();
+    }
 
     expect(obtido).toEqual(esperado);
     expect(esperado.map(([, codigo]) => codigo?.split("-")[0])).toEqual([

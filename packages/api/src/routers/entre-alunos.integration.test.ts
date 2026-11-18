@@ -283,7 +283,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       await como(ANA).questionario.responder({
         aulaId: a1?.id ?? "",
         respostas: respostas(perguntas, false),
-        tentativaId: randomUUID() as TentativaId,
+        tentativaId: randomUUID(),
       });
       const antes = await fatosDe(BRUNO);
       const anaAntes = await fatosDe(ANA);
@@ -376,14 +376,14 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
             ana.questionario.responder({
               aulaId: id,
               respostas: daBruno,
-              tentativaId: randomUUID() as TentativaId,
+              tentativaId: randomUUID(),
             })
           ),
           recusa(
             ana.questionario.responder({
               aulaId: a1?.id ?? "",
               respostas: daBruno,
-              tentativaId: randomUUID() as TentativaId,
+              tentativaId: randomUUID(),
             })
           ),
         ])

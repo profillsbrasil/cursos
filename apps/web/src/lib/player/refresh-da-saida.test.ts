@@ -31,7 +31,9 @@ function ligar() {
   const conquistas: Conquista[] = [];
   let refreshes = 0;
   const saida = criarRefreshDaSaida({
-    aoConquistar: (c) => conquistas.push(c),
+    aoConquistar: (c) => {
+      conquistas.push(c);
+    },
     enviar: () => {
       const r = respostas.shift();
       return r ? Promise.resolve(r) : Promise.reject(new Error("sem resposta"));
@@ -106,7 +108,9 @@ describe("ligarRefreshDaSaida", () => {
     const relogio = () => 0;
     const ligacao = ligarRefreshDaSaida({
       agendar,
-      aoConquistar: (c) => conquistas.push(c),
+      aoConquistar: (c) => {
+        conquistas.push(c);
+      },
       criarPlayer,
       enviar: () => Promise.resolve(resposta),
       pedirRefresh: () => {

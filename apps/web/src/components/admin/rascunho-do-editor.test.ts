@@ -501,7 +501,7 @@ test("salvar sem campo na tela devolve a descrição, os tópicos e a descriçã
       ...base.modulos.slice(1),
     ],
     topicos: ["Ligar a máquina", "Dosar o volume"],
-  } as typeof base;
+  };
   const r = aplicar(
     rascunhoDoCurso(salvo),
     { mudanca: { titulo: "Curso novo" }, tipo: "campos" },
@@ -819,10 +819,7 @@ describe("questionário da aula", () => {
     expect([
       errosNaAula(a1, marcados),
       errosNaAula(a2, marcados),
-      errosNaPergunta(
-        a1.perguntas[0] as NonNullable<(typeof a1.perguntas)[0]>,
-        marcados
-      ),
+      errosNaPergunta(a1.perguntas[0], marcados),
       blocoDoModulo(m1, NENHUM_ABERTO, marcados),
     ]).toEqual([4, 0, 4, { campos: 4, tipo: "com_erro" }]);
   });

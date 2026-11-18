@@ -156,7 +156,7 @@ export function ControlesDoPlayer({
   const definirVolume = useCallback(
     (v: number | readonly number[]) =>
       comandar({
-        nivel: Array.isArray(v) ? (v[0] ?? 0) : (v as number),
+        nivel: typeof v === "number" ? v : (v[0] ?? 0),
         tipo: "definir_volume",
       }),
     [comandar]

@@ -37,7 +37,6 @@ const PRIMEIRO_PONTO = /(?<!\\)\./;
 const CARACTERE_DE_CLASSE = /[\w-]/;
 const NOME_DE_CLASSE = /\.(?:\\.|[\w-])+/g;
 const CLASSE_NO_FIM = /\s\.(?:\\.|[\w-])+$/;
-const FOCO = /:focus/;
 
 /** Cada classe dos componentes, com os arquivos em que aparece. */
 const origem = new Map<string, string[]>();
@@ -155,7 +154,7 @@ const regras = regrasDoCss(saida.slice(saida.indexOf("@layer utilities")));
 
 /** O seletor sem os nomes de classe, que podem conter a palavra focus. */
 const semClasses = (seletor: string) => seletor.replace(NOME_DE_CLASSE, "");
-const casaComFoco = (r: Regra) => FOCO.test(semClasses(r.seletor));
+const casaComFoco = (r: Regra) => semClasses(r.seletor).includes(":focus");
 const regrasDe = (classe: string) => regras.filter((r) => r.classe === classe);
 
 /** Separa as variantes do utilitário, sem cortar dentro de [] ou (). */

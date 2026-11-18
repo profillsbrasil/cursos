@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
   type Dispatch,
-  type FormEvent,
+  type SubmitEvent,
   useCallback,
   useId,
   useRef,
@@ -316,7 +316,7 @@ export function EditorDoCurso({
     [despachar]
   );
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       salvar();
     },

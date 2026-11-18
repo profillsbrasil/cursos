@@ -183,9 +183,7 @@ describe("o resultado", () => {
       pessoa: ANA,
     }));
     expect(resumoDoResultado(tres)).toBe("3 já tinham");
-    expect(detalheDoResultado(tres[0] as (typeof tres)[number], HOJE)).toBe(
-      "Liberada em 16 de out."
-    );
+    expect(detalheDoResultado(tres[0], HOJE)).toBe("Liberada em 16 de out.");
   });
 });
 

@@ -132,7 +132,7 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
     )}); document.close();`
   );
   // No loading.tsx, a barra vem depois do texto do leitor de tela e do cabeçalho.
-  return avaliar<Medida>(
+  return await avaliar<Medida>(
     enviar,
     `new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => {
       const barra = document.querySelector("#pronta").firstElementChild;

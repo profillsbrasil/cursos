@@ -94,5 +94,5 @@ export async function esperas(
     throw new Error(`Só ${paradas.length} de ${n} statements pararam em lock.`);
   }
   await esperar(20);
-  return esperas(db, n, comecos, tentativas - 1);
+  return await esperas(db, n, comecos, tentativas - 1);
 }

@@ -310,7 +310,7 @@ export function registrar(
         conquista = conquistaDe(gravados, efeitos.sequenciaDias);
         await concluirCurso(
           await travarAluno(tx, userId),
-          aberto.curso.id as CursoId,
+          aberto.curso.id,
           agora
         );
       }

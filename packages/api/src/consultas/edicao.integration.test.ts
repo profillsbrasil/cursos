@@ -183,7 +183,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     };
     documento.modulos[1]?.aulas.push(novaAula("B1"));
     await salvarComCapa(documento);
-    return abrir(documento.id);
+    return await abrir(documento.id);
   }
 
   async function abrir(id: CursoId): Promise<EdicaoDoCurso> {
@@ -885,7 +885,9 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     }));
     const salvos = await Promise.all(doisNaNova.map((d) => salvarComCapa(d)));
     const codigos = async () =>
-      Promise.all(doisNaNova.map(async (d) => (await abrir(d.id)).codigo));
+      await Promise.all(
+        doisNaNova.map(async (d) => (await abrir(d.id)).codigo)
+      );
     const criados = await codigos();
     expect(criados.toSorted()).toEqual([`${sigla}-001`, `${sigla}-002`]);
 
@@ -1044,7 +1046,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       throw new Error("o apagamento não chegou a esperar a trava do aluno");
     }
     await esperar(50);
-    return esperarAlguemEsperandoTrava(tentativas - 1);
+    return await esperarAlguemEsperandoTrava(tentativas - 1);
   }
 
   test("abrirCurso aceita só uuid; id que não existe é null", async () => {

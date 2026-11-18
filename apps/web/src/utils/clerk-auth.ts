@@ -30,6 +30,10 @@ export interface ClerkNoNavegador {
   } | null;
 }
 
+declare global {
+  var Clerk: ClerkNoNavegador | undefined;
+}
+
 /**
  * O token de um envio que não pode esperar a rede, como o registro no pagehide, em
  * que só as microtarefas da tarefa do evento rodam. O getToken do Clerk responde
@@ -39,8 +43,7 @@ export interface ClerkNoNavegador {
  * relógio. Sem ele, ou com ele vencido, o envio espera o getToken.
  */
 export function getClerkAuthTokenSemEspera(): Promise<string | null> {
-  const clerk: ClerkNoNavegador | undefined = Reflect.get(globalThis, "Clerk");
-  const ultimo = clerk?.session?.lastActiveToken;
+  const ultimo = globalThis.Clerk?.session?.lastActiveToken;
   const exp = ultimo?.jwt?.claims.exp;
   if (ultimo && exp !== undefined && exp * 1000 > Date.now()) {
     return Promise.resolve(ultimo.getRawString());

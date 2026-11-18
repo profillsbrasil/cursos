@@ -50,8 +50,10 @@ async function esperarAPagina(tentativas = 50): Promise<void> {
   if (tentativas === 0) {
     throw new Error("a página da guarda não carregou");
   }
-  await new Promise((r) => setTimeout(r, 100));
-  return esperarAPagina(tentativas - 1);
+  await new Promise((r) => {
+    setTimeout(r, 100);
+  });
+  return await esperarAPagina(tentativas - 1);
 }
 
 function clicar(
@@ -86,7 +88,7 @@ describe.skipIf(!existsSync(CHROMIUM))("guarda de saída por link", () => {
 
   afterAll(async () => {
     await fecharChromium();
-    servidor?.stop(true);
+    await servidor?.stop(true);
   });
 
   test("o link do app pergunta, e o não para o clique antes de navegar", async () => {

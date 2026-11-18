@@ -83,7 +83,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 const PALAVRA = /[\s"'`{}]+/;
@@ -255,7 +255,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       await avaliar(enviar, `document.getElementById("status").click()`);
       await esperar(listaAberta);
       await transicoesTerminadas();
-      return avaliar<string[]>(
+      return await avaliar<string[]>(
         enviar,
         `(() => {
           const estilo = getComputedStyle(${POPUP});

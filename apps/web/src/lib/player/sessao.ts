@@ -343,7 +343,9 @@ export function criarSessaoDeEstudo(
         (r) => aposResposta(r, pedido),
         () => aposResposta({ tipo: "rede" }, pedido)
       )
-      .finally(() => emVoo.delete(voo));
+      .finally(() => {
+        emVoo.delete(voo);
+      });
     emVoo.add(voo);
   }
 
@@ -508,7 +510,9 @@ export function criarSessaoDeEstudo(
   return {
     assinar(ouvinte) {
       ouvintes.add(ouvinte);
-      return () => ouvintes.delete(ouvinte);
+      return () => {
+        ouvintes.delete(ouvinte);
+      };
     },
     comandar,
     encerrar() {

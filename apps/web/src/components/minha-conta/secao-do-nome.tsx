@@ -11,7 +11,7 @@ import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
   useCallback,
   useId,
   useRef,
@@ -195,7 +195,7 @@ export function SecaoDoNome({
     setCampos((c) => ({ ...c, [name]: value }));
   }, []);
   const salvar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (problema) {
         return;

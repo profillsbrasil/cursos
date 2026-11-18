@@ -113,7 +113,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       throw new Error("O insert da troca não chegou a esperar o admin.");
     }
     await esperar(20);
-    return esperarInsertBloqueado(tentativas - 1);
+    return await esperarInsertBloqueado(tentativas - 1);
   }
 
   const codigo = (r: PromiseSettledResult<unknown>) =>

@@ -434,7 +434,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       comoAluno(aluno).questionario.responder({
         aulaId: a1.id,
         respostas: respostas(a1, 2).slice(0, 1),
-        tentativaId: randomUUID() as TentativaId,
+        tentativaId: randomUUID(),
       })
     );
     expect(incompleto).toEqual({
@@ -717,7 +717,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     await comoAluno(aluno).questionario.responder({
       aulaId,
       respostas: [{ alternativaId: certa, perguntaId: p1 }],
-      tentativaId: randomUUID() as TentativaId,
+      tentativaId: randomUUID(),
     });
 
     const [m] = documento.modulos;

@@ -170,7 +170,7 @@ export function CampoDeCapa({
     (e: ChangeEvent<HTMLInputElement>) => {
       const arquivo = e.currentTarget.files?.[0];
       if (arquivo) {
-        receber(arquivo);
+        void receber(arquivo);
       }
     },
     [receber]
@@ -193,7 +193,7 @@ export function CampoDeCapa({
       setArrastando(false);
       const [arquivo] = e.dataTransfer.files;
       if (arquivo) {
-        receber(arquivo);
+        void receber(arquivo);
       }
     },
     [receber]

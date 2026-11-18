@@ -14,7 +14,7 @@ import { Textarea } from "@cursos/ui/components/textarea";
 import { cn } from "@cursos/ui/lib/utils";
 import { Megaphone } from "lucide-react";
 import {
-  type FormEvent,
+  type SubmitEvent,
   type KeyboardEvent,
   useCallback,
   useId,
@@ -26,6 +26,7 @@ import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { AREA, CAMPO, ROTULO } from "@/components/casca/campos";
 import { SELO } from "@/components/casca/selos";
 import { fmtData, plural } from "@/lib/formato";
+import { campoDeTexto } from "@/lib/formulario";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -87,13 +88,13 @@ function Formulario({
   const [faltando, setFaltando] = useState(false);
   const [para, setPara] = useState(inicial.cursoId);
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       const dados = new FormData(e.currentTarget);
       const r: Rascunho = {
-        cursoId: String(dados.get("cursoId") ?? ""),
-        texto: String(dados.get("texto") ?? "").trim(),
-        titulo: String(dados.get("titulo") ?? "").trim(),
+        cursoId: campoDeTexto(dados, "cursoId"),
+        texto: campoDeTexto(dados, "texto").trim(),
+        titulo: campoDeTexto(dados, "titulo").trim(),
       };
       const incompleto = r.titulo === "" || r.texto === "";
       setFaltando(incompleto);

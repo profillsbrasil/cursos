@@ -229,7 +229,12 @@ export function CartaoDeConta({
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator className={DIVISORIA} />
-        <DropdownMenuItem className={ITEM} onClick={sair}>
+        <DropdownMenuItem
+          className={ITEM}
+          onClick={() => {
+            void sair();
+          }}
+        >
           <LogOut aria-hidden="true" />
           Sair
         </DropdownMenuItem>

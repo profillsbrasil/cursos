@@ -70,7 +70,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da sanfona não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 let enviar: Enviar;
@@ -95,7 +95,7 @@ async function clicar(seletor: string) {
     `document.querySelector(${JSON.stringify(seletor)}).click()`
   );
   await avaliar(enviar, DEPOIS_DO_RENDER);
-  return avaliar<Estado>(enviar, ESTADO);
+  return await avaliar<Estado>(enviar, ESTADO);
 }
 
 describe.skipIf(!existsSync(CHROMIUM))("a sanfona dos módulos", () => {

@@ -15,7 +15,7 @@ interface Props {
 
 async function aulaDaUrl(params: Props["params"]) {
   const { aulaId, slug } = await params;
-  return carregarAula(slug, aulaId);
+  return await carregarAula(slug, aulaId);
 }
 
 // O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.

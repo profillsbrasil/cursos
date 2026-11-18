@@ -184,7 +184,7 @@ async function empacotar() {
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+  return await saida.text();
 }
 
 const ARQUIVOS_COM_CLASSES = [
@@ -299,7 +299,7 @@ async function tabAte(seletor: string, tentativas = 20): Promise<void> {
   const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
-  return tabAte(seletor, tentativas - 1);
+  return await tabAte(seletor, tentativas - 1);
 }
 
 describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {

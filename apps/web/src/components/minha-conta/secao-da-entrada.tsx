@@ -7,10 +7,11 @@ import {
   InputOTPSlot,
 } from "@cursos/ui/components/input-otp";
 import { cn } from "@cursos/ui/lib/utils";
-import { type FormEvent, useCallback, useId, useState } from "react";
+import { type SubmitEvent, useCallback, useId, useState } from "react";
 
 import { CAMPO, ROTULO } from "@/components/casca/campos";
 import { SELO } from "@/components/casca/selos";
+import { campoDeTexto } from "@/lib/formulario";
 import { MINHA_CONTA } from "@/lib/rotas";
 
 import { contaDoGoogle, podeDesconectarOGoogle } from "./entrada";
@@ -56,10 +57,11 @@ function PedirCodigo({
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
   const mandar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const endereco = String(
-        new FormData(e.currentTarget).get("email") ?? ""
+      const endereco = campoDeTexto(
+        new FormData(e.currentTarget),
+        "email"
       ).trim();
       executar(
         async () => {
@@ -117,7 +119,7 @@ function ConfirmarCodigo({
   const { executar, pendente } = useAcaoDaConta();
   const [codigo, setCodigo] = useState("");
   const confirmar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       executar(() => email.attemptVerification({ code: codigo }), {
         depois: fechar,

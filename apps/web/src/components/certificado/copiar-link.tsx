@@ -19,7 +19,9 @@ export function CopiarLink({ url }: { url: string }) {
   return (
     <button
       className={cn(BOTAO_CONTORNO, "w-full")}
-      onClick={copiar}
+      onClick={() => {
+        void copiar();
+      }}
       type="button"
     >
       <Link2 aria-hidden="true" />

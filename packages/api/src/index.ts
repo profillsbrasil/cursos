@@ -103,7 +103,7 @@ export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     lendo = perfilDe(ctx.db, auth.userId, ctx.pessoas, new Date());
     perfilDoPedido.set(auth, lendo);
   }
-  return next({
+  return await next({
     ctx: { ...ctx, aluno: { perfil: await lendo, userId: auth.userId } },
   });
 });

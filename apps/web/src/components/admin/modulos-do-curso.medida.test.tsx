@@ -56,7 +56,7 @@ const MODULOS = Array.from({ length: 16 }, (_, i) => ({
   titulo: `Módulo ${i}`,
 }));
 const dezesseis: RascunhoDoCurso = { ...exemplo, modulos: MODULOS };
-const idDoModulo = (n: number) => (MODULOS[n] as (typeof MODULOS)[number]).id;
+const idDoModulo = (n: number) => MODULOS[n].id;
 
 const blocoAberto = renderToStaticMarkup(
   <BlocoDoModulo
@@ -125,7 +125,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         janela,
         `<div style="width:${bloco}px">${blocoAberto}</div>`
       );
-      return avaliar<{ nivelNaLinhaDoTitulo: boolean; titulo: number }>(
+      return await avaliar<{ nivelNaLinhaDoTitulo: boolean; titulo: number }>(
         enviar,
         `(() => {
           const titulo = document.querySelector('[id$="-titulo"]').getBoundingClientRect();

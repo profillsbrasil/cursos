@@ -89,7 +89,7 @@ async function empacotar(resposta: keyof typeof RESPOSTA) {
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+  return await saida.text();
 }
 
 let enviar: Enviar;

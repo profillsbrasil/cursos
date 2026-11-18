@@ -351,7 +351,7 @@ const CASOS: Caso[] = [
     constraint: "ponto_lancamento_sinal",
     nome: "troca positiva",
     violar: async (c, b) =>
-      pagarTroca(
+      await pagarTroca(
         c,
         b.aluno,
         await liberarParaTroca(c, b.aluno, b.cursoId),
@@ -422,7 +422,7 @@ const CASOS: Caso[] = [
     constraint: "ponto_lancamento_sinal",
     nome: "lançamento de concessão com zero pontos",
     violar: async (c, b) =>
-      lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 0),
+      await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 0),
   },
   {
     apagar:
@@ -745,7 +745,13 @@ const CASOS: Caso[] = [
     constraint: "alternativa_texto_formato",
     nome: "alternativa com 201 caracteres",
     violar: async (c, b) =>
-      alternar(c, await perguntar(c, b.aulaId, 1), 1, true, "a".repeat(201)),
+      await alternar(
+        c,
+        await perguntar(c, b.aulaId, 1),
+        1,
+        true,
+        "a".repeat(201)
+      ),
   },
   {
     apagar:
@@ -753,7 +759,7 @@ const CASOS: Caso[] = [
     constraint: "alternativa_posicao_positiva",
     nome: "alternativa na posição 0",
     violar: async (c, b) =>
-      alternar(c, await perguntar(c, b.aulaId, 1), 0, true),
+      await alternar(c, await perguntar(c, b.aulaId, 1), 0, true),
   },
   {
     apagar:
@@ -925,7 +931,7 @@ function convidar(c: Client, mudar: Record<string, string | boolean> = {}) {
     ...mudar,
   };
   const colunas = Object.keys(linha);
-  return c.query(
+  return c.query<{ id: string }>(
     `insert into convite (${colunas.join(", ")})
      values (${colunas.map((_, i) => `$${i + 1}`).join(", ")}) returning id`,
     Object.values(linha)

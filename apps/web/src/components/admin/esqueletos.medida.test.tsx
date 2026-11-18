@@ -103,7 +103,7 @@ async function alturas(formulario: number) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronto" style="width:${formulario}px">${pronto}</div><div id="topicos" style="width:${formulario}px">${topicos}</div><div id="esqueleto" style="width:${larguraDoEsqueleto(formulario)}px">${esqueleto}</div></body></html>`
     )}); document.close();`
   );
-  return avaliar<{
+  return await avaliar<{
     esqueleto: number;
     esqueletoDosTopicos: number;
     pronto: number;

@@ -20,7 +20,7 @@ import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
  * script que ele mesmo insere, então na navegação no cliente quem centra é o
  * `useColunaNaAulaAtual`.
  */
-const CENTRAR_NA_CARGA = `(${centrarAAulaAtual})(document.currentScript.previousElementSibling, ${rolagemDaColuna})`;
+const CENTRAR_NA_CARGA = `(${centrarAAulaAtual.toString()})(document.currentScript.previousElementSibling, ${rolagemDaColuna.toString()})`;
 
 /**
  * No cliente o script vira bloco de dados: o React acusa no console todo

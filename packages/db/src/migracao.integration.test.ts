@@ -15,7 +15,7 @@ async function migracoes() {
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
     .sort();
-  return Promise.all(
+  return await Promise.all(
     pastas.map(async (nome) => ({
       nome,
       sql: await readFile(join(PASTA, nome, "migration.sql"), "utf8"),
