@@ -81,7 +81,7 @@ const aulaRef = (aula: AulaCatalogo, vez: AulaDaVez) => ({
 function continuar(x: CursoNaTela, h: Historico) {
   const { aula, vez } = aulaDaVez(x);
 
-  return {
+  const retorno: Retomada = {
     aula: {
       ...aulaRef(aula, vez),
       faltaSeg: Math.max(0, aula.duracaoSeg - vez.posicaoSeg),
@@ -93,12 +93,14 @@ function continuar(x: CursoNaTela, h: Historico) {
     proximoNivel: niveis(x.curso, h.assistidas).proximo?.nome ?? null,
     tipo: "continuar",
   };
+
+  return retorno;
 }
 
 export function retomada({
   cursos,
   estudo: { atividade, historico: h },
-}: EntradaRetomada) {
+}: EntradaRetomada): Retomada | null {
   const emAndamento = maisRecente(
     cursos.filter(ehEstado("em_andamento")),
     atividade

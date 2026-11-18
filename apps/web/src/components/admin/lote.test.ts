@@ -19,12 +19,16 @@ import {
 
 const HOJE = "2026-10-16" as DiaISO;
 
-const pessoa = (userId: string, nome: string) => ({
-  email: `${userId}@exemplo.com`,
-  foto: null,
-  nome,
-  userId,
-});
+const pessoa = (userId: string, nome: string) => {
+  const retorno: Pessoa = {
+    email: `${userId}@exemplo.com`,
+    foto: null,
+    nome,
+    userId,
+  };
+
+  return retorno;
+};
 
 const ANA = pessoa("user_ana", "Ana Beatriz Lima");
 const CAMILA = pessoa("user_camila", "Camila Rocha");
@@ -51,10 +55,14 @@ describe("a seleção", () => {
   });
 
   test("o X tira uma, e Desmarcar todas tira as outras", () => {
-    const tres = [ANA, CAMILA, LUANA].map((p) => ({
-      pessoa: p,
-      tipo: "marcar",
-    }));
+    const tres = [ANA, CAMILA, LUANA].map((p) => {
+      const eventoDoLote: EventoDoLote = {
+        pessoa: p,
+        tipo: "marcar",
+      };
+
+      return eventoDoLote;
+    });
 
     const semCamila = rodar(...tres, {
       tipo: "desmarcar",
@@ -85,10 +93,14 @@ describe("o Liberar", () => {
   });
 
   test("passa de 50 marcadas e diz quantas sobram", () => {
-    const marcar = Array.from({ length: 53 }, (_, i) => ({
-      pessoa: pessoa(`user_p${i}`, `Pessoa ${i}`),
-      tipo: "marcar",
-    }));
+    const marcar = Array.from({ length: 53 }, (_, i) => {
+      const eventoDoLote: EventoDoLote = {
+        pessoa: pessoa(`user_p${i}`, `Pessoa ${i}`),
+        tipo: "marcar",
+      };
+
+      return eventoDoLote;
+    });
 
     const e = rodar(...marcar, { curso: COMERCIAL, tipo: "escolher" });
     expect(prontoParaLiberar(e)).toEqual({ sobram: 3, tipo: "passou_do_teto" });
@@ -198,11 +210,15 @@ describe("o resultado", () => {
 });
 
 describe("Já tem", () => {
-  const comAtivas = (ativas: PessoaComSituacao["ativas"]) => ({
-    ...ANA,
-    ativas,
-    situacao: { revogadas: 0, tipo: "sem_liberacao", ultimaRevogacao: null },
-  });
+  const comAtivas = (ativas: PessoaComSituacao["ativas"]) => {
+    const pessoaComSituacao: PessoaComSituacao = {
+      ...ANA,
+      ativas,
+      situacao: { revogadas: 0, tipo: "sem_liberacao", ultimaRevogacao: null },
+    };
+
+    return pessoaComSituacao;
+  };
 
   test("só com o curso escolhido, e diz se veio de troca ou do admin", () => {
     const porTroca = comAtivas([{ cursoId: COMERCIAL.id, origem: "troca" }]);

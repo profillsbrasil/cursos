@@ -42,18 +42,22 @@ const capa = (curso: typeof AUTO) => ({
   titulo: curso.titulo,
 });
 
-const vitrine = (preco: number, titulo: string) => ({
-  acesso: { tipo: "nenhum" },
-  aulas: 3,
-  capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
-  categoria: "Processo de envase",
-  duracaoSeg: 1800,
-  id: `v-${preco}` as CursoId,
-  precoTroca: preco,
-  slug: `v-${preco}`,
-  status: "publicado",
-  titulo,
-});
+const vitrine = (preco: number, titulo: string) => {
+  const cursoDaTroca: CursoDaTroca = {
+    acesso: { tipo: "nenhum" },
+    aulas: 3,
+    capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
+    categoria: "Processo de envase",
+    duracaoSeg: 1800,
+    id: `v-${preco}` as CursoId,
+    precoTroca: preco,
+    slug: `v-${preco}`,
+    status: "publicado",
+    titulo,
+  };
+
+  return cursoDaTroca;
+};
 
 const NADA: LinhasDasConquistas = {
   assistidas: [],
@@ -379,7 +383,7 @@ const tentativas = (
 ) => {
   const [acertos, total, iso] = o.primeira;
 
-  return {
+  const tentativasDaAula: TentativasDaAula = {
     aprovada: o.aprovada ?? false,
     aprovadaEm: o.aprovadaEm ?? null,
     aulaId,
@@ -391,6 +395,8 @@ const tentativas = (
     ultimosAcertos: acertos,
     ultimoTotal: total,
   };
+
+  return tentativasDaAula;
 };
 
 describe("as medalhas novas ganhas", () => {

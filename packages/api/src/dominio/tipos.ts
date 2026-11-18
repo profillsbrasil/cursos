@@ -135,12 +135,16 @@ export interface LinhaDaCapa {
   capaUrl: string;
 }
 
-export const capaDe = (linha: LinhaDaCapa) => ({
-  alt: linha.capaAlt,
-  altura: linha.capaAltura,
-  largura: linha.capaLargura,
-  url: linha.capaUrl,
-});
+export const capaDe = (linha: LinhaDaCapa) => {
+  const capa: Capa = {
+    alt: linha.capaAlt,
+    altura: linha.capaAltura,
+    largura: linha.capaLargura,
+    url: linha.capaUrl,
+  };
+
+  return capa;
+};
 
 export interface CursoCatalogo {
   capa: Capa;

@@ -86,7 +86,9 @@ function estudadosSoPeloPerfil(p: PessoaNaVirada) {
  */
 export function planejarVirada(p: PessoaNaVirada) {
   if (p.perfil !== "funcionario") {
-    return NADA(p.userId);
+    const planoDaVirada: PlanoDaVirada = NADA(p.userId);
+
+    return planoDaVirada;
   }
 
   const bonus = p.temBonus ? 0 : BONUS_DE_FUNCIONARIO;
@@ -125,7 +127,14 @@ export function planejarVirada(p: PessoaNaVirada) {
     }
   }
 
-  return { bonus, pulados, trocas, userId: p.userId };
+  const planoDaVirada: PlanoDaVirada = {
+    bonus,
+    pulados,
+    trocas,
+    userId: p.userId,
+  };
+
+  return planoDaVirada;
 }
 
 /** Nada a gravar: sem bônus e sem troca. Os pulados seguem no relatório. */
@@ -145,7 +154,7 @@ export interface TotaisDaVirada {
 export function totaisDaVirada(planos: readonly PlanoDaVirada[]) {
   const trocas = planos.flatMap((p) => p.trocas);
 
-  return {
+  const retorno: TotaisDaVirada = {
     bonus: planos.filter((p) => p.bonus > 0).length,
     entram: planos.reduce((s, p) => s + p.bonus, 0),
     nadaAFazer: planos.filter(nadaAFazer).length,
@@ -153,6 +162,8 @@ export function totaisDaVirada(planos: readonly PlanoDaVirada[]) {
     saem: trocas.reduce((s, t) => s + t.preco, 0),
     trocas: trocas.length,
   };
+
+  return retorno;
 }
 
 /**
@@ -160,7 +171,10 @@ export function totaisDaVirada(planos: readonly PlanoDaVirada[]) {
  * ambiente produz: a gravação recusa em vez de rodar no banco errado.
  */
 export function recusaDaGravacao(linhasDePerfil: number) {
-  return linhasDePerfil === 0
-    ? "O banco não tem nenhuma linha em perfil_da_pessoa. Confira o DATABASE_URL antes de gravar."
-    : null;
+  const retorno: string | null =
+    linhasDePerfil === 0
+      ? "O banco não tem nenhuma linha em perfil_da_pessoa. Confira o DATABASE_URL antes de gravar."
+      : null;
+
+  return retorno;
 }

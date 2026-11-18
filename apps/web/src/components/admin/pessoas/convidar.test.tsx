@@ -33,20 +33,24 @@ const NOME = /aria-label="([^"]+)"/;
 
 const HOJE = "2026-11-11" as DiaISO;
 
-const convidado = (email: string, mudar: Partial<ConvidadoNaTela> = {}) => ({
-  comoAdmin: false,
-  convidadoEm: "2026-11-04" as DiaISO,
-  cursos: [],
-  email: email as Email,
-  estado: {
-    enviadoEm: HOJE,
-    expiraEm: "2026-12-11" as DiaISO,
-    tipo: "pendente",
-  },
-  id: `id-${email}` as ConviteId,
-  perfil: "cliente",
-  ...mudar,
-});
+const convidado = (email: string, mudar: Partial<ConvidadoNaTela> = {}) => {
+  const convidadoNaTela: ConvidadoNaTela = {
+    comoAdmin: false,
+    convidadoEm: "2026-11-04" as DiaISO,
+    cursos: [],
+    email: email as Email,
+    estado: {
+      enviadoEm: HOJE,
+      expiraEm: "2026-12-11" as DiaISO,
+      tipo: "pendente",
+    },
+    id: `id-${email}` as ConviteId,
+    perfil: "cliente",
+    ...mudar,
+  };
+
+  return convidadoNaTela;
+};
 
 const painel = (convidados: ConvidadoNaTela[], total = convidados.length) =>
   ({

@@ -39,12 +39,14 @@ export const TETO_DO_FILTRO = 100;
 export function paraPessoa(u: User) {
   const email = u.primaryEmailAddress?.emailAddress ?? null;
 
-  return {
+  const pessoa: Pessoa = {
     email,
     foto: u.hasImage ? u.imageUrl : null,
     nome: u.fullName ?? u.username ?? email ?? u.id,
     userId: u.id,
   };
+
+  return pessoa;
 }
 
 function paraConta(u: User) {
@@ -52,7 +54,7 @@ function paraConta(u: User) {
     (c) => c.provider.replace(OAUTH, "") === "google"
   );
 
-  return {
+  const conta: Conta = {
     ...paraPessoa(u),
     criadaEm: new Date(u.createdAt),
     emailVerificado: u.primaryEmailAddress?.verification?.status === "verified",
@@ -63,10 +65,12 @@ function paraConta(u: User) {
     papel: u.publicMetadata.papel === "admin" ? "admin" : "aluno",
     ultimoAcesso: u.lastActiveAt === null ? null : new Date(u.lastActiveAt),
   };
+
+  return conta;
 }
 
 export function pessoasDoClerk(clerk: ClerkClient) {
-  return {
+  const retorno: Pessoas = {
     async buscar(termo, entre) {
       if (entre?.length === 0) {
         return { pessoas: [], total: 0 };
@@ -134,6 +138,8 @@ export function pessoasDoClerk(clerk: ClerkClient) {
       return u ? paraPessoa(u) : null;
     },
   };
+
+  return retorno;
 }
 
 // A lista filtrada por userId devolve vazio para quem não existe; getUser

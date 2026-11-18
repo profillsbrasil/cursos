@@ -17,7 +17,7 @@ export const DOMINIO_DA_EMPRESA = "@profills.com";
 /** O perfil de quem entra no app pela primeira vez. Sem conta no Clerk, é público aberto. */
 export function perfilDoCadastro(
   conta: { email: string | null; emailVerificado: boolean } | null
-) {
+): Perfil {
   const email = conta?.emailVerificado ? conta.email?.toLowerCase() : null;
 
   return email?.endsWith(DOMINIO_DA_EMPRESA) ? "funcionario" : "publico";

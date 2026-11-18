@@ -18,18 +18,25 @@ async function folhaDaConta(slug: string | undefined, origem: string) {
   const pagina = slug ? await carregarPaginaDoCertificado(slug) : null;
 
   if (pagina?.tipo !== "emitido") {
-    return { exemplo: true, folha: folhaDeExemplo(origem) };
+    const retorno: FolhaDaConta = {
+      exemplo: true,
+      folha: folhaDeExemplo(origem),
+    };
+
+    return retorno;
   }
 
   const { certificado } = pagina;
 
-  return {
+  const retorno: FolhaDaConta = {
     exemplo: false,
     folha: folhaDo(
       { ...certificado, nome: certificado.nome ?? "" },
       enderecoDaConferencia(origem, certificado.codigo)
     ),
   };
+
+  return retorno;
 }
 
 export default async function PaginaDaMinhaConta() {

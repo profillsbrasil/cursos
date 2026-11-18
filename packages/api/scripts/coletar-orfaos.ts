@@ -14,7 +14,7 @@ import {
   orfaosDoBucket,
   recusaDoApagar,
 } from "../src/dominio/orfaos";
-import { type BucketDeCapas, bucketAssinado } from "../src/externos/capas";
+import { bucketAssinado } from "../src/externos/capas";
 
 const { values } = parseArgs({ options: { apagar: { type: "boolean" } } });
 const apagar = values.apagar === true;

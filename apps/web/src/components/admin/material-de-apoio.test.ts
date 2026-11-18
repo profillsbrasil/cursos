@@ -32,22 +32,30 @@ const { MaterialDeApoio, resumoDoMaterial } =
 
 const idDe = (n: number) => uuidDeExemplo(900 + n) as MaterialId;
 
-const material = (n: number) => ({
-  bytes: 1000 * n,
-  chave: `${String(n).padStart(64, "0")}.pdf`,
-  id: idDe(n),
-  nomeDoArquivo: `arquivo-${n}.pdf`,
-  tipo: "pdf",
-  titulo: `Material ${n}`,
-});
+const material = (n: number) => {
+  const materialDoDocumento: MaterialDoDocumento = {
+    bytes: 1000 * n,
+    chave: `${String(n).padStart(64, "0")}.pdf`,
+    id: idDe(n),
+    nomeDoArquivo: `arquivo-${n}.pdf`,
+    tipo: "pdf",
+    titulo: `Material ${n}`,
+  };
 
-const enviando = (n: number) => ({
-  bytes: 1000 * n,
-  estado: { tipo: "enviando" },
-  id: idDe(n),
-  nomeDoArquivo: `arquivo-${n}.pdf`,
-  tipo: "pdf",
-});
+  return materialDoDocumento;
+};
+
+const enviando = (n: number) => {
+  const envioDeMaterial: EnvioDeMaterial = {
+    bytes: 1000 * n,
+    estado: { tipo: "enviando" },
+    id: idDe(n),
+    nomeDoArquivo: `arquivo-${n}.pdf`,
+    tipo: "pdf",
+  };
+
+  return envioDeMaterial;
+};
 
 const salvo = (materiais: MaterialDoDocumento[] = []) =>
   rascunhoDoEditorEm({ ...documentoDeExemplo("v1" as Versao), materiais });

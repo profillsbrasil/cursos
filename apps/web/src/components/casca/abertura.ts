@@ -11,15 +11,21 @@ export type Abertura =
 export function aberturaEm(caminho: string | null, preferida: boolean) {
   const aula = aulaDoCaminho(caminho);
 
-  return aula === null
-    ? { lugar: "fora", preferida }
-    : { aberta: false, aula, lugar: "aula", preferida };
+  const abertura: Abertura =
+    aula === null
+      ? { lugar: "fora", preferida }
+      : { aberta: false, aula, lugar: "aula", preferida };
+
+  return abertura;
 }
 
 export const estaAberta = (a: Abertura) =>
   a.lugar === "aula" ? a.aberta : a.preferida;
 
-export function navegar(a: Abertura, caminho: string | null) {
+export function navegar(
+  a: Abertura,
+  caminho: string | null
+): Abertura | "mesmo_lugar" {
   const aula = aulaDoCaminho(caminho);
 
   if (aula === (a.lugar === "aula" ? a.aula : null)) {
@@ -30,5 +36,8 @@ export function navegar(a: Abertura, caminho: string | null) {
 }
 
 export function alternar(a: Abertura, aberta: boolean) {
-  return a.lugar === "aula" ? { ...a, aberta } : { ...a, preferida: aberta };
+  const abertura: Abertura =
+    a.lugar === "aula" ? { ...a, aberta } : { ...a, preferida: aberta };
+
+  return abertura;
 }

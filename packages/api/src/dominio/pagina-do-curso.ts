@@ -123,14 +123,19 @@ function acaoDaAmostra(c: CursoAberto, aulaId: AulaId) {
   const href = caminhoDaAula(curso.slug, aulaId);
   const posicaoSeg = historico.posicoes.get(aulaId)?.posicaoSeg ?? 0;
 
-  return posicaoSeg > 0 && !historico.assistidas.has(aulaId)
-    ? { aulaId, href, onde, posicaoSeg, tipo: "continuar" }
-    : { aulaId, href, onde, tipo: "comecar" };
+  const acaoDaPagina: AcaoDaPagina =
+    posicaoSeg > 0 && !historico.assistidas.has(aulaId)
+      ? { aulaId, href, onde, posicaoSeg, tipo: "continuar" }
+      : { aulaId, href, onde, tipo: "comecar" };
+
+  return acaoDaPagina;
 }
 
 function acaoDe(c: CursoAberto) {
   if (c.amostra) {
-    return acaoDaAmostra(c, c.amostra.aulaId);
+    const acaoDaPagina: AcaoDaPagina = acaoDaAmostra(c, c.amostra.aulaId);
+
+    return acaoDaPagina;
   }
 
   const { curso, historico } = c;
@@ -144,11 +149,13 @@ function acaoDe(c: CursoAberto) {
       throw new Error(`Curso ${slug} concluído sem aulas`);
     }
 
-    return {
+    const acaoDaPagina: AcaoDaPagina = {
       aulaId: primeira.id,
       href: caminhoDaAula(slug, primeira.id),
       tipo: "rever",
     };
+
+    return acaoDaPagina;
   }
 
   if (!aulaDaVez) {
@@ -158,23 +165,31 @@ function acaoDe(c: CursoAberto) {
   const { id: aulaId, onde, posicaoSeg } = aulaDaVez;
 
   switch (estado.tipo) {
-    case "nao_iniciado":
-      return {
+    case "nao_iniciado": {
+      const acaoDaPagina: AcaoDaPagina = {
         aulaId,
         href: caminhoDaAula(slug, aulaId),
         onde,
         tipo: "comecar",
       };
-    case "em_andamento":
-      return {
+
+      return acaoDaPagina;
+    }
+
+    case "em_andamento": {
+      const acaoDaPagina: AcaoDaPagina = {
         aulaId,
         href: caminhoDaAula(slug, aulaId),
         onde,
         posicaoSeg,
         tipo: "continuar",
       };
-    case "questionarios":
-      return {
+
+      return acaoDaPagina;
+    }
+
+    case "questionarios": {
+      const acaoDaPagina: AcaoDaPagina = {
         aulaId,
         href: caminhoDoQuestionario(slug, aulaId),
         onde,
@@ -182,6 +197,10 @@ function acaoDe(c: CursoAberto) {
         tipo: "questionario",
         ultima: historico.questionarios.get(aulaId)?.ultima ?? null,
       };
+
+      return acaoDaPagina;
+    }
+
     default: {
       const nenhum: never = estado;
       throw new Error(`Estado sem ação: ${JSON.stringify(nenhum)}`);
@@ -200,7 +219,7 @@ export function montarPaginaDoCurso(
   const nivelPorOrdem = new Map(curso.niveis.map((n) => [n.ordem, n]));
   const { proximo } = niveis(curso, assistidas);
 
-  return {
+  const paginaDoCurso: PaginaDoCurso = {
     acao: acaoDe(c),
     amostra: c.amostra && {
       aulaId: c.amostra.aulaId,
@@ -240,4 +259,6 @@ export function montarPaginaDoCurso(
     titulo: curso.titulo,
     topicos: curso.topicos,
   };
+
+  return paginaDoCurso;
 }

@@ -20,8 +20,18 @@ import {
 } from "./convites";
 
 const email = (texto: string) => texto as Email;
-const boa = (texto: string) => ({ email: email(texto), texto });
-const ruim = (texto: string) => ({ email: null, texto });
+
+const boa = (texto: string) => {
+  const ficha: Ficha = { email: email(texto), texto };
+
+  return ficha;
+};
+
+const ruim = (texto: string) => {
+  const ficha: Ficha = { email: null, texto };
+
+  return ficha;
+};
 
 describe("fichasCom", () => {
   test("a lista colada vira uma ficha por e-mail, e o que não é e-mail fica marcado", () => {
@@ -141,15 +151,19 @@ describe("textoDoEnvio", () => {
 
 const HOJE = "2026-11-11" as DiaISO;
 
-const convidado = (estado: ConvidadoNaTela["estado"]) => ({
-  comoAdmin: false,
-  convidadoEm: "2026-11-04" as DiaISO,
-  cursos: [],
-  email: email("ana@x.com"),
-  estado,
-  id: "c1" as ConviteId,
-  perfil: "cliente",
-});
+const convidado = (estado: ConvidadoNaTela["estado"]) => {
+  const convidadoNaTela: ConvidadoNaTela = {
+    comoAdmin: false,
+    convidadoEm: "2026-11-04" as DiaISO,
+    cursos: [],
+    email: email("ana@x.com"),
+    estado,
+    id: "c1" as ConviteId,
+    perfil: "cliente",
+  };
+
+  return convidadoNaTela;
+};
 
 describe("a linha do convidado", () => {
   test("o selo diz o estado, sem vermelho", () => {

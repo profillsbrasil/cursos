@@ -63,25 +63,44 @@ function doServidor(resultado: ResultadoDoLote, userId: string) {
 
 export function lote(estado: EstadoDoLote, e: EventoDoLote) {
   switch (e.tipo) {
-    case "marcar":
-      return estado.marcadas.some((p) => p.userId === e.pessoa.userId)
+    case "marcar": {
+      const estadoDoLote: EstadoDoLote = estado.marcadas.some(
+        (p) => p.userId === e.pessoa.userId
+      )
         ? estado
         : { ...estado, marcadas: [...estado.marcadas, e.pessoa] };
-    case "desmarcar":
-      return {
+
+      return estadoDoLote;
+    }
+
+    case "desmarcar": {
+      const estadoDoLote: EstadoDoLote = {
         ...estado,
         marcadas: estado.marcadas.filter((p) => p.userId !== e.userId),
       };
-    case "desmarcar_todas":
-      return { ...estado, marcadas: [] };
-    case "escolher":
-      return estado.fase.tipo === "marcando"
-        ? { ...estado, fase: { curso: e.curso, tipo: "marcando" } }
-        : estado;
+
+      return estadoDoLote;
+    }
+
+    case "desmarcar_todas": {
+      const estadoDoLote: EstadoDoLote = { ...estado, marcadas: [] };
+
+      return estadoDoLote;
+    }
+
+    case "escolher": {
+      const estadoDoLote: EstadoDoLote =
+        estado.fase.tipo === "marcando"
+          ? { ...estado, fase: { curso: e.curso, tipo: "marcando" } }
+          : estado;
+
+      return estadoDoLote;
+    }
+
     case "liberou": {
       const enviadas = new Set(e.enviadas.map((p) => p.userId));
 
-      return {
+      const estadoDoLote: EstadoDoLote = {
         fase: {
           curso: e.curso,
           hoje: e.resultado.hoje,
@@ -93,18 +112,22 @@ export function lote(estado: EstadoDoLote, e: EventoDoLote) {
         },
         marcadas: estado.marcadas.filter((p) => !enviadas.has(p.userId)),
       };
+
+      return estadoDoLote;
     }
 
     case "repetiu": {
       const { fase } = estado;
 
       if (fase.tipo !== "resultado") {
-        return estado;
+        const estadoDoLote: EstadoDoLote = estado;
+
+        return estadoDoLote;
       }
 
       const respondidas = new Set(e.resultado.pessoas.map((p) => p.userId));
 
-      return {
+      const estadoDoLote: EstadoDoLote = {
         ...estado,
         fase: {
           ...fase,
@@ -116,12 +139,24 @@ export function lote(estado: EstadoDoLote, e: EventoDoLote) {
           ),
         },
       };
+
+      return estadoDoLote;
     }
 
-    case "nova_liberacao":
-      return { ...estado, fase: { curso: null, tipo: "marcando" } };
-    default:
-      return e satisfies never;
+    case "nova_liberacao": {
+      const estadoDoLote: EstadoDoLote = {
+        ...estado,
+        fase: { curso: null, tipo: "marcando" },
+      };
+
+      return estadoDoLote;
+    }
+
+    default: {
+      const estadoDoLote: EstadoDoLote = e satisfies never;
+
+      return estadoDoLote;
+    }
   }
 }
 
@@ -131,7 +166,7 @@ export type ProntoParaLiberar =
   | { tipo: "falta_curso" }
   | { sobram: number; tipo: "passou_do_teto" };
 
-export function prontoParaLiberar(estado: EstadoDoLote) {
+export function prontoParaLiberar(estado: EstadoDoLote): ProntoParaLiberar {
   const { fase, marcadas } = estado;
 
   if (marcadas.length === 0) {

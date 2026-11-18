@@ -21,7 +21,6 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import type { AulaId, StatusDoCurso } from "../dominio/tipos";
-import type { Trecho } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
 import {

@@ -62,7 +62,9 @@ export async function linhasDosCursos(
     },
   });
 
-  return linhas.map(paraCursoDaTroca);
+  const retorno: CursoDaTroca[] = linhas.map(paraCursoDaTroca);
+
+  return retorno;
 }
 
 export async function carregarPainelDeTroca(
@@ -79,7 +81,12 @@ export async function carregarPainelDeTroca(
     linhasDoExtrato(db, userId, LIMITE_DO_EXTRATO),
   ]);
 
-  return montarPainelDeTroca({ cursos, extrato, pontos }, hoje);
+  const painelDeTroca: PainelDeTroca = montarPainelDeTroca(
+    { cursos, extrato, pontos },
+    hoje
+  );
+
+  return painelDeTroca;
 }
 
 /**
@@ -188,7 +195,14 @@ export function trocarNaVirada(
   preco: number,
   agora: Date
 ) {
-  return gravarTroca(aluno, cursoId, preco, agora);
+  const retorno: Promise<ResultadoDaTroca> = gravarTroca(
+    aluno,
+    cursoId,
+    preco,
+    agora
+  );
+
+  return retorno;
 }
 
 export function trocar(
@@ -200,24 +214,31 @@ export function trocar(
 ) {
   const segunda = segundaDaSemana(diaLocal(agora));
 
-  return comSaldoTravado(db, userId, segunda, async (aluno, saldo) => {
-    const [curso] = await linhasDosCursos(
-      aluno.tx,
-      { perfil, userId: aluno.userId },
-      { cursoId }
-    );
+  const retorno: Promise<ResultadoDaTroca> = comSaldoTravado(
+    db,
+    userId,
+    segunda,
+    async (aluno, saldo) => {
+      const [curso] = await linhasDosCursos(
+        aluno.tx,
+        { perfil, userId: aluno.userId },
+        { cursoId }
+      );
 
-    const d = decidirTroca(curso ?? null, saldo, precoVisto);
+      const d = decidirTroca(curso ?? null, saldo, precoVisto);
 
-    switch (d.tipo) {
-      case "recusa":
-        throw erroDaRecusa(d.recusa);
-      case "ja_trocado":
-        return { lancamentoId: d.lancamentoId };
-      case "debitar":
-        return await gravarTroca(aluno, cursoId, d.preco, agora);
-      default:
-        return d satisfies never;
+      switch (d.tipo) {
+        case "recusa":
+          throw erroDaRecusa(d.recusa);
+        case "ja_trocado":
+          return { lancamentoId: d.lancamentoId };
+        case "debitar":
+          return await gravarTroca(aluno, cursoId, d.preco, agora);
+        default:
+          return d satisfies never;
+      }
     }
-  });
+  );
+
+  return retorno;
 }

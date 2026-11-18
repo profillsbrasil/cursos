@@ -16,13 +16,22 @@ import { canonizar, SEM_TRECHOS, segundos, type Trecho } from "./trechos";
 const AULA = "aula-1" as AulaId;
 const T0 = new Date("2026-10-07T18:00:00Z");
 const em = (s: number) => new Date(T0.getTime() + s * 1000);
-const t = (inicio: number, fim: number) => ({ fim, inicio });
 
-const novo = (duracaoSeg = 600) => ({
-  assistida: false,
-  duracaoSeg,
-  trechos: SEM_TRECHOS,
-});
+const t = (inicio: number, fim: number) => {
+  const trecho: Trecho = { fim, inicio };
+
+  return trecho;
+};
+
+const novo = (duracaoSeg = 600) => {
+  const estudoSalvo: EstudoSalvo = {
+    assistida: false,
+    duracaoSeg,
+    trechos: SEM_TRECHOS,
+  };
+
+  return estudoSalvo;
+};
 
 describe("cotaDisponivel", () => {
   test("sem cota, o balde está cheio", () => {

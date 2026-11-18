@@ -86,7 +86,10 @@ const recusa = (r: RecusaDoMaterial) =>
   ({ recusa: r, tipo: "recusa" }) as const;
 
 /** O tipo vem da extensão do nome e os bytes o confirmam; o content-type do navegador não conta. */
-export function lerMaterial(nome: string, bytes: Uint8Array<ArrayBuffer>) {
+export function lerMaterial(
+  nome: string,
+  bytes: Uint8Array<ArrayBuffer>
+): MaterialLido {
   const antes = recusaAntesDeLer(nome, bytes.length);
 
   if (antes) {
@@ -133,7 +136,7 @@ export function materiaisNoBucket(
     );
   };
 
-  return {
+  const retorno: Materiais = {
     async abrir(chave) {
       if (!CHAVE_DO_MATERIAL.test(chave)) {
         return null;
@@ -200,6 +203,8 @@ export function materiaisNoBucket(
       return { arquivo: lido.arquivo, tipo: "guardado" };
     },
   };
+
+  return retorno;
 }
 
 /** Ambiente sem as variáveis do bucket de materiais: o resto do admin funciona. */

@@ -50,7 +50,7 @@ export function pessoasDeTeste(lista: readonly (Pessoa & Partial<Conta>)[]) {
 
   const achar = (userId: string) => lista.find((p) => p.userId === userId);
 
-  return {
+  const retorno: Pessoas = {
     buscar: (termo, entre) => {
       const t = termo.toLowerCase();
 
@@ -100,6 +100,8 @@ export function pessoasDeTeste(lista: readonly (Pessoa & Partial<Conta>)[]) {
       );
     },
   };
+
+  return retorno;
 }
 
 /**
@@ -113,7 +115,10 @@ export function convitesDeTeste(
   const enviados: { clerkConviteId: string; email: string }[] = [];
   const revogados: string[] = [];
 
-  return {
+  const retorno: Convites & {
+    enviados: { clerkConviteId: string; email: string }[];
+    revogados: string[];
+  } = {
     enviados,
     enviar: (email, agora) => {
       const falha = falhas?.get(email);
@@ -141,17 +146,23 @@ export function convitesDeTeste(
       return Promise.resolve();
     },
   };
+
+  return retorno;
 }
 
 /** O aluno que as consultas recebem do alunoProcedure. Sem perfil, Público aberto. */
-export const alunoDeTeste = (userId: string, perfil: Perfil = "publico") => ({
-  perfil,
-  userId,
-});
+export const alunoDeTeste = (userId: string, perfil: Perfil = "publico") => {
+  const aluno: Aluno = {
+    perfil,
+    userId,
+  };
+
+  return aluno;
+};
 
 /** Context dos testes. Quando Servicos ganha um campo, só este arquivo muda nos testes. */
 export function contextoDeTeste(o: OpcoesDeTeste) {
-  return {
+  const context: Context = {
     auth: o.userId ? sessaoDe(o.papel ?? "aluno", o.userId) : null,
     capas: o.capas ?? capasDesligadas,
     convites: o.convites ?? convitesDeTeste(),
@@ -159,4 +170,6 @@ export function contextoDeTeste(o: OpcoesDeTeste) {
     materiais: o.materiais ?? materiaisDesligados,
     pessoas: pessoasDeTeste(o.pessoas ?? []),
   };
+
+  return context;
 }

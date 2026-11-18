@@ -170,34 +170,38 @@ describe("a coluna de troca da página do curso", () => {
 });
 
 describe("o fim do vídeo da aula de amostra", () => {
-  const dados = (saldo: number) => ({
-    amostra: {
-      cursoId: CURSO,
-      preco: 2000,
-      proxima: { id: AULA_2, titulo: "O momento certo de gravar" },
-      saldo,
-    },
-    anterior: null,
-    aula: {
-      descricao: "",
-      duracaoSeg: 60,
-      id: AULA_1,
-      modulo: { numero: 1, titulo: "Antes de filmar" },
-      numeroNoModulo: 1,
-      titulo: "Boas-vindas ao curso",
-      totalNoModulo: 3,
-      video: null,
-    },
-    curso: {
-      progresso: { feitas: 1, pct: 14, total: 7 },
-      slug: "filmagem",
-      titulo: "Curso de Filmagem",
-    },
-    estudo: { assistida: true, posicaoSeg: 0, trechos: SEM_TRECHOS },
-    modulos: [],
-    proxima: null,
-    questionario: null,
-  });
+  const dados = (saldo: number) => {
+    const aulaNoPlayer: AulaNoPlayer = {
+      amostra: {
+        cursoId: CURSO,
+        preco: 2000,
+        proxima: { id: AULA_2, titulo: "O momento certo de gravar" },
+        saldo,
+      },
+      anterior: null,
+      aula: {
+        descricao: "",
+        duracaoSeg: 60,
+        id: AULA_1,
+        modulo: { numero: 1, titulo: "Antes de filmar" },
+        numeroNoModulo: 1,
+        titulo: "Boas-vindas ao curso",
+        totalNoModulo: 3,
+        video: null,
+      },
+      curso: {
+        progresso: { feitas: 1, pct: 14, total: 7 },
+        slug: "filmagem",
+        titulo: "Curso de Filmagem",
+      },
+      estudo: { assistida: true, posicaoSeg: 0, trechos: SEM_TRECHOS },
+      modulos: [],
+      proxima: null,
+      questionario: null,
+    };
+
+    return aulaNoPlayer;
+  };
 
   const fim = (saldo: number) =>
     renderToStaticMarkup(

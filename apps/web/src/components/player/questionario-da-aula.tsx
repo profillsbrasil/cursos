@@ -67,16 +67,20 @@ type Fase =
       resultado: ResultadoDoQuestionario;
     };
 
-const novaTentativa = (focar: boolean) => ({
-  falhou: false,
-  focar,
-  marcadas: {},
-  tentativaId: crypto.randomUUID() as TentativaId,
-  tipo: "respondendo",
-});
+const novaTentativa = (focar: boolean) => {
+  const fase: Fase = {
+    falhou: false,
+    focar,
+    marcadas: {},
+    tentativaId: crypto.randomUUID() as TentativaId,
+    tipo: "respondendo",
+  };
 
-const faseInicial = (q: Questionario) =>
-  q.ultima
+  return fase;
+};
+
+const faseInicial = (q: Questionario) => {
+  const fase: Fase = q.ultima
     ? {
         concluiuOCurso: false,
         focar: false,
@@ -84,6 +88,9 @@ const faseInicial = (q: Questionario) =>
         tipo: "resultado",
       }
     : novaTentativa(false);
+
+  return fase;
+};
 
 const LADO = "px-[26px] max-sm:px-[18px]";
 
@@ -191,10 +198,15 @@ function vereditoDe(
   resposta: RespostaCorrigida | undefined
 ) {
   if (resposta?.alternativaId === alternativaId) {
-    return resposta.certa ? "certa" : "errada";
+    const veredito: Veredito = resposta.certa ? "certa" : "errada";
+
+    return veredito;
   }
 
-  return resposta?.certaId === alternativaId ? "a_certa" : "neutra";
+  const veredito: Veredito =
+    resposta?.certaId === alternativaId ? "a_certa" : "neutra";
+
+  return veredito;
 }
 
 function AlternativaCorrigida({

@@ -20,7 +20,12 @@ export interface EnderecoDaConferencia {
 export function enderecoDaConferencia(origem: string, codigo: string) {
   const url = new URL(caminhoDaConferencia(codigo), origem);
 
-  return { exibido: `${url.host}${url.pathname}`, url: url.href };
+  const retorno: EnderecoDaConferencia = {
+    exibido: `${url.host}${url.pathname}`,
+    url: url.href,
+  };
+
+  return retorno;
 }
 
 const primeiro = (valor: string | null) => valor?.split(",")[0]?.trim();
@@ -43,8 +48,13 @@ export function origemDoPedido(cabecalhos: Headers) {
 
 export type CertificadoComNome = CertificadoEmitido & { nome: string };
 
-export const comNome = (c: CertificadoEmitido | null) =>
-  c?.nome ? { ...c, nome: c.nome } : null;
+export const comNome = (c: CertificadoEmitido | null) => {
+  const retorno: CertificadoComNome | null = c?.nome
+    ? { ...c, nome: c.nome }
+    : null;
+
+  return retorno;
+};
 
 export const cargaEmHoras = (horas: number) => plural(horas, "hora", "horas");
 
@@ -77,7 +87,7 @@ export function folhaDo(
     texto: c.tituloDoCurso,
   });
 
-  return {
+  const folhaDoCertificado: FolhaDoCertificado = {
     ...DE_TODA_FOLHA,
     carga: cargaEmHoras(c.horas),
     codigo: c.codigo,
@@ -89,6 +99,8 @@ export function folhaDo(
     nomeEmTamanho: escrito.tamanho,
     qr: qrDe(endereco.url),
   };
+
+  return folhaDoCertificado;
 }
 
 /**
@@ -100,7 +112,7 @@ export function folhaDo(
 export function folhaDeExemplo(origem: string) {
   const url = new URL("/certificado", origem);
 
-  return {
+  const folhaDoCertificado: FolhaDoCertificado = {
     ...DE_TODA_FOLHA,
     carga: "X horas",
     codigo: "XXXX-XXXX",
@@ -112,4 +124,6 @@ export function folhaDeExemplo(origem: string) {
     nomeEmTamanho: FOLHA_EM_PX.nome.degraus[0],
     qr: qrDe(url.href),
   };
+
+  return folhaDoCertificado;
 }

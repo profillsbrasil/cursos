@@ -26,10 +26,14 @@ const aulasEDuracao = (c: CursoVM) =>
  */
 function etiquetaDe(c: CursoVM) {
   if (c.estado.tipo === "em_breve") {
-    return { tipo: "em_producao" };
+    const retorno: Etiqueta = { tipo: "em_producao" };
+
+    return retorno;
   }
 
-  return { texto: aulasEDuracao(c), tipo: "duracao" };
+  const retorno: Etiqueta = { texto: aulasEDuracao(c), tipo: "duracao" };
+
+  return retorno;
 }
 
 const ESPACO_QUE_NAO_QUEBRA = " ";

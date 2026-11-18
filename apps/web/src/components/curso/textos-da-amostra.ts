@@ -18,7 +18,7 @@ export function trocaDaAmostra({
 }: {
   preco: number | null;
   saldo: number;
-}) {
+}): TrocaDaAmostra {
   if (preco === null) {
     return { frase: SEM_PRECO, tipo: "sem_preco" };
   }

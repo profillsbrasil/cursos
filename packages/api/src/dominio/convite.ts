@@ -158,7 +158,10 @@ function papelDoAceito(linha: LinhaDoConvite) {
  * A única leitura do estado. Ordem: cancelado, aceito, expirado (expiraEm <= agora),
  * não enviado, pendente. A tela, o reenviar e o cancelar leem daqui.
  */
-export function estadoDoConvite(linha: LinhaDoConvite, agora: Date) {
+export function estadoDoConvite(
+  linha: LinhaDoConvite,
+  agora: Date
+): EstadoDoConvite {
   if (linha.canceladoEm && linha.canceladoPor) {
     return {
       em: linha.canceladoEm,
@@ -259,18 +262,36 @@ export interface LinhasDosConvites {
 
 function estadoNaTela(estado: EstadoVivo) {
   switch (estado.tipo) {
-    case "nao_enviado":
-      return { tipo: "nao_enviado" };
-    case "pendente":
-      return {
+    case "nao_enviado": {
+      const retorno: ConvidadoNaTela["estado"] = { tipo: "nao_enviado" };
+
+      return retorno;
+    }
+
+    case "pendente": {
+      const retorno: ConvidadoNaTela["estado"] = {
         enviadoEm: diaLocal(estado.enviadoEm),
         expiraEm: diaLocal(estado.expiraEm),
         tipo: "pendente",
       };
-    case "expirado":
-      return { em: diaLocal(estado.em), tipo: "expirado" };
-    default:
-      return estado satisfies never;
+
+      return retorno;
+    }
+
+    case "expirado": {
+      const retorno: ConvidadoNaTela["estado"] = {
+        em: diaLocal(estado.em),
+        tipo: "expirado",
+      };
+
+      return retorno;
+    }
+
+    default: {
+      const retorno: ConvidadoNaTela["estado"] = estado satisfies never;
+
+      return retorno;
+    }
   }
 }
 
@@ -297,13 +318,15 @@ export function montarPainelDeConvites(
     }
   }
 
-  return {
+  const painelDeConvites: PainelDeConvites = {
     contagem,
     convidados,
     cursos: linhas.cursos,
     hoje: diaLocal(agora),
     total: linhas.total,
   };
+
+  return painelDeConvites;
 }
 
 /** O convite que a chegada reivindicou, pronto para aplicar. */

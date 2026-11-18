@@ -67,13 +67,15 @@ export function continuarDe(retomada: Retomada | null) {
   const t = textos(retomada);
   const porcentagem = t.pct === null ? "" : `, ${t.pct}% do curso`;
 
-  return {
+  const retorno: Continuar | null = {
     ...t,
     curso: retomada.curso.titulo,
     href: hrefDaRetomada(retomada),
     rotulo: `${t.chamada}: ${t.titulo}, ${retomada.curso.titulo}${porcentagem}`,
     tipo: retomada.tipo,
   };
+
+  return retorno;
 }
 
 /** O botão que retoma o estudo, com o mesmo verbo no banner de Meus cursos e em Trocar pontos. */
@@ -85,24 +87,53 @@ export interface AcaoDaRetomada {
 
 export function acaoDaRetomada(retomada: Retomada | null) {
   if (!retomada) {
-    return { href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" };
+    const retorno: AcaoDaRetomada = {
+      href: "/meus-cursos",
+      icone: null,
+      texto: "Ver Meus cursos",
+    };
+
+    return retorno;
   }
 
   const href = hrefDaRetomada(retomada);
 
   switch (retomada.tipo) {
-    case "comecar":
-      return { href, icone: "play", texto: "Começar curso" };
-    case "continuar":
-      return { href, icone: "play", texto: "Continuar aula" };
-    case "questionario":
-      return {
+    case "comecar": {
+      const retorno: AcaoDaRetomada = {
+        href,
+        icone: "play",
+        texto: "Começar curso",
+      };
+
+      return retorno;
+    }
+
+    case "continuar": {
+      const retorno: AcaoDaRetomada = {
+        href,
+        icone: "play",
+        texto: "Continuar aula",
+      };
+
+      return retorno;
+    }
+
+    case "questionario": {
+      const retorno: AcaoDaRetomada = {
         href,
         icone: "questionario",
         texto: retomada.ultima ? "Tentar de novo" : "Fazer o questionário",
       };
-    default:
-      return retomada satisfies never;
+
+      return retorno;
+    }
+
+    default: {
+      const retorno: AcaoDaRetomada = retomada satisfies never;
+
+      return retorno;
+    }
   }
 }
 

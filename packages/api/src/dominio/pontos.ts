@@ -80,12 +80,16 @@ function textoDoExtrato(l: LinhaDoExtrato) {
   }
 }
 
-export const itemDoExtrato = (linha: LinhaDoExtrato) => ({
-  dia: diaLocal(linha.criadoEm),
-  id: linha.id,
-  pontos: linha.pontos,
-  texto: textoDoExtrato(linha),
-});
+export const itemDoExtrato = (linha: LinhaDoExtrato) => {
+  const retorno: ItemDoExtrato = {
+    dia: diaLocal(linha.criadoEm),
+    id: linha.id,
+    pontos: linha.pontos,
+    texto: textoDoExtrato(linha),
+  };
+
+  return retorno;
+};
 
 type RegraDePonto = keyof typeof PONTOS;
 
@@ -109,9 +113,12 @@ export interface RegraDeGanho {
   rotulo: string;
 }
 
-export const comoGanhar = () =>
-  ORDEM.map((regra) => ({
+export const comoGanhar = () => {
+  const retorno: readonly RegraDeGanho[] = ORDEM.map((regra) => ({
     emBreve: !pontuaHoje(regra),
     pontos: PONTOS[regra],
     rotulo: ROTULOS[regra],
   }));
+
+  return retorno;
+};

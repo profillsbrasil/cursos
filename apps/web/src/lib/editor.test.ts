@@ -157,10 +157,14 @@ describe("sincronizarComAPagina", () => {
     versao: Versao | null;
   }
 
-  const doc = (versao: string | null, titulo = "Curso") => ({
-    titulo,
-    versao: versao as Versao | null,
-  });
+  const doc = (versao: string | null, titulo = "Curso") => {
+    const retorno: Doc = {
+      titulo,
+      versao: versao as Versao | null,
+    };
+
+    return retorno;
+  };
 
   const sujo = { limpo: false };
   const limpo = { limpo: true };

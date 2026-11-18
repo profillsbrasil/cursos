@@ -17,7 +17,9 @@ export async function generateMetadata({ params }: Props) {
     notFound();
   }
 
-  return { title: pagina.titulo };
+  const metadata: Metadata = { title: pagina.titulo };
+
+  return metadata;
 }
 
 export default async function Curso({ params }: Props) {

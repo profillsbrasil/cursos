@@ -48,10 +48,14 @@ function registrar() {
 }
 
 /** Só microtarefas, nenhum timer: o que o link faz aqui é o que o pagehide deixa sair. */
-const microtarefas = (voltas: number) =>
-  voltas === 0 || pedidos.length > 0
-    ? Promise.resolve()
-    : Promise.resolve().then(() => microtarefas(voltas - 1));
+const microtarefas = (voltas: number) => {
+  const retorno: Promise<void> =
+    voltas === 0 || pedidos.length > 0
+      ? Promise.resolve()
+      : Promise.resolve().then(() => microtarefas(voltas - 1));
+
+  return retorno;
+};
 
 async function pedidoDentroDaTarefa() {
   await microtarefas(VOLTAS_DE_MICROTAREFA);

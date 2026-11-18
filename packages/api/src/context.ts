@@ -54,10 +54,14 @@ export function contextoDe(clerk: AuthDoClerk | null, servicos: Servicos) {
   const userId = clerk?.userId;
 
   if (!userId) {
-    return { ...servicos, auth: null };
+    const context: Context = { ...servicos, auth: null };
+
+    return context;
   }
 
   const papel = clerk.sessionClaims?.papel === "admin" ? "admin" : "aluno";
 
-  return { ...servicos, auth: sessaoDe(papel, userId) };
+  const context: Context = { ...servicos, auth: sessaoDe(papel, userId) };
+
+  return context;
 }

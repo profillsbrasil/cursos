@@ -37,7 +37,7 @@ export function montarGrade(
   linhas: readonly LinhaDaGrade[],
   contagem: ContagemPorPerfil
 ) {
-  return {
+  const gradeDosPerfis: GradeDosPerfis = {
     contagem,
     cursos: linhas.map((c) => ({
       aulas: c.modulos.reduce((n, m) => n + m.aulas.length, 0),
@@ -54,4 +54,6 @@ export function montarGrade(
       titulo: c.titulo,
     })),
   };
+
+  return gradeDosPerfis;
 }

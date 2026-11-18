@@ -26,14 +26,18 @@ const aula = {
 
 const NA_AULA = "/cursos/comercial/aulas/11111111-1111-4111-8111-111111111111";
 
-const continuar = (faltaSeg: number) => ({
-  aula: { ...aula, faltaSeg, posicaoSeg: aula.duracaoSeg - faltaSeg },
-  curso,
-  modulo,
-  progresso: { feitas: 9, pct: 45, total: 20 },
-  proximoNivel: null,
-  tipo: "continuar",
-});
+const continuar = (faltaSeg: number) => {
+  const retomada: Retomada = {
+    aula: { ...aula, faltaSeg, posicaoSeg: aula.duracaoSeg - faltaSeg },
+    curso,
+    modulo,
+    progresso: { feitas: 9, pct: 45, total: 20 },
+    proximoNivel: null,
+    tipo: "continuar",
+  };
+
+  return retomada;
+};
 
 const comecar: Retomada = { aula, curso, modulo, tipo: "comecar" };
 

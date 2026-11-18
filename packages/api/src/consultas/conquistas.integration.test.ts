@@ -42,10 +42,14 @@ const resumo = (c: Conquistas) => ({
       : [x.curso.slug, x.categoria, x.feitas, x.total]
   ),
   marcos: Object.fromEntries(
-    [...c.marcos, ...c.medalhas].map((m) => [
-      m.tipo === "aulas" ? `aulas_${m.meta}` : m.tipo,
-      m.medalha,
-    ])
+    [...c.marcos, ...c.medalhas].map((m) => {
+      const retorno: [string, object] = [
+        m.tipo === "aulas" ? `aulas_${m.meta}` : m.tipo,
+        m.medalha,
+      ];
+
+      return retorno;
+    })
   ),
 });
 
@@ -423,7 +427,13 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     const c = await carregarConquistas(db, alunoDeTeste(TROCADORA), SEXTA_15H);
     expect(statements).toBe(8);
     expect(
-      Object.fromEntries(c.medalhas.map((m) => [m.tipo, m.medalha]))
+      Object.fromEntries(
+        c.medalhas.map((m) => {
+          const retorno: [string, object] = [m.tipo, m.medalha];
+
+          return retorno;
+        })
+      )
     ).toEqual({
       amostra_e_troca: { dia: "2026-10-05", estado: "ganha" },
       mil_pontos: { estado: "por_ganhar", feitas: 990, pct: 99, total: 1000 },

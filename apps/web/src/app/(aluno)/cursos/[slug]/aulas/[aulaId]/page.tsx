@@ -27,7 +27,11 @@ export async function generateMetadata({ params }: Props) {
     notFound();
   }
 
-  return { title: `${dados.aula.titulo} · ${dados.curso.titulo}` };
+  const metadata: Metadata = {
+    title: `${dados.aula.titulo} · ${dados.curso.titulo}`,
+  };
+
+  return metadata;
 }
 
 export default async function PaginaDaAula({ params }: Props) {

@@ -4,18 +4,22 @@ import { comoGanhar, itemDoExtrato, type LinhaDoExtrato } from "./pontos";
 import { PONTOS } from "./regras";
 import type { DiaISO } from "./tipos";
 
-const linha = (mudar: Partial<LinhaDoExtrato>) => ({
-  aula: null,
-  concessao: null,
-  criadoEm: new Date("2026-10-07T18:00:00Z"),
-  curso: null,
-  id: "l-1",
-  liberacao: null,
-  motivo: "sequencia_7_dias",
-  pontos: 30,
-  tentativa: null,
-  ...mudar,
-});
+const linha = (mudar: Partial<LinhaDoExtrato>) => {
+  const linhaDoExtrato: LinhaDoExtrato = {
+    aula: null,
+    concessao: null,
+    criadoEm: new Date("2026-10-07T18:00:00Z"),
+    curso: null,
+    id: "l-1",
+    liberacao: null,
+    motivo: "sequencia_7_dias",
+    pontos: 30,
+    tentativa: null,
+    ...mudar,
+  };
+
+  return linhaDoExtrato;
+};
 
 describe("itemDoExtrato", () => {
   test("cada motivo vira o texto do fato, com o sinal do lançamento", () => {

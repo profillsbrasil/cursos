@@ -169,8 +169,12 @@ export type LugarDoComunicado = "topo" | "fim";
 export const DIAS_NO_TOPO = 14;
 
 /** Os dias contam no fuso de São Paulo: o dia da publicação é o dia 0. */
-export const lugarDoComunicado = (publicadoEm: Date, hoje: DiaISO) =>
-  diasCorridos(diaLocal(publicadoEm), hoje) < DIAS_NO_TOPO ? "topo" : "fim";
+export const lugarDoComunicado = (publicadoEm: Date, hoje: DiaISO) => {
+  const retorno: LugarDoComunicado =
+    diasCorridos(diaLocal(publicadoEm), hoje) < DIAS_NO_TOPO ? "topo" : "fim";
+
+  return retorno;
+};
 
 export interface ComunicadoVM {
   /** O dia em São Paulo em que o painel foi montado: a data curta leva o ano quando ele muda. */
@@ -206,7 +210,7 @@ export interface ResumoAluno {
 
 /** Borda: marca os ids das linhas do banco. */
 export function paraCatalogo(linha: CursoLinha) {
-  return {
+  const cursoCatalogo: CursoCatalogo = {
     capa: capaDe(linha),
     categoria: linha.categoria.nome,
     codigo: linha.codigo,
@@ -232,6 +236,8 @@ export function paraCatalogo(linha: CursoLinha) {
     titulo: linha.titulo,
     topicos: linha.topicos,
   };
+
+  return cursoCatalogo;
 }
 
 const ORDEM_DOS_CURSOS: Record<TipoEstado, number> = {
@@ -306,7 +312,7 @@ export function montarPainel(linhas: LinhasPainel, hoje: DiaISO) {
     (c) => c.cursoId === null || acessiveis.has(c.cursoId)
   );
 
-  return {
+  const painelMeusCursos: PainelMeusCursos = {
     comunicado: comunicado
       ? {
           hoje,
@@ -320,13 +326,15 @@ export function montarPainel(linhas: LinhasPainel, hoje: DiaISO) {
     cursos: telas.map((x) => cursoVM(x.curso, x.leitura, x.amostra)),
     retomada: retomada({ cursos: inteiros, estudo }),
   };
+
+  return painelMeusCursos;
 }
 
 export function montarResumo(linhas: LinhasResumo, hoje: DiaISO) {
   const dias = new Set(linhas.dias.map((d) => d.dia as DiaISO));
   const sequenciaDias = sequenciaDiasUteis(dias, hoje);
 
-  return {
+  const resumoAluno: ResumoAluno = {
     bonus: PONTOS.sequencia_7_dias,
     dias: semana(dias, hoje),
     faltamParaBonus: faltamParaBonus(sequenciaDias),
@@ -334,4 +342,6 @@ export function montarResumo(linhas: LinhasResumo, hoje: DiaISO) {
     saldo: linhas.pontos.saldo,
     sequenciaDias,
   };
+
+  return resumoAluno;
 }

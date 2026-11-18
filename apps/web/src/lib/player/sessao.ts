@@ -54,7 +54,8 @@ const PARADO_POR: Readonly<Record<string, MotivoParado>> = {
   UNAUTHORIZED: "sessao_expirada",
 };
 
-export const motivoParadoDe = (codigo: string) => PARADO_POR[codigo];
+export const motivoParadoDe = (codigo: string): MotivoParado | undefined =>
+  PARADO_POR[codigo];
 
 export type EstadoEnvio =
   | { tipo: "em_dia" }
@@ -133,7 +134,10 @@ const NOVA_TENTATIVA_MS = 2000;
 const NOVA_TENTATIVA_MAX_MS = 60_000;
 const DIFERENCA_DE_DURACAO_SEG = 2;
 
-export function transicao(e: EstadoReproducao, ev: EventoDoVideo) {
+export function transicao(
+  e: EstadoReproducao,
+  ev: EventoDoVideo
+): EstadoReproducao {
   if (e.tipo === "indisponivel") {
     return e;
   }
@@ -159,18 +163,22 @@ export function transicao(e: EstadoReproducao, ev: EventoDoVideo) {
   }
 }
 
-export const estadoInicial = (e: EntradaDaSessao) => ({
-  assistida: e.estudo.assistida,
-  cobertura: cobertura(e.estudo.trechos, e.duracaoSeg),
-  duracaoSeg: e.duracaoSeg,
-  envio: { tipo: "em_dia" },
-  legenda: e.preferencias.legenda,
-  reproducao: { tipo: "carregando" },
-  tempoSeg: e.inicioSeg,
-  trechos: e.estudo.trechos,
-  velocidade: e.preferencias.velocidade,
-  volume: e.preferencias.volume,
-});
+export const estadoInicial = (e: EntradaDaSessao) => {
+  const estadoDaSessao: EstadoDaSessao = {
+    assistida: e.estudo.assistida,
+    cobertura: cobertura(e.estudo.trechos, e.duracaoSeg),
+    duracaoSeg: e.duracaoSeg,
+    envio: { tipo: "em_dia" },
+    legenda: e.preferencias.legenda,
+    reproducao: { tipo: "carregando" },
+    tempoSeg: e.inicioSeg,
+    trechos: e.estudo.trechos,
+    velocidade: e.preferencias.velocidade,
+    volume: e.preferencias.volume,
+  };
+
+  return estadoDaSessao;
+};
 
 const limitar = (n: number, min: number, max: number) =>
   Math.min(Math.max(n, min), max);
@@ -208,7 +216,7 @@ export function criarSessaoDeEstudo(
   function fotografar() {
     const trechos = vistos();
 
-    return {
+    const retorno: EstadoDaSessao = {
       assistida,
       cobertura: cobertura(trechos, duracaoSeg),
       duracaoSeg,
@@ -220,6 +228,8 @@ export function criarSessaoDeEstudo(
       velocidade,
       volume,
     };
+
+    return retorno;
   }
 
   function avisar() {
@@ -549,7 +559,7 @@ export function criarSessaoDeEstudo(
     enviar(true);
   }
 
-  return {
+  const sessaoDeEstudo: SessaoDeEstudo = {
     assinar(ouvinte) {
       ouvintes.add(ouvinte);
 
@@ -584,7 +594,9 @@ export function criarSessaoDeEstudo(
       const assentou = Promise.allSettled(emVoo).then(() => {
         pararTeto();
 
-        return "assentou";
+        const fimDaSessao: FimDaSessao = "assentou";
+
+        return fimDaSessao;
       });
 
       fim = Promise.race([assentou, teto]);
@@ -594,4 +606,6 @@ export function criarSessaoDeEstudo(
     estado: () => foto,
     salvarAgora,
   };
+
+  return sessaoDeEstudo;
 }

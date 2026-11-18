@@ -108,13 +108,15 @@ export async function linhasDoCurso(
       ] as const)
     : await Promise.all(consultas);
 
-  return {
+  const linhasCurso: LinhasCurso = {
     assistidas,
     certificados,
     curso: curso ?? null,
     posicoes,
     questionarios,
   };
+
+  return linhasCurso;
 }
 
 export async function carregarAula(
@@ -135,12 +137,14 @@ export async function carregarAula(
     return null;
   }
 
-  return montarAulaNoPlayer(
+  const retorno: AulaNoPlayer | null = montarAulaNoPlayer(
     aberto,
     aula,
     questionario,
     await saldoDaAmostra(db, aluno, aberto)
   );
+
+  return retorno;
 }
 
 /** O saldo só entra na amostra, para a troca; o curso inteiro não o lê. */
@@ -164,11 +168,13 @@ export async function carregarPaginaDoCurso(
   }
 
   // A amostra não lista o material de apoio: o download também a recusa.
-  return montarPaginaDoCurso(
+  const retorno: PaginaDoCurso | null = montarPaginaDoCurso(
     aberto,
     aberto.amostra ? [] : materiais,
     await saldoDaAmostra(db, aluno, aberto)
   );
+
+  return retorno;
 }
 
 const erroSemAcesso = () =>
@@ -231,7 +237,7 @@ export function registrar(
 ) {
   const { userId } = aluno;
 
-  return db.transaction(async (tx) => {
+  const retorno: Promise<Registro> = db.transaction(async (tx) => {
     // set_config(..., true) é o SET LOCAL: vale só até o fim desta transação.
     await tx.execute(
       sql`select set_config('lock_timeout', ${`${ESPERA_PELA_COTA_MS}ms`}, true)`
@@ -347,4 +353,6 @@ export function registrar(
       trechos: r.trechos,
     };
   });
+
+  return retorno;
 }

@@ -38,14 +38,16 @@ export async function linhaDoCertificado(db: Database, onde: Onde) {
         : and(eq(certificado.userId, onde.userId), eq(curso.slug, onde.slug))
     );
 
-  return linha ?? null;
+  const retorno: LinhaDoCertificado | null = linha ?? null;
+
+  return retorno;
 }
 
 export async function carregarPaginaDoCertificado(
   { db, pessoas }: Servicos,
   aluno: Aluno,
   slug: string
-) {
+): Promise<PaginaDoCertificado | null> {
   const { userId } = aluno;
   const linha = await linhaDoCertificado(db, { slug, userId });
 
@@ -66,5 +68,8 @@ export async function conferir(
 ) {
   const linha = await linhaDoCertificado(db, { codigo });
 
-  return linha && certificadoEmitido(linha, await pessoas.porId(linha.userId));
+  const retorno: CertificadoEmitido | null =
+    linha && certificadoEmitido(linha, await pessoas.porId(linha.userId));
+
+  return retorno;
 }

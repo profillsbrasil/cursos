@@ -21,16 +21,20 @@ export function pontoNaTrilha(feitas: number, metas: readonly number[]) {
     if (feitas <= meta) {
       const t = (Math.max(feitas, 0) - antes) / (meta - antes);
 
-      return {
+      const retorno: PontoNaTrilha = {
         porcento: ((i + t) / metas.length) * 100,
         recuoPx: i === 0 ? meia * t : meia,
       };
+
+      return retorno;
     }
 
     antes = meta;
   }
 
-  return { porcento: 100, recuoPx: meia };
+  const retorno: PontoNaTrilha = { porcento: 100, recuoPx: meia };
+
+  return retorno;
 }
 
 /**

@@ -50,13 +50,15 @@ function naCadeia<T>(erro: unknown, ler: (no: NoDaCadeia) => T | null) {
 }
 
 export function violacaoDe(erro: unknown) {
-  return naCadeia(erro, ({ code, constraint }) =>
+  const retorno: Violacao | null = naCadeia(erro, ({ code, constraint }) =>
     typeof code === "string" &&
     CODIGOS.has(code) &&
     typeof constraint === "string"
       ? { codigo: code, restricao: constraint }
       : null
   );
+
+  return retorno;
 }
 
 const esperaVencida = (erro: unknown) =>
@@ -214,7 +216,9 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
  */
 export function mensagemDoBanco(erro: unknown) {
   if (esperaVencida(erro)) {
-    return ESPERA_ESGOTADA;
+    const retorno: MensagemDoBanco | null = ESPERA_ESGOTADA;
+
+    return retorno;
   }
 
   const v = violacaoDe(erro);
@@ -223,7 +227,8 @@ export function mensagemDoBanco(erro: unknown) {
     return null;
   }
 
-  return MENSAGEM_DA_RESTRICAO[
-    v.restricao as keyof typeof MENSAGEM_DA_RESTRICAO
-  ];
+  const retorno: MensagemDoBanco | null =
+    MENSAGEM_DA_RESTRICAO[v.restricao as keyof typeof MENSAGEM_DA_RESTRICAO];
+
+  return retorno;
 }

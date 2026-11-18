@@ -10,5 +10,7 @@ export async function createContext(req: NextRequest) {
     authorizedParties: [ENV.CORS_ORIGIN],
   });
 
-  return contextoDe(estado.toAuth(), servicos);
+  const context: Context = contextoDe(estado.toAuth(), servicos);
+
+  return context;
 }

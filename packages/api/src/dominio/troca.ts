@@ -62,20 +62,24 @@ function acessoDe(linha: LinhaDoCursoDaTroca) {
       );
     }
 
-    return {
+    const retorno: Acesso = {
       lancamentoId: ativa.trocaLancamento.id,
       pago: -ativa.trocaLancamento.pontos,
       tipo: "trocado",
     };
+
+    return retorno;
   }
 
-  return ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
+  const retorno: Acesso = ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
+
+  return retorno;
 }
 
 export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca) {
   const aulas = linha.modulos.flatMap((m) => m.aulas);
 
-  return {
+  const cursoDaTroca: CursoDaTroca = {
     acesso: acessoDe(linha),
     aulas: aulas.length,
     capa: capaDe(linha),
@@ -87,6 +91,8 @@ export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca) {
     status: linha.status,
     titulo: linha.titulo,
   };
+
+  return cursoDaTroca;
 }
 
 export type Situacao =
@@ -95,7 +101,7 @@ export type Situacao =
   | { tipo: "trocado"; lancamentoId: string; pago: number }
   | { tipo: "a_venda"; preco: number; faltam: number };
 
-export function situacao(c: CursoDaTroca, saldo: number) {
+export function situacao(c: CursoDaTroca, saldo: number): Situacao {
   switch (c.acesso.tipo) {
     case "trocado":
       return { ...c.acesso, tipo: "trocado" };
@@ -141,17 +147,21 @@ export type CartaoDeTroca =
     }
   | { tipo: "trocado"; curso: CursoNoCartao; pago: number };
 
-const noCartao = (c: CursoDaTroca) => ({
-  aulas: c.aulas,
-  capa: c.capa,
-  categoria: c.categoria,
-  duracaoSeg: c.duracaoSeg,
-  id: c.id,
-  slug: c.slug,
-  titulo: c.titulo,
-});
+const noCartao = (c: CursoDaTroca) => {
+  const cursoNoCartao: CursoNoCartao = {
+    aulas: c.aulas,
+    capa: c.capa,
+    categoria: c.categoria,
+    duracaoSeg: c.duracaoSeg,
+    id: c.id,
+    slug: c.slug,
+    titulo: c.titulo,
+  };
 
-export function cartao(c: CursoDaTroca, saldo: number) {
+  return cursoNoCartao;
+};
+
+export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
   const s = situacao(c, saldo);
 
   switch (s.tipo) {
@@ -207,7 +217,7 @@ export function montarPainelDeTroca(linhas: LinhasDaTroca, hoje: DiaISO) {
         a.curso.titulo.localeCompare(b.curso.titulo, "pt-BR")
     );
 
-  return {
+  const painelDeTroca: PainelDeTroca = {
     cartoes,
     comoGanhar: comoGanhar(),
     extrato: linhas.extrato.map(itemDoExtrato),
@@ -216,6 +226,8 @@ export function montarPainelDeTroca(linhas: LinhasDaTroca, hoje: DiaISO) {
     saldo,
     temCursoTrocavelNaVitrine: temCursoTrocavelNaVitrine(linhas.cursos),
   };
+
+  return painelDeTroca;
 }
 
 export type RecusaDaTroca =
@@ -236,13 +248,17 @@ export type Decisao =
   | { tipo: "ja_trocado"; lancamentoId: string }
   | { tipo: "recusa"; recusa: RecusaDaTroca };
 
-const recusa = (r: RecusaDaTroca) => ({ recusa: r, tipo: "recusa" });
+const recusa = (r: RecusaDaTroca) => {
+  const decisao: Decisao = { recusa: r, tipo: "recusa" };
+
+  return decisao;
+};
 
 export function decidirTroca(
   c: CursoDaTroca | null,
   saldo: number,
   precoVisto: number
-) {
+): Decisao {
   if (!c) {
     return recusa({ tipo: "indisponivel" });
   }

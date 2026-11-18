@@ -59,24 +59,28 @@ function formasDoLockup(svg: string) {
     }
   }
 
-  return [...svg.matchAll(ELEMENTO)].map(([, tag, atributos = ""]) => {
-    const a = Object.fromEntries(
-      [...atributos.matchAll(ATRIBUTO)].map(([, atributo, valor]) => [
-        atributo,
-        valor,
-      ])
-    );
+  const retorno: Forma[] = [...svg.matchAll(ELEMENTO)].map(
+    ([, tag, atributos = ""]) => {
+      const a = Object.fromEntries(
+        [...atributos.matchAll(ATRIBUTO)].map(([, atributo, valor]) => [
+          atributo,
+          valor,
+        ])
+      );
 
-    return tag === "path"
-      ? { d: a.d ?? "", fill: a.fill ?? "", tipo: "caminho" }
-      : {
-          cx: a.cx ?? "",
-          cy: a.cy ?? "",
-          fill: a.fill ?? "",
-          r: a.r ?? "",
-          tipo: "circulo",
-        };
-  });
+      return tag === "path"
+        ? { d: a.d ?? "", fill: a.fill ?? "", tipo: "caminho" }
+        : {
+            cx: a.cx ?? "",
+            cy: a.cy ?? "",
+            fill: a.fill ?? "",
+            r: a.r ?? "",
+            tipo: "circulo",
+          };
+    }
+  );
+
+  return retorno;
 }
 
 const LOCKUP_NO_PDF = formasDoLockup(readFileSync(MARCA, "utf8"));
@@ -293,7 +297,7 @@ function FolhaEmPdf({ folha }: { folha: FolhaDoCertificado }) {
   );
 }
 
-export function pdfDaFolha(folha: FolhaDoCertificado) {
+export function pdfDaFolha(folha: FolhaDoCertificado): Promise<Buffer> {
   return renderToBuffer(
     <Document
       author={folha.emissor}

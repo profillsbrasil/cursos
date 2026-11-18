@@ -53,11 +53,13 @@ export interface ComunicadosDoAdmin {
 }
 
 function nomesDosAutores(autores: readonly (Pessoa | null)[]) {
-  return new Map(
+  const retorno: ReadonlyMap<string, string> = new Map(
     autores.flatMap((p) =>
       p && p.nome !== p.userId ? [[p.userId, p.nome] as const] : []
     )
   );
+
+  return retorno;
 }
 
 export function montarComunicados(
@@ -66,7 +68,7 @@ export function montarComunicados(
 ) {
   const nomes = nomesDosAutores(autores);
 
-  return {
+  const comunicadosDoAdmin: ComunicadosDoAdmin = {
     comunicados: linhas.comunicados.map((c) => ({
       curso: c.curso,
       id: c.id,
@@ -77,6 +79,8 @@ export function montarComunicados(
     })),
     cursos: linhas.cursos,
   };
+
+  return comunicadosDoAdmin;
 }
 
 export interface LinhaDoComunicadoDoAluno {
@@ -120,25 +124,29 @@ export type ComunicadosDoAluno =
 export function montarComunicadosDoAluno(
   linhas: readonly LinhaDoComunicadoDoAluno[],
   autores: readonly (Pessoa | null)[]
-) {
+): ComunicadosDoAluno {
   const nomes = nomesDosAutores(autores);
 
-  const [destaque, ...resto] = linhas.map((c) => ({
-    alvo: c.curso
-      ? {
-          capa: capaDe(c.curso),
-          href: caminhoDoCurso(c.curso.slug),
-          tipo: "curso",
-          titulo: c.curso.titulo,
-        }
-      : { tipo: "geral" },
-    dia: diaLocal(c.publicadoEm),
-    id: c.id,
-    publicadoEm: c.publicadoEm.toISOString(),
-    publicadoPor: nomes.get(c.publicadoPor) ?? null,
-    texto: c.texto,
-    titulo: c.titulo,
-  }));
+  const [destaque, ...resto] = linhas.map((c) => {
+    const comunicadoDoAluno: ComunicadoDoAluno = {
+      alvo: c.curso
+        ? {
+            capa: capaDe(c.curso),
+            href: caminhoDoCurso(c.curso.slug),
+            tipo: "curso",
+            titulo: c.curso.titulo,
+          }
+        : { tipo: "geral" },
+      dia: diaLocal(c.publicadoEm),
+      id: c.id,
+      publicadoEm: c.publicadoEm.toISOString(),
+      publicadoPor: nomes.get(c.publicadoPor) ?? null,
+      texto: c.texto,
+      titulo: c.titulo,
+    };
+
+    return comunicadoDoAluno;
+  });
 
   if (!destaque) {
     return { tipo: "vazio" };

@@ -11,8 +11,10 @@ export async function chavesEmUso(exec: Executor) {
     exec.select({ chave: material.chave }).from(material),
   ]);
 
-  return {
+  const retorno: ChavesEmUso = {
     capaUrls: capas.map((c) => c.url),
     chavesDeMaterial: materiais.map((m) => m.chave),
   };
+
+  return retorno;
 }

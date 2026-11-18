@@ -61,7 +61,11 @@ export type Plano =
 
 export type PlanoDeGravacao = Extract<Plano, { tipo: "criar" | "atualizar" }>;
 
-const recusa = (r: RecusaDaEdicao) => ({ recusa: r, tipo: "recusa" });
+const recusa = (r: RecusaDaEdicao) => {
+  const retorno: Plano = { recusa: r, tipo: "recusa" };
+
+  return retorno;
+};
 
 const idsDosModulos = (d: DocumentoDoCurso) => d.modulos.map((m) => m.id);
 const aulasDe = (d: DocumentoDoCurso) => d.modulos.flatMap((m) => m.aulas);
@@ -93,7 +97,7 @@ export function planejarCurso(
   atual: EdicaoDoCurso | null,
   desejado: DocumentoDoCurso,
   capaRecebida: ImagemDaCapa | null
-) {
+): Plano {
   if (atual === null) {
     if (desejado.versao !== null) {
       return recusa({ tipo: "sumiu" });

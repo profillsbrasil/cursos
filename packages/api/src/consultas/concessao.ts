@@ -29,54 +29,64 @@ export function concederPontos(
 ) {
   const segunda = segundaDaSemana(diaLocal(agora));
 
-  return comSaldoTravado(db, pedido.userId, segunda, async (aluno, saldo) => {
-    const recusa = recusaDaConcessao(saldo, pedido.pontos);
+  const retorno: Promise<ResultadoDaConcessao> = comSaldoTravado(
+    db,
+    pedido.userId,
+    segunda,
+    async (aluno, saldo) => {
+      const recusa = recusaDaConcessao(saldo, pedido.pontos);
 
-    if (recusa) {
-      throw new ErroParaAPessoa({
-        code: "PRECONDITION_FAILED",
-        message: recusa,
-      });
-    }
+      if (recusa) {
+        throw new ErroParaAPessoa({
+          code: "PRECONDITION_FAILED",
+          message: recusa,
+        });
+      }
 
-    const [concessao] = await aluno.tx
-      .insert(concessaoDePontos)
-      .values({
-        concedidaEm: agora,
-        concedidaPor: admin,
-        motivo: pedido.motivo,
+      const [concessao] = await aluno.tx
+        .insert(concessaoDePontos)
+        .values({
+          concedidaEm: agora,
+          concedidaPor: admin,
+          motivo: pedido.motivo,
+          pontos: pedido.pontos,
+          userId: aluno.userId,
+        })
+        .returning({ id: concessaoDePontos.id });
+
+      if (!concessao) {
+        throw new Error("O insert da concessão não devolveu a linha.");
+      }
+
+      await aluno.tx.insert(pontoLancamento).values({
+        concessaoId: concessao.id,
+        criadoEm: agora,
+        motivo: "concessao",
         pontos: pedido.pontos,
         userId: aluno.userId,
-      })
-      .returning({ id: concessaoDePontos.id });
+      });
 
-    if (!concessao) {
-      throw new Error("O insert da concessão não devolveu a linha.");
+      return { concessaoId: concessao.id, saldo: saldo + pedido.pontos };
     }
+  );
 
-    await aluno.tx.insert(pontoLancamento).values({
-      concessaoId: concessao.id,
-      criadoEm: agora,
-      motivo: "concessao",
-      pontos: pedido.pontos,
-      userId: aluno.userId,
-    });
-
-    return { concessaoId: concessao.id, saldo: saldo + pedido.pontos };
-  });
+  return retorno;
 }
 
 /** As concessões da pessoa, da mais recente para a mais antiga. */
 export function linhasDasConcessoes(exec: Executor, userId: string) {
-  return exec.query.concessaoDePontos.findMany({
-    columns: {
-      concedidaEm: true,
-      concedidaPor: true,
-      id: true,
-      motivo: true,
-      pontos: true,
-    },
-    orderBy: { concedidaEm: "desc", id: "desc" },
-    where: { userId },
-  });
+  const retorno: Promise<LinhaDaConcessao[]> =
+    exec.query.concessaoDePontos.findMany({
+      columns: {
+        concedidaEm: true,
+        concedidaPor: true,
+        id: true,
+        motivo: true,
+        pontos: true,
+      },
+      orderBy: { concedidaEm: "desc", id: "desc" },
+      where: { userId },
+    });
+
+  return retorno;
 }

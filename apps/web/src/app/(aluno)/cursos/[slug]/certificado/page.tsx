@@ -32,7 +32,9 @@ export async function generateMetadata({ params }: Props) {
       ? pagina.certificado.tituloDoCurso
       : pagina.curso.titulo;
 
-  return { title: `Certificado · ${curso}` };
+  const metadata: Metadata = { title: `Certificado · ${curso}` };
+
+  return metadata;
 }
 
 export default async function Certificado({ params }: Props) {

@@ -14,16 +14,20 @@ const CONQUISTA: Conquista = {
 
 const PEDIDO: Pedido = { posicaoSeg: 30, trechos: [] };
 
-const aceito = (conquista: Conquista | null) => ({
-  registro: {
-    assistida: conquista !== null,
-    cobertura: { pct: 0, vistosSeg: 0 },
-    conquista,
-    recusadosSeg: 0,
-    trechos: SEM_TRECHOS,
-  },
-  tipo: "ok",
-});
+const aceito = (conquista: Conquista | null) => {
+  const respostaDoEnvio: RespostaDoEnvio = {
+    registro: {
+      assistida: conquista !== null,
+      cobertura: { pct: 0, vistosSeg: 0 },
+      conquista,
+      recusadosSeg: 0,
+      trechos: SEM_TRECHOS,
+    },
+    tipo: "ok",
+  };
+
+  return respostaDoEnvio;
+};
 
 // Uma resposta de cada vez, na ordem da sessão: o enviar resolve e, com conquista,
 // o aoConquistar roda logo depois.

@@ -25,19 +25,23 @@ const texto = (html: string) =>
 
 const CAPA = { alt: "Capa", altura: 604, largura: 900, url: "/capas/x.jpg" };
 
-const curso = (titulo: string, extra: Partial<CursoNaVisao> = {}) => ({
-  aulas: 0,
-  capa: CAPA,
-  categoria: "Vendas e negócios",
-  codigo: "VN-001",
-  id: titulo.toLowerCase().replaceAll(" ", "-") as CursoId,
-  modulos: 0,
-  precoTroca: null,
-  segundosDeVideo: 0,
-  status: "publicado",
-  titulo,
-  ...extra,
-});
+const curso = (titulo: string, extra: Partial<CursoNaVisao> = {}) => {
+  const cursoNaVisao: CursoNaVisao = {
+    aulas: 0,
+    capa: CAPA,
+    categoria: "Vendas e negócios",
+    codigo: "VN-001",
+    id: titulo.toLowerCase().replaceAll(" ", "-") as CursoId,
+    modulos: 0,
+    precoTroca: null,
+    segundosDeVideo: 0,
+    status: "publicado",
+    titulo,
+    ...extra,
+  };
+
+  return cursoNaVisao;
+};
 
 const COMERCIAL = curso("Profills School Comercial", {
   aulas: 90,

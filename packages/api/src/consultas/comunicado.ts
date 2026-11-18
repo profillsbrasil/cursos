@@ -57,7 +57,12 @@ export async function linhasDosComunicadosDoAluno(db: Database, aluno: Aluno) {
     .where(comunicadoVisivelPara(db, aluno))
     .orderBy(...DO_MAIS_NOVO);
 
-  return linhas.map((l) => ({ ...l, id: l.id as ComunicadoId }));
+  const retorno: LinhaDoComunicadoDoAluno[] = linhas.map((l) => ({
+    ...l,
+    id: l.id as ComunicadoId,
+  }));
+
+  return retorno;
 }
 
 export async function linhasDosComunicados(db: Database) {
@@ -81,7 +86,7 @@ export async function linhasDosComunicados(db: Database) {
       .orderBy(curso.titulo),
   ]);
 
-  return {
+  const retorno: LinhasDosComunicados = {
     comunicados: comunicados.map((c) => ({
       curso:
         c.cursoId && c.cursoTitulo !== null
@@ -95,6 +100,8 @@ export async function linhasDosComunicados(db: Database) {
     })),
     cursos: cursos as CursoDoComunicado[],
   };
+
+  return retorno;
 }
 
 export interface ComunicadoEditado {

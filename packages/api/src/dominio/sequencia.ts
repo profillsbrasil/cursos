@@ -60,7 +60,11 @@ export const diasCorridos = (de: DiaISO, ate: DiaISO) =>
 /** 0 = domingo. */
 const diaDaSemana = (dia: DiaISO) => meioDia(dia).getUTCDay();
 
-export const siglaDoDia = (dia: DiaISO) => SIGLAS[diaDaSemana(dia)] ?? "";
+export const siglaDoDia = (dia: DiaISO) => {
+  const retorno: string = SIGLAS[diaDaSemana(dia)] ?? "";
+
+  return retorno;
+};
 
 export const SIGLAS_DO_FIM_DE_SEMANA = [SIGLAS[6], SIGLAS[0]] as const;
 
@@ -120,7 +124,7 @@ function statusDoDia(dia: DiaISO, hoje: DiaISO, dias: ReadonlySet<DiaISO>) {
 export function semana(dias: ReadonlySet<DiaISO>, hoje: DiaISO) {
   const segunda = segundaDaSemana(hoje);
 
-  return NOMES.map((nome, i) => {
+  const retorno: DiaDaSemana[] = NOMES.map((nome, i) => {
     const dia = somarDias(segunda, i);
 
     return {
@@ -130,4 +134,6 @@ export function semana(dias: ReadonlySet<DiaISO>, hoje: DiaISO) {
       status: statusDoDia(dia, hoje, dias),
     };
   });
+
+  return retorno;
 }

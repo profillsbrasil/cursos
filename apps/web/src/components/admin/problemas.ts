@@ -36,7 +36,7 @@ export function semRepetir([primeiro, ...resto]: Problemas) {
   const chave = (p: Problema) => p.campo ?? `frase:${p.mensagem}`;
   const vistos = new Set([chave(primeiro)]);
 
-  return [
+  const problemas: Problemas = [
     primeiro,
     ...resto.filter((p) => {
       if (vistos.has(chave(p))) {
@@ -48,13 +48,18 @@ export function semRepetir([primeiro, ...resto]: Problemas) {
       return true;
     }),
   ];
+
+  return problemas;
 }
 
 export const naoVazia = (
   problemas: readonly Problema[]
 ): problemas is Problemas => problemas.length > 0;
 
-export const errosPorCampo = (problemas: readonly Problema[]) =>
-  new Map(
+export const errosPorCampo = (problemas: readonly Problema[]) => {
+  const retorno: ReadonlyMap<string, string> = new Map(
     problemas.flatMap((p) => (p.campo ? [[p.campo, p.mensagem] as const] : []))
   );
+
+  return retorno;
+};

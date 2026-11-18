@@ -33,7 +33,9 @@ const trechoAte = (inicioSeg: number, fimSeg: number) => {
 
 export function amostrar(m: Medidor, a: Amostra) {
   if (!m.aberto) {
-    return { medidor: abrir(a), trechos: [] };
+    const medida: Medida = { medidor: abrir(a), trechos: [] };
+
+    return medida;
   }
 
   const { inicioSeg, ultima } = m.aberto;
@@ -45,35 +47,55 @@ export function amostrar(m: Medidor, a: Amostra) {
     andou > esperado + Math.max(FOLGA_MIN_SEG, esperado * FOLGA_PROPORCIONAL);
 
   if (salto) {
-    return {
+    const medida: Medida = {
       medidor: abrir(a),
       trechos: trechoAte(inicioSeg, ultima.videoSeg),
     };
+
+    return medida;
   }
 
-  return { medidor: { aberto: { inicioSeg, ultima: a } }, trechos: [] };
+  const medida: Medida = {
+    medidor: { aberto: { inicioSeg, ultima: a } },
+    trechos: [],
+  };
+
+  return medida;
 }
 
-export const fechar = (m: Medidor) => ({
-  medidor: MEDIDOR_PARADO,
-  trechos: m.aberto
-    ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg)
-    : [],
-});
+export const fechar = (m: Medidor) => {
+  const medida: Medida = {
+    medidor: MEDIDOR_PARADO,
+    trechos: m.aberto
+      ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg)
+      : [],
+  };
+
+  return medida;
+};
 
 export function cortar(m: Medidor) {
   if (!m.aberto) {
-    return { medidor: m, trechos: [] };
+    const medida: Medida = { medidor: m, trechos: [] };
+
+    return medida;
   }
 
   const { inicioSeg, ultima } = m.aberto;
   const corte = Math.max(inicioSeg, Math.floor(ultima.videoSeg));
 
-  return {
+  const medida: Medida = {
     medidor: { aberto: { inicioSeg: corte, ultima } },
     trechos: trechoAte(inicioSeg, ultima.videoSeg),
   };
+
+  return medida;
 }
 
-export const trechoAberto = (m: Medidor) =>
-  m.aberto ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg) : [];
+export const trechoAberto = (m: Medidor) => {
+  const retorno: readonly Trecho[] = m.aberto
+    ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg)
+    : [];
+
+  return retorno;
+};

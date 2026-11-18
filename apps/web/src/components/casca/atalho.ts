@@ -16,5 +16,7 @@ export const ATALHO_NO_SERVIDOR = "Ctrl B";
 export function atalhoDe(navegador: Plataforma) {
   const nome = navegador.userAgentData?.platform || navegador.platform || "";
 
-  return APPLE.test(nome) ? "⌘ B" : ATALHO_NO_SERVIDOR;
+  const retorno: string = APPLE.test(nome) ? "⌘ B" : ATALHO_NO_SERVIDOR;
+
+  return retorno;
 }

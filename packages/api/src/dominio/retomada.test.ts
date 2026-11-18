@@ -18,13 +18,15 @@ const entrada = (
 ) => {
   const estudo: Estudo = { atividade, historico: h };
 
-  return {
+  const entradaRetomada: EntradaRetomada = {
     cursos: cursos.map((curso) => ({
       curso,
       leitura: lerCursoDoAluno(curso, estudo),
     })),
     estudo,
   };
+
+  return entradaRetomada;
 };
 
 const c = cursoCat("c", { aulas: [4], duracaoSeg: 580 });

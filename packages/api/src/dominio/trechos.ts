@@ -119,10 +119,12 @@ export const atingiuMeta = (vistosSeg: number, duracaoSeg: number) =>
 export function cobertura(t: Trechos, duracaoSeg: number) {
   const vistosSeg = segundos(t);
 
-  return {
+  const retorno: Cobertura = {
     pct: duracaoSeg === 0 ? 0 : Math.floor((vistosSeg * 100) / duracaoSeg),
     vistosSeg,
   };
+
+  return retorno;
 }
 
 /**
@@ -134,5 +136,7 @@ export function quantizar(inicioSeg: number, fimSeg: number) {
   const inicio = Math.floor(inicioSeg);
   const fim = Math.floor(fimSeg);
 
-  return fim > inicio ? { fim, inicio } : null;
+  const retorno: Trecho | null = fim > inicio ? { fim, inicio } : null;
+
+  return retorno;
 }

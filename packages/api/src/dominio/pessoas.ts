@@ -22,10 +22,16 @@ export interface PerfilNaTela {
   perfil: Perfil;
 }
 
-export const perfilNaTela = (conta: Conta, linha: LinhaDoPerfil | undefined) =>
-  linha
+export const perfilNaTela = (
+  conta: Conta,
+  linha: LinhaDoPerfil | undefined
+) => {
+  const retorno: PerfilNaTela = linha
     ? { doCadastro: false, perfil: linha.perfil }
     : { doCadastro: true, perfil: perfilDoCadastro(conta) };
+
+  return retorno;
+};
 
 export interface PessoaNaLista extends Pessoa {
   papel: Papel;
@@ -60,7 +66,7 @@ export function montarListaDePessoas(
   const porId = new Map(linhas.map((l) => [l.userId, l]));
   const saldoPorId = new Map(saldos.map((s) => [s.userId, s.saldo]));
 
-  return {
+  const listaDePessoas: ListaDePessoas = {
     contagem,
     filtro,
     pessoas: busca.pessoas.map((c) => ({
@@ -75,6 +81,8 @@ export function montarListaDePessoas(
     })),
     total: busca.total,
   };
+
+  return listaDePessoas;
 }
 
 export interface FichaDaPessoa {
@@ -100,7 +108,7 @@ export function montarFicha(
   adminId: string,
   pontos: PontosNaFicha
 ) {
-  return {
+  const fichaDaPessoa: FichaDaPessoa = {
     conta,
     mudanca: linha?.definidoPor
       ? { em: linha.definidoEm, por: quemMudou?.nome ?? linha.definidoPor }
@@ -109,4 +117,6 @@ export function montarFicha(
     pontos,
     souEu: conta.userId === adminId,
   };
+
+  return fichaDaPessoa;
 }

@@ -139,10 +139,18 @@ function situacaoNoCurso(
   e: Estudo
 ) {
   switch (estado.tipo) {
-    case "em_breve":
-      return { tipo: "em_producao" };
-    case "nao_iniciado":
-      return { tipo: "nunca_abriu" };
+    case "em_breve": {
+      const retorno: SituacaoNoCurso = { tipo: "em_producao" };
+
+      return retorno;
+    }
+
+    case "nao_iniciado": {
+      const retorno: SituacaoNoCurso = { tipo: "nunca_abriu" };
+
+      return retorno;
+    }
+
     case "em_andamento": {
       if (!aulaDaVez) {
         throw new Error(`Curso ${curso.titulo} em andamento sem aula.`);
@@ -150,24 +158,40 @@ function situacaoNoCurso(
 
       const { onde } = aulaDaVez;
 
-      return {
+      const retorno: SituacaoNoCurso = {
         onde: { aula: onde.aula, modulo: onde.modulo.numero },
         tipo: "estudando",
         ultimoEstudo: estudou(curso, e),
       };
+
+      return retorno;
     }
 
-    case "questionarios":
-      return {
+    case "questionarios": {
+      const retorno: SituacaoNoCurso = {
         aprovados: estado.aprovados,
         tipo: "faltam_questionarios",
         total: estado.total,
         ultimoEstudo: estudou(curso, e),
       };
-    case "concluido":
-      return { em: diaDe(estado.certificado.emitidoEm), tipo: "concluido" };
-    default:
-      return estado satisfies never;
+
+      return retorno;
+    }
+
+    case "concluido": {
+      const retorno: SituacaoNoCurso = {
+        em: diaDe(estado.certificado.emitidoEm),
+        tipo: "concluido",
+      };
+
+      return retorno;
+    }
+
+    default: {
+      const retorno: SituacaoNoCurso = estado satisfies never;
+
+      return retorno;
+    }
   }
 }
 
@@ -177,10 +201,12 @@ function situacaoNoCurso(
 export function acompanharCurso(curso: CursoComAulas, e: Estudo) {
   const leitura = lerCursoDoAluno(curso, e);
 
-  return {
+  const retorno: Acompanhamento = {
     progresso: leitura.progresso,
     situacao: situacaoNoCurso(curso, leitura, e),
   };
+
+  return retorno;
 }
 
 // ---------- a situação da pessoa na busca ----------
@@ -242,7 +268,7 @@ export function catalogoDo(linhas: LinhasDaBusca) {
     ])
   );
 
-  return (id) => {
+  const catalogoDaBusca: CatalogoDaBusca = (id) => {
     const c = cursos.get(id);
 
     if (!c) {
@@ -251,12 +277,17 @@ export function catalogoDo(linhas: LinhasDaBusca) {
 
     return c;
   };
+
+  return catalogoDaBusca;
 }
 
 const maisAntiga = (datas: readonly Date[]) =>
   datas.reduce((min, d) => (d < min ? d : min));
 
-export function situacaoDaPessoa(p: LinhasDaPessoa, curso: CatalogoDaBusca) {
+export function situacaoDaPessoa(
+  p: LinhasDaPessoa,
+  curso: CatalogoDaBusca
+): SituacaoDaPessoa {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
 
   if (ativas.length === 0) {
@@ -311,7 +342,7 @@ export function montarBusca(
   const curso = catalogoDo(linhas);
   const porPessoa = new Map(linhas.pessoas.map((p) => [p.userId, p]));
 
-  return {
+  const buscaDeAlunos: BuscaDeAlunos = {
     hoje,
     pessoas: resultado.pessoas.map((pessoa) => {
       const p = porPessoa.get(pessoa.userId);
@@ -332,4 +363,6 @@ export function montarBusca(
     }),
     total: resultado.total,
   };
+
+  return buscaDeAlunos;
 }

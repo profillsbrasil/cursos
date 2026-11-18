@@ -21,16 +21,20 @@ const pessoa = (
   doCadastro: boolean,
   papel: PessoaNaLista["papel"] = "aluno",
   saldo = 0
-) => ({
-  email: `${nome.toLowerCase()}@example.com`,
-  foto: null,
-  nome,
-  papel,
-  perfil: { doCadastro, perfil: "publico" },
-  saldo,
-  ultimoAcesso: new Date("2026-10-19T15:00:00.000Z"),
-  userId: `user_${nome.toLowerCase()}`,
-});
+) => {
+  const pessoaNaLista: PessoaNaLista = {
+    email: `${nome.toLowerCase()}@example.com`,
+    foto: null,
+    nome,
+    papel,
+    perfil: { doCadastro, perfil: "publico" },
+    saldo,
+    ultimoAcesso: new Date("2026-10-19T15:00:00.000Z"),
+    userId: `user_${nome.toLowerCase()}`,
+  };
+
+  return pessoaNaLista;
+};
 
 const LISTA: ListaDePessoas = {
   contagem: { cliente: 0, funcionario: 0, publico: 1 },

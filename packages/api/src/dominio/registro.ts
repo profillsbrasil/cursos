@@ -77,7 +77,7 @@ export function aplicarRegistro(
     disponivel -= levados;
   }
 
-  return {
+  const aplicacao: Aplicacao = {
     cota: {
       atualizadaEm:
         cota && cota.atualizadaEm > agora ? cota.atualizadaEm : agora,
@@ -89,6 +89,8 @@ export function aplicarRegistro(
     viraAssistida:
       !salvo.assistida && atingiuMeta(segundos(acumulado), salvo.duracaoSeg),
   };
+
+  return aplicacao;
 }
 
 export type LancamentoNovo =
@@ -140,7 +142,9 @@ export function lancamentosDaAssistida(
     });
   }
 
-  return { lancamentos, sequenciaDias };
+  const efeitosDaAssistida: EfeitosDaAssistida = { lancamentos, sequenciaDias };
+
+  return efeitosDaAssistida;
 }
 
 export interface Conquista {
@@ -156,11 +160,13 @@ export function conquistaDe(
   const pontosDe = (motivo: LancamentoNovo["motivo"]) =>
     gravados.find((l) => l.motivo === motivo)?.pontos ?? null;
 
-  return {
+  const conquista: Conquista = {
     bonusSequencia: pontosDe("sequencia_7_dias"),
     pontos: pontosDe("aula_assistida") ?? 0,
     sequenciaDias,
   };
+
+  return conquista;
 }
 
 export interface Registro {

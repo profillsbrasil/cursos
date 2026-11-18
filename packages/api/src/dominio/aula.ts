@@ -110,7 +110,7 @@ export function montarCursoVisto(linhas: LinhasCurso) {
     return null;
   }
 
-  return {
+  const retorno: CursoAberto | null = {
     amostra,
     curso,
     diasComAulaAssistida: new Set(
@@ -122,6 +122,8 @@ export function montarCursoVisto(linhas: LinhasCurso) {
       linhas.posicoes.map((p) => [p.aulaId as AulaId, p.trechosVistos])
     ),
   };
+
+  return retorno;
 }
 
 /**
@@ -131,7 +133,10 @@ export function montarCursoVisto(linhas: LinhasCurso) {
 export function montarCursoAberto(linhas: LinhasCurso) {
   const visto = montarCursoVisto(linhas);
 
-  return visto && visto.amostra === null ? visto : null;
+  const retorno: CursoAberto | null =
+    visto && visto.amostra === null ? visto : null;
+
+  return retorno;
 }
 
 /** Se a aula toca: toda aula do curso inteiro, só a aula de amostra na amostra. */
@@ -218,7 +223,10 @@ export const aulaPorId = (c: CursoAberto, id: string) =>
 const vizinha = (x: AulaNoCurso | undefined) =>
   x ? { id: x.aula.id, titulo: x.aula.titulo } : null;
 
-export function estudoDaAula(c: CursoAberto, aula: AulaCatalogo) {
+export function estudoDaAula(
+  c: CursoAberto,
+  aula: AulaCatalogo
+): AulaNoPlayer["estudo"] {
   return {
     assistida: c.historico.assistidas.has(aula.id),
     posicaoSeg: c.historico.posicoes.get(aula.id)?.posicaoSeg ?? 0,
@@ -244,7 +252,7 @@ export function montarAulaNoPlayer(
   const { assistidas, questionarios } = c.historico;
   const proxima = vizinha(ordem[i + 1]);
 
-  return {
+  const aulaNoPlayer: AulaNoPlayer = {
     amostra: c.amostra && {
       cursoId: c.curso.id,
       preco: c.amostra.preco,
@@ -294,6 +302,8 @@ export function montarAulaNoPlayer(
           questionario.tentativas
         ),
   };
+
+  return aulaNoPlayer;
 }
 
 export function inicioDaAula(

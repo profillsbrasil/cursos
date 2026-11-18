@@ -97,13 +97,15 @@ async function ativaDoCurso(exec: Executor, userId: string, cursoId: CursoId) {
     where: { ...filtroLiberacaoAtiva(userId), cursoId },
   });
 
-  return l
+  const retorno: LiberacaoAtiva | null = l
     ? {
         liberacaoId: l.id as LiberacaoId,
         liberadaEm: l.liberadaEm,
         origem: l.origem,
       }
     : null;
+
+  return retorno;
 }
 
 const FK_DO_CURSO = "liberacao_curso_id_curso_id_fkey";
@@ -137,7 +139,12 @@ export async function liberarNoAlunoTravado(
   const existente = await ativaDoCurso(aluno.tx, aluno.userId, cursoId);
 
   if (existente) {
-    return { ...existente, nova: false };
+    const retorno: (LiberacaoAtiva & { nova: boolean }) | null = {
+      ...existente,
+      nova: false,
+    };
+
+    return retorno;
   }
 
   const liberacaoId = await inserirLiberacao(
@@ -148,7 +155,14 @@ export async function liberarNoAlunoTravado(
 
   await abrirOCursoInteiro(aluno, cursoId, agora);
 
-  return { liberacaoId, liberadaEm: agora, nova: true, origem: "admin" };
+  const retorno: (LiberacaoAtiva & { nova: boolean }) | null = {
+    liberacaoId,
+    liberadaEm: agora,
+    nova: true,
+    origem: "admin",
+  };
+
+  return retorno;
 }
 
 /**
@@ -165,20 +179,26 @@ export async function liberar(
   agora: Date
 ) {
   try {
-    return await comAlunoTravado(db, pessoa.userId, async (aluno) => {
-      const liberada = await liberarNoAlunoTravado(
-        aluno,
-        admin,
-        cursoId,
-        agora
-      );
+    const retorno: LiberacaoAtiva & { nova: boolean } = await comAlunoTravado(
+      db,
+      pessoa.userId,
+      async (aluno) => {
+        const liberada = await liberarNoAlunoTravado(
+          aluno,
+          admin,
+          cursoId,
+          agora
+        );
 
-      if (!liberada) {
-        throw cursoSumiu();
+        if (!liberada) {
+          throw cursoSumiu();
+        }
+
+        return liberada;
       }
+    );
 
-      return liberada;
-    });
+    return retorno;
   } catch (erro) {
     // O curso foi lido antes de o DELETE dele comitar: liberar trava o aluno,
     // não o curso, e o INSERT espera a linha e para no FK.
@@ -194,18 +214,33 @@ const NAO_LIBEROU = "Não deu para liberar agora. Nada mudou para esta pessoa.";
 
 function falhaNoLog(erro: unknown, userId: string) {
   if (erro instanceof ErroParaAPessoa) {
-    return { mensagem: erro.message, tipo: "nao_liberou" };
+    const liberacaoNaPessoa: LiberacaoNaPessoa = {
+      mensagem: erro.message,
+      tipo: "nao_liberou",
+    };
+
+    return liberacaoNaPessoa;
   }
 
   const doBanco = mensagemDoBanco(erro);
 
   if (doBanco) {
-    return { mensagem: doBanco.message, tipo: "nao_liberou" };
+    const liberacaoNaPessoa: LiberacaoNaPessoa = {
+      mensagem: doBanco.message,
+      tipo: "nao_liberou",
+    };
+
+    return liberacaoNaPessoa;
   }
 
   console.error(`liberarVarios: ${userId} não liberou`, erro);
 
-  return { mensagem: NAO_LIBEROU, tipo: "nao_liberou" };
+  const liberacaoNaPessoa: LiberacaoNaPessoa = {
+    mensagem: NAO_LIBEROU,
+    tipo: "nao_liberou",
+  };
+
+  return liberacaoNaPessoa;
 }
 
 type PessoaNoClerk =
@@ -220,25 +255,42 @@ async function liberarNaPessoa(
   agora: Date
 ) {
   if ("erro" in procura) {
-    return falhaNoLog(procura.erro, procura.userId);
+    const liberacaoNaPessoa: LiberacaoNaPessoa = falhaNoLog(
+      procura.erro,
+      procura.userId
+    );
+
+    return liberacaoNaPessoa;
   }
 
   if (procura.pessoa === null) {
-    return { mensagem: PESSOA_SUMIU, tipo: "nao_liberou" };
+    const liberacaoNaPessoa: LiberacaoNaPessoa = {
+      mensagem: PESSOA_SUMIU,
+      tipo: "nao_liberou",
+    };
+
+    return liberacaoNaPessoa;
   }
 
   try {
     const r = await liberar(db, admin, procura.pessoa, cursoId, agora);
 
-    return r.nova
+    const liberacaoNaPessoa: LiberacaoNaPessoa = r.nova
       ? { tipo: "liberada_agora" }
       : {
           liberadaEm: diaLocal(r.liberadaEm),
           origem: r.origem,
           tipo: "ja_tinha",
         };
+
+    return liberacaoNaPessoa;
   } catch (erro) {
-    return falhaNoLog(erro, procura.userId);
+    const liberacaoNaPessoa: LiberacaoNaPessoa = falhaNoLog(
+      erro,
+      procura.userId
+    );
+
+    return liberacaoNaPessoa;
   }
 }
 
@@ -257,8 +309,16 @@ export async function liberarVarios(
   const procuras = await Promise.all(
     [...new Set(userIds)].map((userId) =>
       porId(userId).then(
-        (pessoa) => ({ pessoa, userId }),
-        (erro: unknown) => ({ erro, userId })
+        (pessoa) => {
+          const pessoaNoClerk: PessoaNoClerk = { pessoa, userId };
+
+          return pessoaNoClerk;
+        },
+        (erro: unknown) => {
+          const pessoaNoClerk: PessoaNoClerk = { erro, userId };
+
+          return pessoaNoClerk;
+        }
       )
     )
   );
@@ -273,7 +333,9 @@ export async function liberarVarios(
     });
   }
 
-  return { hoje: diaLocal(agora), pessoas };
+  const resultadoDoLote: ResultadoDoLote = { hoje: diaLocal(agora), pessoas };
+
+  return resultadoDoLote;
 }
 
 /**
@@ -300,43 +362,49 @@ export async function revogar(
     });
   }
 
-  return await comAlunoTravado(db, dono.userId, async (aluno) => {
-    const linha = await aluno.tx.query.liberacao.findFirst({
-      columns: { origem: true, revogadaEm: true },
-      where: { id: liberacaoId },
-    });
+  const retorno: { revogada: boolean } = await comAlunoTravado(
+    db,
+    dono.userId,
+    async (aluno) => {
+      const linha = await aluno.tx.query.liberacao.findFirst({
+        columns: { origem: true, revogadaEm: true },
+        where: { id: liberacaoId },
+      });
 
-    if (!linha) {
-      throw new Error(`Liberação ${liberacaoId} sumiu com o aluno travado.`);
+      if (!linha) {
+        throw new Error(`Liberação ${liberacaoId} sumiu com o aluno travado.`);
+      }
+
+      const acao = acaoNaLiberacao(linha);
+
+      switch (acao.tipo) {
+        case "fixa_por_troca":
+          throw new ErroParaAPessoa({
+            code: "PRECONDITION_FAILED",
+            message:
+              "Liberação de troca não se revoga. O aluno pagou por ela com pontos.",
+          });
+        case "revogada":
+          return { revogada: false };
+        case "revogar":
+          await aluno.tx
+            .update(liberacao)
+            .set({
+              revogadaEm: sql`greatest(${agora}::timestamptz, ${liberacao.liberadaEm})`,
+              revogadaPor: admin,
+            })
+            .where(
+              and(eq(liberacao.id, liberacaoId), isNull(liberacao.revogadaEm))
+            );
+
+          return { revogada: true };
+        default:
+          return acao satisfies never;
+      }
     }
+  );
 
-    const acao = acaoNaLiberacao(linha);
-
-    switch (acao.tipo) {
-      case "fixa_por_troca":
-        throw new ErroParaAPessoa({
-          code: "PRECONDITION_FAILED",
-          message:
-            "Liberação de troca não se revoga. O aluno pagou por ela com pontos.",
-        });
-      case "revogada":
-        return { revogada: false };
-      case "revogar":
-        await aluno.tx
-          .update(liberacao)
-          .set({
-            revogadaEm: sql`greatest(${agora}::timestamptz, ${liberacao.liberadaEm})`,
-            revogadaPor: admin,
-          })
-          .where(
-            and(eq(liberacao.id, liberacaoId), isNull(liberacao.revogadaEm))
-          );
-
-        return { revogada: true };
-      default:
-        return acao satisfies never;
-    }
-  });
+  return retorno;
 }
 
 /**
@@ -386,7 +454,7 @@ export async function linhasDoAcesso(db: Database, userId: string) {
       }))
     : [];
 
-  return {
+  const retorno: LinhasDoAcesso = {
     catalogo: catalogo.map((c) => ({ ...c, id: c.id as CursoId })),
     historico,
     liberacoes: [
@@ -400,4 +468,6 @@ export async function linhasDoAcesso(db: Database, userId: string) {
       ...doPerfil,
     ],
   };
+
+  return retorno;
 }

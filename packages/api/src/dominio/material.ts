@@ -71,7 +71,7 @@ const SINONIMOS: Readonly<Record<string, TipoDoMaterial>> = { jpeg: "jpg" };
 const EXTENSAO = /\.([A-Za-z0-9]+)$/;
 
 /** O tipo pela extensão do nome, sem diferença de caixa; null fora da lista. */
-export function tipoDoNome(nome: string) {
+export function tipoDoNome(nome: string): TipoDoMaterial | null {
   const ext = EXTENSAO.exec(nome.trim())?.[1]?.toLowerCase();
 
   if (ext === undefined) {
@@ -152,7 +152,10 @@ export function mensagemDoMaterial(r: RecusaDoMaterial) {
 }
 
 /** O que se confere antes de ler os bytes: o tipo pelo nome e o tamanho. */
-export function recusaAntesDeLer(nome: string, bytes: number) {
+export function recusaAntesDeLer(
+  nome: string,
+  bytes: number
+): RecusaDoMaterial | null {
   if (tipoDoNome(nome) === null) {
     return { tipo: "formato" };
   }

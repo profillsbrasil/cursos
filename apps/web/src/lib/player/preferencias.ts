@@ -109,5 +109,10 @@ export function criarSessaoComPreferencias(
     }
   });
 
-  return { pararDeGravar, sessao };
+  const retorno: { pararDeGravar: () => void; sessao: SessaoDeEstudo } = {
+    pararDeGravar,
+    sessao,
+  };
+
+  return retorno;
 }

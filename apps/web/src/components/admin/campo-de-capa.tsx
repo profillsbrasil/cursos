@@ -57,13 +57,21 @@ interface Medida {
 
 async function conferir(arquivo: File) {
   if (!TIPOS.includes(arquivo.type)) {
-    return { erro: mensagem({ tipo: "formato" }, arquivo) };
+    const retorno: { medida: Medida } | { erro: string } = {
+      erro: mensagem({ tipo: "formato" }, arquivo),
+    };
+
+    return retorno;
   }
 
   const pesada = recusaDoTamanho(arquivo.size);
 
   if (pesada) {
-    return { erro: mensagem(pesada, arquivo) };
+    const retorno: { medida: Medida } | { erro: string } = {
+      erro: mensagem(pesada, arquivo),
+    };
+
+    return retorno;
   }
 
   let medida: Medida;
@@ -74,12 +82,20 @@ async function conferir(arquivo: File) {
     medida = { altura: bitmap.height, largura: bitmap.width };
     bitmap.close();
   } catch {
-    return { erro: mensagem({ tipo: "formato" }, arquivo) };
+    const retorno: { medida: Medida } | { erro: string } = {
+      erro: mensagem({ tipo: "formato" }, arquivo),
+    };
+
+    return retorno;
   }
 
   const recusa = recusaDaMedida(medida.largura, medida.altura);
 
-  return recusa ? { erro: mensagem(recusa, arquivo) } : { medida };
+  const retorno: { medida: Medida } | { erro: string } = recusa
+    ? { erro: mensagem(recusa, arquivo) }
+    : { medida };
+
+  return retorno;
 }
 
 interface Escolhida {

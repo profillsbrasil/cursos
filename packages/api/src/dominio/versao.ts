@@ -14,7 +14,7 @@ export function versaoDe(conteudo: unknown) {
     .digest("base64url") as Versao;
 }
 
-function jsonCanonico(valor: unknown) {
+function jsonCanonico(valor: unknown): string {
   if (Array.isArray(valor)) {
     return `[${valor.map((v) => (v === undefined ? "null" : jsonCanonico(v))).join(",")}]`;
   }

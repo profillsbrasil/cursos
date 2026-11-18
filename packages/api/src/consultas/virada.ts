@@ -97,22 +97,33 @@ export function virarPessoa(
   { agora, gravar }: Pick<OpcoesDaVirada, "agora" | "gravar">
 ) {
   if (!gravar) {
-    return db.transaction((tx) => planoDe(tx, userId, agora), {
-      accessMode: "read only",
-    });
+    const retorno: Promise<PlanoDaVirada> = db.transaction(
+      (tx) => planoDe(tx, userId, agora),
+      {
+        accessMode: "read only",
+      }
+    );
+
+    return retorno;
   }
 
-  return comAlunoTravado(db, userId, async (aluno) => {
-    const plano = await planoDe(aluno.tx, aluno.userId, agora);
-    const nasceu = plano.bonus > 0 && (await darBonusDaVirada(aluno, agora));
+  const retorno: Promise<PlanoDaVirada> = comAlunoTravado(
+    db,
+    userId,
+    async (aluno) => {
+      const plano = await planoDe(aluno.tx, aluno.userId, agora);
+      const nasceu = plano.bonus > 0 && (await darBonusDaVirada(aluno, agora));
 
-    for (const t of plano.trocas) {
-      // oxlint-disable-next-line no-await-in-loop -- na transação, as escritas rodam em série.
-      await trocarNaVirada(aluno, t.cursoId, t.preco, agora);
+      for (const t of plano.trocas) {
+        // oxlint-disable-next-line no-await-in-loop -- na transação, as escritas rodam em série.
+        await trocarNaVirada(aluno, t.cursoId, t.preco, agora);
+      }
+
+      return { ...plano, bonus: nasceu ? plano.bonus : 0 };
     }
+  );
 
-    return { ...plano, bonus: nasceu ? plano.bonus : 0 };
-  });
+  return retorno;
 }
 
 /** Todo Funcionário (ou os de `entre`), uma pessoa por vez. */

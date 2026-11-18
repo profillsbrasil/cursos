@@ -241,5 +241,11 @@ export function folhaComONome(folha: FolhaDoCertificado, texto: string) {
     texto: folha.curso,
   });
 
-  return { ...folha, nome: escrito.nome, nomeEmTamanho: escrito.tamanho };
+  const folhaDoCertificado: FolhaDoCertificado = {
+    ...folha,
+    nome: escrito.nome,
+    nomeEmTamanho: escrito.tamanho,
+  };
+
+  return folhaDoCertificado;
 }

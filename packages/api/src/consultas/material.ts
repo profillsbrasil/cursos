@@ -29,11 +29,13 @@ export async function materiaisDaPagina(exec: Executor, slug: string) {
     .where(eq(curso.slug, slug))
     .orderBy(asc(material.posicao));
 
-  return linhas.map((m) => ({
+  const retorno: MaterialDaPagina[] = linhas.map((m) => ({
     ...m,
     href: caminhoDoMaterial(m.id),
     id: m.id as MaterialId,
   }));
+
+  return retorno;
 }
 
 export interface MaterialParaBaixar {
@@ -71,12 +73,16 @@ export async function materialParaBaixar(
   const { slug, ...arquivo } = achado;
 
   if (quem.admin) {
-    return arquivo;
+    const retorno: MaterialParaBaixar | null = arquivo;
+
+    return retorno;
   }
 
   const aberto = montarCursoAberto(
     await linhasDoCurso(db, quem.aluno, { slug }, { serial: false })
   );
 
-  return aberto ? arquivo : null;
+  const retorno: MaterialParaBaixar | null = aberto ? arquivo : null;
+
+  return retorno;
 }

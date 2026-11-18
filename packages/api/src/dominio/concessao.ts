@@ -10,8 +10,11 @@ export const TETO_DA_CONCESSAO = 100_000;
 export const MOTIVO_DA_CONCESSAO_MAX = 200;
 
 /** O texto do extrato do aluno: entrada e saída têm rótulos diferentes. */
-export const rotuloDaConcessao = (pontos: number) =>
-  pontos > 0 ? "Pontos do admin" : "Ajuste do admin";
+export const rotuloDaConcessao = (pontos: number) => {
+  const retorno: string = pontos > 0 ? "Pontos do admin" : "Ajuste do admin";
+
+  return retorno;
+};
 
 const INTEIRO = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 
@@ -57,11 +60,13 @@ export function montarConcessoes(
     autores.flatMap((p) => (p ? [[p.userId, p.nome] as const] : []))
   );
 
-  return linhas.map((l) => ({
+  const retorno: ConcessaoNaFicha[] = linhas.map((l) => ({
     em: l.concedidaEm,
     id: l.id,
     motivo: l.motivo,
     pontos: l.pontos,
     por: nomes.get(l.concedidaPor) ?? l.concedidaPor,
   }));
+
+  return retorno;
 }

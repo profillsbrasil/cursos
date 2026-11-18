@@ -103,7 +103,7 @@ export async function revogarDoPerfil(
 
 /** A aba Por perfil: todo curso, com as liberações ativas de cada perfil, num statement. */
 export function linhasDaGrade(db: Database) {
-  return db.query.curso.findMany({
+  const retorno: Promise<LinhaDaGrade[]> = db.query.curso.findMany({
     columns: { ...COLUNAS_DA_CAPA, id: true, status: true, titulo: true },
     orderBy: { titulo: "asc" },
     with: {
@@ -114,4 +114,6 @@ export function linhasDaGrade(db: Database) {
       modulos: { columns: {}, with: { aulas: { columns: { id: true } } } },
     },
   });
+
+  return retorno;
 }

@@ -162,10 +162,12 @@ export const adminRouter = router({
           throw erroDoMaterial(recebido.recusa);
         }
 
-        return {
+        const materialEnviado: MaterialEnviado = {
           ...recebido.arquivo,
           tituloSugerido: tituloSugerido(recebido.arquivo.nomeDoArquivo),
         };
+
+        return materialEnviado;
       }),
     /**
      * FormData com "documento" (JSON de DocumentoDoCurso) e "capa" (arquivo

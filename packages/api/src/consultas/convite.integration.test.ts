@@ -8,7 +8,7 @@ import { eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste, convitesDeTeste } from "../contexto-de-teste";
 import { type Email, lerEmail } from "../dominio/convite";
-import type { AdminId, ConviteId, CursoId, Pessoa } from "../dominio/tipos";
+import type { AdminId, ConviteId, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";

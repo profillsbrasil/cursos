@@ -107,12 +107,15 @@ const ECO_DA_LEGENDA_MS = 1000;
 
 const motivoDoErro = (codigo: number) => {
   if (codigo === 100) {
-    return "nao_encontrado";
+    const motivoIndisponivel: MotivoIndisponivel = "nao_encontrado";
+
+    return motivoIndisponivel;
   }
 
-  return codigo === 101 || codigo === 150
-    ? "sem_permissao_de_incorporar"
-    : "outro";
+  const motivoIndisponivel: MotivoIndisponivel =
+    codigo === 101 || codigo === 150 ? "sem_permissao_de_incorporar" : "outro";
+
+  return motivoIndisponivel;
 };
 
 export function criarPlayerDoYoutube(
@@ -217,7 +220,7 @@ export function criarPlayerDoYoutube(
     () => opcoes.aoEvento({ motivo: "outro", tipo: "falhou" })
   );
 
-  return {
+  const playerDeVideo: PlayerDeVideo = {
     buscar: (seg) => {
       if (comecou) {
         playerPronto?.seekTo(seg, true);
@@ -248,4 +251,6 @@ export function criarPlayerDoYoutube(
     },
     velocidade: () => playerPronto?.getPlaybackRate() ?? 1,
   };
+
+  return playerDeVideo;
 }

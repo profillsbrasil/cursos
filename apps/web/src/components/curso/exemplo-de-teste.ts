@@ -15,14 +15,18 @@ const aula = (
   titulo: string,
   duracaoSeg: number,
   descricao = ""
-) => ({
-  assistida: false,
-  descricao,
-  duracaoSeg,
-  id: id(n),
-  questionario: { tipo: "sem" },
-  titulo,
-});
+) => {
+  const aulaDaPagina: AulaDaPagina = {
+    assistida: false,
+    descricao,
+    duracaoSeg,
+    id: id(n),
+    questionario: { tipo: "sem" },
+    titulo,
+  };
+
+  return aulaDaPagina;
+};
 
 export const RISCOS = id(11);
 export const BLOQUEIO = id(12);
@@ -104,7 +108,7 @@ const material = (
   const idDoMaterial =
     `00000000-0000-4000-9000-${String(n).padStart(12, "0")}` as MaterialId;
 
-  return {
+  const materialDaPagina: MaterialDaPagina = {
     bytes,
     href: `/material/${idDoMaterial}`,
     id: idDoMaterial,
@@ -112,6 +116,8 @@ const material = (
     tipo,
     titulo,
   };
+
+  return materialDaPagina;
 };
 
 /** Quatro arquivos, como no protótipo: o cartão mostra 3 e o "Ver todos (4)". */

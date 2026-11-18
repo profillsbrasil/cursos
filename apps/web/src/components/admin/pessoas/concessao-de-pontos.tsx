@@ -96,14 +96,20 @@ function envioDe(
       razao = outro.trim() === "" ? SEM_OUTRO : QUANTIDADE_INVALIDA;
     }
 
-    return { razao, rotulo: "Escolha o valor", tipo: "desligado" };
+    const envio: Envio = {
+      razao,
+      rotulo: "Escolha o valor",
+      tipo: "desligado",
+    };
+
+    return envio;
   }
 
   const pontos = sentido === "dar" ? n : -n;
   const novo = saldo + pontos;
 
   if (novo < 0) {
-    return {
+    const envio: Envio = {
       razao: `Tirar ${fmtPts(n)} deixaria o saldo negativo.`,
       rotulo:
         saldo <= 0
@@ -111,15 +117,19 @@ function envioDe(
           : `A pessoa tem só ${fmtPts(saldo)}`,
       tipo: "desligado",
     };
+
+    return envio;
   }
 
   const verbo = sentido === "dar" ? "Dar" : "Tirar";
 
-  return {
+  const envio: Envio = {
     pontos,
     rotulo: `${verbo} ${fmtPts(n)}. Saldo vai a ${fmtNum(novo)}`,
     tipo: "pronto",
   };
+
+  return envio;
 }
 
 interface Erros {

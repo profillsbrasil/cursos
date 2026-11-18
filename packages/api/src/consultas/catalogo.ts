@@ -83,7 +83,7 @@ export async function visaoDoCatalogo(db: Database) {
     .groupBy(curso.id, categoria.id)
     .orderBy(curso.titulo, curso.id);
 
-  return {
+  const retorno: VisaoDoCatalogo = {
     cursos: cursos.map((c) => ({
       aulas: c.aulas,
       capa: capaDe(c),
@@ -97,4 +97,6 @@ export async function visaoDoCatalogo(db: Database) {
       titulo: c.titulo,
     })),
   };
+
+  return retorno;
 }

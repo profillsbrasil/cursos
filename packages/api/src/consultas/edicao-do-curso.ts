@@ -217,7 +217,7 @@ export async function abrirCurso(exec: Executor, id: CursoId) {
     ),
   };
 
-  return {
+  const retorno: EdicaoDoCurso | null = {
     capa: capaDe(linha),
     codigo: linha.codigo,
     documento: {
@@ -228,6 +228,8 @@ export async function abrirCurso(exec: Executor, id: CursoId) {
     slug: linha.slug,
     uso,
   };
+
+  return retorno;
 }
 
 export interface CursoSalvo {
@@ -462,44 +464,55 @@ export async function salvarCurso(
   const capa = recebida?.imagem ?? null;
 
   try {
-    return await comTrava(s.db, `curso:${documento.id}`, async (tx) => {
-      const atual = await abrirCurso(tx, documento.id);
-      const categoriaDoCurso = await exigirCategoria(tx, documento.categoriaId);
-      const plano = planejarCurso(atual, documento, capa);
+    const cursoSalvo: CursoSalvo = await comTrava(
+      s.db,
+      `curso:${documento.id}`,
+      async (tx) => {
+        const atual = await abrirCurso(tx, documento.id);
 
-      if (plano.tipo === "recusa") {
-        throw erroDaEdicao(plano.recusa);
+        const categoriaDoCurso = await exigirCategoria(
+          tx,
+          documento.categoriaId
+        );
+
+        const plano = planejarCurso(atual, documento, capa);
+
+        if (plano.tipo === "recusa") {
+          throw erroDaEdicao(plano.recusa);
+        }
+
+        const novo =
+          plano.tipo === "criar"
+            ? await identidadeDoCursoNovo(
+                tx,
+                documento.titulo,
+                categoriaDoCurso.nome
+              )
+            : null;
+
+        const slug = novo?.slug ?? atual?.slug;
+
+        if (!slug) {
+          throw new Error(`Curso ${documento.id} salvo sem endereço.`);
+        }
+
+        if (plano.tipo !== "nada_mudou") {
+          await gravarCurso(tx, plano, novo);
+        }
+
+        // A aula ou a pergunta que saiu pode ter sido a última coisa que faltava a alguém.
+        if (
+          plano.tipo === "atualizar" &&
+          (plano.apagar.aulas.length > 0 || plano.apagar.perguntas.length > 0)
+        ) {
+          await concluirParaQuemCompletou(tx, documento.id, agora);
+        }
+
+        return { cursoId: documento.id, slug, versao: plano.versao };
       }
+    );
 
-      const novo =
-        plano.tipo === "criar"
-          ? await identidadeDoCursoNovo(
-              tx,
-              documento.titulo,
-              categoriaDoCurso.nome
-            )
-          : null;
-
-      const slug = novo?.slug ?? atual?.slug;
-
-      if (!slug) {
-        throw new Error(`Curso ${documento.id} salvo sem endereço.`);
-      }
-
-      if (plano.tipo !== "nada_mudou") {
-        await gravarCurso(tx, plano, novo);
-      }
-
-      // A aula ou a pergunta que saiu pode ter sido a última coisa que faltava a alguém.
-      if (
-        plano.tipo === "atualizar" &&
-        (plano.apagar.aulas.length > 0 || plano.apagar.perguntas.length > 0)
-      ) {
-        await concluirParaQuemCompletou(tx, documento.id, agora);
-      }
-
-      return { cursoId: documento.id, slug, versao: plano.versao };
-    });
+    return cursoSalvo;
   } catch (erro) {
     // O aluno não pega a trava do curso: a aula assistida ou a tentativa que entra
     // entre a conta e o DELETE para no FK restrict. O plano refeito já a conta.

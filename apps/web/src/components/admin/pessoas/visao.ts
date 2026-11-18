@@ -18,7 +18,7 @@ const umTexto = (v: string | string[] | undefined) =>
 export function visaoDe(busca: {
   perfil?: string | string[];
   ver?: string | string[];
-}) {
+}): VisaoDePessoas {
   if (umTexto(busca.ver) === CONVIDADOS) {
     return { tipo: "convidados" };
   }
@@ -33,17 +33,30 @@ export function camposDaVisao(visao: VisaoDePessoas) {
   switch (visao.tipo) {
     case "todos":
       return;
-    case "perfil":
-      return { perfil: visao.perfil };
-    case "convidados":
-      return { ver: CONVIDADOS };
-    default:
-      return visao satisfies never;
+    case "perfil": {
+      const retorno: Record<string, string> | undefined = {
+        perfil: visao.perfil,
+      };
+
+      return retorno;
+    }
+
+    case "convidados": {
+      const retorno: Record<string, string> | undefined = { ver: CONVIDADOS };
+
+      return retorno;
+    }
+
+    default: {
+      const retorno: Record<string, string> | undefined = visao satisfies never;
+
+      return retorno;
+    }
   }
 }
 
 /** O único lugar que monta /admin/pessoas?... */
-export function hrefDaVisao(visao: VisaoDePessoas, termo: string) {
+export function hrefDaVisao(visao: VisaoDePessoas, termo: string): Route {
   const busca = new URLSearchParams(camposDaVisao(visao));
 
   if (termo) {

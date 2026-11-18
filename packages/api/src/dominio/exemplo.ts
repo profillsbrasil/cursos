@@ -50,7 +50,7 @@ export const EDICAO = {
   P1B: uuidDeExemplo(52) as AlternativaId,
 } as const;
 
-export const aulaDeExemplo = (id: AulaId, titulo: string) => ({
+export const aulaDeExemplo = (id: AulaId, titulo: string): AulaDoDocumento => ({
   descricao: "",
   duracaoSeg: 300,
   id,
@@ -63,7 +63,7 @@ export const perguntaDeExemplo = (
   id: PerguntaId,
   alternativas: readonly [AlternativaId, AlternativaId],
   enunciado = "Qual é a pergunta?"
-) => ({
+): PerguntaDoDocumento => ({
   alternativas: [
     { certa: false, id: alternativas[0], texto: "Errada" },
     { certa: true, id: alternativas[1], texto: "Certa" },
@@ -73,7 +73,9 @@ export const perguntaDeExemplo = (
 });
 
 /** Dois módulos (0: A1, A2; 1: A3), dois níveis, na forma canônica do schema. */
-export function documentoDeExemplo(versao: Versao | null = null) {
+export function documentoDeExemplo(
+  versao: Versao | null = null
+): DocumentoDoCurso {
   return {
     categoriaId: EDICAO.CATEGORIA,
     descricao: "",
@@ -130,7 +132,7 @@ interface OpcoesCurso {
 export function cursoLinha(chave: string, o: OpcoesCurso) {
   const primeiro = o.primeiroNumero ?? 0;
 
-  return {
+  const retorno: CursoLinha = {
     capaAlt: `Capa de ${chave}`,
     capaAltura: 720,
     capaLargura: 1280,
@@ -160,13 +162,15 @@ export function cursoLinha(chave: string, o: OpcoesCurso) {
     titulo: `Curso ${chave}`,
     topicos: [],
   };
+
+  return retorno;
 }
 
 /** CursoCatalogo direto, sem passar por paraCatalogo. */
 export function cursoCat(chave: string, o: OpcoesCurso) {
   const l = cursoLinha(chave, o);
 
-  return {
+  const cursoCatalogo: CursoCatalogo = {
     capa: capaDe(l),
     categoria: l.categoria.nome,
     codigo: l.codigo,
@@ -190,13 +194,23 @@ export function cursoCat(chave: string, o: OpcoesCurso) {
     titulo: l.titulo,
     topicos: l.topicos,
   };
+
+  return cursoCatalogo;
 }
 
 /** Aprovado, ou reprovado com a nota da última tentativa. */
 export const questionario = (
   aprovada: boolean,
   ultima = aprovada ? { acertos: 3, total: 3 } : { acertos: 1, total: 3 }
-) => ({ aprovada, tentativas: 1, ultima });
+) => {
+  const estudoDoQuestionario: EstudoDoQuestionario = {
+    aprovada,
+    tentativas: 1,
+    ultima,
+  };
+
+  return estudoDoQuestionario;
+};
 
 export function historico(o: {
   assistidas?: string[];
@@ -204,7 +218,7 @@ export function historico(o: {
   posicoes?: [string, number, string?][];
   questionarios?: [string, EstudoDoQuestionario][];
 }) {
-  return {
+  const retorno: Historico = {
     assistidas: new Set((o.assistidas ?? []) as AulaId[]),
     certificados: new Map(
       (o.certificados ?? []).map((c) => [
@@ -222,6 +236,8 @@ export function historico(o: {
       (o.questionarios ?? []).map(([aula, q]) => [aula as AulaId, q])
     ),
   };
+
+  return retorno;
 }
 
 /** Todas as aulas de um curso de cursoLinha, em ordem. */
@@ -290,7 +306,7 @@ export function exemploDoPrototipo() {
     aulaId: a.id,
   }));
 
-  return {
+  const linhasPainel: LinhasPainel = {
     assistidas,
     certificados: [
       {
@@ -318,6 +334,8 @@ export function exemploDoPrototipo() {
     ],
     questionarios: [],
   };
+
+  return linhasPainel;
 }
 
 /** O dia, em São Paulo, em que os testes montam o painel: a semana das posições do exemplo. */

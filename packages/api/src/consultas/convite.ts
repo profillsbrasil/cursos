@@ -187,7 +187,9 @@ async function enviarUm(
     const r = await convites.enviar(gravado.email, agora);
 
     if (r.tipo === "limite") {
-      return r;
+      const retorno: Envio = r;
+
+      return retorno;
     }
 
     if (!(await marcarEnviado(db, gravado.id, r.clerkConviteId, agora))) {
@@ -195,11 +197,15 @@ async function enviarUm(
       await convites.revogar(r.clerkConviteId);
     }
 
-    return { tipo: "enviado" };
+    const retorno: Envio = { tipo: "enviado" };
+
+    return retorno;
   } catch (erro) {
     console.error(`convite ${gravado.id}: o e-mail não saiu`, erro);
 
-    return { tipo: "falha" };
+    const retorno: Envio = { tipo: "falha" };
+
+    return retorno;
   }
 }
 
@@ -259,25 +265,46 @@ export async function convidar(
     porEmail.set(gravado.email, resultadoDoEnvio(gravado.email, envio));
   }
 
-  return {
+  const retorno: ResultadoDoEnvio = {
     convites: emails.flatMap((email) => porEmail.get(email) ?? []),
   };
+
+  return retorno;
 }
 
 function resultadoDoEnvio(email: Email, envio: Envio) {
   switch (envio.tipo) {
-    case "enviado":
-      return { email, tipo: "enviado" };
-    case "limite":
-      return {
+    case "enviado": {
+      const resultadoDoConvite: ResultadoDoConvite = { email, tipo: "enviado" };
+
+      return resultadoDoConvite;
+    }
+
+    case "limite": {
+      const resultadoDoConvite: ResultadoDoConvite = {
         email,
         motivo: { tentarEm: envio.tentarEm.toISOString(), tipo: "limite" },
         tipo: "nao_enviado",
       };
-    case "falha":
-      return { email, motivo: { tipo: "falha" }, tipo: "nao_enviado" };
-    default:
-      return envio satisfies never;
+
+      return resultadoDoConvite;
+    }
+
+    case "falha": {
+      const resultadoDoConvite: ResultadoDoConvite = {
+        email,
+        motivo: { tipo: "falha" },
+        tipo: "nao_enviado",
+      };
+
+      return resultadoDoConvite;
+    }
+
+    default: {
+      const resultadoDoConvite: ResultadoDoConvite = envio satisfies never;
+
+      return resultadoDoConvite;
+    }
   }
 }
 
@@ -471,7 +498,7 @@ export async function linhasDosConvites(db: Database, termo: string) {
     }),
   ]);
 
-  return {
+  const retorno: LinhasDosConvites = {
     convidados: convidados.map((c) => ({
       ...c,
       cursos: c.cursos
@@ -483,6 +510,8 @@ export async function linhasDosConvites(db: Database, termo: string) {
     cursos: cursos.map((c) => ({ ...c, id: c.id as CursoId })),
     total,
   };
+
+  return retorno;
 }
 
 /**
@@ -516,7 +545,7 @@ export async function reivindicarConvite(
     .from(conviteCurso)
     .where(eq(conviteCurso.conviteId, aceito.id));
 
-  return {
+  const retorno: ConviteAceito | null = {
     comoAdmin: aceito.comoAdmin,
     // Só o adminProcedure chega ao INSERT de convite.
     convidadoPor: aceito.convidadoPor as AdminId,
@@ -524,6 +553,8 @@ export async function reivindicarConvite(
     id: aceito.id as ConviteId,
     perfil: aceito.perfil,
   };
+
+  return retorno;
 }
 
 const papelPorAplicar = (userId: string) =>

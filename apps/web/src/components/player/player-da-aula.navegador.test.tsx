@@ -384,9 +384,12 @@ async function tabAte(rotulo: string, paradas: string[] = []) {
 
   const ate = [...paradas, parada];
 
-  return parada.includes(rotulo) || ate.length >= 10
-    ? ate
-    : await tabAte(rotulo, ate);
+  const retorno: string[] =
+    parada.includes(rotulo) || ate.length >= 10
+      ? ate
+      : await tabAte(rotulo, ate);
+
+  return retorno;
 }
 
 /** A mesma tecla várias vezes, uma depois da outra. */

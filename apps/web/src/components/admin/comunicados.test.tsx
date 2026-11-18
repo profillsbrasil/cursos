@@ -21,14 +21,18 @@ const { Comunicados } = await import("./comunicados");
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
-const comunicado = (id: string, publicadoPor: string | null) => ({
-  curso: null,
-  id: id as ComunicadoId,
-  publicadoEm: "2026-10-01T12:00:00.000Z",
-  publicadoPor,
-  texto: "Texto",
-  titulo: `Comunicado ${id}`,
-});
+const comunicado = (id: string, publicadoPor: string | null) => {
+  const comunicadoNaTela: ComunicadoNaTela = {
+    curso: null,
+    id: id as ComunicadoId,
+    publicadoEm: "2026-10-01T12:00:00.000Z",
+    publicadoPor,
+    texto: "Texto",
+    titulo: `Comunicado ${id}`,
+  };
+
+  return comunicadoNaTela;
+};
 
 describe("autor na lista de publicados", () => {
   const tela = texto(

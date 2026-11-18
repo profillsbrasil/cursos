@@ -21,19 +21,23 @@ const TROCADO: Acesso = {
   tipo: "trocado",
 };
 
-const curso = (mudar: Partial<CursoDaTroca> = {}) => ({
-  acesso: { tipo: "nenhum" },
-  aulas: 4,
-  capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/bpf.jpg" },
-  categoria: "Processo de envase",
-  duracaoSeg: 2400,
-  id: "c-1" as CursoId,
-  precoTroca: 500,
-  slug: "bpf",
-  status: "publicado",
-  titulo: "Boas práticas de fabricação",
-  ...mudar,
-});
+const curso = (mudar: Partial<CursoDaTroca> = {}) => {
+  const cursoDaTroca: CursoDaTroca = {
+    acesso: { tipo: "nenhum" },
+    aulas: 4,
+    capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/bpf.jpg" },
+    categoria: "Processo de envase",
+    duracaoSeg: 2400,
+    id: "c-1" as CursoId,
+    precoTroca: 500,
+    slug: "bpf",
+    status: "publicado",
+    titulo: "Boas práticas de fabricação",
+    ...mudar,
+  };
+
+  return cursoDaTroca;
+};
 
 describe("situacao", () => {
   test("curso com preço, publicado e com aula está à venda", () => {
@@ -147,24 +151,28 @@ describe("decidirTroca", () => {
   });
 });
 
-const linha = (mudar: Partial<LinhaDoCursoDaTroca> = {}) => ({
-  capaAlt: "Capa",
-  capaAltura: 720,
-  capaLargura: 1280,
-  capaUrl: "/capas/bpf.jpg",
-  categoria: { nome: "Processo de envase" },
-  id: "c-1",
-  liberacoes: [],
-  modulos: [
-    { aulas: [{ duracaoSeg: 600 }, { duracaoSeg: 300 }] },
-    { aulas: [{ duracaoSeg: 60 }] },
-  ],
-  precoTroca: 500,
-  slug: "bpf",
-  status: "publicado",
-  titulo: "Boas práticas de fabricação",
-  ...mudar,
-});
+const linha = (mudar: Partial<LinhaDoCursoDaTroca> = {}) => {
+  const linhaDoCursoDaTroca: LinhaDoCursoDaTroca = {
+    capaAlt: "Capa",
+    capaAltura: 720,
+    capaLargura: 1280,
+    capaUrl: "/capas/bpf.jpg",
+    categoria: { nome: "Processo de envase" },
+    id: "c-1",
+    liberacoes: [],
+    modulos: [
+      { aulas: [{ duracaoSeg: 600 }, { duracaoSeg: 300 }] },
+      { aulas: [{ duracaoSeg: 60 }] },
+    ],
+    precoTroca: 500,
+    slug: "bpf",
+    status: "publicado",
+    titulo: "Boas práticas de fabricação",
+    ...mudar,
+  };
+
+  return linhaDoCursoDaTroca;
+};
 
 describe("paraCursoDaTroca", () => {
   test("conta aulas e soma a duração de todos os módulos", () => {

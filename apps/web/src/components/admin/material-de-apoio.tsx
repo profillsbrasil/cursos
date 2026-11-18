@@ -371,7 +371,7 @@ function LinhaDoEnvio({
 function envioDe(arquivo: File) {
   const recusa = recusaAntesDeLer(arquivo.name, arquivo.size);
 
-  return {
+  const envioDeMaterial: EnvioDeMaterial = {
     bytes: arquivo.size,
     estado: recusa
       ? { motivo: mensagemDoMaterial(recusa), tipo: "recusado" }
@@ -380,6 +380,8 @@ function envioDe(arquivo: File) {
     nomeDoArquivo: arquivo.name,
     tipo: tipoDoNome(arquivo.name),
   };
+
+  return envioDeMaterial;
 }
 
 /**

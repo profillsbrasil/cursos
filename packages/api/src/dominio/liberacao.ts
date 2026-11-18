@@ -45,7 +45,7 @@ export type AcaoNaLiberacao =
 export function acaoNaLiberacao(l: {
   origem: OrigemDaLiberacao;
   revogadaEm: Date | null;
-}) {
+}): AcaoNaLiberacao {
   if (l.revogadaEm) {
     return { em: l.revogadaEm, tipo: "revogada" };
   }
@@ -113,14 +113,19 @@ const ordemNaTela = (a: LinhaDaLiberacao, b: LinhaDaLiberacao) =>
 
 function acaoNaTela(l: LinhaDaLiberacao) {
   if (l.origem === "perfil") {
-    return { perfil: l.perfil, tipo: "pelo_perfil" };
+    const retorno: AcaoNaTela = { perfil: l.perfil, tipo: "pelo_perfil" };
+
+    return retorno;
   }
 
   const acao = acaoNaLiberacao(l);
 
-  return acao.tipo === "revogada"
-    ? { em: acao.em.toISOString(), tipo: "revogada" }
-    : acao;
+  const retorno: AcaoNaTela =
+    acao.tipo === "revogada"
+      ? { em: acao.em.toISOString(), tipo: "revogada" }
+      : acao;
+
+  return retorno;
 }
 
 /**
@@ -146,7 +151,7 @@ export function montarAcesso(
 
   const estudo = estudoDe(linhas.historico);
 
-  return {
+  const retorno: AcessoDoAluno | null = {
     cursos: linhas.catalogo.map((c) => ({
       curso: { id: c.id, titulo: c.titulo },
       emProducao: c.status === "em_producao",
@@ -164,6 +169,8 @@ export function montarAcesso(
     pessoa,
     userId,
   };
+
+  return retorno;
 }
 
 /**

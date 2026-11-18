@@ -155,27 +155,49 @@ export function fraseDoCurso(c: Acompanhamento, hoje: string) {
   const s = c.situacao;
 
   switch (s.tipo) {
-    case "em_producao":
-      return {
+    case "em_producao": {
+      const retorno: Frase | null = {
         quando: null,
         texto: "Em produção. A pessoa ainda não vê o curso",
       };
+
+      return retorno;
+    }
+
     case "nunca_abriu":
       return null;
-    case "estudando":
-      return {
+    case "estudando": {
+      const retorno: Frase | null = {
         quando: ultimoEstudo(s.ultimoEstudo, hoje),
         texto: `Módulo ${s.onde.modulo}, aula ${s.onde.aula}`,
       };
-    case "faltam_questionarios":
-      return {
+
+      return retorno;
+    }
+
+    case "faltam_questionarios": {
+      const retorno: Frase | null = {
         quando: ultimoEstudo(s.ultimoEstudo, hoje),
         texto: `${aulasVistas(c.progresso.total)}. ${s.aprovados} de ${plural(s.total, "questionário aprovado", "questionários aprovados")}`,
       };
-    case "concluido":
-      return { quando: null, texto: `Concluído ${noDia(s.em, hoje)}` };
-    default:
-      return s satisfies never;
+
+      return retorno;
+    }
+
+    case "concluido": {
+      const retorno: Frase | null = {
+        quando: null,
+        texto: `Concluído ${noDia(s.em, hoje)}`,
+      };
+
+      return retorno;
+    }
+
+    default: {
+      const retorno: Frase | null = s satisfies never;
+
+      return retorno;
+    }
   }
 }
 

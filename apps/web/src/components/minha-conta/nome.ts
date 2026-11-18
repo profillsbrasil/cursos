@@ -48,31 +48,56 @@ export function problemaDoNome(nome: string, sobrenome: string) {
   const campos = { nome, sobrenome };
 
   if (nome.trim() === "") {
-    return { campos: ["nome"], frase: FRASES_DO_NOME.vazio };
+    const retorno: ProblemaDoNome | null = {
+      campos: ["nome"],
+      frase: FRASES_DO_NOME.vazio,
+    };
+
+    return retorno;
   }
 
   const sinais = comProblema(campos, (t) => SINAIS.test(t));
 
   if (sinais.length > 0) {
-    return { campos: sinais, frase: FRASES_DO_NOME.sinais };
+    const retorno: ProblemaDoNome | null = {
+      campos: sinais,
+      frase: FRASES_DO_NOME.sinais,
+    };
+
+    return retorno;
   }
 
   const site = comProblema(campos, (t) => SITE.test(t));
 
   if (site.length > 0) {
-    return { campos: site, frase: FRASES_DO_NOME.site };
+    const retorno: ProblemaDoNome | null = {
+      campos: site,
+      frase: FRASES_DO_NOME.site,
+    };
+
+    return retorno;
   }
 
   const longas = comProblema(campos, temPalavraLonga);
 
   if (longas.length > 0) {
-    return { campos: longas, frase: FRASES_DO_NOME.palavra };
+    const retorno: ProblemaDoNome | null = {
+      campos: longas,
+      frase: FRASES_DO_NOME.palavra,
+    };
+
+    return retorno;
   }
 
   const completo = `${nome.trim()} ${sobrenome.trim()}`.trim();
 
   if ([...completo].length > LIMITE_DO_NOME) {
-    return { campos: ["nome", "sobrenome"], frase: FRASES_DO_NOME.comprimento };
+    const retorno: ProblemaDoNome | null = {
+      campos: ["nome", "sobrenome"],
+      frase: FRASES_DO_NOME.comprimento,
+    };
+
+    return retorno;
   }
 
   return null;

@@ -34,7 +34,7 @@ export function antesDePublicar(rascunho: Lido, temCapa: boolean) {
   const temPreco =
     rascunho.precoTroca !== null && "valor" in lerPreco(rascunho.precoTroca);
 
-  return [
+  const retorno: ItemAntesDePublicar[] = [
     { cumprido: temCapa, detalhe: null, nome: "Capa" },
     {
       cumprido:
@@ -69,6 +69,8 @@ export function antesDePublicar(rascunho: Lido, temCapa: boolean) {
       nome: "Questionários",
     },
   ];
+
+  return retorno;
 }
 
 /** "3 módulos, 14 aulas, 2 h", no alto do índice; sem vídeo, sem a duração. */

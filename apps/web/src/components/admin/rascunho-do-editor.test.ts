@@ -35,7 +35,6 @@ import {
   type AcaoDoEditor,
   aulaEscolhida,
   blocoDoModulo,
-  type Envio,
   errosNaAula,
   errosNaPergunta,
   type Mudanca,
@@ -104,7 +103,11 @@ const blocos = (e: RascunhoDoEditor) => {
 
 const estados = (e: RascunhoDoEditor) => blocos(e).map((b) => b.tipo);
 
-const saiu = (id: string) => ({ id, tipo: "saiu_do_campo" });
+const saiu = (id: string) => {
+  const acaoDoEditor: AcaoDoEditor = { id, tipo: "saiu_do_campo" };
+
+  return acaoDoEditor;
+};
 
 /** A aula que o painel do primeiro módulo mostra e a pergunta da aula pedida. */
 const painel = (e: RascunhoDoEditor, aulaId: AulaId) => {
@@ -729,7 +732,16 @@ describe("questionário da aula", () => {
     aulaId: AulaId,
     id: PerguntaId,
     alternativas: [AlternativaId, AlternativaId]
-  ) => ({ alternativas, aulaId, id, tipo: "pergunta_nova" });
+  ) => {
+    const mudanca: Mudanca = {
+      alternativas,
+      aulaId,
+      id,
+      tipo: "pergunta_nova",
+    };
+
+    return mudanca;
+  };
 
   const perguntas = (r: RascunhoDoCurso) => aula(r, A1)?.perguntas ?? [];
 
@@ -1047,27 +1059,43 @@ describe("o rascunho apoiado na página", () => {
   const V2 = "v2" as Versao;
   const V3 = "v3" as Versao;
 
-  const digitar = (titulo: string) => ({
-    mudanca: { titulo },
-    tipo: "campos",
-  });
+  const digitar = (titulo: string) => {
+    const retorno: Mudanca = {
+      mudanca: { titulo },
+      tipo: "campos",
+    };
 
-  const salvo = (e: RascunhoDoEditor, versao: Versao = V2) => ({
-    envio: envioDe(e),
-    tipo: "salvo",
-    versao,
-  });
+    return retorno;
+  };
 
-  const recusado = (e: RascunhoDoEditor, motivo: Motivo | null) => ({
-    envio: envioDe(e),
-    motivo,
-    tipo: "recusado",
-  });
+  const salvo = (e: RascunhoDoEditor, versao: Versao = V2) => {
+    const acaoDoEditor: AcaoDoEditor = {
+      envio: envioDe(e),
+      tipo: "salvo",
+      versao,
+    };
 
-  const pagina = (p: DocumentoDoCurso) => ({
-    pagina: p,
-    tipo: "pagina",
-  });
+    return acaoDoEditor;
+  };
+
+  const recusado = (e: RascunhoDoEditor, motivo: Motivo | null) => {
+    const acaoDoEditor: AcaoDoEditor = {
+      envio: envioDe(e),
+      motivo,
+      tipo: "recusado",
+    };
+
+    return acaoDoEditor;
+  };
+
+  const pagina = (p: DocumentoDoCurso) => {
+    const acaoDoEditor: AcaoDoEditor = {
+      pagina: p,
+      tipo: "pagina",
+    };
+
+    return acaoDoEditor;
+  };
 
   const recarregar: AcaoDoEditor = { tipo: "descartado" };
   const sujo = (e: RascunhoDoEditor) => telaDo(e).sujo;

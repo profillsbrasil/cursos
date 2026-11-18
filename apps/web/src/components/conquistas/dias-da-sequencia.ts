@@ -50,9 +50,11 @@ export function diasDaSequencia({
     d = proximoDiaUtil(d);
   }
 
-  return semana.map((d, i) => ({
+  const retorno: DiaDaSequencia[] = semana.map((d, i) => ({
     ...d,
     depoisDoFimDeSemana:
       i > 0 && somarDias(semana[i - 1]?.dia ?? d.dia, 1) !== d.dia,
   }));
+
+  return retorno;
 }

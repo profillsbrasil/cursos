@@ -146,9 +146,11 @@ export function aparelhosDe(
     .toSorted((a, b) => b.lastActiveAt.getTime() - a.lastActiveAt.getTime())
     .map((s) => aparelho(s, quandoFoi(s.lastActiveAt, agora)));
 
-  return {
+  const aparelhos: Aparelhos = {
     antigos: outras.slice(RECENTES_A_VISTA),
     atual: atual ? aparelho(atual, "agora") : null,
     recentes: outras.slice(0, RECENTES_A_VISTA),
   };
+
+  return aparelhos;
 }

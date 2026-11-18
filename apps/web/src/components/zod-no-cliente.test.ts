@@ -62,14 +62,18 @@ function caminhoAteOZod(arquivo: string, visto: Set<string>) {
     }
 
     if (origem === "zod" || origem.startsWith("zod/")) {
-      return [arquivo];
+      const retorno: string[] = [arquivo];
+
+      return retorno;
     }
 
     const proximo = resolver(arquivo, origem);
     const resto = proximo ? caminhoAteOZod(proximo, visto) : null;
 
     if (resto) {
-      return [arquivo, ...resto];
+      const retorno: string[] = [arquivo, ...resto];
+
+      return retorno;
     }
   }
 

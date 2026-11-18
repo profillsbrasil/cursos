@@ -35,7 +35,9 @@ async function abrir({ params, searchParams }: Props) {
 export async function generateMetadata(props: Props) {
   const { documento } = await abrir(props);
 
-  return { title: documento.titulo.trim() || "Curso novo" };
+  const metadata: Metadata = { title: documento.titulo.trim() || "Curso novo" };
+
+  return metadata;
 }
 
 export default async function Curso(props: Props) {

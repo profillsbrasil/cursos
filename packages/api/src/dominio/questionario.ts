@@ -61,7 +61,7 @@ export type Correcao =
 export function corrigir(
   perguntas: readonly PerguntaComGabarito[],
   respostas: readonly RespostaEnviada[]
-) {
+): Correcao {
   const marcadas = new Map(
     respostas.map((r) => [r.perguntaId, r.alternativaId])
   );
@@ -157,7 +157,7 @@ export function resultadoDaTentativa(
 ) {
   const respostaDe = new Map(tentativa.respostas.map((r) => [r.perguntaId, r]));
 
-  return {
+  const resultadoDoQuestionario: ResultadoDoQuestionario = {
     acertos: tentativa.acertos,
     aprovada: tentativa.aprovada,
     paraPassar: acertosParaPassar(tentativa.total),
@@ -180,6 +180,8 @@ export function resultadoDaTentativa(
     tentativa: tentativa.numero,
     total: tentativa.total,
   };
+
+  return resultadoDoQuestionario;
 }
 
 /** null na aula sem pergunta. `tentativas` em ordem de número. */
@@ -194,7 +196,7 @@ export function montarQuestionarioDaAula(
   const [primeira] = tentativas;
   const ultima = tentativas.at(-1);
 
-  return {
+  const retorno: QuestionarioDaAula | null = {
     paraPassar: acertosParaPassar(perguntas.length),
     perguntas: perguntas.map(semGabarito),
     ultima:
@@ -202,6 +204,8 @@ export function montarQuestionarioDaAula(
         ? resultadoDaTentativa(perguntas, ultima, primeira)
         : null,
   };
+
+  return retorno;
 }
 
 /** O que a lista de aulas (coluna do player, página do curso) diz do questionário. */
@@ -216,7 +220,7 @@ export const SEM_QUESTIONARIO: MarcaDoQuestionario = { tipo: "sem" };
 export function marcaDoQuestionario(
   perguntas: number,
   estudo: EstudoDoQuestionario | undefined
-) {
+): MarcaDoQuestionario {
   if (perguntas === 0) {
     return { tipo: "sem" };
   }

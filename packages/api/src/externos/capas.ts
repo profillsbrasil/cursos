@@ -53,7 +53,7 @@ export type CapaLida =
 const recusa = (r: RecusaDaCapa) => ({ recusa: r, tipo: "recusa" }) as const;
 
 /** Formato e medida pelo conteúdo, não pelo content-type que o navegador manda. */
-export function lerCapa(bytes: Uint8Array<ArrayBuffer>) {
+export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
   let medida: ReturnType<typeof imageSize>;
 
   try {
@@ -215,10 +215,15 @@ export function lerPaginaDaListagem(xml: string) {
 
   const truncada = campo(xml, "IsTruncated") === "true";
 
-  return {
+  const retorno: {
+    continuacao: string | undefined;
+    objetos: ObjetoDoBucket[];
+  } = {
     continuacao: truncada ? campo(xml, "NextContinuationToken") : undefined,
     objetos,
   };
+
+  return retorno;
 }
 
 /**
@@ -232,7 +237,7 @@ export function capasNoBucket(
 ) {
   const bucket = bucketAssinado(cfg, enviar);
 
-  return {
+  const retorno: Capas = {
     async abrir(chave) {
       if (!CHAVE.test(chave)) {
         return null;
@@ -293,6 +298,8 @@ export function capasNoBucket(
       };
     },
   };
+
+  return retorno;
 }
 
 /** Ambiente sem as variáveis S3_*: o resto do admin funciona. */

@@ -43,7 +43,9 @@ export async function linhasDoSaldo(
     throw new Error("A soma sem group by não devolveu a linha.");
   }
 
-  return linha;
+  const retorno: { saldo: number; entradasDaSemana: number } = linha;
+
+  return retorno;
 }
 
 /**
@@ -56,7 +58,7 @@ export function estudoPorDia(exec: Executor, userId: string) {
   // $2, e o Postgres não os reconhece como a mesma expressão.
   const dia = sql<string>`to_char(${pontoLancamento.criadoEm} at time zone ${sql.raw(`'${FUSO}'`)}, 'YYYY-MM-DD')`;
 
-  return exec
+  const retorno: Promise<{ dia: string; pontos: number }[]> = exec
     .select({ dia, pontos: sql<number>`sum(${pontoLancamento.pontos})::int` })
     .from(pontoLancamento)
     .where(
@@ -67,6 +69,8 @@ export function estudoPorDia(exec: Executor, userId: string) {
       )
     )
     .groupBy(dia);
+
+  return retorno;
 }
 
 /** Só o saldo, para a troca da amostra na página do curso e no player. */
@@ -87,10 +91,12 @@ export async function saldoDe(exec: Executor, userId: string) {
  */
 export function saldosDe(exec: Executor, userIds: readonly string[]) {
   if (userIds.length === 0) {
-    return Promise.resolve([]);
+    const retorno: Promise<SaldoDaPessoa[]> = Promise.resolve([]);
+
+    return retorno;
   }
 
-  return exec
+  const retorno: Promise<SaldoDaPessoa[]> = exec
     .select({
       saldo: sql<number>`sum(${pontoLancamento.pontos})::int`,
       userId: pontoLancamento.userId,
@@ -98,6 +104,8 @@ export function saldosDe(exec: Executor, userIds: readonly string[]) {
     .from(pontoLancamento)
     .where(inArray(pontoLancamento.userId, [...userIds]))
     .groupBy(pontoLancamento.userId);
+
+  return retorno;
 }
 
 export function linhasDoExtrato(
@@ -105,25 +113,28 @@ export function linhasDoExtrato(
   userId: string,
   limite: number
 ) {
-  return exec.query.pontoLancamento.findMany({
-    columns: { criadoEm: true, id: true, motivo: true, pontos: true },
-    limit: limite,
-    orderBy: { criadoEm: "desc", id: "desc" },
-    where: { userId },
-    with: {
-      aula: { columns: { titulo: true } },
-      concessao: { columns: { motivo: true } },
-      curso: { columns: { titulo: true } },
-      liberacao: {
-        columns: {},
-        with: { curso: { columns: { titulo: true } } },
+  const retorno: Promise<LinhaDoExtrato[]> =
+    exec.query.pontoLancamento.findMany({
+      columns: { criadoEm: true, id: true, motivo: true, pontos: true },
+      limit: limite,
+      orderBy: { criadoEm: "desc", id: "desc" },
+      where: { userId },
+      with: {
+        aula: { columns: { titulo: true } },
+        concessao: { columns: { motivo: true } },
+        curso: { columns: { titulo: true } },
+        liberacao: {
+          columns: {},
+          with: { curso: { columns: { titulo: true } } },
+        },
+        tentativa: {
+          columns: {},
+          with: { aula: { columns: { titulo: true } } },
+        },
       },
-      tentativa: {
-        columns: {},
-        with: { aula: { columns: { titulo: true } } },
-      },
-    },
-  });
+    });
+
+  return retorno;
 }
 
 /**

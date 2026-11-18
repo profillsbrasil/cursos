@@ -47,7 +47,7 @@ export type EnvioDasFichas =
 export function envioDasFichas(
   fichas: readonly Ficha[],
   cursosMarcados: number
-) {
+): EnvioDasFichas {
   const emails = fichas.flatMap((f) => f.email ?? []);
 
   const rotulo =
@@ -151,14 +151,41 @@ const CONTORNO_APAGADO =
 
 export function seloDoConvidado(estado: ConvidadoNaTela["estado"]) {
   switch (estado.tipo) {
-    case "pendente":
-      return { classe: SOL_SUAVE, icone: Clock, rotulo: "Pendente" };
-    case "expirado":
-      return { classe: CONTORNO_APAGADO, icone: TimerOff, rotulo: "Expirado" };
-    case "nao_enviado":
-      return { classe: NEUTRO, icone: MailWarning, rotulo: "Não enviado" };
-    default:
-      return estado satisfies never;
+    case "pendente": {
+      const selo: Selo = {
+        classe: SOL_SUAVE,
+        icone: Clock,
+        rotulo: "Pendente",
+      };
+
+      return selo;
+    }
+
+    case "expirado": {
+      const selo: Selo = {
+        classe: CONTORNO_APAGADO,
+        icone: TimerOff,
+        rotulo: "Expirado",
+      };
+
+      return selo;
+    }
+
+    case "nao_enviado": {
+      const selo: Selo = {
+        classe: NEUTRO,
+        icone: MailWarning,
+        rotulo: "Não enviado",
+      };
+
+      return selo;
+    }
+
+    default: {
+      const selo: Selo = estado satisfies never;
+
+      return selo;
+    }
   }
 }
 

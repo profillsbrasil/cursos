@@ -141,7 +141,7 @@ export async function linhasDasConquistas(db: Database, aluno: Aluno) {
     estudoPorDia(db, userId),
   ]);
 
-  return {
+  const retorno: LinhasDasConquistas = {
     assistidas,
     certificados,
     estudoPorDia: estudo,
@@ -151,6 +151,8 @@ export async function linhasDasConquistas(db: Database, aluno: Aluno) {
     questionarios,
     vitrine,
   };
+
+  return retorno;
 }
 
 export async function carregarConquistas(
@@ -158,8 +160,10 @@ export async function carregarConquistas(
   aluno: Aluno,
   agora: Date
 ) {
-  return montarConquistas(
+  const conquistas: Conquistas = montarConquistas(
     await linhasDasConquistas(db, aluno),
     diaLocal(agora)
   );
+
+  return conquistas;
 }

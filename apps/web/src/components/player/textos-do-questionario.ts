@@ -45,17 +45,21 @@ export interface FraseDoResultado {
 /** O topo do cartão depois do envio. Na reprovação, as perguntas erradas vêm primeiro. */
 export function fraseDoResultado(r: ResultadoDoQuestionario) {
   if (r.aprovada && r.tentativa === 1) {
-    return {
+    const retorno: FraseDoResultado = {
       texto: `${ganhoDe(r.pontos)}, ${POR_ACERTO}. O questionário desta aula está feito.`,
       titulo: `Aprovado: ${nota(r)}`,
     };
+
+    return retorno;
   }
 
   if (r.aprovada) {
-    return {
+    const retorno: FraseDoResultado = {
       texto: `Esta tentativa não vale pontos: eles contam só na primeira, em que você ganhou ${ganhoDe(r.pontosDaPrimeira)}.`,
       titulo: `Aprovado na ${r.tentativa}ª tentativa: ${nota(r)}`,
     };
+
+    return retorno;
   }
 
   const erradas = erradasDe(r);
@@ -68,13 +72,15 @@ export function fraseDoResultado(r: ResultadoDoQuestionario) {
       ? `${SO_NA_PRIMEIRA}: você ganhou ${ganhoDe(r.pontos)} pelos acertos dela.`
       : `${SO_NA_PRIMEIRA}.`;
 
-  return {
+  const retorno: FraseDoResultado = {
     texto:
       r.tentativa === 1
         ? `${errou}${regra}. ${pontos}`
         : `${errou}${regra}. Tente de novo quantas vezes quiser.`,
     titulo: `Ainda não: ${nota(r)}`,
   };
+
+  return retorno;
 }
 
 export const ENVIO_FALHOU =

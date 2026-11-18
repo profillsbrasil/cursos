@@ -192,7 +192,9 @@ function servidorFalso(relogio: Relogio) {
       pedidos.push({ ...p, emMs: relogio.agora() });
 
       if (falha) {
-        return Promise.resolve(falha);
+        const retorno: Promise<RespostaDoEnvio> = Promise.resolve(falha);
+
+        return retorno;
       }
 
       const r = aplicarRegistro(salvo, cota, p, new Date(relogio.agora()));
@@ -203,7 +205,7 @@ function servidorFalso(relogio: Relogio) {
       };
       ({ cota } = r);
 
-      return Promise.resolve({
+      const retorno: Promise<RespostaDoEnvio> = Promise.resolve({
         registro: {
           assistida: salvo.assistida,
           cobertura: cobertura(r.trechos, DURACAO),
@@ -215,6 +217,8 @@ function servidorFalso(relogio: Relogio) {
         },
         tipo: "ok",
       });
+
+      return retorno;
     },
     falhar(r: RespostaDoEnvio | null) {
       falha = r;
@@ -295,7 +299,11 @@ function montar(
   };
 }
 
-const t = (inicio: number, fim: number) => ({ fim, inicio });
+const t = (inicio: number, fim: number) => {
+  const trecho: Trecho = { fim, inicio };
+
+  return trecho;
+};
 
 describe("sessão de estudo", () => {
   test("tocar de 0 a 540 a 1x envia a cada 15 s e dá uma conquista", async () => {

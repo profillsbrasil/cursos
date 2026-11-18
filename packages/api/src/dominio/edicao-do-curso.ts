@@ -25,7 +25,6 @@ import type {
   ModuloId,
   PerguntaId,
   Versao,
-  VideoDaAula,
   VideoId,
 } from "./tipos";
 
@@ -254,7 +253,7 @@ export type FormularioLido =
  * O editor valida com o mesmo schema antes de enviar, então documento inválido
  * aqui é defeito ou envio forjado, e a frase não detalha.
  */
-export function lerFormularioDoCurso(fd: FormData) {
+export function lerFormularioDoCurso(fd: FormData): FormularioLido {
   const json = fd.get(CAMPO.documento);
 
   if (typeof json !== "string") {
@@ -335,7 +334,7 @@ const SEM_CATEGORIA = "" as CategoriaId;
  * dependem dele.
  */
 export function edicaoDeCursoNovo(id: CursoId) {
-  return {
+  const edicaoDoCurso: EdicaoDoCurso = {
     capa: null,
     codigo: null,
     documento: {
@@ -355,4 +354,6 @@ export function edicaoDeCursoNovo(id: CursoId) {
     slug: null,
     uso: SEM_USO,
   };
+
+  return edicaoDoCurso;
 }

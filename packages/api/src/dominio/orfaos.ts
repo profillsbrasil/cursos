@@ -56,7 +56,7 @@ export function orfaosDoBucket(
 ) {
   const referenciadas = chavesReferenciadas(emUso);
 
-  return objetos
+  const retorno: Orfao[] = objetos
     .values()
     .filter((o) => CHAVE_DO_APP.test(o.chave) && !referenciadas.has(o.chave))
     .map((o) => ({
@@ -66,6 +66,8 @@ export function orfaosDoBucket(
     .filter((o) => o.idadeEmDias > DIAS_ATE_COLETAR)
     .toArray()
     .sort((a, b) => b.idadeEmDias - a.idadeEmDias);
+
+  return retorno;
 }
 
 /**
@@ -74,7 +76,10 @@ export function orfaosDoBucket(
  * apagar recusa em vez de esvaziar o bucket.
  */
 export function recusaDoApagar(emUso: ChavesEmUso) {
-  return chavesReferenciadas(emUso).size === 0
-    ? "O banco não usa nenhuma chave dos buckets. Confira o DATABASE_URL antes de apagar."
-    : null;
+  const retorno: string | null =
+    chavesReferenciadas(emUso).size === 0
+      ? "O banco não usa nenhuma chave dos buckets. Confira o DATABASE_URL antes de apagar."
+      : null;
+
+  return retorno;
 }

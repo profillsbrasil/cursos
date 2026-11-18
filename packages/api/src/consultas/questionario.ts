@@ -47,7 +47,7 @@ export async function perguntasDaAula(exec: Executor, aulaId: AulaId) {
     },
   });
 
-  return perguntas.map((p) => {
+  const retorno: PerguntaComGabarito[] = perguntas.map((p) => {
     const certa = p.alternativas.find((a) => a.certa);
 
     if (!certa) {
@@ -64,6 +64,8 @@ export async function perguntasDaAula(exec: Executor, aulaId: AulaId) {
       id: p.id as PerguntaId,
     };
   });
+
+  return retorno;
 }
 
 export function tentativasDaAula(
@@ -71,21 +73,24 @@ export function tentativasDaAula(
   userId: string,
   aulaId: AulaId
 ) {
-  return exec.query.questionarioTentativa.findMany({
-    columns: {
-      acertos: true,
-      aprovada: true,
-      numero: true,
-      total: true,
-    },
-    orderBy: { numero: "asc" },
-    where: { aulaId, userId },
-    with: {
-      respostas: {
-        columns: { alternativaId: true, certa: true, perguntaId: true },
+  const retorno: Promise<TentativaGravada[]> =
+    exec.query.questionarioTentativa.findMany({
+      columns: {
+        acertos: true,
+        aprovada: true,
+        numero: true,
+        total: true,
       },
-    },
-  });
+      orderBy: { numero: "asc" },
+      where: { aulaId, userId },
+      with: {
+        respostas: {
+          columns: { alternativaId: true, certa: true, perguntaId: true },
+        },
+      },
+    });
+
+  return retorno;
 }
 
 /** Em série: a consulta roda também dentro da transação do envio, num client só. */
@@ -97,7 +102,9 @@ export async function linhasDoQuestionario(
   const perguntas = await perguntasDaAula(exec, aulaId);
   const tentativas = await tentativasDaAula(exec, userId, aulaId);
 
-  return { perguntas, tentativas };
+  const retorno: LinhasDoQuestionario = { perguntas, tentativas };
+
+  return retorno;
 }
 
 export interface EnvioDoQuestionario {
@@ -282,46 +289,57 @@ export function responder(
   envio: EnvioDoQuestionario,
   agora: Date
 ) {
-  return comAlunoTravado(db, userId, async (aluno) => {
-    const { cursoId, perguntas, tentativas } = await abrirQuestionario(
-      aluno,
-      perfil,
-      envio.aulaId
-    );
+  const retorno: Promise<RespostaAoEnvio> = comAlunoTravado(
+    db,
+    userId,
+    async (aluno) => {
+      const { cursoId, perguntas, tentativas } = await abrirQuestionario(
+        aluno,
+        perfil,
+        envio.aulaId
+      );
 
-    const gravado = await resultadoGravado(aluno, envio, perguntas, tentativas);
-
-    if (gravado) {
-      return { cursoConcluido: null, resultado: gravado };
-    }
-
-    const correcao = corrigir(perguntas, envio.respostas);
-
-    if (correcao.tipo === "incompleta") {
-      throw erroIncompleto(correcao.faltam);
-    }
-
-    const tentativa: TentativaGravada = {
-      acertos: correcao.acertos,
-      aprovada: correcao.aprovada,
-      numero: tentativas.length + 1,
-      respostas: correcao.respostas,
-      total: correcao.total,
-    };
-
-    await gravarTentativa(aluno, envio, tentativa, agora);
-
-    const cursoConcluido = tentativa.aprovada
-      ? await concluirCurso(aluno, cursoId, agora)
-      : null;
-
-    return {
-      cursoConcluido,
-      resultado: resultadoDaTentativa(
+      const gravado = await resultadoGravado(
+        aluno,
+        envio,
         perguntas,
-        tentativa,
-        tentativas[0] ?? tentativa
-      ),
-    };
-  });
+        tentativas
+      );
+
+      if (gravado) {
+        return { cursoConcluido: null, resultado: gravado };
+      }
+
+      const correcao = corrigir(perguntas, envio.respostas);
+
+      if (correcao.tipo === "incompleta") {
+        throw erroIncompleto(correcao.faltam);
+      }
+
+      const tentativa: TentativaGravada = {
+        acertos: correcao.acertos,
+        aprovada: correcao.aprovada,
+        numero: tentativas.length + 1,
+        respostas: correcao.respostas,
+        total: correcao.total,
+      };
+
+      await gravarTentativa(aluno, envio, tentativa, agora);
+
+      const cursoConcluido = tentativa.aprovada
+        ? await concluirCurso(aluno, cursoId, agora)
+        : null;
+
+      return {
+        cursoConcluido,
+        resultado: resultadoDaTentativa(
+          perguntas,
+          tentativa,
+          tentativas[0] ?? tentativa
+        ),
+      };
+    }
+  );
+
+  return retorno;
 }

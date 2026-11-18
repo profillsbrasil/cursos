@@ -31,7 +31,9 @@ export function indiceAtivo(caminho: string, itens: readonly ItemDoMenu[]) {
     }
 
     if (caminho === item.href) {
-      return { ariaCurrent: "page", indice };
+      const retorno: ItemAtivo | null = { ariaCurrent: "page", indice };
+
+      return retorno;
     }
 
     if (
@@ -39,7 +41,9 @@ export function indiceAtivo(caminho: string, itens: readonly ItemDoMenu[]) {
         caminho.startsWith(`${p}/`)
       )
     ) {
-      return { ariaCurrent: "true", indice };
+      const retorno: ItemAtivo | null = { ariaCurrent: "true", indice };
+
+      return retorno;
     }
   }
 
@@ -89,8 +93,10 @@ export function movimentoDaPilula(atual: number | null, reduzir: boolean) {
     return null;
   }
 
-  return {
+  const retorno: MovimentoDaPilula | null = {
     transform: `translateY(${atual * PASSO}px)`,
     transicao: { duration: reduzir ? 0 : DESLIZE_S, ease: CURVA_FORTE },
   };
+
+  return retorno;
 }

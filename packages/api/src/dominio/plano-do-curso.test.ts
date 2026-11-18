@@ -25,24 +25,33 @@ const NADA_SAI = {
 
 const CAPA_ATUAL = "/capas/atual.jpg";
 
-const capa = (url: string) => ({
-  altura: 720,
-  largura: 1280,
-  url,
-});
+const capa = (url: string) => {
+  const imagemDaCapa: ImagemDaCapa = {
+    altura: 720,
+    largura: 1280,
+    url,
+  };
+
+  return imagemDaCapa;
+};
 
 /** O documento como abrirCurso devolve: versão da árvore com a capa do banco. */
 function documento() {
   const d = documentoDeExemplo();
 
-  return { ...d, versao: versaoDoCurso(d, CAPA_ATUAL) };
+  const documentoDoCurso: DocumentoDoCurso = {
+    ...d,
+    versao: versaoDoCurso(d, CAPA_ATUAL),
+  };
+
+  return documentoDoCurso;
 }
 
 function edicao(
   doc: DocumentoDoCurso,
   assistidasPorAula: Record<string, number> = {}
 ) {
-  return {
+  const edicaoDoCurso: EdicaoDoCurso = {
     capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA_ATUAL },
     codigo: "CT-001",
     documento: doc,
@@ -55,6 +64,8 @@ function edicao(
       tentativasPorAula: {},
     },
   };
+
+  return edicaoDoCurso;
 }
 
 const editar = (

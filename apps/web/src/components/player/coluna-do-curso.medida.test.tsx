@@ -36,7 +36,7 @@ const idDaAula = (modulo: number, aula: number) =>
 function cursoNaAula(modulo: number, aula: number) {
   const atual = idDaAula(modulo, aula);
 
-  return {
+  const aulaNoPlayer: AulaNoPlayer = {
     amostra: null,
     anterior: null,
     aula: {
@@ -72,6 +72,8 @@ function cursoNaAula(modulo: number, aula: number) {
     proxima: null,
     questionario: null,
   };
+
+  return aulaNoPlayer;
 }
 
 /** "Cronograma reverso", a aula 4 do módulo 8, a da prova do PR #59. */

@@ -101,7 +101,10 @@ export function abertosDeSaida(p: PaginaDoCurso) {
 export type MarcaDoModulo = "feito" | "atual" | "pendente" | "questionario";
 
 /** Com as aulas do módulo assistidas, o que falta é o questionário de alguma delas. */
-export function marcaDoModulo(m: ModuloDaPagina, atual: AulaId | null) {
+export function marcaDoModulo(
+  m: ModuloDaPagina,
+  atual: AulaId | null
+): MarcaDoModulo {
   if (m.aulas.length > 0 && m.aulas.every((a) => a.assistida)) {
     return questionariosPendentes(m) > 0 ? "questionario" : "feito";
   }
@@ -139,15 +142,22 @@ export function linhasDoModulo(m: ModuloDaPagina, comecou: boolean) {
 /** O selo da aula no índice de livro, quando o questionário dela ainda falta. */
 export function seloDoQuestionario(a: AulaDaPagina) {
   switch (a.questionario.tipo) {
-    case "reprovado":
-      return {
+    case "reprovado": {
+      const retorno: { tipo: "a_fazer" | "reprovado"; texto: string } | null = {
         texto: `Questionário: ${a.questionario.ultima.acertos} de ${a.questionario.ultima.total} na última tentativa`,
         tipo: "reprovado",
       };
-    case "a_fazer":
-      return a.assistida
-        ? { texto: "Falta o questionário", tipo: "a_fazer" }
-        : null;
+
+      return retorno;
+    }
+
+    case "a_fazer": {
+      const retorno: { tipo: "a_fazer" | "reprovado"; texto: string } | null =
+        a.assistida ? { texto: "Falta o questionário", tipo: "a_fazer" } : null;
+
+      return retorno;
+    }
+
     default:
       return null;
   }
@@ -167,13 +177,23 @@ export function progressoDoCartao(p: PaginaDoCurso) {
   if (p.acao.tipo === "questionario") {
     const { questionarios } = p.acao;
 
-    return {
+    const retorno: {
+      linha: string;
+      progresso: Progresso;
+    } = {
       linha: `${questionarios.feitas} de ${plural(questionarios.total, "questionário aprovado", "questionários aprovados")}`,
       progresso: questionarios,
     };
+
+    return retorno;
   }
 
-  return { linha: aulasAssistidas(p.progresso), progresso: p.progresso };
+  const retorno: {
+    linha: string;
+    progresso: Progresso;
+  } = { linha: aulasAssistidas(p.progresso), progresso: p.progresso };
+
+  return retorno;
 }
 
 export type IconeDoCartao =
@@ -221,19 +241,27 @@ const CERTIFICADO_NO_FIM: LinhaDoCartao = {
 
 function linhaDosNiveis(p: PaginaDoCurso) {
   if (p.proximoNivel) {
-    return [{ icone: "nivel", texto: `Próximo nível: ${p.proximoNivel.nome}` }];
+    const retorno: LinhaDoCartao[] = [
+      { icone: "nivel", texto: `Próximo nível: ${p.proximoNivel.nome}` },
+    ];
+
+    return retorno;
   }
 
   if (p.niveis.length === 0) {
-    return [
+    const retorno: LinhaDoCartao[] = [
       {
         icone: "niveis",
         texto: `${plural(p.modulos.length, "módulo", "módulos")}, sem níveis`,
       },
     ];
+
+    return retorno;
   }
 
-  return [];
+  const retorno: LinhaDoCartao[] = [];
+
+  return retorno;
 }
 
 export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
@@ -243,7 +271,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
     case "comecar": {
       const { aula } = localizar(p, acao.aulaId);
 
-      return {
+      const retorno: CartaoDoCurso = {
         botao: {
           href: acao.href as Route,
           icone: "play",
@@ -264,13 +292,15 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
           ultimaTentativa: null,
         },
       };
+
+      return retorno;
     }
 
     case "continuar": {
       const { aula } = localizar(p, acao.aulaId);
       const resta = minutos(aula.duracaoSeg - acao.posicaoSeg);
 
-      return {
+      const retorno: CartaoDoCurso = {
         botao: {
           href: acao.href as Route,
           icone: "play",
@@ -294,13 +324,15 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
           ultimaTentativa: null,
         },
       };
+
+      return retorno;
     }
 
     case "questionario": {
       const { aula } = localizar(p, acao.aulaId);
       const faltamN = acao.questionarios.total - acao.questionarios.feitas;
 
-      return {
+      const retorno: CartaoDoCurso = {
         botao: {
           href: acao.href as Route,
           icone: "questionario",
@@ -326,6 +358,8 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
             : null,
         },
       };
+
+      return retorno;
     }
 
     case "rever": {
@@ -335,7 +369,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
 
       const { certificado } = p.estado;
 
-      return {
+      const retorno: CartaoDoCurso = {
         botao: {
           href: acao.href as Route,
           icone: "rever",
@@ -355,9 +389,14 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
           ultimaTentativa: null,
         },
       };
+
+      return retorno;
     }
 
-    default:
-      return acao satisfies never;
+    default: {
+      const retorno: CartaoDoCurso = acao satisfies never;
+
+      return retorno;
+    }
   }
 }

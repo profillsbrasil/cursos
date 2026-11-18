@@ -47,8 +47,16 @@ export function criarPlayerDeVideo(
   opcoes: OpcoesDoPlayer
 ) {
   switch (video.provedor) {
-    case "youtube":
-      return criarPlayerDoYoutube(video.id, elemento, opcoes);
+    case "youtube": {
+      const playerDeVideo: PlayerDeVideo = criarPlayerDoYoutube(
+        video.id,
+        elemento,
+        opcoes
+      );
+
+      return playerDeVideo;
+    }
+
     default: {
       const nenhum: never = video.provedor;
       throw new Error(`Provedor sem adaptador: ${String(nenhum)}`);

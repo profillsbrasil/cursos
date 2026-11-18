@@ -38,7 +38,7 @@ function linha(
 ) {
   const { titulo = id, ...resto } = parcial;
 
-  return {
+  const linhaDaPessoa: LinhaDaPessoa = {
     curso: { ...cursoCat(id, { aulas: [1] }), titulo },
     id: `lib-${id}` as LiberacaoId,
     liberadaEm: new Date("2026-10-01T12:00:00Z"),
@@ -46,6 +46,8 @@ function linha(
     revogadaEm: null,
     ...resto,
   };
+
+  return linhaDaPessoa;
 }
 
 describe("acaoNaLiberacao", () => {
@@ -68,14 +70,18 @@ describe("acaoNaLiberacao", () => {
   });
 });
 
-const doPerfil = (id: CursoId, titulo: string) => ({
-  curso: { ...cursoCat(id, { aulas: [1] }), titulo },
-  id: `lp-${id}` as LiberacaoDoPerfilId,
-  liberadaEm: new Date("2026-10-02T12:00:00Z"),
-  origem: "perfil",
-  perfil: "cliente",
-  revogadaEm: null,
-});
+const doPerfil = (id: CursoId, titulo: string) => {
+  const linhaDaLiberacao: LinhaDaLiberacao = {
+    curso: { ...cursoCat(id, { aulas: [1] }), titulo },
+    id: `lp-${id}` as LiberacaoDoPerfilId,
+    liberadaEm: new Date("2026-10-02T12:00:00Z"),
+    origem: "perfil",
+    perfil: "cliente",
+    revogadaEm: null,
+  };
+
+  return linhaDaLiberacao;
+};
 
 describe("montarAcesso", () => {
   const pessoa: Pessoa = {

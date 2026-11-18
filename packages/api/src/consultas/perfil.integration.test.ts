@@ -32,17 +32,21 @@ const S = hex();
 const AGORA = new Date("2026-10-20T13:00:00Z");
 const ADMIN = "user_admin" as AdminId;
 
-const conta = (email: string | null, emailVerificado = true) => ({
-  criadaEm: AGORA,
-  email,
-  emailVerificado,
-  foto: null,
-  jeitosDeEntrar: [],
-  nome: "Pessoa",
-  papel: "aluno",
-  ultimoAcesso: null,
-  userId: "user_x",
-});
+const conta = (email: string | null, emailVerificado = true) => {
+  const retorno: Conta = {
+    criadaEm: AGORA,
+    email,
+    emailVerificado,
+    foto: null,
+    jeitosDeEntrar: [],
+    nome: "Pessoa",
+    papel: "aluno",
+    ultimoAcesso: null,
+    userId: "user_x",
+  };
+
+  return retorno;
+};
 
 /** O login como perfilDe o vê. Sem convite, a chegada nunca grava papel. */
 const login = (lerConta: () => Promise<Conta | null>) => ({

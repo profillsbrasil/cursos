@@ -65,11 +65,15 @@ export interface CursoDoAluno {
 const aulasDe = (c: CursoComAulas) => c.modulos.flatMap((m) => m.aulas);
 
 // floor: 199 de 200 mostra 99%, nunca 100% com aula faltando
-const fracao = (feitas: number, total: number) => ({
-  feitas,
-  pct: total === 0 ? 0 : Math.floor((feitas * 100) / total),
-  total,
-});
+const fracao = (feitas: number, total: number) => {
+  const progresso: Progresso = {
+    feitas,
+    pct: total === 0 ? 0 : Math.floor((feitas * 100) / total),
+    total,
+  };
+
+  return progresso;
+};
 
 /** As aulas com questionário por aprovar, as reprovadas primeiro. */
 function questionariosPendentes(curso: CursoComAulas, h: Historico) {
@@ -109,14 +113,18 @@ function estadoDoCurso(
 
   if (cert) {
     // vence aula nova e volta a "em produção"
-    return { certificado: cert, tipo: "concluido" };
+    const estadoCurso: EstadoCurso = { certificado: cert, tipo: "concluido" };
+
+    return estadoCurso;
   }
 
   const aulas = aulasDe(curso);
   const [primeira] = aulas;
 
   if (curso.status === "em_producao" || !primeira) {
-    return { tipo: "em_breve" };
+    const estadoCurso: EstadoCurso = { tipo: "em_breve" };
+
+    return estadoCurso;
   }
 
   const tocado = aulas.some(
@@ -129,20 +137,24 @@ function estadoDoCurso(
   const proxima = aulas.find((a) => !h.assistidas.has(a.id));
 
   if (proxima) {
-    return tocado
+    const estadoCurso: EstadoCurso = tocado
       ? { proximaAula: proxima.id, tipo: "em_andamento" }
       : { primeiraAula: primeira.id, tipo: "nao_iniciado" };
+
+    return estadoCurso;
   }
 
   const proximaAula =
     pendentes[0] ?? aulas.find((a) => a.perguntas > 0)?.id ?? primeira.id;
 
-  return {
+  const estadoCurso: EstadoCurso = {
     aprovados: questionarios.feitas,
     proximaAula,
     tipo: "questionarios",
     total: questionarios.total,
   };
+
+  return estadoCurso;
 }
 
 /**
@@ -188,10 +200,12 @@ function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
 
     if (i !== -1) {
-      return {
+      const retorno: OndeNoCurso = {
         aula: numeroDaAula(i),
         modulo: { numero: modulo.numero, titulo: modulo.titulo },
       };
+
+      return retorno;
     }
   }
 
@@ -205,7 +219,7 @@ export function lerCursoDoAluno(curso: CursoComAulas, estudo: Estudo) {
   const estado = estadoDoCurso(curso, h, q.pendentes, q.progresso);
   const id = aulaDaVezId(curso, estado, estudo);
 
-  return {
+  const cursoDoAluno: CursoDoAluno = {
     aulaDaVez:
       id === null
         ? null
@@ -226,4 +240,6 @@ export function lerCursoDoAluno(curso: CursoComAulas, estudo: Estudo) {
     ),
     questionarios: q.progresso,
   };
+
+  return cursoDoAluno;
 }

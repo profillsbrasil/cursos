@@ -36,7 +36,7 @@ export function convitesDoClerk(
   clerk: ClerkClient,
   opcoes: { criarConta: string }
 ) {
-  return {
+  const convites: Convites = {
     async enviar(email, agora) {
       try {
         const convite = await clerk.invitations.createInvitation({
@@ -74,4 +74,6 @@ export function convitesDoClerk(
       }
     },
   };
+
+  return convites;
 }

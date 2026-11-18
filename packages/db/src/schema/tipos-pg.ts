@@ -18,10 +18,12 @@ export function lerMultirange(texto: string) {
   const miolo = texto.trim().replace(CHAVES, "");
 
   if (miolo === "") {
-    return [];
+    const retorno: FaixaSeg[] = [];
+
+    return retorno;
   }
 
-  return miolo.split(ENTRE_FAIXAS).map((parte) => {
+  const retorno: FaixaSeg[] = miolo.split(ENTRE_FAIXAS).map((parte) => {
     const m = FAIXA.exec(parte);
 
     if (!m) {
@@ -30,6 +32,8 @@ export function lerMultirange(texto: string) {
 
     return { fim: Number(m[2]), inicio: Number(m[1]) };
   });
+
+  return retorno;
 }
 
 export const escreverMultirange = (faixas: readonly FaixaSeg[]) =>

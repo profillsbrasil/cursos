@@ -14,8 +14,12 @@ export interface ContaParaEntrar {
   passwordEnabled: boolean;
 }
 
-export const contaDoGoogle = <C extends ContaParaEntrar>(c: C) =>
-  c.externalAccounts.find((a) => a.provider === "google") ?? null;
+export const contaDoGoogle = <C extends ContaParaEntrar>(c: C) => {
+  const retorno: C["externalAccounts"][number] | null =
+    c.externalAccounts.find((a) => a.provider === "google") ?? null;
+
+  return retorno;
+};
 
 /**
  * Desconectar o Google só quando sobra outro jeito de entrar: a senha, ou um

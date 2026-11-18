@@ -147,7 +147,7 @@ export async function abrirChromium(prefixo: string) {
   });
   let proximo = 0;
 
-  return (method, params = {}) => {
+  const enviar: Enviar = (method, params = {}) => {
     proximo += 1;
     const id = proximo;
 
@@ -160,6 +160,8 @@ export async function abrirChromium(prefixo: string) {
       ws.send(JSON.stringify({ id, method, params }));
     });
   };
+
+  return enviar;
 }
 
 /** Uma limpeza por vez: o perfil só sai depois que o processo terminou. */

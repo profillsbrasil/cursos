@@ -54,13 +54,19 @@ async function enviarRegistro(aulaId: AulaId, pedido: Pedido) {
       trechos: [...pedido.trechos],
     });
 
-    return { registro, tipo: "ok" };
+    const respostaDoEnvio: RespostaDoEnvio = { registro, tipo: "ok" };
+
+    return respostaDoEnvio;
   } catch (e) {
     const motivo = isTRPCClientError<AppRouter>(e)
       ? motivoParadoDe(String(e.data?.code))
       : undefined;
 
-    return motivo ? { motivo, tipo: "definitivo" } : { tipo: "rede" };
+    const respostaDoEnvio: RespostaDoEnvio = motivo
+      ? { motivo, tipo: "definitivo" }
+      : { tipo: "rede" };
+
+    return respostaDoEnvio;
   }
 }
 

@@ -19,7 +19,7 @@ export function criarRefreshDaSaida(
 ) {
   let gravouSemRefresh = false;
 
-  return {
+  const refreshDaSaida: RefreshDaSaida = {
     aoConquistar(c) {
       gravouSemRefresh = false;
       deps.pedirRefresh();
@@ -40,6 +40,8 @@ export function criarRefreshDaSaida(
         return r;
       }),
   };
+
+  return refreshDaSaida;
 }
 
 /**
@@ -58,7 +60,10 @@ export function ligarRefreshDaSaida(
     pedirRefresh,
   });
 
-  return {
+  const retorno: {
+    aoEncerrar: RefreshDaSaida["aoEncerrar"];
+    sessao: DependenciasDaSessao;
+  } = {
     aoEncerrar: saida.aoEncerrar,
     sessao: {
       ...daSessao,
@@ -66,4 +71,6 @@ export function ligarRefreshDaSaida(
       enviar: saida.enviar,
     },
   };
+
+  return retorno;
 }

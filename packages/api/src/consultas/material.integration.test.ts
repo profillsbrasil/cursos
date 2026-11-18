@@ -150,7 +150,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     const id = randomUUID() as CursoId;
     cursos.push(id);
 
-    return {
+    const documentoDoCurso: DocumentoDoCurso = {
       categoriaId,
       descricao: "",
       id,
@@ -180,6 +180,8 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
       topicos: [],
       versao: null,
     };
+
+    return documentoDoCurso;
   }
 
   async function salvar(documento: DocumentoDoCurso) {

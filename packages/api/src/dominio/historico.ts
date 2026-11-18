@@ -91,8 +91,10 @@ export interface Estudo {
 export function estudoDe(l: LinhasHistorico) {
   const comecadas = { ...l, posicoes: l.posicoes.filter(posicaoComecada) };
 
-  return {
+  const retorno: Estudo = {
     atividade: atividadeDe(comecadas),
     historico: historicoDe(comecadas),
   };
+
+  return retorno;
 }

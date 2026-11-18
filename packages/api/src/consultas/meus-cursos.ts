@@ -63,7 +63,7 @@ export function linhasDosQuestionarios(
 ) {
   const t = questionarioTentativa;
 
-  return exec
+  const retorno: Promise<LinhaDoQuestionario[]> = exec
     .select(COLUNAS_DO_QUESTIONARIO)
     .from(t)
     .where(
@@ -73,6 +73,8 @@ export function linhasDosQuestionarios(
       )
     )
     .groupBy(t.aulaId);
+
+  return retorno;
 }
 
 /**
@@ -143,7 +145,14 @@ export async function linhasDoHistorico(db: Database, userId: string) {
     consultasDoHistorico(db, userId)
   );
 
-  return { assistidas, certificados, posicoes, questionarios };
+  const linhasHistorico: LinhasHistorico = {
+    assistidas,
+    certificados,
+    posicoes,
+    questionarios,
+  };
+
+  return linhasHistorico;
 }
 
 /**
@@ -158,12 +167,14 @@ export async function linhasDoHistoricoNoCurso(
   const [assistidas, posicoes, certificados, questionarios] =
     consultasDoHistorico(aluno.tx, aluno.userId, noCurso);
 
-  return {
+  const linhasHistorico: LinhasHistorico = {
     assistidas: await assistidas,
     certificados: await certificados,
     posicoes: await posicoes,
     questionarios: await questionarios,
   };
+
+  return linhasHistorico;
 }
 
 /**
@@ -172,7 +183,10 @@ export async function linhasDoHistoricoNoCurso(
  * e a lista sai nessa ordem: a data e, no empate, o id da liberação. O curso sem
  * liberação própria ativa é a amostra, com o preço de troca.
  */
-export async function linhasDosCursosQueOAlunoVe(exec: Executor, aluno: Aluno) {
+export async function linhasDosCursosQueOAlunoVe(
+  exec: Executor,
+  aluno: Aluno
+): Promise<LinhasPainel["liberacoes"]> {
   const DA_LIBERACAO = { id: true, liberadaEm: true } as const;
 
   const cursos = await exec.query.curso.findMany({
@@ -260,7 +274,12 @@ export async function linhasDoResumo(
 }
 
 export async function carregarPainel(db: Database, aluno: Aluno, agora: Date) {
-  return montarPainel(await linhasDoPainel(db, aluno), diaLocal(agora));
+  const painelMeusCursos: PainelMeusCursos = montarPainel(
+    await linhasDoPainel(db, aluno),
+    diaLocal(agora)
+  );
+
+  return painelMeusCursos;
 }
 
 export async function carregarResumo(
@@ -270,8 +289,10 @@ export async function carregarResumo(
 ) {
   const hoje = diaLocal(agora);
 
-  return montarResumo(
+  const resumoAluno: ResumoAluno = montarResumo(
     await linhasDoResumo(db, userId, segundaDaSemana(hoje)),
     hoje
   );
+
+  return resumoAluno;
 }

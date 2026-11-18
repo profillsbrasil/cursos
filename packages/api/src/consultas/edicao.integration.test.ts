@@ -26,7 +26,6 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import {
   type DocumentoDoCurso,
-  type EdicaoDoCurso,
   formularioDoCurso,
   type ModuloDoDocumento,
   type PerguntaDoDocumento,
@@ -126,31 +125,35 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     video: null,
   });
 
-  const novaPergunta = (
-    enunciado: string,
-    textos: string[],
-    certa: number
-  ) => ({
-    alternativas: textos.map((texto, i) => ({
-      certa: i === certa,
-      id: randomUUID() as AlternativaId,
-      texto,
-    })),
-    enunciado,
-    id: randomUUID() as PerguntaId,
-  });
+  const novaPergunta = (enunciado: string, textos: string[], certa: number) => {
+    const perguntaDoDocumento: PerguntaDoDocumento = {
+      alternativas: textos.map((texto, i) => ({
+        certa: i === certa,
+        id: randomUUID() as AlternativaId,
+        texto,
+      })),
+      enunciado,
+      id: randomUUID() as PerguntaId,
+    };
+
+    return perguntaDoDocumento;
+  };
 
   const novoModulo = (
     numero: number,
     titulo: string,
     aulas: ModuloDoDocumento["aulas"] = []
-  ) => ({
-    aulas,
-    id: randomUUID() as ModuloId,
-    nivelOrdem: null,
-    numero,
-    titulo,
-  });
+  ) => {
+    const moduloDoDocumento: ModuloDoDocumento = {
+      aulas,
+      id: randomUUID() as ModuloId,
+      nivelOrdem: null,
+      numero,
+      titulo,
+    };
+
+    return moduloDoDocumento;
+  };
 
   let categoriaId: CategoriaId;
   beforeAll(async () => {
@@ -161,7 +164,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const id = randomUUID() as CursoId;
     cursos.push(id);
 
-    return {
+    const documentoDoCurso: DocumentoDoCurso = {
       categoriaId,
       descricao: "",
       id,
@@ -174,6 +177,8 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       topicos: [],
       versao: null,
     };
+
+    return documentoDoCurso;
   }
 
   /** Curso salvo pelo admin com dois módulos (0: A1, A2, A3; 1: B1) e um nível. */

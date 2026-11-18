@@ -184,7 +184,9 @@ export async function concluirCurso(
     })
     .onConflictDoNothing();
 
-  return { codigo };
+  const retorno: Conclusao | null = { codigo };
+
+  return retorno;
 }
 
 /**

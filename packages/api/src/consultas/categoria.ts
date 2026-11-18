@@ -27,13 +27,15 @@ export async function listarCategorias(db: Database) {
     .leftJoin(curso, eq(curso.categoriaId, categoria.id))
     .groupBy(categoria.id);
 
-  return linhas
+  const retorno: CategoriaNaLista[] = linhas
     .map((l) => ({
       cursos: l.cursos.toSorted(PT_BR.compare),
       id: l.id as CategoriaId,
       nome: l.nome,
     }))
     .toSorted((a, b) => PT_BR.compare(a.nome, b.nome));
+
+  return retorno;
 }
 
 /**

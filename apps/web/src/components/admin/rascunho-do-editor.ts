@@ -190,36 +190,59 @@ const comAlternativa = (
 
 export function mudar(r: RascunhoDoCurso, m: Mudanca) {
   switch (m.tipo) {
-    case "campos":
-      return { ...r, ...m.mudanca };
-    case "nivel_novo":
-      return { ...r, niveis: [...r.niveis, { nome: "", ordem: m.ordem }] };
-    case "nivel_renomeado":
-      return {
+    case "campos": {
+      const retorno: RascunhoDoCurso = { ...r, ...m.mudanca };
+
+      return retorno;
+    }
+
+    case "nivel_novo": {
+      const retorno: RascunhoDoCurso = {
+        ...r,
+        niveis: [...r.niveis, { nome: "", ordem: m.ordem }],
+      };
+
+      return retorno;
+    }
+
+    case "nivel_renomeado": {
+      const retorno: RascunhoDoCurso = {
         ...r,
         niveis: r.niveis.map((n) =>
           n.ordem === m.ordem ? { ...n, nome: m.nome } : n
         ),
       };
-    case "nivel_removido":
-      return {
+
+      return retorno;
+    }
+
+    case "nivel_removido": {
+      const retorno: RascunhoDoCurso = {
         ...r,
         modulos: r.modulos.map((x) =>
           x.nivelOrdem === m.ordem ? { ...x, nivelOrdem: null } : x
         ),
         niveis: r.niveis.filter((n) => n.ordem !== m.ordem),
       };
-    case "material_renomeado":
-      return {
+
+      return retorno;
+    }
+
+    case "material_renomeado": {
+      const retorno: RascunhoDoCurso = {
         ...r,
         materiais: r.materiais.map((x) =>
           x.id === m.id ? { ...x, titulo: m.titulo } : x
         ),
       };
+
+      return retorno;
+    }
+
     case "modulo_novo": {
       const numero = Math.max(0, ...r.modulos.map((x) => numeroDe(x) ?? 0));
 
-      return {
+      const retorno: RascunhoDoCurso = {
         ...r,
         modulos: [
           ...r.modulos,
@@ -232,23 +255,35 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
           },
         ],
       };
+
+      return retorno;
     }
 
-    case "modulo_editado":
-      return {
+    case "modulo_editado": {
+      const retorno: RascunhoDoCurso = {
         ...r,
         modulos: r.modulos.map((x) =>
           x.id === m.id ? { ...x, ...m.mudanca } : x
         ),
       };
-    case "modulos_ordenados":
-      return { ...r, modulos: porNumero(r.modulos) };
+
+      return retorno;
+    }
+
+    case "modulos_ordenados": {
+      const retorno: RascunhoDoCurso = { ...r, modulos: porNumero(r.modulos) };
+
+      return retorno;
+    }
+
     case "modulo_movido": {
       const i = r.modulos.findIndex((x) => x.id === m.id);
       const modulos = trocado(r.modulos, i, m.direcao);
 
       if (modulos === null) {
-        return r;
+        const retorno: RascunhoDoCurso = r;
+
+        return retorno;
       }
 
       const j = m.direcao === "acima" ? i - 1 : i + 1;
@@ -257,13 +292,22 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
       modulos[i] = { ...a, numero: b.numero };
       modulos[j] = { ...b, numero: a.numero };
 
-      return { ...r, modulos };
+      const retorno: RascunhoDoCurso = { ...r, modulos };
+
+      return retorno;
     }
 
-    case "modulo_removido":
-      return { ...r, modulos: r.modulos.filter((x) => x.id !== m.id) };
-    case "aula_nova":
-      return comAulas(r, m.moduloId, (aulas) => [
+    case "modulo_removido": {
+      const retorno: RascunhoDoCurso = {
+        ...r,
+        modulos: r.modulos.filter((x) => x.id !== m.id),
+      };
+
+      return retorno;
+    }
+
+    case "aula_nova": {
+      const retorno: RascunhoDoCurso = comAulas(r, m.moduloId, (aulas) => [
         ...aulas,
         {
           descricao: "",
@@ -274,20 +318,26 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
           video: "",
         },
       ]);
+
+      return retorno;
+    }
+
     case "aula_editada": {
       const de = moduloDaAula(r, m.id);
 
-      return de
+      const retorno: RascunhoDoCurso = de
         ? comAulas(r, de.id, (aulas) =>
             aulas.map((a) => (a.id === m.id ? { ...a, ...m.mudanca } : a))
           )
         : r;
+
+      return retorno;
     }
 
     case "aula_movida": {
       const de = moduloDaAula(r, m.id);
 
-      return de
+      const retorno: RascunhoDoCurso = de
         ? comAulas(r, de.id, (aulas) =>
             trocado(
               aulas,
@@ -296,6 +346,8 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
             )
           )
         : r;
+
+      return retorno;
     }
 
     case "aula_para_modulo": {
@@ -307,55 +359,85 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
         de.id === m.moduloId ||
         !r.modulos.some((x) => x.id === m.moduloId)
       ) {
-        return r;
+        const retorno: RascunhoDoCurso = r;
+
+        return retorno;
       }
 
       const sem = comAulas(r, de.id, (aulas) =>
         aulas.filter((a) => a.id !== m.id)
       );
 
-      return comAulas(sem, m.moduloId, (aulas) => [...aulas, aula]);
+      const retorno: RascunhoDoCurso = comAulas(sem, m.moduloId, (aulas) => [
+        ...aulas,
+        aula,
+      ]);
+
+      return retorno;
     }
 
     case "aula_removida": {
       const de = moduloDaAula(r, m.id);
 
-      return de
+      const retorno: RascunhoDoCurso = de
         ? comAulas(r, de.id, (aulas) => aulas.filter((a) => a.id !== m.id))
         : r;
+
+      return retorno;
     }
 
-    case "pergunta_nova":
-      return comPerguntas(r, m.aulaId, (perguntas) => [
-        ...perguntas,
-        {
-          alternativas: m.alternativas.map((id) => ({
-            certa: false,
-            id,
-            texto: "",
-          })),
-          enunciado: "",
-          id: m.id,
-        },
-      ]);
-    case "pergunta_editada":
-      return comPergunta(r, m.id, (p) => ({ ...p, enunciado: m.enunciado }));
+    case "pergunta_nova": {
+      const retorno: RascunhoDoCurso = comPerguntas(
+        r,
+        m.aulaId,
+        (perguntas) => [
+          ...perguntas,
+          {
+            alternativas: m.alternativas.map((id) => ({
+              certa: false,
+              id,
+              texto: "",
+            })),
+            enunciado: "",
+            id: m.id,
+          },
+        ]
+      );
+
+      return retorno;
+    }
+
+    case "pergunta_editada": {
+      const retorno: RascunhoDoCurso = comPergunta(r, m.id, (p) => ({
+        ...p,
+        enunciado: m.enunciado,
+      }));
+
+      return retorno;
+    }
+
     case "pergunta_removida": {
       const aula = aulaDaPergunta(r, m.id);
 
-      return aula
+      const retorno: RascunhoDoCurso = aula
         ? comPerguntas(r, aula.id, (perguntas) =>
             perguntas.filter((p) => p.id !== m.id)
           )
         : r;
+
+      return retorno;
     }
 
-    case "pergunta_restaurada":
-      return comPerguntas(r, m.aulaId, (perguntas) =>
+    case "pergunta_restaurada": {
+      const retorno: RascunhoDoCurso = comPerguntas(r, m.aulaId, (perguntas) =>
         perguntas.toSpliced(Math.min(m.indice, perguntas.length), 0, m.pergunta)
       );
-    case "alternativa_nova":
-      return comPergunta(r, m.perguntaId, (p) =>
+
+      return retorno;
+    }
+
+    case "alternativa_nova": {
+      const retorno: RascunhoDoCurso = comPergunta(r, m.perguntaId, (p) =>
         p.alternativas.length >= ALTERNATIVAS.max
           ? p
           : {
@@ -366,15 +448,23 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
               ],
             }
       );
-    case "alternativa_editada":
-      return comAlternativa(r, m.id, (p) => ({
+
+      return retorno;
+    }
+
+    case "alternativa_editada": {
+      const retorno: RascunhoDoCurso = comAlternativa(r, m.id, (p) => ({
         ...p,
         alternativas: p.alternativas.map((x) =>
           x.id === m.id ? { ...x, texto: m.texto } : x
         ),
       }));
-    case "alternativa_removida":
-      return comAlternativa(r, m.id, (p) =>
+
+      return retorno;
+    }
+
+    case "alternativa_removida": {
+      const retorno: RascunhoDoCurso = comAlternativa(r, m.id, (p) =>
         p.alternativas.length <= ALTERNATIVAS.min
           ? p
           : {
@@ -382,14 +472,22 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca) {
               alternativas: p.alternativas.filter((x) => x.id !== m.id),
             }
       );
-    case "certa_marcada":
-      return comPergunta(r, m.perguntaId, (p) => ({
+
+      return retorno;
+    }
+
+    case "certa_marcada": {
+      const retorno: RascunhoDoCurso = comPergunta(r, m.perguntaId, (p) => ({
         ...p,
         alternativas: p.alternativas.map((x) => ({
           ...x,
           certa: x.id === m.alternativaId,
         })),
       }));
+
+      return retorno;
+    }
+
     default: {
       const nenhuma: never = m;
       throw new Error(`Mudança sem regra: ${JSON.stringify(nenhuma)}`);
@@ -480,7 +578,7 @@ export function blocoDoModulo(
   m: ModuloDoRascunho,
   abertos: Abertos,
   marcados: Marcados
-) {
+): Bloco {
   const campos = camposComErro(m, marcados);
 
   if (campos > 0) {
@@ -550,13 +648,19 @@ function escolhasDepoisDe(e: Escolhas, m: Mudanca) {
   }
 }
 
-export function aulaEscolhida(m: ModuloDoRascunho, e: Escolhas) {
+export function aulaEscolhida(
+  m: ModuloDoRascunho,
+  e: Escolhas
+): AulaDoRascunho | null {
   const id = e.aulaPorModulo.get(m.id);
 
   return m.aulas.find((a) => a.id === id) ?? m.aulas[0] ?? null;
 }
 
-export function perguntaEscolhida(a: AulaDoRascunho, e: Escolhas) {
+export function perguntaEscolhida(
+  a: AulaDoRascunho,
+  e: Escolhas
+): PerguntaDoRascunho | null {
   const id = e.perguntaPorAula.get(a.id);
 
   return a.perguntas.find((p) => p.id === id) ?? a.perguntas[0] ?? null;
@@ -710,7 +814,7 @@ export interface RascunhoDoEditor {
 export function rascunhoDoEditorEm(pagina: DocumentoDoCurso) {
   const rascunho = rascunhoDoCurso(pagina);
 
-  return {
+  const retorno: RascunhoDoEditor = {
     abertos: abertosAoAbrir(rascunho),
     apoio: apoioEm(pagina),
     daGeracao: INICIO_DA_GERACAO,
@@ -719,6 +823,8 @@ export function rascunhoDoEditorEm(pagina: DocumentoDoCurso) {
     geracao: 0,
     rascunho,
   };
+
+  return retorno;
 }
 
 /** O que o Salvar manda, e o que a resposta do servidor precisa de volta. */
@@ -827,7 +933,7 @@ export function telaDo(e: RascunhoDoEditor) {
     ? achados
     : achados.filter((p) => p.campo !== null && deixados.has(p.campo));
 
-  return {
+  const retorno: Tela = {
     envio,
     erros: errosPorCampo(problemas),
     novo: ehNovo(e),
@@ -835,6 +941,8 @@ export function telaDo(e: RascunhoDoEditor) {
     sujo: ehSujo(e),
     versaoMudou: e.apoio.versaoDeFora,
   };
+
+  return retorno;
 }
 
 const naGeracao = (e: RascunhoDoEditor, mudanca: Partial<DaGeracao>) => ({
@@ -884,7 +992,7 @@ export function dentroDoLimite(
 
   let vagas = LIMITES.materiais - e.rascunho.materiais.length - subindo;
 
-  return novos.map((x) => {
+  const retorno: EnvioDeMaterial[] = novos.map((x) => {
     if (x.estado.tipo !== "enviando") {
       return x;
     }
@@ -895,6 +1003,8 @@ export function dentroDoLimite(
       ? x
       : { ...x, estado: { motivo: RECUSA_DO_LIMITE, tipo: "recusado" } };
   });
+
+  return retorno;
 }
 
 /**
@@ -1018,7 +1128,10 @@ export function rascunhoDoEditor(antes: RascunhoDoEditor, a: AcaoDoEditor) {
     camposComErro(m, erros) > 0 && !e.abertos.has(m.id) ? [m.id] : []
   );
 
-  return comErro.length > 0
-    ? { ...e, abertos: comErro.reduce(comAberto, e.abertos) }
-    : e;
+  const retorno: RascunhoDoEditor =
+    comErro.length > 0
+      ? { ...e, abertos: comErro.reduce(comAberto, e.abertos) }
+      : e;
+
+  return retorno;
 }

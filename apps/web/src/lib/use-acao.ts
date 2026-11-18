@@ -77,11 +77,13 @@ export function useAcao() {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
 
-  return {
+  const acao: Acao = {
     executar: (fazer, opcoes = {}) =>
       iniciar(() =>
         rodarAcao(fazer, opcoes, { atualizar: () => router.refresh(), toast })
       ),
     pendente,
   };
+
+  return acao;
 }

@@ -88,9 +88,11 @@ async function lerChegada(db: Database, userId: string, agora: Date) {
       from perfil_da_pessoa p
      where p.user_id = ${userId}`);
 
-  return linha
+  const retorno: Chegada | null = linha
     ? { papelPorAplicar: linha.papel_por_aplicar, perfil: linha.perfil }
     : null;
+
+  return retorno;
 }
 
 /** O curso que sumiu (null) fica de fora, e a chegada libera os outros. */
@@ -139,7 +141,7 @@ export async function perfilDe(
   userId: string,
   pessoas: Pick<Pessoas, "conta" | "definirPapel">,
   agora: Date
-) {
+): Promise<Perfil> {
   const lido = await lerChegada(db, userId, agora);
 
   if (lido) {
@@ -243,12 +245,16 @@ export function definirPerfil(
 /** As linhas de perfil desses userIds; quem ainda não entrou no app não tem. */
 export function linhasDosPerfis(db: Database, userIds: readonly string[]) {
   if (userIds.length === 0) {
-    return Promise.resolve([]);
+    const retorno: Promise<LinhaDoPerfil[]> = Promise.resolve([]);
+
+    return retorno;
   }
 
-  return db.query.perfilDaPessoa.findMany({
+  const retorno: Promise<LinhaDoPerfil[]> = db.query.perfilDaPessoa.findMany({
     where: { userId: { in: [...userIds] } },
   });
+
+  return retorno;
 }
 
 /** Quem tem o perfil, da mudança mais recente para a mais antiga. */

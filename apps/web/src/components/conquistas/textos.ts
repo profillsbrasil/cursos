@@ -72,70 +72,90 @@ function primeiraAula(m: PorGanhar<MedalhaDo<"primeira_aula">>) {
   const p = m.proxima;
   const verbo = p?.tipo === "continuar" ? "Termine" : "Comece por";
 
-  return {
+  const retorno: Frases = {
     detalhe: "A aula conta quando você a assiste até o fim.",
     falta: p
       ? `${verbo} ${p.aula}, em ${p.curso}.`
       : "Assista a uma aula até o fim.",
   };
+
+  return retorno;
 }
 
-const primeiraTroca = (m: PorGanhar<MedalhaDo<"primeira_troca">>) => ({
-  detalhe: `Cada aula vale ${fmtPts(m.pontosPorAula)}.`,
-  falta:
-    m.maisBarato === null
-      ? "Nenhum curso novo para trocar agora."
-      : `O curso mais barato custa ${fmtPts(m.maisBarato)}.`,
-});
+const primeiraTroca = (m: PorGanhar<MedalhaDo<"primeira_troca">>) => {
+  const retorno: Frases = {
+    detalhe: `Cada aula vale ${fmtPts(m.pontosPorAula)}.`,
+    falta:
+      m.maisBarato === null
+        ? "Nenhum curso novo para trocar agora."
+        : `O curso mais barato custa ${fmtPts(m.maisBarato)}.`,
+  };
 
-const primeiroCurso = (m: PorGanhar<MedalhaDo<"primeiro_curso">>) => ({
-  detalhe:
-    "O certificado sai com todas as aulas assistidas e todos os questionários aprovados.",
-  falta: m.maisPerto
-    ? proximoPassoDoCursoMaisPerto(m.maisPerto)
-    : "Conclua um curso e receba o certificado.",
-});
+  return retorno;
+};
+
+const primeiroCurso = (m: PorGanhar<MedalhaDo<"primeiro_curso">>) => {
+  const retorno: Frases = {
+    detalhe:
+      "O certificado sai com todas as aulas assistidas e todos os questionários aprovados.",
+    falta: m.maisPerto
+      ? proximoPassoDoCursoMaisPerto(m.maisPerto)
+      : "Conclua um curso e receba o certificado.",
+  };
+
+  return retorno;
+};
 
 const tresTrocas = (m: Contagem) => {
   const resta = m.total - m.feitas;
 
-  return {
+  const retorno: Frases = {
     detalhe: `Você trocou ${fmtNum(m.feitas)} de ${plural(m.total, "curso", "cursos")}.`,
     falta: `${faltam(resta)} ${plural(resta, "troca", "trocas")}.`,
   };
+
+  return retorno;
 };
 
-const amostraETroca = (m: PorGanhar<MedalhaDo<"amostra_e_troca">>) =>
-  m.amostraVista === null
-    ? {
-        detalhe:
-          "A amostra é a primeira aula de um curso que você ainda não tem.",
-        falta: `${faltam(m.total)} ${plural(m.total, "passo", "passos")}: ver uma amostra e trocar o curso.`,
-      }
-    : {
-        detalhe: "Você já assistiu à amostra; a troca é o segundo passo.",
-        falta: `Falta trocar ${m.amostraVista}.`,
-      };
+const amostraETroca = (m: PorGanhar<MedalhaDo<"amostra_e_troca">>) => {
+  const retorno: Frases =
+    m.amostraVista === null
+      ? {
+          detalhe:
+            "A amostra é a primeira aula de um curso que você ainda não tem.",
+          falta: `${faltam(m.total)} ${plural(m.total, "passo", "passos")}: ver uma amostra e trocar o curso.`,
+        }
+      : {
+          detalhe: "Você já assistiu à amostra; a troca é o segundo passo.",
+          falta: `Falta trocar ${m.amostraVista}.`,
+        };
+
+  return retorno;
+};
 
 function trocaAteOFim(m: PorGanhar<MedalhaDo<"troca_ate_o_fim">>) {
   const detalhe = "O certificado de um curso que você trocou fecha a medalha.";
   const c = m.maisAdiantado;
 
   if (!c) {
-    return { detalhe, falta: "Troque um curso e conclua-o." };
+    const retorno: Frases = { detalhe, falta: "Troque um curso e conclua-o." };
+
+    return retorno;
   }
 
-  return {
+  const retorno: Frases = {
     detalhe,
     falta:
       c.feitas === c.total
         ? `Só faltam os questionários de ${c.curso}.`
         : `${fmtNum(c.feitas)} de ${plural(c.total, "aula", "aulas")} de ${c.curso}.`,
   };
+
+  return retorno;
 }
 
-const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>) =>
-  m.melhor
+const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>) => {
+  const retorno: Frases = m.melhor
     ? {
         detalhe:
           "Acerte todas as perguntas de um questionário na primeira tentativa.",
@@ -146,19 +166,28 @@ const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>) =>
         falta: "Acerte todas as perguntas na primeira tentativa.",
       };
 
+  return retorno;
+};
+
 const tresCursos = (m: Contagem) => {
   const resta = m.total - m.feitas;
 
-  return {
+  const retorno: Frases = {
     detalhe: "Cada certificado conta um curso concluído.",
     falta: `${faltam(resta)} ${plural(resta, "curso", "cursos")}.`,
   };
+
+  return retorno;
 };
 
-const milPontos = (m: Contagem) => ({
-  detalhe: "Bônus e pontos do admin não contam.",
-  falta: `${fmtNum(m.feitas)} de ${fmtPts(m.total)}.`,
-});
+const milPontos = (m: Contagem) => {
+  const retorno: Frases = {
+    detalhe: "Bônus e pontos do admin não contam.",
+    falta: `${fmtNum(m.feitas)} de ${fmtPts(m.total)}.`,
+  };
+
+  return retorno;
+};
 
 function frases(m: MedalhaDaGrade) {
   const p = m.medalha;
@@ -168,40 +197,86 @@ function frases(m: MedalhaDaGrade) {
   }
 
   switch (m.tipo) {
-    case "primeira_aula":
-      return primeiraAula(p as PorGanhar<typeof m>);
-    case "primeira_troca":
-      return primeiraTroca(p as PorGanhar<typeof m>);
-    case "primeiro_curso":
-      return primeiroCurso(p as PorGanhar<typeof m>);
-    case "tres_trocas":
-      return tresTrocas(p as PorGanhar<typeof m>);
-    case "amostra_e_troca":
-      return amostraETroca(p as PorGanhar<typeof m>);
-    case "troca_ate_o_fim":
-      return trocaAteOFim(p as PorGanhar<typeof m>);
-    case "primeiro_questionario":
-      return {
+    case "primeira_aula": {
+      const retorno: Frases = primeiraAula(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "primeira_troca": {
+      const retorno: Frases = primeiraTroca(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "primeiro_curso": {
+      const retorno: Frases = primeiroCurso(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "tres_trocas": {
+      const retorno: Frases = tresTrocas(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "amostra_e_troca": {
+      const retorno: Frases = amostraETroca(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "troca_ate_o_fim": {
+      const retorno: Frases = trocaAteOFim(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "primeiro_questionario": {
+      const retorno: Frases = {
         detalhe: "Você pode tentar de novo quantas vezes quiser.",
         falta: "Seja aprovado no questionário de uma aula.",
       };
-    case "nota_cheia":
-      return notaCheia(p as PorGanhar<typeof m>);
-    case "tres_cursos":
-      return tresCursos(p as PorGanhar<typeof m>);
-    case "mil_pontos":
-      return milPontos(p as PorGanhar<typeof m>);
-    default:
-      return m satisfies never;
+
+      return retorno;
+    }
+
+    case "nota_cheia": {
+      const retorno: Frases = notaCheia(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "tres_cursos": {
+      const retorno: Frases = tresCursos(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    case "mil_pontos": {
+      const retorno: Frases = milPontos(p as PorGanhar<typeof m>);
+
+      return retorno;
+    }
+
+    default: {
+      const retorno: Frases = m satisfies never;
+
+      return retorno;
+    }
   }
 }
 
 export function linhaDaGrade(m: MedalhaDaGrade) {
   const base = { nome: NOME[m.tipo], tipo: m.tipo };
 
-  return m.medalha.estado === "ganha"
-    ? { ...base, dia: m.medalha.dia, estado: "ganha" }
-    : { ...base, estado: "por_ganhar", pct: m.medalha.pct, ...frases(m) };
+  const retorno: LinhaDaGrade =
+    m.medalha.estado === "ganha"
+      ? { ...base, dia: m.medalha.dia, estado: "ganha" }
+      : { ...base, estado: "por_ganhar", pct: m.medalha.pct, ...frases(m) };
+
+  return retorno;
 }
 
 const peloNome = (a: { nome: string }, b: { nome: string }) =>
@@ -214,7 +289,10 @@ const peloNome = (a: { nome: string }, b: { nome: string }) =>
 export function gradeDasMedalhas(medalhas: readonly MedalhaDaGrade[]) {
   const linhas = medalhas.map(linhaDaGrade);
 
-  return {
+  const retorno: {
+    ganhas: Extract<LinhaDaGrade, { estado: "ganha" }>[];
+    porGanhar: Extract<LinhaDaGrade, { estado: "por_ganhar" }>[];
+  } = {
     ganhas: linhas
       .filter((l) => l.estado === "ganha")
       .sort((a, b) => a.dia.localeCompare(b.dia) || peloNome(a, b)),
@@ -222,6 +300,8 @@ export function gradeDasMedalhas(medalhas: readonly MedalhaDaGrade[]) {
       .filter((l) => l.estado === "por_ganhar")
       .sort((a, b) => b.pct - a.pct || peloNome(a, b)),
   };
+
+  return retorno;
 }
 
 export const contagemDaGrade = (medalhas: readonly MedalhaDaGrade[]) =>
@@ -255,13 +335,18 @@ export function trilhaDeAulas(marcos: readonly Marco[]) {
 
   const porGanhar = degraus.find((d) => d.medalha.estado === "por_ganhar");
 
-  return {
+  const retorno: {
+    degraus: DegrauDaTrilha[];
+    feitas: number;
+  } = {
     degraus,
     feitas:
       porGanhar?.medalha.estado === "por_ganhar"
         ? porGanhar.medalha.feitas
         : (degraus.at(-1)?.meta ?? 0),
   };
+
+  return retorno;
 }
 
 const proximoDegrau = (degraus: readonly DegrauDaTrilha[]) =>
@@ -274,18 +359,22 @@ export function tituloDaTrilha(
   const proximo = proximoDegrau(degraus);
 
   if (!proximo) {
-    return [
+    const retorno: [string, string] = [
       `${plural(feitas, "aula assistida", "aulas assistidas")}.`,
       "As três medalhas de aulas são suas.",
     ];
+
+    return retorno;
   }
 
   const resta = proximo.meta - feitas;
 
-  return [
+  const retorno: [string, string] = [
     `${plural(feitas, "aula assistida", "aulas assistidas")}.`,
     `${faltam(resta)} ${fmtNum(resta)} para a medalha de ${fmtNum(proximo.meta)}.`,
   ];
+
+  return retorno;
 }
 
 /** O degrau seguinte fica só com a meta: o título da trilha já diz quanto falta para ele. */

@@ -29,8 +29,11 @@ export const setaDepoisDeMover = (direcao: Direcao, chegouNaBorda: boolean) => {
 };
 
 /** Quem recebe o foco quando um item some: o que toma o lugar dele, senão o anterior. */
-export const vizinhoQueFica = <T>(lista: readonly T[], i: number) =>
-  lista[i + 1] ?? lista[i - 1] ?? null;
+export const vizinhoQueFica = <T>(lista: readonly T[], i: number) => {
+  const retorno: T | null = lista[i + 1] ?? lista[i - 1] ?? null;
+
+  return retorno;
+};
 
 interface NaPagina<T> {
   compareDocumentPosition: (outro: T) => number;
@@ -79,17 +82,25 @@ export interface Apoio<D extends ComVersao> {
   versaoDeFora: boolean;
 }
 
-export const apoioEm = <D extends ComVersao>(pagina: D) => ({
-  base: pagina,
-  pagina,
-  versaoDeFora: false,
-});
+export const apoioEm = <D extends ComVersao>(pagina: D) => {
+  const retorno: Apoio<D> = {
+    base: pagina,
+    pagina,
+    versaoDeFora: false,
+  };
 
-export const apoioSalvo = <D extends ComVersao>(apoio: Apoio<D>, salvo: D) => ({
-  ...apoio,
-  base: salvo,
-  versaoDeFora: false,
-});
+  return retorno;
+};
+
+export const apoioSalvo = <D extends ComVersao>(apoio: Apoio<D>, salvo: D) => {
+  const retorno: Apoio<D> = {
+    ...apoio,
+    base: salvo,
+    versaoDeFora: false,
+  };
+
+  return retorno;
+};
 
 export interface Sincronia<D extends ComVersao> {
   apoio: Apoio<D>;
@@ -108,15 +119,24 @@ export function sincronizarComAPagina<D extends ComVersao>(
   { limpo, pagina }: { limpo: boolean; pagina: D }
 ) {
   if (pagina.versao === apoio.base.versao) {
-    return {
+    const retorno: Sincronia<D> = {
       apoio: { ...apoio, pagina, versaoDeFora: false },
       recomecar: false,
     };
+
+    return retorno;
   }
 
   if (limpo) {
-    return { apoio: apoioEm(pagina), recomecar: true };
+    const retorno: Sincronia<D> = { apoio: apoioEm(pagina), recomecar: true };
+
+    return retorno;
   }
 
-  return { apoio: { ...apoio, pagina, versaoDeFora: true }, recomecar: false };
+  const retorno: Sincronia<D> = {
+    apoio: { ...apoio, pagina, versaoDeFora: true },
+    recomecar: false,
+  };
+
+  return retorno;
 }

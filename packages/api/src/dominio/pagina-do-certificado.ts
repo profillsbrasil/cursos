@@ -50,25 +50,29 @@ export function nomeNoCertificado(p: Pessoa | null) {
 export const certificadoEmitido = (
   l: LinhaDoCertificado,
   pessoa: Pessoa | null
-) => ({
-  codigo: l.codigo,
-  emitidoEm: l.emitidoEm.toISOString(),
-  horas: cargaHoraria(l.segundosDeVideo),
-  nome: nomeNoCertificado(pessoa),
-  tituloDoCurso: l.tituloDoCurso,
-});
+) => {
+  const retorno: CertificadoEmitido = {
+    codigo: l.codigo,
+    emitidoEm: l.emitidoEm.toISOString(),
+    horas: cargaHoraria(l.segundosDeVideo),
+    nome: nomeNoCertificado(pessoa),
+    tituloDoCurso: l.tituloDoCurso,
+  };
+
+  return retorno;
+};
 
 export const paginaEmitida = (
   l: LinhaDoCertificado,
   pessoa: Pessoa | null
-) => ({
+): PaginaDoCertificado => ({
   categoria: l.categoria,
   certificado: certificadoEmitido(l, pessoa),
   slug: l.slug,
   tipo: "emitido",
 });
 
-export function paginaQueFalta(c: CursoAberto) {
+export function paginaQueFalta(c: CursoAberto): PaginaDoCertificado {
   const { progresso, questionarios } = c.leitura;
 
   return {

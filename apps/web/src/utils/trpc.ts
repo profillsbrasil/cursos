@@ -12,18 +12,27 @@ import {
   getClerkAuthTokenSemEspera,
 } from "@/utils/clerk-auth";
 
-const comToken = (token: string | null) =>
-  token ? { Authorization: `Bearer ${token}` } : {};
+const comToken = (token: string | null) => {
+  const retorno: Record<string, string> = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+
+  return retorno;
+};
 
 async function headers() {
   if (typeof window !== "undefined") {
-    return comToken(await getClerkAuthToken());
+    const retorno: Record<string, string> = comToken(await getClerkAuthToken());
+
+    return retorno;
   }
 
   const { auth } = await import("@clerk/nextjs/server");
   const clerkAuth = await auth();
 
-  return comToken(await clerkAuth.getToken());
+  const retorno: Record<string, string> = comToken(await clerkAuth.getToken());
+
+  return retorno;
 }
 
 // O registro só sai do browser, e também no pagehide, que não espera a rede.

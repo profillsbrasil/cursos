@@ -102,14 +102,18 @@ const nav = renderToStaticMarkup(
   </ProvedorDaCasca>
 );
 
-const aula = (id: string, titulo: string, atual: boolean) => ({
-  assistida: false,
-  atual,
-  duracaoSeg: 300,
-  id: id as AulaId,
-  questionario: { tipo: "sem" },
-  titulo,
-});
+const aula = (id: string, titulo: string, atual: boolean) => {
+  const aulaNaColuna: AulaNaColuna = {
+    assistida: false,
+    atual,
+    duracaoSeg: 300,
+    id: id as AulaId,
+    questionario: { tipo: "sem" },
+    titulo,
+  };
+
+  return aulaNaColuna;
+};
 
 const PRIMEIRA = aula("11111111-1111-4111-8111-111111111111", "Abertura", true);
 
@@ -218,17 +222,21 @@ const liberacao = (
   id: string,
   titulo: string,
   acao: LiberacaoNaTela["acao"]
-) => ({
-  acao,
-  acompanhamento: {
-    progresso: { feitas: 0, pct: 0, total: 2 },
-    situacao: { tipo: "nunca_abriu" },
-  },
-  curso: { id: id as CursoId, titulo },
-  id: id as LiberacaoId,
-  liberadaEm: "2026-10-01T15:00:00.000Z",
-  origem: "admin",
-});
+) => {
+  const liberacaoNaTela: LiberacaoNaTela = {
+    acao,
+    acompanhamento: {
+      progresso: { feitas: 0, pct: 0, total: 2 },
+      situacao: { tipo: "nunca_abriu" },
+    },
+    curso: { id: id as CursoId, titulo },
+    id: id as LiberacaoId,
+    liberadaEm: "2026-10-01T15:00:00.000Z",
+    origem: "admin",
+  };
+
+  return liberacaoNaTela;
+};
 
 const acesso = renderToStaticMarkup(
   <AcessoDoAluno
@@ -364,20 +372,24 @@ const ATRIBUTO = /([\w:-]+)(?:="([^"]*)")?/g;
 const ESPACO = /\s+/;
 
 function elementos(html: string) {
-  return [...html.matchAll(TAG)].map(([, , attrs = "", texto = ""]) => {
-    const atributos = Object.fromEntries(
-      [...attrs.matchAll(ATRIBUTO)].map(([, nome = "", valor = ""]) => [
-        nome,
-        valor.replaceAll("&amp;", "&"),
-      ])
-    );
+  const retorno: Elemento[] = [...html.matchAll(TAG)].map(
+    ([, , attrs = "", texto = ""]) => {
+      const atributos = Object.fromEntries(
+        [...attrs.matchAll(ATRIBUTO)].map(([, nome = "", valor = ""]) => [
+          nome,
+          valor.replaceAll("&amp;", "&"),
+        ])
+      );
 
-    return {
-      atributos,
-      classes: (atributos.class ?? "").split(ESPACO).filter(Boolean),
-      texto,
-    };
-  });
+      return {
+        atributos,
+        classes: (atributos.class ?? "").split(ESPACO).filter(Boolean),
+        texto,
+      };
+    }
+  );
+
+  return retorno;
 }
 
 const todos = [

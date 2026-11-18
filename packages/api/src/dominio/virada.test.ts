@@ -30,12 +30,16 @@ const cursoDaBusca = (id: string, mudar: Partial<CursoDaBusca> = {}) => ({
   ...mudar,
 });
 
-const doPerfil = (cursoId: string) => ({
-  cursoId,
-  liberadaEm: AGORA,
-  origem: "perfil",
-  revogadaEm: null,
-});
+const doPerfil = (cursoId: string) => {
+  const liberacaoDaBusca: LiberacaoDaBusca = {
+    cursoId,
+    liberadaEm: AGORA,
+    origem: "perfil",
+    revogadaEm: null,
+  };
+
+  return liberacaoDaBusca;
+};
 
 const SEM_ESTUDO: LinhasHistorico = {
   assistidas: [],
@@ -44,13 +48,17 @@ const SEM_ESTUDO: LinhasHistorico = {
   questionarios: [],
 };
 
-const assistiu = (...aulas: string[]) => ({
-  ...SEM_ESTUDO,
-  assistidas: aulas.map((aulaId) => ({ assistidaEm: AGORA, aulaId })),
-});
+const assistiu = (...aulas: string[]) => {
+  const linhasHistorico: LinhasHistorico = {
+    ...SEM_ESTUDO,
+    assistidas: aulas.map((aulaId) => ({ assistidaEm: AGORA, aulaId })),
+  };
+
+  return linhasHistorico;
+};
 
 function pessoa(mudar: Partial<PessoaNaVirada> = {}) {
-  return {
+  const pessoaNaVirada: PessoaNaVirada = {
     cursos: [cursoDaBusca("c1")],
     liberacoes: [doPerfil("c1")],
     perfil: "funcionario",
@@ -61,6 +69,8 @@ function pessoa(mudar: Partial<PessoaNaVirada> = {}) {
     ...SEM_ESTUDO,
     ...mudar,
   };
+
+  return pessoaNaVirada;
 }
 
 describe("planejarVirada", () => {

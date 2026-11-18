@@ -19,17 +19,21 @@ const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 const ADMIN = `user_admin${S}`;
 
-const conta = (userId: string, email: string) => ({
-  criadaEm: new Date("2026-10-01T12:00:00Z"),
-  email,
-  emailVerificado: true,
-  foto: null,
-  jeitosDeEntrar: [],
-  nome: `Pessoa ${userId}`,
-  papel: "aluno",
-  ultimoAcesso: null,
-  userId,
-});
+const conta = (userId: string, email: string) => {
+  const retorno: Conta = {
+    criadaEm: new Date("2026-10-01T12:00:00Z"),
+    email,
+    emailVerificado: true,
+    foto: null,
+    jeitosDeEntrar: [],
+    nome: `Pessoa ${userId}`,
+    papel: "aluno",
+    ultimoAcesso: null,
+    userId,
+  };
+
+  return retorno;
+};
 
 /** O login como perfilDe o vê. Sem convite, a chegada nunca grava papel. */
 const login = (daPessoa: Conta) => ({

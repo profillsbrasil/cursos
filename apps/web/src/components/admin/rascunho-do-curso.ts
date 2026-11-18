@@ -73,7 +73,7 @@ const linkDoVideo = (v: AulaDoDocumento["video"]) =>
   v ? linkCurtoDoVideo(v) : "";
 
 export function rascunhoDoCurso(d: DocumentoDoCurso) {
-  return {
+  const retorno: RascunhoDoCurso = {
     categoriaId: d.categoriaId,
     descricao: d.descricao,
     id: d.id,
@@ -102,6 +102,8 @@ export function rascunhoDoCurso(d: DocumentoDoCurso) {
     titulo: d.titulo,
     topicos: [...d.topicos],
   };
+
+  return retorno;
 }
 
 export const mesmoRascunho = (a: RascunhoDoCurso, b: RascunhoDoCurso) =>
@@ -145,15 +147,22 @@ export function lerDuracao(texto: string) {
   const seg = duracaoDoTexto(texto);
 
   if (seg === null) {
-    return { erro: "Escreva a duração em mm:ss, como 12:30." };
+    const retorno: Leitura<number> = {
+      erro: "Escreva a duração em mm:ss, como 12:30.",
+    };
+
+    return retorno;
   }
 
-  return seg > DURACAO_MAXIMA_SEG
-    ? { erro: `Uma aula tem no máximo ${DURACAO_MAXIMA_SEG / 3600} horas.` }
-    : { valor: seg };
+  const retorno: Leitura<number> =
+    seg > DURACAO_MAXIMA_SEG
+      ? { erro: `Uma aula tem no máximo ${DURACAO_MAXIMA_SEG / 3600} horas.` }
+      : { valor: seg };
+
+  return retorno;
 }
 
-export function lerVideo(texto: string) {
+export function lerVideo(texto: string): Leitura<AulaDoDocumento["video"]> {
   if (texto.trim() === "") {
     return { valor: null };
   }
@@ -169,7 +178,8 @@ export function lerVideo(texto: string) {
 const SO_ALGARISMOS = /^\d+$/;
 
 const lerInteiro =
-  (min: number, max: number, erro: string) => (texto: string) => {
+  (min: number, max: number, erro: string) =>
+  (texto: string): Leitura<number> => {
     const s = texto.trim();
     const n = Number(s);
 
@@ -372,7 +382,7 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean) {
 export function lerRascunho(
   r: RascunhoDoCurso,
   salvo: Pick<DocumentoDoCurso, "versao">
-) {
+): RascunhoLido {
   const problemas: Problema[] = [];
 
   const ler = <T>(leitura: Leitura<T>, campo: string, substituto: T) => {

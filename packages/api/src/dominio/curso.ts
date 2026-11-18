@@ -46,8 +46,10 @@ export function niveis(curso: CursoCatalogo, assistidas: ReadonlySet<AulaId>) {
   });
 
   // Nível sem aulas nunca é obtido, então não pode ser o próximo.
-  return {
+  const retorno: { faixas: FaixaNivel[]; proximo: FaixaNivel | null } = {
     faixas,
     proximo: faixas.find((f) => f.total > 0 && !f.obtido) ?? null,
   };
+
+  return retorno;
 }

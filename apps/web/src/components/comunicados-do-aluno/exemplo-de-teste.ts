@@ -5,17 +5,21 @@ import type {
 } from "@cursos/api/dominio/comunicado";
 import type { ComunicadoId, DiaISO } from "@cursos/api/dominio/tipos";
 
-const curso = (slug: string, titulo: string) => ({
-  capa: {
-    alt: `Capa de ${titulo}`,
-    altura: 604,
-    largura: 900,
-    url: `/capas/${slug}.jpg`,
-  },
-  href: `/cursos/${slug}`,
-  tipo: "curso",
-  titulo,
-});
+const curso = (slug: string, titulo: string) => {
+  const alvoDoComunicado: AlvoDoComunicado = {
+    capa: {
+      alt: `Capa de ${titulo}`,
+      altura: 604,
+      largura: 900,
+      url: `/capas/${slug}.jpg`,
+    },
+    href: `/cursos/${slug}`,
+    tipo: "curso",
+    titulo,
+  };
+
+  return alvoDoComunicado;
+};
 
 const COMERCIAL = curso("comercial", "Comercial");
 const FABRICA = curso("fabrica", "Fábrica e montagem");
@@ -28,15 +32,19 @@ const comunicado = (
   publicadoPor: string | null,
   titulo: string,
   texto: string
-) => ({
-  alvo,
-  dia: dia as DiaISO,
-  id: id as ComunicadoId,
-  publicadoEm: `${dia}T13:00:00.000Z`,
-  publicadoPor,
-  texto,
-  titulo,
-});
+) => {
+  const comunicadoDoAluno: ComunicadoDoAluno = {
+    alvo,
+    dia: dia as DiaISO,
+    id: id as ComunicadoId,
+    publicadoEm: `${dia}T13:00:00.000Z`,
+    publicadoPor,
+    texto,
+    titulo,
+  };
+
+  return comunicadoDoAluno;
+};
 
 const DESTAQUE = comunicado(
   "c1",
