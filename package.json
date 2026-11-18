@@ -53,6 +53,7 @@
   "devDependencies": {
     "@cursos/config": "workspace:*",
     "@interfere/landmines": "0.1.0",
+    "@oxlint/plugins": "1.94.0",
     "@types/node": "catalog:",
     "oxfmt": "0.79.0",
     "oxlint": "1.94.0",

@@ -80,6 +80,7 @@ export default defineConfig({
   env: core.env,
   extends: [core, react, next],
   jsPlugins: [
+    { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
     { name: "landmines-testing", specifier: "@interfere/landmines/testing" },
     {
       name: "landmines-structure",
@@ -96,6 +97,7 @@ export default defineConfig({
     "packages/ui/src/hooks/**",
     "packages/ui/src/lib/utils.ts",
     "apps/web/public/**",
+    "tools/oxlint/anti-slop/**",
   ],
   overrides: [
     {

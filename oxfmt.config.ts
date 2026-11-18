@@ -9,5 +9,6 @@ export default defineConfig({
     ".claude/settings.local.json",
     ".impeccable/config.json",
     "**/*.md",
+    "tools/oxlint/anti-slop/**",
   ],
 });
