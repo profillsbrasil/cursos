@@ -413,13 +413,18 @@ function regrasDoCss(texto: string): Regra[] {
 
 const regras = regrasDoCss(css.slice(css.indexOf("@layer utilities")));
 
-/** As regras da classe: `hover:bg-x` é escrita `.hover\:bg-x` no começo do seletor. */
+/**
+ * As regras da classe: `hover:bg-x` é escrita `.hover\:bg-x` no começo do seletor,
+ * e `group-hover:x` fecha o seletor `:is(<grupo> .group-hover\:x)` desde o
+ * Tailwind 4.3.4.
+ */
 function regrasDe(classe: string) {
   const escapada = `.${classe.replace(/[^\w-]/g, (c) => `\\${c}`)}`;
   return regras.filter(
     (r) =>
-      r.seletor.startsWith(escapada) &&
-      !CONTINUA_A_CLASSE.test(r.seletor.slice(escapada.length))
+      (r.seletor.startsWith(escapada) &&
+        !CONTINUA_A_CLASSE.test(r.seletor.slice(escapada.length))) ||
+      r.seletor.endsWith(` ${escapada})`)
   );
 }
 const CONTINUA_A_CLASSE = /^(?:\\.|[\w-])/;

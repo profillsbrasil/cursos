@@ -65,10 +65,17 @@ interface Regra {
   seletor: string;
 }
 
-/** `.hover\:bg-muted:is(...)` vira `hover:bg-muted`: a primeira classe, sem escapes. */
+/**
+ * `.hover\:bg-muted:is(...)` vira `hover:bg-muted`: a primeira classe, sem escapes.
+ * O `group-hover:x` sai `:is(<grupo> .group-hover\:x)` desde o Tailwind 4.3.4, e
+ * aí a classe é a última.
+ */
 function classeDe(seletor: string) {
   let classe = "";
-  let i = seletor.search(PRIMEIRO_PONTO) + 1;
+  let i =
+    (seletor.startsWith(":is(")
+      ? seletor.lastIndexOf(" .") + 1
+      : seletor.search(PRIMEIRO_PONTO)) + 1;
   while (i < seletor.length) {
     const c = seletor[i] ?? "";
     if (c === "\\") {
