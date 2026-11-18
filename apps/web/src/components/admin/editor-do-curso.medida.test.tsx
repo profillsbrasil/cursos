@@ -27,10 +27,12 @@ import { NADA_ESCOLHIDO } from "./rascunho-do-editor";
 
 // Fora do App Router o useRouter lança; a categoria da Capa e descrição cria pelo useAcao.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
 }));
+
 const { CapaEDescricao } = await import("./capa-e-descricao");
 
 const nada = () => undefined;
@@ -38,9 +40,11 @@ const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
 
 const documento = documentoDeExemplo();
 const a1 = documento.modulos[0]?.aulas[0];
+
 if (!a1) {
   throw new Error("o exemplo não tem aula");
 }
+
 a1.perguntas = [
   perguntaDeExemplo(
     EDICAO.P1,
@@ -53,6 +57,7 @@ a1.perguntas = [
     "A linha do cliente precisa rodar em 1º de março, e a fabricação leva 90 dias. O que o cronograma reverso mostra?"
   ),
 ];
+
 const rascunho = {
   ...rascunhoDoCurso(documento),
   descricao: Array.from(
@@ -60,10 +65,13 @@ const rascunho = {
     (_, i) => `Parágrafo ${i + 1} da descrição do curso.`
   ).join("\n\n"),
 };
+
 const [m1] = rascunho.modulos;
+
 if (!m1) {
   throw new Error("o exemplo não tem módulo");
 }
+
 const CAPA = {
   alt: "Capa",
   altura: 604,
@@ -81,6 +89,7 @@ const vitrine = renderToStaticMarkup(
     slug="curso"
   />
 );
+
 const modulos = renderToStaticMarkup(
   <ModulosDoCurso
     abertos={new Set([m1.id])}
@@ -105,6 +114,7 @@ const alavancas = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [vitrine, modulos, alavancas].flatMap((html) =>
     // O renderToStaticMarkup escreve o & do seletor da alavanca como &amp;.
@@ -251,6 +261,7 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
           type,
           windowsVirtualKeyCode: 9,
         });
+
       await tecla("keyDown");
       await tecla("keyUp");
       const focado = await avaliar<string>(enviar, "document.activeElement.id");
@@ -273,11 +284,13 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
 
     test("a alavanca tem 40 por 24 px, com o polegar de 18 px a 3 px da borda", () => {
       const [ligada, desligada] = m.alavancas;
+
       for (const a of m.alavancas) {
         expect([a.largura, a.altura, a.polegar.lado, a.polegar.topo]).toEqual([
           40, 24, 18, 3,
         ]);
       }
+
       expect(desligada.polegar.recuo).toBe(3);
       expect(ligada.polegar.recuo).toBe(40 - 3 - 18);
     });

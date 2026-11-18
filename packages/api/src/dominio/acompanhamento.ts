@@ -108,23 +108,28 @@ const maisRecente = (dias: readonly (DiaISO | null)[]): DiaISO | null =>
  */
 export function ultimoEstudo(curso: CursoComAulas, e: Estudo): DiaISO | null {
   let ultimo = e.historico.certificados.get(curso.id)?.emitidoEm ?? "";
+
   for (const modulo of curso.modulos) {
     for (const aula of modulo.aulas) {
       const quando = e.atividade.get(aula.id) ?? "";
+
       if (quando > ultimo) {
         ultimo = quando;
       }
     }
   }
+
   return ultimo ? diaDe(ultimo) : null;
 }
 
 /** Curso em andamento ou com questionário pendente sempre tem estudo: a leitura do curso só chega lá com aula tocada. */
 function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
   const dia = ultimoEstudo(curso, e);
+
   if (!dia) {
     throw new Error(`Curso ${curso.titulo} começado sem estudo registrado.`);
   }
+
   return dia;
 }
 
@@ -142,13 +147,16 @@ function situacaoNoCurso(
       if (!aulaDaVez) {
         throw new Error(`Curso ${curso.titulo} em andamento sem aula.`);
       }
+
       const { onde } = aulaDaVez;
+
       return {
         onde: { aula: onde.aula, modulo: onde.modulo.numero },
         tipo: "estudando",
         ultimoEstudo: estudou(curso, e),
       };
     }
+
     case "questionarios":
       return {
         aprovados: estado.aprovados,
@@ -171,6 +179,7 @@ export function acompanharCurso(
   e: Estudo
 ): Acompanhamento {
   const leitura = lerCursoDoAluno(curso, e);
+
   return {
     progresso: leitura.progresso,
     situacao: situacaoNoCurso(curso, leitura, e),
@@ -235,11 +244,14 @@ export function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
       },
     ])
   );
+
   return (id) => {
     const c = cursos.get(id);
+
     if (!c) {
       throw new Error(`Curso ${id} alcançado e fora do catálogo da busca.`);
     }
+
     return c;
   };
 }
@@ -252,27 +264,35 @@ export function situacaoDaPessoa(
   curso: CatalogoDaBusca
 ): SituacaoDaPessoa {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
+
   if (ativas.length === 0) {
     const revogacoes = p.liberacoes.flatMap((l) =>
       l.revogadaEm ? [diaLocal(l.revogadaEm)] : []
     );
+
     return {
       revogadas: revogacoes.length,
       tipo: "sem_liberacao",
       ultimaRevogacao: maisRecente(revogacoes),
     };
   }
+
   const e = estudoDe(p);
+
   const naTela = ativas
     .map((l) => curso(l.cursoId))
     .map((c) => ({ curso: c, estado: lerCursoDoAluno(c, e).estado }));
+
   const contaveis = naTela.filter((x) => x.estado.tipo !== "em_breve");
+
   const numeros: NumerosDaPessoa = {
     concluidos: contaveis.filter((x) => x.estado.tipo === "concluido").length,
     cursos: contaveis.length,
     emProducao: naTela.length - contaveis.length,
   };
+
   const ultimo = maisRecente(naTela.map((x) => ultimoEstudo(x.curso, e)));
+
   if (!ultimo) {
     return {
       desde: diaLocal(maisAntiga(ativas.map((l) => l.liberadaEm))),
@@ -280,9 +300,11 @@ export function situacaoDaPessoa(
       tipo: "nunca_abriu",
     };
   }
+
   if (numeros.cursos > 0 && numeros.concluidos === numeros.cursos) {
     return { numeros, tipo: "concluiu_tudo", ultimoEstudo: ultimo };
   }
+
   return { numeros, tipo: "estudando", ultimoEstudo: ultimo };
 }
 
@@ -294,13 +316,16 @@ export function montarBusca(
 ): BuscaDeAlunos {
   const curso = catalogoDo(linhas);
   const porPessoa = new Map(linhas.pessoas.map((p) => [p.userId, p]));
+
   return {
     hoje,
     pessoas: resultado.pessoas.map((pessoa) => {
       const p = porPessoa.get(pessoa.userId);
+
       if (!p) {
         throw new Error(`O statement da busca não trouxe ${pessoa.userId}.`);
       }
+
       return {
         ...pessoa,
         ativas: p.liberacoes.flatMap((l) =>

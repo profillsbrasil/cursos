@@ -10,6 +10,7 @@ import { caminhoDaAula } from "@/lib/rotas";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -37,6 +38,7 @@ const curso = {
 } as CartaoDeTroca["curso"];
 
 const AULA = caminhoDaAula("x", "00000000-0000-4000-8000-000000000001");
+
 const CONTINUAR = {
   href: AULA,
   icone: "play",
@@ -79,6 +81,7 @@ describe("a vitrine sem curso trocável tem saída", () => {
       icone: "play",
       texto: "Começar curso",
     });
+
     expect(linkDeVolta("Começar curso").exec(html)?.[1]).toBe(AULA);
     expect(html).not.toContain("Voltar a estudar");
   });
@@ -93,6 +96,7 @@ describe("a vitrine sem curso trocável tem saída", () => {
       [{ curso, faltam: 200, pct: 60, preco: 500, saldo: 300, tipo: "faltam" }],
       true
     );
+
     expect(html).not.toContain("Continuar aula");
   });
 });
@@ -113,6 +117,7 @@ describe("a vitrine sem curso trocável não culpa quem estuda nem promete", () 
     expect(t).toContain(
       "Nenhum curso novo para trocar agora. Quando houver, ele aparece aqui."
     );
+
     for (const p of PROMESSAS) {
       expect(t).not.toContain(p);
     }
@@ -121,6 +126,7 @@ describe("a vitrine sem curso trocável não culpa quem estuda nem promete", () 
   test("só com curso já trocado: nenhum curso novo para trocar", () => {
     const t = vitrine([{ curso, pago: 300, tipo: "trocado" }], false);
     expect(t).toContain("Nenhum curso novo para trocar agora");
+
     for (const p of PROMESSAS) {
       expect(t).not.toContain(p);
     }
@@ -140,6 +146,7 @@ describe("a vitrine sem curso trocável não culpa quem estuda nem promete", () 
       ],
       true
     );
+
     expect(t).toContain("Continue estudando para juntar pontos");
   });
 });

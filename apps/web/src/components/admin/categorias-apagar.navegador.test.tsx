@@ -24,6 +24,7 @@ const LIVRE = {
   id: "00000000-0000-4000-8000-000000000001",
   nome: "Processo de envase",
 };
+
 const EM_USO = {
   cursos: ["Fábrica e montagem"],
   id: "00000000-0000-4000-8000-000000000002",
@@ -85,10 +86,13 @@ async function empacotar(resposta: keyof typeof RESPOSTA) {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
+
   return await saida.text();
 }
 

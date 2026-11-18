@@ -11,9 +11,11 @@ const soOPerfil = {
       rows: [{ papel_por_aplicar: false, perfil: "publico" }],
     }),
 };
+
 const caller = createCaller(
   contextoDeTeste({ db: soOPerfil as never, userId: "user_x" })
 );
+
 const FORA_DO_FORMATO = ["Comercial", "comercial.", "a_b", "%C3%A7urso"];
 const AULA = "00000000-0000-4000-8000-000000000000";
 
@@ -22,6 +24,7 @@ describe("slug fora do formato", () => {
     const r = await Promise.all(
       FORA_DO_FORMATO.map((slug) => caller.curso.pagina({ slug }))
     );
+
     expect(r).toEqual([null, null, null, null]);
   });
 
@@ -29,6 +32,7 @@ describe("slug fora do formato", () => {
     const r = await Promise.all(
       FORA_DO_FORMATO.map((slug) => caller.aula.abrir({ aulaId: AULA, slug }))
     );
+
     expect(r).toEqual([null, null, null, null]);
   });
 });

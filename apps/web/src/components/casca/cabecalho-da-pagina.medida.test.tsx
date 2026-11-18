@@ -64,6 +64,7 @@ const PAGINAS = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(PAGINAS).flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -79,6 +80,7 @@ async function topoDoConteudo(largura: number, corpo: string) {
     mobile: false,
     width: largura,
   });
+
   return await avaliar<number>(
     enviar,
     `document.open(); document.write(${JSON.stringify(

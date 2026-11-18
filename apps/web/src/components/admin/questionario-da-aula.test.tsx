@@ -32,6 +32,7 @@ const aulaCom = (perguntas: number) => ({
 
 const render = (perguntas: number, marcados = new Map<string, string>()) => {
   const aula = aulaCom(perguntas);
+
   return renderToStaticMarkup(
     <ErrosDoEditor value={marcados}>
       <QuestionarioDaAula
@@ -61,12 +62,14 @@ describe("questionário da aula", () => {
 
   test("a letra da certa é um rádio marcado, e a linha diz qual é", () => {
     const html = render(1);
+
     const letra = (n: number) =>
       html.match(
         new RegExp(
           `<input[^>]*id="${ID.alternativa(uuidDeExemplo(n) as AlternativaId)}-letra"[^>]*>`
         )
       )?.[0] ?? "";
+
     for (const trecho of [
       'type="radio"',
       `name="certa-${uuidDeExemplo(41)}"`,
@@ -74,6 +77,7 @@ describe("questionário da aula", () => {
       expect(letra(51)).toContain(trecho);
       expect(letra(61)).toContain(trecho);
     }
+
     expect(letra(51)).not.toContain("checked");
     expect(letra(61)).toContain('checked=""');
     expect(texto(html)).toContain("Certa: B · Certa");

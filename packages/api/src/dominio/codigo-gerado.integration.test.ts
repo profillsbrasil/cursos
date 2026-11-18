@@ -39,6 +39,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
     const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
     let esperado: string[][] = [];
     let obtido: (string | null)[][] = [];
+
     try {
       await db
         .transaction(async (tx) => {
@@ -49,6 +50,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
             .insert(categoria)
             .values(CATEGORIAS.map(([nome]) => ({ nome })))
             .onConflictDoNothing({ target: categoria.nome });
+
           const categorias = await tx
             .select({ id: categoria.id, nome: categoria.nome })
             .from(categoria)
@@ -58,8 +60,10 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
                 CATEGORIAS.map(([nome]) => nome)
               )
             );
+
           const idDe = (nome: string) =>
             categorias.find((c) => c.nome === nome)?.id ?? "";
+
           // O código que já existe ocupa o número: STMI começa no 002.
           await tx.insert(curso).values({
             capaAlt: "Capa de teste",
@@ -73,6 +77,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
             slug: `migracao-${S}-com-codigo`,
             titulo: "Curso com código",
           });
+
           const ocupados = new Set(
             (
               await tx
@@ -81,6 +86,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
                 .where(isNotNull(curso.codigo))
             ).map((c) => c.codigo)
           );
+
           const plantados = CATEGORIAS.flatMap(([nome, n]) =>
             Array.from({ length: n }, () => nome)
           ).map((nome, i) => ({
@@ -95,6 +101,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
             slug: `migracao-${S}-${i}`,
             titulo: `Curso ${i}`,
           }));
+
           await tx
             .insert(curso)
             .values(plantados.map(({ nome: _, ...linha }) => linha));
@@ -102,10 +109,12 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
           esperado = plantados.map((p) => {
             const codigo = codigoLivre(siglaDaCategoria(p.nome), ocupados);
             ocupados.add(codigo);
+
             return [p.slug, codigo];
           });
 
           await tx.execute(sql.raw(MIGRACAO));
+
           const gravados = await tx
             .select({ codigo: curso.codigo, slug: curso.slug })
             .from(curso)
@@ -116,6 +125,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
               )
             )
             .orderBy(curso.criadoEm);
+
           obtido = gravados.map((g) => [g.slug, g.codigo]);
           tx.rollback();
         })

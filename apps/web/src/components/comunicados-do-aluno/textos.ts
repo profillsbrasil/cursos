@@ -15,6 +15,7 @@ const MES = new Intl.DateTimeFormat("pt-BR", {
 
 export function diaNaLinha(dia: string) {
   const data = new Date(`${dia}T12:00:00Z`);
+
   return {
     numero: data.getUTCDate(),
     semana: SEMANA[data.getUTCDay()] ?? "",
@@ -23,6 +24,7 @@ export function diaNaLinha(dia: string) {
 
 export function nomeDoMes(mes: string) {
   const nome = MES.format(new Date(`${mes}-01T12:00:00Z`));
+
   return `${nome.charAt(0).toUpperCase()}${nome.slice(1)} de ${mes.slice(0, 4)}`;
 }
 
@@ -34,6 +36,7 @@ export function contagemDoMes(
   if (!destaque.dia.startsWith(m.mes)) {
     return plural(m.comunicados.length, "comunicado", "comunicados");
   }
+
   return `${plural(m.comunicados.length + 1, "comunicado", "comunicados")}, contando o destaque`;
 }
 

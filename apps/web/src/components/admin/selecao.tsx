@@ -114,6 +114,7 @@ export function Selecao({
 }: PropsDaSelecao & { semOpcoes?: string }) {
   const lista = todasAsOpcoes(opcoes);
   const escolhida = lista.some((o) => o.valor === valor) ? valor : null;
+
   const mudar = useCallback(
     (novo: string | null) => {
       if (novo !== null) {
@@ -122,6 +123,7 @@ export function Selecao({
     },
     [aoMudar]
   );
+
   return (
     <Select.Root
       items={lista.map((o) => ({ label: o.rotulo, value: o.valor }))}
@@ -187,6 +189,7 @@ interface GrupoDaBusca {
 /** As opções soltas viram um grupo sem rótulo, porque o Combobox filtra grupos. */
 function gruposDaBusca(itens: readonly ItemDaSelecao[]): GrupoDaBusca[] {
   const grupos: { grupo: string; items: OpcaoDaSelecao[] }[] = [];
+
   for (const item of itens) {
     if (ehGrupo(item)) {
       grupos.push({ grupo: item.grupo, items: [...item.opcoes] });
@@ -196,11 +199,13 @@ function gruposDaBusca(itens: readonly ItemDaSelecao[]): GrupoDaBusca[] {
       grupos.push({ grupo: "", items: [item] });
     }
   }
+
   return grupos;
 }
 
 const mesmaOpcao = (a: OpcaoDaSelecao, b: OpcaoDaSelecao) =>
   a.valor === b.valor;
+
 const rotuloDa = (o: OpcaoDaSelecao) => o.rotulo;
 const valorDa = (o: OpcaoDaSelecao) => o.valor;
 
@@ -229,12 +234,15 @@ function opcoesComCriar(
   busca: string
 ): readonly ItemDaSelecao[] {
   const nome = busca.trim();
+
   if (!criar || nome === "") {
     return opcoes;
   }
+
   const existe = todasAsOpcoes(opcoes).some(
     (o) => comparavel(o.rotulo) === comparavel(nome)
   );
+
   return existe
     ? opcoes
     : [
@@ -273,21 +281,27 @@ export function SelecaoComBusca({
   semResultado: string;
 }) {
   const [busca, setBusca] = useState("");
+
   const escolhida =
     todasAsOpcoes(opcoes).find((o) => o.valor === valor) ?? null;
+
   const mudar = useCallback(
     (nova: OpcaoDaSelecao | null) => {
       if (nova === null) {
         return;
       }
+
       if (nova.valor === CRIAR) {
         criar?.aoCriar(busca.trim());
+
         return;
       }
+
       aoMudar(nova.valor);
     },
     [aoMudar, busca, criar]
   );
+
   return (
     <Combobox.Root
       filter={criar ? filtroComCriar : undefined}

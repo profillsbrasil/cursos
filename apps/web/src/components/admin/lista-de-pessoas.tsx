@@ -38,6 +38,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const frase = temOCurso ?? fraseDaPessoa(p.situacao, hoje);
   const href = `/admin/liberacoes/${p.userId}` as const;
   const { email, foto, nome, userId } = p;
+
   const marcar = useCallback(
     (sim: boolean) =>
       despachar(
@@ -47,6 +48,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
       ),
     [despachar, email, foto, nome, userId]
   );
+
   return (
     <li
       className={cn(
@@ -113,6 +115,7 @@ export function ListaDePessoas({
   const { estado } = useLote();
   const marcadas = estado.marcadas.length;
   const cortada = total > pessoas.length;
+
   return (
     <SecaoSobABarra
       id="pessoas"

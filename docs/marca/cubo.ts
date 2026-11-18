@@ -100,6 +100,7 @@ function caminhos(escala: number, dx: number, dy: number) {
           `${i === 0 ? "M" : "L"}${numero(x * escala + dx)} ${numero(y * escala + dy)}`
       )
       .join("");
+
     return `  <path d="${d}z" fill="${cor}" />`;
   });
 }
@@ -108,6 +109,7 @@ function caminhos(escala: number, dx: number, dy: number) {
 function quadrado(lado: number, titulo: string) {
   const escala = (lado - 4) / LARGURA;
   const dy = (lado - ALTURA * escala) / 2;
+
   return [
     `<svg viewBox="0 0 ${lado} ${lado}" xmlns="http://www.w3.org/2000/svg">`,
     `  <title>${titulo}</title>`,
@@ -125,15 +127,18 @@ function lockup(atual: string) {
   ]
     .filter((m) => Number(m[1]) > 150)
     .map((m) => `  ${m[0]}`);
+
   if (texto.length !== 2) {
     throw new Error(
       `O lockup deveria ter 2 paths de texto, e tem ${texto.length}.`
     );
   }
+
   const cabecalho = atual.slice(
     0,
     atual.indexOf("</title>") + "</title>".length
   );
+
   return [
     cabecalho,
     ...caminhos(120 / ALTURA, 0, 0),
@@ -144,13 +149,18 @@ function lockup(atual: string) {
 }
 
 const [, , web] = process.argv;
+
 if (!web) {
   throw new Error("Uso: bun docs/marca/cubo.ts apps/web");
 }
+
 const marca = join(web, "public", "marca");
 const arquivoDoLockup = join(marca, "profills-cursos.svg");
 const arquivoDoIcone = join(marca, "profills-cursos-icone.svg");
 const arquivoDoFavicon = join(web, "src", "app", "icon.svg");
+
 writeFileSync(arquivoDoIcone, quadrado(216, "Profills Cursos"));
+
 writeFileSync(arquivoDoFavicon, quadrado(512, "Cubo da Profills"));
+
 writeFileSync(arquivoDoLockup, lockup(readFileSync(arquivoDoLockup, "utf8")));

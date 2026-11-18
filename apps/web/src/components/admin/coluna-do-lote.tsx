@@ -47,6 +47,7 @@ const CARTAO_DA_COLUNA = cn(
   CARTAO,
   "grid gap-4 p-5 @min-[47.5rem]:sticky @min-[47.5rem]:top-4"
 );
+
 const TITULO_DA_COLUNA =
   "flex items-baseline justify-between gap-2.5 font-semibold text-lg text-titulo leading-[1.3]";
 
@@ -54,6 +55,7 @@ const ERRO = "Não deu para liberar. Tente de novo em instantes.";
 
 function useDespacharEFocar() {
   const { despachar } = useLote();
+
   return useCallback(
     (evento: EventoDoLote, alvo: string) => {
       flushSync(() => despachar(evento));
@@ -94,6 +96,7 @@ function LinhaNoResultado({
   const { executar, pendente } = useAcao();
   const despacharEFocar = useDespacharEFocar();
   const { liberacao, pessoa } = l;
+
   const repetir = useCallback(
     () =>
       executar(
@@ -113,6 +116,7 @@ function LinhaNoResultado({
       ),
     [executar, despacharEFocar, curso.id, pessoa.userId]
   );
+
   return (
     <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 px-5 py-3 @min-[28.75rem]:grid-cols-[2.25rem_minmax(0,1fr)_auto]">
       <FotoDaPessoa className="size-9" foto={pessoa.foto} nome={pessoa.nome} />
@@ -156,10 +160,12 @@ function Resultado({
   fase: Extract<FaseDoLote, { tipo: "resultado" }>;
 }) {
   const despacharEFocar = useDespacharEFocar();
+
   const nova = useCallback(
     () => despacharEFocar({ tipo: "nova_liberacao" }, TITULO),
     [despacharEFocar]
   );
+
   return (
     <aside aria-labelledby={TITULO} className={cn(CARTAO_DA_COLUNA, className)}>
       <h2 className={TITULO_DA_COLUNA} id={TITULO} tabIndex={-1}>
@@ -192,6 +198,7 @@ function Resultado({
 
 function Marcada({ p, vizinha }: { p: Pessoa; vizinha: Pessoa | undefined }) {
   const despacharEFocar = useDespacharEFocar();
+
   const desmarcar = useCallback(
     () =>
       despacharEFocar(
@@ -200,6 +207,7 @@ function Marcada({ p, vizinha }: { p: Pessoa; vizinha: Pessoa | undefined }) {
       ),
     [despacharEFocar, p.userId, vizinha]
   );
+
   return (
     <li className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2.5 px-2 py-1">
       <FotoDaPessoa
@@ -230,11 +238,14 @@ function Marcada({ p, vizinha }: { p: Pessoa; vizinha: Pessoa | undefined }) {
 function Marcadas() {
   const { estado } = useLote();
   const despacharEFocar = useDespacharEFocar();
+
   const desmarcarTodas = useCallback(
     () => despacharEFocar({ tipo: "desmarcar_todas" }, TITULO),
     [despacharEFocar]
   );
+
   const { marcadas } = estado;
+
   if (marcadas.length === 0) {
     return (
       <p className="text-muted-foreground text-[13px] text-pretty">
@@ -243,6 +254,7 @@ function Marcadas() {
       </p>
     );
   }
+
   return (
     <>
       <ul className="-mx-2 -mt-1 grid max-h-[220px] overflow-auto">
@@ -275,11 +287,13 @@ function OpcaoDeCurso({
   escolhido: boolean;
 }) {
   const { despachar } = useLote();
+
   const escolher = useCallback(
     () =>
       despachar({ curso: { id: c.id, titulo: c.titulo }, tipo: "escolher" }),
     [despachar, c.id, c.titulo]
   );
+
   return (
     <label className="has-checked:bg-sol/14 grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8">
       <input
@@ -314,8 +328,10 @@ function OpcaoDeCurso({
 
 function Cursos({ cursos }: { cursos: readonly CursoNaVisao[] }) {
   const { estado } = useLote();
+
   const escolhido =
     estado.fase.tipo === "marcando" ? estado.fase.curso?.id : undefined;
+
   return (
     <fieldset className="grid gap-2">
       <legend className={cn(ROTULO, "mb-2")}>Curso</legend>
@@ -340,10 +356,12 @@ function Formulario({
   const despacharEFocar = useDespacharEFocar();
   const pronto = prontoParaLiberar(estado);
   const n = estado.marcadas.length;
+
   const liberar = useCallback(() => {
     if (pronto.tipo !== "pronto") {
       return;
     }
+
     const { curso, pessoas } = pronto;
     executar(
       () =>
@@ -361,6 +379,7 @@ function Formulario({
       }
     );
   }, [pronto, executar, despacharEFocar]);
+
   return (
     <aside aria-labelledby={TITULO} className={cn(CARTAO_DA_COLUNA, className)}>
       <h2 className={TITULO_DA_COLUNA} id={TITULO} tabIndex={-1}>
@@ -404,6 +423,7 @@ export function ColunaDoLote({
   cursos: readonly CursoNaVisao[];
 }) {
   const { estado } = useLote();
+
   return estado.fase.tipo === "resultado" ? (
     <Resultado className={className} fase={estado.fase} />
   ) : (

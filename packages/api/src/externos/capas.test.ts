@@ -30,6 +30,7 @@ function cabecalhoPng(
   v.setUint32(16, largura);
   v.setUint32(20, altura);
   b.set([8, 6, 0, 0, 0], 24);
+
   return b;
 }
 
@@ -38,9 +39,11 @@ describe("lerCapa", () => {
     const nomes = (await readdir(PASTA)).filter((n) => n.endsWith(".jpg"));
     expect(nomes.length).toBeGreaterThan(0);
     const arquivos = await Promise.all(nomes.map(ler));
+
     for (const bytes of arquivos) {
       const lida = lerCapa(bytes);
       expect(lida).toMatchObject({ contentType: "image/jpeg", tipo: "lida" });
+
       if (lida.tipo === "lida") {
         expect(lida.largura).toBeGreaterThanOrEqual(
           LIMITE_DA_CAPA.larguraMinima
@@ -63,6 +66,7 @@ describe("lerCapa", () => {
     const texto = new TextEncoder().encode(
       "isto não é uma imagem, é um .jpg falso"
     );
+
     expect(lerCapa(texto)).toEqual({
       recusa: { tipo: "formato" },
       tipo: "recusa",
@@ -73,6 +77,7 @@ describe("lerCapa", () => {
     const gif = new Uint8Array([
       0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x20, 0x03, 0x58, 0x02, 0, 0, 0,
     ]);
+
     expect(lerCapa(gif)).toEqual({
       recusa: { tipo: "formato" },
       tipo: "recusa",
@@ -123,13 +128,16 @@ const BUCKET = {
 function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];
+
   const enviar = ((url: Request | string, init?: RequestInit) => {
     pedidos.push(url instanceof Request ? url : new Request(url, init));
     tamanhos.push(
       init?.body instanceof Uint8Array ? init.body.byteLength : null
     );
+
     return Promise.resolve(resposta());
   }) as unknown as typeof fetch;
+
   return { enviar, pedidos, tamanhos };
 }
 
@@ -165,6 +173,7 @@ describe("capasNoBucket", () => {
     const { enviar, pedidos } = bucketFalso(
       () => new Response("sem bucket", { status: 404 })
     );
+
     const capas = capasNoBucket(BUCKET, enviar);
     const log = spyOn(console, "error");
 
@@ -172,9 +181,11 @@ describe("capasNoBucket", () => {
       tipo: "recusa",
     });
     expect(pedidos).toHaveLength(0);
+
     const erro = await capas
       .receber(new Blob([await ler("comercial.jpg")]))
       .catch((e: unknown) => e);
+
     const registrado = log.mock.calls.flat().join(" ");
     log.mockRestore();
 
@@ -186,9 +197,11 @@ describe("capasNoBucket", () => {
 
   test("arquivo acima do teto é recusado sem ler os bytes", async () => {
     let lidos = 0;
+
     const pesado = {
       arrayBuffer: () => {
         lidos += 1;
+
         return Promise.resolve(new ArrayBuffer(0));
       },
       size: LIMITE_DA_CAPA.bytes + 1,
@@ -266,6 +279,7 @@ describe("bucketAssinado", () => {
         { bytes: 30, chave: "c.zip", em: "2026-10-03T10:00:00.000Z" },
       ]),
     ];
+
     const { enviar, pedidos } = bucketFalso(
       () => new Response(paginas.shift())
     );
@@ -320,9 +334,11 @@ describe("bucketAssinado", () => {
       new Response(null, { status: 204 }),
       new Response(null, { status: 404 }),
     ];
+
     const { enviar, pedidos } = bucketFalso(
       () => respostas.shift() as Response
     );
+
     const bucket = bucketAssinado(BUCKET, enviar);
 
     await bucket.apagar("a.jpg");
@@ -341,6 +357,7 @@ describe("bucketAssinado", () => {
     const { enviar } = bucketFalso(
       () => new Response("AccessDenied", { status: 403 })
     );
+
     const bucket = bucketAssinado(BUCKET, enviar);
 
     expect(String(await bucket.listar().catch((e: unknown) => e))).toBe(

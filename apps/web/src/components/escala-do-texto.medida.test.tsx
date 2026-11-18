@@ -103,6 +103,7 @@ const PAGINA = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...PAGINA.matchAll(CLASSES)].flatMap(([, c = ""]) =>
     c.replaceAll("&amp;", "&").split(ESPACO)

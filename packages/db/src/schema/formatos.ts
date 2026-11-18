@@ -48,12 +48,16 @@ export function codigoDosIndices(indices: ArrayLike<number>): string {
       `O código tem ${SIMBOLOS_DO_CODIGO} símbolos, não ${indices.length}.`
     );
   }
+
   const simbolos = Array.from(indices, (i) => {
     const s = ALFABETO_DO_CODIGO[i];
+
     if (s === undefined) {
       throw new Error(`Índice ${i} fora do alfabeto do código.`);
     }
+
     return s;
   });
+
   return `${simbolos.slice(0, METADE_DO_CODIGO).join("")}-${simbolos.slice(METADE_DO_CODIGO).join("")}`;
 }

@@ -13,6 +13,7 @@ import { materiaisDesligados } from "../externos/materiais";
 import { appRouter, createCaller } from "./index";
 
 const db = {} as never;
+
 const servicos = {
   capas: capasDesligadas,
   convites: convitesDeTeste(),
@@ -32,6 +33,7 @@ describe("contextoDe lê o papel do claim", () => {
 
   test("claim ausente, null ou com outro texto vira aluno", () => {
     const claims = [{}, { papel: null }, { papel: "Admin" }, { papel: "root" }];
+
     for (const c of claims) {
       expect(contextoDe(sessao(c), servicos).auth).toMatchObject({
         papel: "aluno",
@@ -60,6 +62,7 @@ function chamar(caller: ReturnType<typeof createCaller>, caminho: string) {
       (no, chave) => (no as Record<string, unknown>)[chave],
       caller
     );
+
   return (alvo as (entrada?: unknown) => Promise<unknown>)();
 }
 
@@ -68,11 +71,13 @@ describe("admin.liberacoes.acesso com userId fora do formato", () => {
     const admin = createCaller(
       contextoDeTeste({ db, papel: "admin", userId: "user_dono" })
     );
+
     const r = await Promise.all(
       ["qualquer-coisa", `user_${"a".repeat(120)}-`, ""].map((userId) =>
         admin.admin.liberacoes.acesso({ userId })
       )
     );
+
     expect(r).toEqual([null, null, null]);
   });
 });
@@ -84,6 +89,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
 
   test("sem sessão, todos respondem UNAUTHORIZED", async () => {
     const anonimo = createCaller(contextoDeTeste({ db, userId: null }));
+
     const codigos = await Promise.all(
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
         chamar(anonimo, caminho).then(
@@ -92,11 +98,13 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
         )
       )
     );
+
     expect(codigos).toEqual(PROCEDIMENTOS_DO_ADMIN.map(() => "UNAUTHORIZED"));
   });
 
   test("com aluno, todos respondem FORBIDDEN", async () => {
     const aluno = createCaller(contextoDeTeste({ db, userId: "user_x" }));
+
     const codigos = await Promise.all(
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
         chamar(aluno, caminho).then(
@@ -105,6 +113,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
         )
       )
     );
+
     expect(codigos).toEqual(PROCEDIMENTOS_DO_ADMIN.map(() => "FORBIDDEN"));
   });
 });

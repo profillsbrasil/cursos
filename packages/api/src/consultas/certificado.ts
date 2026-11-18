@@ -53,10 +53,13 @@ async function cursoParaConcluir(
     .leftJoin(aula, eq(aula.moduloId, modulo.id))
     .where(eq(curso.id, cursoId))
     .orderBy(modulo.numero, aula.posicao);
+
   const [primeira] = linhas;
+
   if (!primeira) {
     return null;
   }
+
   const modulos = new Map<
     string,
     {
@@ -65,20 +68,25 @@ async function cursoParaConcluir(
       titulo: string;
     }
   >();
+
   for (const l of linhas) {
     if (l.moduloId === null || l.numero === null || l.tituloDoModulo === null) {
       continue;
     }
+
     const m = modulos.get(l.moduloId) ?? {
       aulas: [],
       numero: l.numero,
       titulo: l.tituloDoModulo,
     };
+
     modulos.set(l.moduloId, m);
+
     if (l.aulaId !== null) {
       m.aulas.push({ id: l.aulaId as AulaId, perguntas: l.perguntas ?? 0 });
     }
   }
+
   return {
     id: cursoId,
     modulos: [...modulos.values()],
@@ -99,6 +107,7 @@ async function temAcessoAtivo(aluno: AlunoTravado, cursoId: CursoId) {
               where l.user_id = ${aluno.userId}
                 and l.curso_id = ${cursoId}
                 and l.revogada_em is null) as ve`);
+
   return rows[0]?.ve === true;
 }
 
@@ -114,6 +123,7 @@ async function gravarCertificado(
 ): Promise<string> {
   for (let i = 0; i < SORTEIOS; i += 1) {
     const codigo = gerarCodigo();
+
     // oxlint-disable-next-line no-await-in-loop -- cada sorteio depende de o anterior ter colidido.
     const [gravado] = await aluno.tx
       .insert(certificado)
@@ -126,10 +136,12 @@ async function gravarCertificado(
       })
       .onConflictDoNothing({ target: certificado.codigo })
       .returning({ codigo: certificado.codigo });
+
     if (gravado) {
       return gravado.codigo;
     }
   }
+
   throw new Error(
     `O código do certificado colidiu ${SORTEIOS} vezes seguidas.`
   );
@@ -147,17 +159,22 @@ export async function concluirCurso(
   agora: Date
 ): Promise<Conclusao | null> {
   const alvo = await cursoParaConcluir(aluno.tx, cursoId);
+
   if (!(alvo && (await temAcessoAtivo(aluno, cursoId)))) {
     return null;
   }
+
   const linhas = await linhasDoHistoricoNoCurso(aluno, {
     aulas: alvo.modulos.flatMap((m) => m.aulas.map((a) => a.id)),
     cursoId,
   });
+
   const { completo, estado } = lerCursoDoAluno(alvo, estudoDe(linhas));
+
   if (estado.tipo === "concluido" || !completo) {
     return null;
   }
+
   const codigo = await gravarCertificado(aluno, alvo, agora);
   await aluno.tx
     .insert(pontoLancamento)
@@ -169,6 +186,7 @@ export async function concluirCurso(
       userId: aluno.userId,
     })
     .onConflictDoNothing();
+
   return { codigo };
 }
 
@@ -200,6 +218,7 @@ export async function concluirParaQuemCompletou(
        and (select count(*) from ${aulaAssistida} aa
              where aa.user_id = a.user_id and aa.aula_id in (select id from aulas))
            = (select count(*) from aulas)`);
+
   for (const { user_id } of rows) {
     // oxlint-disable-next-line no-await-in-loop -- as travas dividem a transação, um client só.
     await concluirCurso(await travarAluno(tx, user_id), cursoId, agora);

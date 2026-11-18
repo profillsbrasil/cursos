@@ -47,6 +47,7 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
       TABELAS_DO_ADMIN.map((t) => sql`${t}`),
       sql`, `
     );
+
     const { rows } = await db.execute<{ nome: string }>(sql`
       select c.conname as nome
         from pg_constraint c
@@ -60,26 +61,31 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
        where schemaname = 'public'
          and tablename in (${tabelas})
          and indexdef like 'CREATE UNIQUE INDEX%'`);
+
     return new Set(rows.map((r) => r.nome));
   }
 
   test("toda chave das duas listas existe no banco", async () => {
     const nomes = await restricoesNoBanco();
+
     const chaves = [
       ...Object.keys(MENSAGEM_DA_RESTRICAO),
       ...SEM_MENSAGEM_PROPRIA,
     ];
+
     expect(chaves.filter((n) => !nomes.has(n))).toEqual([]);
   });
 
   test("toda restrição das tabelas do admin tem frase ou está em SEM_MENSAGEM_PROPRIA", async () => {
     const nomes = await restricoesNoBanco();
+
     const sem = [...nomes].filter(
       (n) =>
         !(
           Object.hasOwn(MENSAGEM_DA_RESTRICAO, n) || SEM_MENSAGEM_PROPRIA.has(n)
         )
     );
+
     expect(sem).toEqual([]);
   });
 
@@ -91,6 +97,7 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
            Object.keys(MENSAGEM_DA_RESTRICAO).map((n) => sql`${n}`),
            sql`, `
          )})`);
+
     expect(rows.map((r) => r.nome)).toEqual([]);
   });
 

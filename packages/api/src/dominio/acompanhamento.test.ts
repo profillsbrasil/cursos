@@ -55,6 +55,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         ],
       })
     );
+
     expect(acompanharCurso(A, e).situacao).toEqual({ tipo: "nunca_abriu" });
   });
 
@@ -72,6 +73,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         ],
       })
     );
+
     expect(acompanharCurso(A, e)).toEqual({
       progresso: { feitas: 1, pct: 33, total: 3 },
       situacao: {
@@ -91,6 +93,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         ],
       })
     );
+
     expect(acompanharCurso(A, e).situacao).toEqual({
       onde: { aula: 1, modulo: 1 },
       tipo: "estudando",
@@ -100,6 +103,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
 
   test("todas as aulas vistas e questionário por aprovar: faltam questionários, e a tentativa conta como estudo", () => {
     const comQuiz = cursoCat("a", { aulas: [2, 1], perguntas: 2 });
+
     const e = estudoDe(
       linhas({
         assistidas: [
@@ -119,6 +123,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
         ],
       })
     );
+
     expect(acompanharCurso(comQuiz, e)).toMatchObject({
       progresso: { feitas: 3, pct: 100, total: 3 },
       situacao: {
@@ -134,6 +139,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
     const e = estudoDe(
       linhas({ certificados: [certificado("a", "2026-09-12T15:00:00Z")] })
     );
+
     expect(acompanharCurso(A, e).situacao).toEqual({
       em: "2026-09-12" as DiaISO,
       tipo: "concluido",
@@ -142,11 +148,13 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
 
   test("curso em produção, mesmo começado: em produção", () => {
     const emProducao = cursoCat("p", { aulas: [1], status: "em_producao" });
+
     const e = estudoDe(
       linhas({
         assistidas: [assistida(idAula("p", 0, 1), "2026-09-12T15:00:00Z")],
       })
     );
+
     expect(acompanharCurso(emProducao, e)).toMatchObject({
       progresso: { feitas: 1, pct: 100, total: 1 },
       situacao: { tipo: "em_producao" },
@@ -156,18 +164,21 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
 
 describe("montarBusca", () => {
   const HOJE = "2026-10-14" as DiaISO;
+
   const pessoa = (userId: string) => ({
     email: `${userId}@exemplo.com`,
     foto: null,
     nome: userId,
     userId,
   });
+
   const ativa = (cursoId: string, iso: string) => ({
     cursoId,
     liberadaEm: em(iso),
     origem: "admin" as const,
     revogadaEm: null,
   });
+
   const curso = (id: string, aulas: number, status = "publicado" as const) => ({
     id,
     modulos: [
@@ -183,6 +194,7 @@ describe("montarBusca", () => {
     status,
     titulo: `Curso ${id}`,
   });
+
   // x (2 aulas), y (1 aula), z em produção, w (1 aula).
   const catalogo: Omit<LinhasDaBusca, "pessoas"> = {
     cursos: [
@@ -192,6 +204,7 @@ describe("montarBusca", () => {
       curso("w", 1),
     ],
   };
+
   const situacaoDe = (p: Omit<LinhasDaPessoa, "userId">) =>
     montarBusca(
       { pessoas: [pessoa("user_a")], total: 1 },
@@ -316,6 +329,7 @@ describe("montarBusca", () => {
       },
       HOJE
     );
+
     expect([
       busca.hoje,
       busca.total,
@@ -345,6 +359,7 @@ describe("montarBusca", () => {
       },
       HOJE
     );
+
     expect(busca.pessoas[0]?.ativas).toEqual([
       { cursoId: "x" as CursoId, origem: "admin" },
       { cursoId: "y" as CursoId, origem: "troca" },

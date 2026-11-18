@@ -7,26 +7,41 @@ import type {
 import type { Papel } from "../context";
 
 declare const marca: unique symbol;
+
 type Marca<T, M extends string> = T & { readonly [marca]: M };
 
 export type CursoId = Marca<string, "CursoId">;
+
 export type AulaId = Marca<string, "AulaId">;
+
 export type ModuloId = Marca<string, "ModuloId">;
+
 export type PerguntaId = Marca<string, "PerguntaId">;
+
 export type AlternativaId = Marca<string, "AlternativaId">;
+
 /** Uma tentativa do questionário de uma aula. O id nasce no cliente. */
 export type TentativaId = Marca<string, "TentativaId">;
+
 /** Impressão do conteúdo de um documento do admin (dominio/versao.ts). */
 export type Versao = Marca<string, "Versao">;
+
 export type LiberacaoId = Marca<string, "LiberacaoId">;
+
 export type LiberacaoDoPerfilId = Marca<string, "LiberacaoDoPerfilId">;
+
 export type ConviteId = Marca<string, "ConviteId">;
+
 export type ComunicadoId = Marca<string, "ComunicadoId">;
+
 export type CategoriaId = Marca<string, "CategoriaId">;
+
 /** Um arquivo do material de apoio do curso. O id nasce no editor. */
 export type MaterialId = Marca<string, "MaterialId">;
+
 /** "2026-10-07": dia civil de São Paulo. */
 export type DiaISO = Marca<string, "DiaISO">;
+
 /** userId de quem passou pelo adminProcedure. Só o middleware cria um. */
 export type AdminId = Marca<string, "AdminId">;
 
@@ -65,10 +80,14 @@ export interface ResultadoDaBusca {
 }
 
 export type VideoProvedor = (typeof videoProvedor.enumValues)[number];
+
 export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
+
 /** De onde vem o acesso a um curso, como o admin lê: a liberação da pessoa ou a do perfil dela. */
 export type OrigemDoAcesso = OrigemDaLiberacao | "perfil";
+
 export type StatusDoCurso = (typeof STATUS_DO_CURSO)[number];
+
 export type VideoId = Marca<string, "VideoId">;
 
 export type VideoDaAula = {

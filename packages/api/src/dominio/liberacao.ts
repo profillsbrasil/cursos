@@ -49,6 +49,7 @@ export function acaoNaLiberacao(l: {
   if (l.revogadaEm) {
     return { em: l.revogadaEm, tipo: "revogada" };
   }
+
   switch (l.origem) {
     case "troca":
       return { tipo: "fixa_por_troca" };
@@ -114,7 +115,9 @@ function acaoNaTela(l: LinhaDaLiberacao): AcaoNaTela {
   if (l.origem === "perfil") {
     return { perfil: l.perfil, tipo: "pelo_perfil" };
   }
+
   const acao = acaoNaLiberacao(l);
+
   return acao.tipo === "revogada"
     ? { em: acao.em.toISOString(), tipo: "revogada" }
     : acao;
@@ -134,12 +137,15 @@ export function montarAcesso(
   if (!pessoa && linhas.liberacoes.length === 0) {
     return null;
   }
+
   const ativos = new Set(
     linhas.liberacoes
       .filter((l) => l.revogadaEm === null && l.origem !== "perfil")
       .map((l) => l.curso.id)
   );
+
   const estudo = estudoDe(linhas.historico);
+
   return {
     cursos: linhas.catalogo.map((c) => ({
       curso: { id: c.id, titulo: c.titulo },

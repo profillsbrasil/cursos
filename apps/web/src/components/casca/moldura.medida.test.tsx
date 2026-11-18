@@ -32,6 +32,7 @@ const casca = (aberta: boolean) =>
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [casca(true), casca(false)].flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -171,6 +172,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a Moldura no browser", () => {
     await enviar("Emulation.setEmulatedMedia", {
       features: [{ name: "prefers-reduced-motion", value: "reduce" }],
     });
+
     try {
       await abrirPagina(1280, casca(true));
       await avaliar(

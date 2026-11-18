@@ -6,6 +6,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { registrarErroInterno } from "./erro-interno";
 
 const t = initTRPC.context<{ auth: { userId: string } | null }>().create();
+
 const router = t.router({
   ocupado: t.procedure.query(() => {
     throw new TRPCError({

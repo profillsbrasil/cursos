@@ -5,15 +5,19 @@ import { type Agendar, AVISO_MS, criarSinal } from "./sinal";
 function relogioFalso() {
   let agora = 0;
   const fila = new Set<{ em: number; fn: () => void }>();
+
   const agendar: Agendar = (fn, ms) => {
     const item = { em: agora + ms, fn };
     fila.add(item);
+
     return () => {
       fila.delete(item);
     };
   };
+
   const avancar = (ms: number) => {
     agora += ms;
+
     for (const item of [...fila].sort((a, b) => a.em - b.em)) {
       if (item.em <= agora) {
         fila.delete(item);
@@ -21,6 +25,7 @@ function relogioFalso() {
       }
     }
   };
+
   return { agendar, avancar };
 }
 

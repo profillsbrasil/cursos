@@ -54,8 +54,10 @@ export async function linhasDaBusca(
   if (userIds.length === 0) {
     return SEM_PESSOAS;
   }
+
   const emMs = (coluna: string) =>
     sql.raw(`floor(extract(epoch from ${coluna}) * 1000)::bigint`);
+
   const { rows } = await db.execute<{ linhas: LinhasEmJson }>(sql`
     with p as (
       select user_id from unnest(${arrayDeTexto(userIds)}::text[]) as p(user_id)
@@ -131,12 +133,16 @@ export async function linhasDaBusca(
           from modulo m where m.curso_id = c.id), '[]')
       )) from curso c where c.id in (select id from cursos)), '[]')
     ) as linhas`);
+
   const [linha] = rows;
+
   if (!linha) {
     throw new Error("O statement da busca não devolveu linha.");
   }
+
   const { cursos, pessoas } = linha.linhas;
   const data = (ms: Ms) => new Date(ms);
+
   return {
     cursos,
     pessoas: pessoas.map((p) => ({

@@ -32,14 +32,17 @@ const duracaoDe = (aulas: readonly AulaDaPagina[]) =>
 
 export function resumoDoCurso(p: PaginaDoCurso): string[] {
   const aulas = aulasDe(p.modulos);
+
   const partes = [
     plural(p.modulos.length, "módulo", "módulos"),
     plural(aulas.length, "aula", "aulas"),
     fmtHoras(duracaoDe(aulas)),
   ];
+
   if (p.niveis.length > 0) {
     partes.push(plural(p.niveis.length, "nível", "níveis"));
   }
+
   return partes;
 }
 
@@ -48,6 +51,7 @@ export function tempoDaPosicao(seg: number): string {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const ss = String(s % 60).padStart(2, "0");
+
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
@@ -76,15 +80,19 @@ export function abertosDeSaida(p: PaginaDoCurso): number[] {
   if (p.modulos.length <= ATE_TODOS_ABERTOS) {
     return p.modulos.map((m) => m.numero);
   }
+
   const { acao } = p;
+
   if (acao.tipo === "questionario") {
     return p.modulos
       .filter((m) => questionariosPendentes(m) > 0)
       .map((m) => m.numero);
   }
+
   if (acao.tipo !== "comecar" && acao.tipo !== "continuar") {
     return [];
   }
+
   return p.modulos
     .filter((m) => m.aulas.some((a) => a.id === acao.aulaId))
     .map((m) => m.numero);
@@ -100,6 +108,7 @@ export function marcaDoModulo(
   if (m.aulas.length > 0 && m.aulas.every((a) => a.assistida)) {
     return questionariosPendentes(m) > 0 ? "questionario" : "feito";
   }
+
   return m.aulas.some((a) => a.id === atual) ? "atual" : "pendente";
 }
 
@@ -110,21 +119,26 @@ export function linhasDoModulo(
   if (m.aulas.length === 0) {
     return { direita: null, questionarios: null, sob: "Nenhuma aula ainda" };
   }
+
   const tamanho = `${plural(m.aulas.length, "aula", "aulas")} · ${fmtHoras(duracaoDe(m.aulas))}`;
   const sob = m.nivel ? `Nível ${m.nivel.ordem} · ${m.nivel.nome}` : tamanho;
   const pendentes = questionariosPendentes(m);
+
   const questionarios =
     marcaDoModulo(m, null) === "questionario"
       ? plural(pendentes, "questionário", "questionários")
       : null;
+
   if (comecou) {
     const feitas = m.aulas.filter((a) => a.assistida).length;
+
     return {
       direita: `${feitas} de ${m.aulas.length} · ${fmtHoras(duracaoDe(m.aulas))}`,
       questionarios,
       sob,
     };
   }
+
   return { direita: m.nivel ? tamanho : null, questionarios, sob };
 }
 
@@ -163,11 +177,13 @@ export function progressoDoCartao(p: PaginaDoCurso): {
 } {
   if (p.acao.tipo === "questionario") {
     const { questionarios } = p.acao;
+
     return {
       linha: `${questionarios.feitas} de ${plural(questionarios.total, "questionário aprovado", "questionários aprovados")}`,
       progresso: questionarios,
     };
   }
+
   return { linha: aulasAssistidas(p.progresso), progresso: p.progresso };
 }
 
@@ -200,10 +216,12 @@ function localizar(p: PaginaDoCurso, aulaId: AulaId) {
   for (const m of p.modulos) {
     const i = m.aulas.findIndex((a) => a.id === aulaId);
     const aula = m.aulas[i];
+
     if (aula) {
       return { aula, modulo: m, numero: i + 1 };
     }
   }
+
   throw new Error(`Aula ${aulaId} fora da página do curso ${p.slug}`);
 }
 
@@ -216,6 +234,7 @@ function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
   if (p.proximoNivel) {
     return [{ icone: "nivel", texto: `Próximo nível: ${p.proximoNivel.nome}` }];
   }
+
   if (p.niveis.length === 0) {
     return [
       {
@@ -224,14 +243,17 @@ function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
       },
     ];
   }
+
   return [];
 }
 
 export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
   const { acao } = p;
+
   switch (acao.tipo) {
     case "comecar": {
       const { aula } = localizar(p, acao.aulaId);
+
       return {
         botao: {
           href: acao.href as Route,
@@ -254,9 +276,11 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         },
       };
     }
+
     case "continuar": {
       const { aula } = localizar(p, acao.aulaId);
       const resta = minutos(aula.duracaoSeg - acao.posicaoSeg);
+
       return {
         botao: {
           href: acao.href as Route,
@@ -282,9 +306,11 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         },
       };
     }
+
     case "questionario": {
       const { aula } = localizar(p, acao.aulaId);
       const faltamN = acao.questionarios.total - acao.questionarios.feitas;
+
       return {
         botao: {
           href: acao.href as Route,
@@ -312,11 +338,14 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         },
       };
     }
+
     case "rever": {
       if (p.estado.tipo !== "concluido") {
         throw new Error(`Curso ${p.slug} com rever fora do concluído`);
       }
+
       const { certificado } = p.estado;
+
       return {
         botao: {
           href: acao.href as Route,
@@ -338,6 +367,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
         },
       };
     }
+
     default:
       return acao satisfies never;
   }

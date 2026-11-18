@@ -105,6 +105,7 @@ function Pips({ cheios, total }: { cheios: number; total: number }) {
 
 const ALTERNATIVA =
   "grid min-h-[46px] grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 rounded-[23px] border py-2 pr-3.5 pl-[9px] text-pretty";
+
 const LETRA =
   "grid size-7 place-items-center rounded-full font-semibold text-xs transition-colors duration-150";
 
@@ -127,6 +128,7 @@ function AlternativaParaMarcar({
     () => marcar(perguntaId, alternativaId),
     [marcar, perguntaId, alternativaId]
   );
+
   return (
     // O rádio fica escondido no rótulo: as setas trocam a resposta como num grupo
     // de rádio, e o foco de teclado acende o rótulo pela variante hover (#30).
@@ -191,6 +193,7 @@ function vereditoDe(
   if (resposta?.alternativaId === alternativaId) {
     return resposta.certa ? "certa" : "errada";
   }
+
   return resposta?.certaId === alternativaId ? "a_certa" : "neutra";
 }
 
@@ -204,6 +207,7 @@ function AlternativaCorrigida({
   veredito: Veredito;
 }) {
   const etiqueta = ETIQUETA[veredito];
+
   return (
     <div className={cn(ALTERNATIVA, CAIXA_DO_VEREDITO[veredito])}>
       <span className={cn(LETRA, LETRA_DO_VEREDITO[veredito])}>
@@ -254,6 +258,7 @@ function Pergunta({
     fase.tipo === "resultado"
       ? fase.resultado.respostas.find((r) => r.perguntaId === pergunta.id)
       : undefined;
+
   // A linha é a borda da caixa de fora: no próprio fieldset, o legend senta
   // em cima da borda e a linha corta o enunciado.
   return (
@@ -339,6 +344,7 @@ export function Resultado({
       caixa.current?.focus();
     }
   }, [focar]);
+
   return (
     <div
       aria-describedby={`${id}-texto`}
@@ -445,6 +451,7 @@ function Cabecalho({
       titulo.current?.focus();
     }
   }, [focar]);
+
   return (
     <header
       className={cn(
@@ -503,12 +510,15 @@ export function QuestionarioDaAula({
       ),
     []
   );
+
   const tentarDeNovo = useCallback(() => setFase(novaTentativa(true)), []);
 
   const respondidas =
     fase.tipo === "respondendo" ? Object.keys(fase.marcadas).length : total;
+
   const completo = respondidas === total;
   let rotuloDoEnvio = "Enviar respostas";
+
   if (pendente) {
     rotuloDoEnvio = "Enviando…";
   } else if (fase.tipo === "respondendo" && fase.falhou) {
@@ -519,6 +529,7 @@ export function QuestionarioDaAula({
     if (fase.tipo !== "respondendo" || !completo || pendente) {
       return;
     }
+
     const { marcadas, tentativaId } = fase;
     executar(
       () =>

@@ -37,6 +37,7 @@ export function pessoasDeTeste(
   lista: readonly (Pessoa & Partial<Conta>)[]
 ): Pessoas {
   const papeis = new Map<string, Papel>();
+
   const paraConta = (p: Pessoa & Partial<Conta>): Conta => ({
     criadaEm: p.criadaEm ?? new Date(0),
     email: p.email,
@@ -48,10 +49,13 @@ export function pessoasDeTeste(
     ultimoAcesso: p.ultimoAcesso ?? null,
     userId: p.userId,
   });
+
   const achar = (userId: string) => lista.find((p) => p.userId === userId);
+
   return {
     buscar: (termo, entre) => {
       const t = termo.toLowerCase();
+
       const casadas = lista.filter(
         (p) =>
           (entre === undefined || entre.includes(p.userId)) &&
@@ -59,6 +63,7 @@ export function pessoasDeTeste(
             campo.toLowerCase().includes(t)
           )
       );
+
       return Promise.resolve({
         pessoas: casadas.slice(0, LIMITE).map(paraConta),
         total: casadas.length,
@@ -66,24 +71,30 @@ export function pessoasDeTeste(
     },
     conta: (userId) => {
       const p = achar(userId);
+
       return Promise.resolve(p ? paraConta(p) : null);
     },
     contasCom: (emails) => {
       const achadas = new Map<Email, string>();
+
       for (const email of emails) {
         const p = lista.find((q) => q.email?.toLowerCase() === email);
+
         if (p) {
           achadas.set(email, p.userId);
         }
       }
+
       return Promise.resolve(achadas);
     },
     definirPapel: (userId, papel) => {
       papeis.set(userId, papel);
+
       return Promise.resolve();
     },
     porId: (userId) => {
       const p = achar(userId);
+
       return Promise.resolve(
         p
           ? { email: p.email, foto: p.foto, nome: p.nome, userId: p.userId }
@@ -106,26 +117,32 @@ export function convitesDeTeste(
 } {
   const enviados: { clerkConviteId: string; email: string }[] = [];
   const revogados: string[] = [];
+
   return {
     enviados,
     enviar: (email, agora) => {
       const falha = falhas?.get(email);
+
       if (falha === "erro") {
         return Promise.reject(new Error(`o Clerk recusou ${email}`));
       }
+
       if (falha === "limite") {
         return Promise.resolve({
           tentarEm: new Date(agora.getTime() + 3_600_000),
           tipo: "limite",
         });
       }
+
       const clerkConviteId = `inv_teste${enviados.length + 1}`;
       enviados.push({ clerkConviteId, email });
+
       return Promise.resolve({ clerkConviteId, tipo: "enviado" });
     },
     revogados,
     revogar: (clerkConviteId) => {
       revogados.push(clerkConviteId);
+
       return Promise.resolve();
     },
   };

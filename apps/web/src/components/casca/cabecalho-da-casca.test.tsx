@@ -15,6 +15,7 @@ function botoes(aberta: boolean) {
       <CabecalhoDaCasca />
     </ProvedorDaCasca>
   );
+
   return [...html.matchAll(BOTAO)].map(([tag]) =>
     Object.fromEntries(
       [...tag.matchAll(ATRIBUTO)].map(([, nome, valor]) => [nome, valor])

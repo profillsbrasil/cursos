@@ -30,6 +30,7 @@ function OpcaoDePerfil({
   perfil: Perfil;
 }) {
   const aoEscolher = useCallback(() => escolher(perfil), [escolher, perfil]);
+
   return (
     <label className="border-border has-checked:bg-sol/6 flex cursor-pointer items-start gap-3.5 border-t px-[22px] py-3.5 transition-colors hover:bg-white/8">
       <input

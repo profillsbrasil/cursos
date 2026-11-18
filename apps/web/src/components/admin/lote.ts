@@ -56,9 +56,11 @@ function doServidor(
   userId: string
 ): LiberacaoNaPessoa {
   const r = resultado.pessoas.find((p) => p.userId === userId);
+
   if (!r) {
     throw new Error(`O lote não respondeu por ${userId}.`);
   }
+
   return r;
 }
 
@@ -81,6 +83,7 @@ export function lote(estado: EstadoDoLote, e: EventoDoLote): EstadoDoLote {
         : estado;
     case "liberou": {
       const enviadas = new Set(e.enviadas.map((p) => p.userId));
+
       return {
         fase: {
           curso: e.curso,
@@ -94,12 +97,16 @@ export function lote(estado: EstadoDoLote, e: EventoDoLote): EstadoDoLote {
         marcadas: estado.marcadas.filter((p) => !enviadas.has(p.userId)),
       };
     }
+
     case "repetiu": {
       const { fase } = estado;
+
       if (fase.tipo !== "resultado") {
         return estado;
       }
+
       const respondidas = new Set(e.resultado.pessoas.map((p) => p.userId));
+
       return {
         ...estado,
         fase: {
@@ -113,6 +120,7 @@ export function lote(estado: EstadoDoLote, e: EventoDoLote): EstadoDoLote {
         },
       };
     }
+
     case "nova_liberacao":
       return { ...estado, fase: { curso: null, tipo: "marcando" } };
     default:
@@ -128,15 +136,19 @@ export type ProntoParaLiberar =
 
 export function prontoParaLiberar(estado: EstadoDoLote): ProntoParaLiberar {
   const { fase, marcadas } = estado;
+
   if (marcadas.length === 0) {
     return { tipo: "falta_marcar" };
   }
+
   if (fase.tipo !== "marcando" || fase.curso === null) {
     return { tipo: "falta_curso" };
   }
+
   if (marcadas.length > TETO_DO_LOTE) {
     return { sobram: marcadas.length - TETO_DO_LOTE, tipo: "passou_do_teto" };
   }
+
   return { curso: fase.curso, pessoas: marcadas, tipo: "pronto" };
 }
 
@@ -160,9 +172,11 @@ export const emOrdemDoResultado = (linhas: readonly LinhaDoResultado[]) =>
 export function resumoDoResultado(linhas: readonly LinhaDoResultado[]) {
   const conta = (tipo: LiberacaoNaPessoa["tipo"]) =>
     linhas.filter((l) => l.liberacao.tipo === tipo).length;
+
   const novas = conta("liberada_agora");
   const jaTinham = conta("ja_tinha");
   const falharam = conta("nao_liberou");
+
   return [
     novas
       ? `${fmtNum(novas)} ${novas === 1 ? "liberada agora" : "liberadas agora"}`
@@ -180,15 +194,18 @@ export function resumoDoResultado(linhas: readonly LinhaDoResultado[]) {
 
 export function detalheDoResultado(l: LinhaDoResultado, hoje: DiaISO): string {
   const { liberacao, pessoa } = l;
+
   switch (liberacao.tipo) {
     case "liberada_agora":
       return pessoa.email ?? pessoa.userId;
     case "ja_tinha": {
       const dia = diaCurto(liberacao.liberadaEm, hoje);
+
       return liberacao.origem === "troca"
         ? `Trocou por pontos em ${dia}`
         : `Liberada em ${dia}`;
     }
+
     case "nao_liberou":
       return liberacao.mensagem;
     default:
@@ -204,8 +221,10 @@ export function jaTem(
   const ativa = curso
     ? pessoa.ativas.find((l) => l.cursoId === curso.id && l.origem !== "perfil")
     : undefined;
+
   if (!(curso && ativa)) {
     return null;
   }
+
   return `Já tem ${curso.titulo}, ${ativa.origem === "troca" ? "por troca" : "liberado pelo admin"}`;
 }

@@ -38,11 +38,13 @@ export const aulaRouter = router({
         { posicaoSeg: input.posicaoSeg, trechos: input.trechos },
         new Date()
       );
+
       if (r.recusadosSeg > 0) {
         console.warn(
           `cota de vídeo recusou ${r.recusadosSeg} s na aula ${input.aulaId}`
         );
       }
+
       return r;
     }),
 });

@@ -54,23 +54,27 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
  */
 function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
   const [ativa] = linha.liberacoes;
+
   if (ativa?.origem === "troca") {
     if (!ativa.trocaLancamento) {
       throw new Error(
         `Liberação de troca do curso ${linha.id} sem lançamento de troca.`
       );
     }
+
     return {
       lancamentoId: ativa.trocaLancamento.id,
       pago: -ativa.trocaLancamento.pontos,
       tipo: "trocado",
     };
   }
+
   return ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
 }
 
 export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
   const aulas = linha.modulos.flatMap((m) => m.aulas);
+
   return {
     acesso: acessoDe(linha),
     aulas: aulas.length,
@@ -150,6 +154,7 @@ const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
 
 export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
   const s = situacao(c, saldo);
+
   switch (s.tipo) {
     case "fora":
     case "ja_tem":
@@ -197,6 +202,7 @@ export function montarPainelDeTroca(
   hoje: DiaISO
 ): PainelDeTroca {
   const { saldo, entradasDaSemana } = linhas.pontos;
+
   const cartoes = linhas.cursos
     .flatMap((c) => cartao(c, saldo) ?? [])
     .sort(
@@ -204,6 +210,7 @@ export function montarPainelDeTroca(
         precoParaOrdenar(a) - precoParaOrdenar(b) ||
         a.curso.titulo.localeCompare(b.curso.titulo, "pt-BR")
     );
+
   return {
     cartoes,
     comoGanhar: comoGanhar(),
@@ -243,7 +250,9 @@ export function decidirTroca(
   if (!c) {
     return recusa({ tipo: "indisponivel" });
   }
+
   const s = situacao(c, saldo);
+
   switch (s.tipo) {
     case "fora":
       return recusa({ tipo: "indisponivel" });
@@ -255,9 +264,11 @@ export function decidirTroca(
       if (s.preco !== precoVisto) {
         return recusa({ preco: s.preco, tipo: "preco_mudou" });
       }
+
       if (s.faltam > 0) {
         return recusa({ faltam: s.faltam, tipo: "saldo_curto" });
       }
+
       return { preco: s.preco, tipo: "debitar" };
     default:
       return s satisfies never;

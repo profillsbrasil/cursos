@@ -15,6 +15,7 @@ mock.module("@/server/api", () => ({
 
 const doAluno =
   await import("@/app/(aluno)/cursos/[slug]/certificado/pdf/route");
+
 const daConferencia = await import("@/app/certificado/[codigo]/pdf/route");
 
 const DA_ANA: CertificadoEmitido = {

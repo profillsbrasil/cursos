@@ -65,6 +65,7 @@ export function CartaoDoCurso({
   const { botao, inclui, situacao } = cartaoDoCurso(pagina, hoje);
   const { linha, progresso } = progressoDoCartao(pagina);
   const IconeDoBotao = ICONE_DO_BOTAO[botao.icone];
+
   return (
     <aside
       aria-label="Seu progresso"
@@ -124,6 +125,7 @@ export function CartaoDoCurso({
             <ul className="text-muted-foreground grid gap-2 text-[13px]">
               {inclui.map(({ href, icone, texto }) => {
                 const Icone = ICONE[icone];
+
                 return (
                   <li className="flex items-center gap-2" key={texto}>
                     <Icone

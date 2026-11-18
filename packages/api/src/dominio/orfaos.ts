@@ -28,6 +28,7 @@ export const DIAS_ATE_COLETAR = 7;
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 const PREFIXO_DA_CAPA = "/capa/";
+
 /** A chave que o app grava, de capa e de material. Objeto com outro nome não é do app e fica. */
 const CHAVE_DO_APP = /^[0-9a-f]{64}\.[a-z0-9]+$/;
 
@@ -37,11 +38,13 @@ export interface Orfao extends ObjetoDoBucket {
 
 function chavesReferenciadas(emUso: ChavesEmUso): Set<string> {
   const chaves = new Set(emUso.chavesDeMaterial);
+
   for (const url of emUso.capaUrls) {
     if (url.startsWith(PREFIXO_DA_CAPA)) {
       chaves.add(url.slice(PREFIXO_DA_CAPA.length));
     }
   }
+
   return chaves;
 }
 
@@ -52,6 +55,7 @@ export function orfaosDoBucket(
   agora: Date
 ): Orfao[] {
   const referenciadas = chavesReferenciadas(emUso);
+
   return objetos
     .filter((o) => CHAVE_DO_APP.test(o.chave) && !referenciadas.has(o.chave))
     .map((o) => ({

@@ -32,8 +32,10 @@ export function ConteudoMeusCursos({
       </>
     );
   }
+
   // O servidor decide o lugar: na faixa do topo enquanto é recente, no fim depois.
   const { comunicado } = painel;
+
   return (
     <>
       <CabecalhoDaPagina resumo={liberados(painel)} titulo="Meus cursos" />

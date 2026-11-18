@@ -59,6 +59,7 @@ const capasDeTeste: Capas = {
 
 /** O bucket falso só conhece as chaves que o teste pôs nele. */
 const noBucket = new Set<string>();
+
 const materiaisDeTeste: Materiais = {
   abrir: () => Promise.resolve(null),
   existe: (guardada) => Promise.resolve(noBucket.has(guardada)),
@@ -77,7 +78,9 @@ function novoMaterial(n: number, tipo: "pdf" | "xlsx" = "pdf") {
     tipo,
     titulo: `Material ${n}`,
   };
+
   noBucket.add(m.chave);
+
   return m;
 }
 
@@ -89,7 +92,9 @@ const resultado = (p: Promise<unknown>) =>
       if (!(e instanceof TRPCError)) {
         return { code: "não é TRPCError", message: String(e) };
       }
+
       const v = e.code === "INTERNAL_SERVER_ERROR" ? violacaoDe(e) : null;
+
       return {
         code: e.code,
         message: v ? `violou ${v.restricao} (${v.codigo})` : e.message,
@@ -99,6 +104,7 @@ const resultado = (p: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("material de apoio", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+
   const como = (userId: string, papel: "admin" | "aluno" = "aluno") =>
     createCaller(
       contextoDeTeste({
@@ -109,6 +115,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
         userId,
       })
     );
+
   const admin = como("user_admin", "admin");
   const cursos: CursoId[] = [];
   let categoriaId: CategoriaId;
@@ -142,6 +149,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
   function documentoNovo(materiais: MaterialDoDocumento[]): DocumentoDoCurso {
     const id = randomUUID() as CursoId;
     cursos.push(id);
+
     return {
       categoriaId,
       descricao: "",
@@ -178,6 +186,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     const { versao } = await admin.admin.catalogo.salvarCurso(
       formularioDoCurso(documento, new Blob([new Uint8Array([1])]))
     );
+
     return { ...documento, versao };
   }
 
@@ -194,9 +203,11 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
       novoMaterial(2, "xlsx"),
       novoMaterial(3),
     ];
+
     if (!(a && b && c)) {
       throw new Error("três materiais");
     }
+
     const criado = await salvar(documentoNovo([a, b, c]));
     expect(await noBanco(criado.id)).toEqual([
       { posicao: 1, titulo: "Material 1" },
@@ -208,6 +219,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
       ...criado,
       materiais: [{ ...c, titulo: "Manual" }, a],
     });
+
     expect(await noBanco(criado.id)).toEqual([
       { posicao: 1, titulo: "Manual" },
       { posicao: 2, titulo: "Material 1" },
@@ -244,6 +256,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     const vinte = Array.from({ length: LIMITES.materiais }, (_, i) =>
       novoMaterial(100 + i)
     );
+
     const criado = await salvar(documentoNovo(vinte));
     expect(await noBanco(criado.id)).toHaveLength(20);
 
@@ -266,10 +279,12 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
 
   test("o banco aceita os tetos do schema e recusa um a mais", async () => {
     const criado = await salvar(documentoNovo([novoMaterial(300)]));
+
     const [linha] = await db
       .select({ id: material.id })
       .from(material)
       .where(eq(material.cursoId, criado.id));
+
     const gravar = (mudanca: Partial<typeof material.$inferInsert>) =>
       db
         .update(material)
@@ -279,6 +294,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
           () => "ok",
           (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
         );
+
     const { nomeDoArquivo, tituloDoMaterial } = CARACTERES;
 
     expect([
@@ -327,8 +343,10 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
         userId: REVOGADO,
       },
     ]);
+
     const baixar = (userId: string, papel?: "admin") =>
       como(userId, papel).curso.material({ id: m.id });
+
     const arquivo = {
       chave: m.chave,
       nomeDoArquivo: m.nomeDoArquivo,
@@ -360,9 +378,11 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
 
   test("a página do curso lista o material em ordem com o link; o curso em produção não abre", async () => {
     const [a, b] = [novoMaterial(500), novoMaterial(501, "xlsx")];
+
     if (!(a && b)) {
       throw new Error("dois materiais");
     }
+
     const criado = await salvar(documentoNovo([b, a]));
     await db.insert(liberacao).values({
       cursoId: criado.id,
@@ -370,10 +390,12 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
       origem: "admin",
       userId: LIBERADO,
     });
+
     const [slug] = await db
       .select({ slug: curso.slug })
       .from(curso)
       .where(eq(curso.id, criado.id));
+
     const pagina = await como(LIBERADO).curso.pagina({
       slug: slug?.slug ?? "",
     });

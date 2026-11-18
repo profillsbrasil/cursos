@@ -10,12 +10,14 @@ import type {
 } from "./tipos";
 
 declare const lido: unique symbol;
+
 /** E-mail aparado, em ASCII e em minúsculas, no formato do check convite_email_formato. Só lerEmail cria um. */
 export type Email = string & { readonly [lido]: true };
 
 /** Um envio por e-mail no Clerk, que aceita 100 por hora. */
 export const TETO_DE_EMAILS = 20;
 export const TETO_DE_CURSOS = 50;
+
 /** A mesma do link do Clerk (expiresInDays). */
 export const VALIDADE_EM_DIAS = 30;
 export const ESPERA_DO_REENVIO_SEG = 60;
@@ -33,17 +35,20 @@ export const aceitoDesde = (agora: Date): Date =>
   new Date(agora.getTime() - PRAZO_DO_PAPEL_MS);
 
 const TAMANHO_MAXIMO = 254;
+
 // Só ASCII: o toLowerCase do JS e o lower() do Postgres divergem fora dele ("İ"),
 // e o check convite_email_formato recusaria o lote inteiro. O que passa aqui
 // passa no banco. A parte local é a sem aspas, e o domínio, rótulos com ponto:
 // sem < > " ( ) , : ; [ ] \, um "<b@x.com>" viraria convite que nunca se aplica.
 const FORMATO =
   /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
+
 const SEPARADOR = /[\s,;]+/;
 
 /** null quando o texto não é um e-mail. Mais estreita que o check do banco. */
 export function lerEmail(texto: string): Email | null {
   const aparado = texto.trim();
+
   return aparado.length <= TAMANHO_MAXIMO && FORMATO.test(aparado)
     ? (aparado.toLowerCase() as Email)
     : null;
@@ -52,6 +57,7 @@ export function lerEmail(texto: string): Email | null {
 // O que fica entre vírgula, ponto e vírgula ou quebra de linha; a vírgula entre
 // aspas, como em "Lima, Ana", fica dentro.
 const TRECHO = /(?:"[^"]*"|[^,;\r\n"]|")+/g;
+
 // O nome sem aspas não tem @: em "ana@x.com Bia <bia@x.com>" a ana não some
 // dentro do nome, e o trecho cai na separação por espaço.
 const COM_NOME = /^(?:"[^"]*"|[^"@<>])*<([^<>]*)>$/;
@@ -64,6 +70,7 @@ const COM_NOME = /^(?:"[^"]*"|[^"@<>])*<([^<>]*)>$/;
 export function lerEmails(texto: string): { emails: Email[]; ruins: string[] } {
   const emails = new Set<Email>();
   const ruins = new Set<string>();
+
   const guardar = (email: Email | null, comoVeio: string) => {
     if (email) {
       emails.add(email);
@@ -71,19 +78,23 @@ export function lerEmails(texto: string): { emails: Email[]; ruins: string[] } {
       ruins.add(comoVeio);
     }
   };
+
   for (const trecho of texto.match(TRECHO) ?? []) {
     const aparado = trecho.trim();
     const comNome = COM_NOME.exec(aparado);
+
     if (comNome) {
       guardar(lerEmail(comNome[1] ?? ""), aparado);
       continue;
     }
+
     for (const pedaco of aparado.split(SEPARADOR)) {
       if (pedaco !== "") {
         guardar(lerEmail(pedaco), pedaco);
       }
     }
   }
+
   return { emails: [...emails], ruins: [...ruins] };
 }
 
@@ -141,6 +152,7 @@ function papelDoAceito(
   if (!linha.comoAdmin) {
     return "nao_pediu";
   }
+
   return linha.papelAplicadoEm ? "aplicado" : "por_aplicar";
 }
 
@@ -159,6 +171,7 @@ export function estadoDoConvite(
       tipo: "cancelado",
     };
   }
+
   if (linha.aceitoEm && linha.aceitoPor) {
     return {
       em: linha.aceitoEm,
@@ -167,12 +180,15 @@ export function estadoDoConvite(
       tipo: "aceito",
     };
   }
+
   if (linha.expiraEm.getTime() <= agora.getTime()) {
     return { em: linha.expiraEm, tipo: "expirado" };
   }
+
   if (!linha.enviadoEm) {
     return { expiraEm: linha.expiraEm, tipo: "nao_enviado" };
   }
+
   return {
     enviadoEm: linha.enviadoEm,
     expiraEm: linha.expiraEm,
@@ -269,8 +285,10 @@ export function montarPainelDeConvites(
   agora: Date
 ): PainelDeConvites {
   const convidados: ConvidadoNaTela[] = [];
+
   for (const linha of linhas.convidados) {
     const estado = estadoDoConvite(linha, agora);
+
     if (ehVivo(estado)) {
       convidados.push({
         comoAdmin: linha.comoAdmin,
@@ -283,6 +301,7 @@ export function montarPainelDeConvites(
       });
     }
   }
+
   return {
     contagem,
     convidados,

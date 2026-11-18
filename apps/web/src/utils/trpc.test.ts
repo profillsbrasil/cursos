@@ -21,16 +21,19 @@ const original = {
   temWindow: "window" in globalThis,
   window: Reflect.get(globalThis, "window"),
 };
+
 let pedidos: Pedido[] = [];
 
 /** O window.Clerk que o clerk-js monta, só com o último token da sessão. */
 function clerkComUltimoToken(raw: string, venceEmSeg: number) {
   const exp = Math.floor(Date.now() / 1000) + venceEmSeg;
+
   const clerk: ClerkNoNavegador = {
     session: {
       lastActiveToken: { getRawString: () => raw, jwt: { claims: { exp } } },
     },
   };
+
   Reflect.set(globalThis, "Clerk", clerk);
 }
 
@@ -52,6 +55,7 @@ const microtarefas = (voltas: number): Promise<void> =>
 
 async function pedidoDentroDaTarefa() {
   await microtarefas(VOLTAS_DE_MICROTAREFA);
+
   return pedidos[0];
 }
 
@@ -64,12 +68,14 @@ beforeEach(() => {
       keepalive: init.keepalive,
       url,
     });
+
     return new Promise<Response>(() => undefined);
   }) as typeof fetch;
 });
 
 afterEach(() => {
   globalThis.fetch = original.fetch;
+
   // Sem window antes, ele sai de vez: com window valendo undefined, o "window" in
   // globalThis de outro arquivo de teste acha que o ambiente tem window.
   if (original.temWindow) {
@@ -77,6 +83,7 @@ afterEach(() => {
   } else {
     Reflect.deleteProperty(globalThis, "window");
   }
+
   Reflect.set(globalThis, "Clerk", original.Clerk);
   setClerkAuthTokenGetter(null);
 });

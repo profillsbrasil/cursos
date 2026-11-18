@@ -29,13 +29,16 @@ export function MaterialDoCurso({
   const [todos, setTodos] = useState(false);
   const mostrados = todos ? materiais : materiais.slice(0, VISIVEIS);
   const escondidos = materiais.length - mostrados.length;
+
   const verTodos = useCallback(() => {
     setTodos(true);
     const primeiro = materiais[VISIVEIS];
+
     if (primeiro) {
       focarDepois(idDoLink(primeiro.id));
     }
   }, [materiais]);
+
   return (
     <section aria-labelledby="material-do-curso" className="grid gap-2">
       <h2

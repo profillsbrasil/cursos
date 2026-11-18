@@ -36,6 +36,7 @@ Font.register({
     { fontWeight: 700, src: join(FONTES, "Geist-Bold.ttf") },
   ],
 });
+
 // Sem isto, o react-pdf hifeniza nome e curso pelas regras do inglês. Quebra só
 // no hífen oculto que `quebravel` põe na palavra maior que a linha.
 Font.registerHyphenationCallback((palavra) => palavra.split(HIFEN_OCULTO));
@@ -57,6 +58,7 @@ function formasDoLockup(svg: string): Forma[] {
       );
     }
   }
+
   return [...svg.matchAll(ELEMENTO)].map(([, tag, atributos = ""]) => {
     const a = Object.fromEntries(
       [...atributos.matchAll(ATRIBUTO)].map(([, atributo, valor]) => [
@@ -64,6 +66,7 @@ function formasDoLockup(svg: string): Forma[] {
         valor,
       ])
     );
+
     return tag === "path"
       ? { d: a.d ?? "", fill: a.fill ?? "", tipo: "caminho" }
       : {

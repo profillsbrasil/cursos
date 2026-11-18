@@ -27,10 +27,12 @@ function useTituloComFoco<T extends HTMLElement>() {
   const titulo = useRef<T>(null);
   useEffect(() => {
     const ativo = document.activeElement;
+
     if (ativo === null || ativo === document.body) {
       titulo.current?.focus({ preventScroll: true });
     }
   }, []);
+
   return titulo;
 }
 
@@ -38,16 +40,20 @@ function useTituloComFoco<T extends HTMLElement>() {
 export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
   const router = useRouter();
   const { executar, pendente } = useAcao();
+
   const [estado, despachar] = useReducer(
     rascunhoDoEditor,
     pagina,
     rascunhoDoEditorEm
   );
+
   const tela = telaDo(estado);
   const titulo = useTituloComFoco<HTMLHeadingElement>();
+
   if (pagina !== estado.apoio.pagina) {
     despachar({ pagina, tipo: "pagina" });
   }
+
   useGuardaDeSaida(tela.sujo);
   // Depois do render: o campo marcado pode estar num bloco que abriu com o erro.
   useEffect(() => {
@@ -57,11 +63,14 @@ export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
   }, [estado.foco]);
 
   const { envio } = tela;
+
   const salvar = useCallback(() => {
     despachar({ tipo: "salvar" });
+
     if (envio === null) {
       return;
     }
+
     executar(
       () =>
         trpcClient.admin.catalogo.salvarCurso.mutate(
@@ -71,6 +80,7 @@ export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
         aoRecusar: (motivo) => despachar({ envio, motivo, tipo: "recusado" }),
         depois: ({ versao }) => {
           despachar({ envio, tipo: "salvo", versao });
+
           if (envio.novo) {
             router.replace(
               `/admin/catalogo/cursos/${envio.documento.id}` as Route

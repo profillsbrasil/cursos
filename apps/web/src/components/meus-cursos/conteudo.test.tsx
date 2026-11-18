@@ -49,6 +49,7 @@ function titulos(html: string, primeiro: string) {
   const todos = [...html.matchAll(/<h[23][^>]*>(.*?)<\/h[23]>/g)].map((m) =>
     texto(m[1] ?? "")
   );
+
   return todos.slice(todos.indexOf(primeiro));
 }
 
@@ -103,6 +104,7 @@ describe("Meus cursos com o caso do protótipo", () => {
   test("a linha sob a capa descreve o curso inteiro", () => {
     const [comercial, novaRotina, fabrica, gravacao, autoavaliacao] =
       capas(html);
+
     expect(comercial).toContain("Vendas e negócios · VN-001 · 46 de 90 aulas");
     expect(comercial).toContain("Agora: Módulo 8, Pilar Urgência");
     expect(comercial).not.toContain("Autoavaliação comercial");
@@ -156,6 +158,7 @@ describe("Meus cursos com o caso do protótipo", () => {
 
 describe("Meus cursos com curso em produção que tem código", () => {
   const curso = cursoLinha("c", { aulas: [2], status: "em_producao" });
+
   const html = render(
     montar({
       ...SEM_LIBERACAO,
@@ -206,6 +209,7 @@ describe("o comunicado em Meus cursos", () => {
   // O comunicado do exemplo saiu em 2 de outubro.
   const TITULO =
     "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM";
+
   const onde = (html: string) => ({
     banner: html.indexOf("Cronograma reverso"),
     comunicado: html.indexOf(TITULO),
@@ -263,6 +267,7 @@ describe("o comunicado em Meus cursos", () => {
         }}
       />
     );
+
     expect(html.match(DATA_DA_FAIXA)?.[1]).toBe("28 de dez. de 2025");
     expect(texto(html)).toContain("Publicado em 28 de dezembro de 2025.");
   });
@@ -273,10 +278,13 @@ const CLASSES_DA_IMAGEM = /<img[^>]*class="([^"]*object-cover[^"]*)"/g;
 describe("a capa sob o cursor", () => {
   test("a imagem cresce em 200 ms com a curva ease-forte, sem transição com movimento reduzido", () => {
     const html = render(montar(exemploDoPrototipo()));
+
     const abertas = [...html.matchAll(CLASSES_DA_IMAGEM)]
       .map((m) => m[1].split(" "))
       .filter((c) => c.includes("group-hover:scale-[1.03]"));
+
     expect(abertas.length).toBeGreaterThan(0);
+
     for (const classes of abertas) {
       expect(classes).toEqual(
         expect.arrayContaining([

@@ -16,12 +16,14 @@ import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { comercial } from "./exemplo-de-teste";
 
 const TRES_LINHAS = "Linha um.\nLinha dois.\nLinha três.";
+
 const LONGA =
   "Como montar o cronograma a partir da data que o cliente precisa da máquina rodando. ".repeat(
     12
   );
 
 const BASE = comercial.emAndamento;
+
 const PAGINA: PaginaDoCurso = {
   ...BASE,
   modulos: BASE.modulos.map((m) => ({
@@ -36,6 +38,7 @@ const PAGINA: PaginaDoCurso = {
 const HTML = renderToStaticMarkup(<ConteudoDoCurso pagina={PAGINA} />);
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...HTML.matchAll(CLASSES)].flatMap(([, c = ""]) =>
     c.replaceAll("&amp;", "&").split(ESPACO)
@@ -106,12 +109,15 @@ describe.skipIf(!existsSync(CHROMIUM))(
       test(`${largura} px: cada linha da aula vai de borda a borda do cartão, e o título não repete o número`, async () => {
         await abrir(largura);
         const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+
         const aulas = PAGINA.modulos.find((m) =>
           m.aulas.some((a) => a.titulo === linhas[0]?.titulo)
         )?.aulas;
+
         expect(linhas.map((l) => l.titulo)).toEqual(
           aulas?.map((a) => a.titulo) ?? []
         );
+
         for (const l of linhas) {
           expect(l.li).toEqual(l.cartao);
         }
@@ -124,6 +130,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
         expect(primeira?.descricoes[0]?.altura).toBe(
           2 * (primeira?.descricoes[0]?.entrelinha ?? 0)
         );
+
         for (const l of resto) {
           const [d] = l.descricoes;
           expect(d?.altura).toBeLessThanOrEqual(2 * (d?.entrelinha ?? 0));
@@ -134,6 +141,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
     test("390 px: a descrição passa por baixo da duração e usa a largura da linha", async () => {
       await abrir(390);
       const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+
       for (const l of linhas) {
         expect(l.descricoes[0]?.esquerda).toBe(l.inicioDoTitulo);
         expect(l.descricoes[0]?.direita).toBeGreaterThan(l.duracao.esquerda);
@@ -143,6 +151,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
     test("1280 px: a descrição fica na coluna do título, antes da duração", async () => {
       await abrir(1280);
       const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+
       for (const l of linhas) {
         expect(l.descricoes[0]?.esquerda).toBe(l.inicioDoTitulo);
         expect(l.descricoes[0]?.direita).toBeLessThanOrEqual(

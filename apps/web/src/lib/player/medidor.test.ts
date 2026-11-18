@@ -22,16 +22,19 @@ function tocar(
   let m = m0;
   const trechos: Trecho[] = [];
   const passos = Math.round(((ateSeg - deSeg) / taxa) * (1000 / passoMs));
+
   for (let i = 0; i <= passos; i += 1) {
     const a: Amostra = {
       relogioMs: relogio0 + i * passoMs,
       taxa,
       videoSeg: deSeg + (i * passoMs * taxa) / 1000,
     };
+
     const r = amostrar(m, a);
     m = r.medidor;
     trechos.push(...r.trechos);
   }
+
   return { m, trechos };
 }
 

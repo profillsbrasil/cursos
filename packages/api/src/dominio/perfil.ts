@@ -19,5 +19,6 @@ export function perfilDoCadastro(
   conta: { email: string | null; emailVerificado: boolean } | null
 ): Perfil {
   const email = conta?.emailVerificado ? conta.email?.toLowerCase() : null;
+
   return email?.endsWith(DOMINIO_DA_EMPRESA) ? "funcionario" : "publico";
 }

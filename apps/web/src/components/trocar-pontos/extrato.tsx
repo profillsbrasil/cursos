@@ -20,10 +20,12 @@ export function Extrato({
       </p>
     );
   }
+
   return (
     <ul className={cn(CARTAO, "overflow-hidden")}>
       {itens.map((item) => {
         const novo = item.id === lancamentoNovoId;
+
         return (
           <li
             className={cn(

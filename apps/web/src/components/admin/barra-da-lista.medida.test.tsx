@@ -104,6 +104,7 @@ const TELAS = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(TELAS).flatMap(({ esqueleto, pronta }) =>
     [esqueleto, pronta].flatMap((html) =>
@@ -131,6 +132,7 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronta" style="width:${largura}px">${pronta}</div><div id="esqueleto" style="width:${largura}px">${esqueleto}</div></body></html>`
     )}); document.close();`
   );
+
   // No loading.tsx, a barra vem depois do texto do leitor de tela e do cabeçalho.
   return await avaliar<Medida>(
     enviar,

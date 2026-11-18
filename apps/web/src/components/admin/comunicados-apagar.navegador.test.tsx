@@ -27,6 +27,7 @@ const comunicado = (n: number, titulo: string) => ({
   texto: "O que mudou e onde o aluno encontra.",
   titulo,
 });
+
 const APAGADO = comunicado(1, "Módulo 13 atualizado");
 const FICA = comunicado(2, "Nova aula de limpeza");
 
@@ -70,10 +71,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
+
   return await saida.text();
 }
 

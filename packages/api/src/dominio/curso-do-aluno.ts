@@ -74,11 +74,14 @@ const fracao = (feitas: number, total: number): Progresso => ({
 /** As aulas com questionário por aprovar, as reprovadas primeiro. */
 function questionariosPendentes(curso: CursoComAulas, h: Historico) {
   const comQuestionario = aulasDe(curso).filter((a) => a.perguntas > 0);
+
   const pendentes = comQuestionario.filter(
     (a) => !h.questionarios.get(a.id)?.aprovada
   );
+
   const reprovadas = pendentes.filter((a) => h.questionarios.has(a.id));
   const porFazer = pendentes.filter((a) => !h.questionarios.has(a.id));
+
   return {
     pendentes: [...reprovadas, ...porFazer].map((a) => a.id),
     progresso: fracao(
@@ -103,29 +106,37 @@ function estadoDoCurso(
   questionarios: Progresso
 ): EstadoCurso {
   const cert = h.certificados.get(curso.id);
+
   if (cert) {
     // vence aula nova e volta a "em produção"
     return { certificado: cert, tipo: "concluido" };
   }
+
   const aulas = aulasDe(curso);
   const [primeira] = aulas;
+
   if (curso.status === "em_producao" || !primeira) {
     return { tipo: "em_breve" };
   }
+
   const tocado = aulas.some(
     (a) =>
       h.assistidas.has(a.id) ||
       h.posicoes.has(a.id) ||
       h.questionarios.has(a.id)
   );
+
   const proxima = aulas.find((a) => !h.assistidas.has(a.id));
+
   if (proxima) {
     return tocado
       ? { proximaAula: proxima.id, tipo: "em_andamento" }
       : { primeiraAula: primeira.id, tipo: "nao_iniciado" };
   }
+
   const proximaAula =
     pendentes[0] ?? aulas.find((a) => a.perguntas > 0)?.id ?? primeira.id;
+
   return {
     aprovados: questionarios.feitas,
     proximaAula,
@@ -153,16 +164,20 @@ function aulaDaVezId(
       return estado.proximaAula;
     case "em_andamento": {
       let ultima: { aulaId: AulaId; quando: string } | null = null;
+
       for (const aula of aulasDe(curso)) {
         const quando = atividade.get(aula.id);
+
         if (quando && (!ultima || quando > ultima.quando)) {
           ultima = { aulaId: aula.id, quando };
         }
       }
+
       return ultima && !h.assistidas.has(ultima.aulaId)
         ? ultima.aulaId
         : estado.proximaAula;
     }
+
     default:
       return estado satisfies never;
   }
@@ -171,6 +186,7 @@ function aulaDaVezId(
 function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId): OndeNoCurso {
   for (const modulo of curso.modulos) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
+
     if (i !== -1) {
       return {
         aula: numeroDaAula(i),
@@ -178,6 +194,7 @@ function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId): OndeNoCurso {
       };
     }
   }
+
   throw new Error(`Aula ${aulaId} fora do curso ${curso.titulo}`);
 }
 
@@ -190,6 +207,7 @@ export function lerCursoDoAluno(
   const q = questionariosPendentes(curso, h);
   const estado = estadoDoCurso(curso, h, q.pendentes, q.progresso);
   const id = aulaDaVezId(curso, estado, estudo);
+
   return {
     aulaDaVez:
       id === null

@@ -18,15 +18,20 @@ export function respostaDoMaterial(aberto: MaterialAberto | null): Response {
   if (!aberto) {
     return new Response(null, { status: 404 });
   }
+
   const { contentType, nomeDoArquivo, resposta } = aberto;
+
   const headers = new Headers({
     "cache-control": "private, no-store",
     "content-disposition": disposicaoDoAnexo(nomeDoArquivo),
     "content-type": contentType,
   });
+
   const tamanho = resposta.headers.get("content-length");
+
   if (tamanho) {
     headers.set("content-length", tamanho);
   }
+
   return new Response(resposta.body, { headers });
 }

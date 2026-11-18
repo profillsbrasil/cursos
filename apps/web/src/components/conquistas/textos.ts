@@ -56,18 +56,22 @@ interface Frases {
 
 function proximoPassoDoCursoMaisPerto(c: CursoPerto) {
   const resta = c.total - c.feitas;
+
   if (resta === 0) {
     return `Só faltam os questionários de ${c.curso}.`;
   }
+
   if (c.feitas === 0) {
     return `${c.curso} tem ${plural(c.total, "aula", "aulas")}.`;
   }
+
   return `${faltam(resta)} ${plural(resta, "aula", "aulas")} em ${c.curso}.`;
 }
 
 function primeiraAula(m: PorGanhar<MedalhaDo<"primeira_aula">>): Frases {
   const p = m.proxima;
   const verbo = p?.tipo === "continuar" ? "Termine" : "Comece por";
+
   return {
     detalhe: "A aula conta quando você a assiste até o fim.",
     falta: p
@@ -94,6 +98,7 @@ const primeiroCurso = (m: PorGanhar<MedalhaDo<"primeiro_curso">>): Frases => ({
 
 const tresTrocas = (m: Contagem): Frases => {
   const resta = m.total - m.feitas;
+
   return {
     detalhe: `Você trocou ${fmtNum(m.feitas)} de ${plural(m.total, "curso", "cursos")}.`,
     falta: `${faltam(resta)} ${plural(resta, "troca", "trocas")}.`,
@@ -115,9 +120,11 @@ const amostraETroca = (m: PorGanhar<MedalhaDo<"amostra_e_troca">>): Frases =>
 function trocaAteOFim(m: PorGanhar<MedalhaDo<"troca_ate_o_fim">>): Frases {
   const detalhe = "O certificado de um curso que você trocou fecha a medalha.";
   const c = m.maisAdiantado;
+
   if (!c) {
     return { detalhe, falta: "Troque um curso e conclua-o." };
   }
+
   return {
     detalhe,
     falta:
@@ -141,6 +148,7 @@ const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>): Frases =>
 
 const tresCursos = (m: Contagem): Frases => {
   const resta = m.total - m.feitas;
+
   return {
     detalhe: "Cada certificado conta um curso concluído.",
     falta: `${faltam(resta)} ${plural(resta, "curso", "cursos")}.`,
@@ -154,9 +162,11 @@ const milPontos = (m: Contagem): Frases => ({
 
 function frases(m: MedalhaDaGrade): Frases {
   const p = m.medalha;
+
   if (p.estado === "ganha") {
     throw new Error("A medalha ganha não tem o que falta.");
   }
+
   switch (m.tipo) {
     case "primeira_aula":
       return primeiraAula(p as PorGanhar<typeof m>);
@@ -188,6 +198,7 @@ function frases(m: MedalhaDaGrade): Frases {
 
 export function linhaDaGrade(m: MedalhaDaGrade): LinhaDaGrade {
   const base = { nome: NOME[m.tipo], tipo: m.tipo };
+
   return m.medalha.estado === "ganha"
     ? { ...base, dia: m.medalha.dia, estado: "ganha" }
     : { ...base, estado: "por_ganhar", pct: m.medalha.pct, ...frases(m) };
@@ -205,6 +216,7 @@ export function gradeDasMedalhas(medalhas: readonly MedalhaDaGrade[]): {
   porGanhar: Extract<LinhaDaGrade, { estado: "por_ganhar" }>[];
 } {
   const linhas = medalhas.map(linhaDaGrade);
+
   return {
     ganhas: linhas
       .filter((l) => l.estado === "ganha")
@@ -221,10 +233,12 @@ export const contagemDaGrade = (medalhas: readonly MedalhaDaGrade[]) =>
 /** O cartão Ganhas sem nenhuma: a primeira vem com a primeira aula. */
 export function semGanha(medalhas: readonly MedalhaDaGrade[]): string {
   const aula = medalhas.find((m) => m.tipo === "primeira_aula");
+
   const passo =
     aula?.medalha.estado === "por_ganhar" && aula.medalha.proxima
       ? ` ${frases(aula).falta}`
       : "";
+
   return `Sua primeira medalha vem com uma aula assistida até o fim.${passo}`;
 }
 
@@ -244,7 +258,9 @@ export function trilhaDeAulas(marcos: readonly Marco[]): {
   const degraus = marcos.flatMap((m) =>
     m.tipo === "aulas" ? [{ medalha: m.medalha, meta: m.meta }] : []
   );
+
   const porGanhar = degraus.find((d) => d.medalha.estado === "por_ganhar");
+
   return {
     degraus,
     feitas:
@@ -262,13 +278,16 @@ export function tituloDaTrilha(
   degraus: readonly DegrauDaTrilha[]
 ): [string, string] {
   const proximo = proximoDegrau(degraus);
+
   if (!proximo) {
     return [
       `${plural(feitas, "aula assistida", "aulas assistidas")}.`,
       "As três medalhas de aulas são suas.",
     ];
   }
+
   const resta = proximo.meta - feitas;
+
   return [
     `${plural(feitas, "aula assistida", "aulas assistidas")}.`,
     `${faltam(resta)} ${fmtNum(resta)} para a medalha de ${fmtNum(proximo.meta)}.`,
@@ -285,10 +304,13 @@ export const legendaDoDegrau = (
   if (d.medalha.estado === "ganha") {
     return ganhaEm(d.medalha.dia, hoje);
   }
+
   if (d === proximoDegrau(degraus)) {
     return null;
   }
+
   const resta = d.meta - feitas;
+
   return `${faltam(resta)} ${plural(resta, "aula", "aulas")}`;
 };
 
@@ -302,11 +324,15 @@ export function fraseDaSequencia(
   if (dias === 0) {
     return `Uma aula por dia útil, por ${fmtNum(meta)} dias. ${SEM_QUEBRA}`;
   }
+
   const conta = `${fmtNum(dias)} de ${fmtNum(meta)} dias úteis.`;
+
   if (hojePendente) {
     return `${conta} Assista a uma aula hoje para chegar a ${fmtNum(dias + 1)}. ${SEM_QUEBRA}`;
   }
+
   const resta = meta - dias;
+
   return `${conta} ${faltam(resta)} ${plural(resta, "dia útil", "dias úteis")}.`;
 }
 
@@ -352,6 +378,7 @@ export function contagemDasMedalhas(c: Conquistas): string {
   const todas = [...c.marcos, ...c.medalhas].map((m) => m.medalha);
   const n = ganhas(todas) + ganhas(c.certificados);
   const total = todas.length + c.certificados.length;
+
   return n === 0
     ? "Nenhuma medalha ainda"
     : `${plural(n, "medalha ganha", "medalhas ganhas")} de ${fmtNum(total)}`;

@@ -65,6 +65,7 @@ const PARAGRAFO_DA_DESCRICAO = /<p class="([^"]*)">Por que filmar/;
 
 const comDescricao = (descricao: string) => {
   const dados = { ...DADOS, aula: { ...DADOS.aula, descricao } };
+
   return {
     cabecalho: renderToStaticMarkup(<CabecalhoDaAula dados={dados} />),
     descricao: renderToStaticMarkup(<DescricaoDaAula dados={dados} />),

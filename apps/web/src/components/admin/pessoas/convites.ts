@@ -27,6 +27,7 @@ export interface Ficha {
 export function fichasCom(fichas: readonly Ficha[], texto: string): Ficha[] {
   const lido = lerEmails(texto);
   const ja = new Set(fichas.map((f) => f.email ?? f.texto));
+
   return [
     ...fichas,
     ...lido.emails
@@ -48,11 +49,14 @@ export function envioDasFichas(
   cursosMarcados: number
 ): EnvioDasFichas {
   const emails = fichas.flatMap((f) => f.email ?? []);
+
   const rotulo =
     emails.length === 0
       ? "Enviar convites"
       : `Enviar ${plural(emails.length, "convite", "convites")}`;
+
   const [ruim] = fichas.filter((f) => f.email === null);
+
   if (ruim) {
     return {
       razao: `${ruim.texto} não é um e-mail. Corrija ou apague para enviar.`,
@@ -60,6 +64,7 @@ export function envioDasFichas(
       tipo: "desligado",
     };
   }
+
   if (emails.length === 0) {
     return {
       razao: "Escreva pelo menos um e-mail.",
@@ -67,6 +72,7 @@ export function envioDasFichas(
       tipo: "desligado",
     };
   }
+
   if (emails.length > TETO_DE_EMAILS) {
     return {
       razao: `Um envio leva até ${TETO_DE_EMAILS} e-mails. Tire ${fmtNum(emails.length - TETO_DE_EMAILS)} para enviar.`,
@@ -74,6 +80,7 @@ export function envioDasFichas(
       tipo: "desligado",
     };
   }
+
   if (cursosMarcados > TETO_DE_CURSOS) {
     return {
       razao: `Um convite libera até ${TETO_DE_CURSOS} cursos.`,
@@ -81,6 +88,7 @@ export function envioDasFichas(
       tipo: "desligado",
     };
   }
+
   return { emails, rotulo, tipo: "pronto" };
 }
 
@@ -95,7 +103,9 @@ export function anuncioDasFichas(
   if (fichas.length === 0) {
     return "Nenhum e-mail escrito.";
   }
+
   const contagem = `${plural(fichas.length, "e-mail escrito", "e-mails escritos")}.`;
+
   return envio.tipo === "desligado" ? `${contagem} ${envio.razao}` : contagem;
 }
 
@@ -122,9 +132,11 @@ export function fraseDoResultado(r: ResultadoDoConvite): string {
 /** O toast do envio: "3 convites enviados", ou "" quando nenhum saiu. */
 export function textoDoEnvio(r: ResultadoDoEnvio): string {
   const enviados = r.convites.filter((c) => c.tipo === "enviado").length;
+
   if (enviados === 0) {
     return "";
   }
+
   return enviados === 1
     ? "1 convite enviado"
     : `${fmtNum(enviados)} convites enviados`;
@@ -133,6 +145,7 @@ export function textoDoEnvio(r: ResultadoDoEnvio): string {
 // As cores dos selos de estado do DESIGN.md. Nenhum vermelho: convite parado não é erro.
 const SOL_SUAVE = "bg-sol/14 text-sol";
 const NEUTRO = "bg-popover text-foreground";
+
 const CONTORNO_APAGADO =
   "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset";
 
@@ -166,9 +179,11 @@ export function quandoDoConvidado(c: ConvidadoNaTela, hoje: string): string {
 /** "Nenhum curso", o título do único curso ou "3 cursos". */
 export function cursosDoConvidado(cursos: ConvidadoNaTela["cursos"]): string {
   const [unico] = cursos;
+
   if (!unico) {
     return "Nenhum curso";
   }
+
   return cursos.length === 1
     ? unico.titulo
     : plural(cursos.length, "curso", "cursos");
@@ -183,6 +198,7 @@ export function contagemDeConvidados(
   if (termo) {
     return `${plural(mostrados, "convidado", "convidados")} para "${termo}"`;
   }
+
   return total > mostrados
     ? `${fmtNum(mostrados)} de ${plural(total, "convidado", "convidados")}`
     : plural(mostrados, "convidado", "convidados");

@@ -34,9 +34,11 @@ function EnderecoDoCurso({
 }) {
   const classe =
     "flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground";
+
   if (slug === null && titulo.trim() === "") {
     return <span className={classe}>O link do curso sai do título.</span>;
   }
+
   return (
     <span className={classe}>
       <Link2 aria-hidden="true" className="size-[13px]" />
@@ -69,15 +71,19 @@ function CampoDaCategoria({
   const [criadas, setCriadas] = useState<readonly CategoriaNaLista[]>([]);
   const [criada, setCriada] = useState<CategoriaNaLista | null>(null);
   const [recusa, setRecusa] = useState<string | null>(null);
+
   const { aria, mensagem: doEditor } = useErroDoCampo(
     id,
     criada?.id === valor ? `${id}-criada` : undefined
   );
+
   const mensagem = recusa ?? doEditor;
+
   const todas = [
     ...categorias,
     ...criadas.filter((c) => !categorias.some((d) => d.id === c.id)),
   ];
+
   const escolher = useCallback(
     (v: string) => {
       setRecusa(null);
@@ -85,6 +91,7 @@ function CampoDaCategoria({
     },
     [mudar]
   );
+
   const criar = useMemo(
     () => ({
       aoCriar: (nome: string) => {
@@ -111,6 +118,7 @@ function CampoDaCategoria({
     }),
     [executar, mudar]
   );
+
   return (
     <Field data-invalid={mensagem ? true : undefined}>
       <FieldLabel className={ROTULO} htmlFor={id}>
@@ -184,11 +192,13 @@ export function CapaEDescricao({
       }),
     [despachar]
   );
+
   const mudarDescricao = useCallback(
     (descricao: string) =>
       despachar({ mudanca: { descricao }, tipo: "campos" }),
     [despachar]
   );
+
   return (
     // O cartão abre o editor sem título visível; o h2 escondido nomeia a região e
     // é o alvo do índice. A seção relativa segura o h2 no alto dela.

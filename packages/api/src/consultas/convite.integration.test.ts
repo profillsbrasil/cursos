@@ -46,6 +46,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
   async function cursoDeTeste(titulo: string): Promise<CursoId> {
     const s = hex();
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -60,23 +61,29 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         titulo: `${titulo} ${s}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     return c.id as CursoId;
   }
 
   const linhaDe = async (e: Email) => {
     const linhas = await db.select().from(convite).where(eq(convite.email, e));
+
     return linhas;
   };
 
   const umaLinha = async (e: Email) => {
     const [linha] = await linhaDe(e);
+
     if (!linha) {
       throw new Error(`sem convite para ${e}`);
     }
+
     return linha;
   };
 
@@ -91,9 +98,11 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     await db
       .delete(convite)
       .where(inArray(convite.convidadoPor, [ADMIN, OUTRO_ADMIN]));
+
     if (cursos.length > 0) {
       await db.delete(curso).where(inArray(curso.id, cursos));
     }
+
     await db.$client.end();
   });
 
@@ -101,6 +110,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     const [ana, bia] = [email("ana"), email("bia")];
     const cursoId = await cursoDeTeste("Envase");
     const carteiro = convitesDeTeste();
+
     const r = await convidar(
       db,
       {
@@ -113,6 +123,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       { ...pedido([ana, bia], [cursoId]), comoAdmin: true },
       AGORA
     );
+
     expect(r.convites).toEqual([
       { email: ana, tipo: "enviado" },
       { email: bia, tipo: "ja_tem_conta", userId: "user_bia" },
@@ -131,10 +142,12 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       expiraEm: new Date(AGORA.getTime() + 30 * DIA),
       perfil: "cliente",
     });
+
     const doConvite = await db
       .select({ cursoId: conviteCurso.cursoId })
       .from(conviteCurso)
       .where(eq(conviteCurso.conviteId, (await umaLinha(ana)).id));
+
     expect(doConvite).toEqual([{ cursoId }]);
     expect(await linhaDe(bia)).toEqual([]);
   });
@@ -142,6 +155,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   test("ana@ é convidada mesmo com a conta de diana@ no login", async () => {
     const sufixo = `${hex()}@convite${S}.com`;
     const [ana, diana] = [`ana.${sufixo}` as Email, `diana.${sufixo}` as Email];
+
     const ctx = contextoDeTeste({
       db,
       papel: "admin",
@@ -150,9 +164,11 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       ],
       userId: ADMIN,
     });
+
     const r = await createCaller(ctx).admin.convites.enviar(
       pedido([ana, diana])
     );
+
     expect(r.convites).toEqual([
       { email: ana, tipo: "enviado" },
       { email: diana, tipo: "ja_tem_conta", userId: "user_diana" },
@@ -162,6 +178,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   test("já tem conta leva o userId, e a ficha dele abre mesmo sem a pessoa ter entrado no app", async () => {
     const bia = email("bia");
     const userId = `user_soconta${S}`;
+
     const admin = createCaller(
       contextoDeTeste({
         db,
@@ -170,6 +187,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         userId: ADMIN,
       })
     );
+
     const r = await admin.admin.convites.enviar(pedido([bia]));
     expect(r.convites).toEqual([{ email: bia, tipo: "ja_tem_conta", userId }]);
     const ficha = await admin.admin.pessoas.ficha({ userId });
@@ -182,6 +200,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     const carteiro = convitesDeTeste(new Map([[bia, "erro"]]));
     const portas = { convites: carteiro, pessoas: semConta };
     const erro = spyOn(console, "error");
+
     try {
       const primeira = await convidar(
         db,
@@ -190,6 +209,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([ana, bia, ana]),
         AGORA
       );
+
       expect(primeira.convites).toEqual([
         { email: ana, tipo: "enviado" },
         { email: bia, motivo: { tipo: "falha" }, tipo: "nao_enviado" },
@@ -197,6 +217,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     } finally {
       erro.mockRestore();
     }
+
     const segunda = await convidar(
       db,
       portas,
@@ -204,6 +225,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       { ...pedido([ana, bia]), perfil: "funcionario" },
       new Date(AGORA.getTime() + MIN)
     );
+
     expect(segunda.convites).toEqual([
       { email: ana, enviado: true, tipo: "ja_convidado" },
       { email: bia, enviado: false, tipo: "ja_convidado" },
@@ -224,10 +246,12 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     const ana = email("ana");
     const carteiro = convitesDeTeste();
     const portas = { convites: carteiro, pessoas: semConta };
+
     const [a, b] = await Promise.all([
       convidar(db, portas, ADMIN, pedido([ana]), AGORA),
       convidar(db, portas, OUTRO_ADMIN, pedido([ana]), AGORA),
     ]);
+
     const tipos = [a.convites[0]?.tipo, b.convites[0]?.tipo].sort();
     expect(tipos).toEqual(["enviado", "ja_convidado"]);
     expect(await linhaDe(ana)).toHaveLength(1);
@@ -239,6 +263,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     const [a, b, c, d, e] = lote as [Email, Email, Email, Email, Email];
     const carteiro = convitesDeTeste(new Map([[c, "limite"]]));
     const pedidos: string[] = [];
+
     const r = await convidar(
       db,
       {
@@ -246,6 +271,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           ...carteiro,
           enviar: (destino, agora) => {
             pedidos.push(destino);
+
             return carteiro.enviar(destino, agora);
           },
         },
@@ -255,10 +281,12 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       pedido(lote),
       AGORA
     );
+
     const limite = {
       motivo: { tentarEm: "2026-11-11T16:00:00.000Z", tipo: "limite" },
       tipo: "nao_enviado",
     };
+
     expect<unknown>(r.convites).toEqual([
       { email: a, tipo: "enviado" },
       { email: b, tipo: "enviado" },
@@ -328,6 +356,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
   test("dar o papel de admin pelo convite pede que quem convida ainda seja admin no login", async () => {
     const ana = email("ana");
+
     const eu = (
       papel: "admin" | "aluno"
     ): Pessoa & { papel: typeof papel } => ({
@@ -337,6 +366,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       papel,
       userId: ADMIN,
     });
+
     const chamar = (papel: "admin" | "aluno", comoAdmin: boolean) =>
       createCaller(
         contextoDeTeste({
@@ -346,6 +376,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           userId: ADMIN,
         })
       ).admin.convites.enviar({ ...pedido([ana]), comoAdmin });
+
     expect(await recusa(chamar("aluno", true))).toEqual([
       "FORBIDDEN",
       "Você não é mais admin.",
@@ -369,17 +400,20 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         AGORA
       );
       const linha = await umaLinha(destino);
+
       return { carteiro, destino, id: linha.id as ConviteId, linha };
     }
 
     test("dentro de 60 s devolve o envio que existe, sem outro e-mail", async () => {
       const { carteiro, destino, id, linha } = await convidado();
+
       const r = await reenviarConvite(
         db,
         carteiro,
         id,
         new Date(AGORA.getTime() + 59_000)
       );
+
       expect(r).toEqual({ enviadoEm: AGORA });
       expect(carteiro.enviados).toHaveLength(1);
       expect(carteiro.revogados).toEqual([]);
@@ -481,14 +515,17 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     test("cancelado enquanto o Clerk respondia: o link novo é revogado e o reenvio recusa", async () => {
       const { carteiro, destino, id } = await convidado();
       const depois = new Date(AGORA.getTime() + DIA);
+
       const cancelaNoMeio = {
         ...carteiro,
         enviar: async (para: Email, agora: Date) => {
           const r = await carteiro.enviar(para, agora);
           await cancelarConvite(db, convitesDeTeste(), ADMIN, id, agora);
+
           return r;
         },
       };
+
       expect(
         await recusa(reenviarConvite(db, cancelaNoMeio, id, depois))
       ).toEqual(["PRECONDITION_FAILED", "Este convite foi cancelado."]);
@@ -547,6 +584,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         primeiro?.id as ConviteId,
         AGORA
       );
+
       const r = await convidar(
         db,
         portas,
@@ -554,6 +592,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         { ...pedido([destino]), perfil: "funcionario" },
         AGORA
       );
+
       expect(r.convites).toEqual([{ email: destino, tipo: "enviado" }]);
       const linhas = await linhaDe(destino);
       expect(
@@ -604,6 +643,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   describe("a opção Convidados", () => {
     test("lista os vivos que casam o trecho do e-mail, do mais novo ao mais antigo, com os cursos", async () => {
       const marca = `lista${hex()}`;
+
       const [velho, novo, cancelado, aceito] = [
         "velho",
         "novo",
@@ -615,10 +655,12 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         Email,
         Email,
       ];
+
       const [envase, rotulagem] = [
         await cursoDeTeste("Envase"),
         await cursoDeTeste("Rotulagem"),
       ];
+
       const portas = { convites: convitesDeTeste(), pessoas: semConta };
       await convidar(db, portas, ADMIN, pedido([velho]), AGORA);
       await convidar(
@@ -674,9 +716,11 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     test("o painel do admin sai com o estado e o dia de cada convidado", async () => {
       const marca = `painel${hex()}`;
       const destino = `ana.${marca}@convite${S}.com` as Email;
+
       const admin = createCaller(
         contextoDeTeste({ db, papel: "admin", userId: ADMIN })
       );
+
       await admin.admin.convites.enviar(pedido([destino]));
       const painel = await admin.admin.convites.painel({ termo: marca });
       expect(painel.convidados).toHaveLength(1);
@@ -701,6 +745,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       `@convite${S}.com`,
       `${"a".repeat(250)}@convite${S}.com`,
     ];
+
     const noBanco = await Promise.all(
       textos.map((texto) =>
         db
@@ -718,6 +763,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           )
       )
     );
+
     expect(noBanco).toEqual(textos.map((texto) => lerEmail(texto) === texto));
   });
 });

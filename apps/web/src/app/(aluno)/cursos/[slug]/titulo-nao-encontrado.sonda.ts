@@ -9,6 +9,7 @@ import {
 } from "next/dist/client/components/http-access-fallback/http-access-fallback";
 
 const nada = () => Promise.resolve(null);
+
 plugin({
   name: "server-api-sem-nada",
   setup(construtor) {
@@ -38,11 +39,13 @@ async function titulo(gerar: () => Promise<{ title?: unknown }>) {
     ) {
       return "notFound()";
     }
+
     return String(erro);
   }
 }
 
 const slug = () => Promise.resolve({ slug: "nao-existe" });
+
 console.log(
   JSON.stringify({
     aula: await titulo(() =>

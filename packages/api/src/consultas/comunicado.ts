@@ -59,6 +59,7 @@ export async function linhasDosComunicadosDoAluno(
     .leftJoin(curso, eq(curso.id, comunicado.cursoId))
     .where(comunicadoVisivelPara(db, aluno))
     .orderBy(...DO_MAIS_NOVO);
+
   return linhas.map((l) => ({ ...l, id: l.id as ComunicadoId }));
 }
 
@@ -84,6 +85,7 @@ export async function linhasDosComunicados(
       .from(curso)
       .orderBy(curso.titulo),
   ]);
+
   return {
     comunicados: comunicados.map((c) => ({
       curso:
@@ -128,6 +130,7 @@ export function salvarComunicado(
         .from(curso)
         .where(eq(curso.id, c.cursoId))
         .for("key share");
+
       if (!alvo) {
         throw new ErroParaAPessoa({
           code: "NOT_FOUND",
@@ -135,6 +138,7 @@ export function salvarComunicado(
         });
       }
     }
+
     const [linha] = await tx
       .insert(comunicado)
       .values({
@@ -151,9 +155,11 @@ export function salvarComunicado(
       })
       // xmax = 0 só na linha que o INSERT criou; na que o ON CONFLICT atualizou, não.
       .returning({ novo: sql<boolean>`xmax = 0` });
+
     if (!linha) {
       throw new Error("O upsert do comunicado não devolveu a linha.");
     }
+
     return { id: c.id, novo: linha.novo };
   });
 }
@@ -167,5 +173,6 @@ export async function apagarComunicado(
     .delete(comunicado)
     .where(eq(comunicado.id, id))
     .returning({ id: comunicado.id });
+
   return { apagado: apagados.length > 0 };
 }

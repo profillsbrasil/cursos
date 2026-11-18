@@ -16,6 +16,7 @@ function pedido(cabecalhos: Record<string, string>, corpo: BodyInit) {
 const formulario = () => {
   const fd = new FormData();
   fd.set("documento", "{}");
+
   return fd;
 };
 
@@ -25,6 +26,7 @@ describe("recusaDeOrigem", () => {
       pedido({ origin: "https://outro.site" }, formulario()),
       ORIGEM
     );
+
     expect(resposta?.status).toBe(403);
   });
 

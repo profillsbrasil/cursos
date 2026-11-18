@@ -17,6 +17,7 @@ export const SaiuDoCampo = createContext<(id: string) => void>(() => undefined);
 export function useErroDoCampo(id: string, descricao?: string) {
   const mensagem = useContext(ErrosDoEditor).get(id) ?? null;
   const descritos = [descricao, mensagem ? `${id}-erro` : null].filter(Boolean);
+
   return {
     aria: {
       "aria-describedby":

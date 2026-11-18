@@ -87,23 +87,28 @@ function Formulario({
   const id = useId();
   const [faltando, setFaltando] = useState(false);
   const [para, setPara] = useState(inicial.cursoId);
+
   const enviar = useCallback(
     (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       const dados = new FormData(e.currentTarget);
+
       const r: Rascunho = {
         cursoId: campoDeTexto(dados, "cursoId"),
         texto: campoDeTexto(dados, "texto").trim(),
         titulo: campoDeTexto(dados, "titulo").trim(),
       };
+
       const incompleto = r.titulo === "" || r.texto === "";
       setFaltando(incompleto);
+
       if (!incompleto) {
         aoEnviar(r);
       }
     },
     [aoEnviar]
   );
+
   const cancelar = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape" && aoCancelar && !enviando) {
@@ -113,6 +118,7 @@ function Formulario({
     },
     [aoCancelar, enviando]
   );
+
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Escape fecha a edição de qualquer campo do formulário.
     <form className="grid gap-5" onKeyDown={cancelar} onSubmit={enviar}>
@@ -206,6 +212,7 @@ function NovoComunicado({ cursos }: { cursos: readonly CursoDoComunicado[] }) {
   const { executar, pendente } = useAcao();
   const [id, setId] = useState(() => crypto.randomUUID());
   const [publicou, setPublicou] = useState(false);
+
   const publicar = useCallback(
     (r: Rascunho) =>
       executar(
@@ -220,6 +227,7 @@ function NovoComunicado({ cursos }: { cursos: readonly CursoDoComunicado[] }) {
       ),
     [executar, id]
   );
+
   return (
     <div className="p-5">
       <Formulario
@@ -261,14 +269,17 @@ function ItemDoComunicado({
   const { fechar, pedir } = linhaAberta;
   const chaveDaEdicao = `editar:${c.id}`;
   const editando = linhaAberta.chave === chaveDaEdicao || edicao.pendente;
+
   const editar = useCallback(
     () => pedir(chaveDaEdicao),
     [pedir, chaveDaEdicao]
   );
+
   const sair = useCallback(() => {
     voltou.current = true;
     fechar(chaveDaEdicao);
   }, [fechar, chaveDaEdicao]);
+
   const salvar = useCallback(
     (r: Rascunho) =>
       executarEdicao(
@@ -277,6 +288,7 @@ function ItemDoComunicado({
       ),
     [executarEdicao, c.id, sair]
   );
+
   const apagar = useCallback(
     () =>
       executarRemocao(
@@ -313,6 +325,7 @@ function ItemDoComunicado({
       </li>
     );
   }
+
   return (
     <li className="grid gap-2.5 px-5 py-4">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
@@ -384,11 +397,14 @@ function ItemDoComunicado({
 
 export function Comunicados({ comunicados, cursos }: ComunicadosDoAdmin) {
   const [chave, pedir] = useState<string | null>(null);
+
   const fechar = useCallback(
     (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
     []
   );
+
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
+
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
       <Secao

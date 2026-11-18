@@ -26,9 +26,11 @@ export const contaDoGoogle = <C extends ContaParaEntrar>(
  */
 export function podeDesconectarOGoogle(c: ContaParaEntrar): boolean {
   const google = contaDoGoogle(c);
+
   if (!google) {
     return false;
   }
+
   return (
     c.passwordEnabled ||
     c.emailAddresses.some(

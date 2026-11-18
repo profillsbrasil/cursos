@@ -12,11 +12,14 @@ export function trocado<T>(
   direcao: Direcao
 ): T[] | null {
   const j = direcao === "acima" ? i - 1 : i + 1;
+
   if (i < 0 || j < 0 || j >= lista.length) {
     return null;
   }
+
   const nova = [...lista];
   [nova[i], nova[j]] = [nova[j], nova[i]];
+
   return nova;
 }
 
@@ -28,6 +31,7 @@ export const setaDepoisDeMover = (
   if (!chegouNaBorda) {
     return direcao;
   }
+
   return direcao === "acima" ? "abaixo" : "acima";
 };
 
@@ -61,8 +65,10 @@ export const focarOPrimeiro = (ids: readonly string[]) =>
   requestAnimationFrame(() => {
     const elementos = ids.flatMap((id) => {
       const e = document.getElementById(id);
+
       return e ? [e] : [];
     });
+
     primeiroNaPagina(elementos)?.focus();
   });
 
@@ -113,8 +119,10 @@ export function sincronizarComAPagina<D extends ComVersao>(
       recomecar: false,
     };
   }
+
   if (limpo) {
     return { apoio: apoioEm(pagina), recomecar: true };
   }
+
   return { apoio: { ...apoio, pagina, versaoDeFora: true }, recomecar: false };
 }

@@ -9,6 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter não tem de onde ler; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
@@ -52,6 +53,7 @@ function posicoes(h: string, marcas: string[]) {
   return marcas.map((m) => {
     const i = h.indexOf(m);
     expect(i, `"${m}" não apareceu`).toBeGreaterThanOrEqual(0);
+
     return i;
   });
 }
@@ -60,6 +62,7 @@ const COM_DESCRICAO: AulaNoPlayer = {
   ...DADOS,
   aula: { ...DADOS.aula, descricao: "Por que filmar." },
 };
+
 const SOBRE = "Sobre esta aula";
 
 describe("ordem da página da aula", () => {
@@ -67,6 +70,7 @@ describe("ordem da página da aula", () => {
     const h = renderToStaticMarkup(
       <PlayerDaAula dados={COM_DESCRICAO} inicioSeg={222} video={VIDEO} />
     );
+
     const ordem = posicoes(h, [
       TITULO,
       LINHA_DO_MODULO,
@@ -75,19 +79,23 @@ describe("ordem da página da aula", () => {
       NAVEGACAO,
       SOBRE,
     ]);
+
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
   });
 
   test("num curso de uma aula só, a página não tem landmark de navegação vazio", () => {
     const sozinha = { ...DADOS, anterior: null, proxima: null };
+
     const comVideo = renderToStaticMarkup(
       <PlayerDaAula dados={sozinha} inicioSeg={222} video={VIDEO} />
     );
+
     const semVideo = renderToStaticMarkup(
       <AulaSemVideo
         dados={{ ...sozinha, aula: { ...DADOS.aula, video: null } }}
       />
     );
+
     expect(comVideo).not.toContain("<nav");
     expect(semVideo).not.toContain("<nav");
   });
@@ -101,6 +109,7 @@ describe("ordem da página da aula", () => {
         }}
       />
     );
+
     const ordem = posicoes(h, [
       TITULO,
       LINHA_DO_MODULO,
@@ -108,6 +117,7 @@ describe("ordem da página da aula", () => {
       NAVEGACAO,
       SOBRE,
     ]);
+
     expect(ordem).toEqual([...ordem].sort((a, b) => a - b));
   });
 });
@@ -124,18 +134,22 @@ const TOKENS = new Map(
     ).matchAll(/--([a-z0-9-]+):\s*(#[0-9a-f]{6});/g),
   ].map(([, nome, hex]) => [nome, hex])
 );
+
 const BORDA_DARK = /^dark:border-[a-z]/;
 
 function luminancia(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => {
     const c = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
+
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   });
+
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 function contraste(a: string, b: string) {
   const [claro, escuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x);
+
   return (claro + 0.05) / (escuro + 0.05);
 }
 
@@ -144,12 +158,15 @@ describe("Anterior e Próxima em repouso", () => {
     const h = renderToStaticMarkup(
       <NavegacaoEntreAulas dados={DADOS} destacarProxima={false} />
     );
+
     const classes = [...h.matchAll(/<a [^>]*class="([^"]+)"/g)].map(
       ([, c]) => c
     );
+
     expect(classes).toHaveLength(2);
     const fundo = TOKENS.get("background");
     expect(fundo).toBeDefined();
+
     for (const c of classes) {
       // O html tem .dark fixo: a última borda dark: sem estado é a que pinta em repouso.
       const borda = c
@@ -157,6 +174,7 @@ describe("Anterior e Próxima em repouso", () => {
         .filter((k) => BORDA_DARK.test(k))
         .at(-1)
         ?.slice("dark:border-".length);
+
       const cor = borda ? TOKENS.get(borda) : undefined;
       expect(cor, `borda ${borda} sem token`).toBeDefined();
       expect(contraste(cor as string, fundo as string)).toBeGreaterThanOrEqual(

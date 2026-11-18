@@ -38,6 +38,7 @@ export function comTrava<T>(
 ): Promise<T> {
   return db.transaction(async (tx) => {
     await travarTambem(tx, chave);
+
     return await fn(tx);
   });
 }
@@ -60,6 +61,7 @@ export async function travarAluno(
   userId: string
 ): Promise<AlunoTravado> {
   await travarTambem(tx, `ponto:${userId}`);
+
   return { tx, userId } as AlunoTravado;
 }
 

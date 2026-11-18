@@ -32,6 +32,7 @@ const ultimoAcesso = (p: PessoaNaLista, hoje: string) =>
 function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
   const selo = seloDoPerfil(p.perfil);
   const acesso = ultimoAcesso(p, hoje);
+
   return (
     <li>
       <Link
@@ -103,6 +104,7 @@ const tituloDaLista = (termo: string, lista: ListaDePessoas) => {
   if (termo) {
     return `Resultado para "${termo}"`;
   }
+
   return lista.filtro
     ? SOBRE_O_PERFIL[lista.filtro].plural
     : "Por último acesso";
@@ -119,9 +121,11 @@ export function ListaDePessoasDoAdmin({
 }) {
   const { pessoas, total } = lista;
   const cortada = total > pessoas.length;
+
   const vazio = lista.filtro
     ? `Ninguém com o perfil ${SOBRE_O_PERFIL[lista.filtro].nome} ${termo ? `e "${termo}" no nome ou no e-mail ` : ""}entrou no app ainda.`
     : `Ninguém com "${termo}" no nome ou no e-mail.`;
+
   return (
     <SecaoSobABarra id="pessoas" titulo={tituloDaLista(termo, lista)}>
       {pessoas.length === 0 ? (

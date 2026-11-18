@@ -19,5 +19,6 @@ export function disposicaoDoAnexo(nome: string): string {
     .replace(ACENTOS, "")
     .replace(FORA_DO_ASCII, "_")
     .replace(QUEBRAM_O_CABECALHO, "_");
+
   return `attachment; filename="${ascii}"; filename*=UTF-8''${emPercentual(nome)}`;
 }

@@ -66,10 +66,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da sanfona não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -95,6 +98,7 @@ async function clicar(seletor: string) {
     `document.querySelector(${JSON.stringify(seletor)}).click()`
   );
   await avaliar(enviar, DEPOIS_DO_RENDER);
+
   return await avaliar<Estado>(enviar, ESTADO);
 }
 

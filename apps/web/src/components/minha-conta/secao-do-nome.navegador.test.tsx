@@ -101,10 +101,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote do cartão não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -135,6 +138,7 @@ async function estilizar() {
     enviar,
     `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`
   );
+
   const css = await cssDoApp(classes);
   await avaliar(
     enviar,
@@ -187,6 +191,7 @@ const RECUSA_DE_HTML = {
 };
 
 const FOTO_OU_ARQUIVO = /foto|file|arquivo/i;
+
 // O texto dentro de um controle repete o nome dele na árvore.
 const TEXTO_SOLTO = new Set(["InlineTextBox", "StaticText"]);
 
@@ -240,6 +245,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
 
   test("o nome salvo de 256 letras sem espaço quebra dentro do cartão e da folha", async () => {
     await abrir({ firstName: "A".repeat(256), lastName: "Quebra" });
+
     const m = await avaliar<Record<string, number>>(
       enviar,
       `(() => {
@@ -256,6 +262,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
         };
       })()`
     );
+
     expect(m.titulo).toBeLessThanOrEqual(m.coluna);
     expect(m.tituloRolagem).toBe(0);
     expect(m.nomeDaFolha).toBeLessThanOrEqual(m.folha);
@@ -294,6 +301,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
 
   test("sem mudança, o Salvar é o contorno desligado, focável, e diz que nada mudou", async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
+
     const salvarNome = () =>
       avaliar<{ desligado: boolean; fundo: string; motivo: string | null }>(
         enviar,
@@ -308,6 +316,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
           };
         })()`
       );
+
     await esperar(
       `getComputedStyle([...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome")).backgroundColor === "rgba(0, 0, 0, 0)"`
     );
@@ -351,6 +360,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
 
   test('o campo de arquivo da foto não aparece nem é anunciado ("No file chosen")', async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
+
     const { nodes } = (await enviar("Accessibility.getFullAXTree")) as {
       nodes: {
         ignored: boolean;
@@ -359,18 +369,22 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
         value?: { value: string };
       }[];
     };
+
     const anunciados = nodes
       .filter((n) => !(n.ignored || TEXTO_SOLTO.has(n.role?.value ?? "")))
       .map((n) =>
         [n.role?.value, n.name?.value, n.value?.value].filter(Boolean).join(" ")
       );
+
     expect(anunciados.filter((t) => FOTO_OU_ARQUIVO.test(t))).toEqual([
       "button Trocar foto",
     ]);
+
     const visivel = await avaliar<boolean>(
       enviar,
       `(() => { const r = document.querySelector('input[type="file"]').getBoundingClientRect(); return r.width > 1 && r.height > 1; })()`
     );
+
     expect(visivel).toBe(false);
   });
 

@@ -20,6 +20,7 @@ export function versaoDoCurso(
   capaUrl: string | null
 ): Versao {
   const { versao: _, ...conteudo } = documento;
+
   return versaoDe({ ...conteudo, capaUrl });
 }
 
@@ -65,14 +66,19 @@ const recusa = (r: RecusaDaEdicao): Plano => ({ recusa: r, tipo: "recusa" });
 const idsDosModulos = (d: DocumentoDoCurso) => d.modulos.map((m) => m.id);
 const aulasDe = (d: DocumentoDoCurso) => d.modulos.flatMap((m) => m.aulas);
 const idsDasAulas = (d: DocumentoDoCurso) => aulasDe(d).map((a) => a.id);
+
 const perguntasDe = (d: DocumentoDoCurso) =>
   aulasDe(d).flatMap((a) => a.perguntas);
+
 const idsDasPerguntas = (d: DocumentoDoCurso) =>
   perguntasDe(d).map((p) => p.id);
+
 const idsDasAlternativas = (d: DocumentoDoCurso) =>
   perguntasDe(d).flatMap((p) => p.alternativas.map((a) => a.id));
+
 const fora = <T>(lista: readonly T[], de: readonly T[]) => {
   const conjunto = new Set(de);
+
   return lista.filter((x) => !conjunto.has(x));
 };
 
@@ -92,9 +98,11 @@ export function planejarCurso(
     if (desejado.versao !== null) {
       return recusa({ tipo: "sumiu" });
     }
+
     if (!capaRecebida) {
       return recusa({ tipo: "sem_capa" });
     }
+
     return {
       capa: capaRecebida,
       documento: desejado,
@@ -102,30 +110,40 @@ export function planejarCurso(
       versao: versaoDoCurso(desejado, capaRecebida.url),
     };
   }
+
   const capa =
     capaRecebida && capaRecebida.url !== atual.capa?.url ? capaRecebida : null;
+
   const versao = versaoDoCurso(desejado, capa?.url ?? atual.capa?.url ?? null);
+
   // Antes da versão: duplo clique e reenvio depois de resposta perdida, inclusive
   // da criação, são sucesso.
   if (versao === atual.documento.versao) {
     return { tipo: "nada_mudou", versao };
   }
+
   if (desejado.versao !== atual.documento.versao) {
     return recusa({ tipo: "versao_mudou" });
   }
+
   const aulasQueSaem = fora(
     idsDasAulas(atual.documento),
     idsDasAulas(desejado)
   );
+
   for (const id of aulasQueSaem) {
     const titulo =
       atual.documento.modulos.flatMap((m) => m.aulas).find((a) => a.id === id)
         ?.titulo ?? id;
+
     const assistiram = atual.uso.assistidasPorAula[id] ?? 0;
+
     if (assistiram > 0) {
       return recusa({ alunos: assistiram, tipo: "aula_assistida", titulo });
     }
+
     const responderam = atual.uso.tentativasPorAula[id] ?? 0;
+
     if (responderam > 0) {
       return recusa({
         alunos: responderam,
@@ -134,6 +152,7 @@ export function planejarCurso(
       });
     }
   }
+
   return {
     apagar: {
       alternativas: fora(

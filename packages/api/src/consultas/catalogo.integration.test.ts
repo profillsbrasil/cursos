@@ -19,6 +19,7 @@ const S = randomBytes(4).toString("hex");
 
 describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
   let statements = 0;
+
   const db = createDb(
     { DATABASE_URL: URL_TESTE ?? "" },
     {
@@ -29,6 +30,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       },
     }
   );
+
   const cursos: CursoId[] = [];
 
   async function novoCurso(
@@ -53,11 +55,14 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         ...extra,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     const id = c.id as CursoId;
     cursos.push(id);
+
     return id;
   }
 
@@ -83,12 +88,15 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       codigo: `POP-${S}`,
       status: "publicado",
     });
+
     const trocavel = await novoCurso(`B trocável ${S}`, {
       codigo: `POQ-${S}`,
       precoTroca: 300,
       status: "publicado",
     });
+
     const vazio = await novoCurso(`C vazio ${S}`, { codigo: `POR-${S}` });
+
     const modulos = await db
       .insert(modulo)
       .values([
@@ -96,6 +104,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
         { cursoId: comAulas, numero: 2, titulo: "M2" },
       ])
       .returning({ id: modulo.id });
+
     await db.insert(aula).values(
       modulos.flatMap((m, i) =>
         Array.from({ length: i + 1 }, (_, p) => ({
@@ -160,6 +169,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       await novoCurso(`Igual ${S}`),
       await novoCurso(`Igual ${S}`),
     ];
+
     const nossos = new Set(iguais);
     expect(
       (await visao()).cursos.filter((c) => nossos.has(c.id)).map((c) => c.id)

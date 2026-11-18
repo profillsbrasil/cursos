@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Categorias" };
 export default async function PaginaDeCategorias() {
   const categorias = await carregarCategorias();
   const cursos = categorias.reduce((n, c) => n + c.cursos.length, 0);
+
   return (
     <>
       <CabecalhoDaPagina

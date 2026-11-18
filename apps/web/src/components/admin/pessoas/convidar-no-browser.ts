@@ -76,10 +76,13 @@ export async function empacotarConvidar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
+
   return await saida.text();
 }
 

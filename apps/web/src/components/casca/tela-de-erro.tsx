@@ -23,6 +23,7 @@ export function TelaDeErro({
   useEffect(() => {
     console.error(error);
   }, [error]);
+
   return (
     <div
       className={cn(CARTAO, "grid justify-items-start gap-3 p-8")}

@@ -18,10 +18,12 @@ export default async function Alunos({
 }) {
   const { q } = await searchParams;
   const termo = typeof q === "string" ? q.trim().slice(0, 100) : "";
+
   const [resultado, catalogo] = await Promise.all([
     carregarPessoas(termo),
     carregarCatalogo(),
   ]);
+
   return (
     <>
       <CabecalhoDaPagina

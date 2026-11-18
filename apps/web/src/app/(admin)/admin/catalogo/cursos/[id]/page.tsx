@@ -16,6 +16,7 @@ interface Props {
 // React.cache divide o carregarCurso entre o título e a página.
 async function abrir({ params, searchParams }: Props) {
   const [{ id }, { novo }] = await Promise.all([params, searchParams]);
+
   const edicao = await abrirOuRascunho(
     { id, novo },
     {
@@ -23,14 +24,17 @@ async function abrir({ params, searchParams }: Props) {
       rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
     }
   );
+
   if (!edicao) {
     notFound();
   }
+
   return edicao;
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const { documento } = await abrir(props);
+
   return { title: documento.titulo.trim() || "Curso novo" };
 }
 
@@ -39,6 +43,7 @@ export default async function Curso(props: Props) {
     abrir(props),
     carregarCategorias(),
   ]);
+
   return (
     <>
       <VoltaParaALista href="/admin/catalogo" nome="Catálogo" />

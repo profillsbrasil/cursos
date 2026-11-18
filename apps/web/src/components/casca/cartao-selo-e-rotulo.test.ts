@@ -55,6 +55,7 @@ describe("o cartão, o selo e o rótulo de campo moram num lugar só", () => {
     ]) {
       expect(SELO.split(" ")).toContain(classe);
     }
+
     expect(SELO).toContain("[&>svg]:size-3!");
   });
 

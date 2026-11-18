@@ -76,10 +76,12 @@ describe.skipIf(!existsSync(CHROMIUM))(
       pacote = await empacotarConvidar();
       // As classes saem do diálogo aberto: ele só existe depois do clique.
       await abrir(1440);
+
       const classes = await avaliar<string[]>(
         enviar,
         `[...document.querySelectorAll("*")].flatMap((e) => [...e.classList])`
       );
+
       css = await cssDoApp(classes);
     }, 30_000);
 
@@ -116,6 +118,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await abrir(1440);
       // Sem a emulação, a janela do Chromium não tem foco e o :focus-visible não casa.
       await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
+
       const borda = (comFoco: boolean) =>
         avaliar<{ contorno: string; cor: string }>(
           enviar,
@@ -128,6 +131,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
             return { contorno: getComputedStyle(campo).outlineStyle, cor: moldura.borderTopColor };
           })()`
         );
+
       // A ficha ruim marca o campo como inválido, e o inválido não acende: sai antes.
       await avaliar(
         enviar,

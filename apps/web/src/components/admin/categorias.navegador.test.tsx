@@ -99,10 +99,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -147,6 +150,7 @@ async function teclar(tecla: keyof typeof CODIGO_DA_TECLA) {
     key: tecla,
     windowsVirtualKeyCode: CODIGO_DA_TECLA[tecla],
   };
+
   await enviar("Input.dispatchKeyEvent", {
     ...evento,
     text: tecla === "Enter" ? "\r" : undefined,

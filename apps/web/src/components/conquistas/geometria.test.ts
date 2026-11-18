@@ -12,6 +12,7 @@ const METAS = [10, 50, 100] as const;
 describe("o ponto da trilha de aulas", () => {
   const ponto = (feitas: number) => {
     const p = pontoNaTrilha(feitas, METAS);
+
     return [Number(p.porcento.toFixed(4)), Number(p.recuoPx.toFixed(4))];
   };
 

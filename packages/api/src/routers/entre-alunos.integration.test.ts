@@ -56,12 +56,14 @@ interface PerguntaPlantada {
 describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const cursos: string[] = [];
+
   const como = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId }));
 
   /** Curso publicado com uma aula com vídeo por item; cada número é quantas perguntas a aula tem. */
   async function plantarCurso(perguntasPorAula: readonly number[]) {
     const slug = `ataque-${S}-${cursos.length + 1}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -76,15 +78,20 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 1, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     const aulas: { id: string; perguntas: PerguntaPlantada[] }[] = [];
+
     for (const [i, n] of perguntasPorAula.entries()) {
       // oxlint-disable-next-line no-await-in-loop -- as perguntas precisam do id da aula gravada.
       const [a] = await db
@@ -98,7 +105,9 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
+
       const perguntas: PerguntaPlantada[] = [];
+
       for (let p = 1; p <= n; p += 1) {
         // oxlint-disable no-await-in-loop -- as alternativas precisam do id da pergunta gravada.
         const [pg] = await db
@@ -109,6 +118,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
             posicao: p,
           })
           .returning({ id: pergunta.id });
+
         const [errada, certa] = await db
           .insert(alternativa)
           .values(
@@ -120,6 +130,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
             }))
           )
           .returning({ id: alternativa.id });
+
         perguntas.push({
           certa: certa?.id as AlternativaId,
           errada: errada?.id as AlternativaId,
@@ -127,8 +138,10 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         });
         // oxlint-enable no-await-in-loop
       }
+
       aulas.push({ id: a?.id ?? "", perguntas });
     }
+
     return { aulas, id: c.id, slug };
   }
 
@@ -203,9 +216,11 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     // Bruno estuda pela API: posição e cota na aula 1, a aprovação no questionário dela.
     const bruno = como(BRUNO);
     const [a1] = comum.aulas;
+
     if (!a1) {
       throw new Error("aula não plantada");
     }
+
     await bruno.aula.registrar({
       aulaId: a1.id,
       posicaoSeg: 120,
@@ -295,6 +310,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           tentativaId: TENTATIVA_DO_BRUNO,
         })
       );
+
       // O insert da tentativa não faz nada no id que já existe, e a recusa sai como CONFLICT.
       expect(codigo).toBe("CONFLICT");
       expect(await fatosDe(BRUNO)).toEqual(antes);
@@ -303,6 +319,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
 
     test("procedimento sem entrada ignora o userId de Bruno posto no pedido: Ana vê o saldo dela", async () => {
       const ana = como(ANA);
+
       const comUserId = <T>(f: () => Promise<T>) =>
         (f as unknown as (entrada: unknown) => Promise<T>)({ userId: BRUNO });
 
@@ -327,9 +344,11 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         .update(curso)
         .set({ precoTroca: 100 })
         .where(eq(curso.id, trocavel.id));
+
       const codigo = await recusa(
         como(ANA).troca.trocar({ cursoId: trocavel.id, precoVisto: 100 })
       );
+
       expect(codigo).toBe("PRECONDITION_FAILED");
       expect(await fatosDe(BRUNO)).toEqual(antes);
       expect((await fatosDe(ANA)).pontos).toEqual([]);
