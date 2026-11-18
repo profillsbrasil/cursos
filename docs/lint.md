@@ -194,3 +194,37 @@ O `--type-check` checa os arquivos que o Oxlint linta, não os que os tsconfig l
 - `.claude/tsconfig.json`, `.railway/tsconfig.json` e `docs/marca/tsconfig.json` estendem o tsconfig da raiz e ligam o `noCheck`. O tsrs não checa tipos nessas pastas, e o lint sintático continua: um `debugger` plantado em `.claude/hooks` e em `docs/marca` acusa, e um `const x: number = "x"` não. Antes, o tsconfig mais próximo delas já era o da raiz, e as outras opções seguem iguais às dele.
 - Os templates de `.claude/skills/clerk-nextjs-patterns/templates/` trazem o próprio `tsconfig.json`, mais próximo que o de `.claude`, e a skill é travada por hash no `skills-lock.json`. Eles saem do Oxlint pelo `ignorePatterns` (`.claude/skills/*/templates/**`). Perde-se o lint sintático de 3 arquivos de terceiro que o repo não pode editar.
 - O TS2353 de `.railway/railway.ts:64` fica sem decisão: corrigir muda o que o `railway config apply` aplica, e isso é do dono.
+
+### Prova de equivalência
+
+`apps/web/src/equivalencia-dos-tipos.arnes.ts` copia o repo (os arquivos do git, o `apps/web/.next/types` e os `env.ts` gerados) para `~/.cache/cursos` (ou `$XDG_CACHE_HOME/cursos`), roda `bun install --frozen-lockfile --ignore-scripts` na cópia e, para cada categoria, planta um erro, roda o `tsc --noEmit` dos 4 pacotes e o `oxlint -f json` da raiz, compara o conjunto de "arquivo e código TS" dos dois e desfaz o plantio. Do Oxlint, contam só os `typescript(TSxxxx)` com severidade de erro, os que derrubam o `bun run check`. A cópia fica fora de `node_modules` porque o Oxlint não linta nada sob um caminho com `node_modules` ("No files found to lint"); o arnês falha se o Oxlint lintar 0 arquivos.
+
+O nome não termina em `.test.ts`, então o `bun test` do turbo e o CI não o descobrem. Rode depois do `bunx next typegen`:
+
+```sh
+cd apps/web
+systemd-run --user --same-dir --wait --pipe -p MemoryMax=4G -p MemorySwapMax=4G --setenv=PATH="$PATH" bun test ./src/equivalencia-dos-tipos.arnes.ts
+```
+
+Cada categoria tem o resultado esperado na tabela `CATEGORIAS` do arnês. Um upgrade do Oxlint ou do tsrs que mude um resultado faz o teste falhar, e a tabela abaixo muda junto. Medido em 18 de novembro de 2026, com Oxlint 1.94.0, tsrs 0.25.0-ts7.1.0-beta e TypeScript 7.0.2: 16 pass em 2 rodadas seguidas, 64 s de parede, 9 min de CPU e pico de 2,2 GB pelo `systemd-run`.
+
+| Categoria | Plantio | `tsc` | tsrs | Resultado |
+| --- | --- | --- | --- | --- |
+| Código sem plantio | nenhum | 0 erros | 0 erros | iguais |
+| Atribuição errada em `apps/web` | `const x: number = "texto"` em `lib/formulario.ts` | TS2322 | TS2322 | os dois |
+| Atribuição errada em `packages/api` | o mesmo em `dominio/limites-do-curso.ts` | TS2322 | TS2322 | os dois |
+| `href` de rota inexistente (`typedRoutes`) | `/admin/rota-que-nao-existe` no `not-found.tsx` do admin | TS2322 | TS2322 | os dois |
+| `RouteContext` sem `apps/web/.next/types` | a pasta sai | 4 TS2304, um por `route.ts` | os mesmos 4 | os dois |
+| Import de módulo inexistente | `export { nada } from "./modulo-que-nao-existe"` | TS2307 | TS2307 | os dois |
+| Propriedade inexistente | `"texto".propriedadeQueNaoExiste` | TS2339 | TS2339 | os dois |
+| Argumento errado numa procedure do tRPC | `precoVisto: String(preco)` no `botao-de-troca.tsx` | TS2322 | TS2322 | os dois |
+| Erro num arquivo de teste | atribuição errada em `lib/formato.test.ts` | TS2322 | TS2322 | os dois |
+| Erro dentro de um `.d.ts` | tipo inexistente num `.d.ts` novo | nada | nada | nenhum dos dois: o `skipLibCheck` dos tsconfig pula todo `.d.ts` |
+| Declaração global de um `.d.ts` usada por um `.ts` | `declare global { const PLANTADO: string }` lido como `number` | TS2322 no `.ts` | TS2322 no `.ts` | os dois |
+| Erro global, sem arquivo | `noLib` no tsconfig do `packages/ui` | TS2318 global e TS5053 no tsconfig | 52 erros por arquivo (TS17004, TS6142, TS2812, TS2339), sem o TS2318 nem o TS5053 | os dois, com diferença |
+| Erro de declaração | `declaration` no tsconfig do `packages/ui` e classe exportada com membro `private` | TS4094 | nada | só o `tsc` |
+| `noUncheckedIndexedAccess` (`api`, `db` e `ui`) | `const n: number = lista[0]` em `packages/api` | TS2322 | TS2322 | os dois |
+| `noUnusedLocals` (`api`, `db` e `ui`) | variável local sem uso em `packages/api` | TS6133 | TS6133 | os dois |
+| `packages/api` visto pelo programa do web | `caminhoDoCertificado` renomeado em `dominio/rotas.ts`, que só o web importa | TS2305 em `apps/web/src/lib/rotas.ts` | o mesmo | os dois |
+
+As duas divergências batem com a issue oxc#27499: o `--type-check` não devolve os diagnósticos globais (sem arquivo), os de opção do tsconfig nem os de declaração. Nenhuma das duas acontece com os tsconfig de hoje, que não ligam `noLib` nem `declaration`. Na categoria do `.d.ts`, "nenhum" não prova o plantio, só que os dois respeitam o `skipLibCheck`.
