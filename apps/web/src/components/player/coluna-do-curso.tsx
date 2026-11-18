@@ -52,7 +52,7 @@ function useColunaNaAulaAtual(aulaId: string) {
 function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
   if (aula.assistida) {
     return (
-      <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-ceu text-sobre-cor">
+      <span className="bg-ceu text-sobre-cor grid size-[26px] shrink-0 place-items-center rounded-full">
         <Check aria-hidden="true" className="size-3.5" strokeWidth={2.6} />
         <span className="sr-only">Assistida.</span>
       </span>
@@ -61,10 +61,10 @@ function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
   return (
     <span
       className={cn(
-        "grid size-[26px] shrink-0 place-items-center rounded-full font-mono font-semibold text-xs tabular-nums",
+        "grid size-[26px] shrink-0 place-items-center rounded-full font-mono text-xs font-semibold tabular-nums",
         aula.atual
-          ? "text-sol ring-2 ring-sol ring-inset"
-          : "text-muted-foreground ring-[1.5px] ring-chart-5 ring-inset"
+          ? "text-sol ring-sol ring-2 ring-inset"
+          : "text-muted-foreground ring-chart-5 ring-[1.5px] ring-inset"
       )}
     >
       {numero}
@@ -106,13 +106,13 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
     <>
       <aside
         aria-label="Aulas do curso"
-        className="overflow-auto rounded-[20px] border border-border bg-sidebar min-[1081px]:sticky min-[1081px]:top-4 min-[1081px]:max-h-[calc(100vh-2rem)]"
+        className="border-border bg-sidebar overflow-auto rounded-[20px] border min-[1081px]:sticky min-[1081px]:top-4 min-[1081px]:max-h-[calc(100vh-2rem)]"
         ref={coluna}
       >
-        <div className="grid gap-2.5 border-border border-b px-5 pt-[18px] pb-4">
-          <h2 className="font-semibold text-base text-titulo">
+        <div className="border-border grid gap-2.5 border-b px-5 pt-[18px] pb-4">
+          <h2 className="text-titulo text-base font-semibold">
             <Link
-              className="underline decoration-muted-foreground underline-offset-4 hover:decoration-titulo"
+              className="decoration-muted-foreground hover:decoration-titulo underline underline-offset-4"
               href={caminhoDoCurso(slug)}
             >
               {titulo}
@@ -122,7 +122,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
             pct={progresso.pct}
             rotulo={`Progresso no curso ${titulo}`}
           />
-          <p className="text-[13px] text-muted-foreground tabular-nums">
+          <p className="text-muted-foreground text-[13px] tabular-nums">
             {progresso.feitas} de {plural(progresso.total, "aula", "aulas")} ·{" "}
             {progresso.pct}%
           </p>
@@ -135,10 +135,10 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
           >
             {/* Sob o cursor e com o foco de teclado, fundo branco a 8% e título claro (#44). */}
             <summary className="group/modulo grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] transition-colors duration-150 hover:bg-white/8 [&::-webkit-details-marker]:hidden">
-              <span className="w-[26px] text-center font-mono text-muted-foreground text-xs tabular-nums">
+              <span className="text-muted-foreground w-[26px] text-center font-mono text-xs tabular-nums">
                 {m.numero}
               </span>
-              <span className="font-semibold text-foreground group-open:text-titulo group-hover/modulo:text-titulo">
+              <span className="text-foreground group-open:text-titulo group-hover/modulo:text-titulo font-semibold">
                 {m.titulo}
               </span>
               <span
@@ -158,7 +158,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
                 <li key={a.id}>
                   {amostra && !a.atual ? (
                     // Na amostra, só a aula aberta é link; as outras levam o cadeado.
-                    <span className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-muted-foreground">
+                    <span className="text-muted-foreground grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2">
                       <span className="grid size-[26px] shrink-0 place-items-center">
                         <Lock aria-hidden="true" className="size-4" />
                         <span className="sr-only">
@@ -174,14 +174,14 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
                     <Link
                       aria-current={a.atual ? "page" : undefined}
                       className={cn(
-                        "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 text-foreground hover:bg-white/8 hover:text-titulo",
-                        a.atual && "bg-sol/[0.08] font-semibold text-titulo"
+                        "text-foreground hover:text-titulo grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2 hover:bg-white/8",
+                        a.atual && "bg-sol/[0.08] text-titulo font-semibold"
                       )}
                       href={caminhoDaAula(slug, a.id)}
                     >
                       <Estado aula={a} numero={i + 1} />
                       <span>{a.titulo}</span>
-                      <span className="inline-flex items-center gap-1.5 font-mono text-muted-foreground text-xs tabular-nums">
+                      <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-xs tabular-nums">
                         <MarcaDoQuestionario marca={a.questionario} />
                         {fmtMin(a.duracaoSeg)}
                       </span>

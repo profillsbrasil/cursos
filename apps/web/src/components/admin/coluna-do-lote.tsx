@@ -44,7 +44,7 @@ const idDoResultado = (userId: string) => `lote-resultado-${userId}`;
 
 const CARTAO_DA_COLUNA = cn(
   CARTAO,
-  "@min-[47.5rem]:sticky @min-[47.5rem]:top-4 grid gap-4 p-5"
+  "grid gap-4 p-5 @min-[47.5rem]:sticky @min-[47.5rem]:top-4"
 );
 const TITULO_DA_COLUNA =
   "flex items-baseline justify-between gap-2.5 font-semibold text-lg text-titulo leading-[1.3]";
@@ -113,18 +113,18 @@ function LinhaNoResultado({
     [executar, despacharEFocar, curso.id, pessoa.userId]
   );
   return (
-    <li className="grid @min-[28.75rem]:grid-cols-[2.25rem_minmax(0,1fr)_auto] grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 px-5 py-3">
+    <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 px-5 py-3 @min-[28.75rem]:grid-cols-[2.25rem_minmax(0,1fr)_auto]">
       <FotoDaPessoa className="size-9" foto={pessoa.foto} nome={pessoa.nome} />
       <span className="min-w-0">
-        <strong className="block truncate font-medium text-foreground text-sm">
+        <strong className="text-foreground block truncate text-sm font-medium">
           {pessoa.nome}
         </strong>
-        <small className="block text-muted-foreground text-xs">
+        <small className="text-muted-foreground block text-xs">
           {detalheDoResultado(l, hoje)}
         </small>
       </span>
       <span
-        className="@min-[28.75rem]:col-start-3 col-start-2 flex flex-wrap items-center @min-[28.75rem]:justify-end gap-2"
+        className="col-start-2 flex flex-wrap items-center gap-2 @min-[28.75rem]:col-start-3 @min-[28.75rem]:justify-end"
         id={idDoResultado(pessoa.userId)}
         tabIndex={-1}
       >
@@ -165,13 +165,13 @@ function Resultado({
         Liberado
       </h2>
       <p className="-mt-2.5 text-sm">
-        <b className="font-semibold text-foreground">{fase.curso.titulo}</b>
+        <b className="text-foreground font-semibold">{fase.curso.titulo}</b>
         <br />
         <span className="text-muted-foreground tabular-nums" role="status">
           {resumoDoResultado(fase.linhas)}
         </span>
       </p>
-      <ul className="@container -mx-5 -mt-2 divide-y divide-border">
+      <ul className="divide-border @container -mx-5 -mt-2 divide-y">
         {emOrdemDoResultado(fase.linhas).map((l) => (
           <LinhaNoResultado
             curso={fase.curso}
@@ -207,10 +207,10 @@ function Marcada({ p, vizinha }: { p: Pessoa; vizinha: Pessoa | undefined }) {
         nome={p.nome}
       />
       <span className="min-w-0">
-        <strong className="block truncate font-medium text-[13px] text-foreground">
+        <strong className="text-foreground block truncate text-[13px] font-medium">
           {p.nome}
         </strong>
-        <small className="block truncate text-muted-foreground text-xs">
+        <small className="text-muted-foreground block truncate text-xs">
           {p.email ?? p.userId}
         </small>
       </span>
@@ -236,7 +236,7 @@ function Marcadas() {
   const { marcadas } = estado;
   if (marcadas.length === 0) {
     return (
-      <p className="text-pretty text-[13px] text-muted-foreground">
+      <p className="text-muted-foreground text-[13px] text-pretty">
         Marque as pessoas na lista. Quem você marcar fica aqui, mesmo depois de
         outra busca.
       </p>
@@ -255,7 +255,7 @@ function Marcadas() {
       </ul>
       {marcadas.length > 1 ? (
         <button
-          className="toque justify-self-start rounded-md p-0.5 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+          className="toque text-ceu hover:text-titulo justify-self-start rounded-md p-0.5 text-[13px] font-semibold transition-colors"
           onClick={desmarcarTodas}
           type="button"
         >
@@ -280,7 +280,7 @@ function OpcaoDeCurso({
     [despachar, c.id, c.titulo]
   );
   return (
-    <label className="grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8 has-checked:bg-sol/14">
+    <label className="has-checked:bg-sol/14 grid cursor-pointer grid-cols-[18px_44px_minmax(0,1fr)] items-center gap-2.5 rounded-[12px] px-2 py-1.5 transition-colors hover:bg-white/8">
       <input
         checked={escolhido}
         className={RADIO}
@@ -290,7 +290,7 @@ function OpcaoDeCurso({
         type="radio"
         value={c.id}
       />
-      <span className="relative h-[30px] w-11 overflow-hidden rounded-[8px] ring-1 ring-border">
+      <span className="ring-border relative h-[30px] w-11 overflow-hidden rounded-[8px] ring-1">
         <Image
           alt=""
           className="object-cover"
@@ -299,9 +299,9 @@ function OpcaoDeCurso({
           src={c.capa.url}
         />
       </span>
-      <span className="text-[13px] text-foreground leading-[1.3]">
+      <span className="text-foreground text-[13px] leading-[1.3]">
         {c.titulo}
-        <small className="block text-muted-foreground text-xs">
+        <small className="text-muted-foreground block text-xs">
           {c.status === "em_producao"
             ? "Em produção"
             : plural(c.aulas, "aula", "aulas")}
@@ -364,7 +364,7 @@ function Formulario({
     <aside aria-labelledby={TITULO} className={cn(CARTAO_DA_COLUNA, className)}>
       <h2 className={TITULO_DA_COLUNA} id={TITULO} tabIndex={-1}>
         Marcadas
-        <small className="font-medium text-[13px] text-muted-foreground tabular-nums">
+        <small className="text-muted-foreground text-[13px] font-medium tabular-nums">
           {fmtNum(n)}
         </small>
       </h2>
@@ -387,7 +387,7 @@ function Formulario({
         {rotuloDoLiberar(n)}
       </Button>
       {pronto.tipo === "passou_do_teto" ? (
-        <p className="-mt-2 text-[13px] text-muted-foreground" id="lote-teto">
+        <p className="text-muted-foreground -mt-2 text-[13px]" id="lote-teto">
           {avisoDoTeto(pronto.sobram)}
         </p>
       ) : null}

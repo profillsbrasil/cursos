@@ -79,10 +79,10 @@ export function BarraDeTrechos({
       role="slider"
       tabIndex={0}
     >
-      <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset">
+      <div className="bg-trilho ring-muted-foreground relative h-2 flex-1 overflow-hidden rounded-full ring-1 ring-inset">
         {ateOPolegar(trechos, tempoSeg).map((t) => (
           <div
-            className="absolute inset-y-0 bg-sol"
+            className="bg-sol absolute inset-y-0"
             key={t.inicio}
             style={{
               left: pct(t.inicio, duracaoSeg),
@@ -92,13 +92,13 @@ export function BarraDeTrechos({
         ))}
       </div>
       <span
-        className="pointer-events-none absolute inset-y-[1px] w-0.5 rounded-full bg-ceu"
+        className="bg-ceu pointer-events-none absolute inset-y-[1px] w-0.5 rounded-full"
         style={{ left: `${PCT_AULA_ASSISTIDA}%` }}
         title="90% da aula"
       />
       {/* O polegar cresce sob o cursor e com o foco de teclado (#30), como o do volume. */}
       <span
-        className="pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full bg-titulo shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-transform duration-150 ease-forte group-hover:scale-125 motion-reduce:transition-none"
+        className="bg-titulo ease-forte pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-transform duration-150 group-hover:scale-125 motion-reduce:transition-none"
         style={{ left: pct(cabeca, duracaoSeg) }}
       />
     </div>

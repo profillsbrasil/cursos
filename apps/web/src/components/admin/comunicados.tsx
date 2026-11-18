@@ -314,18 +314,18 @@ function ItemDoComunicado({
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="grid min-w-0 gap-1.5">
           <h3
-            className="font-semibold text-base text-foreground leading-snug"
+            className="text-foreground text-base leading-snug font-semibold"
             ref={focarSeVoltou(voltou)}
             tabIndex={-1}
           >
             {c.titulo}
           </h3>
-          <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-muted-foreground text-xs">
+          <p className="text-muted-foreground flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
             {c.curso ? (
               <span
                 className={cn(
                   SELO,
-                  "max-w-full bg-transparent text-foreground ring-1 ring-muted-foreground ring-inset"
+                  "text-foreground ring-muted-foreground max-w-full bg-transparent ring-1 ring-inset"
                 )}
               >
                 <span className="truncate">{c.curso.titulo}</span>
@@ -371,7 +371,7 @@ function ItemDoComunicado({
           />
         </div>
       </div>
-      <p className="line-clamp-3 whitespace-pre-line text-muted-foreground text-sm leading-relaxed">
+      <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed whitespace-pre-line">
         {c.texto}
       </p>
     </li>
@@ -402,7 +402,7 @@ export function Comunicados({ comunicados, cursos }: ComunicadosDoAdmin) {
         {comunicados.length === 0 ? (
           <Vazio>Nenhum comunicado ainda.</Vazio>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-border divide-y">
             {comunicados.map((c) => (
               <ItemDoComunicado
                 c={c}

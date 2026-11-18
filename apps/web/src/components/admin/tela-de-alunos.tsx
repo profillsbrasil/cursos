@@ -15,10 +15,10 @@ export function TelaDeAlunos({
 }) {
   return (
     <div className="@container">
-      <div className="grid @min-[47.5rem]:grid-cols-[minmax(0,1fr)_20rem] items-start gap-7">
+      <div className="grid items-start gap-7 @min-[47.5rem]:grid-cols-[minmax(0,1fr)_20rem]">
         <ListaDePessoas resultado={resultado} termo={termo} />
         <ColunaDoLote
-          className="@min-[47.5rem]:order-none order-first"
+          className="order-first @min-[47.5rem]:order-none"
           cursos={cursos}
         />
       </div>

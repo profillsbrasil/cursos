@@ -34,7 +34,7 @@ export function TrocaDaAmostra({
       className={cn(CARTAO, "@container overflow-hidden", className)}
     >
       <div className="grid @lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-        <div className="relative aspect-[900/604] @lg:self-start bg-sidebar">
+        <div className="bg-sidebar relative aspect-[900/604] @lg:self-start">
           <Image
             alt={pagina.capa.alt}
             className="object-cover"
@@ -50,15 +50,15 @@ export function TrocaDaAmostra({
           ) : (
             <>
               <p className="grid gap-1">
-                <span className="text-[13px] text-muted-foreground">
+                <span className="text-muted-foreground text-[13px]">
                   Troque o curso inteiro por
                 </span>
-                <span className="font-bold text-[26px] text-sol leading-[1.15] tracking-tight">
+                <span className="text-sol text-[26px] leading-[1.15] font-bold tracking-tight">
                   {fmtPts(troca.preco)}
                 </span>
               </p>
               <p
-                className="text-[13px] text-muted-foreground tabular-nums"
+                className="text-muted-foreground text-[13px] tabular-nums"
                 id={idDaRazao}
               >
                 {troca.saldo}

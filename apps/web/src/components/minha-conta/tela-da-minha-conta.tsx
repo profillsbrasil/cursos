@@ -32,10 +32,10 @@ export function TelaDaMinhaConta({
           key={user.id}
           user={user}
         />
-        <div className="grid @min-[48rem]:grid-cols-2 items-start gap-[18px]">
+        <div className="grid items-start gap-[18px] @min-[48rem]:grid-cols-2">
           <SecaoDaEntrada user={user} />
           <SecaoDaSenha user={user} />
-          <div className="@min-[48rem]:col-span-2 grid min-w-0">
+          <div className="grid min-w-0 @min-[48rem]:col-span-2">
             <SecaoDosAparelhos user={user} />
           </div>
         </div>

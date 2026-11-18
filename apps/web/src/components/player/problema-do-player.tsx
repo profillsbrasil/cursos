@@ -29,7 +29,7 @@ export function ProblemaDoPlayer({ estado }: { estado: EstadoDaSessao }) {
   }
   if (alerta) {
     return (
-      <p className="text-[13px] text-destructive" role="alert">
+      <p className="text-destructive text-[13px]" role="alert">
         {alerta}
       </p>
     );
@@ -38,7 +38,7 @@ export function ProblemaDoPlayer({ estado }: { estado: EstadoDaSessao }) {
     envio.tipo === "esperando_nova_tentativa" ||
     (envio.tipo === "enviando" && envio.falhasSeguidas > 0);
   return falhando ? (
-    <p className="text-[13px] text-muted-foreground" role="status">
+    <p className="text-muted-foreground text-[13px]" role="status">
       Progresso não salvo. Tentando de novo.
     </p>
   ) : null;

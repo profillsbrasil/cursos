@@ -39,7 +39,7 @@ function EnderecoDoCurso({
   return (
     <span className={classe}>
       <Link2 aria-hidden="true" className="size-[13px]" />
-      <code className="font-mono text-foreground text-xs">
+      <code className="text-foreground font-mono text-xs">
         /cursos/{slug ?? slugDoTitulo(titulo)}
       </code>
       <span>
@@ -145,7 +145,7 @@ function CampoDaCategoria({
       />
       {criada?.id === valor && !mensagem ? (
         <p
-          className="flex items-center gap-1.5 text-ceu text-xs"
+          className="text-ceu flex items-center gap-1.5 text-xs"
           id={`${id}-criada`}
         >
           <Check aria-hidden="true" className="size-3.5" />
@@ -196,14 +196,14 @@ export function CapaEDescricao({
         Capa e descrição
       </h2>
       <div className={cn(CARTAO_DA_SECAO, "@container")}>
-        <div className="grid @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)] gap-7 p-6">
+        <div className="grid gap-7 p-6 @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)]">
           {capa}
           <div className="grid min-w-0 content-start gap-5">
             <CampoDeTexto
               ajuda={<EnderecoDoCurso slug={slug} titulo={rascunho.titulo} />}
               aoMudar={mudarTitulo}
               campoClasse="gap-2"
-              className="py-[7px] font-bold text-titulo text-xl tracking-tight md:text-xl"
+              className="text-titulo py-[7px] text-xl font-bold tracking-tight md:text-xl"
               id={ID.curso("titulo")}
               maxLength={CARACTERES.titulo}
               name="titulo"

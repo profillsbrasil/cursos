@@ -18,8 +18,8 @@ import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 
 // O hover vale também no foco de teclado (#30): o fundo acende nos dois.
 const BOTAO_DE_ICONE = cn(
-  "grid size-8 shrink-0 place-items-center rounded-[9px] text-muted-foreground",
-  "transition-[color,background-color] duration-150 hover:bg-sidebar-accent hover:text-titulo",
+  "text-muted-foreground grid size-8 shrink-0 place-items-center rounded-[9px]",
+  "hover:bg-sidebar-accent hover:text-titulo transition-[color,background-color] duration-150",
   "[&_svg]:size-[18px]"
 );
 
@@ -147,7 +147,7 @@ export function TopoDoCelular({ selo }: { selo?: string }) {
   const { alternar } = useAlternarNavegacao();
   return (
     <div
-      className="sticky top-0 z-20 flex h-14 items-center gap-2 border-border border-b bg-background px-3 md:hidden"
+      className="border-border bg-background sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 md:hidden"
       data-slot="topo-do-celular"
     >
       <button

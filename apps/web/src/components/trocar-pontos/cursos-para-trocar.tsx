@@ -91,7 +91,7 @@ export function CursosParaTrocar({
     <>
       {/* Nó sempre montado, fora da grade que redesenha, para o leitor de tela anunciar. */}
       <div
-        className="-mt-4 flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-[14px] bg-ceu px-[18px] py-3.5 font-semibold text-sobre-cor empty:hidden"
+        className="bg-ceu text-sobre-cor -mt-4 flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-[14px] px-[18px] py-3.5 font-semibold empty:hidden"
         role="status"
       >
         {aviso ? (
@@ -99,7 +99,7 @@ export function CursosParaTrocar({
             <Check aria-hidden="true" className="size-5" strokeWidth={2.4} />
             <span className="flex-[1_1_200px]">{aviso}</span>
             <Link
-              className="inline-flex min-h-10 items-center rounded-md px-1 font-bold underline underline-offset-3 transition-colors duration-150 hover:bg-sobre-cor/10"
+              className="hover:bg-sobre-cor/10 inline-flex min-h-10 items-center rounded-md px-1 font-bold underline underline-offset-3 transition-colors duration-150"
               href="/meus-cursos"
             >
               Ver em Meus cursos
@@ -121,7 +121,7 @@ export function CursosParaTrocar({
               "flex max-w-3xl flex-wrap items-center justify-between gap-x-6 gap-y-4 px-5 py-4"
             )}
           >
-            <p className="max-w-[60ch] text-muted-foreground">
+            <p className="text-muted-foreground max-w-[60ch]">
               {NENHUM_CURSO_NOVO}. Quando houver, ele aparece aqui.
             </p>
             {temCursoTrocavelNaVitrine ? null : retomarEstudo(retomar)}

@@ -66,9 +66,9 @@ function LinhaDoConvidado({
   );
   const ocupada = reenvio.pendente || cancelamento.pendente;
   return (
-    <li className="grid @min-[52rem]:grid-cols-[minmax(0,1fr)_9.5rem_5.5rem_minmax(0,10rem)_7.5rem_auto] items-center @min-[52rem]:gap-x-4 gap-y-2 @min-[52rem]:px-5 px-3.5 @min-[52rem]:py-3.5 py-3">
+    <li className="grid items-center gap-y-2 px-3.5 py-3 @min-[52rem]:grid-cols-[minmax(0,1fr)_9.5rem_5.5rem_minmax(0,10rem)_7.5rem_auto] @min-[52rem]:gap-x-4 @min-[52rem]:px-5 @min-[52rem]:py-3.5">
       <span className="grid min-w-0 gap-0.5">
-        <span className="truncate font-medium text-base text-foreground">
+        <span className="text-foreground truncate text-base font-medium">
           {c.email}
         </span>
         <span className="text-muted-foreground tabular-nums">
@@ -76,27 +76,27 @@ function LinhaDoConvidado({
         </span>
       </span>
       {/* Uma linha que quebra no celular; a partir de 52rem, cada filho é uma coluna da grade. */}
-      <span className="flex @min-[52rem]:contents flex-wrap items-center gap-x-2.5 gap-y-1.5">
+      <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 @min-[52rem]:contents">
         <span>
           <SeloDeSituacao
             selo={seloDoPerfil({ doCadastro: false, perfil: c.perfil })}
           />
         </span>
-        <span className={c.comoAdmin ? undefined : "@min-[52rem]:block hidden"}>
+        <span className={c.comoAdmin ? undefined : "hidden @min-[52rem]:block"}>
           {c.comoAdmin ? (
             <SeloDeSituacao selo={SELO_DE_ADMIN} />
           ) : (
             <span className="text-muted-foreground">Aluno</span>
           )}
         </span>
-        <span className="min-w-0 truncate text-muted-foreground">
+        <span className="text-muted-foreground min-w-0 truncate">
           {cursosDoConvidado(c.cursos)}
         </span>
         <span>
           <SeloDeSituacao selo={seloDoConvidado(c.estado)} />
         </span>
       </span>
-      <span className="flex flex-wrap items-center @min-[52rem]:justify-end gap-2">
+      <span className="flex flex-wrap items-center gap-2 @min-[52rem]:justify-end">
         <Button
           aria-busy={reenvio.pendente}
           aria-label={`${nuncaSaiu ? "Enviar" : "Reenviar"} o convite de ${c.email}`}
@@ -145,7 +145,7 @@ export function LinhasDosConvidados({
   );
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
   return (
-    <ul className="@container divide-y divide-border">
+    <ul className="divide-border @container divide-y">
       {convidados.map((c) => (
         <LinhaDoConvidado
           convidado={c}

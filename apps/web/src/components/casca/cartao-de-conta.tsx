@@ -41,11 +41,11 @@ const apagado = () => false;
 // Recolhido, o avatar cobre o fundo e a borda de 1 px quase não muda: sob o cursor,
 // com o foco e com o menu aberto, acende o anel de 2 px em Céu.
 const GATILHO = cn(
-  "flex w-full items-center gap-2.5 rounded-2xl border border-sidebar-border bg-sidebar p-2 text-left",
-  "transition-[border-color,background-color,box-shadow] duration-150 ease-forte",
+  "border-sidebar-border bg-sidebar flex w-full items-center gap-2.5 rounded-2xl border p-2 text-left",
+  "ease-forte transition-[border-color,background-color,box-shadow] duration-150",
   "hover:border-trilho hover:bg-sidebar-accent data-popup-open:border-trilho data-popup-open:bg-sidebar-accent",
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-px",
-  "group-data-[collapsible=icon]:data-popup-open:ring-2 group-data-[collapsible=icon]:data-popup-open:ring-ceu group-data-[collapsible=icon]:hover:ring-2 group-data-[collapsible=icon]:hover:ring-ceu"
+  "group-data-[collapsible=icon]:data-popup-open:ring-ceu group-data-[collapsible=icon]:hover:ring-ceu group-data-[collapsible=icon]:hover:ring-2 group-data-[collapsible=icon]:data-popup-open:ring-2"
 );
 
 // O anel acende quando a conquista chega no player (anelDosPontos).
@@ -68,8 +68,8 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
     return null;
   }
   return (
-    <span className="flex gap-2 text-muted-foreground text-xs tabular-nums">
-      <span className="inline-flex items-center gap-1 font-semibold text-sol">
+    <span className="text-muted-foreground flex gap-2 text-xs tabular-nums">
+      <span className="text-sol inline-flex items-center gap-1 font-semibold">
         <Star aria-hidden="true" className="size-3" />
         <span className="sr-only">, saldo de </span>
         {fmtPts(p.saldo)}
@@ -77,7 +77,7 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
       {/* Zero não é conquista: sem sequência, a chama e o número somem. */}
       {p.sequenciaDias > 0 ? (
         <span className="inline-flex items-center gap-1">
-          <Flame aria-hidden="true" className="size-3 text-canela" />
+          <Flame aria-hidden="true" className="text-canela size-3" />
           <span className="sr-only">, sequência de </span>
           {plural(p.sequenciaDias, "dia", "dias")}
         </span>
@@ -109,7 +109,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
           render={<Link href="/trocar-pontos" />}
         >
           Saldo
-          <b className="font-semibold text-base text-sol tabular-nums">
+          <b className="text-sol text-base font-semibold tabular-nums">
             {fmtPts(p.saldo)}
           </b>
         </DropdownMenuItem>
@@ -121,7 +121,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
             render={<Link href="/trocar-pontos" />}
           >
             Sequência
-            <b className="font-semibold text-base text-titulo tabular-nums">
+            <b className="text-titulo text-base font-semibold tabular-nums">
               {plural(p.sequenciaDias, "dia", "dias")}
             </b>
           </DropdownMenuItem>
@@ -162,14 +162,14 @@ export function CartaoDeConta({
             {user?.hasImage ? (
               <AvatarImage alt="" src={fotoNoLado(user.imageUrl, 36)} />
             ) : null}
-            <AvatarFallback className="bg-canela font-bold text-[13px] text-sobre-cor">
+            <AvatarFallback className="bg-canela text-sobre-cor text-[13px] font-bold">
               {isLoaded ? iniciais(nome) : null}
             </AvatarFallback>
           </Avatar>
           <span className="grid min-w-0 flex-1 gap-0.5 leading-tight group-data-[collapsible=icon]:sr-only">
             <span className="sr-only">Conta de </span>
             {isLoaded ? (
-              <span className="truncate font-semibold text-sm text-titulo">
+              <span className="text-titulo truncate text-sm font-semibold">
                 {nome}
               </span>
             ) : (
@@ -185,7 +185,7 @@ export function CartaoDeConta({
           </span>
           <ChevronsUpDown
             aria-hidden="true"
-            className="size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden"
+            className="text-muted-foreground size-4 shrink-0 group-data-[collapsible=icon]:hidden"
           />
         </DropdownMenuTrigger>
         <TooltipContent className={DICA} side="right">
@@ -200,7 +200,7 @@ export function CartaoDeConta({
       <DropdownMenuContent
         align={recolhida ? "end" : "start"}
         className={cn(
-          "grid gap-0.5 rounded-2xl bg-popover p-1.5 shadow-black/45 shadow-xl ring-border",
+          "bg-popover ring-border grid gap-0.5 rounded-2xl p-1.5 shadow-xl shadow-black/45",
           recolhida && "w-58"
         )}
         side={recolhida ? "right" : "top"}

@@ -67,9 +67,9 @@ export const AVISO =
   "flex gap-2.5 rounded-[14px] bg-sol/10 p-3.5 text-foreground text-sm ring-1 ring-sol/40";
 
 export const ICONE = cn(
-  "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-9",
+  "text-muted-foreground hover:bg-muted hover:text-foreground size-10 rounded-full bg-transparent md:size-9",
   NAO_PODE,
-  "data-disabled:hover:bg-transparent data-disabled:hover:text-muted-foreground"
+  "data-disabled:hover:text-muted-foreground data-disabled:hover:bg-transparent"
 );
 
 /** O cartão do conteúdo de uma Secao. */
@@ -94,7 +94,7 @@ export function Secao({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
           aria-describedby={descritoPor}
-          className="font-bold text-2xl text-titulo tracking-tight"
+          className="text-titulo text-2xl font-bold tracking-tight"
           id={id}
           tabIndex={-1}
         >
@@ -132,5 +132,5 @@ export function SecaoSobABarra({
 }
 
 export function Vazio({ children }: { children: ReactNode }) {
-  return <p className="px-5 py-4 text-muted-foreground">{children}</p>;
+  return <p className="text-muted-foreground px-5 py-4">{children}</p>;
 }

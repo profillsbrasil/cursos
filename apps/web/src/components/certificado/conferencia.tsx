@@ -73,14 +73,14 @@ export function ReciboDaConferencia({
               Baixar o PDF
             </a>
           ) : (
-            <p className="text-pretty text-[13px] text-muted-foreground">
+            <p className="text-muted-foreground text-[13px] text-pretty">
               A conta de quem recebeu o certificado não tem nome na plataforma,
               então esta página não mostra o nome nem o PDF.
             </p>
           )}
         </div>
       </section>
-      <p className="mt-7 max-w-[64ch] text-pretty text-center text-[13px] text-muted-foreground">
+      <p className="text-muted-foreground mt-7 max-w-[64ch] text-center text-[13px] text-pretty">
         {PRODUTO} é a plataforma de cursos da Profills Brasil.
       </p>
     </>
@@ -118,12 +118,12 @@ export function SemCertificado({ digitado }: { digitado: string | null }) {
       className={cn(CARTAO, "grid w-full max-w-[520px] gap-[18px] p-7")}
     >
       <div className="flex items-center gap-3.5">
-        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-popover text-muted-foreground">
+        <span className="bg-popover text-muted-foreground grid size-12 shrink-0 place-items-center rounded-full">
           <Search aria-hidden="true" className="size-6" />
         </span>
         <div>
           <h1
-            className="font-bold text-2xl text-titulo leading-[1.2] tracking-tight"
+            className="text-titulo text-2xl leading-[1.2] font-bold tracking-tight"
             id="sem-certificado"
           >
             {digitado
@@ -131,7 +131,7 @@ export function SemCertificado({ digitado }: { digitado: string | null }) {
               : "Conferir um certificado"}
           </h1>
           {digitado ? (
-            <p className="wrap-anywhere text-muted-foreground">
+            <p className="text-muted-foreground wrap-anywhere">
               {digitado} não existe na {PRODUTO}.
             </p>
           ) : null}

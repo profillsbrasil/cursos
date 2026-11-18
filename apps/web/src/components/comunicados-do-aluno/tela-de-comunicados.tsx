@@ -28,7 +28,7 @@ import {
 
 const LINHA_APAGADA =
   "flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted-foreground tabular-nums";
-const LINK_DO_CURSO = cn(LINK_NO_TEXTO, "font-medium text-foreground");
+const LINK_DO_CURSO = cn(LINK_NO_TEXTO, "text-foreground font-medium");
 
 function Megafone({ className }: { className: string }) {
   return (
@@ -76,7 +76,7 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
         "grid overflow-hidden",
         doCurso
           ? "@min-[641px]:grid-cols-[minmax(0,1fr)_minmax(0,40%)]"
-          : "@min-[641px]:grid-cols-[minmax(0,1fr)_auto] gap-7 p-[clamp(22px,3.4vw,36px)]"
+          : "gap-7 p-[clamp(22px,3.4vw,36px)] @min-[641px]:grid-cols-[minmax(0,1fr)_auto]"
       )}
       data-destaque=""
     >
@@ -86,21 +86,21 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
           {c.publicadoPor ? <span>por {c.publicadoPor}</span> : null}
         </p>
         <h2
-          className="mt-2.5 text-balance font-bold text-2xl text-titulo leading-[1.3] tracking-tight"
+          className="text-titulo mt-2.5 text-2xl leading-[1.3] font-bold tracking-tight text-balance"
           id="comunicado-destaque"
         >
           {c.titulo}
         </h2>
         <Texto className="mt-3 text-base leading-[1.55]" texto={c.texto} />
         {doCurso ? (
-          <p className="mt-4 text-[13px] text-muted-foreground">
+          <p className="text-muted-foreground mt-4 text-[13px]">
             Sobre o curso <LinkDoCurso alvo={doCurso} />
           </p>
         ) : null}
       </div>
       {doCurso ? (
         <span
-          className="relative @min-[641px]:row-start-auto row-start-1 block @min-[641px]:aspect-auto aspect-[900/604] @min-[641px]:min-h-full bg-sidebar"
+          className="bg-sidebar relative row-start-1 block aspect-[900/604] @min-[641px]:row-start-auto @min-[641px]:aspect-auto @min-[641px]:min-h-full"
           data-capa=""
         >
           <Image
@@ -112,7 +112,7 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
           />
         </span>
       ) : (
-        <div className="@min-[641px]:row-start-auto row-start-1 grid content-start gap-2.5 text-[13px] text-muted-foreground">
+        <div className="text-muted-foreground row-start-1 grid content-start gap-2.5 text-[13px] @min-[641px]:row-start-auto">
           <Megafone className="bg-ceu text-sobre-cor" />
           <p>Para todos os alunos</p>
         </div>
@@ -124,18 +124,18 @@ function Destaque({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
 function Linha({ comunicado: c }: { comunicado: ComunicadoDoAluno }) {
   const dia = diaNaLinha(c.dia);
   return (
-    <li className="grid @min-[521px]:grid-cols-[64px_minmax(0,1fr)] grid-cols-[44px_minmax(0,1fr)] @min-[521px]:gap-5 gap-3.5 @min-[521px]:px-6 px-4 @min-[521px]:py-[22px] py-[18px]">
+    <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-3.5 px-4 py-[18px] @min-[521px]:grid-cols-[64px_minmax(0,1fr)] @min-[521px]:gap-5 @min-[521px]:px-6 @min-[521px]:py-[22px]">
       <time
         className="grid content-start justify-items-center gap-0.5 pt-0.5"
         dateTime={c.dia}
       >
-        <b className="font-bold @min-[521px]:text-[26px] text-[22px] text-titulo tabular-nums leading-none tracking-tight">
+        <b className="text-titulo text-[22px] leading-none font-bold tracking-tight tabular-nums @min-[521px]:text-[26px]">
           {dia.numero}
         </b>
         <span className="text-muted-foreground text-xs">{dia.semana}</span>
       </time>
       <article className="grid min-w-0 gap-2">
-        <h3 className="text-balance font-semibold text-base text-titulo leading-[1.4]">
+        <h3 className="text-titulo text-base leading-[1.4] font-semibold text-balance">
           {c.titulo}
         </h3>
         <Texto className="text-sm" texto={c.texto} />
@@ -164,10 +164,10 @@ function Vazio() {
     >
       <Megafone className="bg-popover text-ceu" />
       <div>
-        <h2 className="font-semibold text-base text-titulo leading-[1.4]">
+        <h2 className="text-titulo text-base leading-[1.4] font-semibold">
           Nenhum comunicado por enquanto
         </h2>
-        <p className="mt-1 text-pretty text-muted-foreground">
+        <p className="text-muted-foreground mt-1 text-pretty">
           Quando o admin publicar um aviso para todos ou sobre um dos seus
           cursos, ele aparece aqui, com o texto inteiro.
         </p>
@@ -214,7 +214,7 @@ export function TelaDeComunicados({
                     subtitulo={contagemDoMes(m, comunicados.destaque)}
                     titulo={nomeDoMes(m.mes)}
                   >
-                    <ol className={cn(CARTAO, "divide-y divide-border")}>
+                    <ol className={cn(CARTAO, "divide-border divide-y")}>
                       {m.comunicados.map((c) => (
                         <Linha comunicado={c} key={c.id} />
                       ))}

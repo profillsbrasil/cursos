@@ -29,7 +29,7 @@ export default function Carregando() {
         </div>
         <div className="grid gap-3.5">
           <Skeleton className={`${PULSO} h-8 w-44 rounded-lg`} />
-          <div className="grid @min-[600px]:grid-cols-4 grid-cols-1 gap-3.5">
+          <div className="grid grid-cols-1 gap-3.5 @min-[600px]:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
               <Skeleton
                 className={`${PULSO} aspect-[3/4] rounded-[20px]`}

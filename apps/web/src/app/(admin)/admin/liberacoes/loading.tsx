@@ -19,9 +19,9 @@ export default function Carregando() {
       />
       <EsqueletoDaBarra busca contagem="50 pessoas" trilha="w-[181px]" />
       <div className="@container">
-        <div className="grid @min-[47.5rem]:grid-cols-[minmax(0,1fr)_20rem] items-start gap-7">
+        <div className="grid items-start gap-7 @min-[47.5rem]:grid-cols-[minmax(0,1fr)_20rem]">
           <EsqueletoDoCartao altura="h-[88px]" linhas={5} />
-          <Skeleton className="@min-[47.5rem]:order-none order-first h-[300px] rounded-[20px] bg-card" />
+          <Skeleton className="bg-card order-first h-[300px] rounded-[20px] @min-[47.5rem]:order-none" />
         </div>
       </div>
     </div>

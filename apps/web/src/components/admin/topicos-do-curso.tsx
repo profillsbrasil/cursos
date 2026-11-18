@@ -49,7 +49,7 @@ function LinhaDoTopico({
         <div className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-start gap-2.5">
           <Check
             aria-hidden="true"
-            className="mt-[13px] size-[18px] text-ceu"
+            className="text-ceu mt-[13px] size-[18px]"
             strokeWidth={2.5}
           />
           <TextoDeUmaLinha
@@ -122,7 +122,7 @@ export function TopicosDoCurso({
             Sem tópicos, a página do curso não mostra esta seção.
           </p>
         ) : (
-          <ul className="grid @3xl:grid-cols-2 gap-x-7 gap-y-2.5">
+          <ul className="grid gap-x-7 gap-y-2.5 @3xl:grid-cols-2">
             {topicos.map((t, i) => (
               <LinhaDoTopico
                 indice={i}

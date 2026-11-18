@@ -19,8 +19,8 @@ export function PaginaPublica({
   direita?: ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="flex h-14 items-center justify-between border-border border-b bg-sidebar px-4 md:h-[68px] md:px-8">
+    <div className="bg-background min-h-dvh">
+      <header className="border-border bg-sidebar flex h-14 items-center justify-between border-b px-4 md:h-[68px] md:px-8">
         <Image alt={PRODUTO} height={34} src={LOCKUP.src} width={120} />
         {direita}
       </header>

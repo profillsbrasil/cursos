@@ -38,8 +38,8 @@ export function SeloDoTipo({
     <span
       aria-hidden="true"
       className={cn(
-        "relative grid shrink-0 place-items-center font-mono font-semibold leading-none tracking-[0.04em]",
-        "after:absolute after:top-0 after:right-0 after:size-2.5 after:rounded-bl-[4px] after:bg-background/55",
+        "relative grid shrink-0 place-items-center font-mono leading-none font-semibold tracking-[0.04em]",
+        "after:bg-background/55 after:absolute after:top-0 after:right-0 after:size-2.5 after:rounded-bl-[4px]",
         TAMANHO[tamanho],
         recusado
           ? "bg-destructive/14 text-destructive"

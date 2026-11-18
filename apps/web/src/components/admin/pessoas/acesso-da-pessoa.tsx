@@ -31,7 +31,7 @@ function OpcaoDePerfil({
 }) {
   const aoEscolher = useCallback(() => escolher(perfil), [escolher, perfil]);
   return (
-    <label className="flex cursor-pointer items-start gap-3.5 border-border border-t px-[22px] py-3.5 transition-colors hover:bg-white/8 has-checked:bg-sol/6">
+    <label className="border-border has-checked:bg-sol/6 flex cursor-pointer items-start gap-3.5 border-t px-[22px] py-3.5 transition-colors hover:bg-white/8">
       <input
         checked={escolhida}
         className={cn(RADIO, "mt-px")}
@@ -43,10 +43,10 @@ function OpcaoDePerfil({
         value={perfil}
       />
       <span className="grid gap-0.5">
-        <span className="font-semibold text-titulo">
+        <span className="text-titulo font-semibold">
           {SOBRE_O_PERFIL[perfil].nome}
         </span>
-        <span className="text-[12.5px] text-muted-foreground">
+        <span className="text-muted-foreground text-[12.5px]">
           {SOBRE_O_PERFIL[perfil].descricao}
         </span>
       </span>
@@ -115,7 +115,7 @@ export function AcessoDaPessoa({
   return (
     <>
       <fieldset className="m-0 min-w-0 border-0 p-0">
-        <legend className="px-[22px] pb-2.5 font-semibold text-[13px] text-muted-foreground">
+        <legend className="text-muted-foreground px-[22px] pb-2.5 text-[13px] font-semibold">
           Perfil
         </legend>
         {ORDEM_DOS_PERFIS.map((p) => (
@@ -129,13 +129,13 @@ export function AcessoDaPessoa({
           />
         ))}
       </fieldset>
-      <div className="flex items-start gap-3.5 border-border border-t px-[22px] py-3.5">
+      <div className="border-border flex items-start gap-3.5 border-t px-[22px] py-3.5">
         <label
           className="grid flex-1 cursor-pointer gap-0.5"
           htmlFor={`admin-${userId}`}
         >
-          <span className="font-semibold text-titulo">Admin</span>
-          <span className="text-[12.5px] text-muted-foreground">
+          <span className="text-titulo font-semibold">Admin</span>
+          <span className="text-muted-foreground text-[12.5px]">
             {souEu
               ? "Você não pode tirar o seu próprio papel de admin. Outro admin pode."
               : "Cria cursos, libera, revoga, publica comunicados e muda o acesso das pessoas."}

@@ -232,7 +232,7 @@ export function CampoDeCapa({
           AREA_DA_CAPA,
           temCapa
             ? "border-border"
-            : "border-trilho border-dashed has-[[aria-invalid=true]]:border-destructive"
+            : "border-trilho has-[[aria-invalid=true]]:border-destructive border-dashed"
         )}
         data-arrastando={arrastando ? true : undefined}
         data-campo={temCapa ? undefined : true}
@@ -273,8 +273,8 @@ export function CampoDeCapa({
           </>
         ) : (
           <span className="grid justify-items-center gap-1.5 px-6 text-center">
-            <ImageUp aria-hidden="true" className="mb-1 size-7 text-ceu" />
-            <span aria-hidden="true" className="font-semibold text-titulo">
+            <ImageUp aria-hidden="true" className="text-ceu mb-1 size-7" />
+            <span aria-hidden="true" className="text-titulo font-semibold">
               Escolher capa
             </span>
             {regra}

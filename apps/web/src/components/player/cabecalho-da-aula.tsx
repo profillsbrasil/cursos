@@ -40,10 +40,10 @@ export function DescricaoDaAula({ dados }: { dados: AulaNoPlayer }) {
   }
   return (
     <section aria-labelledby="sobre-esta-aula" className="grid gap-2">
-      <h2 className="font-semibold text-base text-titulo" id="sobre-esta-aula">
+      <h2 className="text-titulo text-base font-semibold" id="sobre-esta-aula">
         Sobre esta aula
       </h2>
-      <TextoQueAbre className="whitespace-pre-line text-pretty text-foreground text-sm">
+      <TextoQueAbre className="text-foreground text-sm text-pretty whitespace-pre-line">
         {descricao}
       </TextoQueAbre>
     </section>

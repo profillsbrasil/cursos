@@ -22,11 +22,11 @@ export function CabecalhoDaPagina({
   return (
     <header className={CABECALHO}>
       <div className="grid min-w-0 gap-1.5">
-        <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight">
+        <h1 className="text-titulo text-3xl font-bold tracking-tight text-balance">
           {titulo}
         </h1>
         {resumo ? (
-          <p className="max-w-[60ch] text-muted-foreground tabular-nums">
+          <p className="text-muted-foreground max-w-[60ch] tabular-nums">
             {resumo}
           </p>
         ) : null}
@@ -57,14 +57,14 @@ export function EsqueletoDoCabecalho({
   return (
     <div aria-hidden="true" className={CABECALHO}>
       <div className="grid min-w-0 gap-1.5">
-        <p className="text-balance font-bold text-3xl tracking-tight">
+        <p className="text-3xl font-bold tracking-tight text-balance">
           <span className={LINHA_QUE_CARREGA}>{titulo}</span>
         </p>
         <p className="max-w-[60ch] tabular-nums">
           <span className={LINHA_QUE_CARREGA}>{resumo}</span>
         </p>
       </div>
-      {acao ? <Skeleton className="h-11 w-36 rounded-full bg-card" /> : null}
+      {acao ? <Skeleton className="bg-card h-11 w-36 rounded-full" /> : null}
     </div>
   );
 }

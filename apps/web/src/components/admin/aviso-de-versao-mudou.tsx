@@ -17,7 +17,7 @@ export function AvisoDeVersaoMudou({
     <div className={cn(AVISO, className)} role="status">
       <TriangleAlert
         aria-hidden="true"
-        className="mt-0.5 size-4 shrink-0 text-sol"
+        className="text-sol mt-0.5 size-4 shrink-0"
       />
       <div className="grid gap-3">
         <p>

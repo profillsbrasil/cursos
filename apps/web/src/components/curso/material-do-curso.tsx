@@ -39,7 +39,7 @@ export function MaterialDoCurso({
   return (
     <section aria-labelledby="material-do-curso" className="grid gap-2">
       <h2
-        className="flex items-baseline justify-between text-[13px] text-muted-foreground"
+        className="text-muted-foreground flex items-baseline justify-between text-[13px]"
         id="material-do-curso"
       >
         Material de apoio
@@ -49,7 +49,7 @@ export function MaterialDoCurso({
         {mostrados.map((m) => (
           <li key={m.id}>
             <a
-              className="group grid grid-cols-[34px_minmax(0,1fr)_16px] items-center gap-2.5 rounded-[10px] px-2.5 py-1.5 transition-colors duration-150 ease-forte hover:bg-white/8"
+              className="group ease-forte grid grid-cols-[34px_minmax(0,1fr)_16px] items-center gap-2.5 rounded-[10px] px-2.5 py-1.5 transition-colors duration-150 hover:bg-white/8"
               download={m.nomeDoArquivo}
               href={m.href}
               id={idDoLink(m.id)}
@@ -57,7 +57,7 @@ export function MaterialDoCurso({
             >
               <SeloDoTipo tamanho="pequeno" tipo={m.tipo} />
               <span className="grid min-w-0">
-                <span className="truncate font-medium text-[13px] text-titulo">
+                <span className="text-titulo truncate text-[13px] font-medium">
                   {m.titulo}
                 </span>
                 <span className="text-muted-foreground text-xs tabular-nums">
@@ -69,7 +69,7 @@ export function MaterialDoCurso({
               </span>
               <Download
                 aria-hidden="true"
-                className="size-4 text-muted-foreground transition-colors duration-150 ease-forte group-hover:text-titulo"
+                className="text-muted-foreground ease-forte group-hover:text-titulo size-4 transition-colors duration-150"
               />
             </a>
           </li>
@@ -77,7 +77,7 @@ export function MaterialDoCurso({
       </ul>
       {escondidos > 0 ? (
         <button
-          className="toque cursor-pointer justify-self-start font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:text-titulo"
+          className="toque text-ceu ease-forte hover:text-titulo cursor-pointer justify-self-start text-[13px] font-semibold transition-colors duration-150"
           onClick={verTodos}
           type="button"
         >

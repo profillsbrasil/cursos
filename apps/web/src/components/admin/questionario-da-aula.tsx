@@ -83,22 +83,22 @@ function RegraDaNota({
   const regra = fraseDaRegra(perguntas.length);
   return (
     <div
-      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 rounded-[14px] bg-ceu/8 px-4 py-3 ring-1 ring-ceu/30 ring-inset"
+      className="bg-ceu/8 ring-ceu/30 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 rounded-[14px] px-4 py-3 ring-1 ring-inset"
       role="note"
     >
       <span aria-hidden="true" className="flex gap-1">
         {perguntas.map((p, i) => (
           <i
             className={cn(
-              "size-3 rounded-full ring-[1.5px] ring-ceu ring-inset",
+              "ring-ceu size-3 rounded-full ring-[1.5px] ring-inset",
               i < regra.acertos && "bg-ceu"
             )}
             key={p.id}
           />
         ))}
       </span>
-      <b className="font-semibold text-titulo tabular-nums">{regra.titulo}</b>
-      <p className="col-span-full max-w-[35em] text-pretty text-foreground text-xs">
+      <b className="text-titulo font-semibold tabular-nums">{regra.titulo}</b>
+      <p className="text-foreground col-span-full max-w-[35em] text-xs text-pretty">
         {regra.explicacao}
       </p>
     </div>
@@ -127,7 +127,7 @@ function ItemDaLista({
       <button
         aria-current={selecionada ? "true" : undefined}
         className={cn(
-          "grid w-full grid-cols-[22px_minmax(0,1fr)] gap-2.5 border-border border-b px-3.5 py-3 text-left transition-colors duration-150 hover:bg-white/8",
+          "border-border grid w-full grid-cols-[22px_minmax(0,1fr)] gap-2.5 border-b px-3.5 py-3 text-left transition-colors duration-150 hover:bg-white/8",
           selecionada && "bg-sol/8"
         )}
         id={ALVO_DO_QUIZ.item(pergunta.id)}
@@ -137,10 +137,10 @@ function ItemDaLista({
         <span
           aria-hidden="true"
           className={cn(
-            "grid size-[22px] place-items-center rounded-full bg-popover font-semibold text-xs tabular-nums",
+            "bg-popover grid size-[22px] place-items-center rounded-full text-xs font-semibold tabular-nums",
             selecionada && "bg-sol/14 text-sol",
             erros > 0 &&
-              "bg-transparent text-destructive ring-1 ring-destructive ring-inset"
+              "text-destructive ring-destructive bg-transparent ring-1 ring-inset"
           )}
         >
           {indice + 1}
@@ -148,9 +148,9 @@ function ItemDaLista({
         <span className="min-w-0">
           <span
             className={cn(
-              "line-clamp-2 font-semibold text-[13px] text-foreground leading-[1.35]",
+              "text-foreground line-clamp-2 text-[13px] leading-[1.35] font-semibold",
               selecionada && "text-titulo",
-              enunciado === "" && "font-medium text-muted-foreground italic"
+              enunciado === "" && "text-muted-foreground font-medium italic"
             )}
           >
             <span className="sr-only">Pergunta {indice + 1}: </span>
@@ -158,9 +158,9 @@ function ItemDaLista({
           </span>
           <span
             className={cn(
-              "mt-0.5 block text-muted-foreground text-xs tabular-nums",
+              "text-muted-foreground mt-0.5 block text-xs tabular-nums",
               selecionada && "text-foreground",
-              erros > 0 && "font-semibold text-destructive"
+              erros > 0 && "text-destructive font-semibold"
             )}
           >
             {erros > 0
@@ -191,7 +191,7 @@ function Letra({
   );
   return (
     <label
-      className="group/letra grid size-9 cursor-pointer place-items-center rounded-full transition-colors duration-150 hover:bg-popover"
+      className="group/letra hover:bg-popover grid size-9 cursor-pointer place-items-center rounded-full transition-colors duration-150"
       htmlFor={ALVO_DO_QUIZ.letra(alternativa.id)}
     >
       <input
@@ -211,9 +211,9 @@ function Letra({
       <span
         aria-hidden="true"
         className={cn(
-          "grid size-[26px] place-items-center rounded-full font-semibold text-foreground text-xs ring-[1.5px] ring-muted-foreground ring-inset transition-colors duration-150 group-hover/letra:text-titulo group-hover/letra:ring-ceu group-aria-invalid/alts:ring-destructive",
+          "text-foreground ring-muted-foreground group-hover/letra:text-titulo group-hover/letra:ring-ceu group-aria-invalid/alts:ring-destructive grid size-[26px] place-items-center rounded-full text-xs font-semibold ring-[1.5px] transition-colors duration-150 ring-inset",
           alternativa.certa &&
-            "bg-ceu text-sobre-cor ring-0 group-hover/letra:text-sobre-cor"
+            "bg-ceu text-sobre-cor group-hover/letra:text-sobre-cor ring-0"
         )}
       >
         {letra}
@@ -290,14 +290,14 @@ function SituacaoDaCerta({ pergunta }: { pergunta: PerguntaDoRascunho }) {
     );
   }
   return (
-    <p className="flex min-w-0 items-center gap-1.5 font-semibold text-ceu text-xs">
+    <p className="text-ceu flex min-w-0 items-center gap-1.5 text-xs font-semibold">
       <Check
         aria-hidden="true"
         className="size-3.5 shrink-0"
         strokeWidth={2.5}
       />
       <span className="whitespace-nowrap">Certa: {letraDa(indice)}</span>
-      <span className="truncate font-normal text-foreground">
+      <span className="text-foreground truncate font-normal">
         · {certa.texto.trim() || "sem texto"}
       </span>
     </p>
@@ -413,7 +413,7 @@ function Alternativas({
       <div className="flex flex-wrap items-center justify-between gap-x-3.5 gap-y-2">
         {pergunta.alternativas.length < ALTERNATIVAS.max ? (
           <button
-            className="inline-flex items-center gap-1.5 rounded-md px-0.5 py-1 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+            className="text-ceu hover:text-titulo inline-flex items-center gap-1.5 rounded-md px-0.5 py-1 text-[13px] font-semibold transition-colors"
             id={ALVO_DO_QUIZ.novaAlternativa(pergunta.id)}
             onClick={adicionar}
             type="button"
@@ -500,10 +500,10 @@ function PerguntaTirada({
   tirada: Tirada;
 }) {
   return (
-    <div className="grid gap-0.5 border-border border-b px-3.5 py-2.5 text-muted-foreground text-xs">
+    <div className="border-border text-muted-foreground grid gap-0.5 border-b px-3.5 py-2.5 text-xs">
       <span>Pergunta {tirada.indice + 1} tirada.</span>
       <button
-        className="inline-flex items-center gap-1.5 justify-self-start rounded-md py-1 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+        className="text-ceu hover:text-titulo inline-flex items-center gap-1.5 justify-self-start rounded-md py-1 text-[13px] font-semibold transition-colors"
         id={ALVO_DO_QUIZ.desfazer(aula.id)}
         onClick={desfazer}
         type="button"
@@ -576,11 +576,11 @@ export function QuestionarioDaAula({
 
   const cabecalho = (
     <div className="flex items-center justify-between gap-3">
-      <h4 className="flex items-center gap-2 font-semibold text-base text-titulo">
-        <ListChecks aria-hidden="true" className="size-[18px] text-ceu" />
+      <h4 className="text-titulo flex items-center gap-2 text-base font-semibold">
+        <ListChecks aria-hidden="true" className="text-ceu size-[18px]" />
         Questionário
       </h4>
-      <span className="text-[13px] text-muted-foreground tabular-nums">
+      <span className="text-muted-foreground text-[13px] tabular-nums">
         {perguntas.length > 0
           ? plural(perguntas.length, "pergunta", "perguntas")
           : null}
@@ -593,13 +593,13 @@ export function QuestionarioDaAula({
       <>
         {cabecalho}
         {tirada ? (
-          <div className="rounded-[14px] ring-1 ring-border ring-inset">
+          <div className="ring-border rounded-[14px] ring-1 ring-inset">
             <PerguntaTirada aula={aula} desfazer={desfazer} tirada={tirada} />
           </div>
         ) : null}
-        <div className="grid justify-items-start gap-3 rounded-[14px] border border-trilho border-dashed p-[22px] text-muted-foreground">
+        <div className="border-trilho text-muted-foreground grid justify-items-start gap-3 rounded-[14px] border border-dashed p-[22px]">
           <p>
-            <b className="mb-0.5 block font-semibold text-titulo">
+            <b className="text-titulo mb-0.5 block font-semibold">
               Esta aula ainda não tem questionário.
             </b>
             O aluno assiste e segue para a próxima aula.
@@ -642,13 +642,13 @@ export function QuestionarioDaAula({
       {cabecalho}
       <RegraDaNota perguntas={perguntas} />
       <div className="@container/quiz">
-        <div className="grid @xl/quiz:grid-cols-[200px_minmax(0,1fr)] overflow-hidden rounded-[14px] ring-1 ring-border ring-inset">
-          <div className="border-border @xl/quiz:border-r @max-xl/quiz:border-b bg-muted/30">
+        <div className="ring-border grid overflow-hidden rounded-[14px] ring-1 ring-inset @xl/quiz:grid-cols-[200px_minmax(0,1fr)]">
+          <div className="border-border bg-muted/30 @max-xl/quiz:border-b @xl/quiz:border-r">
             <ol aria-label="Perguntas">{itens}</ol>
             <div className="px-3 py-2.5">
               {perguntas.length < LIMITES.perguntasPorAula ? (
                 <button
-                  className="inline-flex items-center gap-1.5 rounded-md px-0.5 py-1 font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+                  className="text-ceu hover:text-titulo inline-flex items-center gap-1.5 rounded-md px-0.5 py-1 text-[13px] font-semibold transition-colors"
                   id={ALVO_DO_QUIZ.novaPergunta(aula.id)}
                   onClick={adicionar}
                   type="button"
@@ -683,7 +683,7 @@ export function ResumoDoQuiz({ aula }: { aula: AulaDoRascunho }) {
   }
   return (
     <span className="inline-flex items-center gap-1.5">
-      <ListChecks aria-hidden="true" className="size-[13px] text-ceu" />
+      <ListChecks aria-hidden="true" className="text-ceu size-[13px]" />
       {plural(aula.perguntas.length, "pergunta", "perguntas")}
     </span>
   );

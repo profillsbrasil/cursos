@@ -73,7 +73,7 @@ export function BarraDaLista({
 }) {
   return (
     <div className={BARRA}>
-      <nav aria-label={rotuloDasOpcoes} className="min-w-0 max-w-full">
+      <nav aria-label={rotuloDasOpcoes} className="max-w-full min-w-0">
         <ul className={TRILHA}>
           {opcoes.map((o) => (
             <li key={o.rotulo}>
@@ -103,7 +103,7 @@ export function BarraDaLista({
             </label>
             <Search
               aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground"
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
             />
             <Input
               autoComplete="off"

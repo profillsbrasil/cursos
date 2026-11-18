@@ -65,13 +65,13 @@ function SeletorDoStatus({
   return (
     <fieldset
       aria-describedby={`${id}-descricao`}
-      className="m-0 grid min-w-0 max-w-80 gap-2 border-0 p-0"
+      className="m-0 grid max-w-80 min-w-0 gap-2 border-0 p-0"
     >
       <legend className={cn(ROTULO, "mb-2 p-0")}>Status</legend>
       <div
         className={cn(
           TRILHA,
-          "grid w-full grid-cols-2 bg-background ring-muted-foreground"
+          "bg-background ring-muted-foreground grid w-full grid-cols-2"
         )}
       >
         {(Object.keys(STATUS) as StatusDoCurso[]).map((s) => (
@@ -94,7 +94,7 @@ function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
   const id = useId();
   return (
     <section aria-labelledby={id} className={CARTAO_DA_COLUNA}>
-      <h2 className="font-semibold text-base text-titulo" id={id}>
+      <h2 className="text-titulo text-base font-semibold" id={id}>
         Antes de publicar
       </h2>
       <ul className="grid gap-2.5 text-[13px]">
@@ -105,7 +105,7 @@ function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
                 "mt-px grid size-[18px] shrink-0 place-items-center rounded-full",
                 item.cumprido
                   ? "bg-ceu text-sobre-cor"
-                  : "ring-[1.5px] ring-muted-foreground ring-inset"
+                  : "ring-muted-foreground ring-[1.5px] ring-inset"
               )}
             >
               {item.cumprido ? (
@@ -118,7 +118,7 @@ function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
                 {item.cumprido ? ": pronto." : ": falta."}
               </span>
               {item.detalhe ? (
-                <span className="block text-muted-foreground text-xs">
+                <span className="text-muted-foreground block text-xs">
                   {item.detalhe}
                 </span>
               ) : null}
@@ -185,13 +185,13 @@ function IndiceDasSecoes({
       aria-label="Seções do editor"
       className={cn(CARTAO, "grid gap-0.5 p-2")}
     >
-      <p className="px-2.5 pt-1.5 pb-1 text-muted-foreground text-xs tabular-nums">
+      <p className="text-muted-foreground px-2.5 pt-1.5 pb-1 text-xs tabular-nums">
         {resumo}
       </p>
       {secoes.map((s) => (
         <a
           aria-current={s.id === atual ? "location" : undefined}
-          className="flex h-[34px] items-center justify-between gap-3 rounded-[9px] px-2.5 font-medium text-[13px] text-foreground transition-colors hover:bg-white/8 hover:text-titulo aria-[current=location]:bg-sol/8 aria-[current=location]:text-titulo"
+          className="text-foreground hover:text-titulo aria-[current=location]:bg-sol/8 aria-[current=location]:text-titulo flex h-[34px] items-center justify-between gap-3 rounded-[9px] px-2.5 text-[13px] font-medium transition-colors hover:bg-white/8"
           href={`#${s.id}`}
           key={s.id}
         >
@@ -225,7 +225,7 @@ function Descartar({
     <ConfirmacaoNaLinha
       botao={{ rotulo: "Descartar" }}
       chave={chave}
-      className="grid gap-2 rounded-xl bg-muted/30 p-3 text-[13px]"
+      className="bg-muted/30 grid gap-2 rounded-xl p-3 text-[13px]"
       confirmar={confirmar}
       enviando={false}
       gatilho={{
@@ -277,7 +277,7 @@ export function ColunaDePublicacao({
   return (
     <aside
       aria-label="Publicação do curso"
-      className="@min-[960px]:sticky @min-[960px]:top-6 @min-[960px]:row-span-2 grid gap-3.5"
+      className="grid gap-3.5 @min-[960px]:sticky @min-[960px]:top-6 @min-[960px]:row-span-2"
     >
       <div className={CARTAO_DA_COLUNA}>
         <div className={cn("grid gap-2", largo)}>
@@ -288,7 +288,7 @@ export function ColunaDePublicacao({
         </div>
         <SeletorDoStatus aoMudar={aoMudarStatus} status={status} />
         {estado.sujo ? (
-          <div className="@min-[960px]:hidden justify-self-start">
+          <div className="justify-self-start @min-[960px]:hidden">
             <Descartar chave="estreito" descartar={descartar} linha={linha} />
           </div>
         ) : null}

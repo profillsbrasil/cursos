@@ -166,7 +166,7 @@ function CampoDoNome({
       <div className="flex flex-wrap gap-2">{children}</div>
       {ajuda ? (
         <p
-          className="basis-full text-pretty text-muted-foreground text-xs"
+          className="text-muted-foreground basis-full text-xs text-pretty"
           id={`${id}-ajuda`}
         >
           {ajuda}
@@ -249,7 +249,7 @@ function ApagarEmUso({ categoria }: { categoria: CategoriaNaLista }) {
 const SELO_DE_USO = cn(SELO, "bg-popover text-foreground tabular-nums");
 const SELO_LIVRE = cn(
   SELO,
-  "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset"
+  "text-muted-foreground ring-muted-foreground bg-transparent ring-1 ring-inset"
 );
 
 function LinhaDaCategoria({
@@ -319,7 +319,7 @@ function LinhaDaCategoria({
   return (
     <li
       className={cn(
-        "grid @lg:grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 px-5 py-3.5",
+        "grid items-center gap-x-4 gap-y-1.5 px-5 py-3.5 @lg:grid-cols-[minmax(0,1fr)_auto]",
         recente && "bg-ceu/14"
       )}
     >
@@ -327,7 +327,7 @@ function LinhaDaCategoria({
         <>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <h3
-              className="font-semibold text-base text-titulo leading-normal"
+              className="text-titulo text-base leading-normal font-semibold"
               ref={focarSeVoltou(voltou)}
               tabIndex={-1}
             >
@@ -341,7 +341,7 @@ function LinhaDaCategoria({
               <span className={SELO_LIVRE}>Nenhum curso</span>
             )}
           </div>
-          <p className="@lg:col-start-1 text-pretty text-[13px] text-muted-foreground">
+          <p className="text-muted-foreground text-[13px] text-pretty @lg:col-start-1">
             {cursos > 0
               ? c.cursos.join(", ")
               : "Escolha esta categoria no editor de um curso."}
@@ -391,7 +391,7 @@ function LinhaDaCategoria({
           className={cn(
             "flex flex-wrap items-center gap-1.5",
             estado === "lendo"
-              ? "@lg:col-start-2 @lg:row-span-2 @lg:row-start-1 @lg:mt-0 mt-1.5"
+              ? "mt-1.5 @lg:col-start-2 @lg:row-span-2 @lg:row-start-1 @lg:mt-0"
               : "col-span-full"
           )}
         >
@@ -415,7 +415,7 @@ function LinhaDaCategoria({
                 rotulo: "Apagar",
               }}
               chave={chaveDoApagar}
-              className="flex flex-1 flex-wrap items-center gap-2.5 rounded-[12px] bg-muted/30 px-3 py-2.5 [&>:first-child]:flex-1"
+              className="bg-muted/30 flex flex-1 flex-wrap items-center gap-2.5 rounded-[12px] px-3 py-2.5 [&>:first-child]:flex-1"
               confirmar={apagar}
               enviando={remocao.pendente}
               gatilho={{
@@ -430,7 +430,7 @@ function LinhaDaCategoria({
               linhaAberta={linhaAberta}
               pergunta={
                 <p className="text-foreground text-sm">
-                  Apagar <b className="font-semibold text-titulo">{c.nome}</b>?
+                  Apagar <b className="text-titulo font-semibold">{c.nome}</b>?
                   Nenhum curso usa esta categoria.
                 </p>
               }
@@ -467,7 +467,7 @@ export function Categorias({
               curso.
             </Vazio>
           ) : (
-            <ul className="@container divide-y divide-border">
+            <ul className="divide-border @container divide-y">
               {categorias.map((c) => (
                 <LinhaDaCategoria
                   aoSalvar={setRecente}
@@ -480,7 +480,7 @@ export function Categorias({
             </ul>
           )}
         </Secao>
-        <p className="text-pretty text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-xs text-pretty">
           O editor do curso escolhe a categoria nesta lista. A que está em uso
           não se apaga.
         </p>

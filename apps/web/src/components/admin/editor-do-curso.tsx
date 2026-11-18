@@ -252,7 +252,7 @@ function ApagarCurso({
   );
   if (!edicao.podeApagar) {
     return (
-      <p className="p-5 text-muted-foreground">
+      <p className="text-muted-foreground p-5">
         O curso não se apaga porque {lista(motivosDoUso(edicao.uso))}. Para só
         tirar do ar, mude o status para Em produção e salve.
       </p>
@@ -260,7 +260,7 @@ function ApagarCurso({
   }
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-      <p className="max-w-[60ch] text-muted-foreground text-sm">
+      <p className="text-muted-foreground max-w-[60ch] text-sm">
         Ninguém usa este curso ainda. Apagar tira o curso, os módulos e as aulas
         de vez.
       </p>
@@ -347,11 +347,11 @@ export function EditorDoCurso({
           onSubmit={enviar}
           ref={formulario}
         >
-          <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-x-8 gap-y-10">
+          <div className="grid items-start gap-x-8 gap-y-10 @min-[960px]:grid-cols-[minmax(0,1fr)_300px]">
             <div className="grid min-w-0 gap-10">
               <div className="grid gap-7">
                 <h1
-                  className="text-balance font-bold text-3xl text-titulo tracking-tight"
+                  className="text-titulo text-3xl font-bold tracking-tight text-balance"
                   ref={titulo}
                   tabIndex={-1}
                 >

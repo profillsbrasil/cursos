@@ -53,7 +53,7 @@ function Acao({
             <Play aria-hidden="true" className="fill-current" />
             Começar curso
           </Link>
-          <span className="text-[13px] text-muted-foreground">
+          <span className="text-muted-foreground text-[13px]">
             Liberado para sempre. Já está em Meus cursos.
           </span>
         </>
@@ -62,10 +62,10 @@ function Acao({
       return (
         <>
           <div className="grid gap-2">
-            <div className="flex justify-between gap-2 text-[13px] text-muted-foreground tabular-nums">
+            <div className="text-muted-foreground flex justify-between gap-2 text-[13px] tabular-nums">
               <span>
                 Você tem{" "}
-                <b className="font-semibold text-foreground">
+                <b className="text-foreground font-semibold">
                   {fmtNum(cartao.saldo)}
                 </b>
               </span>
@@ -79,7 +79,7 @@ function Acao({
           <Button
             className={cn(
               BOTAO_CONTORNO,
-              "w-full border-input text-muted-foreground disabled:opacity-100 dark:border-input"
+              "border-input text-muted-foreground dark:border-input w-full disabled:opacity-100"
             )}
             disabled
           >
@@ -139,7 +139,7 @@ function Confirmacao({
   return (
     <fieldset
       aria-labelledby={id}
-      className="-mx-[18px] grid min-w-0 gap-3 border-border border-t px-[18px] pt-3"
+      className="border-border -mx-[18px] grid min-w-0 gap-3 border-t px-[18px] pt-3"
     >
       <p className="text-foreground text-sm" id={id}>
         Trocar{" "}
@@ -168,7 +168,7 @@ function Confirmacao({
         <Button
           className={cn(
             BOTAO_CONTORNO,
-            "flex-[1_1_110px] hover:bg-popover dark:hover:bg-popover"
+            "hover:bg-popover dark:hover:bg-popover flex-[1_1_110px]"
           )}
           disabled={enviando}
           onClick={cancelar}
@@ -263,12 +263,12 @@ export function CartaoDeTroca({
       aria-labelledby={tituloId}
       className={cn(
         CARTAO,
-        "flex flex-col px-3 pt-3 pb-4 text-card-foreground transition-shadow",
+        "text-card-foreground flex flex-col px-3 pt-3 pb-4 transition-shadow",
         liberado ? "ring-ceu" : "hover:ring-input"
       )}
       ref={card}
     >
-      <div className="relative aspect-video overflow-hidden rounded-lg bg-sidebar">
+      <div className="bg-sidebar relative aspect-video overflow-hidden rounded-lg">
         <Image
           alt={curso.capa.alt}
           className="object-cover"
@@ -280,7 +280,7 @@ export function CartaoDeTroca({
           <span
             className={cn(
               SELO,
-              "absolute top-2.5 left-2.5 bg-ceu text-sobre-cor"
+              "bg-ceu text-sobre-cor absolute top-2.5 left-2.5"
             )}
           >
             <Check aria-hidden="true" strokeWidth={2.4} />
@@ -289,25 +289,25 @@ export function CartaoDeTroca({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-1.5 pt-3.5">
-        <span className="text-[13px] text-muted-foreground">
+        <span className="text-muted-foreground text-[13px]">
           {curso.categoria}
         </span>
         <h3
-          className="font-semibold text-lg text-titulo leading-[1.3]"
+          className="text-titulo text-lg leading-[1.3] font-semibold"
           id={tituloId}
           ref={titulo}
           tabIndex={-1}
         >
           {curso.titulo}
         </h3>
-        <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+        <span className="text-muted-foreground flex items-center gap-1.5 text-[13px]">
           <BookOpen aria-hidden="true" className="size-3.5" />
           {plural(curso.aulas, "aula", "aulas")}
           <span aria-hidden="true">·</span>
           {fmtMin(curso.duracaoSeg)}
         </span>
         {!liberado && (
-          <span className="mt-auto flex items-center gap-1.5 pt-3 font-bold text-lg text-sol tabular-nums leading-[1.3]">
+          <span className="text-sol mt-auto flex items-center gap-1.5 pt-3 text-lg leading-[1.3] font-bold tabular-nums">
             <Star
               aria-hidden="true"
               className="size-[18px] fill-current"

@@ -11,7 +11,7 @@ const SEM_DESLOCAR =
 export const BOTAO = cn(
   buttonVariants(),
   SEM_DESLOCAR,
-  "h-11 gap-2 rounded-full px-[18px] font-semibold text-sm hover:bg-sol-hover hover:shadow-brilho"
+  "hover:bg-sol-hover hover:shadow-brilho h-11 gap-2 rounded-full px-[18px] text-sm font-semibold"
 );
 
 // A outline traz dark:border-input, dark:bg-input/30 e dark:hover:bg-input/50, que vencem
@@ -19,16 +19,16 @@ export const BOTAO = cn(
 export const BOTAO_CONTORNO = cn(
   buttonVariants({ variant: "outline" }),
   SEM_DESLOCAR,
-  "h-11 gap-2 rounded-full px-[18px] font-semibold text-foreground text-sm",
-  "border-muted-foreground bg-transparent hover:border-titulo hover:bg-transparent",
-  "dark:border-muted-foreground dark:bg-transparent dark:hover:border-titulo dark:hover:bg-transparent"
+  "text-foreground h-11 gap-2 rounded-full px-[18px] text-sm font-semibold",
+  "border-muted-foreground hover:border-titulo bg-transparent hover:bg-transparent",
+  "dark:border-muted-foreground dark:hover:border-titulo dark:bg-transparent dark:hover:bg-transparent"
 );
 
 // A confirmação da ação que não se desfaz (apagar, excluir) fica no erro cheio, e não
 // no Sol: The Red Is Only Error Rule. A variante padrão não troca o texto sob o cursor.
 export const BOTAO_PERIGO = cn(
   buttonVariants(),
-  "h-11 gap-2 rounded-full bg-destructive px-[18px] font-semibold text-sm text-sobre-cor hover:bg-destructive/85"
+  "bg-destructive text-sobre-cor hover:bg-destructive/85 h-11 gap-2 rounded-full px-[18px] text-sm font-semibold"
 );
 
 export const PEQUENO = "h-9 px-3.5 text-[13px]";

@@ -11,7 +11,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
 import { BarraProgresso } from "./barra-progresso";
 
-const CARTAO_DO_BANNER = cn(CARTAO, "overflow-hidden text-card-foreground");
+const CARTAO_DO_BANNER = cn(CARTAO, "text-card-foreground overflow-hidden");
 const BOTAO_DO_BANNER = cn(BOTAO, "self-start max-[760px]:self-stretch");
 
 // Com o mesmo sizes, as duas imagens escolhem a mesma largura do srcset: a desfocada
@@ -21,7 +21,7 @@ const SIZES_DA_CAPA = "(max-width: 760px) 100vw, 44vw";
 function Capa({ capa }: { capa: CapaDoCurso }) {
   return (
     // A capa é uma peça com logo e texto: aparece inteira, e a mesma imagem desfocada preenche a sobra.
-    <div className="relative grid place-items-center overflow-hidden bg-sidebar max-[760px]:order-first">
+    <div className="bg-sidebar relative grid place-items-center overflow-hidden max-[760px]:order-first">
       <Image
         alt=""
         aria-hidden="true"
@@ -63,7 +63,7 @@ function Progresso({
         rotulo={`Progresso do curso ${titulo}`}
       />
       <p className="text-muted-foreground text-sm tabular-nums">
-        <b className="font-semibold text-titulo">{pct}%</b> do curso, {feitas}{" "}
+        <b className="text-titulo font-semibold">{pct}%</b> do curso, {feitas}{" "}
         de {plural(total, "aula", "aulas")}
       </p>
     </>
@@ -81,7 +81,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
         )}
       >
         <h2
-          className="font-bold text-[clamp(24px,2.6vw,32px)] text-titulo leading-tight tracking-tight"
+          className="text-titulo text-[clamp(24px,2.6vw,32px)] leading-tight font-bold tracking-tight"
           id="banner-titulo"
         >
           Tudo em dia
@@ -105,18 +105,18 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
     >
       <div className="flex min-w-0 flex-col gap-3.5 p-[clamp(22px,3.4vw,36px)]">
         <h2
-          className="font-bold text-[clamp(24px,2.6vw,32px)] text-titulo leading-[1.15] tracking-tight"
+          className="text-titulo text-[clamp(24px,2.6vw,32px)] leading-[1.15] font-bold tracking-tight"
           id="banner-titulo"
         >
           {retomada.tipo === "questionario" ? (
             <>
               Questionário · Aula {retomada.aula.numeroNoModulo}
-              <span className="block text-sol">{retomada.aula.titulo}</span>
+              <span className="text-sol block">{retomada.aula.titulo}</span>
             </>
           ) : (
             <>
               {retomada.modulo.titulo} · Aula {retomada.aula.numeroNoModulo}
-              <span className="block text-sol">{retomada.aula.titulo}</span>
+              <span className="text-sol block">{retomada.aula.titulo}</span>
             </>
           )}
         </h2>
@@ -125,21 +125,21 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
             <p>
               {onde} · Módulo {retomada.modulo.numero}.{" "}
               {faltam(minutos(retomada.aula.faltaSeg))}{" "}
-              <b className="whitespace-nowrap font-semibold text-titulo">
+              <b className="text-titulo font-semibold whitespace-nowrap">
                 {fmtMin(retomada.aula.faltaSeg)}
               </b>{" "}
               desta aula.
             </p>
             <Progresso {...retomada.progresso} titulo={retomada.curso.titulo} />
             {retomada.proximoNivel !== null && (
-              <p className="flex items-start gap-1.5 text-muted-foreground text-sm">
+              <p className="text-muted-foreground flex items-start gap-1.5 text-sm">
                 <Flag
                   aria-hidden="true"
-                  className="mt-0.5 size-4 shrink-0 text-ceu"
+                  className="text-ceu mt-0.5 size-4 shrink-0"
                 />
                 <span>
                   Próximo nível:{" "}
-                  <b className="font-semibold text-titulo">
+                  <b className="text-titulo font-semibold">
                     {retomada.proximoNivel}
                   </b>
                 </span>
@@ -160,7 +160,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
               {faltam(
                 retomada.questionarios.total - retomada.questionarios.feitas
               ).toLowerCase()}{" "}
-              <b className="whitespace-nowrap font-semibold text-titulo">
+              <b className="text-titulo font-semibold whitespace-nowrap">
                 {plural(
                   retomada.questionarios.total - retomada.questionarios.feitas,
                   "questionário",
@@ -175,7 +175,7 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
               rotulo={`Questionários aprovados do curso ${retomada.curso.titulo}`}
             />
             <p className="text-muted-foreground text-sm tabular-nums">
-              <b className="font-semibold text-titulo">
+              <b className="text-titulo font-semibold">
                 {retomada.questionarios.pct}%
               </b>{" "}
               dos questionários, {retomada.questionarios.feitas} de{" "}

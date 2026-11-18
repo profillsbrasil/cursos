@@ -66,7 +66,7 @@ export function situacaoDoSalvar({
 function TextoDaSituacao({ situacao }: { situacao: Situacao }) {
   if (situacao.tipo === "problemas") {
     return (
-      <ul className="grid gap-0.5 text-destructive">
+      <ul className="text-destructive grid gap-0.5">
         {situacao.marcados > 0 ? (
           <li>
             Confira{" "}
@@ -152,7 +152,7 @@ export function BarraDeSalvar({
     <div
       className={cn(
         CARTAO,
-        "sticky bottom-3 z-10 bg-card/95 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] backdrop-blur-sm md:px-5",
+        "bg-card/95 sticky bottom-3 z-10 px-4 py-3 shadow-[0_10px_30px_rgb(0_0_0/0.45)] backdrop-blur-sm md:px-5",
         className
       )}
     >

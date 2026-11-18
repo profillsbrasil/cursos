@@ -83,13 +83,13 @@ function Busca({
   aoBuscar: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
-    <div className="relative min-w-[min(100%,260px)] max-w-[420px] flex-[1_1_260px]">
+    <div className="relative max-w-[420px] min-w-[min(100%,260px)] flex-[1_1_260px]">
       <label className="sr-only" htmlFor="busca-no-catalogo">
         Buscar curso pelo título
       </label>
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground"
+        className="text-muted-foreground pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
       />
       <Input
         autoComplete="off"
@@ -144,7 +144,7 @@ export function GradeDoCatalogo({
         ))}
         {novo}
       </div>
-      <p className="text-center text-muted-foreground" role="status">
+      <p className="text-muted-foreground text-center" role="status">
         {visiveis.length === 0 ? (
           <span className="block px-5 py-10">
             Nenhum curso com esse filtro.

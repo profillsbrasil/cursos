@@ -59,16 +59,16 @@ export function BarraDeAulas({
   return (
     <span
       className={cn(
-        "grid grid-cols-[minmax(0,1fr)_minmax(5.5rem,auto)] items-center gap-3 text-muted-foreground text-xs tabular-nums",
+        "text-muted-foreground grid grid-cols-[minmax(0,1fr)_minmax(5.5rem,auto)] items-center gap-3 text-xs tabular-nums",
         className
       )}
     >
       <span
         aria-hidden="true"
-        className="h-1 min-w-16 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset"
+        className="bg-trilho ring-muted-foreground h-1 min-w-16 overflow-hidden rounded-full ring-1 ring-inset"
       >
         <span
-          className="block h-full rounded-full bg-sol"
+          className="bg-sol block h-full rounded-full"
           style={{ width: `${pct}%` }}
         />
       </span>

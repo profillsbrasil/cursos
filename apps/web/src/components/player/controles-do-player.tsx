@@ -87,7 +87,7 @@ function Dez() {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 grid place-items-center pt-px font-bold font-sans text-[7px]"
+      className="pointer-events-none absolute inset-0 grid place-items-center pt-px font-sans text-[7px] font-bold"
     >
       10
     </span>
@@ -223,10 +223,10 @@ export function ControlesDoPlayer({
             <span className="sr-only" id={idVolume}>
               Volume
             </span>
-            <span className="mr-1.5 @max-[24rem]/barra:hidden w-[84px] shrink-0">
+            <span className="mr-1.5 w-[84px] shrink-0 @max-[24rem]/barra:hidden">
               <Slider
                 aria-labelledby={idVolume}
-                className="py-2 [&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:transition-transform [&_[data-slot=slider-thumb]]:duration-150 [&_[data-slot=slider-thumb]]:ease-forte [&_[data-slot=slider-thumb]]:hover:scale-125 [&_[data-slot=slider-thumb]]:motion-reduce:transition-none [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full [&_[data-slot=slider-track]]:bg-trilho"
+                className="[&_[data-slot=slider-range]]:bg-foreground [&_[data-slot=slider-thumb]]:bg-titulo [&_[data-slot=slider-thumb]]:ease-forte [&_[data-slot=slider-track]]:bg-trilho py-2 [&_[data-slot=slider-thumb]]:size-3.5 [&_[data-slot=slider-thumb]]:rounded-full [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:transition-transform [&_[data-slot=slider-thumb]]:duration-150 [&_[data-slot=slider-thumb]]:hover:scale-125 [&_[data-slot=slider-thumb]]:motion-reduce:transition-none [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:rounded-full"
                 max={100}
                 min={0}
                 onValueChange={definirVolume}
@@ -239,12 +239,12 @@ export function ControlesDoPlayer({
           </span>
           <span
             className={cn(
-              "@max-[18.5rem]/barra:relative flex @max-[40rem]/barra:min-h-9 min-w-0 items-center gap-1.5 self-stretch",
+              "flex min-w-0 items-center gap-1.5 self-stretch @max-[40rem]/barra:min-h-9 @max-[18.5rem]/barra:relative",
               LUGAR_C
             )}
           >
-            <span className="@max-[40rem]/barra:ml-2.5 ml-1.5 shrink-0 whitespace-nowrap font-mono text-[13px] text-muted-foreground tabular-nums">
-              <b className="font-medium text-foreground">
+            <span className="text-muted-foreground ml-1.5 shrink-0 font-mono text-[13px] whitespace-nowrap tabular-nums @max-[40rem]/barra:ml-2.5">
+              <b className="text-foreground font-medium">
                 {mmss(estado.tempoSeg)}
               </b>{" "}
               / {mmss(estado.duracaoSeg)}
@@ -261,7 +261,7 @@ export function ControlesDoPlayer({
               aria-pressed={legenda}
               className={cn(
                 legenda
-                  ? "after:absolute after:inset-x-2.5 after:bottom-[5px] after:h-0.5 after:rounded-full after:bg-sol"
+                  ? "after:bg-sol after:absolute after:inset-x-2.5 after:bottom-[5px] after:h-0.5 after:rounded-full"
                   : "text-muted-foreground"
               )}
               dica={legenda ? "Desligar legendas" : "Ligar legendas"}

@@ -136,22 +136,22 @@ function CapaDaAmostra({
       className="group grid content-start gap-2.5 rounded-lg"
       href={caminhoDaAula(curso.slug, aulaId)}
     >
-      <div className="relative aspect-video overflow-hidden rounded-lg bg-sidebar ring-1 ring-border transition-shadow duration-200 group-hover:ring-ceu">
+      <div className="bg-sidebar ring-border group-hover:ring-ceu relative aspect-video overflow-hidden rounded-lg ring-1 transition-shadow duration-200">
         <Image
           alt={curso.capa.alt}
-          className="object-cover transition-transform duration-200 ease-forte group-hover:scale-[1.03] motion-reduce:transition-none"
+          className="ease-forte object-cover transition-transform duration-200 group-hover:scale-[1.03] motion-reduce:transition-none"
           fill
           sizes={SIZES_DA_GRADE}
           src={curso.capa.url}
         />
         <span
           aria-hidden="true"
-          className="absolute inset-0 bg-background/45"
+          className="bg-background/45 absolute inset-0"
         />
         <span
           className={cn(
             SELO,
-            "absolute top-2.5 left-2.5 bg-titulo text-sobre-cor"
+            "bg-titulo text-sobre-cor absolute top-2.5 left-2.5"
           )}
         >
           Amostra
@@ -160,17 +160,17 @@ function CapaDaAmostra({
           <span
             className={cn(
               SELO,
-              "absolute right-2.5 bottom-2.5 bg-background text-sol tabular-nums"
+              "bg-background text-sol absolute right-2.5 bottom-2.5 tabular-nums"
             )}
           >
             {fmtPts(preco)}
           </span>
         )}
       </div>
-      <h3 className="font-semibold text-lg text-titulo leading-[1.3] transition-colors group-hover:text-sol">
+      <h3 className="text-titulo group-hover:text-sol text-lg leading-[1.3] font-semibold transition-colors">
         {curso.titulo}
       </h3>
-      <p className="grid gap-1 text-[13px] text-muted-foreground">
+      <p className="text-muted-foreground grid gap-1 text-[13px]">
         <span>{linhaDoCurso({ ...curso, progresso: SEM_AULA })}</span>
         <span>{linhaDaAmostra({ ...curso, vista })}</span>
       </p>
@@ -178,7 +178,7 @@ function CapaDaAmostra({
         className={cn(
           BOTAO_CONTORNO,
           PEQUENO,
-          "w-fit group-hover:border-titulo dark:group-hover:border-titulo"
+          "group-hover:border-titulo dark:group-hover:border-titulo w-fit"
         )}
       >
         <Play aria-hidden="true" className="fill-current" />
@@ -210,14 +210,14 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
     <>
       <div
         className={cn(
-          "relative aspect-video overflow-hidden rounded-lg bg-sidebar ring-1 ring-border transition-shadow duration-200",
+          "bg-sidebar ring-border relative aspect-video overflow-hidden rounded-lg ring-1 transition-shadow duration-200",
           !fechado && "group-hover:ring-ceu"
         )}
       >
         <Image
           alt={curso.capa.alt}
           className={cn(
-            "object-cover transition-transform duration-200 ease-forte motion-reduce:transition-none",
+            "ease-forte object-cover transition-transform duration-200 motion-reduce:transition-none",
             fechado ? "opacity-55 saturate-[.6]" : "group-hover:scale-[1.03]"
           )}
           fill
@@ -228,22 +228,22 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
       </div>
       <h3
         className={cn(
-          "font-semibold text-lg text-titulo leading-[1.3] transition-colors",
+          "text-titulo text-lg leading-[1.3] font-semibold transition-colors",
           !fechado && "group-hover:text-sol"
         )}
       >
         {curso.titulo}
       </h3>
-      <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-muted-foreground">
+      <p className="text-muted-foreground flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px]">
         <span>{linhaDoCurso(curso)}</span>
         {curso.estado.tipo !== "em_breve" && (
           <SeloEstado estado={curso.estado} />
         )}
       </p>
       {agora && (
-        <p className="text-[13px] text-muted-foreground">
+        <p className="text-muted-foreground text-[13px]">
           Agora:{" "}
-          <b className="font-semibold text-foreground">
+          <b className="text-foreground font-semibold">
             Módulo {agora.numero}, {agora.titulo}
           </b>
         </p>

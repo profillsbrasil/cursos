@@ -143,7 +143,7 @@ function Alca({
       aria-hidden="true"
       className={cn(
         ALCA,
-        "cursor-grab touch-none text-muted-foreground transition-colors duration-150 ease-forte hover:text-titulo active:cursor-grabbing"
+        "text-muted-foreground ease-forte hover:text-titulo cursor-grab touch-none transition-colors duration-150 active:cursor-grabbing"
       )}
       onPointerDown={pegar}
       onPointerUp={aoSoltar}
@@ -232,7 +232,7 @@ function LinhaDoMaterial({
         <Input
           {...aria}
           autoComplete="off"
-          className="-ml-2.5 h-9 rounded-full border-transparent bg-transparent px-2.5 font-semibold text-sm text-titulo md:text-sm dark:bg-transparent"
+          className="text-titulo -ml-2.5 h-9 rounded-full border-transparent bg-transparent px-2.5 text-sm font-semibold md:text-sm dark:bg-transparent"
           id={campo}
           maxLength={CARACTERES.tituloDoMaterial}
           onBlur={sair}
@@ -310,11 +310,11 @@ function LinhaDoEnvio({
       <span className={ALCA} />
       <SeloDoTipo recusado={recusado} tipo={envio.tipo} />
       <div className="grid min-w-0 gap-1">
-        <p className="truncate font-semibold text-sm text-titulo">
+        <p className="text-titulo truncate text-sm font-semibold">
           {nomeDoArquivo}
         </p>
         {recusado ? (
-          <p className="flex items-start gap-1.5 text-destructive text-xs">
+          <p className="text-destructive flex items-start gap-1.5 text-xs">
             <CircleAlert
               aria-hidden="true"
               className="mt-px size-3.5 shrink-0"
@@ -325,10 +325,10 @@ function LinhaDoEnvio({
           <>
             <div
               aria-label={`Enviando ${nomeDoArquivo}`}
-              className="h-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground"
+              className="bg-trilho ring-muted-foreground h-1 overflow-hidden rounded-full ring-1"
               role="progressbar"
             >
-              <div className="h-full w-1/3 animate-pulse rounded-full bg-ceu" />
+              <div className="bg-ceu h-full w-1/3 animate-pulse rounded-full" />
             </div>
             <p className={DETALHE}>
               Enviando · {tamanhoDoArquivo(envio.bytes)}
@@ -479,7 +479,7 @@ export function MaterialDeApoio({
       {/* biome-ignore lint/a11y: soltar arquivo é atalho do mouse, e o teclado usa o Escolher arquivos. */}
       <div
         className={cn(
-          "rounded-[20px] transition-shadow duration-150 ease-forte",
+          "ease-forte rounded-[20px] transition-shadow duration-150",
           arrastando && "shadow-[inset_0_0_0_1.5px_var(--ceu)]"
         )}
         onDragLeave={fora}
@@ -523,9 +523,9 @@ export function MaterialDeApoio({
             )}
           </Reorder.Group>
         )}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-border border-t bg-muted/30 px-5 py-4">
-          <p className="min-w-0 flex-[1_1_260px] text-[13px] text-muted-foreground">
-            <span className="font-semibold text-foreground">
+        <div className="border-border bg-muted/30 flex flex-wrap items-center gap-x-4 gap-y-2.5 border-t px-5 py-4">
+          <p className="text-muted-foreground min-w-0 flex-[1_1_260px] text-[13px]">
+            <span className="text-foreground font-semibold">
               Arraste arquivos aqui
             </span>{" "}
             ou escolha no computador. {TIPOS_E_LIMITE}, até {LIMITES.materiais}{" "}

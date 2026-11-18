@@ -15,12 +15,12 @@ export function PainelVazio() {
     <Empty className={cn(CARTAO, "px-6 py-14")}>
       <EmptyHeader className="max-w-md">
         <EmptyMedia
-          className="size-12 rounded-full bg-ceu text-sobre-cor"
+          className="bg-ceu text-sobre-cor size-12 rounded-full"
           variant="icon"
         >
           <BookOpen aria-hidden="true" />
         </EmptyMedia>
-        <EmptyTitle className="font-bold text-lg text-titulo leading-[1.3]">
+        <EmptyTitle className="text-titulo text-lg leading-[1.3] font-bold">
           Nenhum curso liberado ainda
         </EmptyTitle>
         <EmptyDescription className="text-muted-foreground text-sm">

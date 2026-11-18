@@ -48,7 +48,7 @@ export function TextoQueAbre({
       {estado === "cabe" ? null : (
         <button
           aria-expanded={estado === "aberto"}
-          className="toque cursor-pointer rounded-md font-semibold text-ceu transition-colors hover:text-titulo"
+          className="toque text-ceu hover:text-titulo cursor-pointer rounded-md font-semibold transition-colors"
           onClick={alternar}
           type="button"
         >

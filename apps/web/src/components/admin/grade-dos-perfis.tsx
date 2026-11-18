@@ -109,7 +109,7 @@ function LinhaDoCurso({
     <li className="grid gap-3 px-5 py-3.5">
       <div className={cn("grid items-center gap-x-3 gap-y-2.5", COLUNAS)}>
         <div className="flex min-w-0 items-center gap-3">
-          <span className="relative h-9 w-14 shrink-0 overflow-hidden rounded-[8px] ring-1 ring-border">
+          <span className="ring-border relative h-9 w-14 shrink-0 overflow-hidden rounded-[8px] ring-1">
             <Image
               alt=""
               className="object-cover"
@@ -119,7 +119,7 @@ function LinhaDoCurso({
             />
           </span>
           <span className="grid min-w-0 gap-0.5">
-            <span className="truncate font-medium text-foreground">
+            <span className="text-foreground truncate font-medium">
               {curso.titulo}
             </span>
             <span className="text-muted-foreground text-xs">
@@ -141,9 +141,9 @@ function LinhaDoCurso({
         ))}
       </div>
       {pedido ? (
-        <fieldset className="m-0 flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-[14px] border-0 bg-sol/10 px-3.5 py-3 ring-1 ring-sol/40">
+        <fieldset className="bg-sol/10 ring-sol/40 m-0 flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-[14px] border-0 px-3.5 py-3 ring-1">
           <legend className="sr-only">Revogar</legend>
-          <p className="m-0 text-foreground text-sm">
+          <p className="text-foreground m-0 text-sm">
             Fechar {curso.titulo} a {SOBRE_O_PERFIL[pedido.perfil].plural}?{" "}
             {alcance === 0
               ? "Ninguém com o perfil entrou no app ainda."
@@ -182,7 +182,7 @@ export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
         <div
           aria-hidden="true"
           className={cn(
-            "@min-[52rem]:grid hidden gap-x-3 px-5 pt-3 pb-2.5 font-semibold text-muted-foreground text-xs",
+            "text-muted-foreground hidden gap-x-3 px-5 pt-3 pb-2.5 text-xs font-semibold @min-[52rem]:grid",
             COLUNAS
           )}
         >
@@ -197,11 +197,11 @@ export function GradeDosPerfisDoAdmin({ grade }: { grade: GradeDosPerfis }) {
           ))}
         </div>
         {grade.cursos.length === 0 ? (
-          <p className="border-border border-t px-5 py-4 text-muted-foreground text-sm">
+          <p className="border-border text-muted-foreground border-t px-5 py-4 text-sm">
             Nenhum curso no catálogo.
           </p>
         ) : (
-          <ul className="divide-y divide-border border-border border-t">
+          <ul className="divide-border border-border divide-y border-t">
             {grade.cursos.map((c) => (
               <LinhaDoCurso contagem={grade.contagem} curso={c} key={c.id} />
             ))}

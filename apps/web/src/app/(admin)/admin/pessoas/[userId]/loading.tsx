@@ -9,9 +9,9 @@ export default function Carregando() {
       <span className="sr-only">Carregando a pessoa</span>
       <EsqueletoDoTopoDaPessoa />
       <div className="grid items-start gap-5 lg:grid-cols-2">
-        <Skeleton className="h-[380px] rounded-[20px] bg-card" />
-        <Skeleton className="h-[330px] rounded-[20px] bg-card" />
-        <Skeleton className="h-[460px] rounded-[20px] bg-card" />
+        <Skeleton className="bg-card h-[380px] rounded-[20px]" />
+        <Skeleton className="bg-card h-[330px] rounded-[20px]" />
+        <Skeleton className="bg-card h-[460px] rounded-[20px]" />
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ function OpcaoDeVelocidade({
   return (
     <label
       className={cn(
-        "grid h-[30px] cursor-pointer place-items-center rounded-lg font-mono font-semibold text-xs tabular-nums transition-[background-color,color,box-shadow] duration-150 ease-forte",
+        "ease-forte grid h-[30px] cursor-pointer place-items-center rounded-lg font-mono text-xs font-semibold tabular-nums transition-[background-color,color,box-shadow] duration-150",
         marcada
           ? "bg-sol text-sobre-cor hover:bg-sol-hover hover:shadow-brilho"
           : "text-foreground hover:bg-trilho hover:text-titulo"
@@ -170,7 +170,7 @@ export function AjustesDoPlayer({
               className={cn(FOLHA, "grid w-[286px] gap-0.5")}
             >
               <fieldset className="m-0 grid gap-1 border-0 p-0">
-                <legend className="mx-2 mt-1.5 mb-1 font-semibold text-muted-foreground text-xs">
+                <legend className="text-muted-foreground mx-2 mt-1.5 mb-1 text-xs font-semibold">
                   Velocidade
                 </legend>
                 <div className="grid grid-cols-6 gap-1 px-1.5 pb-1.5">
@@ -186,7 +186,7 @@ export function AjustesDoPlayer({
                 </div>
               </fieldset>
               {/* A folha tem 8 px de padding; a linha volta até a borda (The Edge To Edge Rule). */}
-              <hr className="-mx-2 my-1 border-border" />
+              <hr className="border-border -mx-2 my-1" />
               <button
                 aria-pressed={legenda}
                 className={OPCAO}
@@ -221,7 +221,7 @@ export function AjustesDoPlayer({
             <PopoverPrimitive.Popup
               className={cn(FOLHA, "w-[300px] px-3.5 py-3")}
             >
-              <PopoverPrimitive.Title className="mb-2 font-semibold text-sm text-titulo">
+              <PopoverPrimitive.Title className="text-titulo mb-2 text-sm font-semibold">
                 Atalhos do teclado
               </PopoverPrimitive.Title>
               <dl className="grid grid-cols-[auto_1fr] gap-x-3.5 gap-y-1.5 text-[13px]">
