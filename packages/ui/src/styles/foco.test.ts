@@ -35,6 +35,7 @@ const SEPARADOR = /[\s"'`]+/;
 const PRIMEIRO_PONTO = /(?<!\\)\./;
 const CARACTERE_DE_CLASSE = /[\w-]/;
 const NOME_DE_CLASSE = /\.(?:\\.|[\w-])+/g;
+const CLASSE_NO_FIM = /\s\.(?:\\.|[\w-])+$/;
 const FOCO = /:focus/;
 
 /** Cada classe dos componentes, com os arquivos em que aparece. */
@@ -65,21 +66,43 @@ interface Regra {
   seletor: string;
 }
 
+/** O que o `:is(` do começo do seletor envolve, até o `)` que o fecha. */
+function dentroDoIs(seletor: string) {
+  if (!seletor.startsWith(":is(")) {
+    return null;
+  }
+  let fundo = 0;
+  for (let i = 3; i < seletor.length; i += 1) {
+    const c = seletor[i];
+    if (c === "\\") {
+      i += 1;
+    } else if (c === "(") {
+      fundo += 1;
+    } else if (c === ")") {
+      fundo -= 1;
+      if (fundo === 0) {
+        return seletor.slice(4, i);
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * `.hover\:bg-muted:is(...)` vira `hover:bg-muted`: a primeira classe, sem escapes.
  * O `group-hover:x` sai `:is(<grupo> .group-hover\:x)` desde o Tailwind 4.3.4, e
- * aí a classe é a última.
+ * aí a classe é a que fecha o `:is(`.
  */
 function classeDe(seletor: string) {
+  const grupo = dentroDoIs(seletor) ?? "";
+  const fim = grupo.search(CLASSE_NO_FIM);
+  const trecho = fim < 0 ? seletor : grupo.slice(fim);
   let classe = "";
-  let i =
-    (seletor.startsWith(":is(")
-      ? seletor.lastIndexOf(" .") + 1
-      : seletor.search(PRIMEIRO_PONTO)) + 1;
-  while (i < seletor.length) {
-    const c = seletor[i] ?? "";
+  let i = trecho.search(PRIMEIRO_PONTO) + 1;
+  while (i < trecho.length) {
+    const c = trecho[i] ?? "";
     if (c === "\\") {
-      classe += seletor[i + 1] ?? "";
+      classe += trecho[i + 1] ?? "";
       i += 2;
     } else if (CARACTERE_DE_CLASSE.test(c)) {
       classe += c;
