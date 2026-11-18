@@ -51,7 +51,7 @@ try {
     );
     const ids = planos.map((p) => p.userId);
     for (let i = 0; i < ids.length; i += LIMITE) {
-      // biome-ignore lint/performance/noAwaitInLoops: uma página do Clerk por vez, longe do limite de taxa.
+      // oxlint-disable-next-line no-await-in-loop -- uma página do Clerk por vez, longe do limite de taxa.
       const { pessoas: lote } = await pessoas.buscar(
         "",
         ids.slice(i, i + LIMITE)

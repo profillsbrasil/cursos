@@ -148,7 +148,7 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
         if (continuacao) {
           url.searchParams.set("continuation-token", continuacao);
         }
-        // biome-ignore lint/performance/noAwaitInLoops: cada página pede o token da anterior.
+        // oxlint-disable no-await-in-loop -- cada página pede o token da anterior.
         const resposta = await enviar(await aws.sign(url.toString()));
         if (!resposta.ok) {
           throw await recusado("a listagem", resposta);
@@ -156,6 +156,7 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
         const pagina = lerPaginaDaListagem(await resposta.text());
         objetos.push(...pagina.objetos);
         ({ continuacao } = pagina);
+        // oxlint-enable no-await-in-loop
       } while (continuacao);
       return objetos;
     },

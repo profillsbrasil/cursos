@@ -127,7 +127,6 @@ export function TopicosDoCurso({
             {topicos.map((t, i) => (
               <LinhaDoTopico
                 indice={i}
-                // biome-ignore lint/suspicious/noArrayIndexKey: o tópico é só texto; o índice é a identidade e o id do campo.
                 key={i}
                 mudar={mudar}
                 remover={remover}

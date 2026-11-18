@@ -25,7 +25,7 @@ const VALIDADE_DO_COOKIE_S = 60 * 60 * 24 * 7;
 
 /** O único escritor do cookie: o setOpen do packages/ui não grava (sidebar.tsx editado, nav.test.ts confere). */
 const gravarPreferencia = (aberta: boolean) => {
-  // biome-ignore lint/suspicious/noDocumentCookie: casca.tsx lê este cookie no servidor.
+  // oxlint-disable-next-line unicorn/no-document-cookie -- casca.tsx lê este cookie no servidor.
   document.cookie = `${COOKIE_DA_SIDEBAR}=${aberta}; path=/; max-age=${VALIDADE_DO_COOKIE_S}`;
 };
 

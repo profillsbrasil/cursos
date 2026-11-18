@@ -160,7 +160,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       await novaAula(antes?.id ?? "", 1, 1),
     ];
     for (let i = 1; i < total; i += 1) {
-      // biome-ignore lint/performance/noAwaitInLoops: as aulas do teste entram em ordem.
+      // oxlint-disable-next-line no-await-in-loop -- as aulas do teste entram em ordem.
       aulas.push(await novaAula(depois?.id ?? "", i, i + 1));
     }
     const [m] = await db

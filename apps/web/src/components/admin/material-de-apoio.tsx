@@ -480,7 +480,6 @@ export function MaterialDeApoio({
       resumo={resumoDoMaterial(materiais)}
       titulo="Material de apoio"
     >
-      {/* biome-ignore lint/a11y: soltar arquivo é atalho do mouse, e o teclado usa o Escolher arquivos. */}
       <div
         className={cn(
           "ease-forte rounded-[20px] transition-shadow duration-150",

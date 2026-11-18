@@ -146,13 +146,14 @@ async function arrastar(de: { x: number; y: number }, distancia: number) {
   });
   const passos = 20;
   for (let i = 1; i <= passos; i += 1) {
-    // biome-ignore lint/performance/noAwaitInLoops: cada passo do ponteiro precisa chegar antes do seguinte, um quadro depois.
+    // oxlint-disable no-await-in-loop -- cada passo do ponteiro precisa chegar antes do seguinte, um quadro depois.
     await enviar("Input.dispatchMouseEvent", {
       ...ponto,
       type: "mouseMoved",
       y: de.y + (distancia * i) / passos,
     });
     await sleep(16);
+    // oxlint-enable no-await-in-loop
   }
   await enviar("Input.dispatchMouseEvent", {
     ...ponto,

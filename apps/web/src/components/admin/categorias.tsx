@@ -136,7 +136,7 @@ function CampoDoNome({
       .filter(Boolean)
       .join(" ") || undefined;
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Escape fecha o renomear de qualquer controle do formulário.
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Escape fecha o renomear de qualquer controle do formulário.
     <form
       className="col-span-full flex flex-wrap items-start gap-2.5"
       noValidate

@@ -80,7 +80,7 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
       })
       .returning({ id: aula.id });
     for (const perfil of perfis) {
-      // biome-ignore lint/performance/noAwaitInLoops: poucas linhas de preparo.
+      // oxlint-disable-next-line no-await-in-loop -- poucas linhas de preparo.
       await liberarParaPerfil(db, ADMIN, perfil, c.id as CursoId, AGORA);
     }
     return { aulaId: a?.id ?? "", id: c.id as CursoId };

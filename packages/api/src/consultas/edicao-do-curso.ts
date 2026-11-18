@@ -665,7 +665,7 @@ async function gravarCurso(
     }))
   );
   for (const lote of lotes(aulas, LINHAS_POR_LOTE)) {
-    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(aula)
       .values(lote)
@@ -803,7 +803,7 @@ async function gravarQuestionario(
     )
   );
   for (const lote of lotes(perguntas, LINHAS_POR_LOTE)) {
-    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(pergunta)
       .values(lote)
@@ -836,7 +836,7 @@ async function gravarQuestionario(
     )
   );
   for (const lote of lotes(alternativas, LINHAS_POR_LOTE)) {
-    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(alternativa)
       .values(lote)
@@ -884,7 +884,6 @@ export async function apagarCurso(
     // O aluno não pega a trava do curso: uma aula assistida, liberação ou
     // certificado que entra depois da conta de uso para no FK restrict.
     if (FK_VIOLADA.has(violacaoDe(erro)?.codigo ?? "")) {
-      // biome-ignore lint/style/useErrorCause: o ErroParaAPessoa leva a causa nas opções, como abaixo.
       throw new ErroParaAPessoa({
         cause: erro,
         code: "PRECONDITION_FAILED",

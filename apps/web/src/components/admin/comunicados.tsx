@@ -113,7 +113,7 @@ function Formulario({
     [aoCancelar, enviando]
   );
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Escape fecha a edição de qualquer campo do formulário.
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Escape fecha a edição de qualquer campo do formulário.
     <form className="grid gap-5" onKeyDown={cancelar} onSubmit={enviar}>
       <Field>
         <FieldLabel className={ROTULO} htmlFor={`${id}-titulo`}>

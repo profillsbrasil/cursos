@@ -179,7 +179,7 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
   const [versao, setVersao] = useState(0);
   const recarregar = useCallback(() => setVersao((v) => v + 1), []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a lista recarrega pela versão, e o objeto user muda a cada edição da conta.
+  // oxlint-disable react-hooks/exhaustive-deps -- a lista recarrega pela versão, e o objeto user muda a cada edição da conta.
   useEffect(() => {
     let vivo = true;
     user.getSessions().then(
@@ -198,6 +198,7 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
       vivo = false;
     };
   }, [user.id, versao]);
+  // oxlint-enable react-hooks/exhaustive-deps
 
   return (
     <section aria-labelledby={id} className={CARTAO}>

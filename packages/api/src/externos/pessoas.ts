@@ -89,7 +89,7 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
       // pelas páginas até achar todos ou acabar.
       let offset = 0;
       while (pedidos.size > 0 && achadas.size < pedidos.size) {
-        // biome-ignore lint/performance/noAwaitInLoops: a página seguinte só existe depois da anterior.
+        // oxlint-disable-next-line no-await-in-loop -- a página seguinte só existe depois da anterior.
         const r = await clerk.users.getUserList({
           emailAddress: [...pedidos],
           limit: TETO_DO_FILTRO,

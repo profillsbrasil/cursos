@@ -100,7 +100,7 @@ export function virarPessoa(
     const plano = await planoDe(aluno.tx, aluno.userId, agora);
     const nasceu = plano.bonus > 0 && (await darBonusDaVirada(aluno, agora));
     for (const t of plano.trocas) {
-      // biome-ignore lint/performance/noAwaitInLoops: na transação, as escritas rodam em série.
+      // oxlint-disable-next-line no-await-in-loop -- na transação, as escritas rodam em série.
       await trocarNaVirada(aluno, t.cursoId, t.preco, agora);
     }
     return { ...plano, bonus: nasceu ? plano.bonus : 0 };
@@ -114,7 +114,7 @@ export async function rodarVirada(
 ): Promise<PlanoDaVirada[]> {
   const planos: PlanoDaVirada[] = [];
   for (const userId of await funcionarios(db, opcoes.entre)) {
-    // biome-ignore lint/performance/noAwaitInLoops: uma pessoa por vez, cada uma na transação dela.
+    // oxlint-disable-next-line no-await-in-loop -- uma pessoa por vez, cada uma na transação dela.
     planos.push(await virarPessoa(db, userId, opcoes));
   }
   return planos;

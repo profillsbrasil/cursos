@@ -524,7 +524,7 @@ function IndiceDosModulos({
       <ol
         // O pr-11 do celular passa da faixa de 2,5rem da máscara: no fim da rolagem, o último número sai inteiro.
         className="flex min-w-0 [scrollbar-width:none] gap-1 overflow-x-auto max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)] max-md:pr-11 md:flex-wrap"
-        // biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
+        // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"
       >
         {blocos.map(({ bloco, modulo }) => (

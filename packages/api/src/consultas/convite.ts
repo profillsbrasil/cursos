@@ -231,7 +231,7 @@ export async function convidar(
   for (const gravado of gravados) {
     const envio: Envio = limite
       ? { tentarEm: limite, tipo: "limite" }
-      : // biome-ignore lint/performance/noAwaitInLoops: um envio por vez, para o 429 parar os seguintes.
+      : // oxlint-disable-next-line no-await-in-loop -- um envio por vez, para o 429 parar os seguintes.
         await enviarUm(db, portas.convites, gravado, agora);
     if (envio.tipo === "limite") {
       limite = envio.tentarEm;

@@ -107,7 +107,7 @@ async function liberarOsCursosDoConvite(
   agora: Date
 ): Promise<void> {
   for (const cursoId of convite.cursoIds) {
-    // biome-ignore lint/performance/noAwaitInLoops: a transação tem um client só.
+    // oxlint-disable-next-line no-await-in-loop -- a transação tem um client só.
     await liberarNoAlunoTravado(aluno, convite.convidadoPor, cursoId, agora);
   }
 }

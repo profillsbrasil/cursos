@@ -96,7 +96,6 @@ function Pips({ cheios, total }: { cheios: number; total: number }) {
             "ring-muted-foreground size-3 rounded-full ring-[1.5px] ring-inset",
             i < cheios && "bg-muted-foreground"
           )}
-          // biome-ignore lint/suspicious/noArrayIndexKey: os marcadores são iguais e nunca se reordenam.
           key={i}
         />
       ))}

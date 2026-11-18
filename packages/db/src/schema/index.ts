@@ -1,4 +1,4 @@
-// biome-ignore-all lint/performance/noBarrelFile: drizzle.config.ts e defineRelations leem o schema inteiro por este arquivo
+// oxlint-disable oxc/no-barrel-file -- drizzle.config.ts e defineRelations leem o schema inteiro por este arquivo
 export * from "./acesso";
 export * from "./catalogo";
 export {

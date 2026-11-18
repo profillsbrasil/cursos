@@ -114,7 +114,7 @@ async function gravarCertificado(
 ): Promise<string> {
   for (let i = 0; i < SORTEIOS; i += 1) {
     const codigo = gerarCodigo();
-    // biome-ignore lint/performance/noAwaitInLoops: cada sorteio depende de o anterior ter colidido.
+    // oxlint-disable-next-line no-await-in-loop -- cada sorteio depende de o anterior ter colidido.
     const [gravado] = await aluno.tx
       .insert(certificado)
       .values({
@@ -201,7 +201,7 @@ export async function concluirParaQuemCompletou(
              where aa.user_id = a.user_id and aa.aula_id in (select id from aulas))
            = (select count(*) from aulas)`);
   for (const { user_id } of rows) {
-    // biome-ignore lint/performance/noAwaitInLoops: as travas dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- as travas dividem a transação, um client só.
     await concluirCurso(await travarAluno(tx, user_id), cursoId, agora);
   }
 }

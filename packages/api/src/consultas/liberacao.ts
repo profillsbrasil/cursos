@@ -250,7 +250,7 @@ export async function liberarVarios(
   for (const procura of procuras) {
     pessoas.push({
       userId: procura.userId,
-      // biome-ignore lint/performance/noAwaitInLoops: uma pessoa por vez, para o lote ocupar uma conexão do pool, não todas.
+      // oxlint-disable-next-line no-await-in-loop -- uma pessoa por vez, para o lote ocupar uma conexão do pool, não todas.
       ...(await liberarNaPessoa(db, admin, procura, cursoId, agora)),
     });
   }

@@ -47,7 +47,7 @@ export function useGuardaDeSaida(sujo: boolean) {
     const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", avisar);
     const soltarLinks = guardarLinks(document, (aviso) =>
-      // biome-ignore lint/suspicious/noAlert: só o confirm do navegador responde dentro do clique, antes de o Link navegar.
+      // oxlint-disable-next-line no-alert -- só o confirm do navegador responde dentro do clique, antes de o Link navegar.
       window.confirm(aviso)
     );
     return () => {

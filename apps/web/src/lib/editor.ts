@@ -48,7 +48,7 @@ export function primeiroNaPagina<T extends NaPagina<T>>(
   return elementos.reduce<T | undefined>(
     (primeiro, e) =>
       primeiro === undefined ||
-      // biome-ignore lint/suspicious/noBitwiseOperators: o DOM devolve a posição como máscara de bits.
+      // oxlint-disable-next-line no-bitwise -- o DOM devolve a posição como máscara de bits.
       (primeiro.compareDocumentPosition(e) & VEM_ANTES) !== 0
         ? e
         : primeiro,

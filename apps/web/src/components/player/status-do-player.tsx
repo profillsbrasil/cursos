@@ -36,7 +36,7 @@ export function StatusDoPlayer({
                 "text-muted-foreground ease-forte hover:bg-accent inline-flex shrink-0 items-center gap-2 rounded-lg px-1.5 py-1 text-[13px] whitespace-nowrap transition-[background-color,opacity,visibility] duration-150",
                 aviso && "invisible opacity-0"
               )}
-              // biome-ignore lint/a11y/noNoninteractiveTabindex: a dica que explica a faixa abre pelo foco de teclado.
+              // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a dica que explica a faixa abre pelo foco de teclado.
               tabIndex={0}
             />
           }

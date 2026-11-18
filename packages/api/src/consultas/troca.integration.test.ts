@@ -184,7 +184,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   test("dois cursos em paralelo com saldo para um: uma troca, uma recusa, saldo nunca negativo (20 vezes)", async () => {
     const rodadas: { codigos: string[]; saldo: number | undefined }[] = [];
     for (let i = 0; i < 20; i += 1) {
-      // biome-ignore lint/performance/noAwaitInLoops: cada rodada é uma corrida isolada
+      // oxlint-disable no-await-in-loop -- cada rodada é uma corrida isolada
       const userId = await aluno(300);
       const [a, b] = await Promise.all([
         cursoTrocavel(300),
@@ -198,6 +198,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         codigos: r.map(codigo).map(String).sort(),
         saldo: await saldoDe(userId),
       });
+      // oxlint-enable no-await-in-loop
     }
     expect(rodadas).toEqual(
       Array.from({ length: 20 }, () => ({

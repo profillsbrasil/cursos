@@ -226,7 +226,7 @@ export function CampoDeCapa({
       className="relative content-start gap-2"
       data-invalid={mensagemDaImagem ? true : undefined}
     >
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: soltar o arquivo é atalho do mouse; o teclado escolhe pelo input dentro do rótulo. */}
+      {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- soltar o arquivo é atalho do mouse; o teclado escolhe pelo input dentro do rótulo. */}
       <label
         className={cn(
           AREA_DA_CAPA,

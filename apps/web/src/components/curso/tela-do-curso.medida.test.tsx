@@ -183,7 +183,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
       return { esquerda: Math.round(r.left), largura: Math.round(r.width), topo: Math.round(r.top) };
     })()`;
     for (const largura of [1280, 1080]) {
-      // biome-ignore lint/performance/noAwaitInLoops: as duas larguras dividem a mesma aba do Chromium.
+      // oxlint-disable no-await-in-loop -- as duas larguras dividem a mesma aba do Chromium.
       await abrir(largura, PAGINA);
       const { cartao } = await medir();
       await abrir(largura, ESQUELETO);
@@ -195,6 +195,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
         esquerda: esqueleto.esquerda,
         largura: esqueleto.largura,
       }).toEqual({ esquerda: cartao.esquerda, largura: cartao.largura });
+      // oxlint-enable no-await-in-loop
     }
   });
 });

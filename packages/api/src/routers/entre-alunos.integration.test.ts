@@ -86,7 +86,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       .returning({ id: modulo.id });
     const aulas: { id: string; perguntas: PerguntaPlantada[] }[] = [];
     for (const [i, n] of perguntasPorAula.entries()) {
-      // biome-ignore lint/performance/noAwaitInLoops: as perguntas precisam do id da aula gravada.
+      // oxlint-disable-next-line no-await-in-loop -- as perguntas precisam do id da aula gravada.
       const [a] = await db
         .insert(aula)
         .values({
@@ -100,7 +100,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         .returning({ id: aula.id });
       const perguntas: PerguntaPlantada[] = [];
       for (let p = 1; p <= n; p += 1) {
-        // biome-ignore lint/performance/noAwaitInLoops: as alternativas precisam do id da pergunta gravada.
+        // oxlint-disable no-await-in-loop -- as alternativas precisam do id da pergunta gravada.
         const [pg] = await db
           .insert(pergunta)
           .values({
@@ -125,6 +125,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           errada: errada?.id as AlternativaId,
           id: pg?.id as PerguntaId,
         });
+        // oxlint-enable no-await-in-loop
       }
       aulas.push({ id: a?.id ?? "", perguntas });
     }
