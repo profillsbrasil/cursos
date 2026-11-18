@@ -9,7 +9,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../components/chromium-de-teste";
+} from "../components/chromium.test-utils";
 import { guardarLinks } from "./use-guarda-de-saida";
 
 const PAGINA = `<!doctype html><html><body>
@@ -36,6 +36,7 @@ const servir = () => {
       }),
     port: 0,
   });
+
   return `http://127.0.0.1:${servidor.port}/admin/catalogo/cursos/x`;
 };
 
@@ -44,15 +45,19 @@ async function esperarAPagina(tentativas = 50): Promise<void> {
     enviar,
     'document.getElementById("catalogo") !== null'
   ).catch(() => false);
+
   if (pronta) {
     return;
   }
+
   if (tentativas === 0) {
     throw new Error("a página da guarda não carregou");
   }
+
   await new Promise((r) => {
     setTimeout(r, 100);
   });
+
   return await esperarAPagina(tentativas - 1);
 }
 

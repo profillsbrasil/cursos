@@ -27,6 +27,7 @@ function cabecalhoPng(): Uint8Array<ArrayBuffer> {
   v.setUint32(16, 10);
   v.setUint32(20, 10);
   b.set([8, 6, 0, 0, 0], 24);
+
   return b;
 }
 
@@ -43,6 +44,7 @@ describe("lerMaterial", () => {
       lerMaterial("antiga.xls", OLE),
       lerMaterial("foto.png", cabecalhoPng()),
     ];
+
     expect(lidos.map((l) => (l.tipo === "lido" ? l.arquivo.tipo : l))).toEqual([
       "pdf",
       "xlsx",
@@ -109,20 +111,24 @@ const BUCKET = {
 function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];
+
   const enviar = ((url: Request | string, init?: RequestInit) => {
     const pedido = url instanceof Request ? url : new Request(url, init);
     pedidos.push(pedido);
     tamanhos.push(
       init?.body instanceof Uint8Array ? init.body.byteLength : null
     );
+
     return Promise.resolve(resposta(pedido));
   }) as unknown as typeof fetch;
+
   return { enviar, pedidos, tamanhos };
 }
 
 describe("materiaisNoBucket", () => {
   test("envia com PUT assinado e o content-type do tipo, e devolve a chave e o nome", async () => {
     const { enviar, pedidos, tamanhos } = bucketFalso(() => new Response(null));
+
     const arquivo = new File([ZIP], "controle-volume-lote.xlsx", {
       type: "application/octet-stream",
     });
@@ -155,9 +161,11 @@ describe("materiaisNoBucket", () => {
     const { enviar, pedidos } = bucketFalso(() => new Response(null));
     const materiais = materiaisNoBucket(BUCKET, enviar);
     let lidos = 0;
+
     const pesado = {
       arrayBuffer: () => {
         lidos += 1;
+
         return Promise.resolve(new ArrayBuffer(0));
       },
       name: "manual.pdf",
@@ -179,11 +187,13 @@ describe("materiaisNoBucket", () => {
     const { enviar } = bucketFalso(
       () => new Response("sem bucket", { status: 403 })
     );
-    const log = spyOn(console, "error").mockImplementation(() => undefined);
+
+    const log = spyOn(console, "error");
 
     const erro = await materiaisNoBucket(BUCKET, enviar)
       .receber(new File([PDF], "a.pdf"))
       .catch((e: unknown) => e);
+
     const registrado = log.mock.calls.flat().join(" ");
     log.mockRestore();
 
@@ -201,6 +211,7 @@ describe("materiaisNoBucket", () => {
     const resposta = await materiaisNoBucket(BUCKET, achado.enviar).abrir(
       chave
     );
+
     const existe = await materiaisNoBucket(BUCKET, achado.enviar).existe(chave);
 
     expect(await resposta?.text()).toBe("bytes");

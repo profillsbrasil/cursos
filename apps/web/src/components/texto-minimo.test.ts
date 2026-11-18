@@ -23,20 +23,24 @@ const ABAIXO_DE_11_PX: Record<string, string> = {
 describe("tamanho mínimo do texto", () => {
   test("nenhum texto fica abaixo de 11 px fora das exceções do DESIGN.md", () => {
     const fora: string[] = [];
+
     for (const arquivo of new Glob("**/*.{ts,tsx}").scanSync(SRC)) {
       if (arquivo.includes(".test.") || arquivo in ABAIXO_DE_11_PX) {
         continue;
       }
+
       const linhas = readFileSync(join(SRC, arquivo), "utf8").split("\n");
       linhas.forEach((linha, i) => {
         const pequenos = [...linha.matchAll(TEXTO_EM_PX)].filter(
           (m) => Number(m[1]) < MENOR_LEGIVEL_PX
         );
+
         if (pequenos.length > 0) {
           fora.push(`${arquivo}:${i + 1}`);
         }
       });
     }
+
     expect(fora).toEqual([]);
   });
 });

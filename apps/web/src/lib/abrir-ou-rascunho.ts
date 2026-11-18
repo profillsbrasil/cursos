@@ -16,9 +16,12 @@ export async function abrirOuRascunho<T>(
   if (!UUID.safeParse(id).success) {
     return null;
   }
+
   const salvo = await carregar(id);
+
   if (salvo !== null) {
     return salvo;
   }
+
   return novo === "1" ? rascunho(id.toLowerCase()) : null;
 }

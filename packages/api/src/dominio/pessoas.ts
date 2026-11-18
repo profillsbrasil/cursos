@@ -62,6 +62,7 @@ export function montarListaDePessoas(
 ): ListaDePessoas {
   const porId = new Map(linhas.map((l) => [l.userId, l]));
   const saldoPorId = new Map(saldos.map((s) => [s.userId, s.saldo]));
+
   return {
     contagem,
     filtro,

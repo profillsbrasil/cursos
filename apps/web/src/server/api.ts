@@ -26,9 +26,11 @@ const caller = cache(async () => createCaller(await contexto()));
  */
 export const exigirAdmin = cache(async () => {
   const ctx = await contexto();
+
   if (!ehAdmin(ctx.auth)) {
     notFound();
   }
+
   return createCaller(ctx);
 });
 
@@ -57,6 +59,7 @@ export function paraACasca<T>(
   return carregar.catch((erro: unknown) => {
     unstable_rethrow(erro);
     console.error(`casca: ${peca} não carregou`, erro);
+
     return null;
   });
 }
@@ -96,11 +99,14 @@ export const abrirCapa = (chave: string) => servicos.capas.abrir(chave);
  */
 export async function abrirMaterial(id: string) {
   const ctx = contextoDe(await auth(), servicos);
+
   if (!ctx.auth) {
     return null;
   }
+
   const arquivo = await createCaller(ctx).curso.material({ id });
   const resposta = arquivo && (await servicos.materiais.abrir(arquivo.chave));
+
   return arquivo && resposta
     ? {
         contentType: TIPOS_DE_MATERIAL[arquivo.tipo].contentType,

@@ -24,6 +24,7 @@ describe("Antes de publicar", () => {
       categoriaId: "" as CategoriaId,
       descricao: "  ",
     };
+
     expect(lista(vazio, false)).toMatchObject({
       Capa: [false, null],
       Descrição: [false, null],
@@ -51,9 +52,11 @@ describe("Antes de publicar", () => {
 
   test("conta as aulas com vídeo válido e as sem questionário", () => {
     const [m1, m2] = rascunho.modulos;
+
     if (!(m1 && m2)) {
       throw new Error("o exemplo tem dois módulos");
     }
+
     const r = {
       ...rascunho,
       modulos: [
@@ -67,6 +70,7 @@ describe("Antes de publicar", () => {
         m2,
       ],
     };
+
     const itens = lista(r);
     expect(itens["Aulas com vídeo"]).toEqual([false, "1 de 3"]);
     expect(itens.Questionários).toEqual([

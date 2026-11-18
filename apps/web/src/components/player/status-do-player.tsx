@@ -26,6 +26,7 @@ export function StatusDoPlayer({
   pct: number;
 }) {
   const aviso = conquista !== null && avisoAparente;
+
   return (
     <div className="relative flex min-w-0 flex-1 items-center justify-end self-stretch @max-[18.5rem]/barra:static">
       <Tooltip>

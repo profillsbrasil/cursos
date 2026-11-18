@@ -43,6 +43,7 @@ export function nomeNoCertificado(p: Pessoa | null): string | null {
   if (!p || p.nome === p.userId || p.nome === p.email) {
     return null;
   }
+
   return p.nome;
 }
 
@@ -69,6 +70,7 @@ export const paginaEmitida = (
 
 export function paginaQueFalta(c: CursoAberto): PaginaDoCertificado {
   const { progresso, questionarios } = c.leitura;
+
   return {
     aulas: { feitas: progresso.feitas, total: progresso.total },
     curso: { slug: c.curso.slug, titulo: c.curso.titulo },

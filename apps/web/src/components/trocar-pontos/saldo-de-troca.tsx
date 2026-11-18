@@ -24,6 +24,7 @@ export function SaldoDeTroca({
 }) {
   const [aberta, setAberta] = useState(false);
   const alternar = useCallback(() => setAberta((a) => !a), []);
+
   return (
     <section
       aria-labelledby="saldo-titulo"

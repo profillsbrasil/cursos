@@ -19,6 +19,7 @@ describe("toda barra de progresso tem a borda do trilho", () => {
             : []
         )
     );
+
     expect(semAnel).toEqual([]);
   });
 });

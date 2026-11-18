@@ -28,14 +28,17 @@ export function concederPontos(
   agora: Date
 ): Promise<ResultadoDaConcessao> {
   const segunda = segundaDaSemana(diaLocal(agora));
+
   return comSaldoTravado(db, pedido.userId, segunda, async (aluno, saldo) => {
     const recusa = recusaDaConcessao(saldo, pedido.pontos);
+
     if (recusa) {
       throw new ErroParaAPessoa({
         code: "PRECONDITION_FAILED",
         message: recusa,
       });
     }
+
     const [concessao] = await aluno.tx
       .insert(concessaoDePontos)
       .values({
@@ -46,9 +49,11 @@ export function concederPontos(
         userId: aluno.userId,
       })
       .returning({ id: concessaoDePontos.id });
+
     if (!concessao) {
       throw new Error("O insert da concessão não devolveu a linha.");
     }
+
     await aluno.tx.insert(pontoLancamento).values({
       concessaoId: concessao.id,
       criadoEm: agora,
@@ -56,6 +61,7 @@ export function concederPontos(
       pontos: pedido.pontos,
       userId: aluno.userId,
     });
+
     return { concessaoId: concessao.id, saldo: saldo + pedido.pontos };
   });
 }

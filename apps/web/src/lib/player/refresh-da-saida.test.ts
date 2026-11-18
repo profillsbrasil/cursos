@@ -11,6 +11,7 @@ const CONQUISTA: Conquista = {
   pontos: 10,
   sequenciaDias: 1,
 };
+
 const PEDIDO: Pedido = { posicaoSeg: 30, trechos: [] };
 
 const aceito = (conquista: Conquista | null): RespostaDoEnvio => ({
@@ -30,26 +31,31 @@ function ligar() {
   const respostas: RespostaDoEnvio[] = [];
   const conquistas: Conquista[] = [];
   let refreshes = 0;
+
   const saida = criarRefreshDaSaida({
     aoConquistar: (c) => {
       conquistas.push(c);
     },
     enviar: () => {
       const r = respostas.shift();
+
       return r ? Promise.resolve(r) : Promise.reject(new Error("sem resposta"));
     },
     pedirRefresh: () => {
       refreshes += 1;
     },
   });
+
   async function responder(r: RespostaDoEnvio) {
     respostas.push(r);
     const recebida = await saida.enviar(PEDIDO);
     expect(recebida).toBe(r);
+
     if (recebida.tipo === "ok" && recebida.registro.conquista) {
       saida.aoConquistar(recebida.registro.conquista);
     }
   }
+
   return { conquistas, refreshes: () => refreshes, responder, saida };
 }
 
@@ -102,10 +108,13 @@ describe("ligarRefreshDaSaida", () => {
     const conquistas: Conquista[] = [];
     let refreshes = 0;
     const agendar: DependenciasDaSessao["agendar"] = () => () => undefined;
+
     const criarPlayer = (() => {
       throw new Error("sem player");
     }) as DependenciasDaSessao["criarPlayer"];
+
     const relogio = () => 0;
+
     const ligacao = ligarRefreshDaSaida({
       agendar,
       aoConquistar: (c) => {
@@ -118,6 +127,7 @@ describe("ligarRefreshDaSaida", () => {
       },
       relogio,
     });
+
     return {
       conquistas,
       ligacao,

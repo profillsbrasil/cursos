@@ -21,14 +21,18 @@ export function TextoQueAbre({
 
   useLayoutEffect(() => {
     const p = ref.current;
+
     if (!p || estado === "aberto") {
       return;
     }
+
     const medir = () =>
       setEstado(p.scrollHeight > p.clientHeight ? "cortado" : "cabe");
+
     medir();
     const observador = new ResizeObserver(medir);
     observador.observe(p);
+
     return () => observador.disconnect();
   }, [estado]);
 

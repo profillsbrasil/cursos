@@ -21,7 +21,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { CursosParaTrocar } from "./cursos-para-trocar";
 
 const naCasca = (filhos: ReactNode) =>
@@ -89,6 +89,7 @@ const SEMANA = naCasca(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [TROCAR, SEMANA].flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))

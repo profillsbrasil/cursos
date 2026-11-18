@@ -16,12 +16,14 @@ export default async function LayoutDoAluno({
 }: Readonly<{ children: React.ReactNode }>) {
   // await: auth.protect() redireciona aqui, antes de a casca pedir qualquer dado.
   const admin = await souAdmin();
+
   // Sem await: o cartão chega por streaming. Em /meus-cursos, React.cache faz o
   // layout e a página dividirem uma execução do painel.
   const continuar = paraACasca(
     "continuar",
     carregarPainel().then((p) => continuarDe(p.retomada))
   );
+
   const placar = paraACasca(
     "placar",
     carregarResumo().then(({ saldo, sequenciaDias }) => ({
@@ -29,6 +31,7 @@ export default async function LayoutDoAluno({
       sequenciaDias,
     }))
   );
+
   return (
     <ProvedorDoClerk>
       <Casca

@@ -131,6 +131,7 @@ interface OpcoesCurso {
 
 export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
   const primeiro = o.primeiroNumero ?? 0;
+
   return {
     capaAlt: `Capa de ${chave}`,
     capaAltura: 720,
@@ -166,6 +167,7 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
 /** CursoCatalogo direto, sem passar por paraCatalogo. */
 export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
   const l = cursoLinha(chave, o);
+
   return {
     capa: capaDe(l),
     categoria: l.categoria.nome,
@@ -232,9 +234,11 @@ export const aulasDe = (l: CursoLinha) =>
 
 function linhaDoSeed(chave: string): CursoLinha {
   const c = CURSOS.find((x) => x.chave === chave);
+
   if (!c) {
     throw new Error(`curso ${chave} não está no seed`);
   }
+
   return {
     capaAlt: c.capaAlt,
     capaAltura: c.capaAltura,
@@ -275,9 +279,11 @@ export function exemploDoPrototipo(): LinhasPainel {
     curso: linhaDoSeed(chave),
     liberadaEm: new Date(Date.UTC(2026, 7, 1 + i, 12)),
   }));
+
   const assistidas = PROGRESSO_A.flatMap((p) => {
     const linha = linhaDoSeed(p.curso);
     const m = linha.modulos.find((x) => x.numero === p.modulo);
+
     return (m?.aulas ?? []).slice(0, Math.min(p.aulas, m?.aulas.length ?? 0));
   }).map((a, i) => ({
     assistidaEm: em(
@@ -285,6 +291,7 @@ export function exemploDoPrototipo(): LinhasPainel {
     ),
     aulaId: a.id,
   }));
+
   return {
     assistidas,
     certificados: [

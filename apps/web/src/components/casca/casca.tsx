@@ -61,6 +61,7 @@ export async function Casca({
   selo?: string;
 }) {
   const aberta = (await cookies()).get(COOKIE_DA_SIDEBAR)?.value !== "false";
+
   return (
     <ProvedorDaCasca aberta={aberta}>
       <a className={PULAR} href={`#${CONTEUDO}`}>

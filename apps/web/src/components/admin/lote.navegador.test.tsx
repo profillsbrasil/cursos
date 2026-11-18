@@ -11,7 +11,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "lote.entrada.tsx");
@@ -29,9 +29,11 @@ const SUBSTITUTOS: [RegExp, string][] = [
 
 const COMERCIAL = "00000000-0000-4000-8000-00000000c001";
 const FABRICA = "00000000-0000-4000-8000-00000000c002";
+
 const CAPA = `data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="604"><rect width="900" height="604" fill="#2b5c8a"/></svg>'
 )}`;
+
 const CURSOS = [
   { aulas: 90, id: COMERCIAL, titulo: "Profills School Comercial" },
   { aulas: 7, id: FABRICA, titulo: "Fábrica e montagem" },
@@ -47,6 +49,7 @@ const SEM_LIBERACAO = {
   tipo: "sem_liberacao",
   ultimaRevogacao: null,
 };
+
 const pessoa = (
   userId: string,
   nome: string,
@@ -59,11 +62,13 @@ const pessoa = (
   situacao: SEM_LIBERACAO,
   userId,
 });
+
 const busca = (pessoas: unknown[]) => ({
   hoje: "2026-10-16",
   pessoas,
   total: pessoas.length,
 });
+
 const BUSCAS = {
   lima: busca([
     pessoa("user_ana", "Ana Beatriz Lima"),
@@ -170,10 +175,13 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
@@ -193,7 +201,9 @@ const ARQUIVOS_COM_CLASSES = [
   "../../../../../packages/ui/src/components/avatar.tsx",
   "../../../../../packages/ui/src/components/badge.tsx",
 ].map((f) => join(AQUI, f));
+
 const PALAVRA = /[\s"'`{}]+/;
+
 const css = await cssDoApp(
   [PAGINA, ...ARQUIVOS_COM_CLASSES.map((f) => readFileSync(f, "utf8"))].flatMap(
     (t) => t.split(PALAVRA)
@@ -201,6 +211,7 @@ const css = await cssDoApp(
 );
 
 const GEIST_DAS_FOTOS = process.env.GEIST_DO_LOTE;
+
 const fonteDasFotos = GEIST_DAS_FOTOS
   ? ["Regular", "Medium", "SemiBold", "Bold"]
       .map(
@@ -220,10 +231,12 @@ async function abrirTela(largura: number) {
     mobile: largura < 768,
     width: largura,
   });
+
   const conteudo =
     largura < 768
       ? "padding:32px 16px 64px"
       : "margin-left:15.5rem;padding:32px 48px 64px";
+
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
@@ -250,24 +263,30 @@ function esperar(condicao: string) {
 
 const clicar = (seletor: string) =>
   avaliar(enviar, `document.querySelector(${JSON.stringify(seletor)}).click()`);
+
 const clicarNoTexto = (rotulo: string) =>
   avaliar(
     enviar,
     `[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === ${JSON.stringify(rotulo)}).click()`
   );
+
 const buscar = (termo: string) =>
   avaliar(enviar, `window.buscar(${JSON.stringify(termo)})`);
+
 const marcar = (nome: string) => clicar(`[aria-label="Marcar ${nome}"]`);
+
 const texto = (seletor: string) =>
   avaliar<string>(
     enviar,
     `document.querySelector(${JSON.stringify(seletor)})?.textContent ?? null`
   );
+
 const marcadas = () =>
   avaliar<string[]>(
     enviar,
     `[...document.querySelectorAll('aside li strong')].map((s) => s.textContent)`
   );
+
 const focado = () =>
   avaliar<string>(
     enviar,
@@ -276,15 +295,19 @@ const focado = () =>
 
 const FOTOS = process.env.FOTOS_DO_LOTE;
 const DEPOIS_DAS_TRANSICOES_MS = 300;
+
 async function foto(nome: string) {
   if (!FOTOS) {
     return;
   }
+
   await sleep(DEPOIS_DAS_TRANSICOES_MS);
+
   const { data } = (await enviar("Page.captureScreenshot", {
     captureBeyondViewport: true,
     format: "png",
   })) as { data: string };
+
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
 
@@ -294,6 +317,7 @@ interface Caixa {
   largura: number;
   topo: number;
 }
+
 const MEDIR = `(() => {
   const caixa = (el) => {
     const r = el.getBoundingClientRect();
@@ -306,6 +330,7 @@ const MEDIR = `(() => {
     posicao: getComputedStyle(coluna).position,
   };
 })()`;
+
 const medir = () =>
   avaliar<{ coluna: Caixa; lista: Caixa; posicao: string }>(enviar, MEDIR);
 
@@ -354,6 +379,7 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
     await abrirTela(1280);
     await prontoParaLiberar();
     await foto("1280-pronto");
+
     const carla = await avaliar<{ caixa: boolean; texto: string }>(
       enviar,
       `(() => {
@@ -361,6 +387,7 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
         return { caixa: li.querySelector('[role="checkbox"]') !== null, texto: li.textContent };
       })()`
     );
+
     expect(carla.caixa).toBe(false);
     expect(carla.texto).toContain(
       "Já tem Profills School Comercial, por troca"
@@ -423,6 +450,7 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
 
   test("Liberar sem curso é o contorno desligado; pronto, é o botão amarelo", async () => {
     await abrirTela(1280);
+
     const liberar = () =>
       avaliar<{ desligado: boolean; fundo: string }>(
         enviar,
@@ -431,6 +459,7 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
           return { desligado: b.hasAttribute("data-disabled"), fundo: getComputedStyle(b).backgroundColor };
         })()`
       );
+
     await marcar("Ana Beatriz Lima");
     expect(await liberar()).toEqual({
       desligado: true,

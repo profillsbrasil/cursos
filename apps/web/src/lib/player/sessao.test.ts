@@ -34,36 +34,45 @@ function relogioFalso() {
   let agora = 0;
   let seq = 0;
   const fila = new Map<number, { em: number; fn: () => void }>();
+
   const flush = () =>
     new Promise((r) => {
       setImmediate(r);
     });
+
   async function avancar(ms: number): Promise<void> {
     // Respostas já resolvidas agendam timers em microtask: elas rodam antes da varredura.
     await flush();
     const fim = agora + ms;
     let proximo: [number, { em: number; fn: () => void }] | null = null;
+
     for (const item of fila) {
       if (item[1].em <= fim && (!proximo || item[1].em < proximo[1].em)) {
         proximo = item;
       }
     }
+
     if (!proximo) {
       agora = fim;
       await flush();
+
       return;
     }
+
     fila.delete(proximo[0]);
     agora = proximo[1].em;
     proximo[1].fn();
     await flush();
+
     return await avancar(fim - agora);
   }
+
   return {
     agendar: (fn: () => void, ms: number) => {
       seq += 1;
       const id = seq;
       fila.set(id, { em: agora + ms, fn });
+
       return () => {
         fila.delete(id);
       };
@@ -85,15 +94,18 @@ function playerFalso(relogio: Relogio) {
   // Como o YouTube: antes do onReady, volume e velocidade não chegam ao player.
   const aplicado = { legenda: true, mudo: false, nivel: 100, velocidade: 1 };
   let aoEvento: (e: EventoDoVideo) => void = () => undefined;
+
   const tempo = () =>
     tocando
       ? Math.min(DURACAO, base + ((relogio.agora() - desde) / 1000) * taxa)
       : base;
+
   const player: PlayerDeVideo = {
     // Como o YouTube: busca com o vídeo tocando passa por buffer (3) e volta a tocar (1).
     buscar(seg) {
       base = seg;
       desde = relogio.agora();
+
       if (tocando) {
         aoEvento({ tipo: "esperou" });
         aoEvento({ tipo: "tocou" });
@@ -113,6 +125,7 @@ function playerFalso(relogio: Relogio) {
       if (!pronto) {
         return;
       }
+
       base = tempo();
       desde = relogio.agora();
       taxa = v;
@@ -141,11 +154,13 @@ function playerFalso(relogio: Relogio) {
     },
     velocidade: () => taxa,
   };
+
   return {
     aplicado,
     criar(o: OpcoesDoPlayer) {
       ({ aoEvento } = o);
       base = o.inicioSeg;
+
       return player;
     },
     emitir(e: EventoDoVideo) {
@@ -166,16 +181,20 @@ function servidorFalso(relogio: Relogio) {
     duracaoSeg: DURACAO,
     trechos: SEM_TRECHOS,
   };
+
   let cota: Cota | null = null;
   const pedidos: (Pedido & { emMs: number })[] = [];
   let falha: RespostaDoEnvio | null = null;
+
   return {
     coberturaSeg: () => segundos(salvo.trechos),
     enviar(p: Pedido): Promise<RespostaDoEnvio> {
       pedidos.push({ ...p, emMs: relogio.agora() });
+
       if (falha) {
         return Promise.resolve(falha);
       }
+
       const r = aplicarRegistro(salvo, cota, p, new Date(relogio.agora()));
       salvo = {
         ...salvo,
@@ -183,6 +202,7 @@ function servidorFalso(relogio: Relogio) {
         trechos: r.trechos,
       };
       ({ cota } = r);
+
       return Promise.resolve({
         registro: {
           assistida: salvo.assistida,
@@ -217,10 +237,12 @@ function montar(
   const servidor = servidorFalso(relogio);
   const conquistas: Conquista[] = [];
   let refreshes = 0;
+
   // Ligado como no player: a regra do refresh roda com a ordem real das respostas.
   const saida = criarRefreshDaSaida({
     aoConquistar: (c) => {
       conquistas.push(c);
+
       if (conquistaLanca) {
         throw new Error("aoConquistar lançou");
       }
@@ -230,6 +252,7 @@ function montar(
       refreshes += 1;
     },
   });
+
   const sessao = criarSessaoDeEstudo(
     {
       duracaoSeg: DURACAO,
@@ -245,16 +268,21 @@ function montar(
       relogio: relogio.agora,
     }
   );
+
   const ficarPronto = () =>
     video.emitir({ duracaoSeg: DURACAO + 0.6, tipo: "pronto" });
+
   if (pronto) {
     ficarPronto();
   }
+
   async function sair() {
     const fim = await sessao.encerrar();
     saida.aoEncerrar(fim);
+
     return fim;
   }
+
   return {
     conquistas,
     ficarPronto,
@@ -279,9 +307,11 @@ describe("sessão de estudo", () => {
     expect(conquistas).toEqual([
       { bonusSequencia: null, pontos: 10, sequenciaDias: 1 },
     ]);
+
     const intervalos = servidor.pedidos
       .slice(1, 30)
       .map((p, i) => p.emMs - (servidor.pedidos[i]?.emMs ?? 0));
+
     expect(new Set(intervalos)).toEqual(new Set([15_000]));
     expect(sessao.estado().assistida).toBe(true);
   });
@@ -373,9 +403,11 @@ describe("sessão de estudo", () => {
     sessao.comandar({ tipo: "alternar" });
     servidor.falhar(null);
     await relogio.avancar(60_000);
+
     const primeiroOk = servidor.pedidos.find(
       (p) => segundos(p.trechos) === 300
     );
+
     expect(primeiroOk).toBeDefined();
     await relogio.avancar(120_000);
     expect(servidor.coberturaSeg()).toBe(300);
@@ -392,10 +424,12 @@ describe("sessão de estudo", () => {
   });
 
   test("aoConquistar que lança no meio da sessão não para o envio", async () => {
-    const erro = spyOn(console, "error").mockImplementation(() => undefined);
+    const erro = spyOn(console, "error");
+
     const { conquistas, relogio, servidor, sessao } = montar(0, {
       conquistaLanca: true,
     });
+
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(541_000);
     expect(conquistas).toHaveLength(1);
@@ -475,6 +509,7 @@ describe("nova tentativa", () => {
     const vistos: unknown[] = [];
     sessao.assinar(() => {
       const { envio } = sessao.estado();
+
       if (JSON.stringify(vistos.at(-1)) !== JSON.stringify(envio)) {
         vistos.push(envio);
       }
@@ -546,6 +581,7 @@ describe("volume e velocidade", () => {
         volume: { mudo: false, nivel: 40 },
       },
     });
+
     expect(sessao.estado().velocidade).toBe(1.25);
     expect(sessao.estado().volume).toEqual({ mudo: false, nivel: 40 });
     expect(video.aplicado).toEqual({
@@ -568,6 +604,7 @@ describe("legenda", () => {
     const { sessao, video } = montar(0, {
       preferencias: { ...PREFERENCIAS_PADRAO, legenda: true },
     });
+
     expect(sessao.estado().legenda).toBe(true);
     expect(video.aplicado.legenda).toBe(true);
   });
@@ -646,10 +683,12 @@ describe("a saída pede refresh só quando a retomada do layout ficou velha", ()
     let liberar: () => void = () => undefined;
     servidor.enviar = (p) => {
       segurados.push(p);
+
       return new Promise((resolver) => {
         liberar = () => resolver(responder(p));
       });
     };
+
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(8000);
     let fim: unknown = "pendente";
@@ -679,11 +718,13 @@ describe("a saída pede refresh só quando a retomada do layout ficou velha", ()
   });
 
   test("aoConquistar que lança no envio de saída: o fim assenta e o refresh sai", async () => {
-    const erro = spyOn(console, "error").mockImplementation(() => undefined);
+    const erro = spyOn(console, "error");
+
     const { conquistas, refreshes, relogio, sair, servidor, sessao } = montar(
       0,
       { conquistaLanca: true }
     );
+
     sessao.comandar({ tipo: "alternar" });
     await relogio.avancar(530_000);
     servidor.falhar({ tipo: "rede" });
@@ -770,10 +811,12 @@ describe("transicao", () => {
     expect(
       transicao(de("tocando"), { duracaoSeg: 600, tipo: "pronto" })
     ).toEqual(de("tocando"));
+
     const fora = transicao(de("tocando"), {
       motivo: "nao_encontrado",
       tipo: "falhou",
     });
+
     expect(fora).toEqual({ motivo: "nao_encontrado", tipo: "indisponivel" });
     expect(transicao(fora, { tipo: "tocou" })).toEqual(fora);
   });

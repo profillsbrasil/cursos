@@ -8,8 +8,10 @@ export function recusaDeOrigem(req: Request, origem: string): Response | null {
   const multipart = req.headers
     .get("content-type")
     ?.startsWith("multipart/form-data");
+
   if (!multipart || req.headers.get("origin") === origem) {
     return null;
   }
+
   return new Response("Origem não permitida.", { status: 403 });
 }

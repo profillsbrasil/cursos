@@ -23,6 +23,7 @@ describe("cookie da sidebar", () => {
     const gravaNoUi = readFileSync(SIDEBAR_DO_UI, "utf8").includes(
       "document.cookie"
     );
+
     expect(gravaNoUi).toBe(false);
   });
 });

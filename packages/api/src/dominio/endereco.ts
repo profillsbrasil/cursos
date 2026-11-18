@@ -26,6 +26,7 @@ export function slugDoTitulo(titulo: string): string {
     .replace(FORA_DO_FORMATO, "-")
     .slice(0, TETO_DA_BASE)
     .replace(HIFEN_NAS_PONTAS, "");
+
   return base || SEM_LETRA;
 }
 
@@ -34,10 +35,13 @@ export function slugLivre(base: string, ocupados: ReadonlySet<string>): string {
   if (!ocupados.has(base)) {
     return base;
   }
+
   let n = 2;
+
   while (ocupados.has(`${base}-${n}`)) {
     n += 1;
   }
+
   return `${base}-${n}`;
 }
 

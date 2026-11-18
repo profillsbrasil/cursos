@@ -46,6 +46,7 @@ function OpcaoDeVelocidade({
     () => comandar({ tipo: "velocidade", valor }),
     [comandar, valor]
   );
+
   return (
     <label
       className={cn(
@@ -109,24 +110,29 @@ export function AjustesDoPlayer({
     () => comandar({ tipo: "legenda" }),
     [comandar]
   );
+
   const abrirAtalhos = useCallback(() => {
     setAberto(false);
     aoMudarAtalhos(true);
   }, [aoMudarAtalhos]);
+
   // O Base UI só devolve o foco quando a folha termina de sair, 150 ms depois; até
   // lá o foco ficava no botão que some, como o 2× da velocidade.
   const mudarAjustes = useCallback(
     (abrir: boolean, detalhes: PopoverPrimitive.Root.ChangeEventDetails) => {
       setAberto(abrir);
+
       if (fechouNoEsc(abrir, detalhes)) {
         refEngrenagem.current?.focus();
       }
     },
     []
   );
+
   const mudarAtalhos = useCallback(
     (abrir: boolean, detalhes: PopoverPrimitive.Root.ChangeEventDetails) => {
       aoMudarAtalhos(abrir);
+
       if (fechouNoEsc(abrir, detalhes)) {
         refEngrenagem.current?.focus();
       }

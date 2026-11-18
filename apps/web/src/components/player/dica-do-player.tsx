@@ -22,6 +22,7 @@ export function DicaDoPlayer({
   className?: string;
 }) {
   const portal = use(PortalDoPlayer);
+
   return (
     <TooltipPrimitive.Portal container={portal ?? undefined}>
       <TooltipPrimitive.Positioner

@@ -103,6 +103,7 @@ const material = (
 ): MaterialDaPagina => {
   const idDoMaterial =
     `00000000-0000-4000-9000-${String(n).padStart(12, "0")}` as MaterialId;
+
   return {
     bytes,
     href: `/material/${idDoMaterial}`,
@@ -203,6 +204,7 @@ const comQuestionarios = (
   }));
 
 const TODAS_FABRICA = [RISCOS, BLOQUEIO, ESTRUTURA, ESQUEMA];
+
 const TODAS_COMERCIAL = [
   AUTO_1,
   AUTO_2,

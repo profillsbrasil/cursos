@@ -73,6 +73,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   const cursos: string[] = [];
   const alunos: string[] = [];
   let categoriaId: CategoriaId;
+
   const admin = createCaller(
     contextoDeTeste({
       capas: capasDeTeste,
@@ -108,6 +109,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   const novoAluno = () => {
     const a = `user_teste${S}q${alunos.length + 1}`;
     alunos.push(a);
+
     return a;
   };
 
@@ -125,6 +127,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   /** Curso publicado com uma aula por item de `perguntasPorAula`, cada uma com N perguntas de 3 alternativas (a certa é a 2ª). */
   async function plantarCurso(perguntasPorAula: readonly number[]) {
     const slug = `teste-${S}-${cursos.length + 1}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -139,15 +142,20 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 1, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     const aulas: AulaPlantada[] = [];
+
     for (const [i, n] of perguntasPorAula.entries()) {
       // oxlint-disable-next-line no-await-in-loop -- as perguntas precisam do id da aula gravada.
       const [a] = await db
@@ -161,7 +169,9 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
+
       const perguntas: PerguntaPlantada[] = [];
+
       for (let p = 1; p <= n; p += 1) {
         // oxlint-disable no-await-in-loop -- as alternativas precisam do id da pergunta gravada.
         const [pg] = await db
@@ -172,6 +182,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
             posicao: p,
           })
           .returning({ id: pergunta.id });
+
         const alts = await db
           .insert(alternativa)
           .values(
@@ -183,6 +194,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
             }))
           )
           .returning({ id: alternativa.id });
+
         const ids = alts.map((x) => x.id as AlternativaId);
         perguntas.push({
           alternativas: ids,
@@ -191,8 +203,10 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         });
         // oxlint-enable no-await-in-loop
       }
+
       aulas.push({ id: a?.id as AulaId, perguntas });
     }
+
     return { aulas, id: c.id as CursoId, slug };
   }
 
@@ -249,9 +263,11 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("5 pontos por acerto só na primeira tentativa, aprovada ou não; a tentativa e as respostas ficam gravadas", async () => {
     const c = await plantarCurso([3, 0]);
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("aula não plantada");
     }
+
     const aluno = novoAluno();
     await liberar(aluno, c.id);
 
@@ -290,6 +306,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       where: { aulaId: a1.id, userId: aluno },
       with: { respostas: { columns: { certa: true } } },
     });
+
     expect(tentativas).toEqual([
       {
         acertos: 2,
@@ -311,9 +328,11 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("a certa não chega ao cliente antes da aprovação, nem em abrir nem no resultado reprovado; aprovado, chega", async () => {
     const c = await plantarCurso([2]);
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("aula não plantada");
     }
+
     const aluno = novoAluno();
     await liberar(aluno, c.id);
 
@@ -321,6 +340,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       aulaId: a1.id,
       slug: c.slug,
     });
+
     expect(antes?.questionario?.perguntas).toHaveLength(2);
     expect(JSON.stringify(antes?.questionario)).not.toContain("certa");
 
@@ -330,10 +350,12 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       null,
       null,
     ]);
+
     const depois = await comoAluno(aluno).aula.abrir({
       aulaId: a1.id,
       slug: c.slug,
     });
+
     expect(
       depois?.questionario?.ultima?.respostas.map((r) => r.certaId)
     ).toEqual([null, null]);
@@ -342,10 +364,12 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     expect(aprovada.resultado.respostas.map((r) => r.certaId)).toEqual(
       a1.perguntas.map((p) => p.certa)
     );
+
     const aberta = await comoAluno(aluno).aula.abrir({
       aulaId: a1.id,
       slug: c.slug,
     });
+
     expect(aberta?.questionario?.ultima).toMatchObject({
       aprovada: true,
       pontosDaPrimeira: 5,
@@ -359,9 +383,11 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("reenviar a mesma tentativa, ou enviar depois de aprovar, devolve o gravado sem outra tentativa nem outro ponto", async () => {
     const c = await plantarCurso([2]);
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("aula não plantada");
     }
+
     const aluno = novoAluno();
     await liberar(aluno, c.id);
     const id = randomUUID() as TentativaId;
@@ -371,10 +397,12 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const depoisDeAprovar = await enviar(aluno, a1, 0);
     expect(repetida.resultado).toEqual(primeira.resultado);
     expect(depoisDeAprovar.resultado).toEqual(primeira.resultado);
+
     const tentativas = await db
       .select({ id: questionarioTentativa.id })
       .from(questionarioTentativa)
       .where(eq(questionarioTentativa.userId, aluno));
+
     expect(tentativas).toHaveLength(1);
     expect(await pontosDe(aluno)).toEqual([
       { motivo: "questionario", pontos: 10 },
@@ -384,9 +412,11 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("o tentativaId de outra pessoa é recusado com CONFLICT, sem gravar nem mostrar a tentativa dela", async () => {
     const c = await plantarCurso([2]);
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("aula não plantada");
     }
+
     const dona = novoAluno();
     const outra = novoAluno();
     await liberar(dona, c.id);
@@ -398,6 +428,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       code: "CONFLICT",
       message: TENTATIVA_EM_USO,
     };
+
     // Sem tentativa dela na aula, e depois com uma reprovada: os dois caminhos chegam ao insert.
     expect(await recusa(enviar(outra, a1, 2, id))).toEqual(esperado);
     await enviar(outra, a1, 0);
@@ -410,6 +441,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       })
       .from(questionarioTentativa)
       .where(eq(questionarioTentativa.id, id));
+
     expect(tentativas).toEqual([{ acertos: 2, userId: dona }]);
     expect(await pontosDe(outra)).toEqual([]);
     expect(await pontosDe(dona)).toEqual([
@@ -422,14 +454,17 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("envio incompleto, aula sem questionário e curso sem liberação são recusados sem gravar", async () => {
     const c = await plantarCurso([2, 0]);
     const [a1, a2] = c.aulas;
+
     if (!(a1 && a2)) {
       throw new Error("aulas não plantadas");
     }
+
     const aluno = novoAluno();
     const semAcesso = await recusa(enviar(aluno, a1, 2));
     expect(semAcesso?.code).toBe("NOT_FOUND");
 
     await liberar(aluno, c.id);
+
     const incompleto = await recusa(
       comoAluno(aluno).questionario.responder({
         aulaId: a1.id,
@@ -437,6 +472,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         tentativaId: randomUUID(),
       })
     );
+
     expect(incompleto).toEqual({
       code: "BAD_REQUEST",
       message: "Falta responder 1 pergunta.",
@@ -447,19 +483,23 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       message: "Esta aula não tem questionário.",
     });
     expect(await pontosDe(aluno)).toEqual([]);
+
     const tentativas = await db
       .select({ id: questionarioTentativa.id })
       .from(questionarioTentativa)
       .where(eq(questionarioTentativa.userId, aluno));
+
     expect(tentativas).toHaveLength(0);
   });
 
   test("o certificado sai se e só se a leitura de Meus cursos diz completo, com a reprovada antes da aprovada", async () => {
     const c = await plantarCurso([0, 2]);
     const [a1, a2] = c.aulas;
+
     if (!(a1 && a2)) {
       throw new Error("aulas não plantadas");
     }
+
     const alvo: CursoComAulas = {
       id: c.id,
       modulos: [
@@ -475,15 +515,20 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       status: "publicado",
       titulo: `Curso ${c.slug}`,
     };
+
     const aluno = novoAluno();
+
     const lido = async () => {
       const leitura = lerCursoDoAluno(
         alvo,
         estudoDe(await linhasDoHistorico(db, aluno))
       );
+
       const certificados = await certificadosDe(aluno);
+
       return { certificados: certificados.length, completo: leitura.completo };
     };
+
     await liberar(aluno, c.id);
     await assistir(aluno, a1.id);
     await assistir(aluno, a2.id);
@@ -501,9 +546,11 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("o último questionário aprovado, com as aulas assistidas, emite o certificado e os 100 pontos uma vez", async () => {
     const c = await plantarCurso([2, 1]);
     const [a1, a2] = c.aulas;
+
     if (!(a1 && a2)) {
       throw new Error("aulas não plantadas");
     }
+
     const aluno = novoAluno();
     await liberar(aluno, c.id);
     await assistir(aluno, a1.id);
@@ -540,9 +587,11 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("a última aula assistida, com os questionários já aprovados, emite o certificado; o envio seguinte não emite outro", async () => {
     const c = await plantarCurso([1]);
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("aula não plantada");
     }
+
     const aluno = novoAluno();
     await liberar(aluno, c.id);
     const aprovado = await enviar(aluno, a1, 1);
@@ -560,6 +609,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         },
         em(i * 90)
       );
+
     await terco(0);
     await terco(1);
     const r = await terco(2);
@@ -578,6 +628,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   test("a edição do admin que tira a pergunta pendente conclui o curso de quem já assistiu a tudo", async () => {
     const aulaId = randomUUID() as AulaId;
     const perguntaId = randomUUID() as PerguntaId;
+
     const documento: DocumentoDoCurso = {
       categoriaId,
       descricao: "",
@@ -625,10 +676,13 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       topicos: [],
       versao: null,
     };
+
     cursos.push(documento.id);
+
     const salvo = await admin.admin.catalogo.salvarCurso(
       formularioDoCurso(documento, new Blob([new Uint8Array([1])]))
     );
+
     const aluno = novoAluno();
     await liberar(aluno, documento.id);
     await assistir(aluno, aulaId);
@@ -642,6 +696,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       })),
       versao: salvo.versao,
     };
+
     await admin.admin.catalogo.salvarCurso(
       formularioDoCurso(semPergunta, null)
     );
@@ -657,6 +712,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const aulaId = randomUUID() as AulaId;
     const p1 = randomUUID() as PerguntaId;
     const certa = randomUUID() as AlternativaId;
+
     const documento: DocumentoDoCurso = {
       categoriaId,
       descricao: "",
@@ -708,10 +764,13 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       topicos: [],
       versao: null,
     };
+
     cursos.push(documento.id);
+
     const salvo = await admin.admin.catalogo.salvarCurso(
       formularioDoCurso(documento, new Blob([new Uint8Array([1])]))
     );
+
     const aluno = novoAluno();
     await liberar(aluno, documento.id);
     await comoAluno(aluno).questionario.responder({
@@ -721,11 +780,13 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     });
 
     const [m] = documento.modulos;
+
     const semAAula: DocumentoDoCurso = {
       ...documento,
       modulos: m ? [{ ...m, aulas: m.aulas.slice(1) }] : [],
       versao: salvo.versao,
     };
+
     expect(
       await recusa(
         admin.admin.catalogo.salvarCurso(formularioDoCurso(semAAula, null))
@@ -744,14 +805,17 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       })),
       versao: salvo.versao,
     };
+
     await admin.admin.catalogo.salvarCurso(
       formularioDoCurso(semAPergunta, null)
     );
+
     const tentativas = await db.query.questionarioTentativa.findMany({
       columns: { aprovada: true },
       where: { userId: aluno },
       with: { respostas: { columns: { certa: true } } },
     });
+
     expect(tentativas).toEqual([{ aprovada: true, respostas: [] }]);
   });
 });

@@ -11,9 +11,11 @@ interface Props {
 
 const fichaDaUrl = async (params: Props["params"]) => {
   const ficha = await carregarFichaDaPessoa((await params).userId);
+
   if (!ficha) {
     notFound();
   }
+
   return ficha;
 };
 
@@ -23,5 +25,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Pessoa({ params }: Props) {
   const ficha = await fichaDaUrl(params);
+
   return <FichaDaPessoaDoAdmin ficha={ficha} hoje={diaLocal(new Date())} />;
 }

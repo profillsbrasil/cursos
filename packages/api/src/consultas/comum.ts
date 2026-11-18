@@ -4,6 +4,7 @@ import { type AnyColumn, isNull } from "drizzle-orm";
 import type { Aluno, Perfil } from "../dominio/perfil";
 
 export type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
+
 export type Executor = Database | Transacao;
 
 export const COLUNAS_DA_CAPA = {

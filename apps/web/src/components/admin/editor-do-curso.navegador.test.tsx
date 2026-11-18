@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "editor.entrada.tsx");
@@ -38,6 +38,7 @@ const CAPA = `data:image/svg+xml,${encodeURIComponent(
 )}`;
 
 const documento = documentoDeExemplo("v1" as Versao);
+
 const EDICAO_SALVA: EdicaoDoCurso = {
   capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA },
   codigo: "PE-001",
@@ -188,20 +189,26 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote do editor não saiu: ${pacote.logs.join("\n")}`);
   }
+
   return await saida.text();
 }
 
 const UI = join(AQUI, "../../../../../packages/ui/src/components");
+
 const FONTES = [
   ...readdirSync(AQUI).filter((f) => !f.includes(".test.")),
   "../casca/campos.ts",
   "../casca/botoes.ts",
 ].map((f) => join(AQUI, f));
+
 const PALAVRA = /[\s"'`{}]+/;
+
 const css = await cssDoApp(
   [
     ...FONTES.filter((f) => f.endsWith(".ts") || f.endsWith(".tsx")),
@@ -210,6 +217,7 @@ const css = await cssDoApp(
 );
 
 const GEIST = join(AQUI, "../certificado/fontes");
+
 const fonte = ["Regular", "Medium", "SemiBold", "Bold"]
   .map(
     (peso, i) =>
@@ -228,10 +236,12 @@ async function abrirEditor(janela: number) {
     mobile: janela < 768,
     width: janela,
   });
+
   const conteudo =
     janela < 768
       ? "padding:24px 16px 64px"
       : "margin-left:15.5rem;padding:32px 48px 64px";
+
   await avaliar(
     enviar,
     `document.open(); document.write(${JSON.stringify(
@@ -273,6 +283,7 @@ async function teclar(
     modifiers: ctrl ? 2 : 0,
     windowsVirtualKeyCode: CODIGO_DA_TECLA[tecla],
   };
+
   await enviar("Input.dispatchKeyEvent", {
     ...evento,
     text: tecla === "Enter" ? "\r" : undefined,
@@ -291,6 +302,7 @@ async function escrever(seletor: string, valor: string) {
 
 const pedidos = () =>
   avaliar<Record<string, string>[]>(enviar, "window.pedidos");
+
 const textoDe = (seletor: string) =>
   avaliar<string | null>(
     enviar,
@@ -304,6 +316,7 @@ async function abrirCategoriaEDigitar(nome: string) {
   await avaliar(enviar, `document.querySelector("${GATILHO}").click()`);
   await esperar(`document.querySelector('${BUSCA}')`);
   await enviar("Input.insertText", { text: nome });
+
   if (nome) {
     await esperar(
       `[...document.querySelectorAll('[role="option"]')].some((o) => o.textContent.includes(${JSON.stringify(`"${nome}"`)}))`
@@ -312,14 +325,18 @@ async function abrirCategoriaEDigitar(nome: string) {
 }
 
 const FOTOS = process.env.FOTOS_DO_EDITOR;
+
 async function foto(nome: string) {
   if (!FOTOS) {
     return;
   }
+
   await sleep(300);
+
   const { data } = (await enviar("Page.captureScreenshot", {
     format: "png",
   })) as { data: string };
+
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
 
@@ -338,10 +355,12 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       await abrirEditor(1280);
       await escrever("#curso-titulo", "Curso de Filmagem 2");
       await abrirCategoriaEDigitar("Filmagem");
+
       const opcoes = await avaliar<string[]>(
         enviar,
         `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`
       );
+
       expect(opcoes).toEqual(['Criar categoria "Filmagem"']);
       await foto("categoria-criar-1280");
       await teclar("ArrowDown");
@@ -366,10 +385,12 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
     test("a lista mostra a contagem de cursos e o link de gerenciar no pé", async () => {
       await abrirEditor(1280);
       await abrirCategoriaEDigitar("");
+
       const lista = await avaliar<string[]>(
         enviar,
         `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`
       );
+
       expect(lista).toEqual([
         "Processo de envase1 curso",
         "Vendas e negócios2 cursos",
@@ -405,6 +426,7 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       conteudo: { direita: number; fundo: number };
       lista: boolean;
     }
+
     const disposicao = () =>
       avaliar<Disposicao>(
         enviar,
@@ -456,11 +478,13 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
 
     test("Antes de publicar lê o rascunho: a descrição apagada passa a faltar", async () => {
       await abrirEditor(1920);
+
       const marca = () =>
         avaliar<string>(
           enviar,
           `[...document.querySelectorAll("li")].find((l) => l.textContent.startsWith("Descrição")).textContent`
         );
+
       expect(await marca()).toBe("Descrição: pronto.");
       await escrever("#curso-descricao", "");
       await enviar("Input.dispatchKeyEvent", {
@@ -482,6 +506,7 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
   describe("título e tópico longos", () => {
     const LONGO =
       "Gravar a visão geral, cada etapa e a embalagem final, na horizontal e na vertical, sem cortar a máquina";
+
     const inteiro = (seletor: string) =>
       avaliar<{ alto: boolean; cabe: boolean; valor: string }>(
         enviar,
@@ -557,6 +582,7 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
   describe.skipIf(!FOTOS)("fotos", () => {
     const rolarAoFim = () =>
       avaliar(enviar, "window.scrollTo(0, document.body.scrollHeight)");
+
     for (const janela of [1280, 1920, 390]) {
       test(`em ${janela} px, limpo e sujo`, async () => {
         await abrirEditor(janela);

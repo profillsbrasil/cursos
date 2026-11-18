@@ -35,13 +35,17 @@ interface NoDaCadeia {
  */
 function naCadeia<T>(erro: unknown, ler: (no: NoDaCadeia) => T | null) {
   let atual: unknown = erro;
+
   for (let i = 0; atual && i < 5; i += 1) {
     const achado = ler(atual);
+
     if (achado !== null) {
       return achado;
     }
+
     atual = (atual as NoDaCadeia).cause;
   }
+
   return null;
 }
 
@@ -212,10 +216,13 @@ export function mensagemDoBanco(erro: unknown): MensagemDoBanco | null {
   if (esperaVencida(erro)) {
     return ESPERA_ESGOTADA;
   }
+
   const v = violacaoDe(erro);
+
   if (!(v && Object.hasOwn(MENSAGEM_DA_RESTRICAO, v.restricao))) {
     return null;
   }
+
   return MENSAGEM_DA_RESTRICAO[
     v.restricao as keyof typeof MENSAGEM_DA_RESTRICAO
   ];

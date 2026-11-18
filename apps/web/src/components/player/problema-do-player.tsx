@@ -22,11 +22,13 @@ const INDISPONIVEL = {
 export function ProblemaDoPlayer({ estado }: { estado: EstadoDaSessao }) {
   const { envio, reproducao } = estado;
   let alerta: string | null = null;
+
   if (reproducao.tipo === "indisponivel") {
     alerta = INDISPONIVEL[reproducao.motivo];
   } else if (envio.tipo === "parado") {
     alerta = NAO_SALVOU[envio.motivo];
   }
+
   if (alerta) {
     return (
       <p className="text-destructive text-[13px]" role="alert">
@@ -34,9 +36,11 @@ export function ProblemaDoPlayer({ estado }: { estado: EstadoDaSessao }) {
       </p>
     );
   }
+
   const falhando =
     envio.tipo === "esperando_nova_tentativa" ||
     (envio.tipo === "enviando" && envio.falhasSeguidas > 0);
+
   return falhando ? (
     <p className="text-muted-foreground text-[13px]" role="status">
       Progresso não salvo. Tentando de novo.

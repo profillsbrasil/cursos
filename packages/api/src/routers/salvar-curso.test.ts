@@ -31,6 +31,7 @@ describe("salvarCurso por HTTP", () => {
     corpo.set("capa", new Blob([new Uint8Array([1])]), "capa.jpg");
 
     const resposta = await enviar(corpo);
+
     const json = (await resposta.json()) as {
       error: { data: { code: string }; message: string };
     };

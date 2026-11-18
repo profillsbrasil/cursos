@@ -18,6 +18,7 @@ export function criarRefreshDaSaida(
   deps: Ligacoes & { pedirRefresh: () => void }
 ): RefreshDaSaida {
   let gravouSemRefresh = false;
+
   return {
     aoConquistar(c) {
       gravouSemRefresh = false;
@@ -35,6 +36,7 @@ export function criarRefreshDaSaida(
         if (r.tipo === "ok" && !r.registro.conquista) {
           gravouSemRefresh = true;
         }
+
         return r;
       }),
   };
@@ -49,11 +51,13 @@ export function ligarRefreshDaSaida(
   deps: DependenciasDaSessao & { pedirRefresh: () => void }
 ): { aoEncerrar: RefreshDaSaida["aoEncerrar"]; sessao: DependenciasDaSessao } {
   const { pedirRefresh, ...daSessao } = deps;
+
   const saida = criarRefreshDaSaida({
     aoConquistar: daSessao.aoConquistar,
     enviar: daSessao.enviar,
     pedirRefresh,
   });
+
   return {
     aoEncerrar: saida.aoEncerrar,
     sessao: {

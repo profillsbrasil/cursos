@@ -17,9 +17,11 @@ describe("módulo use client não exporta constante", () => {
     const fora = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
       (arquivo) => {
         const texto = readFileSync(join(SRC, arquivo), "utf8");
+
         return texto.startsWith('"use client"') && CONSTANTE.test(texto);
       }
     );
+
     expect(fora).toEqual([]);
   });
 });

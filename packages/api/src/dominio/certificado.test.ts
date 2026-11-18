@@ -24,9 +24,11 @@ describe("código do certificado", () => {
 
   test("o sorteado está no formato e muda a cada chamada", () => {
     const codigos = new Set(Array.from({ length: 20 }, gerarCodigo));
+
     for (const c of codigos) {
       expect(c).toMatch(FORMATO_DO_CODIGO);
     }
+
     expect(codigos.size).toBe(20);
   });
 });

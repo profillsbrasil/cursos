@@ -77,7 +77,9 @@ function amostraDe(
   if (linha.liberacoes.length > 0) {
     return null;
   }
+
   const primeira = aulaDeAmostra(curso);
+
   return primeira ? { aulaId: primeira, preco: linha.precoTroca } : undefined;
 }
 
@@ -88,23 +90,29 @@ function amostraDe(
  */
 export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
   const linha = linhas.curso;
+
   if (
     !linha ||
     linha.liberacoes.length + linha.liberacoesDoPerfil.length === 0
   ) {
     return null;
   }
+
   const estudo = estudoDe(linhas);
   const curso = paraCatalogo(linha);
   const leitura = lerCursoDoAluno(curso, estudo);
   const { estado } = leitura;
+
   if (!podeAbrir(estado)) {
     return null;
   }
+
   const amostra = amostraDe(linha, curso);
+
   if (amostra === undefined) {
     return null;
   }
+
   return {
     amostra,
     curso,
@@ -125,6 +133,7 @@ export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
  */
 export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
   const visto = montarCursoVisto(linhas);
+
   return visto && visto.amostra === null ? visto : null;
 }
 
@@ -233,11 +242,14 @@ export function montarAulaNoPlayer(
   const ordem = aulasEmOrdem(c.curso);
   const i = ordem.findIndex((x) => x.aula.id === aula.id);
   const modulo = ordem[i]?.modulo;
+
   if (!modulo) {
     throw new Error(`Aula ${aula.id} fora do curso ${c.curso.slug}`);
   }
+
   const { assistidas, questionarios } = c.historico;
   const proxima = vizinha(ordem[i + 1]);
+
   return {
     amostra: c.amostra && {
       cursoId: c.curso.id,
@@ -300,5 +312,6 @@ export function inicioDaAula(
   ) {
     return 0;
   }
+
   return estudo.posicaoSeg;
 }

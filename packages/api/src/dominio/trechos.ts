@@ -15,7 +15,11 @@ declare const canonico: unique symbol;
  */
 export type Trechos = readonly Trecho[] & { readonly [canonico]: true };
 
-export const SEM_TRECHOS = [] as unknown as Trechos;
+function comoTrechos(t: readonly Trecho[]): Trechos {
+  return t as Trechos;
+}
+
+export const SEM_TRECHOS = comoTrechos([]);
 
 export interface Cobertura {
   pct: number;
@@ -27,15 +31,19 @@ export function canonizar(
   duracaoSeg: number
 ): Trechos {
   const cortados = lista
-    .map((t) => ({
-      fim: Math.min(Math.floor(t.fim), duracaoSeg),
-      inicio: Math.max(Math.floor(t.inicio), 0),
-    }))
-    .filter((t) => t.fim > t.inicio)
+    .flatMap((t) => {
+      const fim = Math.min(Math.floor(t.fim), duracaoSeg);
+      const inicio = Math.max(Math.floor(t.inicio), 0);
+
+      return fim > inicio ? [{ fim, inicio }] : [];
+    })
     .sort((a, b) => a.inicio - b.inicio);
+
   const saida: Trecho[] = [];
+
   for (const t of cortados) {
     const ultimo = saida.at(-1);
+
     if (ultimo && t.inicio <= ultimo.fim) {
       saida[saida.length - 1] = {
         fim: Math.max(ultimo.fim, t.fim),
@@ -45,7 +53,8 @@ export function canonizar(
       saida.push(t);
     }
   }
-  return saida as readonly Trecho[] as Trechos;
+
+  return comoTrechos(saida);
 }
 
 const fimDe = (t: Trechos) => t.at(-1)?.fim ?? 0;
@@ -57,25 +66,32 @@ export const unir = (a: Trechos, b: Trechos): Trechos =>
 /** O que está em `a` e não em `b`: os segundos novos de um envio. */
 export function subtrair(a: Trechos, b: Trechos): Trechos {
   const saida: Trecho[] = [];
+
   for (const t of a) {
     let { inicio } = t;
+
     for (const r of b) {
       if (r.fim <= inicio) {
         continue;
       }
+
       if (r.inicio >= t.fim) {
         break;
       }
+
       if (r.inicio > inicio) {
         saida.push({ fim: r.inicio, inicio });
       }
+
       inicio = Math.max(inicio, r.fim);
     }
+
     if (inicio < t.fim) {
       saida.push({ fim: t.fim, inicio });
     }
   }
-  return saida as readonly Trecho[] as Trechos;
+
+  return comoTrechos(saida);
 }
 
 export const segundos = (t: readonly Trecho[]): number =>
@@ -85,15 +101,18 @@ export const segundos = (t: readonly Trecho[]): number =>
 export function primeiros(t: Trechos, seg: number): Trechos {
   const saida: Trecho[] = [];
   let resta = Math.max(0, Math.floor(seg));
+
   for (const x of t) {
     if (resta === 0) {
       break;
     }
+
     const leva = Math.min(resta, x.fim - x.inicio);
     saida.push({ fim: x.inicio + leva, inicio: x.inicio });
     resta -= leva;
   }
-  return saida as readonly Trecho[] as Trechos;
+
+  return comoTrechos(saida);
 }
 
 export const atingiuMeta = (vistosSeg: number, duracaoSeg: number): boolean =>
@@ -101,6 +120,7 @@ export const atingiuMeta = (vistosSeg: number, duracaoSeg: number): boolean =>
 
 export function cobertura(t: Trechos, duracaoSeg: number): Cobertura {
   const vistosSeg = segundos(t);
+
   return {
     pct: duracaoSeg === 0 ? 0 : Math.floor((vistosSeg * 100) / duracaoSeg),
     vistosSeg,
@@ -115,5 +135,6 @@ export function cobertura(t: Trechos, duracaoSeg: number): Cobertura {
 export function quantizar(inicioSeg: number, fimSeg: number): Trecho | null {
   const inicio = Math.floor(inicioSeg);
   const fim = Math.floor(fimSeg);
+
   return fim > inicio ? { fim, inicio } : null;
 }

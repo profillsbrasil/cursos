@@ -45,8 +45,10 @@ declare global {
 export function getClerkAuthTokenSemEspera(): Promise<string | null> {
   const ultimo = globalThis.Clerk?.session?.lastActiveToken;
   const exp = ultimo?.jwt?.claims.exp;
+
   if (ultimo && exp !== undefined && exp * 1000 > Date.now()) {
     return Promise.resolve(ultimo.getRawString());
   }
+
   return getClerkAuthToken();
 }

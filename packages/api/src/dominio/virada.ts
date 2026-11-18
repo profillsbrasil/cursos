@@ -59,17 +59,25 @@ const NADA = (userId: string): PlanoDaVirada => ({
  */
 function estudadosSoPeloPerfil(p: PessoaNaVirada) {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
+
   const proprias = new Set(
     ativas.filter((l) => l.origem !== "perfil").map((l) => l.cursoId)
   );
+
   const doPerfil = new Set(
     ativas
       .filter((l) => l.origem === "perfil" && !proprias.has(l.cursoId))
       .map((l) => l.cursoId)
   );
+
   const curso = catalogoDo({ cursos: p.cursos, pessoas: [] });
   const e = estudoDe(p);
-  return [...doPerfil].map(curso).filter((c) => ultimoEstudo(c, e) !== null);
+
+  return doPerfil
+    .values()
+    .map(curso)
+    .filter((c) => ultimoEstudo(c, e) !== null)
+    .toArray();
 }
 
 /**
@@ -80,12 +88,15 @@ export function planejarVirada(p: PessoaNaVirada): PlanoDaVirada {
   if (p.perfil !== "funcionario") {
     return NADA(p.userId);
   }
+
   const bonus = p.temBonus ? 0 : BONUS_DE_FUNCIONARIO;
   const pulados: (CursoNaVirada & { motivo: MotivoDoPulo })[] = [];
   const aVenda: (CursoNaVirada & { preco: number })[] = [];
+
   for (const c of estudadosSoPeloPerfil(p)) {
     const base = { cursoId: c.id, titulo: c.titulo };
     const preco = p.precos.get(c.id) ?? null;
+
     if (preco === null) {
       pulados.push({ ...base, motivo: { tipo: "sem_preco" } });
     } else if (c.status === "publicado") {
@@ -94,11 +105,13 @@ export function planejarVirada(p: PessoaNaVirada): PlanoDaVirada {
       pulados.push({ ...base, motivo: { tipo: "em_producao" } });
     }
   }
+
   aVenda.sort(
     (a, b) => a.preco - b.preco || a.titulo.localeCompare(b.titulo, "pt-BR")
   );
   let saldo = p.saldo + bonus;
   const trocas: (CursoNaVirada & { preco: number })[] = [];
+
   for (const t of aVenda) {
     if (t.preco <= saldo) {
       trocas.push(t);
@@ -111,6 +124,7 @@ export function planejarVirada(p: PessoaNaVirada): PlanoDaVirada {
       });
     }
   }
+
   return { bonus, pulados, trocas, userId: p.userId };
 }
 
@@ -132,6 +146,7 @@ export function totaisDaVirada(
   planos: readonly PlanoDaVirada[]
 ): TotaisDaVirada {
   const trocas = planos.flatMap((p) => p.trocas);
+
   return {
     bonus: planos.filter((p) => p.bonus > 0).length,
     entram: planos.reduce((s, p) => s + p.bonus, 0),

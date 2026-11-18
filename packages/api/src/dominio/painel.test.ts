@@ -69,6 +69,7 @@ describe("montarPainel com o caso do protótipo", () => {
     const fabrica = prototipo().cursos.find(
       (c) => c.slug === "fabrica-montagem"
     );
+
     expect(fabrica).toMatchObject({
       aulas: 7,
       duracaoSeg: 4438,
@@ -91,6 +92,7 @@ describe("montarPainel com regras de liberação", () => {
 
   test("os cinco estados, liberados na ordem inversa, saem na ordem da tela", () => {
     const quando = em("2026-08-01T00:00:00Z");
+
     const liberados = [
       cursoLinha("concluido", { aulas: [1] }),
       cursoLinha("em-breve", { aulas: [1], status: "em_producao" }),
@@ -98,6 +100,7 @@ describe("montarPainel com regras de liberação", () => {
       cursoLinha("questionarios", { aulas: [1], perguntas: 1 }),
       cursoLinha("em-andamento", { aulas: [2] }),
     ];
+
     const painel = montar(
       linhas({
         assistidas: [
@@ -114,6 +117,7 @@ describe("montarPainel com regras de liberação", () => {
         })),
       })
     );
+
     expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
       ["em-andamento", "em_andamento"],
       ["questionarios", "questionarios"],
@@ -127,6 +131,7 @@ describe("montarPainel com regras de liberação", () => {
     // Módulo 0 com 2 aulas e módulo 1 com 1: a pessoa viu a aula 1 do módulo 0 e
     // parou depois na aula 1 do módulo 1.
     const e = cursoLinha("e", { aulas: [2, 1] });
+
     const painel = montar(
       linhas({
         assistidas: [
@@ -147,6 +152,7 @@ describe("montarPainel com regras de liberação", () => {
         ],
       })
     );
+
     expect([
       painel.cursos[0]?.moduloAtual?.numero,
       painel.retomada?.tipo === "continuar"
@@ -157,6 +163,7 @@ describe("montarPainel com regras de liberação", () => {
 
   test("curso em produção não abre e não vira retomada", () => {
     const breve = cursoLinha("breve", { aulas: [2], status: "em_producao" });
+
     const painel = montar(
       linhas({
         liberacoes: [
@@ -168,6 +175,7 @@ describe("montarPainel com regras de liberação", () => {
         ],
       })
     );
+
     expect(painel.cursos.map((c) => [c.slug, c.estado.tipo])).toEqual([
       ["breve", "em_breve"],
     ]);
@@ -205,12 +213,14 @@ describe("montarPainel com regras de liberação", () => {
         ],
       })
     );
+
     expect(painel.comunicado?.titulo).toBe("Do curso a");
     expect(painel.comunicado?.publicadoEm).toBe("2026-10-04T12:00:00.000Z");
   });
 
   test("o comunicado do curso da amostra não aparece, e o geral sim", () => {
     const amostra = cursoLinha("amostra", { aulas: [2] });
+
     const painel = montar(
       linhas({
         comunicados: [
@@ -238,6 +248,7 @@ describe("montarPainel com regras de liberação", () => {
         ],
       })
     );
+
     expect(painel.cursos.map((c) => c.slug)).toEqual(["amostra"]);
     expect(painel.comunicado?.id).toBe("geral");
   });
@@ -246,6 +257,7 @@ describe("montarPainel com regras de liberação", () => {
     const inteiro = cursoLinha("inteiro", { aulas: [2] });
     const amostra = cursoLinha("amostra", { aulas: [2] });
     const quando = em("2026-08-01T00:00:00Z");
+
     const painel = montar(
       linhas({
         assistidas: [
@@ -264,6 +276,7 @@ describe("montarPainel com regras de liberação", () => {
         ],
       })
     );
+
     expect(painel.cursos.map((c) => [c.slug, c.amostra])).toEqual([
       ["inteiro", null],
       [
@@ -286,12 +299,14 @@ describe("montarPainel com regras de liberação", () => {
         ],
       })
     );
+
     expect(painel).toEqual({ comunicado: null, cursos: [], retomada: null });
   });
 });
 
 describe("lugar do comunicado em Meus cursos", () => {
   const HOJE = "2026-10-15" as DiaISO;
+
   const lugar = (publicadoEm: string) =>
     montar(
       linhas({

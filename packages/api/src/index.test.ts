@@ -72,12 +72,14 @@ async function erroDe(caminho: string) {
     req: new Request(`http://localhost/api/trpc/${caminho}`),
     router: rotas,
   });
+
   const corpo = (await resposta.json()) as {
     error: {
       data: { code: string; motivo?: string | null; paraAPessoa?: boolean };
       message: string;
     };
   };
+
   return {
     code: corpo.error.data.code,
     message: corpo.error.message,
@@ -95,6 +97,7 @@ describe("recusa de negócio sai como ErroParaAPessoa", () => {
           "new TRPCError("
         )
       );
+
     expect(comTRPCError).toEqual(["index.ts"]);
   });
 });
@@ -113,9 +116,11 @@ describe("errorFormatter marca a mensagem escrita para a pessoa", () => {
     const r = await Promise.all(
       ["doBanco", "quebrou", "naoExiste"].map(async (c) => {
         const { code, motivo, paraAPessoa } = await erroDe(c);
+
         return [code, paraAPessoa, motivo];
       })
     );
+
     expect(r).toEqual([
       ["CONFLICT", false, null],
       ["INTERNAL_SERVER_ERROR", false, null],

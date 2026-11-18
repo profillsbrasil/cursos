@@ -19,9 +19,11 @@ export function TelaDaMinhaConta({
   folha: FolhaDaConta;
 }) {
   const { isLoaded, user } = useUser();
+
   if (!(isLoaded && user)) {
     return <EsqueletoDaMinhaConta />;
   }
+
   return (
     <>
       <CabecalhoDaMinhaConta />

@@ -19,6 +19,7 @@ export const cursoRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
       const id = z.uuid().safeParse(input.id);
+
       return id.success
         ? materialParaBaixar(
             ctx.db,

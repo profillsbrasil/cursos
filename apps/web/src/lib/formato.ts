@@ -40,6 +40,7 @@ export function iniciais(nome: string) {
   const partes = nome.trim().split(ESPACOS);
   const primeira = partes[0]?.[0] ?? "?";
   const ultima = partes.length > 1 ? (partes.at(-1)?.[0] ?? "") : "";
+
   return `${primeira}${ultima}`.toUpperCase();
 }
 
@@ -61,9 +62,11 @@ export function fmtHoras(seg: number) {
   const total = minutos(seg);
   const h = Math.floor(total / 60);
   const m = total % 60;
+
   if (h === 0) {
     return `${m} min`;
   }
+
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
@@ -77,6 +80,7 @@ export const fmtPts = (n: number) =>
 /** "03:42", "12:05". */
 export function mmss(seg: number) {
   const s = Math.max(0, Math.floor(seg));
+
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
@@ -88,6 +92,7 @@ export function duracaoDoTexto(texto: string): number | null {
   const curta = MM_SS.exec(s);
   const longa = H_MM_SS.exec(s);
   let total: number;
+
   if (curta) {
     total = Number(curta[1]) * 60 + Number(curta[2]);
   } else if (longa) {
@@ -95,6 +100,7 @@ export function duracaoDoTexto(texto: string): number | null {
   } else {
     return null;
   }
+
   return total > 0 ? total : null;
 }
 
@@ -116,25 +122,31 @@ const utc = (dia: string) => new Date(`${dia}T00:00:00Z`);
 export function quando(dia: string, hoje: string) {
   const data = utc(dia);
   const atras = Math.round((utc(hoje).getTime() - data.getTime()) / MS_POR_DIA);
+
   if (atras === 0) {
     return "Hoje";
   }
+
   if (atras === 1) {
     return "Ontem";
   }
+
   if (atras > 1 && atras < 7) {
     return DIA_DA_SEMANA[data.getUTCDay()];
   }
+
   return diaCurto(dia, hoje);
 }
 
 /** O formato curto: "21 de set.", ou "21 de set. de 2025" fora do ano de hoje. */
 export function diaCurto(dia: string, hoje: string) {
   const data = utc(dia);
+
   const formato =
     data.getUTCFullYear() === utc(hoje).getUTCFullYear()
       ? DIA_DO_CALENDARIO
       : DIA_DO_CALENDARIO_COM_ANO;
+
   return formato.format(data);
 }
 
@@ -147,11 +159,14 @@ export function noDia(dia: string, hoje: string) {
   const atras = Math.round(
     (utc(hoje).getTime() - utc(dia).getTime()) / MS_POR_DIA
   );
+
   if (atras === 0) {
     return "hoje";
   }
+
   if (atras === 1) {
     return "ontem";
   }
+
   return `em ${diaCurto(dia, hoje)}`;
 }

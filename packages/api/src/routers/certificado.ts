@@ -15,6 +15,7 @@ export const certificadoRouter = router({
     .input(z.object({ codigo: z.string().max(64) }))
     .query(({ ctx, input }) => {
       const codigo = codigoDigitado(input.codigo);
+
       return codigo ? conferir(ctx, codigo) : null;
     }),
   pagina: alunoProcedure

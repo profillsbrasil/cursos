@@ -64,6 +64,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
 
   beforeAll(async () => {
     const categoriaId = await categoriaDeTeste(db);
+
     const [novo] = await db
       .insert(curso)
       .values({
@@ -78,12 +79,16 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
         titulo: "Fábrica e montagem",
       })
       .returning({ id: curso.id });
+
     cursoId = novo?.id ?? "";
+
     const [mod] = await db
       .insert(modulo)
       .values({ cursoId, numero: 1, titulo: "Segurança do posto" })
       .returning({ id: modulo.id });
+
     moduloId = mod?.id ?? "";
+
     // 7 aulas de 10:34: 1 h 14 min, que arredonda para 2 horas.
     const aulas = await db
       .insert(aula)
@@ -96,6 +101,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
         }))
       )
       .returning({ id: aula.id });
+
     await db.insert(liberacao).values(
       [ANA, BRUNO].map((userId) => ({
         cursoId,
@@ -186,6 +192,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
   test("código que não existe, ou fora do formato, não acha nada", async () => {
     const anonimo = como(null).certificado;
     let inexistente = gerarCodigo();
+
     while (
       [CODIGO_DA_ANA, CODIGO_SO_EMAIL, CODIGO_DE_QUEM_SUMIU].includes(
         inexistente
@@ -193,6 +200,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     ) {
       inexistente = gerarCodigo();
     }
+
     expect(await anonimo.conferir({ codigo: inexistente })).toBeNull();
     expect(await anonimo.conferir({ codigo: "PS-M0-2026-A1B2C3" })).toBeNull();
   });
@@ -202,9 +210,11 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     expect(
       (await anonimo.conferir({ codigo: CODIGO_SO_EMAIL }))?.nome
     ).toBeNull();
+
     const deQuemSumiu = await anonimo.conferir({
       codigo: CODIGO_DE_QUEM_SUMIU,
     });
+
     expect(deQuemSumiu?.codigo).toBe(CODIGO_DE_QUEM_SUMIU);
     expect(deQuemSumiu?.nome).toBeNull();
   });
@@ -255,6 +265,7 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
     const erro = await como(null)
       .certificado.pagina({ slug: SLUG })
       .catch((e: unknown) => e);
+
     expect(erro).toBeInstanceOf(TRPCError);
     expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
   });

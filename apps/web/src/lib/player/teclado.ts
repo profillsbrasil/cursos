@@ -30,5 +30,6 @@ export function comandoDaTecla(e: {
   if (e.altKey || e.ctrlKey || e.metaKey) {
     return null;
   }
+
   return MAPA[e.key.toLowerCase()] ?? null;
 }

@@ -62,6 +62,7 @@ function fraseDoPe({ mudanca, perfil }: FichaDaPessoa, hoje: string) {
   if (mudanca) {
     return `Perfil mudado por ${mudanca.por} em ${diaCurto(diaDe(mudanca.em), hoje)}.`;
   }
+
   return perfil.doCadastro
     ? "Perfil do cadastro, ainda sem registro no app. Ele fica gravado no próximo acesso dela, se ninguém mudar antes."
     : "Perfil do cadastro, sem mudança do admin.";
@@ -131,6 +132,7 @@ export function FichaDaPessoaDoAdmin({
   hoje: string;
 }) {
   const { conta, perfil, souEu } = ficha;
+
   return (
     <>
       <VoltaParaALista href="/admin/pessoas" nome="Pessoas" />

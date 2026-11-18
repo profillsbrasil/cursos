@@ -15,14 +15,16 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 let caminhoAtual = "/meus-cursos";
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   usePathname: () => caminhoAtual,
 }));
+
 afterAll(() => {
   caminhoAtual = "/meus-cursos";
 });
@@ -35,6 +37,7 @@ const AULA_2 = caminhoDaAula("comercial", "a2");
 
 function htmlDoServidor(caminho: string, cookieAberta: boolean) {
   caminhoAtual = caminho;
+
   return renderToString(
     <ProvedorDaCasca aberta={cookieAberta}>
       <Sidebar collapsible="icon" variant="sidebar">
@@ -49,6 +52,7 @@ function htmlDoServidor(caminho: string, cookieAberta: boolean) {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [htmlDoServidor("/meus-cursos", true), htmlDoServidor(AULA_1, true)].flatMap(
     (html) =>
@@ -136,16 +140,20 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da casca não saiu: ${pacote.logs.join("\n")}`);
   }
+
   // O next/image lê a configuração do process.env, que o Next define no build.
   return `window.process ??= { env: {} }; ${await saida.text()}`;
 }
 
 let enviar: Enviar;
 let pacote: string;
+
 const servidor = serve({
   fetch: () =>
     new Response("<!doctype html><title>casca</title>", {
@@ -191,10 +199,13 @@ const MEDIR = `(() => {
 })()`;
 
 const medir = () => avaliar<Medida>(enviar, MEDIR);
+
 const navegar = (caminho: string) =>
   avaliar(enviar, `window.casca.navegar(${JSON.stringify(caminho)})`);
+
 const clicar = (rotulo: string) =>
   avaliar(enviar, `document.querySelector('[aria-label="${rotulo}"]').click()`);
+
 const esperarAnimacao = () =>
   avaliar(
     enviar,
@@ -206,6 +217,7 @@ const esperarAnimacao = () =>
       ver();
     })`
   );
+
 const proximoQuadro = () =>
   avaliar(enviar, "new Promise((r) => requestAnimationFrame(() => r()))");
 
@@ -333,6 +345,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a sidebar na aula, a 1280 px", () => {
     await enviar("Emulation.setEmulatedMedia", {
       features: [{ name: "prefers-reduced-motion", value: "reduce" }],
     });
+
     try {
       await hidratar("/meus-cursos", true);
       await navegar(AULA_1);

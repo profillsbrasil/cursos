@@ -15,6 +15,7 @@ const ALUNO = "user_seedA";
 
 async function contar(c: Client, consulta: string, params: unknown[] = []) {
   const r = await c.query<{ n: number }>(consulta, params);
+
   return r.rows[0]?.n ?? -1;
 }
 
@@ -29,6 +30,7 @@ const idDaAula = async (
      where c.slug = $1 and m.numero = $2 and a.posicao = $3`,
     [curso, modulo, posicao]
   );
+
   return r.rows[0]?.id ?? null;
 };
 
@@ -96,6 +98,7 @@ describe.skipIf(URL_TESTE === null)(
         "select count(*)::int as n from aula_assistida where user_id = $1",
         [ALUNO]
       );
+
       const aulasAntes = await contar(c, "select count(*)::int as n from aula");
       const doProgresso = await idDaAula(c, "autoavaliacao", 0, 2);
       const daPosicao = await idDaAula(c, "comercial", 8, 4);

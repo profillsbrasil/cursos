@@ -8,6 +8,7 @@ import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
 let caminhoAtual = "/meus-cursos";
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   usePathname: () => caminhoAtual,
@@ -23,11 +24,13 @@ const { ProvedorDaCasca, useAlternarNavegacao, useModoDaCasca } =
 
 function UsaAlternar() {
   useAlternarNavegacao();
+
   return <span>alterna</span>;
 }
 
 function MostraModo() {
   const { noCelular, recolhida } = useModoDaCasca();
+
   return <span>{`celular=${noCelular} recolhida=${recolhida}`}</span>;
 }
 
@@ -83,6 +86,7 @@ const ESTADO = /data-state="(\w+)"/;
 
 function estadoNoServidor(caminho: string, cookieAberta: boolean) {
   caminhoAtual = caminho;
+
   const html = renderToStaticMarkup(
     <ProvedorDaCasca aberta={cookieAberta}>
       <Sidebar collapsible="icon">
@@ -90,6 +94,7 @@ function estadoNoServidor(caminho: string, cookieAberta: boolean) {
       </Sidebar>
     </ProvedorDaCasca>
   );
+
   return html.match(ESTADO)?.[1];
 }
 

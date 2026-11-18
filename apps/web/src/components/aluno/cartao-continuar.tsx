@@ -29,6 +29,7 @@ const CARTAO = cn(
 // link, e o redondo fica no realce da sidebar com o play em Sol.
 const RECOLHIDO_COM_LINK =
   "group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:text-sobre-cor";
+
 const RECOLHIDO_AQUI = "group-data-[collapsible=icon]:text-sol";
 
 // O hover também é o foco de teclado (#30). Aberto, o fundo vira popover e o play
@@ -107,11 +108,14 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
   const caminho = usePathname();
   const { recolhida } = useModoDaCasca();
   const c = use(cartao);
+
   if (!c) {
     return null;
   }
+
   const aqui = estaAqui(c, caminho);
   const chamada = aqui ? c.chamadaAqui : c.chamada;
+
   return (
     <Tooltip disabled={!recolhida}>
       <TooltipTrigger

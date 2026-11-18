@@ -17,6 +17,7 @@ export function registrarErroInterno({
   path: string | undefined;
 }): void {
   const caminho = path ?? "(sem caminho)";
+
   if (error.code === "INTERNAL_SERVER_ERROR") {
     console.error(`tRPC ${caminho} ${error.code}`, error);
   } else if (error.code === "TOO_MANY_REQUESTS") {

@@ -23,7 +23,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import {
   BlocoDoModulo,
   ModulosDoCurso,
@@ -37,12 +37,15 @@ const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
 
 const documento = documentoDeExemplo();
 const [primeira, ...resto] = documento.modulos[0].aulas;
+
 documento.modulos[0].aulas = [
   { ...primeira, video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" } },
   ...resto,
 ];
+
 const exemplo = rascunhoDoCurso(documento);
 const [modelo] = exemplo.modulos;
+
 if (!modelo) {
   throw new Error("o exemplo não tem módulo");
 }
@@ -55,6 +58,7 @@ const MODULOS = Array.from({ length: 16 }, (_, i) => ({
   numero: String(i),
   titulo: `Módulo ${i}`,
 }));
+
 const dezesseis: RascunhoDoCurso = { ...exemplo, modulos: MODULOS };
 const idDoModulo = (n: number) => MODULOS[n].id;
 
@@ -72,6 +76,7 @@ const blocoAberto = renderToStaticMarkup(
     niveis={[{ nome: "Vendedor Profills Certificado", ordem: 1 }]}
   />
 );
+
 const listaFechada = renderToStaticMarkup(
   <ModulosDoCurso
     abertos={NENHUM_ABERTO}
@@ -86,6 +91,7 @@ const listaFechada = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [blocoAberto, listaFechada].flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -125,6 +131,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         janela,
         `<div style="width:${bloco}px">${blocoAberto}</div>`
       );
+
       return await avaliar<{ nivelNaLinhaDoTitulo: boolean; titulo: number }>(
         enviar,
         `(() => {
@@ -215,6 +222,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
 
   test("em 390 px, o último número do índice sai da máscara no fim da rolagem", async () => {
     await abrirPagina(390, `<main style="padding:16px">${listaFechada}</main>`);
+
     const folga = await avaliar<number>(
       enviar,
       `(() => {
@@ -224,6 +232,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         return fila.getBoundingClientRect().right - ultimo.right;
       })()`
     );
+
     // A máscara vai a transparente nos últimos 2,5rem (40 px) da fila.
     expect(folga).toBeGreaterThanOrEqual(40);
   });
@@ -240,6 +249,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         janela,
         `<div style="width:${bloco}px">${blocoAberto}</div>`
       );
+
       const campo = await avaliar<{
         cabe: boolean;
         largura: number;
@@ -255,6 +265,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
           };
         })()`
       );
+
       expect(campo.largura).toBeGreaterThan(0);
       expect(campo.cabe).toBe(true);
       expect(campo.valor).toBe("youtu.be/aqz-KE-bpKQ");

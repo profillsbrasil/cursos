@@ -224,9 +224,11 @@ describe("os textos da página", () => {
 
   test("com as aulas do módulo assistidas e questionário por aprovar, a marca é questionario e a linha conta os pendentes", () => {
     const [seguranca, envasadora, pneumatica] = fabrica.questionarios.modulos;
+
     if (!(seguranca && envasadora && pneumatica)) {
       throw new Error("o exemplo tem três módulos");
     }
+
     expect(marcaDoModulo(seguranca, null)).toBe("questionario");
     expect(linhasDoModulo(seguranca, true).questionarios).toBe(
       "1 questionário"
@@ -277,6 +279,7 @@ describe("o módulo ainda sem aula", () => {
       ...fabrica.concluido,
       modulos: [vazio, ...fabrica.concluido.modulos],
     };
+
     expect(cartaoDoCurso(p, HOJE).botao.href).toBe(
       rota(`/cursos/fabrica-e-montagem/aulas/${RISCOS}`)
     );

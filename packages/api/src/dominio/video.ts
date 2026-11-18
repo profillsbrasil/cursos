@@ -9,6 +9,7 @@ export function videoDaAula(
   if (provedor === null || id === null) {
     return null;
   }
+
   switch (provedor) {
     case "youtube":
       return { id: id as VideoId, provedor };
@@ -26,15 +27,19 @@ const WWW = /^www\./;
 
 function idDoLink(url: URL): string | null {
   const host = url.hostname.replace(WWW, "");
+
   if (host === "youtu.be") {
     return url.pathname.split("/")[1] ?? null;
   }
+
   if (!HOSTS_DO_YOUTUBE.has(host)) {
     return null;
   }
+
   if (url.pathname === "/watch") {
     return url.searchParams.get("v");
   }
+
   return CAMINHO_COM_ID.exec(url.pathname)?.[1] ?? null;
 }
 
@@ -54,16 +59,21 @@ export const linkCurtoDoVideo = (video: VideoDaAula) => `youtu.be/${video.id}`;
  */
 export function videoDoTexto(texto: string): VideoDaAula | null {
   const s = texto.trim();
+
   if (ID.test(s)) {
     return { id: s as VideoId, provedor: "youtube" };
   }
+
   let url: URL;
+
   try {
     url = new URL(COM_ESQUEMA.test(s) ? s : `https://${s}`);
   } catch {
     return null;
   }
+
   const id = idDoLink(url);
+
   return id !== null && ID.test(id)
     ? { id: id as VideoId, provedor: "youtube" }
     : null;

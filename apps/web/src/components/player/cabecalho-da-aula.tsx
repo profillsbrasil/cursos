@@ -12,6 +12,7 @@ import { caminhoDaAula } from "@/lib/rotas";
 // a altura dele bate com a do cabeçalho em toda largura.
 export const TITULO_DA_AULA =
   "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-[1.2] tracking-tight";
+
 export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
 
 /**
@@ -21,6 +22,7 @@ export const LINHA_DO_MODULO = "mt-1 text-muted-foreground";
  */
 export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
   const { aula } = dados;
+
   return (
     <div className="min-w-0">
       <h1 className={TITULO_DA_AULA}>{aula.titulo}</h1>
@@ -35,9 +37,11 @@ export function CabecalhoDaAula({ dados }: { dados: AulaNoPlayer }) {
 
 export function DescricaoDaAula({ dados }: { dados: AulaNoPlayer }) {
   const { descricao } = dados.aula;
+
   if (!descricao.trim()) {
     return null;
   }
+
   return (
     <section aria-labelledby="sobre-esta-aula" className="grid gap-2">
       <h2 className="text-titulo text-base font-semibold" id="sobre-esta-aula">
@@ -66,9 +70,11 @@ export function NavegacaoEntreAulas({
   destacarProxima: boolean;
 }) {
   const { anterior, curso, proxima } = dados;
+
   if (!(anterior || proxima)) {
     return null;
   }
+
   return (
     <nav
       aria-label="Navegação entre aulas"
