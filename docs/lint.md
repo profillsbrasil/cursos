@@ -185,6 +185,19 @@ Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo 
 
 ## Check de tipos
 
+| Comando | O que checa | Onde roda |
+| --- | --- | --- |
+| `bun run check-types` | `tsc --noEmit` em `apps/web`, `packages/api`, `packages/db` e `packages/ui`, pelo turbo. É o árbitro do tipo enquanto o tsrs for beta. | CI e máquina |
+| `bun run check` | oxfmt (`--check`) e Oxlint com type-aware e `typeCheck` pelo tsrs, em todo arquivo que o Oxlint linta, com o tsconfig mais próximo de cada um | CI, máquina e, arquivo a arquivo, o hook de formato |
+| `bun test ./src/equivalencia-dos-tipos.arnes.ts` em `apps/web` | os dois acima contra erros plantados numa cópia do repo, por categoria | só na máquina |
+
+O `check` e o `check-types` concordam em arquivo e código TS em 13 das 15 categorias da prova de equivalência. Divergem em duas, que os tsconfig de hoje não produzem:
+
+- erro global, sem arquivo, e erro de opção do tsconfig (TS2318 e TS5053 com `noLib`): só o `tsc` os devolve;
+- erro de declaração (TS4094 com `declaration`): só o `tsc` o devolve.
+
+Fora dos 4 tsconfig, o `tsc` não checa nada e o tsrs também não, pelo `noCheck` descrito em "Escopo". Tirar o `check-types` do CI é decisão do dono, com a tabela da prova de equivalência como base.
+
 O `options.typeCheck` do `oxlint.config.ts` liga o `--type-check`: o Oxlint devolve os diagnósticos do compilador do tsrs como `typescript(TSxxxx)`, com severidade de erro, e o `bun run check` sai com 1. O hook de formato do Claude Code roda o mesmo config no arquivo editado, então também devolve o erro de tipo dele.
 
 ### Escopo
