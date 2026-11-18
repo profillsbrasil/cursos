@@ -1,6 +1,6 @@
 # Lint e formato
 
-O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware e com check de tipos (`options.typeAware` e `options.typeCheck` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O `bun run check-types` (`tsc`) continua no CI ao lado, como árbitro, enquanto o tsrs for beta. O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O Oxlint carrega dois plugins JS por `jsPlugins`: o `@interfere/landmines` 0.1.0 (`landmines-testing` e `landmines-structure`) e o anti-slop copiado em `tools/oxlint/anti-slop/`; decisões em "Plugins JS". O motivo de cada decisão mora neste arquivo, não em comentário no config.
+O `bun run check` roda a Ultracite 8.3.0, que chama o oxfmt 0.79.0 (`oxfmt --check`) e o Oxlint 1.94.0 (`oxlint`) na raiz. O Oxlint roda com type-aware e com check de tipos (`options.typeAware` e `options.typeCheck` no `oxlint.config.ts`), e o backend é o tsrs 0.25.0-ts7.1.0-beta (`tsrs --lint headless`), sem o `oxlint-tsgolint` instalado. O `bun run check-types` (`tsc`) continua no CI ao lado, como árbitro, enquanto o tsrs for beta. O `bun run fix` roda `oxlint --fix` e `oxfmt --write`. Os configs são `oxlint.config.ts` e `oxfmt.config.ts`, na raiz. O Oxlint carrega dois plugins JS por `jsPlugins`: o `@interfere/landmines` 0.1.0 (`landmines-testing`, `landmines-structure` e `landmines-types`) e o anti-slop copiado em `tools/oxlint/anti-slop/`; decisões em "Plugins JS". O motivo de cada decisão mora neste arquivo, não em comentário no config.
 
 ## Custo do type-aware
 
@@ -190,7 +190,7 @@ Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no
 
 ### landmines
 
-`@interfere/landmines` 0.1.0, exato. Ficam para PRs seguintes o `landmines-style/no-comments` e o `landmines-types/no-explicit-return-types`, que este config não registra. O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
+`@interfere/landmines` 0.1.0, exato. Fica para PR seguinte o `landmines-style/no-comments`, que este config não registra. O `landmines-types/no-explicit-return-types` tem a seção "Tipo de retorno inferido". O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
 
 | Regra | Ocorrências | Decisão | Motivo |
 | --- | --- | --- | --- |
@@ -203,6 +203,85 @@ Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no
 | `landmines-testing/strict-msw` | 0 | error | O repo não usa MSW. |
 | `landmines-structure/test-file-names` | 0 | error | `.integration.test.ts`, `.medida.test.tsx` e `.navegador.test.tsx` passam; ajudante de teste leva `.test-utils.ts`. |
 
+### Tipo de retorno inferido
+
+O `landmines-types/no-explicit-return-types` acusa a anotação de tipo de retorno em toda função com corpo: declaração, expressão, arrow e método. Ele isenta só o type predicate (`x is T` e `asserts`) e o `never`, e não aceita opção (`dist/types.mjs` do pacote). Com a regra em error, o `oxlint -f json` acusou 676 em 18 de novembro de 2026: 374 em `packages/api`, 284 em `apps/web`, 15 em `packages/db` e 3 em `packages/ui`.
+
+O contrato é o tipo de cada export, medido antes e depois no mesmo código de duas formas: os `.d.ts` do `tsc --declaration --emitDeclarationOnly` de cada um dos 4 tsconfig (660 arquivos) e o tipo de cada export lido pela API do compilador (1.833 exports). A segunda cobre os 4 arquivos cujo `.d.ts` o TypeScript 7 não emite por erro de declaração (TS2883 e TS4023, os mesmos antes e depois): `routers/index.ts`, com o `AppRouter`, `routers/admin.ts`, `server/api.ts` e `utils/trpc.ts`. As duas medidas saem iguais byte a byte.
+
+| Saída | Funções |
+| --- | --- |
+| A inferência dá o mesmo tipo, e a anotação só saiu | 257 |
+| Variável tipada no `return` (`const x: T = valor;` e `return x;`), em 445 `return` | 305 |
+| A inferência dá outro tipo numa função interna, sem chegar a export | 65 |
+| Anotação mantida, com o arquivo no override | 49 |
+
+Um commit por pacote tira as 676 anotações: o span de cada diagnóstico sai do arquivo, e o oxfmt formata os arquivos tocados. Sem restauração, 414 funções inferiam outro tipo, medido função a função pela API do compilador. Em 94 era o mesmo tipo com outro nome. Nas outras 320 o tipo mudava: 29 com `any`, 34 sem `readonly`, 12 com a query do Drizzle no lugar da `Promise<T>`, e literais alargados (`tipo: "limite"` que vira `string`) que deixavam 20 erros no `tsc`.
+
+A variável tipada dá ao valor o mesmo contexto que a anotação dava, e a função infere o tipo declarado, com o nome. Ela entrou nas exportadas cujo tipo mudou, nas internas que o `tsc` acusou (ajudantes de teste e as duas funções de envio de `consultas/convite.ts`) e nas internas cujo tipo ficaria sem uso: a interface `Frases` de `conquistas/textos.ts` confere as 10 funções de frases. Na recursiva `caminhoAteOZod` de `zod-no-cliente.test.ts`, a variável é `string[]`, e não `string[] | null`: o TS estreita a variável de união e volta a avaliar a chamada recursiva (TS7023). O `satisfies` não entrou: ele confere o valor, mas a função infere o tipo do valor, sem o nome, o `readonly` e o literal da união. O `as const` também não, porque troca o tipo por um readonly literal profundo. A contagem de `as` em `apps` e `packages` ficou em 1.272 antes e depois.
+
+As 114 funções internas que inferem tipo diferente da anotação antiga somam as 65 da tabela e 49 com variável tipada de união, que o TS estreita para os membros devolvidos. Delas, 44 têm o mesmo tipo com outro nome, 8 perderam `readonly`, 3 devolvem a query do Drizzle no lugar da `Promise`, 55 têm outra estrutura (literal, membro opcional, união reescrita) e 4 são iguais com ruído da comparação. Nenhuma chega a export, e o `tsc` aceita todos os usos.
+
+Quando a variável tipada não devolve o contrato, a anotação fica e o arquivo entra no override do `oxlint.config.ts` que desliga a regra. Nesses 34 arquivos as outras funções seguem o tratamento dos demais.
+
+- União com alias (30): `const x: Situacao = { tipo: "fora" }` estreita `x` para o membro atribuído, e a função infere a união dos membros devolvidos, sem o nome. Em 11 delas a união inferida perde membro: `perfilDoCadastro` nunca devolve `"cliente"`, e `Perfil` viraria `"funcionario" | "publico"`.
+- Grafia do contrato (18): o tipo é o mesmo, mas o export passa a ser impresso pela estrutura. São acesso indexado (`LinhasPainel["liberacoes"]`), alias que o TS não guarda (`AulaDoDocumento`, `VideoDaAula`), `MetadataRoute.Manifest` que vira `import("next/...").Manifest`, `Buffer` que vira `Buffer<ArrayBufferLike>`, união reordenada e união com alias sem membro perdido (`Perfil`, `Plano`, `Decisao`, `Leitura<number>`). Nenhuma saída da regra devolve essa grafia.
+- Recursão (1): `jsonCanonico` chama a si mesma dentro de um template literal. Sem anotação ela vira `any` implícito (TS7023), e a variável tipada `string` com template literal cai no `typescript/no-inferrable-types`.
+
+| Arquivo | Função | Anotação | Motivo |
+| --- | --- | --- | --- |
+| `apps/web/src/app/manifest.ts` | `manifest` | `MetadataRoute.Manifest` | grafia do contrato |
+| `apps/web/src/components/admin/barra-de-salvar.tsx` | `situacaoDoSalvar` | `Situacao` | união com alias |
+| `apps/web/src/components/admin/lote.ts` | `prontoParaLiberar` | `ProntoParaLiberar` | união com alias |
+| `apps/web/src/components/admin/pessoas/convites.ts` | `envioDasFichas` | `EnvioDasFichas` | união com alias |
+| `apps/web/src/components/admin/pessoas/visao.ts` | `hrefDaVisao` | `Route` | união com alias, perde membro |
+| `apps/web/src/components/admin/pessoas/visao.ts` | `visaoDe` | `VisaoDePessoas` | união com alias |
+| `apps/web/src/components/admin/rascunho-do-curso.ts` | arrow que `lerInteiro` devolve (`lerNumeroDoModulo` e `lerPreco`) | `Leitura<number>` | grafia do contrato |
+| `apps/web/src/components/admin/rascunho-do-curso.ts` | `lerRascunho` | `RascunhoLido` | união com alias |
+| `apps/web/src/components/admin/rascunho-do-curso.ts` | `lerVideo` | `Leitura<AulaDoDocumento["video"]>` | grafia do contrato |
+| `apps/web/src/components/admin/rascunho-do-editor.ts` | `aulaEscolhida` | `AulaDoRascunho \| null` | união com alias, perde membro |
+| `apps/web/src/components/admin/rascunho-do-editor.ts` | `blocoDoModulo` | `Bloco` | união com alias |
+| `apps/web/src/components/admin/rascunho-do-editor.ts` | `perguntaEscolhida` | `PerguntaDoRascunho \| null` | união com alias, perde membro |
+| `apps/web/src/components/casca/abertura.ts` | `navegar` | `Abertura \| "mesmo_lugar"` | grafia do contrato |
+| `apps/web/src/components/certificado/pdf.tsx` | `pdfDaFolha` | `Promise<Buffer>` | grafia do contrato |
+| `apps/web/src/components/curso/textos-da-amostra.ts` | `trocaDaAmostra` | `TrocaDaAmostra` | união com alias |
+| `apps/web/src/components/curso/textos.ts` | `marcaDoModulo` | `MarcaDoModulo` | união com alias |
+| `apps/web/src/lib/player/sessao.ts` | `motivoParadoDe` | `MotivoParado \| undefined` | união com alias, perde membro |
+| `apps/web/src/lib/player/sessao.ts` | `transicao` | `EstadoReproducao` | união com alias, perde membro |
+| `packages/api/src/consultas/certificado-emitido.ts` | `carregarPaginaDoCertificado` | `Promise<PaginaDoCertificado \| null>` | união com alias |
+| `packages/api/src/consultas/meus-cursos.ts` | `linhasDosCursosQueOAlunoVe` | `Promise<LinhasPainel["liberacoes"]>` | grafia do contrato |
+| `packages/api/src/consultas/perfil.ts` | `perfilDe` | `Promise<Perfil>` | grafia do contrato |
+| `packages/api/src/dominio/acompanhamento.ts` | `situacaoDaPessoa` | `SituacaoDaPessoa` | união com alias |
+| `packages/api/src/dominio/aula.ts` | `estudoDaAula` | `AulaNoPlayer["estudo"]` | grafia do contrato |
+| `packages/api/src/dominio/capa.ts` | `recusaDaMedida` | `RecusaDaCapa \| null` | união com alias, perde membro |
+| `packages/api/src/dominio/capa.ts` | `recusaDoTamanho` | `RecusaDaCapa \| null` | união com alias, perde membro |
+| `packages/api/src/dominio/comunicado.ts` | `montarComunicadosDoAluno` | `ComunicadosDoAluno` | grafia do contrato |
+| `packages/api/src/dominio/convite.ts` | `estadoDoConvite` | `EstadoDoConvite` | união com alias |
+| `packages/api/src/dominio/edicao-do-curso.ts` | `lerFormularioDoCurso` | `FormularioLido` | união com alias |
+| `packages/api/src/dominio/exemplo.ts` | `aulaDeExemplo` | `AulaDoDocumento` | grafia do contrato |
+| `packages/api/src/dominio/exemplo.ts` | `documentoDeExemplo` | `DocumentoDoCurso` | grafia do contrato |
+| `packages/api/src/dominio/exemplo.ts` | `perguntaDeExemplo` | `PerguntaDoDocumento` | grafia do contrato |
+| `packages/api/src/dominio/liberacao.ts` | `acaoNaLiberacao` | `AcaoNaLiberacao` | união com alias |
+| `packages/api/src/dominio/material.ts` | `recusaAntesDeLer` | `RecusaDoMaterial \| null` | união com alias, perde membro |
+| `packages/api/src/dominio/material.ts` | `tipoDoNome` | `TipoDoMaterial \| null` | grafia do contrato |
+| `packages/api/src/dominio/pagina-do-certificado.ts` | `paginaEmitida` | `PaginaDoCertificado` | união com alias, perde membro |
+| `packages/api/src/dominio/pagina-do-certificado.ts` | `paginaQueFalta` | `PaginaDoCertificado` | união com alias, perde membro |
+| `packages/api/src/dominio/perfil.ts` | `perfilDoCadastro` | `Perfil` | união com alias, perde membro |
+| `packages/api/src/dominio/plano-do-curso.ts` | `planejarCurso` | `Plano` | grafia do contrato |
+| `packages/api/src/dominio/questionario.ts` | `corrigir` | `Correcao` | união com alias |
+| `packages/api/src/dominio/questionario.ts` | `marcaDoQuestionario` | `MarcaDoQuestionario` | união com alias |
+| `packages/api/src/dominio/retomada.ts` | `retomada` | `Retomada \| null` | grafia do contrato |
+| `packages/api/src/dominio/troca.ts` | `cartao` | `CartaoDeTroca \| null` | união com alias |
+| `packages/api/src/dominio/troca.ts` | `decidirTroca` | `Decisao` | grafia do contrato |
+| `packages/api/src/dominio/troca.ts` | `situacao` | `Situacao` | união com alias |
+| `packages/api/src/dominio/versao.ts` | `jsonCanonico` | `string` | recursão |
+| `packages/api/src/dominio/video.ts` | `videoDaAula` | `VideoDaAula \| null` | grafia do contrato |
+| `packages/api/src/dominio/video.ts` | `videoDoTexto` | `VideoDaAula \| null` | grafia do contrato |
+| `packages/api/src/externos/capas.ts` | `lerCapa` | `CapaLida` | união com alias |
+| `packages/api/src/externos/materiais.ts` | `lerMaterial` | `MaterialLido` | união com alias |
+
+Função nova com retorno de união com alias, num arquivo fora do override, leva a anotação, o arquivo no override e a linha nesta tabela.
+
 ### anti-slop
 
 Cópia de `src/` de `dmmulroy/anti-slop` no commit `13909c9`, sem a pasta `effect` (o repo não usa Effect), em `tools/oxlint/anti-slop/`, com a licença e o `ORIGEM.md`. O projeto não publica no npm, e o README dele manda copiar a pasta. O `@oxlint/plugins` fica em 1.94.0, a versão exata do `oxlint`. A pasta sai do Oxlint e do oxfmt pelo `ignorePatterns` e do programa do tsconfig da raiz pelo `exclude` ("Check de tipos"). O `tsconfig.json` dela tem as opções do upstream: `bunx tsc -p tools/oxlint/anti-slop/tsconfig.json` passa sem erro, e cada regra tem o teste do `RuleTester` ao lado, que roda com `node tools/oxlint/anti-slop/rules/<regra>.test.ts` na raiz. Os dois ficam fora do `bun run test` e do CI.
@@ -214,7 +293,7 @@ A mudança local é o `no-module-mocking`, que só conhecia o `vi` do Vitest e o
 | `require-readable-spacing` | 4.721 | (a) autofix, error | O commit `d87f5b4` só tem o autofix, rodado por um config que liga só essa regra: 4.721 linhas vazias em 435 arquivos, nenhuma removida, e `git diff -w --ignore-blank-lines` vazio. |
 | `no-module-mocking` | 25 | warn | Os 25 `mock.module` de `apps/web`, que a regra passou a ver. Trocar cada um pede uma costura de dependência no componente; lista em "O que fica em warn". |
 | `no-unknown-parameters` | 74 | (b) desligada | Os 15 de produção são erro de `catch` e `.catch`, que o TS tipa como `unknown`, e parser de borda (`paraVolume` do localStorage, `versaoDe` do JSON da versão). A exceção da regra é o parâmetro chamado `cause`, e o repo nomeia `erro`, como no `unicorn/catch-error-name` desligado. Os 58 de teste são dublês e ajudantes; 1 é o hook do Claude Code. |
-| `no-known-value-widening` | 41 | (b) desligada | Dois padrões. Tabela `Record<string, T>` indexada por texto de fora (código de erro do Clerk, tecla, entidade HTML, estado do player do YouTube), e objeto devolvido a um tipo de retorno anônimo escrito à mão, que sai com o PR do `no-explicit-return-types`. A fraqueza real que fica: em `apps/web`, sem `noUncheckedIndexedAccess`, a leitura de uma dessas tabelas sai `T`, e não `T \| undefined`; corrigir pede trocar o tipo das tabelas e as leituras delas. |
+| `no-known-value-widening` | 41 | (b) desligada | Dois padrões. Tabela `Record<string, T>` indexada por texto de fora (código de erro do Clerk, tecla, entidade HTML, estado do player do YouTube), e objeto devolvido a um tipo de retorno anônimo escrito à mão. Com o tipo de retorno inferido ("Tipo de retorno inferido"), a regra acusa 28, e não 41: os 13 que saíram eram o segundo padrão. A fraqueza real que fica: em `apps/web`, sem `noUncheckedIndexedAccess`, a leitura de uma dessas tabelas sai `T`, e não `T \| undefined`; corrigir pede trocar o tipo das tabelas e as leituras delas. |
 | `no-runtime-typeof` | 32 | (b) desligada | Testado com `allowInTypeGuards`. A regra pede parser de borda no lugar de `typeof`. Os casos estreitam união conhecida (`searchParams` com `string \| string[] \| undefined`, o valor `number \| number[]` do Slider, o `sucesso` função ou texto do `useAcao`) ou são os parsers de borda à mão (`preferencias.ts`, `consultas/erros.ts`, `versao.ts`). `preferencias.ts` é módulo do cliente, onde o Zod não entra (`zod-no-cliente.test.ts`). |
 | `no-unsafe-dictionary-type` | 19 | (b) desligada | `Record<string, unknown>` é o JSON aberto: a resposta do DevTools no arnês do Chromium, o `appearance` do Clerk em `entrada/clerk.ts`, o JSON do localStorage antes do parser e o JSON canônico de `versao.ts`. Os 15 de teste são dublês e fixtures. |
 | `no-chained-type-assertions` | 17 | (c) produção, (b) nos testes | `dominio/trechos.ts` fazia `saida as readonly Trecho[] as Trechos` em 3 retornos e `[] as unknown as Trechos` no `SEM_TRECHOS`. Agora o `comoTrechos` é o único cast da marca, e o `no-unsafe-type-assertion` foi de 614 para 611. Os 13 de teste montam dublê de `ClerkClient`, `fetch` e `AuthDoClerk` por `as unknown as` e saem com o redesenho dos dublês. |
