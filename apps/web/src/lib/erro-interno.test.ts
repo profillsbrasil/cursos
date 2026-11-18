@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+
 import { initTRPC, TRPCError } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { registrarErroInterno } from "./erro-interno";
 
 const t = initTRPC.context<{ auth: { userId: string } | null }>().create();
+
 const router = t.router({
   ocupado: t.procedure.query(() => {
     throw new TRPCError({
@@ -30,8 +32,8 @@ const chamar = (caminho: string) =>
   });
 
 describe("registrarErroInterno no fetchRequestHandler", () => {
-  const log = spyOn(console, "error").mockImplementation(() => undefined);
-  const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+  const log = spyOn(console, "error");
+  const aviso = spyOn(console, "warn");
   afterEach(() => {
     log.mockClear();
     aviso.mockClear();

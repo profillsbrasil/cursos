@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { Glob } from "bun";
 
 import { ITENS_DO_ADMIN } from "../admin/menu";
@@ -8,8 +9,10 @@ import { ITENS_DO_ALUNO } from "../aluno/menu";
 
 const SRC = join(import.meta.dir, "../..");
 const APP = join(SRC, "app");
+
 const ALTERNAR =
   /\b(SidebarTrigger|SidebarProvider|toggleSidebar|setOpen|setOpenMobile)\b/;
+
 const ARQUIVO_DE_LOADING = /\/loading\.tsx$/;
 const GRUPO_DE_ROTA = /\/\([^)]+\)/g;
 
@@ -23,6 +26,7 @@ describe("um jeito só de alternar a navegação", () => {
         !a.startsWith("components/casca/") &&
         ALTERNAR.test(readFileSync(join(SRC, a), "utf8"))
     );
+
     expect(fora).toEqual([]);
   });
 });
@@ -34,20 +38,25 @@ describe("a pílula anda no clique", () => {
     const rotas = [...ITENS_DO_ALUNO, ...ITENS_DO_ADMIN].flatMap((i) =>
       i.tipo === "link" ? [i.href] : []
     );
+
     expect(rotas.length).toBeGreaterThan(0);
+
     const comLoading = new Set(
       [...new Glob("**/loading.tsx").scanSync(APP)].map((a) =>
         `/${a.replace(ARQUIVO_DE_LOADING, "")}`.replace(GRUPO_DE_ROTA, "")
       )
     );
+
     expect(rotas.filter((href) => !comLoading.has(href))).toEqual([]);
   });
 });
 
 const ler = (caminho: string) => readFileSync(join(SRC, caminho), "utf8");
 const GLOBALS = join(SRC, "../../../packages/ui/src/styles/globals.css");
+
 const IMPORT_DO_BOTAO =
   /import\s*\{[^}]*\bBOTAO\b[^}]*\}\s*from\s*"@\/components\/casca\/botoes"/;
+
 const valorDoToken = (css: string, nome: string) =>
   new RegExp(`--${nome}:\\s*([^;]+);`).exec(css)?.[1]?.trim();
 
@@ -81,12 +90,14 @@ describe("os desvios da #30 não voltam", () => {
 // qualquer forma: nomes, alias ou namespace.
 const IMPORTA_MOTION =
   /import\s+([^;"'`]*?)\s*from\s*["']motion\/react(?:-client)?["']/g;
+
 const NOMES_IMPORTADOS = /\{([^}]*)\}/;
 const ALIAS = /\s+as\s+/;
 const IMPORT_DE_TIPO = /^type\s+/;
 const TEXTO = /"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`/g;
 const ESPACOS = /\s+/;
 const TESTE = /\.test\.tsx?$/;
+
 // O ! do Tailwind no fim (size-8!), no começo (!size-8) ou depois da variante
 // (hover:!bg-sol), procurado só dentro de texto, para não pegar o !x do código.
 const CLASSE_IMPORTANTE = /^!\S|:!\S|\S!$/;
@@ -97,6 +108,7 @@ const motionsImportados = (codigo: string) =>
     const nomes = (NOMES_IMPORTADOS.exec(clausula)?.[1] ?? "")
       .split(",")
       .map((n) => n.trim().replace(IMPORT_DE_TIPO, "").split(ALIAS)[0]);
+
     return [...nomes, ...(clausula.includes("*") ? ["*"] : [])].filter(
       (n) => n === "motion" || n === "*"
     );
@@ -115,6 +127,7 @@ describe("a navegação fica leve e sem disputa de classes (#29)", () => {
     const arquivos = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
       (a) => !TESTE.test(a)
     );
+
     expect(
       arquivos.some((a) => [...ler(a).matchAll(IMPORTA_MOTION)].length > 0)
     ).toBeTrue();
@@ -131,6 +144,7 @@ describe("a navegação fica leve e sem disputa de classes (#29)", () => {
           clausula.includes("Reorder")
         )
     );
+
     expect(comReorder).toEqual(["components/admin/material-de-apoio.tsx"]);
   });
 

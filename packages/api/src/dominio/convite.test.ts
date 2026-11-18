@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   type Email,
   ehVivo,
@@ -32,17 +33,20 @@ describe("lerEmail", () => {
       "carla\u0085@exemplo.com",
       "carla @exemplo.com",
     ];
+
     expect(ruins.map(lerEmail)).toEqual(ruins.map(() => null));
   });
 
   test("recusa os caracteres que só cabem entre aspas ou no nome", () => {
     const especiais = ["<", ">", '"', "(", ")", ",", ":", ";", "[", "]", "\\"];
+
     const textos = especiais.flatMap((c) => [
       `ana${c}@x.com`,
       `${c}ana@x.com`,
       `ana@x${c}.com`,
       `ana@x.com${c}`,
     ]);
+
     expect(textos.map(lerEmail)).toEqual(textos.map(() => null));
   });
 
@@ -225,8 +229,10 @@ describe("estadoDoConvite", () => {
       linha({ canceladoEm: ANTES, canceladoPor: "user_admin" }),
     ].map((l) => {
       const estado = estadoDoConvite(l, AGORA);
+
       return [estado.tipo, ehVivo(estado)];
     });
+
     expect(tipos).toEqual([
       ["pendente", true],
       ["nao_enviado", true],
@@ -269,6 +275,7 @@ describe("montarPainelDeConvites", () => {
       CONTAGEM,
       AGORA
     );
+
     expect<string>(painel.hoje).toBe("2026-11-11");
     expect(painel.total).toBe(7);
     expect(painel.contagem).toEqual(CONTAGEM);
@@ -304,6 +311,7 @@ describe("montarPainelDeConvites", () => {
       CONTAGEM,
       AGORA
     );
+
     expect(painel.convidados).toEqual([]);
   });
 });

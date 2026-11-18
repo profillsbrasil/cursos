@@ -62,6 +62,7 @@ export function linhasDosQuestionarios(
   aulas?: readonly AulaId[]
 ): Promise<LinhaDoQuestionario[]> {
   const t = questionarioTentativa;
+
   return exec
     .select(COLUNAS_DO_QUESTIONARIO)
     .from(t)
@@ -84,6 +85,7 @@ function consultasDoHistorico(
   noCurso?: SoNoCurso
 ) {
   const aulas = noCurso && [...noCurso.aulas];
+
   return [
     // 2. aulas assistidas (inclusive de curso revogado; a montagem ignora as de fora do catálogo)
     exec
@@ -143,6 +145,7 @@ export async function linhasDoHistorico(
   const [assistidas, posicoes, certificados, questionarios] = await Promise.all(
     consultasDoHistorico(db, userId)
   );
+
   return { assistidas, certificados, posicoes, questionarios };
 }
 
@@ -157,6 +160,7 @@ export async function linhasDoHistoricoNoCurso(
 ): Promise<LinhasHistorico> {
   const [assistidas, posicoes, certificados, questionarios] =
     consultasDoHistorico(aluno.tx, aluno.userId, noCurso);
+
   return {
     assistidas: await assistidas,
     certificados: await certificados,
@@ -176,6 +180,7 @@ export async function linhasDosCursosQueOAlunoVe(
   aluno: Aluno
 ): Promise<LinhasPainel["liberacoes"]> {
   const DA_LIBERACAO = { id: true, liberadaEm: true } as const;
+
   const cursos = await exec.query.curso.findMany({
     ...COM_CONTEUDO,
     columns: { ...COM_CONTEUDO.columns, precoTroca: true },
@@ -192,12 +197,15 @@ export async function linhasDosCursosQueOAlunoVe(
       },
     },
   });
+
   const antes = (a: Liberada, b: Liberada) =>
     a.liberadaEm.getTime() - b.liberadaEm.getTime() || a.id.localeCompare(b.id);
+
   return cursos
     .flatMap(({ liberacoes, liberacoesDoPerfil, precoTroca, ...curso }) => {
       const [primeira] = [...liberacoes, ...liberacoesDoPerfil].sort(antes);
       const amostra = liberacoes.length > 0 ? null : { preco: precoTroca };
+
       return primeira ? [{ amostra, curso, primeira }] : [];
     })
     .sort((a, b) => antes(a.primeira, b.primeira))
@@ -217,6 +225,7 @@ interface Liberada {
 // prepared statement nomeado. Os statements correm em paralelo no Pool do node-postgres.
 export async function linhasDoPainel(db: Database, aluno: Aluno) {
   const { userId } = aluno;
+
   const [liberacoes, historico, comunicados] = await Promise.all([
     // 1. os cursos que o aluno vê, com o catálogo inteiro
     linhasDosCursosQueOAlunoVe(db, aluno),
@@ -235,6 +244,7 @@ export async function linhasDoPainel(db: Database, aluno: Aluno) {
       .orderBy(...DO_MAIS_NOVO)
       .limit(1),
   ]);
+
   return { ...historico, comunicados, liberacoes };
 }
 
@@ -251,6 +261,7 @@ export async function linhasDoResumo(
       .where(eq(aulaAssistida.userId, userId)),
     linhasDoSaldo(db, userId, segunda),
   ]);
+
   return { dias, pontos };
 }
 
@@ -268,6 +279,7 @@ export async function carregarResumo(
   agora: Date
 ): Promise<ResumoAluno> {
   const hoje = diaLocal(agora);
+
   return montarResumo(
     await linhasDoResumo(db, userId, segundaDaSemana(hoje)),
     hoje

@@ -6,6 +6,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+
 import { Glob } from "bun";
 import { compile } from "tailwindcss";
 
@@ -23,6 +24,7 @@ const ESTILOS: Record<string, string> = {
 function lerEstilo(id: string, base: string) {
   const conhecido = ESTILOS[id];
   const caminho = conhecido ? join(PACOTE, conhecido) : join(base, id);
+
   return Promise.resolve({
     base: dirname(caminho),
     content: readFileSync(caminho, "utf8"),
@@ -36,12 +38,13 @@ const PRIMEIRO_PONTO = /(?<!\\)\./;
 const CARACTERE_DE_CLASSE = /[\w-]/;
 const NOME_DE_CLASSE = /\.(?:\\.|[\w-])+/g;
 const CLASSE_NO_FIM = /\s\.(?:\\.|[\w-])+$/;
-const FOCO = /:focus/;
 
 /** Cada classe dos componentes, com os arquivos em que aparece. */
 const origem = new Map<string, string[]>();
+
 for (const arquivo of new Glob("*.tsx").scanSync(COMPONENTES)) {
   const texto = readFileSync(join(COMPONENTES, arquivo), "utf8");
+
   for (const token of new Set(texto.split(SEPARADOR))) {
     if (token) {
       origem.set(token, [...(origem.get(token) ?? []), arquivo]);
@@ -54,10 +57,12 @@ const EXEMPLOS = [
   "group-hover:opacity-0",
   "focus-visible:ring-1",
 ];
+
 const compilador = await compile(readFileSync(GLOBALS, "utf8"), {
   base: dirname(GLOBALS),
   loadStylesheet: lerEstilo,
 });
+
 const saida = compilador.build([...origem.keys(), ...EXEMPLOS]);
 
 interface Regra {
@@ -71,20 +76,25 @@ function dentroDoIs(seletor: string) {
   if (!seletor.startsWith(":is(")) {
     return null;
   }
+
   let fundo = 0;
+
   for (let i = 3; i < seletor.length; i += 1) {
     const c = seletor[i];
+
     if (c === "\\") {
       i += 1;
     } else if (c === "(") {
       fundo += 1;
     } else if (c === ")") {
       fundo -= 1;
+
       if (fundo === 0) {
         return seletor.slice(4, i);
       }
     }
   }
+
   return null;
 }
 
@@ -99,8 +109,10 @@ function classeDe(seletor: string) {
   const trecho = fim < 0 ? seletor : grupo.slice(fim);
   let classe = "";
   let i = trecho.search(PRIMEIRO_PONTO) + 1;
+
   while (i < trecho.length) {
     const c = trecho[i] ?? "";
+
     if (c === "\\") {
       classe += trecho[i + 1] ?? "";
       i += 2;
@@ -111,17 +123,19 @@ function classeDe(seletor: string) {
       break;
     }
   }
+
   return classe;
 }
 
 /**
  * Cada regra com as declarações dela, inclusive as que o Tailwind aninha num
- * @supports dentro da regra. O @media que envolve uma regra não conta como seletor.
+ * `@supports` dentro da regra. O `@media` que envolve uma regra não conta como seletor.
  */
 function regrasDoCss(css: string): Regra[] {
   const porSeletor = new Map<string, string[]>();
   const pilha: string[] = [];
   let trecho = "";
+
   for (const c of css) {
     if (c === "{") {
       pilha.push(trecho.trim());
@@ -129,20 +143,24 @@ function regrasDoCss(css: string): Regra[] {
     } else if (c === "}" || c === ";") {
       const declaracao = trecho.trim();
       const seletor = pilha.findLast((p) => !p.startsWith("@"));
+
       if (declaracao && seletor) {
         porSeletor.set(seletor, [
           ...(porSeletor.get(seletor) ?? []),
           declaracao,
         ]);
       }
+
       if (c === "}") {
         pilha.pop();
       }
+
       trecho = "";
     } else {
       trecho += c;
     }
   }
+
   return [...porSeletor].map(([seletor, declaracoes]) => ({
     classe: classeDe(seletor),
     declaracoes: declaracoes.join("; ").replace(ESPACO, " "),
@@ -154,7 +172,7 @@ const regras = regrasDoCss(saida.slice(saida.indexOf("@layer utilities")));
 
 /** O seletor sem os nomes de classe, que podem conter a palavra focus. */
 const semClasses = (seletor: string) => seletor.replace(NOME_DE_CLASSE, "");
-const casaComFoco = (r: Regra) => FOCO.test(semClasses(r.seletor));
+const casaComFoco = (r: Regra) => semClasses(r.seletor).includes(":focus");
 const regrasDe = (classe: string) => regras.filter((r) => r.classe === classe);
 
 /** Separa as variantes do utilitário, sem cortar dentro de [] ou (). */
@@ -162,13 +180,16 @@ function partes(classe: string) {
   const segmentos: string[] = [];
   let atual = "";
   let fundo = 0;
+
   for (const c of classe) {
     if (c === "[" || c === "(") {
       fundo += 1;
     }
+
     if (c === "]" || c === ")") {
       fundo -= 1;
     }
+
     if (c === ":" && fundo === 0) {
       segmentos.push(atual);
       atual = "";
@@ -176,16 +197,20 @@ function partes(classe: string) {
       atual += c;
     }
   }
+
   return { utilitario: atual, variantes: segmentos };
 }
 
 const HOVER = /^(?:group-|peer-)?hover(?:\/[\w-]+)?$/;
+
 const ehHover = (classe: string) =>
   partes(classe).variantes.some((v) => HOVER.test(v));
 
 const CONTORNO = /(?:^|;\s*)(?:--tw-)?outline(?:-[a-z]+)?:(?!\s*none\b)/;
+
 const LARGURA_DO_ANEL =
   /--tw-(?:inset-)?ring-shadow:[^;]*calc\((\d+(?:\.\d+)?)px/;
+
 const COR_DO_ANEL = /--tw-ring-color:\s*([^;]+)/g;
 const TOKEN_DO_ANEL = /var\(--(?:sidebar-)?ring\)|^transparent$/;
 
@@ -195,8 +220,10 @@ const coresDoAnel = (r: Regra) =>
 /** Uma cor de anel da mesma variante que lê o token transparente. */
 function temCorTransparente(classe: string) {
   const prefixo = partes(classe).variantes.join(":");
+
   return regras.some((r) => {
     const cores = coresDoAnel(r);
+
     return (
       partes(r.classe).variantes.join(":") === prefixo &&
       cores.length > 0 &&
@@ -210,17 +237,23 @@ function problemaDe(r: Regra) {
   if (CONTORNO.test(r.declaracoes)) {
     return "contorno";
   }
+
   if (ehHover(r.classe)) {
     return null;
   }
+
   const cor = coresDoAnel(r).find((c) => !TOKEN_DO_ANEL.test(c));
+
   if (cor) {
     return `anel em ${cor}`;
   }
+
   const largura = Number(LARGURA_DO_ANEL.exec(r.declaracoes)?.[1] ?? 0);
+
   if (largura > 0 && !temCorTransparente(r.classe)) {
     return `anel de ${largura}px`;
   }
+
   return null;
 }
 
@@ -240,6 +273,7 @@ describe("o foco de teclado é o hover", () => {
     const seletores = regrasDe("focus-visible:ring-1").map((r) =>
       semClasses(r.seletor)
     );
+
     expect(seletores).toEqual([":not(*)"]);
   });
 
@@ -254,8 +288,10 @@ describe("o foco de teclado é o hover", () => {
     const achados = regras.filter(casaComFoco).flatMap((r) => {
       const problema = problemaDe(r);
       const arquivos = (origem.get(r.classe) ?? []).join(", ");
+
       return problema ? [`${r.classe} (${arquivos}): ${problema}`] : [];
     });
+
     expect([...new Set(achados)]).toEqual([]);
   });
 });

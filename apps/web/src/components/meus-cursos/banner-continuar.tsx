@@ -9,6 +9,7 @@ import { acaoDaRetomada } from "@/components/aluno/continuar";
 import { BOTAO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
+
 import { BarraProgresso } from "./barra-progresso";
 
 const CARTAO_DO_BANNER = cn(CARTAO, "text-card-foreground overflow-hidden");
@@ -93,8 +94,10 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
       </section>
     );
   }
+
   const onde = retomada.curso.titulo;
   const acao = acaoDaRetomada(retomada);
+
   return (
     <section
       aria-labelledby="banner-titulo"

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Conquistas } from "@cursos/api/dominio/conquistas";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -19,7 +20,8 @@ const texto = (h: string) =>
 /** O HTML depois da tag que tem `marca`, até a tag do primeiro `fim`. */
 const trecho = (h: string, marca: string, fim: string) => {
   const inicio = h.indexOf(marca);
-  return inicio < 0
+
+  return inicio === -1
     ? ""
     : h.slice(
         h.indexOf(">", inicio) + 1,
@@ -35,6 +37,7 @@ const itens = (h: string) =>
   [...h.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(([, li = ""]) => texto(li));
 
 const trilha = (h: string) => texto(trecho(h, "data-trilha", "</ol>"));
+
 const sequencia = (h: string) =>
   texto(
     trecho(h, "data-sequencia", "data-ganhas").replace(
@@ -42,6 +45,7 @@ const sequencia = (h: string) =>
       " | "
     )
   );
+
 /** O cartão Ganhas vai até a grade, ou até o fim de Marcos sem ela. */
 const cartaoDasGanhas = (h: string) =>
   trecho(
@@ -51,9 +55,12 @@ const cartaoDasGanhas = (h: string) =>
       ? 'aria-label="Medalhas por ganhar"'
       : "</section>"
   );
+
 const ganhas = (h: string) => texto(cartaoDasGanhas(h));
+
 const grade = (h: string) =>
   itens(trecho(h, 'aria-label="Medalhas por ganhar"', "</ol>"));
+
 const cartoesDaGrade = (h: string) =>
   [...h.matchAll(/<li class="([^"]*)"([^>]*data-por-ganhar="(\w+)")/g)].map(
     ([, classes = "", atributos = "", tipo]) => ({
@@ -62,12 +69,14 @@ const cartoesDaGrade = (h: string) =>
       tipo,
     })
   );
+
 const barras = (h: string) =>
   [
     ...trecho(h, 'aria-label="Medalhas por ganhar"', "</ol>").matchAll(
       /<div aria-label="([^"]+)" aria-valuemax="100" aria-valuemin="0" aria-valuenow="(\d+)"/g
     ),
   ].map(([, rotulo, valor]) => `${rotulo} ${valor}`);
+
 const certificados = (h: string) =>
   trecho(h, 'aria-labelledby="conquistas-certificados"', "</section>");
 
@@ -128,6 +137,7 @@ describe("a aluna com medalhas", () => {
     expect(trilha(h)).toBe(
       "49 aulas assistidas. Falta 1 para a medalha de 50. Cada aula assistida até o fim conta para as três medalhas. Você, 49 10 aulas Ganha em 9 de set. 50 aulas 100 aulas Faltam 51 aulas"
     );
+
     for (const peca of ["data-voce", "data-haste", "data-ponto"]) {
       expect(h).toContain(
         `${peca}="true" style="left:calc(65.83333333333333% - 28px)"`
@@ -231,6 +241,7 @@ describe("a aluna com medalhas", () => {
         /<span aria-hidden="true" class="[^"]*absolute[^"]*" data-medalha="(\w+)">(.*?)<\/span>/g
       ),
     ].map(([, estado, corpo = ""]) => `${estado} ${texto(corpo)}`.trim());
+
     expect(lacres).toEqual([
       "ganha",
       "andamento 51%",
@@ -334,6 +345,7 @@ describe("as frases que mudam com o progresso", () => {
           }) as (typeof ALUNA.medalhas)[number]
       ),
     };
+
     const h = html(todas);
     expect(ganhas(h)).toStartWith("Ganhas 10 de 10");
     expect(h).not.toContain('aria-label="Medalhas por ganhar"');
@@ -360,6 +372,7 @@ describe("as frases que mudam com o progresso", () => {
     const h = html(
       comMarco(NOVO, 3, { dia: "2026-09-25", estado: "ganha", vezes: 3 })
     );
+
     expect(sequencia(h)).toBe(
       "Sete dias seguidos Uma aula nova em 7 dias úteis seguidos. Fim de semana não quebra a sequência. Ganha em 25 de set. 3 vezes até hoje"
     );

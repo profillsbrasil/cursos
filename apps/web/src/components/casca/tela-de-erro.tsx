@@ -5,6 +5,7 @@ import { RotateCcw } from "lucide-react";
 import { useEffect } from "react";
 
 import { CARTAO } from "@/components/casca/cartoes";
+
 import { BOTAO } from "./botoes";
 
 // Corpo dos error.tsx do app: diz o que falhou e oferece tentar de novo.
@@ -22,6 +23,7 @@ export function TelaDeErro({
   useEffect(() => {
     console.error(error);
   }, [error]);
+
   return (
     <div
       className={cn(CARTAO, "grid justify-items-start gap-3 p-8")}

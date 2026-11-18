@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+
 import type { Database } from "@cursos/db";
 import { categoria } from "@cursos/db/schema/index";
 import { eq } from "drizzle-orm";
@@ -16,13 +17,16 @@ export async function categoriaDeTeste(db: Database): Promise<CategoriaId> {
     .insert(categoria)
     .values({ nome: NOME })
     .onConflictDoNothing({ target: categoria.nome });
+
   const [linha] = await db
     .select({ id: categoria.id })
     .from(categoria)
     .where(eq(categoria.nome, NOME));
+
   if (!linha) {
     throw new Error("A categoria dos testes não foi criada.");
   }
+
   return linha.id as CategoriaId;
 }
 

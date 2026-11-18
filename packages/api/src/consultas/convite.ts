@@ -34,6 +34,7 @@ interface PortasDoConvite {
 }
 
 const MS_POR_DIA = 86_400_000;
+
 const validade = (agora: Date) =>
   new Date(agora.getTime() + VALIDADE_EM_DIAS * MS_POR_DIA);
 
@@ -87,6 +88,7 @@ async function gravarConvites(
   if (emails.length === 0) {
     return { gravados: [], jaConvidados: [] };
   }
+
   try {
     return await db.transaction(async (tx) => {
       const novos = await tx
@@ -106,10 +108,12 @@ async function gravarConvites(
           where: sql`aceito_em is null and cancelado_em is null`,
         })
         .returning({ email: convite.email, id: convite.id });
+
       const gravados = novos.map((n) => ({
         email: n.email as Email,
         id: n.id as ConviteId,
       }));
+
       if (gravados.length > 0 && oQueDa.cursoIds.length > 0) {
         await tx
           .insert(conviteCurso)
@@ -119,8 +123,10 @@ async function gravarConvites(
             )
           );
       }
+
       const feitos = new Set(gravados.map((g) => g.email));
       const repetidos = emails.filter((e) => !feitos.has(e));
+
       const vivos =
         repetidos.length === 0
           ? []
@@ -128,9 +134,11 @@ async function gravarConvites(
               .select({ email: convite.email, enviadoEm: convite.enviadoEm })
               .from(convite)
               .where(and(inArray(convite.email, repetidos), VIVO));
+
       const enviadoPorEmail = new Map(
         vivos.map((v) => [v.email, v.enviadoEm !== null])
       );
+
       return {
         gravados,
         jaConvidados: repetidos.map((email) => ({
@@ -143,6 +151,7 @@ async function gravarConvites(
     if (violacaoDe(erro)?.restricao === FK_DO_CURSO) {
       throw cursoSumiu(erro);
     }
+
     throw erro;
   }
 }
@@ -162,6 +171,7 @@ async function marcarEnviado(
     .set({ clerkConviteId, enviadoEm: agora, expiraEm: validade(agora) })
     .where(and(eq(convite.id, id), VIVO))
     .returning({ id: convite.id });
+
   return linhas.length > 0;
 }
 
@@ -178,16 +188,20 @@ async function enviarUm(
 ): Promise<Envio> {
   try {
     const r = await convites.enviar(gravado.email, agora);
+
     if (r.tipo === "limite") {
       return r;
     }
+
     if (!(await marcarEnviado(db, gravado.id, r.clerkConviteId, agora))) {
       // Outro admin cancelou entre o INSERT e o envio: o link que saiu não vale.
       await convites.revogar(r.clerkConviteId);
     }
+
     return { tipo: "enviado" };
   } catch (erro) {
     console.error(`convite ${gravado.id}: o e-mail não saiu`, erro);
+
     return { tipo: "falha" };
   }
 }
@@ -208,11 +222,13 @@ export async function convidar(
 ): Promise<ResultadoDoEnvio> {
   const emails = [...new Set(pedido.emails)];
   let comConta: ReadonlyMap<Email, string>;
+
   try {
     comConta = await portas.pessoas.contasCom(emails);
   } catch (erro) {
     throw loginNaoRespondeu(erro);
   }
+
   const { gravados, jaConvidados } = await gravarConvites(
     db,
     admin,
@@ -220,24 +236,32 @@ export async function convidar(
     pedido,
     agora
   );
+
   const porEmail = new Map<Email, ResultadoDoConvite>();
+
   for (const [email, userId] of comConta) {
     porEmail.set(email, { email, tipo: "ja_tem_conta", userId });
   }
+
   for (const j of jaConvidados) {
     porEmail.set(j.email, { ...j, tipo: "ja_convidado" });
   }
+
   let limite: Date | null = null;
+
   for (const gravado of gravados) {
     const envio: Envio = limite
       ? { tentarEm: limite, tipo: "limite" }
-      : // biome-ignore lint/performance/noAwaitInLoops: um envio por vez, para o 429 parar os seguintes.
+      : // oxlint-disable-next-line no-await-in-loop -- um envio por vez, para o 429 parar os seguintes.
         await enviarUm(db, portas.convites, gravado, agora);
+
     if (envio.tipo === "limite") {
       limite = envio.tentarEm;
     }
+
     porEmail.set(gravado.email, resultadoDoEnvio(gravado.email, envio));
   }
+
   return {
     convites: emails.flatMap((email) => porEmail.get(email) ?? []),
   };
@@ -295,6 +319,7 @@ async function lerEstado(db: Database, id: ConviteId, agora: Date) {
     columns: { ...COLUNAS_DO_ESTADO, clerkConviteId: true, email: true },
     where: { id },
   });
+
   return linha ? { estado: estadoDoConvite(linha, agora), linha } : null;
 }
 
@@ -312,46 +337,58 @@ export async function reenviarConvite(
   agora: Date
 ): Promise<{ enviadoEm: Date }> {
   const lido = await lerEstado(db, id, agora);
+
   if (!lido) {
     throw naoExiste();
   }
+
   const { estado, linha } = lido;
+
   if (estado.tipo === "aceito" || estado.tipo === "cancelado") {
     throw recusaDoFim(estado, JA_ACEITOU);
   }
+
   if (
     linha.enviadoEm &&
     agora.getTime() - linha.enviadoEm.getTime() < ESPERA_DO_REENVIO_SEG * 1000
   ) {
     return { enviadoEm: linha.enviadoEm };
   }
+
   let envio: Awaited<ReturnType<Convites["enviar"]>>;
+
   try {
     envio = await convites.enviar(linha.email as Email, agora);
   } catch (erro) {
     throw emailNaoSaiu(erro);
   }
+
   if (envio.tipo === "limite") {
     throw new ErroParaAPessoa({
       code: "TOO_MANY_REQUESTS",
       message: `O limite de envios desta hora acabou. Tente de novo depois das ${horaDeSaoPaulo(envio.tentarEm)}.`,
     });
   }
+
   if (!(await marcarEnviado(db, id, envio.clerkConviteId, agora))) {
     // O convite teve fim enquanto o Clerk respondia: o link novo não vale.
     await convites.revogar(envio.clerkConviteId);
     const depois = await lerEstado(db, id, agora);
+
     if (
       depois?.estado.tipo === "aceito" ||
       depois?.estado.tipo === "cancelado"
     ) {
       throw recusaDoFim(depois.estado, JA_ACEITOU);
     }
+
     throw naoExiste();
   }
+
   if (linha.clerkConviteId) {
     await convites.revogar(linha.clerkConviteId);
   }
+
   return { enviadoEm: agora };
 }
 
@@ -371,25 +408,32 @@ export async function cancelarConvite(
     .set({ canceladoEm: agora, canceladoPor: admin })
     .where(and(eq(convite.id, id), VIVO))
     .returning({ clerkConviteId: convite.clerkConviteId });
+
   if (cancelada) {
     if (cancelada.clerkConviteId) {
       await convites.revogar(cancelada.clerkConviteId);
     }
+
     return { cancelado: true };
   }
+
   const lido = await lerEstado(db, id, agora);
+
   if (!lido) {
     throw naoExiste();
   }
+
   if (lido.estado.tipo === "aceito") {
     throw recusaDoFim(
       lido.estado,
       "Esta pessoa já aceitou o convite. Mude na ficha dela."
     );
   }
+
   if (lido.linha.clerkConviteId) {
     await convites.revogar(lido.linha.clerkConviteId);
   }
+
   return { cancelado: false };
 }
 
@@ -402,6 +446,7 @@ export async function linhasDosConvites(
   termo: string
 ): Promise<LinhasDosConvites> {
   const trecho = termo.toLowerCase().replace(ESCAPE_DO_LIKE, "\\$&");
+
   const [convidados, total, cursos] = await Promise.all([
     db.query.convite.findMany({
       columns: {
@@ -431,6 +476,7 @@ export async function linhasDosConvites(
       orderBy: { titulo: "asc" },
     }),
   ]);
+
   return {
     convidados: convidados.map((c) => ({
       ...c,
@@ -466,13 +512,16 @@ export async function reivindicarConvite(
       id: convite.id,
       perfil: convite.perfil,
     });
+
   if (!aceito) {
     return null;
   }
+
   const cursos = await aluno.tx
     .select({ cursoId: conviteCurso.cursoId })
     .from(conviteCurso)
     .where(eq(conviteCurso.conviteId, aceito.id));
+
   return {
     comoAdmin: aceito.comoAdmin,
     // Só o adminProcedure chega ao INSERT de convite.
@@ -510,9 +559,11 @@ export function aplicarPapelDoConvite(
       .where(
         and(papelPorAplicar(userId), gt(convite.aceitoEm, aceitoDesde(agora)))
       );
+
     if (!pendente) {
       return;
     }
+
     await pessoas.definirPapel(userId, "admin");
     await tx
       .update(convite)

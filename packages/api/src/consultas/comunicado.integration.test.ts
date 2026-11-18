@@ -3,6 +3,7 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import { comunicado, curso, perfilDaPessoa } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -40,6 +41,7 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
   function novoId() {
     const id = crypto.randomUUID() as ComunicadoId;
     comunicados.push(id);
+
     return id;
   }
 
@@ -57,10 +59,13 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
         titulo: `Curso do comunicado ${S} ${cursos.length}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id as CursoId);
+
     return c.id as CursoId;
   }
 
@@ -141,9 +146,11 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
 
   test("curso que não existe é recusado com mensagem para a pessoa e não grava", async () => {
     const id = novoId();
+
     const erro = await comoAdmin()
       .salvar({ cursoId: crypto.randomUUID(), id, texto: "x", titulo: "x" })
       .catch((e: unknown) => e);
+
     expect(erro).toBeInstanceOf(ErroParaAPessoa);
     expect(erro).toMatchObject({ code: "NOT_FOUND" });
     expect(await linhasDe(id)).toEqual([]);

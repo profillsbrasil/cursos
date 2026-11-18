@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -41,11 +42,13 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
     alunos.push(userId);
     // Direto na tabela: quem já era Funcionário antes do bônus não o tem.
     await db.insert(perfilDaPessoa).values({ perfil, userId });
+
     return userId;
   }
 
   async function cursoDoPerfil(precoTroca: number | null, ...perfis: Perfil[]) {
     const slug = `teste-${hex()}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -61,14 +64,18 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 1, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     const [a] = await db
       .insert(aula)
       .values({
@@ -78,10 +85,12 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
         titulo: "Aula",
       })
       .returning({ id: aula.id });
+
     for (const perfil of perfis) {
-      // biome-ignore lint/performance/noAwaitInLoops: poucas linhas de preparo.
+      // oxlint-disable-next-line no-await-in-loop -- poucas linhas de preparo.
       await liberarParaPerfil(db, ADMIN, perfil, c.id as CursoId, AGORA);
     }
+
     return { aulaId: a?.id ?? "", id: c.id as CursoId };
   }
 
@@ -99,6 +108,7 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
       .from(pontoLancamento)
       .where(inArray(pontoLancamento.userId, alunos))
       .orderBy(asc(pontoLancamento.userId), asc(pontoLancamento.pontos));
+
     const liberacoes = await db
       .select({
         cursoId: liberacao.cursoId,
@@ -108,6 +118,7 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
       .from(liberacao)
       .where(inArray(liberacao.userId, alunos))
       .orderBy(asc(liberacao.userId));
+
     return { lancamentos, liberacoes };
   }
 
@@ -153,12 +164,14 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, alunos));
+
     if (cursos.length > 0) {
       await db
         .delete(liberacaoDoPerfil)
         .where(inArray(liberacaoDoPerfil.cursoId, cursos));
       await db.delete(curso).where(inArray(curso.id, cursos));
     }
+
     await db.$client.end();
   });
 
@@ -202,10 +215,12 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
   test("gravando, dá o bônus, troca o que estudou e pula o sem preço", async () => {
     await rodar(true);
     const { lancamentos, liberacoes } = await gravado();
+
     const doAluno = (userId: string) =>
       lancamentos
         .filter((l) => l.userId === userId)
         .map((l) => [l.motivo, l.pontos]);
+
     // A troca lança a aula assistida antes dela e conclui o curso de uma aula.
     expect(doAluno(estudou)).toEqual([
       ["troca", -PRECO],

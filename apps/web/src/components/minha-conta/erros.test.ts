@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { ClerkAPIResponseError, ClerkRuntimeError } from "@clerk/nextjs/errors";
 
 import { FRASE_GENERICA, fraseDoErro } from "./erros";
@@ -54,6 +55,7 @@ describe("fraseDoErro", () => {
     const cancelada = new ClerkRuntimeError("cancelada", {
       code: "reverification_cancelled",
     });
+
     expect(fraseDoErro(cancelada)).toBe(
       "Você não confirmou quem é, então nada mudou."
     );

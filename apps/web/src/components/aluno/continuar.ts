@@ -41,6 +41,7 @@ function textos(r: Retomada) {
       };
     case "questionario": {
       const faltamN = r.questionarios.total - r.questionarios.feitas;
+
       return {
         chamada: `${faltam(faltamN)} ${plural(faltamN, "questionário", "questionários")}`,
         chamadaAqui: "Você está no questionário",
@@ -48,8 +49,10 @@ function textos(r: Retomada) {
         titulo: `Questionário · ${r.aula.titulo}`,
       };
     }
+
     default: {
       const nenhum: never = r;
+
       return nenhum;
     }
   }
@@ -60,8 +63,10 @@ export function continuarDe(retomada: Retomada | null): Continuar | null {
   if (!retomada) {
     return null;
   }
+
   const t = textos(retomada);
   const porcentagem = t.pct === null ? "" : `, ${t.pct}% do curso`;
+
   return {
     ...t,
     curso: retomada.curso.titulo,
@@ -82,7 +87,9 @@ export function acaoDaRetomada(retomada: Retomada | null): AcaoDaRetomada {
   if (!retomada) {
     return { href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" };
   }
+
   const href = hrefDaRetomada(retomada);
+
   switch (retomada.tipo) {
     case "comecar":
       return { href, icone: "play", texto: "Começar curso" };

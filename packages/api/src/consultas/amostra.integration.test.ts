@@ -5,6 +5,7 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   alternativa,
@@ -56,6 +57,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const userId = `user_amostra${S}x${alunos.length}`;
     alunos.push(userId);
     await definirPerfil(db, ADMIN, userId, "cliente", AGORA);
+
     if (pontos > 0) {
       await db.insert(pontoLancamento).values({
         criadoEm: AGORA,
@@ -65,6 +67,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
         userId,
       });
     }
+
     return {
       // Cada leitura é um pedido novo, como cada página no app.
       get caller() {
@@ -91,6 +94,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     o: { aulas?: number; perguntas?: boolean; preco?: number | null } = {}
   ) {
     const slug = `teste-${hex()}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -106,19 +110,24 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
     const total = o.aulas ?? 3;
+
     const [depois] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 1, titulo: "Depois" })
       .returning({ id: modulo.id });
+
     const [antes] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 0, titulo: "Antes" })
       .returning({ id: modulo.id });
+
     const novaAula = async (moduloId: string, posicao: number, n: number) => {
       const [a] = await db
         .insert(aula)
@@ -131,13 +140,16 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
+
       if (o.perguntas === false) {
         return { certa: "", id: (a?.id ?? "") as AulaId, pergunta: "" };
       }
+
       const [p] = await db
         .insert(pergunta)
         .values({ aulaId: a?.id ?? "", enunciado: "Pergunta", posicao: 1 })
         .returning({ id: pergunta.id });
+
       const alts = await db
         .insert(alternativa)
         .values(
@@ -149,19 +161,23 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           }))
         )
         .returning({ id: alternativa.id });
+
       return {
         certa: alts[0]?.id ?? "",
         id: (a?.id ?? "") as AulaId,
         pergunta: p?.id ?? "",
       };
     };
+
     const aulas: Awaited<ReturnType<typeof novaAula>>[] = [
       await novaAula(antes?.id ?? "", 1, 1),
     ];
+
     for (let i = 1; i < total; i += 1) {
-      // biome-ignore lint/performance/noAwaitInLoops: as aulas do teste entram em ordem.
+      // oxlint-disable-next-line no-await-in-loop -- as aulas do teste entram em ordem.
       aulas.push(await novaAula(depois?.id ?? "", i, i + 1));
     }
+
     const [m] = await db
       .insert(material)
       .values({
@@ -174,7 +190,9 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
         titulo: "Manual",
       })
       .returning({ id: material.id });
+
     await liberarParaPerfil(db, ADMIN, "cliente", c.id as CursoId, AGORA);
+
     return { aulas, id: c.id as CursoId, material: m?.id ?? "", slug };
   }
 
@@ -210,12 +228,14 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, alunos));
+
     if (cursos.length > 0) {
       await db
         .delete(liberacaoDoPerfil)
         .where(inArray(liberacaoDoPerfil.cursoId, cursos));
       await db.delete(curso).where(inArray(curso.id, cursos));
     }
+
     await db.$client.end();
   });
 
@@ -224,9 +244,11 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const pessoa = await cliente(120);
     const painel = await pessoa.caller.meusCursos.painel();
     const [primeira] = c.aulas;
+
     if (!primeira) {
       throw new Error("uma aula");
     }
+
     const a1 = primeira.id;
     const naGrade = painel.cursos.find((x) => x.slug === c.slug);
     expect(naGrade?.amostra).toEqual({
@@ -258,6 +280,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const c = await cursoComAmostra();
     const pessoa = await cliente(500);
     const [a1, a2] = c.aulas;
+
     if (!(a1 && a2)) {
       throw new Error("duas aulas");
     }
@@ -266,6 +289,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       aulaId: a1.id,
       slug: c.slug,
     });
+
     expect(aberta?.aula.id).toBe(a1.id);
     expect(aberta?.questionario).toBeNull();
     expect(aberta?.proxima).toBeNull();
@@ -282,6 +306,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     expect(await assistir(pessoa.caller, a2.id).catch(codigo)).toBe(
       "NOT_FOUND"
     );
+
     const responder = (a: (typeof c.aulas)[number]) =>
       pessoa.caller.questionario
         .responder({
@@ -290,12 +315,14 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           tentativaId: randomUUID(),
         })
         .catch(codigo);
+
     expect(await responder(a1)).toBe("PRECONDITION_FAILED");
     expect(await responder(a2)).toBe("NOT_FOUND");
     expect(await pessoa.caller.curso.material({ id: c.material })).toBeNull();
     expect(await pessoa.caller.certificado.pagina({ slug: c.slug })).toBeNull();
     const conquistas = await pessoa.caller.aluno.conquistas();
     expect(JSON.stringify(conquistas.certificados)).not.toContain(c.slug);
+
     const posicoes = await db
       .select()
       .from(posicaoAula)
@@ -305,6 +332,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           eq(posicaoAula.aulaId, a2.id)
         )
       );
+
     expect(posicoes).toEqual([]);
   });
 
@@ -312,19 +340,25 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const c = await cursoComAmostra({ aulas: 1 });
     const pessoa = await cliente();
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("uma aula");
     }
+
     const r = await assistir(pessoa.caller, a1.id);
     expect(r.assistida).toBe(true);
     expect(r.conquista).toBeNull();
+
     const fatos = await db.query.aulaAssistida.findMany({
       where: { userId: pessoa.userId },
     });
+
     expect(fatos.map((f) => f.aulaId)).toEqual([a1.id]);
+
     const posicao = await db.query.posicaoAula.findFirst({
       where: { aulaId: a1.id, userId: pessoa.userId },
     });
+
     expect(posicao?.posicaoSeg).toBe(60);
     expect(await lancamentosDe(pessoa.userId)).toEqual([]);
     // A amostra do curso de uma aula só também não emite o certificado, nem pela edição do admin.
@@ -338,9 +372,11 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const c = await cursoComAmostra();
     const pessoa = await cliente(500);
     const [a1, a2] = c.aulas;
+
     if (!(a1 && a2)) {
       throw new Error("duas aulas");
     }
+
     await assistir(pessoa.caller, a1.id);
     expect(await lancamentosDe(pessoa.userId)).toHaveLength(1);
 
@@ -371,9 +407,11 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const c = await cursoComAmostra({ aulas: 1, perguntas: false });
     const pessoa = await cliente();
     const [a1] = c.aulas;
+
     if (!a1) {
       throw new Error("uma aula");
     }
+
     await assistir(pessoa.caller, a1.id);
     expect(await lancamentosDe(pessoa.userId)).toEqual([]);
 
@@ -384,6 +422,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       c.id,
       AGORA
     );
+
     expect(r.nova).toBe(true);
     const depois = await lancamentosDe(pessoa.userId);
     expect(depois.map((l) => [l.motivo, l.pontos]).sort()).toEqual([

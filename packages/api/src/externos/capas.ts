@@ -4,6 +4,7 @@
 // é uma capa aceitável mora em dominio/capa.ts.
 
 import { createHash } from "node:crypto";
+
 import { AwsClient } from "aws4fetch";
 import { imageSize } from "image-size";
 
@@ -31,6 +32,7 @@ const TIPOS = {
   png: "image/png",
   webp: "image/webp",
 } as const;
+
 type Extensao = keyof typeof TIPOS;
 
 const ehExtensao = (tipo: string | undefined): tipo is Extensao =>
@@ -53,23 +55,29 @@ const recusa = (r: RecusaDaCapa) => ({ recusa: r, tipo: "recusa" }) as const;
 /** Formato e medida pelo conteúdo, não pelo content-type que o navegador manda. */
 export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
   let medida: ReturnType<typeof imageSize>;
+
   try {
     medida = imageSize(bytes);
   } catch {
     return recusa({ tipo: "formato" });
   }
+
   if (!ehExtensao(medida.type)) {
     return recusa({ tipo: "formato" });
   }
+
   // EXIF 5 a 8 gira 90 graus: o navegador mostra a imagem com os lados trocados.
   const girada = (medida.orientation ?? 1) >= 5;
   const largura = girada ? medida.height : medida.width;
   const altura = girada ? medida.width : medida.height;
   const daMedida = recusaDaMedida(largura, altura);
+
   if (daMedida) {
     return recusa(daMedida);
   }
+
   const hash = createHash("sha256").update(bytes).digest("hex");
+
   return {
     altura,
     bytes,
@@ -99,7 +107,9 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
     secretAccessKey: cfg.segredo,
     service: "s3",
   });
+
   const endpoint = new URL(cfg.endpoint);
+
   const doObjeto = (chave: string) =>
     `${endpoint.protocol}//${cfg.bucket}.${endpoint.host}/${chave}`;
 
@@ -114,6 +124,7 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
       const resposta = await enviar(
         await aws.sign(doObjeto(chave), { method: "DELETE" })
       );
+
       if (!(resposta.ok || resposta.status === 404)) {
         throw await recusado(`apagar ${chave}`, resposta);
       }
@@ -128,10 +139,11 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
         headers: { "content-type": contentType },
         method: "PUT",
       });
+
       // Os bytes vão de novo, e não o corpo do Request assinado: o fetch do Next
       // manda o corpo de um Request em chunked, sem content-length, e o S3 que
       // exige o tamanho responde 411.
-      return enviar(assinado.url, {
+      return await enviar(assinado.url, {
         body: bytes,
         headers: assinado.headers,
         method: "PUT",
@@ -141,25 +153,32 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
     async listar(): Promise<ObjetoDoBucket[]> {
       const objetos: ObjetoDoBucket[] = [];
       let continuacao: string | undefined;
+
       do {
         const url = new URL(doObjeto(""));
         url.searchParams.set("list-type", "2");
+
         if (continuacao) {
           url.searchParams.set("continuation-token", continuacao);
         }
-        // biome-ignore lint/performance/noAwaitInLoops: cada página pede o token da anterior.
+
+        // oxlint-disable no-await-in-loop -- cada página pede o token da anterior.
         const resposta = await enviar(await aws.sign(url.toString()));
+
         if (!resposta.ok) {
           throw await recusado("a listagem", resposta);
         }
+
         const pagina = lerPaginaDaListagem(await resposta.text());
         objetos.push(...pagina.objetos);
         ({ continuacao } = pagina);
+        // oxlint-enable no-await-in-loop
       } while (continuacao);
+
       return objetos;
     },
     pedir: async (chave: string, method: "GET" | "HEAD" = "GET") =>
-      enviar(await aws.sign(doObjeto(chave), { method })),
+      await enviar(await aws.sign(doObjeto(chave), { method })),
   };
 }
 
@@ -170,11 +189,13 @@ const ENTIDADES: Record<string, string> = {
   "&lt;": "<",
   "&quot;": '"',
 };
+
 const ENTIDADE = /&(amp|apos|gt|lt|quot);/g;
 const CONTEUDO = /<Contents>([\s\S]*?)<\/Contents>/g;
 
 function campo(xml: string, nome: string): string | undefined {
   const achado = new RegExp(`<${nome}>([^<]*)</${nome}>`).exec(xml)?.[1];
+
   return achado?.replace(ENTIDADE, (e) => ENTIDADES[e] ?? e);
 }
 
@@ -187,12 +208,16 @@ export function lerPaginaDaListagem(xml: string): {
     const chave = campo(item, "Key");
     const modificadoEm = new Date(campo(item, "LastModified") ?? "");
     const bytes = Number(campo(item, "Size"));
+
     if (!chave || Number.isNaN(modificadoEm.getTime()) || Number.isNaN(bytes)) {
       throw new Error(`Objeto ilegível na listagem do bucket: ${item}`);
     }
+
     return { bytes, chave, modificadoEm };
   });
+
   const truncada = campo(xml, "IsTruncated") === "true";
+
   return {
     continuacao: truncada ? campo(xml, "NextContinuationToken") : undefined,
     objetos,
@@ -215,10 +240,13 @@ export function capasNoBucket(
       if (!CHAVE.test(chave)) {
         return null;
       }
+
       const resposta = await bucket.pedir(chave);
+
       if (resposta.status === 404) {
         return null;
       }
+
       if (!resposta.ok) {
         console.error(
           "Bucket recusou a leitura da capa:",
@@ -227,22 +255,28 @@ export function capasNoBucket(
         );
         throw new Error("Não foi possível ler a capa.");
       }
+
       return resposta;
     },
     async receber(arquivo) {
       const pesada = recusaDoTamanho(arquivo.size);
+
       if (pesada) {
         return recusa(pesada);
       }
+
       const lida = lerCapa(new Uint8Array(await arquivo.arrayBuffer()));
+
       if (lida.tipo === "recusa") {
         return lida;
       }
+
       const resposta = await bucket.guardar(
         lida.chave,
         lida.bytes,
         lida.contentType
       );
+
       if (!resposta.ok) {
         console.error(
           "Bucket recusou a capa:",
@@ -251,6 +285,7 @@ export function capasNoBucket(
         );
         throw new Error("Não foi possível enviar a capa. Tente de novo.");
       }
+
       return {
         imagem: {
           altura: lida.altura,

@@ -7,6 +7,7 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
@@ -20,7 +21,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "player.entrada.tsx");
 const VIDEO_FALSO = join(import.meta.dir, "video-falso.js");
@@ -184,33 +185,42 @@ async function empacotar(comYoutube = false) {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote do player não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
 }));
+
 const { PlayerDaAula } = await import("./player-da-aula");
-const { default: CarregandoAula } = await import(
-  "../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading"
-);
+
+const { default: CarregandoAula } =
+  await import("../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading");
+
 const ESQUELETO = renderToStaticMarkup(<CarregandoAula />);
 const { FimDoVideo } = await import("./fim-do-video");
 
 // A página da aula, como o page.tsx a monta, com a coluna do curso no lugar.
 const PAGINA =
   "grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]";
+
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
 const SEPARADOR_DE_CLASSES = /[\s"'`]+/;
+
 const classesDe = (h: string) =>
   [...h.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO));
+
 // As folhas dos ajustes e dos atalhos e o vídeo escondido no fim só existem depois
 // do clique ou do evento: as classes deles vêm do código-fonte, lido como texto, como
 // o Tailwind do app faz.
@@ -223,7 +233,9 @@ const fontes = await Promise.all(
     "status-do-player.tsx",
   ].map((f) => file(join(import.meta.dir, f)).text())
 );
+
 const nada = () => undefined;
+
 const css = await cssDoApp([
   ...classesDe(
     renderToStaticMarkup(
@@ -247,6 +259,7 @@ let pacoteComYoutube: string;
 // No celular a casca não tem sidebar nem moldura, e o conteúdo tem 16 px dos lados.
 const CASCA_DO_COMPUTADOR =
   '<div style="flex:none;width:68px"></div><main style="flex:1;min-width:0;margin:10px 10px 10px 0;padding:32px clamp(1rem,4vw,3rem) 64px">';
+
 const CASCA_DO_CELULAR =
   '<main style="flex:1;min-width:0;padding:24px 16px 64px">';
 
@@ -318,19 +331,24 @@ function esperar(condicao: string) {
 
 const clicar = (seletor: string) =>
   avaliar(enviar, `document.querySelector(${JSON.stringify(seletor)}).click()`);
+
 const clicarNoTexto = (texto: string) =>
   avaliar(
     enviar,
     `[...document.querySelectorAll("button, a")].find((b) => b.textContent.trim() === ${JSON.stringify(texto)}).click()`
   );
+
 const pedidos = () => avaliar<string[]>(enviar, "window.pedidos.splice(0)");
+
 const emitir = (evento: Record<string, unknown>) =>
   avaliar(enviar, `window.emitir(${JSON.stringify(evento)})`);
+
 const teclar = (key: string) =>
   avaliar(
     enviar,
     `document.getElementById("video").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: ${JSON.stringify(key)} }))`
   );
+
 /** Uma tecla de verdade, pelo DevTools, com o keydown e o keyup que o browser gera. */
 const TECLAS: Record<string, { code: string; vk: number }> = {
   ArrowLeft: { code: "ArrowLeft", vk: 37 },
@@ -339,6 +357,7 @@ const TECLAS: Record<string, { code: string; vk: number }> = {
   Escape: { code: "Escape", vk: 27 },
   Tab: { code: "Tab", vk: 9 },
 };
+
 async function apertar(key: string) {
   const { code, vk } = TECLAS[key] ?? { code: key, vk: 0 };
   const base = { code, key, windowsVirtualKeyCode: vk };
@@ -353,38 +372,47 @@ async function apertar(key: string) {
     "new Promise((r) => requestAnimationFrame(() => r(0)))"
   );
 }
+
 /** Cada parada do Tab até o controle com o rótulo pedido, em no máximo 10 Tabs. */
 async function tabAte(
   rotulo: string,
   paradas: string[] = []
 ): Promise<string[]> {
   await apertar("Tab");
+
   const parada = await avaliar<string>(
     enviar,
     `(() => { const a = document.activeElement; return a.tagName + " " + (a.getAttribute("aria-label") ?? a.textContent.trim()); })()`
   );
+
   const ate = [...paradas, parada];
+
   return parada.includes(rotulo) || ate.length >= 10
     ? ate
-    : tabAte(rotulo, ate);
+    : await tabAte(rotulo, ate);
 }
+
 /** A mesma tecla várias vezes, uma depois da outra. */
 const apertarVezes = (key: string, vezes: number) =>
   Array.from({ length: vezes }).reduce<Promise<void>>(
     (anterior) => anterior.then(() => apertar(key)),
     Promise.resolve()
   );
+
 const focado = () =>
   avaliar<string | null>(
     enviar,
     `document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent ?? null`
   );
+
 const pressionado = (seletor: string) =>
   avaliar<string | null>(
     enviar,
     `document.querySelector(${JSON.stringify(seletor)})?.getAttribute("aria-pressed") ?? null`
   );
+
 const FOLHA_DOS_AJUSTES = '[role="dialog"][aria-label="Ajustes"]';
+
 /** A velocidade marcada nos Ajustes, pelo rótulo dela. */
 const velocidadeMarcada = () =>
   avaliar<string | null>(
@@ -439,6 +467,7 @@ async function assistirAteOFim() {
   await emitir({ tipo: "terminou" });
   await esperar(`document.body.textContent.includes("aula assistida")`);
 }
+
 const LISTA_DE_ATALHOS = '[role="dialog"]:not([aria-label="Ajustes"])';
 
 describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
@@ -473,6 +502,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
   ] as const) {
     test(`em ${largura} x ${altura}, a barra de controles e a Próxima aula cabem na janela sem rolar`, async () => {
       await abrir(largura, altura);
+
       const medida = await avaliar<{
         controles: number;
         navegacao: number;
@@ -494,6 +524,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
           };
         })()`
       );
+
       expect(medida.rolou).toBe(0);
       expect(medida.controles).toBeLessThanOrEqual(medida.visivel);
       expect(medida.navegacao).toBeLessThanOrEqual(medida.visivel);
@@ -515,6 +546,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       expect(transborda).toBe(false);
       // Uma linha só: todas as peças no meio do botão de reproduzir, a 1 px.
       const linha = topos.reproduzir;
+
       for (const [peca, topo] of Object.entries(topos)) {
         expect({ peca, umaLinha: Math.abs(topo - linha) <= 1 }).toEqual({
           peca,
@@ -532,12 +564,14 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       expect(transborda).toBe(false);
       const { tempo, visto, ...botoes } = topos;
       const emCima = topos.reproduzir;
+
       for (const [peca, topo] of Object.entries(botoes)) {
         expect({ emCima: Math.abs(topo - emCima) <= 1, peca }).toEqual({
           emCima: true,
           peca,
         });
       }
+
       expect(tempo).toBeGreaterThan(emCima);
       expect(Math.abs(visto - tempo)).toBeLessThanOrEqual(1);
     });
@@ -550,12 +584,14 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     expect(transborda).toBe(false);
     const { som, tempo, visto, ...botoes } = topos;
     const emCima = topos.reproduzir;
+
     for (const [peca, topo] of Object.entries(botoes)) {
       expect({ emCima: Math.abs(topo - emCima) <= 1, peca }).toEqual({
         emCima: true,
         peca,
       });
     }
+
     expect(tempo).toBeGreaterThan(emCima);
     expect(Math.abs(som - tempo)).toBeLessThanOrEqual(1);
     expect(Math.abs(visto - tempo)).toBeLessThanOrEqual(1);
@@ -563,6 +599,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
 
   test("enquanto o vídeo carrega, o player fica ocupado e os botões desligados pulsam", async () => {
     await abrir(1440, 900);
+
     const sinal = () =>
       avaliar<{ ocupado: string | null; pulso: string[] }>(
         enviar,
@@ -574,6 +611,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
           }),
         })`
       );
+
     expect(await sinal()).toEqual({
       ocupado: "true",
       pulso: ["desligado pulse", "desligado pulse", "desligado pulse"],
@@ -599,21 +637,26 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       await abrirEsqueleto(largura, altura, celular);
       // A barra de rolagem depende do que vem abaixo do player, que o esqueleto não sabe.
       await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
+
       const esqueleto = await avaliar<{ altura: number; topo: number }>(
         enviar,
         `(() => { const r = document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`
       );
+
       await abrir(largura, altura, false, celular);
       await emitir({ duracaoSeg: 634, tipo: "pronto" });
       await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
+
       const player = await avaliar<{ altura: number; topo: number }>(
         enviar,
         `(() => { const r = document.getElementById("video").getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`
       );
+
       expect({ altura: esqueleto.altura, largura }).toEqual({
         altura: player.altura,
         largura,
       });
+
       // Em 320 px a linha do módulo desta aula quebra em duas, e o esqueleto tem uma.
       if (largura > 320) {
         expect({ largura, topo: esqueleto.topo }).toEqual({
@@ -657,10 +700,12 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await esperar(
       `document.querySelector('${LISTA_DE_ATALHOS}') && !document.querySelector('${FOLHA_DOS_AJUSTES}')`
     );
+
     const lista = await avaliar<string>(
       enviar,
       `document.querySelector('${LISTA_DE_ATALHOS}').textContent`
     );
+
     expect(lista).toContain("Atalhos do teclado");
     expect(lista).toContain("Liga e desliga a legenda");
 
@@ -797,6 +842,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+
     const sinal = () =>
       avaliar<{
         cor: string;
@@ -820,6 +866,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
           });
         }, 250))`
       );
+
     const TRILHO = "rgb(77, 82, 87)";
     const TITULO = "rgb(244, 245, 247)";
     const POPOVER = "rgb(58, 63, 69)";
@@ -845,6 +892,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
     await clicar('button[aria-label="Ajustes"]');
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
+
     // A folha cresce de 95% ao abrir: a medida espera os 150 ms da entrada.
     const medida = await avaliar<{ folha: number[]; linha: number[] }>(
       enviar,
@@ -858,6 +906,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         });
       }, 250))`
     );
+
     expect(medida.linha).toEqual(medida.folha);
   });
 
@@ -877,6 +926,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await emitir({ tipo: "tocou" });
     await emitir({ tipo: "terminou" });
     await esperar(`document.body.textContent.includes("Fim do vídeo")`);
+
     const fim = await avaliar<{
       iframeNoLugar: boolean;
       iframeVisivel: boolean;
@@ -893,6 +943,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         };
       })()`
     );
+
     expect(fim).toEqual({
       iframeNoLugar: true,
       iframeVisivel: false,
@@ -925,10 +976,12 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
   test("a dica de um controle nasce dentro do player, que é o que a tela cheia mostra", async () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
+
     const { x, y } = await avaliar<{ x: number; y: number }>(
       enviar,
       `(() => { const r = document.querySelector('[aria-label="Voltar 10 segundos"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`
     );
+
     await enviar("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
     await esperar(
       `[...document.querySelectorAll("[data-side]")].some((d) => d.textContent.includes("Voltar 10 s"))`

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
 import { semana, sequenciaDiasUteis } from "@cursos/api/dominio/sequencia";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
@@ -12,6 +13,7 @@ const SABADO = "2026-10-17" as DiaISO;
 /** A semana de 12 a 18 de outubro de 2026, montada pelo domínio: dias, nomes e sequência. */
 const resumo = (estudados: readonly string[], hoje: DiaISO): ResumoAluno => {
   const dias = new Set(estudados as DiaISO[]);
+
   return {
     bonus: 30,
     dias: semana(dias, hoje),
@@ -23,10 +25,12 @@ const resumo = (estudados: readonly string[], hoje: DiaISO): ResumoAluno => {
 };
 
 const ZERO = resumo([], QUINTA);
+
 const TRES_PENDENTE = resumo(
   ["2026-10-12", "2026-10-13", "2026-10-14"],
   QUINTA
 );
+
 const QUATRO_FEITO = resumo(
   ["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15"],
   QUINTA

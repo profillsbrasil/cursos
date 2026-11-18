@@ -70,6 +70,7 @@ import {
 } from "./rascunho-do-editor";
 
 const ESCOLHER = "material-escolher";
+
 const ACEITOS = Object.keys(TIPOS_DE_MATERIAL)
   .map((t) => `.${t}`)
   .join(",");
@@ -115,7 +116,9 @@ export function resumoDoMaterial(
   if (materiais.length === 0) {
     return "Nenhum arquivo";
   }
+
   const total = materiais.reduce((s, m) => s + m.bytes, 0);
+
   return `${plural(materiais.length, "arquivo", "arquivos")}, ${tamanhoDoArquivo(total)}`;
 }
 
@@ -137,6 +140,7 @@ function Alca({
     },
     [aoComecar, controles]
   );
+
   return (
     // Só o ponteiro arrasta; o teclado e o leitor de tela usam as setas da linha.
     <span
@@ -190,11 +194,13 @@ function LinhaDoMaterial({
   const saiuDoCampo = useContext(SaiuDoCampo);
   const sair = useCallback(() => saiuDoCampo(campo), [campo, saiuDoCampo]);
   const nome = material.titulo.trim() || material.nomeDoArquivo;
+
   const renomear = useCallback(
     (e: ChangeEvent<HTMLInputElement>) =>
       despachar({ id, tipo: "material_renomeado", titulo: e.target.value }),
     [despachar, id]
   );
+
   const mover = useCallback(
     (direcao: Direcao) => {
       const destino = direcao === "acima" ? indice - 1 : indice + 1;
@@ -205,12 +211,15 @@ function LinhaDoMaterial({
     },
     [despachar, id, indice, total]
   );
+
   const subir = useCallback(() => mover("acima"), [mover]);
   const descer = useCallback(() => mover("abaixo"), [mover]);
+
   const tirar = useCallback(() => {
     despachar({ id, tipo: "material_removido" });
     focarDepois(proximo);
   }, [despachar, id, proximo]);
+
   return (
     <Reorder.Item
       _dragX={deslizeHorizontal}
@@ -298,11 +307,14 @@ function LinhaDoEnvio({
   proximo: string;
 }) {
   const { estado, id, nomeDoArquivo } = envio;
+
   const tirar = useCallback(() => {
     despachar({ id, tipo: "envio_tirado" });
     focarDepois(proximo);
   }, [despachar, id, proximo]);
+
   const recusado = estado.tipo === "recusado";
+
   return (
     <Reorder.Item
       className={LINHA}
@@ -358,6 +370,7 @@ function LinhaDoEnvio({
 
 function envioDe(arquivo: File): EnvioDeMaterial {
   const recusa = recusaAntesDeLer(arquivo.name, arquivo.size);
+
   return {
     bytes: arquivo.size,
     estado: recusa
@@ -387,11 +400,14 @@ export function MaterialDeApoio({
   const entrada = useRef<HTMLInputElement>(null);
   const [arrastando, setArrastando] = useState(false);
   const [movendo, setMovendo] = useState<MaterialId | null>(null);
+
   const movimento = movimentoDasLinhas(
     movendo !== null,
     useReducedMotion() ?? false
   );
+
   const soltar = useCallback(() => setMovendo(null), []);
+
   const reordenar = useCallback(
     (ids: MaterialId[]) => {
       if (movendo) {
@@ -410,13 +426,16 @@ export function MaterialDeApoio({
       if (arquivos.length === 0) {
         return;
       }
+
       const novos = dentroDoLimite(estado, arquivos.map(envioDe));
       despachar({ envios: novos, tipo: "materiais_escolhidos" });
       novos.forEach((envio, i) => {
         const arquivo = arquivos[i];
+
         if (envio.estado.tipo !== "enviando" || !arquivo) {
           return;
         }
+
         executar(
           () =>
             trpcClient.admin.catalogo.enviarMaterial.mutate(
@@ -449,14 +468,18 @@ export function MaterialDeApoio({
     },
     [enviar]
   );
+
   const abrirEscolha = useCallback(() => entrada.current?.click(), []);
+
   const sobre = useCallback((e: DragEvent<HTMLDivElement>) => {
     if (e.dataTransfer.types.includes("Files")) {
       e.preventDefault();
       setArrastando(true);
     }
   }, []);
+
   const fora = useCallback(() => setArrastando(false), []);
+
   const soltou = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -467,20 +490,23 @@ export function MaterialDeApoio({
   );
 
   const vazio = linhas.length === 0;
+
   const comTirar = linhas.filter(
     (l) => l.tipo === "material" || l.envio.estado.tipo === "recusado"
   );
+
   const proximoDe = (l: LinhaDaLista) => {
     const fica = vizinhoQueFica(comTirar, comTirar.indexOf(l));
+
     return fica ? tirarDe(idDaLinha(fica)) : ESCOLHER;
   };
+
   return (
     <Secao
       id="material"
       resumo={resumoDoMaterial(materiais)}
       titulo="Material de apoio"
     >
-      {/* biome-ignore lint/a11y: soltar arquivo é atalho do mouse, e o teclado usa o Escolher arquivos. */}
       <div
         className={cn(
           "ease-forte rounded-[20px] transition-shadow duration-150",

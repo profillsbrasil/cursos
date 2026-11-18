@@ -1,4 +1,5 @@
 import { describe, expect, spyOn, test } from "bun:test";
+
 import type { ClerkClient } from "@clerk/backend";
 import { ClerkAPIResponseError } from "@clerk/backend/errors";
 
@@ -22,15 +23,18 @@ const recusa = (status: number, retryAfter?: number) =>
 describe("convitesDoClerk.enviar", () => {
   test("manda o e-mail com o link de criar conta, sem metadata, e devolve o id do Clerk", async () => {
     const pedidos: unknown[] = [];
+
     const convites = convitesDoClerk(
       clerkQue({
         createInvitation: (pedido: unknown) => {
           pedidos.push(pedido);
+
           return Promise.resolve({ id: "inv_1", status: "pending" });
         },
       }),
       { criarConta: CRIAR_CONTA }
     );
+
     expect(await convites.enviar(ANA, AGORA)).toEqual({
       clerkConviteId: "inv_1",
       tipo: "enviado",
@@ -51,6 +55,7 @@ describe("convitesDoClerk.enviar", () => {
       clerkQue({ createInvitation: () => Promise.reject(recusa(429, 120)) }),
       { criarConta: CRIAR_CONTA }
     );
+
     expect(await convites.enviar(ANA, AGORA)).toEqual({
       tentarEm: new Date("2026-11-11T15:02:00Z"),
       tipo: "limite",
@@ -62,6 +67,7 @@ describe("convitesDoClerk.enviar", () => {
       clerkQue({ createInvitation: () => Promise.reject(recusa(429)) }),
       { criarConta: CRIAR_CONTA }
     );
+
     expect(await convites.enviar(ANA, AGORA)).toEqual({
       tentarEm: new Date("2026-11-11T16:00:00Z"),
       tipo: "limite",
@@ -70,6 +76,7 @@ describe("convitesDoClerk.enviar", () => {
 
   test("qualquer outra falha lança", async () => {
     const erros = [recusa(422), new Error("fetch failed")];
+
     const lancados = await Promise.all(
       erros.map((erro) =>
         convitesDoClerk(
@@ -83,6 +90,7 @@ describe("convitesDoClerk.enviar", () => {
           )
       )
     );
+
     expect(lancados.map((lancado, i) => lancado === erros[i])).toEqual([
       true,
       true,
@@ -93,26 +101,31 @@ describe("convitesDoClerk.enviar", () => {
 describe("convitesDoClerk.revogar", () => {
   test("revoga o convite do Clerk pelo id", async () => {
     const revogados: string[] = [];
+
     const convites = convitesDoClerk(
       clerkQue({
         revokeInvitation: (id: string) => {
           revogados.push(id);
+
           return Promise.resolve({ id, status: "revoked" });
         },
       }),
       { criarConta: CRIAR_CONTA }
     );
+
     await convites.revogar("inv_1");
     expect(revogados).toEqual(["inv_1"]);
   });
 
   test("não lança quando o Clerk recusa: o link já foi revogado, aceito ou expirou", async () => {
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
+
     try {
       const convites = convitesDoClerk(
         clerkQue({ revokeInvitation: () => Promise.reject(recusa(400)) }),
         { criarConta: CRIAR_CONTA }
       );
+
       await expect(convites.revogar("inv_1")).resolves.toBeUndefined();
       expect(aviso).toHaveBeenCalledTimes(1);
     } finally {

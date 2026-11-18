@@ -16,6 +16,7 @@ import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
+
 import { Carregando } from "./confirmacao-na-linha";
 import { SecaoSobABarra } from "./partes";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";
@@ -43,10 +44,12 @@ function BotaoDoPerfil({
 }) {
   const liberacao = curso.liberacoes[perfil];
   const nome = SOBRE_O_PERFIL[perfil].plural;
+
   const aoClicar = useCallback(
     () => (liberacao ? pedirRevogar({ liberacao, perfil }) : liberar(perfil)),
     [liberacao, liberar, pedirRevogar, perfil]
   );
+
   return (
     <Button
       aria-label={
@@ -80,6 +83,7 @@ function LinhaDoCurso({
 }) {
   const { executar, pendente } = useAcao();
   const [pedido, pedir] = useState<Pedido | null>(null);
+
   const liberar = useCallback(
     (perfil: Perfil) =>
       executar(
@@ -91,10 +95,12 @@ function LinhaDoCurso({
       ),
     [curso.id, curso.titulo, executar]
   );
+
   const revogar = useCallback(() => {
     if (!pedido) {
       return;
     }
+
     executar(
       () => trpcClient.admin.perfis.revogar.mutate({ id: pedido.liberacao }),
       {
@@ -103,8 +109,10 @@ function LinhaDoCurso({
       }
     );
   }, [curso.titulo, executar, pedido]);
+
   const cancelar = useCallback(() => pedir(null), []);
   const alcance = pedido ? contagem[pedido.perfil] : 0;
+
   return (
     <li className="grid gap-3 px-5 py-3.5">
       <div className={cn("grid items-center gap-x-3 gap-y-2.5", COLUNAS)}>

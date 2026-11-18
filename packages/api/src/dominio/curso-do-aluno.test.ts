@@ -28,6 +28,7 @@ describe("os cinco estados do curso, de uma leitura só", () => {
       aulas: m.aulas.map((a) => ({ ...a, perguntas: i === 1 ? 2 : 0 })),
     })),
   };
+
   const [a1, a2, a3] = [aula("c", 0, 1), aula("c", 0, 2), aula("c", 1, 1)];
 
   test("em_breve: em produção, sem aula da vez e incompleto mesmo com tudo feito", () => {
@@ -35,6 +36,7 @@ describe("os cinco estados do curso, de uma leitura só", () => {
       assistidas: [a1, a2, a3],
       questionarios: [[a3, questionario(true)]],
     });
+
     expect(ler({ ...c, status: "em_producao" }, h)).toEqual({
       aulaDaVez: null,
       completo: false,
@@ -63,10 +65,12 @@ describe("os cinco estados do curso, de uma leitura só", () => {
       assistidas: [a1],
       posicoes: [[a2, 95]],
     });
+
     const atividade = new Map([
       [a1, "2026-10-01T12:00:00.000Z"],
       [a2, "2026-10-02T12:00:00.000Z"],
     ]);
+
     expect(ler(c, h, atividade)).toEqual({
       aulaDaVez: {
         id: a2,
@@ -85,6 +89,7 @@ describe("os cinco estados do curso, de uma leitura só", () => {
       assistidas: [a1, a2, a3],
       questionarios: [[a3, questionario(false)]],
     });
+
     expect(ler(c, h)).toEqual({
       aulaDaVez: {
         id: a3,
@@ -108,6 +113,7 @@ describe("os cinco estados do curso, de uma leitura só", () => {
       assistidas: [a1, a2, a3],
       questionarios: [[a3, questionario(true)]],
     });
+
     const leitura = ler(c, h);
     expect(leitura.completo).toBe(true);
     expect(leitura.estado.tipo).toBe("questionarios");
@@ -119,6 +125,7 @@ describe("os cinco estados do curso, de uma leitura só", () => {
       certificados: ["c"],
       questionarios: [[a3, questionario(true)]],
     });
+
     expect(ler(c, h)).toEqual({
       aulaDaVez: null,
       completo: true,
@@ -166,6 +173,7 @@ describe("o estado do curso", () => {
   test("questionário reprovado vem antes do por fazer", () => {
     const c = cursoCat("c", { aulas: [2, 1], perguntas: 3 });
     const [a1, a2, a3] = [aula("c", 0, 1), aula("c", 0, 2), aula("c", 1, 1)];
+
     const h = historico({
       assistidas: [a1, a2, a3],
       questionarios: [
@@ -173,16 +181,19 @@ describe("o estado do curso", () => {
         [a3, questionario(false, { acertos: 1, total: 3 })],
       ],
     });
+
     expect(ler(c, h).estado).toEqual({
       aprovados: 1,
       proximaAula: a3,
       tipo: "questionarios",
       total: 3,
     });
+
     const semA3 = historico({
       assistidas: [a1, a2, a3],
       questionarios: [[a1, questionario(true)]],
     });
+
     expect(ler(c, semA3).aulaDaVez?.id).toBe(a2);
   });
 
@@ -199,9 +210,11 @@ describe("o estado do curso", () => {
 
   test("tentativa sem aula assistida já conta como em_andamento", () => {
     const c = cursoCat("c", { aulas: [2], perguntas: 1 });
+
     const h = historico({
       questionarios: [[idAula("c", 0, 2), questionario(false)]],
     });
+
     expect(ler(c, h).estado).toEqual({
       proximaAula: aula("c", 0, 1),
       tipo: "em_andamento",
@@ -219,14 +232,17 @@ describe("o estado do curso", () => {
 
   test("última atividade numa aula já assistida leva à próxima não assistida", () => {
     const c = cursoCat("c", { aulas: [3] });
+
     const h = historico({
       assistidas: [idAula("c", 0, 1), idAula("c", 0, 2)],
       posicoes: [[idAula("c", 0, 3), 40]],
     });
+
     const atividade = new Map([
       [aula("c", 0, 3), "2026-10-01T12:00:00.000Z"],
       [aula("c", 0, 1), "2026-10-05T12:00:00.000Z"],
     ]);
+
     expect(ler(c, h, atividade).aulaDaVez).toMatchObject({
       id: aula("c", 0, 3),
       posicaoSeg: 40,
@@ -243,9 +259,11 @@ describe("o progresso", () => {
 
   test("aula assistida de outro curso não entra no progresso", () => {
     const c = cursoCat("c", { aulas: [4] });
+
     const h = historico({
       assistidas: [idAula("c", 0, 1), idAula("outro", 0, 1)],
     });
+
     expect(ler(c, h).progresso).toEqual({ feitas: 1, pct: 25, total: 4 });
   });
 });
@@ -269,6 +287,7 @@ describe("estudoDe", () => {
       ],
       questionarios: [],
     });
+
     expect([...estudo.historico.posicoes.keys()]).toEqual([aula("c", 0, 1)]);
     expect([...estudo.atividade.keys()]).toEqual([aula("c", 0, 1)]);
     const b = cursoCat("b", { aulas: [2] });
@@ -279,6 +298,7 @@ describe("estudoDe", () => {
 describe("completo", () => {
   const c = cursoCat("c", { aulas: [2], perguntas: 2 });
   const [a1, a2] = [idAula("c", 0, 1), idAula("c", 0, 2)];
+
   const aprovados: [string, ReturnType<typeof questionario>][] = [
     [a1, questionario(true)],
     [a2, questionario(true)],
@@ -293,6 +313,7 @@ describe("completo", () => {
     expect(
       ler(c, historico({ assistidas: [a1], questionarios: aprovados })).completo
     ).toBe(false);
+
     const reprovado = historico({
       assistidas: [a1, a2],
       questionarios: [
@@ -300,6 +321,7 @@ describe("completo", () => {
         [a2, questionario(false)],
       ],
     });
+
     expect(ler(c, reprovado).completo).toBe(false);
     expect(ler(cursoCat("v", { aulas: [] }), historico({})).completo).toBe(
       false

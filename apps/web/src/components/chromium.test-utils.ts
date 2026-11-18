@@ -5,6 +5,7 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+
 import { spawn } from "bun";
 import { compile } from "tailwindcss";
 
@@ -21,6 +22,7 @@ const ESTILOS: Record<string, string> = {
 
 function lerEstilo(id: string, base: string) {
   const caminho = ESTILOS[id] ?? join(base, id);
+
   return Promise.resolve({
     base: dirname(caminho),
     content: readFileSync(caminho, "utf8"),
@@ -34,6 +36,7 @@ export async function cssDoApp(classes: Iterable<string>) {
     base: dirname(INDEX),
     loadStylesheet: lerEstilo,
   });
+
   return compilador.build([...new Set(classes)]);
 }
 
@@ -49,13 +52,16 @@ interface Resposta {
 async function enderecoDoDevTools(saida: ReadableStream<Uint8Array>) {
   const decodificador = new TextDecoder();
   let lido = "";
+
   for await (const pedaco of saida) {
     lido += decodificador.decode(pedaco);
     const achado = DEVTOOLS.exec(lido)?.[1];
+
     if (achado) {
       return achado;
     }
   }
+
   throw new Error(`o Chromium não abriu o DevTools:\n${lido}`);
 }
 
@@ -67,6 +73,7 @@ const TETO_DO_WEBSOCKET_MS = 5000;
 function abrirWebSocket(url: string) {
   const ws = new WebSocket(url);
   limpezas.push(() => ws.close());
+
   return new Promise<WebSocket>((pronto, falhou) => {
     const teto = setTimeout(
       () =>
@@ -77,6 +84,7 @@ function abrirWebSocket(url: string) {
         ),
       TETO_DO_WEBSOCKET_MS
     );
+
     ws.addEventListener("open", () => {
       clearTimeout(teto);
       pronto(ws);
@@ -96,6 +104,7 @@ export type Enviar = (
 export async function abrirChromium(prefixo: string): Promise<Enviar> {
   const perfil = mkdtempSync(join(tmpdir(), `${prefixo}-`));
   limpezas.push(() => rmSync(perfil, { force: true, recursive: true }));
+
   const processo = spawn(
     [
       CHROMIUM,
@@ -109,31 +118,39 @@ export async function abrirChromium(prefixo: string): Promise<Enviar> {
     ],
     { stderr: "pipe", stdout: "ignore" }
   );
+
   limpezas.push(async () => {
     processo.kill();
     await processo.exited;
   });
   const navegador = new URL(await enderecoDoDevTools(processo.stderr));
+
   const alvos = (await (
     await fetch(`http://${navegador.host}/json/list`)
   ).json()) as { type: string; webSocketDebuggerUrl: string }[];
+
   const pagina = alvos.find((a) => a.type === "page");
+
   if (!pagina) {
     throw new Error("o Chromium abriu sem página");
   }
+
   const ws = await abrirWebSocket(pagina.webSocketDebuggerUrl);
   const pendentes = new Map<number, (r: Resposta) => void>();
   ws.addEventListener("message", (m) => {
     const resposta = JSON.parse(String(m.data)) as Resposta;
+
     if (resposta.id !== undefined) {
       pendentes.get(resposta.id)?.(resposta);
       pendentes.delete(resposta.id);
     }
   });
   let proximo = 0;
+
   return (method, params = {}) => {
     proximo += 1;
     const id = proximo;
+
     return new Promise<Record<string, unknown>>((resolve, reject) => {
       pendentes.set(id, (r) =>
         r.error
@@ -166,10 +183,12 @@ export async function avaliar<T>(enviar: Enviar, expressao: string) {
     exceptionDetails?: { exception?: { description?: string }; text: string };
     result: { value: T };
   };
+
   if (exceptionDetails) {
     throw new Error(
       exceptionDetails.exception?.description ?? exceptionDetails.text
     );
   }
+
   return result.value;
 }

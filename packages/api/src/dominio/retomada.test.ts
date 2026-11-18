@@ -17,6 +17,7 @@ const entrada = (
   )
 ): EntradaRetomada => {
   const estudo: Estudo = { atividade, historico: h };
+
   return {
     cursos: cursos.map((curso) => ({
       curso,
@@ -36,11 +37,14 @@ describe("retomada", () => {
         [idAula("c", 0, 3), 222, "2026-10-07T12:00:00.000Z"],
       ],
     });
+
     const r = retomada(entrada([c], h));
     expect(r?.tipo).toBe("continuar");
+
     if (r?.tipo !== "continuar") {
       return;
     }
+
     expect(r.aula).toMatchObject({
       faltaSeg: 358,
       id: idAula("c", 0, 3),
@@ -54,6 +58,7 @@ describe("retomada", () => {
       assistidas: [idAula("c", 0, 1), idAula("c", 0, 2)],
       posicoes: [[idAula("c", 0, 2), 500]],
     });
+
     const r = retomada(entrada([c], h));
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 3), posicaoSeg: 0 },
@@ -69,6 +74,7 @@ describe("retomada", () => {
         [idAula("c", 0, 1), 120, "2026-10-07T12:00:00.000Z"],
       ],
     });
+
     const r = retomada(entrada([c], h));
     expect(r).toMatchObject({
       aula: { faltaSeg: 280, id: idAula("c", 0, 3), posicaoSeg: 300 },
@@ -78,10 +84,12 @@ describe("retomada", () => {
 
   test("posição em curso em breve é ignorada", () => {
     const breve = cursoCat("breve", { aulas: [2], status: "em_producao" });
+
     const h = historico({
       assistidas: [idAula("c", 0, 1)],
       posicoes: [[idAula("breve", 0, 1), 50, "2026-10-07T13:00:00.000Z"]],
     });
+
     const r = retomada(entrada([c, breve], h));
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 2), posicaoSeg: 0 },
@@ -95,6 +103,7 @@ describe("retomada", () => {
       assistidas: [idAula("c", 0, 1)],
       posicoes: [[idAula("revogado", 0, 1), 90]],
     });
+
     const r = retomada(entrada([c], h));
     expect(r).toMatchObject({
       aula: { id: idAula("c", 0, 2), posicaoSeg: 0 },
@@ -104,9 +113,11 @@ describe("retomada", () => {
 
   test("sem posição, retoma o primeiro curso em andamento", () => {
     const outro = cursoCat("outro", { aulas: [3] });
+
     const h = historico({
       assistidas: [idAula("c", 0, 1), idAula("outro", 0, 1)],
     });
+
     const r = retomada(entrada([outro, c], h));
     expect(r).toMatchObject({
       aula: { id: idAula("outro", 0, 2), posicaoSeg: 0 },
@@ -119,6 +130,7 @@ describe("retomada", () => {
     const novo = cursoCat("novo", { aulas: [2] });
     const comQuiz = cursoCat("c", { aulas: [4], perguntas: 3 });
     const pendente = idAula("c", 0, 3) as AulaId;
+
     const h = historico({
       assistidas: [1, 2, 3, 4].map((p) => idAula("c", 0, p)),
       questionarios: [
@@ -126,6 +138,7 @@ describe("retomada", () => {
         [pendente, questionario(false, { acertos: 2, total: 3 })],
       ],
     });
+
     const r = retomada(entrada([novo, comQuiz], h));
     expect(r).toEqual({
       aula: {
@@ -164,14 +177,17 @@ describe("retomada", () => {
 describe("retomada pela atividade mais recente (item 24)", () => {
   const a = cursoCat("a", { aulas: [3] });
   const b = cursoCat("b", { aulas: [3] });
+
   const h = historico({
     assistidas: [idAula("b", 0, 1)],
     posicoes: [[idAula("a", 0, 2), 120, "2026-09-10T12:00:00.000Z"]],
   });
+
   const atividade = new Map([
     [idAula("a", 0, 2) as AulaId, "2026-09-10T12:00:00.000Z"],
     [idAula("b", 0, 1) as AulaId, "2026-10-07T15:00:00.000Z"],
   ]);
+
   test("curso B com aula assistida hoje vence curso A com posição de semanas atrás", () => {
     const r = retomada(entrada([a, b], h, atividade));
     expect(r?.tipo === "continuar" && r.curso.slug).toBe("b");
@@ -192,6 +208,7 @@ describe("retomada pela atividade mais recente (item 24)", () => {
 describe("aula N do módulo no banner", () => {
   const base = cursoCat("d", { aulas: [2] });
   const posicoes = [2, 3];
+
   const comBuraco: CursoCatalogo = {
     ...base,
     modulos: base.modulos.map((m) => ({
@@ -199,6 +216,7 @@ describe("aula N do módulo no banner", () => {
       aulas: m.aulas.map((a, i) => ({ ...a, posicao: posicoes[i] ?? 0 })),
     })),
   };
+
   const segunda = idAula("d", 0, 2) as AulaId;
 
   test("continuar numera pelo índice no módulo, como a coluna e o player", () => {

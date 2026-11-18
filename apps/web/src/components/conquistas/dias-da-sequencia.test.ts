@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 
 import { diasDaSequencia } from "./dias-da-sequencia";

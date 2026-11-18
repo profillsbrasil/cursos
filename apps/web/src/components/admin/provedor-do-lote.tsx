@@ -17,13 +17,16 @@ const Lote = createContext<{
 
 export function ProvedorDoLote({ children }: { children: ReactNode }) {
   const [estado, despachar] = useReducer(lote, LOTE_VAZIO);
+
   return <Lote value={{ despachar, estado }}>{children}</Lote>;
 }
 
 export function useLote() {
   const valor = useContext(Lote);
+
   if (!valor) {
     throw new Error("useLote fora do ProvedorDoLote.");
   }
+
   return valor;
 }

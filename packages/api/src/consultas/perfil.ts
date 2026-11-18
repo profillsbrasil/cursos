@@ -22,6 +22,7 @@ async function lerPerfil(
     columns: { perfil: true },
     where: { userId },
   });
+
   return linha?.perfil ?? null;
 }
 
@@ -48,6 +49,7 @@ async function darBonusDeFuncionario(
     })
     .onConflictDoNothing()
     .returning({ id: pontoLancamento.id });
+
   return novo !== undefined;
 }
 
@@ -95,6 +97,7 @@ async function lerChegada(
                   ) as papel_por_aplicar
       from perfil_da_pessoa p
      where p.user_id = ${userId}`);
+
   return linha
     ? { papelPorAplicar: linha.papel_por_aplicar, perfil: linha.perfil }
     : null;
@@ -107,7 +110,7 @@ async function liberarOsCursosDoConvite(
   agora: Date
 ): Promise<void> {
   for (const cursoId of convite.cursoIds) {
-    // biome-ignore lint/performance/noAwaitInLoops: a transação tem um client só.
+    // oxlint-disable-next-line no-await-in-loop -- a transação tem um client só.
     await liberarNoAlunoTravado(aluno, convite.convidadoPor, cursoId, agora);
   }
 }
@@ -148,13 +151,17 @@ export async function perfilDe(
   agora: Date
 ): Promise<Perfil> {
   const lido = await lerChegada(db, userId, agora);
+
   if (lido) {
     if (lido.papelPorAplicar) {
       await tentarOPapelDoConvite(db, pessoas, userId, agora);
     }
+
     return lido.perfil;
   }
+
   let conta: Conta | null;
+
   try {
     conta = await pessoas.conta(userId);
   } catch (erro) {
@@ -162,19 +169,25 @@ export async function perfilDe(
       `perfil de ${userId}: o Clerk não respondeu no primeiro acesso`,
       erro
     );
+
     return perfilDoCadastro(null);
   }
+
   const chegada = await comAlunoTravado(db, userId, async (aluno) => {
     // Depois da trava, num statement próprio: outro pedido já gravou a linha?
     const ja = await lerPerfil(aluno.tx, userId);
+
     if (ja) {
       return { papelPorAplicar: false, perfil: ja };
     }
+
     const email =
       conta?.emailVerificado && conta.email ? lerEmail(conta.email) : null;
+
     const convite = email
       ? await reivindicarConvite(aluno, email, agora)
       : null;
+
     const perfil = convite?.perfil ?? perfilDoCadastro(conta);
     await aluno.tx.insert(perfilDaPessoa).values({
       definidoEm: agora,
@@ -182,17 +195,22 @@ export async function perfilDe(
       perfil,
       userId,
     });
+
     if (perfil === "funcionario") {
       await darBonusDeFuncionario(aluno.tx, userId, agora);
     }
+
     if (convite) {
       await liberarOsCursosDoConvite(aluno, convite, agora);
     }
+
     return { papelPorAplicar: convite?.comoAdmin ?? false, perfil };
   });
+
   if (chegada.papelPorAplicar) {
     await tentarOPapelDoConvite(db, pessoas, userId, agora);
   }
+
   return chegada.perfil;
 }
 
@@ -215,6 +233,7 @@ export function definirPerfil(
       columns: { perfil: true },
       where: { userId: aluno.userId },
     });
+
     await aluno.tx
       .insert(perfilDaPessoa)
       .values({ definidoEm: agora, definidoPor: admin, perfil, userId })
@@ -223,6 +242,7 @@ export function definirPerfil(
         target: perfilDaPessoa.userId,
       });
     const virou = perfil === "funcionario" && antes?.perfil !== "funcionario";
+
     return {
       bonus:
         virou && (await darBonusDeFuncionario(aluno.tx, aluno.userId, agora)),
@@ -238,6 +258,7 @@ export function linhasDosPerfis(
   if (userIds.length === 0) {
     return Promise.resolve([]);
   }
+
   return db.query.perfilDaPessoa.findMany({
     where: { userId: { in: [...userIds] } },
   });
@@ -255,6 +276,7 @@ export async function quemTemOPerfil(
     orderBy: { definidoEm: "desc", userId: "asc" },
     where: { perfil },
   });
+
   return linhas.map((l) => l.userId);
 }
 
@@ -265,11 +287,14 @@ export async function contagemPorPerfil(
     .select({ n: count(), perfil: perfilDaPessoa.perfil })
     .from(perfilDaPessoa)
     .groupBy(perfilDaPessoa.perfil);
+
   const contagem = Object.fromEntries(
     PERFIS.map((p) => [p, 0])
   ) as ContagemPorPerfil;
+
   for (const l of linhas) {
     contagem[l.perfil] = l.n;
   }
+
   return contagem;
 }

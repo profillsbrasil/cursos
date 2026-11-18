@@ -22,7 +22,9 @@ export function trocaDaAmostra({
   if (preco === null) {
     return { frase: SEM_PRECO, tipo: "sem_preco" };
   }
+
   const falta = preco - saldo;
+
   if (falta > 0) {
     return {
       botao: `${faltam(falta)} ${fmtPts(falta)}`,
@@ -31,6 +33,7 @@ export function trocaDaAmostra({
       tipo: "faltam",
     };
   }
+
   return {
     botao: `Trocar por ${fmtPts(preco)}`,
     preco,

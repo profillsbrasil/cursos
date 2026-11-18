@@ -87,15 +87,19 @@ function emDaLetra(letra: string) {
   if (letra === " ") {
     return 0.25;
   }
+
   if (ESTREITAS.test(letra)) {
     return 0.45;
   }
+
   if (LARGAS.test(letra)) {
     return 1.12;
   }
+
   if (LATINA.test(letra)) {
     return MAIUSCULA.test(letra) ? 0.78 : 0.7;
   }
+
   return 1.3;
 }
 
@@ -113,9 +117,11 @@ function linhasDo(texto: string, tamanho: number) {
   const hifen = emDaLetra("-");
   let linhas = 1;
   let usado = 0;
+
   for (const palavra of texto.split(ESPACOS).filter(Boolean)) {
     const largura = emDaPalavra(palavra);
     const aoLado = usado === 0 ? largura : usado + emDaLetra(" ") + largura;
+
     if (aoLado <= cabe) {
       usado = aoLado;
     } else if (largura <= cabe) {
@@ -124,15 +130,18 @@ function linhasDo(texto: string, tamanho: number) {
     } else {
       linhas += usado === 0 ? 0 : 1;
       usado = 0;
+
       for (const letra of palavra) {
         if (usado + emDaLetra(letra) + hifen > cabe) {
           linhas += 1;
           usado = 0;
         }
+
         usado += emDaLetra(letra);
       }
     }
   }
+
   return linhas;
 }
 
@@ -144,6 +153,7 @@ function alturaParaONome(cursoNaFolha: { tamanho: number; texto: string }) {
     linhasDo(cursoNaFolha.texto, cursoNaFolha.tamanho) *
     cursoNaFolha.tamanho *
     FOLHA_EM_PX.entrelinha;
+
   const doResto =
     abre * FOLHA_EM_PX.entrelinha +
     nome.acima +
@@ -153,6 +163,7 @@ function alturaParaONome(cursoNaFolha: { tamanho: number; texto: string }) {
     2 * frase.tamanho * frase.entrelinha +
     curso.acima +
     curso.abaixo;
+
   return FOLHA_EM_PX.altura - centro.topo - centro.pe - doCurso - doResto - 8;
 }
 
@@ -168,35 +179,45 @@ export function nomeNaFolha(
 ): { nome: string; tamanho: number } {
   const altura = alturaParaONome(cursoNaFolha);
   const menor = nome.degraus.at(-1) ?? 0;
+
   const cabe = (t: string, tamanho: number) =>
     linhasDo(t, tamanho) * tamanho * nome.entrelinha <= altura;
+
   const semQuebrarPalavra = (tamanho: number) =>
     tamanho === menor ||
     texto
       .split(ESPACOS)
       .every((p) => emDaPalavra(p) * tamanho <= LARGURA_DO_CENTRO);
+
   const letras = [...texto];
+
   const degraus =
     letras.length > nome.grandeAte ? nome.degraus.slice(1) : nome.degraus;
+
   const degrau = degraus.find((t) => semQuebrarPalavra(t) && cabe(texto, t));
+
   if (degrau) {
     return { nome: texto, tamanho: degrau };
   }
+
   const cortado = (n: number) => `${letras.slice(0, n).join("").trimEnd()}…`;
   let cabeAte = 0;
   let passaDe = letras.length;
+
   while (passaDe - cabeAte > 1) {
     const meio = Math.floor((cabeAte + passaDe) / 2);
+
     if (cabe(cortado(meio), menor)) {
       cabeAte = meio;
     } else {
       passaDe = meio;
     }
   }
+
   return { nome: cortado(cabeAte), tamanho: menor };
 }
 
-export const HIFEN_OCULTO = "\u00ad";
+export const HIFEN_OCULTO = "\u00AD";
 
 /**
  * O nome com um hífen oculto entre as letras de cada palavra maior que a linha. A
@@ -222,5 +243,6 @@ export function folhaComONome(
     tamanho: folha.cursoEmTamanho,
     texto: folha.curso,
   });
+
   return { ...folha, nome: escrito.nome, nomeEmTamanho: escrito.tamanho };
 }

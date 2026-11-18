@@ -139,9 +139,11 @@ export async function abrirCurso(
       },
     },
   });
+
   if (!linha) {
     return null;
   }
+
   const assistidas = await exec
     .select({ alunos: count(), aulaId: aulaAssistida.aulaId })
     .from(aulaAssistida)
@@ -149,6 +151,7 @@ export async function abrirCurso(
     .innerJoin(modulo, eq(modulo.id, aula.moduloId))
     .where(eq(modulo.cursoId, id))
     .groupBy(aulaAssistida.aulaId);
+
   const tentativas = await exec
     .select({
       alunos: sql<number>`count(distinct ${questionarioTentativa.userId})::int`,
@@ -159,6 +162,7 @@ export async function abrirCurso(
     .innerJoin(modulo, eq(modulo.id, aula.moduloId))
     .where(eq(modulo.cursoId, id))
     .groupBy(questionarioTentativa.aulaId);
+
   const {
     rows: [contagens],
   } = await exec.execute<{ certificados: number; liberacoes: number }>(sql`
@@ -204,6 +208,7 @@ export async function abrirCurso(
     topicos: linha.topicos,
     versao: null,
   };
+
   const uso = {
     assistidasPorAula: Object.fromEntries(
       assistidas.map((a) => [a.aulaId, a.alunos])
@@ -214,6 +219,7 @@ export async function abrirCurso(
       tentativas.map((t) => [t.aulaId, t.alunos])
     ),
   };
+
   return {
     capa: capaDe(linha),
     codigo: linha.codigo,
@@ -325,16 +331,21 @@ async function exigirMateriaisNoBucket(
   if (documento.materiais.length === 0) {
     return;
   }
+
   const doCurso = await s.db
     .select({ chave: material.chave })
     .from(material)
     .where(eq(material.cursoId, documento.id));
+
   const conhecidas = new Set(doCurso.map((m) => m.chave));
   const novos = documento.materiais.filter((m) => !conhecidas.has(m.chave));
+
   const existem = await Promise.all(
     novos.map((m) => s.materiais.existe(m.chave))
   );
+
   const sumido = novos.find((_, i) => !existem[i]);
+
   if (sumido) {
     throw new ErroParaAPessoa({
       code: "PRECONDITION_FAILED",
@@ -353,9 +364,11 @@ async function exigirCategoria(tx: Transacao, id: CategoriaId) {
     .from(categoria)
     .where(eq(categoria.id, id))
     .for("key share");
+
   if (!alvo) {
     throw new ErroParaAPessoa({ code: "NOT_FOUND", message: CATEGORIA_SUMIU });
   }
+
   return alvo;
 }
 
@@ -367,11 +380,13 @@ async function exigirCategoria(tx: Transacao, id: CategoriaId) {
 async function slugParaCursoNovo(tx: Transacao, titulo: string) {
   const base = slugDoTitulo(titulo);
   await travarTambem(tx, `slug:${raizDoSlug(base)}`);
+
   // O slug só tem [a-z0-9-], então nem "_" nem "%" escapam do like.
   const ocupados = await tx
     .select({ slug: curso.slug })
     .from(curso)
     .where(or(eq(curso.slug, base), like(curso.slug, `${base}-%`)));
+
   return slugLivre(base, new Set(ocupados.map((c) => c.slug)));
 }
 
@@ -382,11 +397,13 @@ async function slugParaCursoNovo(tx: Transacao, titulo: string) {
 async function codigoParaCursoNovo(tx: Transacao, nomeDaCategoria: string) {
   const sigla = siglaDaCategoria(nomeDaCategoria);
   await travarTambem(tx, `codigo:${sigla}`);
+
   // A sigla só tem [A-Z0-9], então nem "_" nem "%" escapam do like.
   const ocupados = await tx
     .select({ codigo: curso.codigo })
     .from(curso)
     .where(like(curso.codigo, `${sigla}-%`));
+
   return codigoLivre(sigla, new Set(ocupados.map((c) => c.codigo)));
 }
 
@@ -403,6 +420,7 @@ async function identidadeDoCursoNovo(
 ): Promise<IdentidadeDoCursoNovo> {
   const slug = await slugParaCursoNovo(tx, titulo);
   const codigo = await codigoParaCursoNovo(tx, nomeDaCategoria);
+
   return { codigo, slug };
 }
 
@@ -423,30 +441,39 @@ export async function salvarCurso(
   agora = new Date()
 ): Promise<CursoSalvo> {
   const lido = lerFormularioDoCurso(formulario);
+
   if (lido.tipo === "invalido") {
     throw new ErroParaAPessoa({ code: "BAD_REQUEST", message: lido.mensagem });
   }
+
   const recebida = lido.capa ? await s.capas.receber(lido.capa) : null;
+
   if (recebida?.tipo === "recusa") {
     throw erroDaCapa(recebida.recusa);
   }
+
   const { documento } = lido;
+
   if (documento.status === "publicado" && documento.precoTroca === null) {
     throw new ErroParaAPessoa({
       code: "PRECONDITION_FAILED",
       message: `${PRECO_PARA_PUBLICAR} Defina o preço de troca ou salve em produção.`,
     });
   }
+
   await exigirMateriaisNoBucket(s, documento);
   const capa = recebida?.imagem ?? null;
+
   try {
     return await comTrava(s.db, `curso:${documento.id}`, async (tx) => {
       const atual = await abrirCurso(tx, documento.id);
       const categoriaDoCurso = await exigirCategoria(tx, documento.categoriaId);
       const plano = planejarCurso(atual, documento, capa);
+
       if (plano.tipo === "recusa") {
         throw erroDaEdicao(plano.recusa);
       }
+
       const novo =
         plano.tipo === "criar"
           ? await identidadeDoCursoNovo(
@@ -455,13 +482,17 @@ export async function salvarCurso(
               categoriaDoCurso.nome
             )
           : null;
+
       const slug = novo?.slug ?? atual?.slug;
+
       if (!slug) {
         throw new Error(`Curso ${documento.id} salvo sem endereço.`);
       }
+
       if (plano.tipo !== "nada_mudou") {
         await gravarCurso(tx, plano, novo);
       }
+
       // A aula ou a pergunta que saiu pode ter sido a última coisa que faltava a alguém.
       if (
         plano.tipo === "atualizar" &&
@@ -469,6 +500,7 @@ export async function salvarCurso(
       ) {
         await concluirParaQuemCompletou(tx, documento.id, agora);
       }
+
       return { cursoId: documento.id, slug, versao: plano.versao };
     });
   } catch (erro) {
@@ -480,10 +512,12 @@ export async function salvarCurso(
         documento,
         capa
       );
+
       if (plano.tipo === "recusa") {
         throw erroDaEdicao(plano.recusa, erro);
       }
     }
+
     throw erro;
   }
 }
@@ -560,6 +594,7 @@ async function gravarCurso(
 ) {
   const { documento: d } = plano;
   const cursoId = d.id;
+
   const campos = {
     capaAlt: altDaCapa(d.titulo),
     categoriaId: d.categoriaId,
@@ -569,15 +604,19 @@ async function gravarCurso(
     titulo: d.titulo,
     topicos: d.topicos,
   };
+
   const doCurso = eq(modulo.cursoId, cursoId);
+
   const nosModulosDoCurso = inArray(
     aula.moduloId,
     tx.select({ id: modulo.id }).from(modulo).where(doCurso)
   );
+
   const nasAulasDoCurso = inArray(
     pergunta.aulaId,
     tx.select({ id: aula.id }).from(aula).where(nosModulosDoCurso)
   );
+
   const nasPerguntasDoCurso = inArray(
     alternativa.perguntaId,
     tx.select({ id: pergunta.id }).from(pergunta).where(nasAulasDoCurso)
@@ -588,6 +627,7 @@ async function gravarCurso(
     if (!novo) {
       throw new Error(`Curso ${cursoId} criado sem endereço nem código.`);
     }
+
     await tx.insert(curso).values({
       ...campos,
       ...colunasDaCapa(plano.capa),
@@ -615,6 +655,7 @@ async function gravarCurso(
     if (plano.apagar.aulas.length > 0) {
       await tx.delete(aula).where(umDe(aula.id, plano.apagar.aulas));
     }
+
     await tx
       .update(modulo)
       .set({ numero: deslocado(modulo, modulo.numero, doCurso) })
@@ -647,6 +688,7 @@ async function gravarCurso(
         target: modulo.id,
       })
       .returning({ id: modulo.id });
+
     if (gravados.length !== d.modulos.length) {
       throw new Error("O documento traz módulo de outro curso.");
     }
@@ -664,8 +706,9 @@ async function gravarCurso(
       videoProvedor: a.video?.provedor ?? null,
     }))
   );
+
   for (const lote of lotes(aulas, LINHAS_POR_LOTE)) {
-    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(aula)
       .values(lote)
@@ -683,6 +726,7 @@ async function gravarCurso(
         target: aula.id,
       })
       .returning({ id: aula.id });
+
     if (gravadas.length !== lote.length) {
       throw new Error("O documento traz aula de outro curso.");
     }
@@ -694,6 +738,7 @@ async function gravarCurso(
     if (plano.apagar.modulos.length > 0) {
       await tx.delete(modulo).where(umDe(modulo.id, plano.apagar.modulos));
     }
+
     if (plano.apagar.niveis.length > 0) {
       await tx
         .delete(nivel)
@@ -712,20 +757,24 @@ async function gravarCurso(
 async function gravarMateriais(tx: Transacao, plano: PlanoDeGravacao) {
   const { documento: d } = plano;
   const doCurso = eq(material.cursoId, d.id);
+
   if (plano.tipo === "atualizar") {
     if (plano.apagar.materiais.length > 0) {
       await tx
         .delete(material)
         .where(umDe(material.id, plano.apagar.materiais));
     }
+
     await tx
       .update(material)
       .set({ posicao: deslocado(material, material.posicao, doCurso) })
       .where(doCurso);
   }
+
   if (d.materiais.length === 0) {
     return;
   }
+
   const gravados = await tx
     .insert(material)
     .values(
@@ -753,6 +802,7 @@ async function gravarMateriais(tx: Transacao, plano: PlanoDeGravacao) {
       target: material.id,
     })
     .returning({ id: material.id });
+
   if (gravados.length !== d.materiais.length) {
     throw new Error("O documento traz material de outro curso.");
   }
@@ -765,17 +815,20 @@ async function gravarQuestionario(
   nasPerguntasDoCurso: SQL
 ) {
   const { documento: d } = plano;
+
   if (plano.tipo === "atualizar") {
     if (plano.apagar.perguntas.length > 0) {
       await tx
         .delete(pergunta)
         .where(umDe(pergunta.id, plano.apagar.perguntas));
     }
+
     if (plano.apagar.alternativas.length > 0) {
       await tx
         .delete(alternativa)
         .where(umDe(alternativa.id, plano.apagar.alternativas));
     }
+
     await tx
       .update(pergunta)
       .set({ posicao: deslocado(pergunta, pergunta.posicao, nasAulasDoCurso) })
@@ -792,6 +845,7 @@ async function gravarQuestionario(
       })
       .where(nasPerguntasDoCurso);
   }
+
   const perguntas = d.modulos.flatMap((m) =>
     m.aulas.flatMap((a) =>
       a.perguntas.map((p, i) => ({
@@ -802,8 +856,9 @@ async function gravarQuestionario(
       }))
     )
   );
+
   for (const lote of lotes(perguntas, LINHAS_POR_LOTE)) {
-    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(pergunta)
       .values(lote)
@@ -817,6 +872,7 @@ async function gravarQuestionario(
         target: pergunta.id,
       })
       .returning({ id: pergunta.id });
+
     if (gravadas.length !== lote.length) {
       throw new Error("O documento traz pergunta de outro curso.");
     }
@@ -835,8 +891,9 @@ async function gravarQuestionario(
       )
     )
   );
+
   for (const lote of lotes(alternativas, LINHAS_POR_LOTE)) {
-    // biome-ignore lint/performance/noAwaitInLoops: os lotes dividem a transação, um client só.
+    // oxlint-disable-next-line no-await-in-loop -- os lotes dividem a transação, um client só.
     const gravadas = await tx
       .insert(alternativa)
       .values(lote)
@@ -851,6 +908,7 @@ async function gravarQuestionario(
         target: alternativa.id,
       })
       .returning({ id: alternativa.id });
+
     if (gravadas.length !== lote.length) {
       throw new Error("O documento traz alternativa de outro curso.");
     }
@@ -868,29 +926,33 @@ export async function apagarCurso(
   try {
     return await comTrava(db, `curso:${id}`, async (tx) => {
       const atual = await abrirCurso(tx, id);
+
       if (!atual) {
         return { apagado: false };
       }
+
       if (!atual.podeApagar) {
         throw new ErroParaAPessoa({
           code: "PRECONDITION_FAILED",
           message: CURSO_EM_USO,
         });
       }
+
       await tx.delete(curso).where(eq(curso.id, id));
+
       return { apagado: true };
     });
   } catch (erro) {
     // O aluno não pega a trava do curso: uma aula assistida, liberação ou
     // certificado que entra depois da conta de uso para no FK restrict.
     if (FK_VIOLADA.has(violacaoDe(erro)?.codigo ?? "")) {
-      // biome-ignore lint/style/useErrorCause: o ErroParaAPessoa leva a causa nas opções, como abaixo.
       throw new ErroParaAPessoa({
         cause: erro,
         code: "PRECONDITION_FAILED",
         message: CURSO_EM_USO,
       });
     }
+
     throw erro;
   }
 }

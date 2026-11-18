@@ -5,6 +5,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
+
 import { spawnSync } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -14,6 +15,7 @@ const sonda = spawnSync(
   ["bun", join(import.meta.dir, "titulo-nao-encontrado.sonda.ts")],
   { cwd: join(import.meta.dir, "../../../../..") }
 );
+
 const titulos = JSON.parse(sonda.stdout.toString() || "{}") as Record<
   "acesso" | "editor" | "ficha",
   unknown

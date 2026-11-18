@@ -9,5 +9,6 @@ export async function createContext(req: NextRequest): Promise<Context> {
   const estado = await clerk.authenticateRequest(req, {
     authorizedParties: [ENV.CORS_ORIGIN],
   });
+
   return contextoDe(estado.toAuth(), servicos);
 }

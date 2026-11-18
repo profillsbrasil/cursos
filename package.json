@@ -1,7 +1,6 @@
 {
   "name": "cursos",
   "private": true,
-  "type": "module",
   "workspaces": {
     "packages": [
       "apps/*",
@@ -27,6 +26,7 @@
       "recharts": "3.11.0"
     }
   },
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "check": "ultracite check",
@@ -47,21 +47,25 @@
     "test": "turbo run test",
     "virada-dos-pontos": "bun run --cwd packages/api virada-dos-pontos"
   },
-  "overrides": {
-    "@next/env": "npm:@varlock/nextjs-integration@2.0.1"
-  },
   "dependencies": {
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
     "@cursos/config": "workspace:*",
+    "@interfere/landmines": "0.1.0",
+    "@oxlint/plugins": "1.94.0",
     "@types/node": "catalog:",
+    "oxfmt": "0.79.0",
+    "oxlint": "1.94.0",
     "railway": "^3.17.0",
+    "tsrs": "0.25.0-ts7.1.0-beta",
     "turbo": "^2.11.13",
     "typescript": "catalog:",
     "ultracite": "8.3.0",
     "varlock": "catalog:"
+  },
+  "overrides": {
+    "@next/env": "npm:@varlock/nextjs-integration@2.0.1"
   },
   "packageManager": "bun@1.4.4"
 }

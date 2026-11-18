@@ -66,10 +66,12 @@ export function ConfirmacaoNaLinha({
   const voltaOFoco = useRef(false);
   const { pedir } = linhaAberta;
   const abrir = useCallback(() => pedir(chave), [pedir, chave]);
+
   const cancelar = useCallback(() => {
     voltaOFoco.current = true;
     pedir(null);
   }, [pedir]);
+
   const focarAoVoltar = useCallback(
     (gatilhoNaTela: HTMLButtonElement | null) => {
       if (gatilhoNaTela && voltaOFoco.current) {
@@ -79,6 +81,7 @@ export function ConfirmacaoNaLinha({
     },
     []
   );
+
   const aoTeclar = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape" && !enviando) {
@@ -101,6 +104,7 @@ export function ConfirmacaoNaLinha({
       </Button>
     );
   }
+
   return (
     <fieldset aria-labelledby={id} className={cn("min-w-0", className)}>
       <div id={id}>{pergunta}</div>

@@ -11,7 +11,7 @@ import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
   useCallback,
   useId,
   useRef,
@@ -24,6 +24,7 @@ import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
 import { fotoNoLado } from "@/lib/foto-do-clerk";
+
 import { type CampoDoNome, LIMITE_DO_NOME, problemaDoNome } from "./nome";
 import {
   ACAO_NA_LINHA,
@@ -42,10 +43,12 @@ const juntar = (nome: string, sobrenome: string) =>
 function Foto({ nome, user }: { nome: string; user: Usuario }) {
   const { executar, pendente } = useAcaoDaConta();
   const arquivo = useRef<HTMLInputElement>(null);
+
   const trocar = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       e.target.value = "";
+
       if (file) {
         executar(() => user.setProfileImage({ file }), {
           sucesso: "Foto trocada.",
@@ -54,7 +57,9 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
     },
     [executar, user]
   );
+
   const escolher = useCallback(() => arquivo.current?.click(), []);
+
   const remover = useCallback(
     () =>
       executar(() => user.setProfileImage({ file: null }), {
@@ -62,6 +67,7 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
       }),
     [executar, user]
   );
+
   return (
     <div className="flex min-w-0 items-center gap-4">
       <Avatar className="size-20 shrink-0 after:hidden">
@@ -119,6 +125,7 @@ function legendaDaFolha(exemplo: boolean, mudou: boolean) {
   if (mudou) {
     return "Prévia: este nome ainda não foi salvo";
   }
+
   return exemplo
     ? "Exemplo: o seu primeiro certificado sai assim"
     : "Assim o nome sai no certificado";
@@ -171,34 +178,43 @@ export function SecaoDoNome({
 }) {
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
+
   const [{ nome, sobrenome }, setCampos] = useState({
     nome: user.firstName ?? "",
     sobrenome: user.lastName ?? "",
   });
+
   // O cartão mostra o nome salvo no Clerk; a folha, o que a pessoa digita.
   const salvo = juntar(user.firstName ?? "", user.lastName ?? "");
   const completo = juntar(nome, sobrenome);
+
   const mudou =
     nome.trim() !== (user.firstName ?? "") ||
     sobrenome.trim() !== (user.lastName ?? "");
+
   // O campo avisa a regra antes de enviar, e o Salvar diz por que está apagado.
   const problema = mudou ? problemaDoNome(nome, sobrenome) : null;
   const idDoErro = `${id}-erro`;
   const idDeNadaMudou = `${id}-nada-mudou`;
+
   const marcar = (campo: CampoDoNome) =>
     problema?.campos.includes(campo)
       ? { "aria-describedby": idDoErro, "aria-invalid": true }
       : {};
+
   const mudar = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCampos((c) => ({ ...c, [name]: value }));
   }, []);
+
   const salvar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
+
       if (problema) {
         return;
       }
+
       executar(
         () =>
           user.update({ firstName: nome.trim(), lastName: sobrenome.trim() }),
@@ -207,6 +223,7 @@ export function SecaoDoNome({
     },
     [executar, nome, problema, sobrenome, user]
   );
+
   return (
     <section
       aria-label="Seu nome"

@@ -39,13 +39,17 @@ export function siglaDaCategoria(nome: string): string {
     .toUpperCase()
     .split(" ")
     .filter((p) => p !== "" && !LIGACAO.has(p));
+
   const [unica] = palavras;
+
   if (unica === undefined) {
     return SEM_PALAVRA;
   }
+
   if (palavras.length === 1) {
     return unica.slice(0, 3);
   }
+
   return palavras
     .slice(0, 4)
     .map((p) => p[0])
@@ -61,8 +65,10 @@ export function codigoLivre(
   ocupados: ReadonlySet<string>
 ): string {
   let n = 1;
+
   while (ocupados.has(codigoDe(sigla, n))) {
     n += 1;
   }
+
   return codigoDe(sigla, n);
 }

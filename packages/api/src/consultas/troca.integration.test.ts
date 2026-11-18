@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
+
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -33,6 +34,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   async function aluno(saldo: number) {
     const userId = `user_teste${S}${alunos.length}`;
     alunos.push(userId);
+
     if (saldo > 0) {
       await db.insert(pontoLancamento).values(
         Array.from({ length: saldo / 10 }, (_, i) => ({
@@ -46,11 +48,13 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         }))
       );
     }
+
     return userId;
   }
 
   async function cursoTrocavel(precoTroca: number | null, titulo = "Curso") {
     const s = hex();
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -66,20 +70,25 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         titulo: `${titulo} ${s}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 1, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     await db.insert(aula).values({
       duracaoSeg: 600,
       moduloId: m?.id ?? "",
       posicao: 1,
       titulo: "Aula",
     });
+
     return c.id as CursoId;
   }
 
@@ -90,6 +99,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       })
       .from(pontoLancamento)
       .where(eq(pontoLancamento.userId, userId));
+
     return r?.s;
   };
 
@@ -105,14 +115,18 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const { rows } = await db.execute<{ n: number }>(sql`
       select count(*)::int as n from pg_stat_activity
       where wait_event_type = 'Lock' and query like 'insert into "liberacao"%'`);
+
     if (rows[0]?.n) {
       return;
     }
+
     if (tentativas === 0) {
       throw new Error("O insert da troca não chegou a esperar o admin.");
     }
+
     await esperar(20);
-    return esperarInsertBloqueado(tentativas - 1);
+
+    return await esperarInsertBloqueado(tentativas - 1);
   }
 
   const codigo = (r: PromiseSettledResult<unknown>) =>
@@ -135,10 +149,12 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   test("troca debita o preço, libera o curso e aparece no painel e no extrato", async () => {
     const userId = await aluno(500);
     const c = await cursoTrocavel(300, "Troca feita");
+
     const r = await createCaller(contextoDeTeste({ db, userId })).troca.trocar({
       cursoId: c,
       precoVisto: 300,
     });
+
     expect(await trocasDe(userId)).toEqual([{ id: r.lancamentoId }]);
     const painel = await carregarPainelDeTroca(db, alunoDeTeste(userId), AGORA);
     expect(painel.saldo).toBe(200);
@@ -146,19 +162,23 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       pago: 300,
       tipo: "trocado",
     });
+
     const [trocado] = await db
       .select({ titulo: curso.titulo })
       .from(curso)
       .where(eq(curso.id, c));
+
     expect(painel.extrato[0]).toMatchObject({
       id: r.lancamentoId,
       pontos: -300,
       texto: `Troca: ${trocado?.titulo}`,
     });
+
     const [lib] = await db
       .select({ por: liberacao.liberadaPor })
       .from(liberacao)
       .where(eq(liberacao.userId, userId));
+
     expect(lib?.por).toBe(userId);
   });
 
@@ -167,10 +187,12 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const outro = await aluno(500);
     const c = await cursoTrocavel(300);
     await trocar(db, alunoDeTeste(quemTrocou), c, 300, AGORA);
+
     const cardDe = async (userId: string) =>
       (
         await carregarPainelDeTroca(db, alunoDeTeste(userId), AGORA)
       ).cartoes.find((x) => x.curso.id === c);
+
     expect(await cardDe(outro)).toMatchObject({ tipo: "pode_trocar" });
     await db.update(curso).set({ precoTroca: null }).where(eq(curso.id, c));
     expect(await cardDe(quemTrocou)).toMatchObject({
@@ -182,22 +204,28 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
 
   test("dois cursos em paralelo com saldo para um: uma troca, uma recusa, saldo nunca negativo (20 vezes)", async () => {
     const rodadas: { codigos: string[]; saldo: number | undefined }[] = [];
+
     for (let i = 0; i < 20; i += 1) {
-      // biome-ignore lint/performance/noAwaitInLoops: cada rodada é uma corrida isolada
+      // oxlint-disable no-await-in-loop -- cada rodada é uma corrida isolada
       const userId = await aluno(300);
+
       const [a, b] = await Promise.all([
         cursoTrocavel(300),
         cursoTrocavel(300),
       ]);
+
       const r = await Promise.allSettled([
         trocar(db, alunoDeTeste(userId), a, 300, AGORA),
         trocar(db, alunoDeTeste(userId), b, 300, AGORA),
       ]);
+
       rodadas.push({
         codigos: r.map(codigo).map(String).sort(),
         saldo: await saldoDe(userId),
       });
+      // oxlint-enable no-await-in-loop
     }
+
     expect(rodadas).toEqual(
       Array.from({ length: 20 }, () => ({
         codigos: ["PRECONDITION_FAILED", "fulfilled"],
@@ -208,32 +236,40 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
 
   test("20 trocas de cursos diferentes ao mesmo tempo pela API com saldo para uma: uma passa e o saldo fica em 0", async () => {
     const userId = await aluno(300);
+
     const alvos = await Promise.all(
       Array.from({ length: 20 }, () => cursoTrocavel(300))
     );
+
     const caller = createCaller(contextoDeTeste({ db, userId }));
+
     const r = await Promise.allSettled(
       alvos.map((cursoId) => caller.troca.trocar({ cursoId, precoVisto: 300 }))
     );
+
     const codigos = r.map(codigo).map(String);
     expect(codigos.filter((c) => c === "fulfilled")).toHaveLength(1);
     expect(codigos.filter((c) => c === "PRECONDITION_FAILED")).toHaveLength(19);
     expect(await trocasDe(userId)).toHaveLength(1);
     expect(await saldoDe(userId)).toBe(0);
+
     const liberados = await db
       .select({ id: liberacao.id })
       .from(liberacao)
       .where(eq(liberacao.userId, userId));
+
     expect(liberados).toHaveLength(1);
   });
 
   test("duplo clique no mesmo curso: um lançamento, e o segundo devolve a mesma troca", async () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
+
     const [um, dois] = await Promise.all([
       trocar(db, alunoDeTeste(userId), c, 300, AGORA),
       trocar(db, alunoDeTeste(userId), c, 300, AGORA),
     ]);
+
     expect(um.lancamentoId).toBe(dois.lancamentoId);
     expect(await trocasDe(userId)).toHaveLength(1);
     expect(await saldoDe(userId)).toBe(0);
@@ -253,13 +289,17 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const userId = await aluno(300);
     const c = await cursoTrocavel(300);
     let commitDoAdmin: () => void = () => undefined;
+
     const portao = new Promise<void>((r) => {
       commitDoAdmin = r;
     });
+
     let adminInseriu: () => void = () => undefined;
+
     const inseriu = new Promise<void>((r) => {
       adminInseriu = r;
     });
+
     const admin = db.transaction(async (tx) => {
       await tx.insert(liberacao).values({
         cursoId: c,
@@ -270,10 +310,13 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       adminInseriu();
       await portao;
     });
+
     await inseriu;
+
     const troca = trocar(db, alunoDeTeste(userId), c, 300, AGORA).catch(
       (e: unknown) => e
     );
+
     await esperarInsertBloqueado(100);
     commitDoAdmin();
     await admin;
@@ -289,9 +332,11 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const userId = await aluno(1000);
     const c = await cursoTrocavel(300);
     await db.update(curso).set({ precoTroca: 450 }).where(eq(curso.id, c));
+
     const erro = await trocar(db, alunoDeTeste(userId), c, 300, AGORA).catch(
       (e: unknown) => e
     );
+
     expect(erro).toMatchObject({
       code: "CONFLICT",
       message:
@@ -309,9 +354,11 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       origem: "admin",
       userId,
     });
+
     const erro = await trocar(db, alunoDeTeste(userId), c, 300, AGORA).catch(
       (e: unknown) => e
     );
+
     expect(erro).toMatchObject({ code: "CONFLICT" });
     const painel = await carregarPainelDeTroca(db, alunoDeTeste(userId), AGORA);
     expect(painel.cartoes.map((x) => x.curso.id)).not.toContain(c);
@@ -321,6 +368,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
     const userId = await aluno(100);
     const fora = await cursoTrocavel(null);
     const caro = await cursoTrocavel(300);
+
     const r = await Promise.allSettled([
       trocar(db, alunoDeTeste(userId), fora, 300, AGORA),
       trocar(
@@ -331,7 +379,9 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         AGORA
       ),
     ]);
+
     expect(r.map(codigo)).toEqual(["NOT_FOUND", "NOT_FOUND"]);
+
     const curto = await trocar(
       db,
       alunoDeTeste(userId),
@@ -339,6 +389,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       300,
       AGORA
     ).catch((e: unknown) => e);
+
     expect(curto).toMatchObject({
       code: "PRECONDITION_FAILED",
       message: "Faltam 200 pts para trocar este curso.",
@@ -347,13 +398,16 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
 
   test("sem login dá UNAUTHORIZED; cursoId fora do formato dá BAD_REQUEST", async () => {
     const anonimo = createCaller(contextoDeTeste({ db, userId: null }));
+
     const logado = createCaller(
       contextoDeTeste({ db, userId: await aluno(0) })
     );
+
     const r = await Promise.allSettled([
       anonimo.troca.painel(),
       logado.troca.trocar({ cursoId: "nao-e-uuid", precoVisto: 300 }),
     ]);
+
     expect(r.map(codigo)).toEqual(["UNAUTHORIZED", "BAD_REQUEST"]);
   });
 });

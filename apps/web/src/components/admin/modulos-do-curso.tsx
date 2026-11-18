@@ -30,6 +30,7 @@ import {
   vizinhoQueFica,
 } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
+
 import { AulasDoModulo } from "./aulas-do-modulo";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";
@@ -53,6 +54,7 @@ import {
 import { Selecao } from "./selecao";
 
 type Despachar = Dispatch<AcaoDoAdmin>;
+
 type Niveis = RascunhoDoCurso["niveis"];
 
 /** Âncora e alvos de foco do bloco; os campos que o schema marca usam o ID. */
@@ -104,6 +106,7 @@ function NivelDoModulo({
   valor: number | null;
 }) {
   const { aria, mensagem } = useErroDoCampo(id);
+
   return (
     <Field
       className="gap-1.5 @sm:col-span-2 @2xl:col-span-1"
@@ -135,6 +138,7 @@ function nomeDoNivel(niveis: Niveis, ordem: number | null) {
   if (ordem === null) {
     return null;
   }
+
   return niveis.find((n) => n.ordem === ordem)?.nome.trim() || `Nível ${ordem}`;
 }
 
@@ -155,6 +159,7 @@ function CabecaDoBloco({
   const aberto = bloco.tipo !== "fechado";
   const duracao = segundosDas(modulo.aulas);
   const titulo = modulo.titulo.trim();
+
   const resumo = [
     plural(modulo.aulas.length, "aula", "aulas"),
     duracao > 0 ? fmtHoras(duracao) : null,
@@ -162,6 +167,7 @@ function CabecaDoBloco({
   ]
     .filter((t): t is string => t !== null)
     .join(" · ");
+
   return (
     <h3>
       <button
@@ -245,9 +251,11 @@ export function BlocoDoModulo({
 }) {
   const { id } = modulo;
   const nome = nomeFalado(modulo.numero, modulo.titulo);
+
   const assistidas = modulo.aulas.filter(
     (a) => (assistidasPorAula[a.id] ?? 0) > 0
   ).length;
+
   const ultimo = modulos.length - 1;
 
   // Com erro na tela o bloco não fecha, e a linha diz por quê.
@@ -259,42 +267,51 @@ export function BlocoDoModulo({
       });
     }
   }, [bloco.tipo, id, despachar]);
+
   const editarModulo = useCallback(
     (mudanca: Extract<Mudanca, { tipo: "modulo_editado" }>["mudanca"]) =>
       despachar({ id, mudanca, tipo: "modulo_editado" }),
     [despachar, id]
   );
+
   const mudarNumero = useCallback(
     (numero: string) => editarModulo({ numero }),
     [editarModulo]
   );
+
   const ordenar = useCallback(
     () => despachar({ tipo: "modulos_ordenados" }),
     [despachar]
   );
+
   const mudarTitulo = useCallback(
     (titulo: string) => editarModulo({ titulo }),
     [editarModulo]
   );
+
   const mudarNivel = useCallback(
     (nivel: string) =>
       editarModulo({ nivelOrdem: nivel === "" ? null : Number(nivel) }),
     [editarModulo]
   );
+
   const subir = useCallback(() => {
     despachar({ direcao: "acima", id, tipo: "modulo_movido" });
     focarNoBotao(`modulo-${id}`, "acima", indice - 1 === 0);
   }, [despachar, id, indice]);
+
   const descer = useCallback(() => {
     despachar({ direcao: "abaixo", id, tipo: "modulo_movido" });
     focarNoBotao(`modulo-${id}`, "abaixo", indice + 1 === ultimo);
   }, [despachar, id, indice, ultimo]);
+
   const remover = useCallback(() => {
     despachar({ id, tipo: "modulo_removido" });
     linhaAberta.fechar(`modulo:${id}`);
     const vizinho = vizinhoQueFica(modulos, indice);
     focarDepois(vizinho ? ALVO.cabeca(vizinho.id) : ALVO.novoModulo);
   }, [despachar, id, indice, linhaAberta, modulos]);
+
   return (
     <section
       aria-label={nome}
@@ -429,6 +446,7 @@ function estadoFalado(bloco: Bloco) {
   if (bloco.tipo === "com_erro") {
     return `, ${camposParaCorrigir(bloco.campos)}`;
   }
+
   return bloco.tipo === "aberto" ? ", aberto" : "";
 }
 
@@ -448,7 +466,9 @@ function LinkDoIndice({
     },
     [irPara, modulo.id]
   );
+
   const titulo = modulo.titulo.trim() || "Sem título";
+
   return (
     <Tooltip>
       <TooltipTrigger
@@ -483,14 +503,18 @@ export function reservarOTopo(nav: HTMLElement | null) {
   if (!nav) {
     return;
   }
+
   const folga = 12;
   const raiz = document.documentElement;
+
   const medir = () => {
     const topo = Number.parseFloat(getComputedStyle(nav).top) || 0;
     raiz.style.scrollPaddingTop = `${topo + nav.offsetHeight + folga}px`;
   };
+
   const observador = new ResizeObserver(medir);
   observador.observe(nav);
+
   return () => {
     observador.disconnect();
     raiz.style.removeProperty("scroll-padding-top");
@@ -523,7 +547,7 @@ function IndiceDosModulos({
       <ol
         // O pr-11 do celular passa da faixa de 2,5rem da máscara: no fim da rolagem, o último número sai inteiro.
         className="flex min-w-0 [scrollbar-width:none] gap-1 overflow-x-auto max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)] max-md:pr-11 md:flex-wrap"
-        // biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
+        // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"
       >
         {blocos.map(({ bloco, modulo }) => (
@@ -558,10 +582,12 @@ export function ModulosDoCurso({
   rascunho: RascunhoDoCurso;
 }) {
   const { modulos, niveis } = rascunho;
+
   const blocos = modulos.map((modulo) => ({
     bloco: blocoDoModulo(modulo, abertos, marcados),
     modulo,
   }));
+
   const aulas = modulos.reduce((s, m) => s + m.aulas.length, 0);
 
   const adicionarModulo = useCallback(() => {
@@ -569,6 +595,7 @@ export function ModulosDoCurso({
     despachar({ id, tipo: "modulo_novo" });
     focarDepois(ID.modulo(id, "titulo"));
   }, [despachar]);
+
   // Sem rolagem suave: o salto vem do teclado tanto quanto do mouse.
   const irPara = useCallback(
     (id: ModuloId) => {

@@ -6,12 +6,14 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
 const fonte = readFileSync(
-  new URL("./components/sidebar.tsx", import.meta.url),
+  new URL("components/sidebar.tsx", import.meta.url),
   "utf8"
 );
+
 // Junta espaços e quebras de linha para o texto do JSX caber numa busca só.
 const texto = fonte.replace(/\s+/g, " ");
 const titulo = /<SheetTitle>\s*([^<]*?)\s*<\/SheetTitle>/.exec(texto)?.[1];
+
 const descricao = /<SheetDescription>\s*([^<]*?)\s*<\/SheetDescription>/.exec(
   texto
 )?.[1];

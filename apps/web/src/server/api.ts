@@ -1,5 +1,4 @@
 import "server-only";
-
 import { auth } from "@clerk/nextjs/server";
 import { contextoDe, ehAdmin } from "@cursos/api/context";
 import { TIPOS_DE_MATERIAL } from "@cursos/api/dominio/material";
@@ -27,21 +26,23 @@ const caller = cache(async () => createCaller(await contexto()));
  */
 export const exigirAdmin = cache(async () => {
   const ctx = await contexto();
+
   if (!ehAdmin(ctx.auth)) {
     notFound();
   }
+
   return createCaller(ctx);
 });
 
 /** Para o menu da conta do aluno mostrar o link da área do admin. */
 export const souAdmin = cache(async () => ehAdmin((await contexto()).auth));
 
-export const carregarPainel = cache(async () =>
-  (await caller()).meusCursos.painel()
+export const carregarPainel = cache(
+  async () => await (await caller()).meusCursos.painel()
 );
 
-export const carregarResumo = cache(async () =>
-  (await caller()).aluno.resumo()
+export const carregarResumo = cache(
+  async () => await (await caller()).aluno.resumo()
 );
 
 /**
@@ -58,28 +59,30 @@ export function paraACasca<T>(
   return carregar.catch((erro: unknown) => {
     unstable_rethrow(erro);
     console.error(`casca: ${peca} não carregou`, erro);
+
     return null;
   });
 }
 
-export const carregarConquistas = cache(async () =>
-  (await caller()).aluno.conquistas()
+export const carregarConquistas = cache(
+  async () => await (await caller()).aluno.conquistas()
 );
 
-export const carregarComunicadosDoAluno = cache(async () =>
-  (await caller()).aluno.comunicados()
+export const carregarComunicadosDoAluno = cache(
+  async () => await (await caller()).aluno.comunicados()
 );
 
-export const carregarAula = cache(async (slug: string, aulaId: string) =>
-  (await caller()).aula.abrir({ aulaId, slug })
+export const carregarAula = cache(
+  async (slug: string, aulaId: string) =>
+    await (await caller()).aula.abrir({ aulaId, slug })
 );
 
-export const carregarPaginaDoCurso = cache(async (slug: string) =>
-  (await caller()).curso.pagina({ slug })
+export const carregarPaginaDoCurso = cache(
+  async (slug: string) => await (await caller()).curso.pagina({ slug })
 );
 
-export const carregarPaginaDoCertificado = cache(async (slug: string) =>
-  (await caller()).certificado.pagina({ slug })
+export const carregarPaginaDoCertificado = cache(
+  async (slug: string) => await (await caller()).certificado.pagina({ slug })
 );
 
 export const conferirCertificado = cache((codigo: string) =>
@@ -96,11 +99,14 @@ export const abrirCapa = (chave: string) => servicos.capas.abrir(chave);
  */
 export async function abrirMaterial(id: string) {
   const ctx = contextoDe(await auth(), servicos);
+
   if (!ctx.auth) {
     return null;
   }
+
   const arquivo = await createCaller(ctx).curso.material({ id });
   const resposta = arquivo && (await servicos.materiais.abrir(arquivo.chave));
+
   return arquivo && resposta
     ? {
         contentType: TIPOS_DE_MATERIAL[arquivo.tipo].contentType,
@@ -110,55 +116,60 @@ export async function abrirMaterial(id: string) {
     : null;
 }
 
-export const carregarPainelDeTroca = cache(async () =>
-  (await caller()).troca.painel()
+export const carregarPainelDeTroca = cache(
+  async () => await (await caller()).troca.painel()
 );
 
 /** Só Meus cursos: o botão de Sua semana. Trocar pontos lê o fato do painel. */
-export const carregarTemCursoTrocavelNaVitrine = cache(async () =>
-  (await caller()).troca.temCursoTrocavelNaVitrine()
+export const carregarTemCursoTrocavelNaVitrine = cache(
+  async () => await (await caller()).troca.temCursoTrocavelNaVitrine()
 );
 
-export const carregarCatalogo = cache(async () =>
-  (await exigirAdmin()).admin.catalogo.visao()
+export const carregarCatalogo = cache(
+  async () => await (await exigirAdmin()).admin.catalogo.visao()
 );
 
-export const carregarCurso = cache(async (id: string) =>
-  (await exigirAdmin()).admin.catalogo.abrirCurso({ id })
+export const carregarCurso = cache(
+  async (id: string) =>
+    await (await exigirAdmin()).admin.catalogo.abrirCurso({ id })
 );
 
-export const carregarCategorias = cache(async () =>
-  (await exigirAdmin()).admin.categorias.lista()
+export const carregarCategorias = cache(
+  async () => await (await exigirAdmin()).admin.categorias.lista()
 );
 
-export const carregarPessoas = cache(async (termo: string) =>
-  (await exigirAdmin()).admin.liberacoes.buscar({ termo })
+export const carregarPessoas = cache(
+  async (termo: string) =>
+    await (await exigirAdmin()).admin.liberacoes.buscar({ termo })
 );
 
 export const carregarListaDePessoas = cache(
   async (termo: string, perfil: Perfil | null) =>
-    (await exigirAdmin()).admin.pessoas.lista({ perfil, termo })
+    await (await exigirAdmin()).admin.pessoas.lista({ perfil, termo })
 );
 
 /** Os convites vivos que casam o termo, o total deles e os cursos do diálogo de convidar. */
-export const carregarConvites = cache(async (termo: string) =>
-  (await exigirAdmin()).admin.convites.painel({ termo })
+export const carregarConvites = cache(
+  async (termo: string) =>
+    await (await exigirAdmin()).admin.convites.painel({ termo })
 );
 
 /** null: userId fora do formato, ou que o Clerk não conhece. */
-export const carregarFichaDaPessoa = cache(async (userId: string) =>
-  (await exigirAdmin()).admin.pessoas.ficha({ userId })
+export const carregarFichaDaPessoa = cache(
+  async (userId: string) =>
+    await (await exigirAdmin()).admin.pessoas.ficha({ userId })
 );
 
 /** null: userId fora do formato, ou userId que o Clerk não conhece e que nunca teve liberação. */
-export const carregarAcessoDoAluno = cache(async (userId: string) =>
-  (await exigirAdmin()).admin.liberacoes.acesso({ userId })
+export const carregarAcessoDoAluno = cache(
+  async (userId: string) =>
+    await (await exigirAdmin()).admin.liberacoes.acesso({ userId })
 );
 
-export const carregarGradeDosPerfis = cache(async () =>
-  (await exigirAdmin()).admin.perfis.grade()
+export const carregarGradeDosPerfis = cache(
+  async () => await (await exigirAdmin()).admin.perfis.grade()
 );
 
-export const carregarComunicados = cache(async () =>
-  (await exigirAdmin()).admin.comunicados.lista()
+export const carregarComunicados = cache(
+  async () => await (await exigirAdmin()).admin.comunicados.lista()
 );

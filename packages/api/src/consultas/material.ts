@@ -31,6 +31,7 @@ export async function materiaisDaPagina(
     .innerJoin(curso, eq(curso.id, material.cursoId))
     .where(eq(curso.slug, slug))
     .orderBy(asc(material.posicao));
+
   return linhas.map((m) => ({
     ...m,
     href: caminhoDoMaterial(m.id),
@@ -65,15 +66,20 @@ export async function materialParaBaixar(
     .from(material)
     .innerJoin(curso, eq(curso.id, material.cursoId))
     .where(eq(material.id, id));
+
   if (!achado) {
     return null;
   }
+
   const { slug, ...arquivo } = achado;
+
   if (quem.admin) {
     return arquivo;
   }
+
   const aberto = montarCursoAberto(
     await linhasDoCurso(db, quem.aluno, { slug }, { serial: false })
   );
+
   return aberto ? arquivo : null;
 }

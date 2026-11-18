@@ -22,27 +22,34 @@ interface OpcoesDaAcao<T> {
  */
 export function useAcaoDaConta() {
   const [pendente, iniciar] = useTransition();
+
   const comConfirmacao = useReverification((fazer: () => Promise<unknown>) =>
     fazer()
   );
+
   const executar = useCallback(
     <T>(fazer: () => Promise<T>, opcoes: OpcoesDaAcao<T> = {}) =>
       iniciar(async () => {
         let resultado: T;
+
         try {
           resultado = opcoes.sensivel
             ? ((await comConfirmacao(fazer)) as T)
             : await fazer();
         } catch (e) {
           toast.error(fraseDoErro(e));
+
           return;
         }
+
         if (opcoes.sucesso) {
           toast.success(opcoes.sucesso);
         }
+
         opcoes.depois?.(resultado);
       }),
     [comConfirmacao]
   );
+
   return { executar, pendente };
 }

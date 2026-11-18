@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -10,6 +11,7 @@ import type { Continuar } from "./continuar";
 // resto do módulo fica o de verdade.
 let caminhoAtual = "/";
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   usePathname: () => caminhoAtual,
@@ -53,6 +55,7 @@ function cumprida<T>(valor: T): Promise<T> {
 
 function html(caminho: string, aberta: boolean, cartao = CONTINUAR) {
   caminhoAtual = caminho;
+
   return renderToStaticMarkup(
     <ProvedorDaCasca aberta={aberta}>
       <CartaoContinuar cartao={cumprida(cartao)} />
@@ -93,9 +96,11 @@ const CLASSE = /\bclass="([^"]*)"/;
 const classesDoContinuar = (h: string) => {
   const tag = TAG_DO_CONTINUAR.exec(h)?.[0] ?? "";
   const classes = CLASSE.exec(tag)?.[1];
+
   if (!classes) {
     throw new Error("sem o Continuar no HTML");
   }
+
   return classes.split(" ");
 };
 
@@ -115,11 +120,13 @@ describe("a troca de modo não anima o Continuar", () => {
           caso === "no destino" ? QUESTIONARIO_FORA_DA_AULA : CONTINUAR
         )
       ).filter((c) => c.includes("transition"));
+
       expect(
         transicoes.filter(
           (c) => !(c.startsWith("before:") || c.includes(":before:"))
         )
       ).toEqual([]);
+
       if (caso === "com link") {
         expect(transicoes).toContain("before:transition-opacity");
       }

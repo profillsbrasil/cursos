@@ -17,6 +17,7 @@ export function ListaDeConvidados({
 }) {
   const { convidados, hoje, total } = convites;
   const cortada = !termo && total > convidados.length;
+
   return (
     <SecaoSobABarra
       id="convidados"

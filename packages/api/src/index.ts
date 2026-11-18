@@ -35,6 +35,7 @@ export class ErroParaAPessoa extends TRPCError {
 export const t = initTRPC.context<Context>().create({
   errorFormatter: ({ error, shape }) => {
     const paraAPessoa = error instanceof ErroParaAPessoa;
+
     return {
       ...shape,
       data: {
@@ -53,6 +54,7 @@ export const publicProcedure = t.procedure;
 // O middleware estreita a sessão: depois dele, ctx.auth é Sessao, não Sessao | null.
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   const { auth } = ctx;
+
   if (!auth) {
     throw new TRPCError({
       cause: "No Clerk userId",
@@ -60,6 +62,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
       message: "Authentication required",
     });
   }
+
   return next({ ctx: { ...ctx, auth } });
 });
 
@@ -71,13 +74,17 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
  */
 export const traduzErroDoBanco = t.middleware(async ({ next }) => {
   const resultado = await next();
+
   if (resultado.ok) {
     return resultado;
   }
+
   const mensagem = mensagemDoBanco(resultado.error);
+
   if (mensagem) {
     throw new ErroParaAPessoa({ ...mensagem, cause: resultado.error });
   }
+
   return resultado;
 });
 
@@ -99,11 +106,13 @@ const perfilDoPedido = new WeakMap<Sessao, Promise<Perfil>>();
 export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const { auth } = ctx;
   let lendo = perfilDoPedido.get(auth);
+
   if (!lendo) {
     lendo = perfilDe(ctx.db, auth.userId, ctx.pessoas, new Date());
     perfilDoPedido.set(auth, lendo);
   }
-  return next({
+
+  return await next({
     ctx: { ...ctx, aluno: { perfil: await lendo, userId: auth.userId } },
   });
 });
@@ -118,12 +127,14 @@ export const alunoComTraducao = alunoProcedure.use(traduzErroDoBanco);
  */
 export const adminProcedure = protegidoComTraducao.use(({ ctx, next }) => {
   const { auth } = ctx;
+
   if (!ehAdmin(auth)) {
     throw new ErroParaAPessoa({
       code: "FORBIDDEN",
       message: "Esta ação é só do admin.",
     });
   }
+
   return next({
     ctx: { ...ctx, admin: auth.userId as AdminId, auth },
   });

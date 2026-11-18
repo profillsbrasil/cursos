@@ -18,6 +18,7 @@ import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
+
 import {
   BarraDeAulas,
   dataDaLiberacao,
@@ -60,6 +61,7 @@ function AcaoDaLiberacao({
   const { executar, pendente } = useAcao();
   const { titulo } = l.curso;
   const { fechar } = linhaAberta;
+
   const revogar = useCallback(
     () =>
       executar(
@@ -78,7 +80,9 @@ function AcaoDaLiberacao({
       ),
     [executar, fechar, l.id, titulo]
   );
+
   const { acao } = l;
+
   switch (acao.tipo) {
     case "fixa_por_troca":
       return (
@@ -139,6 +143,7 @@ function ItemDaLiberacao({
   const a = l.acompanhamento;
   const revogada = l.acao.tipo === "revogada";
   const frase = fraseDoCurso(a, hoje);
+
   return (
     <li className="grid gap-x-4 gap-y-3 px-4 py-4 @xl:grid-cols-[minmax(0,1fr)_auto] @xl:px-5">
       <div className="grid min-w-0 content-start gap-1">
@@ -190,11 +195,14 @@ function Liberacoes({
   if (liberacoes.length === 0) {
     return <Vazio>Nenhuma liberação ainda. Libere um curso abaixo.</Vazio>;
   }
+
   const ativas = liberacoes.filter((l) => l.acao.tipo !== "revogada");
   const revogadas = liberacoes.filter((l) => l.acao.tipo === "revogada");
+
   const item = (l: LiberacaoNaTela) => (
     <ItemDaLiberacao hoje={hoje} key={l.id} l={l} linhaAberta={linhaAberta} />
   );
+
   return (
     <div className="@container">
       {ativas.length === 0 ? (
@@ -229,6 +237,7 @@ function Liberacoes({
 function useLiberar({ nome, userId }: Para, cursoId: CursoId, titulo: string) {
   const { executar, pendente } = useAcao();
   const focarSelo = useRef(false);
+
   const liberar = useCallback(
     () =>
       executar(
@@ -245,12 +254,14 @@ function useLiberar({ nome, userId }: Para, cursoId: CursoId, titulo: string) {
       ),
     [executar, cursoId, userId, nome, titulo]
   );
+
   const selo = useCallback((el: HTMLSpanElement | null) => {
     if (el && focarSelo.current) {
       focarSelo.current = false;
       el.focus({ preventScroll: true });
     }
   }, []);
+
   return { enviando: pendente, liberar, selo };
 }
 
@@ -290,6 +301,7 @@ function BotaoLiberar({
 function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
   const { id, titulo } = c.curso;
   const { enviando, liberar, selo } = useLiberar(para, id, titulo);
+
   // Em lista de 32rem ou mais, o botão fica na coluna da direita mesmo quando o
   // selo quebra linha. Mais estreita, a linha quebra como texto: um selo longo
   // não cabe ao lado do botão.
@@ -312,14 +324,17 @@ function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
 
 export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
   const [chave, pedir] = useState<string | null>(null);
+
   const fechar = useCallback(
     (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
     []
   );
+
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
   const { pessoa, userId } = acesso;
   const nome = pessoa?.nome ?? userId;
   const para: Para = { nome, userId };
+
   const ativas = acesso.liberacoes.filter(
     (l) => l.acao.tipo !== "revogada"
   ).length;

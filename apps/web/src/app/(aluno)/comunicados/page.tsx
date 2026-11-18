@@ -7,5 +7,6 @@ export const metadata: Metadata = { title: "Comunicados" };
 
 export default async function PaginaDeComunicados() {
   const comunicados = await carregarComunicadosDoAluno();
+
   return <TelaDeComunicados comunicados={comunicados} />;
 }

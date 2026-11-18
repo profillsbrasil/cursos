@@ -20,7 +20,7 @@ import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
  * script que ele mesmo insere, então na navegação no cliente quem centra é o
  * `useColunaNaAulaAtual`.
  */
-const CENTRAR_NA_CARGA = `(${centrarAAulaAtual})(document.currentScript.previousElementSibling, ${rolagemDaColuna})`;
+const CENTRAR_NA_CARGA = `(${centrarAAulaAtual.toString()})(document.currentScript.previousElementSibling, ${rolagemDaColuna.toString()})`;
 
 /**
  * No cliente o script vira bloco de dados: o React acusa no console todo
@@ -38,14 +38,18 @@ const TIPO_DO_SCRIPT = typeof window === "undefined" ? undefined : "text/plain";
 function useColunaNaAulaAtual(aulaId: string) {
   const coluna = useRef<HTMLElement>(null);
   const montada = useRef<boolean>(false);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a aula nova é o gatilho; a medida vem do DOM.
+  // oxlint-disable react/exhaustive-effect-dependencies -- a aula nova é o gatilho; a medida vem do DOM.
   useLayoutEffect(() => {
     const el = coluna.current;
+
     if (el && (montada.current || el.scrollTop === 0)) {
       centrarAAulaAtual(el, rolagemDaColuna);
     }
+
     montada.current = true;
   }, [aulaId]);
+
+  // oxlint-enable react/exhaustive-effect-dependencies
   return coluna;
 }
 
@@ -58,6 +62,7 @@ function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
       </span>
     );
   }
+
   return (
     <span
       className={cn(
@@ -81,7 +86,9 @@ function MarcaDoQuestionario({
   if (marca.tipo === "sem") {
     return null;
   }
+
   const aprovado = marca.tipo === "aprovado";
+
   return (
     <>
       <ListChecks
@@ -102,6 +109,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
   const { progresso, slug, titulo } = dados.curso;
   const amostra = dados.amostra !== null;
   const coluna = useColunaNaAulaAtual(dados.aula.id);
+
   return (
     <>
       <aside
@@ -195,7 +203,7 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
       </aside>
       {/* O texto sai do bundle de cada lado, e o tipo muda no cliente: a hidratação não confere os dois. */}
       <script
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: o texto é o código de centrarAAulaAtual, sem dado de fora.
+        // oxlint-disable-next-line react/no-danger -- o texto é o código de centrarAAulaAtual, sem dado de fora.
         dangerouslySetInnerHTML={{ __html: CENTRAR_NA_CARGA }}
         suppressHydrationWarning
         type={TIPO_DO_SCRIPT}

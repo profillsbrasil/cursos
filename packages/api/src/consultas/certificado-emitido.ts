@@ -40,6 +40,7 @@ export async function linhaDoCertificado(
         ? eq(certificado.codigo, onde.codigo)
         : and(eq(certificado.userId, onde.userId), eq(curso.slug, onde.slug))
     );
+
   return linha ?? null;
 }
 
@@ -50,12 +51,15 @@ export async function carregarPaginaDoCertificado(
 ): Promise<PaginaDoCertificado | null> {
   const { userId } = aluno;
   const linha = await linhaDoCertificado(db, { slug, userId });
+
   if (linha) {
     return paginaEmitida(linha, await pessoas.porId(userId));
   }
+
   const aberto = montarCursoAberto(
     await linhasDoCurso(db, aluno, { slug }, { serial: false })
   );
+
   return aberto && paginaQueFalta(aberto);
 }
 
@@ -64,5 +68,6 @@ export async function conferir(
   codigo: CodigoDoCertificado
 ): Promise<CertificadoEmitido | null> {
   const linha = await linhaDoCertificado(db, { codigo });
+
   return linha && certificadoEmitido(linha, await pessoas.porId(linha.userId));
 }

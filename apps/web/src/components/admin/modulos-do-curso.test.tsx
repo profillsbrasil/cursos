@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
 import type { Versao, VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -20,9 +21,11 @@ const BOTAO = /<button[^>]*>[\s\S]*?<\/button>/g;
 
 const botao = (html: string, rotulo: string) => {
   const achado = html.match(BOTAO)?.find((b) => b.includes(rotulo));
+
   if (!achado) {
     throw new Error(`sem botão "${rotulo}"`);
   }
+
   return achado;
 };
 
@@ -41,6 +44,7 @@ const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
 
 const blocoDoExemplo = (bloco: Bloco) => {
   const { modulos, niveis } = rascunhoDoCurso(documentoDeExemplo());
+
   return renderToStaticMarkup(
     <BlocoDoModulo
       assistidasPorAula={{ [EDICAO.A1]: 3 }}
@@ -68,6 +72,7 @@ describe("bloco fechado", () => {
 
   test("o resumo tem o número, o título, as aulas com a duração, o nível e as aulas assistidas", () => {
     const texto = textoVisivel(html);
+
     for (const trecho of [
       " 0 ",
       "Módulo zero",
@@ -116,6 +121,7 @@ describe("campo de vídeo da aula salva", () => {
     ...resto,
   ];
   const rascunho = rascunhoDoCurso(documento);
+
   const html = renderToStaticMarkup(
     <BlocoDoModulo
       assistidasPorAula={{}}
@@ -147,15 +153,19 @@ describe("campo de vídeo da aula salva", () => {
   test("o link longo colado e salvo volta ao campo curto, sem deixar o editor sujo", () => {
     const sujo = (e: RascunhoDoEditor) => telaDo(e).sujo;
     const inicio = rascunhoDoEditorEm(documentoDeExemplo("v1" as Versao));
+
     const colado = rascunhoDoEditor(inicio, {
       id: EDICAO.A1,
       mudanca: { video: "https://www.youtube.com/watch?v=aqz-KE-bpKQ" },
       tipo: "aula_editada",
     });
+
     const { envio } = telaDo(colado);
+
     if (envio === null) {
       throw new Error("o rascunho colado não leu");
     }
+
     const salvo = rascunhoDoEditor(colado, {
       envio,
       tipo: "salvo",
@@ -229,6 +239,7 @@ describe("erro num módulo que o admin não abriu", () => {
   const erros = new Map([
     [ID.aula(EDICAO.A3, "duracao"), "Escreva a duração em mm:ss, como 12:30."],
   ]);
+
   const html = renderToStaticMarkup(
     <ErrosDoEditor value={erros}>
       <ModulosDoCurso
@@ -242,6 +253,7 @@ describe("erro num módulo que o admin não abriu", () => {
       />
     </ErrosDoEditor>
   );
+
   const link = (id: string) =>
     html.match(new RegExp(`<a[^>]*href="#modulo-${id}"[^>]*>.*?</a>`))?.[0] ??
     "";

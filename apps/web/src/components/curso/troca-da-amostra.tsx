@@ -28,6 +28,7 @@ export function TrocaDaAmostra({
 }) {
   const troca = trocaDaAmostra(amostra);
   const idDaRazao = `saldo-da-troca-${amostra.cursoId}`;
+
   return (
     <aside
       aria-label="Trocar o curso"

@@ -14,6 +14,7 @@ function percorrer(
   const [primeiro, ...resto] = passos;
   let a = aberturaEm(primeiro as string, preferida);
   const abertaEmCada = [estaAberta(a)];
+
   for (const passo of resto) {
     if (typeof passo === "string") {
       const seguinte = navegar(a, passo);
@@ -21,8 +22,10 @@ function percorrer(
     } else {
       a = alternar(a, passo.alterna);
     }
+
     abertaEmCada.push(estaAberta(a));
   }
+
   return { abertaEmCada, abertura: a };
 }
 
@@ -57,6 +60,7 @@ describe("a sidebar na aula", () => {
       { alterna: true },
       "/trocar-pontos",
     ]);
+
     expect(abertaEmCada).toEqual([false, true, false]);
     expect(abertura.preferida).toBe(false);
   });

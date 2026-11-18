@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -94,6 +95,7 @@ describe("o cartão em cada estado", () => {
       expect(cartao(render(pagina))).toBe(esperado);
     });
   }
+
   test("concluído: o código do certificado leva à página do certificado", () => {
     expect(render(comercial.concluido)).toMatch(LINK_DO_CERTIFICADO);
   });
@@ -110,6 +112,7 @@ describe("a página", () => {
 
   test("a ordem no DOM é cabeçalho, cartão, o que você vai aprender, conteúdo e sobre", () => {
     const html = render(fabrica.naoIniciado);
+
     const marcos = [
       "<h1",
       'aria-label="Seu progresso"',
@@ -117,6 +120,7 @@ describe("a página", () => {
       "Conteúdo do curso",
       "Sobre o curso",
     ].map((m) => html.indexOf(m));
+
     expect(marcos.every((m) => m >= 0)).toBe(true);
     expect([...marcos].sort((a, b) => a - b)).toEqual(marcos);
   });
@@ -173,9 +177,11 @@ describe("a página", () => {
 
   test("Você parou em m:ss fica na linha da aula atual, só com posição acima de 0", () => {
     const comPosicao = render(fabrica.emAndamento);
+
     const linha = comPosicao.match(
       new RegExp(`<li[\\s>](?:(?!</li>).)*${BLOQUEIO}.*?</li>`)
     )?.[0];
+
     expect(textoDoLeitorDeTela(linha ?? "")).toBe(
       "2 Bloqueio antes de mexer Você parou em 3:42 10 min"
     );
@@ -200,6 +206,7 @@ describe("a página", () => {
     const linha = render(fabrica.emAndamento).match(
       new RegExp(`<li[\\s>](?:(?!</li>).)*${RISCOS}.*?</li>`)
     )?.[0];
+
     expect(texto(linha ?? "")).toBe(
       "Assistida. Riscos do posto de montagem 11 min Os pontos de esmagamento, corte e choque que aparecem na bancada."
     );
@@ -211,6 +218,7 @@ describe("o material de apoio no cartão", () => {
     ...comercial.emAndamento,
     materiais: MATERIAIS_DO_COMERCIAL.slice(0, n),
   });
+
   const links = (html: string) =>
     [
       ...(html.match(CARTAO)?.[0] ?? "").matchAll(

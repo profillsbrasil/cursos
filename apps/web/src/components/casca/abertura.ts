@@ -13,6 +13,7 @@ export function aberturaEm(
   preferida: boolean
 ): Abertura {
   const aula = aulaDoCaminho(caminho);
+
   return aula === null
     ? { lugar: "fora", preferida }
     : { aberta: false, aula, lugar: "aula", preferida };
@@ -26,9 +27,11 @@ export function navegar(
   caminho: string | null
 ): Abertura | "mesmo_lugar" {
   const aula = aulaDoCaminho(caminho);
+
   if (aula === (a.lugar === "aula" ? a.aula : null)) {
     return "mesmo_lugar";
   }
+
   return aberturaEm(caminho, a.preferida);
 }
 

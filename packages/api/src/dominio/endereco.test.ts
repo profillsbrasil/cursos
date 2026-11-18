@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { SLUG } from "@cursos/db/schema/formatos";
 
 import { raizDoSlug, slugDoTitulo, slugLivre } from "./endereco";

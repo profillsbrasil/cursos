@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Trecho } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -6,6 +7,7 @@ import { BarraDeTrechos } from "./barra-de-trechos";
 
 const AMARELO =
   /class="bg-sol absolute inset-y-0" style="left:([\d.]+)%;width:([\d.]+)%"/g;
+
 const POLEGAR = /class="bg-titulo [^"]*" style="left:([\d.]+)%"/;
 
 const nada = () => undefined;
@@ -20,6 +22,7 @@ const barra = (trechos: Trecho[], tempoSeg: number) => {
       trechos={trechos}
     />
   );
+
   return {
     amarelos: [...html.matchAll(AMARELO)].map(([, l, w]) => [
       Number(l),

@@ -24,8 +24,8 @@ import {
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum } from "@/lib/formato";
-import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 
+import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];
@@ -44,6 +44,7 @@ function mensagem(r: RecusaDaCapa, arquivo: File): string {
       return "O envio de capas está desligado neste ambiente.";
     default: {
       const nenhuma: never = r;
+
       return String(nenhuma);
     }
   }
@@ -60,11 +61,15 @@ async function conferir(
   if (!TIPOS.includes(arquivo.type)) {
     return { erro: mensagem({ tipo: "formato" }, arquivo) };
   }
+
   const pesada = recusaDoTamanho(arquivo.size);
+
   if (pesada) {
     return { erro: mensagem(pesada, arquivo) };
   }
+
   let medida: Medida;
+
   try {
     // createImageBitmap aplica a orientação EXIF, como o servidor.
     const bitmap = await createImageBitmap(arquivo);
@@ -73,7 +78,9 @@ async function conferir(
   } catch {
     return { erro: mensagem({ tipo: "formato" }, arquivo) };
   }
+
   const recusa = recusaDaMedida(medida.largura, medida.altura);
+
   return recusa ? { erro: mensagem(recusa, arquivo) } : { medida };
 }
 
@@ -126,9 +133,11 @@ export function CampoDeCapa({
   const id = useId();
   const [estado, guardar] = useState<EstadoDaCapa>(VAZIO);
   const ajustado = capaNoCampo(estado, guardado);
+
   if (ajustado !== estado) {
     guardar(ajustado);
   }
+
   const { erro, escolhida } = ajustado;
   const [arrastando, setArrastando] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -137,6 +146,7 @@ export function CampoDeCapa({
     if (escolhida) {
       return () => URL.revokeObjectURL(escolhida.url);
     }
+
     if (input.current) {
       input.current.value = "";
     }
@@ -145,14 +155,18 @@ export function CampoDeCapa({
   const receber = useCallback(
     async (recebido: File) => {
       const r = await conferir(recebido);
+
       if ("erro" in r) {
         if (input.current) {
           input.current.value = "";
         }
+
         guardar({ erro: r.erro, escolhida: null });
         aoEscolher(null);
+
         return;
       }
+
       guardar({
         erro: null,
         escolhida: {
@@ -169,8 +183,9 @@ export function CampoDeCapa({
   const escolher = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const arquivo = e.currentTarget.files?.[0];
+
       if (arquivo) {
-        receber(arquivo);
+        void receber(arquivo);
       }
     },
     [receber]
@@ -181,19 +196,22 @@ export function CampoDeCapa({
     e.dataTransfer.dropEffect = "copy";
     setArrastando(true);
   }, []);
+
   const sair = useCallback((e: DragEvent<HTMLLabelElement>) => {
     // O dragleave dispara também ao passar de um filho para outro dentro da área.
     if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
       setArrastando(false);
     }
   }, []);
+
   const soltar = useCallback(
     (e: DragEvent<HTMLLabelElement>) => {
       e.preventDefault();
       setArrastando(false);
       const [arquivo] = e.dataTransfer.files;
+
       if (arquivo) {
-        receber(arquivo);
+        void receber(arquivo);
       }
     },
     [receber]
@@ -207,11 +225,13 @@ export function CampoDeCapa({
   const imagem = escolhida
     ? { alt: "Nova capa", src: escolhida.url, unoptimized: true }
     : atual && { alt: atual.alt, src: atual.url };
+
   const temCapa = imagem !== null;
   const medida = escolhida?.medida ?? atual;
   const arquivo = ID.curso("capa");
   const daImagem = useErroDoCampo(arquivo, `${id}-regra`);
   const mensagemDaImagem = erro ?? daImagem.mensagem;
+
   const regra = (
     <span
       className="text-muted-foreground text-xs leading-normal"
@@ -221,12 +241,13 @@ export function CampoDeCapa({
       menos {fmtNum(LIMITE_DA_CAPA.larguraMinima)} px de largura.
     </span>
   );
+
   return (
     <Field
       className="relative content-start gap-2"
       data-invalid={mensagemDaImagem ? true : undefined}
     >
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: soltar o arquivo é atalho do mouse; o teclado escolhe pelo input dentro do rótulo. */}
+      {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- soltar o arquivo é atalho do mouse; o teclado escolhe pelo input dentro do rótulo. */}
       <label
         className={cn(
           AREA_DA_CAPA,

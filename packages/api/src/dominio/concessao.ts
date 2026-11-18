@@ -26,9 +26,11 @@ export function recusaDaConcessao(
   if (saldo + pontos >= 0) {
     return null;
   }
+
   if (saldo <= 0) {
     return "A pessoa não tem pontos.";
   }
+
   return `A pessoa tem só ${INTEIRO.format(saldo)} ${saldo === 1 ? "ponto" : "pontos"}.`;
 }
 
@@ -57,6 +59,7 @@ export function montarConcessoes(
   const nomes = new Map(
     autores.flatMap((p) => (p ? [[p.userId, p.nome] as const] : []))
   );
+
   return linhas.map((l) => ({
     em: l.concedidaEm,
     id: l.id,

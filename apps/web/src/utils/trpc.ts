@@ -22,6 +22,7 @@ async function headers(): Promise<Record<string, string>> {
 
   const { auth } = await import("@clerk/nextjs/server");
   const clerkAuth = await auth();
+
   return comToken(await clerkAuth.getToken());
 }
 

@@ -19,10 +19,13 @@ async function folhaDaConta(
   origem: string
 ): Promise<FolhaDaConta> {
   const pagina = slug ? await carregarPaginaDoCertificado(slug) : null;
+
   if (pagina?.tipo !== "emitido") {
     return { exemplo: true, folha: folhaDeExemplo(origem) };
   }
+
   const { certificado } = pagina;
+
   return {
     exemplo: false,
     folha: folhaDo(
@@ -37,16 +40,16 @@ export default async function PaginaDaMinhaConta() {
     carregarConquistas(),
     headers(),
   ]);
+
   const ganhos = certificados.filter((c) => c.estado === "ganha");
+
   return (
     <TelaDaMinhaConta
       certificados={ganhos.length}
-      folha={
-        await folhaDaConta(
-          ganhos.at(-1)?.curso.slug,
-          origemDoPedido(cabecalhos)
-        )
-      }
+      folha={await folhaDaConta(
+        ganhos.at(-1)?.curso.slug,
+        origemDoPedido(cabecalhos)
+      )}
     />
   );
 }

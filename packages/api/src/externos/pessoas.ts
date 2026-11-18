@@ -38,6 +38,7 @@ export const TETO_DO_FILTRO = 100;
 
 export function paraPessoa(u: User): Pessoa {
   const email = u.primaryEmailAddress?.emailAddress ?? null;
+
   return {
     email,
     foto: u.hasImage ? u.imageUrl : null,
@@ -50,6 +51,7 @@ function paraConta(u: User): Conta {
   const google = u.externalAccounts.some(
     (c) => c.provider.replace(OAUTH, "") === "google"
   );
+
   return {
     ...paraPessoa(u),
     criadaEm: new Date(u.createdAt),
@@ -69,16 +71,20 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
       if (entre?.length === 0) {
         return { pessoas: [], total: 0 };
       }
+
       const filtro = entre ? { userId: entre.slice(0, TETO_DO_FILTRO) } : {};
+
       const r = await clerk.users.getUserList(
         termo
           ? { ...filtro, limit: LIMITE, query: termo }
           : { ...filtro, limit: LIMITE, orderBy: "-last_active_at" }
       );
+
       return { pessoas: r.data.map(paraConta), total: r.totalCount };
     },
     async conta(userId) {
       const u = await umUsuario(clerk, userId);
+
       return u ? paraConta(u) : null;
     },
     async contasCom(emails) {
@@ -88,26 +94,32 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
       // `diana@x.com`. Por isso a igualdade é conferida aqui, e a busca segue
       // pelas páginas até achar todos ou acabar.
       let offset = 0;
+
       while (pedidos.size > 0 && achadas.size < pedidos.size) {
-        // biome-ignore lint/performance/noAwaitInLoops: a página seguinte só existe depois da anterior.
+        // oxlint-disable-next-line no-await-in-loop -- a página seguinte só existe depois da anterior.
         const r = await clerk.users.getUserList({
           emailAddress: [...pedidos],
           limit: TETO_DO_FILTRO,
           offset,
         });
+
         for (const u of r.data) {
           for (const e of u.emailAddresses) {
             const email = e.emailAddress.toLowerCase();
+
             if (pedidos.has(email)) {
               achadas.set(email as Email, u.id);
             }
           }
         }
+
         offset += r.data.length;
+
         if (r.data.length === 0 || offset >= r.totalCount) {
           break;
         }
       }
+
       return achadas;
     },
     async definirPapel(userId, papel) {
@@ -118,6 +130,7 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
     },
     async porId(userId) {
       const u = await umUsuario(clerk, userId);
+
       return u ? paraPessoa(u) : null;
     },
   };
@@ -130,5 +143,6 @@ async function umUsuario(
   userId: string
 ): Promise<User | null> {
   const r = await clerk.users.getUserList({ limit: 1, userId: [userId] });
+
   return r.data[0] ?? null;
 }

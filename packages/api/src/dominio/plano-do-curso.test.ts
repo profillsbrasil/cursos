@@ -24,6 +24,7 @@ const NADA_SAI = {
 };
 
 const CAPA_ATUAL = "/capas/atual.jpg";
+
 const capa = (url: string): ImagemDaCapa => ({
   altura: 720,
   largura: 1280,
@@ -33,6 +34,7 @@ const capa = (url: string): ImagemDaCapa => ({
 /** O documento como abrirCurso devolve: versão da árvore com a capa do banco. */
 function documento(): DocumentoDoCurso {
   const d = documentoDeExemplo();
+
   return { ...d, versao: versaoDoCurso(d, CAPA_ATUAL) };
 }
 
@@ -63,9 +65,11 @@ const editar = (
 describe("versaoDoCurso", () => {
   test("ignora a ordem das chaves e o próprio campo versao", () => {
     const d = documento();
+
     const invertido = Object.fromEntries(
       Object.entries(d).reverse()
     ) as DocumentoDoCurso;
+
     expect(versaoDoCurso({ ...invertido, versao: null }, CAPA_ATUAL)).toBe(
       versaoDoCurso(d, CAPA_ATUAL)
     );
@@ -73,10 +77,13 @@ describe("versaoDoCurso", () => {
 
   test("muda quando uma aula muda de lugar ou quando a capa muda", () => {
     const d = documento();
+
     const trocado = editar(d, (x) => {
       x.modulos[0]?.aulas.reverse();
+
       return x;
     });
+
     const versao = versaoDoCurso(d, CAPA_ATUAL);
     expect(versaoDoCurso(trocado, CAPA_ATUAL)).not.toBe(versao);
     expect(versaoDoCurso(d, "/capas/outra.jpg")).not.toBe(versao);
@@ -115,10 +122,12 @@ describe("planejarCurso", () => {
   test("conteúdo igual sem capa é nada_mudou, mesmo com versão velha ou null", () => {
     const d = documento();
     const atual = edicao(d);
+
     const nada = {
       tipo: "nada_mudou",
       versao: versaoDoCurso(d, CAPA_ATUAL),
     } as const;
+
     expect(planejarCurso(atual, d, null)).toEqual(nada);
     expect(planejarCurso(atual, { ...d, versao: null }, null)).toEqual(nada);
   });
@@ -145,25 +154,32 @@ describe("planejarCurso", () => {
   test("versão diferente da atual é versao_mudou, inclusive para troca de capa", () => {
     const d = documento();
     const outroAdmin = editar(d, (x) => ({ ...x, titulo: "Outro título" }));
+
     const atual = edicao({
       ...outroAdmin,
       versao: versaoDoCurso(outroAdmin, CAPA_ATUAL),
     });
+
     const meu = editar(d, (x) => ({ ...x, descricao: "Minha descrição." }));
+
     const recusa = {
       recusa: { tipo: "versao_mudou" },
       tipo: "recusa",
     } as const;
+
     expect(planejarCurso(atual, meu, null)).toEqual(recusa);
     expect(planejarCurso(atual, d, capa("/capas/minha.jpg"))).toEqual(recusa);
   });
 
   test("aula assistida fora do documento é recusada com título e contagem", () => {
     const d = documento();
+
     const semA2 = editar(d, (x) => {
       x.modulos[0]?.aulas.pop();
+
       return x;
     });
+
     expect(planejarCurso(edicao(d, { [A2]: 3 }), semA2, null)).toEqual({
       recusa: { alunos: 3, tipo: "aula_assistida", titulo: "Aula 2" },
       tipo: "recusa",
@@ -172,13 +188,17 @@ describe("planejarCurso", () => {
 
   test("aula assistida que só muda de módulo não é recusada", () => {
     const d = documento();
+
     const movida = editar(d, (x) => {
       const a2 = x.modulos[0]?.aulas.pop();
+
       if (a2) {
         x.modulos[1]?.aulas.unshift(a2);
       }
+
       return x;
     });
+
     expect(planejarCurso(edicao(d, { [A2]: 3 }), movida, null)).toMatchObject({
       apagar: NADA_SAI,
       tipo: "atualizar",
@@ -187,11 +207,13 @@ describe("planejarCurso", () => {
 
   test("atualizar lista as aulas, módulos e níveis que saem", () => {
     const d = documento();
+
     const enxuto = editar(d, (x) => ({
       ...x,
       modulos: x.modulos.slice(0, 1).map((m) => ({ ...m, nivelOrdem: 1 })),
       niveis: x.niveis.slice(0, 1),
     }));
+
     expect(planejarCurso(edicao(d, { [A1]: 1 }), enxuto, null)).toEqual({
       apagar: { ...NADA_SAI, aulas: [A3], modulos: [M2], niveis: [2] },
       capa: null,
@@ -203,6 +225,7 @@ describe("planejarCurso", () => {
 
   test("módulo e aula novos não saem de nada", () => {
     const d = documento();
+
     const maior = editar(d, (x) => {
       x.modulos[0]?.aulas.push(
         aulaDeExemplo(uuidDeExemplo(24) as AulaId, "Aula 4")
@@ -214,8 +237,10 @@ describe("planejarCurso", () => {
         numero: 7,
         titulo: "Novo",
       });
+
       return x;
     });
+
     expect(planejarCurso(edicao(d), maior, null)).toMatchObject({
       apagar: NADA_SAI,
       tipo: "atualizar",
@@ -227,24 +252,32 @@ describe("planejarCurso", () => {
     const P2A = uuidDeExemplo(53) as AlternativaId;
     const P2B = uuidDeExemplo(54) as AlternativaId;
     const P1C = uuidDeExemplo(55) as AlternativaId;
+
     const d = editar(documento(), (x) => {
       const a1 = x.modulos[0]?.aulas[0];
+
       if (a1) {
         const p1 = perguntaDeExemplo(P1, [P1A, P1B]);
         p1.alternativas.push({ certa: false, id: P1C, texto: "Terceira" });
         a1.perguntas = [p1, perguntaDeExemplo(P2, [P2A, P2B])];
       }
+
       return x;
     });
+
     const atual = edicao({ ...d, versao: versaoDoCurso(d, CAPA_ATUAL) });
+
     const enxuto = editar(atual.documento, (x) => {
       const a1 = x.modulos[0]?.aulas[0];
       const q1 = a1?.perguntas[0];
+
       if (a1 && q1) {
         a1.perguntas = [{ ...q1, alternativas: q1.alternativas.slice(0, 2) }];
       }
+
       return x;
     });
+
     expect(planejarCurso(atual, enxuto, null)).toMatchObject({
       apagar: { ...NADA_SAI, alternativas: [P1C, P2A, P2B], perguntas: [P2] },
       tipo: "atualizar",

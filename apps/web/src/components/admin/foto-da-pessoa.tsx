@@ -3,7 +3,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@cursos/ui/components/avatar";
-
 import { cn } from "@cursos/ui/lib/utils";
 
 import { iniciais } from "@/lib/formato";

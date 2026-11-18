@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type {
   ListaDePessoas,
   PessoaNaLista,
@@ -9,6 +10,7 @@ import { ListaDePessoasDoAdmin } from "./lista-de-pessoas";
 
 const TAG = /<[^>]+>/g;
 const LINHA = /<li[^>]*>.*?<\/li>/g;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
 
@@ -44,6 +46,7 @@ const linhasEmHtml = () =>
   renderToStaticMarkup(
     <ListaDePessoasDoAdmin hoje={HOJE} lista={LISTA} termo="" />
   ).match(LINHA) ?? [];
+
 const linhas = () => linhasEmHtml().map(texto);
 
 /** As classes do elemento que tem só o texto dado. */
@@ -55,6 +58,7 @@ describe("a lista de Pessoas", () => {
     const html = renderToStaticMarkup(
       <ListaDePessoasDoAdmin hoje={HOJE} lista={LISTA} termo="" />
     );
+
     expect(html).toContain(
       '<h2 class="sr-only" id="pessoas" tabindex="-1">Por último acesso</h2>'
     );

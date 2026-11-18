@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import { build } from "bun";
 
 import {
@@ -9,7 +10,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "categorias-apagar.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-apagar-falso.js");
@@ -23,6 +24,7 @@ const LIVRE = {
   id: "00000000-0000-4000-8000-000000000001",
   nome: "Processo de envase",
 };
+
 const EM_USO = {
   cursos: ["Fábrica e montagem"],
   id: "00000000-0000-4000-8000-000000000002",
@@ -84,11 +86,14 @@ async function empacotar(resposta: keyof typeof RESPOSTA) {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 let enviar: Enviar;

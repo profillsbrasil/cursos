@@ -8,12 +8,15 @@ export async function respostaDoPdf(
   origem: string
 ): Promise<Response> {
   const comONome = comNome(certificado);
+
   if (!comONome) {
     return new Response("Certificado não encontrado.", { status: 404 });
   }
+
   const pdf = await pdfDaFolha(
     folhaDo(comONome, enderecoDaConferencia(origem, comONome.codigo))
   );
+
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Cache-Control": "private, no-store",

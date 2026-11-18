@@ -1,4 +1,5 @@
 import type { useUser } from "@clerk/nextjs";
+
 import type { FolhaDoCertificado } from "@/components/certificado/medidas-da-folha";
 
 /** O usuário do Clerk como o `useUser()` entrega, já carregado. */

@@ -14,6 +14,7 @@ import { type SyntheticEvent, useCallback, useState } from "react";
 import { CARTAO } from "@/components/casca/cartoes";
 import { fmtMin, plural } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
+
 import {
   abertosDeSaida,
   aulaAtual,
@@ -42,10 +43,13 @@ const SELO_DO_QUESTIONARIO = {
 
 function SeloDoQuestionario({ aula }: { aula: AulaDaPagina }) {
   const selo = seloDoQuestionario(aula);
+
   if (!selo) {
     return null;
   }
+
   const Icone = selo.tipo === "reprovado" ? RotateCcw : ListChecks;
+
   return (
     <span
       className={cn(
@@ -102,6 +106,7 @@ function MarcaDaAula({
       </span>
     );
   }
+
   return (
     <span
       className={cn(
@@ -158,7 +163,9 @@ function Livro({
         if (amostra !== null && a.id !== amostra) {
           return <AulaFechada aula={a} key={a.id} />;
         }
+
         const aqui = a.id === atual;
+
         return (
           <li
             className={cn(
@@ -232,12 +239,15 @@ function ModuloDaSanfona({
   slug: string;
 }) {
   const { numero } = modulo;
+
   const aoAlternar = useCallback(
     (e: SyntheticEvent<HTMLDetailsElement>) =>
       alternar(numero, e.currentTarget.open),
     [alternar, numero]
   );
+
   const { direita, questionarios, sob } = linhasDoModulo(modulo, comecou);
+
   return (
     <details
       className="group border-border border-t first:border-t-0"
@@ -282,6 +292,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
   const [abertos, setAbertos] = useState<ReadonlySet<number>>(
     () => new Set(abertosDeSaida(pagina))
   );
+
   const { modulos, slug } = pagina;
   const todos = modulos.every((m) => abertos.has(m.numero));
   const atual = aulaAtual(pagina);
@@ -295,16 +306,20 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
         if (antes.has(numero) === aberto) {
           return antes;
         }
+
         const depois = new Set(antes);
+
         if (aberto) {
           depois.add(numero);
         } else {
           depois.delete(numero);
         }
+
         return depois;
       }),
     []
   );
+
   const alternarTodos = useCallback(
     () => setAbertos(todos ? new Set() : new Set(modulos.map((m) => m.numero))),
     [todos, modulos]

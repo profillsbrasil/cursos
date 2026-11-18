@@ -76,11 +76,15 @@ const GRUPO = "inline-flex items-center gap-1.5 @max-[40rem]/barra:gap-1";
  */
 const BARRA =
   "grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-x-1.5 gap-y-1 @max-[40rem]/barra:gap-x-1 @max-[18.5rem]/barra:grid-cols-[38px_auto_minmax(0,1fr)_auto]";
+
 const LUGAR_A = "col-start-1 row-start-1 @max-[18.5rem]/barra:col-[1/3]";
+
 const LUGAR_B =
   "col-start-2 row-start-1 @max-[18.5rem]/barra:col-start-1 @max-[18.5rem]/barra:row-start-2";
+
 const LUGAR_C =
   "col-start-3 row-start-1 @max-[40rem]/barra:col-[1/-1] @max-[40rem]/barra:row-start-2 @max-[18.5rem]/barra:col-[2/-1]";
+
 const LUGAR_D = "col-start-4 row-start-1";
 
 function Dez() {
@@ -98,6 +102,7 @@ function IconeDoVolume({ nivel }: { nivel: number }) {
   if (nivel === 0) {
     return <VolumeX aria-hidden="true" />;
   }
+
   return nivel < 50 ? (
     <Volume1 aria-hidden="true" />
   ) : (
@@ -130,22 +135,27 @@ export function ControlesDoPlayer({
   const { legenda, reproducao, volume } = estado;
   const tocando = reproducao.tipo === "tocando";
   const carregando = reproducao.tipo === "carregando";
+
   const semPlayer =
     reproducao.tipo === "carregando" || reproducao.tipo === "indisponivel";
+
   const nivelAudivel = volume.mudo ? 0 : volume.nivel;
 
   const alternar = useCallback(
     () => comandar({ tipo: "alternar" }),
     [comandar]
   );
+
   const voltar = useCallback(
     () => comandar({ seg: -10, tipo: "saltar" }),
     [comandar]
   );
+
   const avancar = useCallback(
     () => comandar({ seg: 10, tipo: "saltar" }),
     [comandar]
   );
+
   const silenciar = useCallback(
     () =>
       volume.nivel === 0
@@ -153,18 +163,21 @@ export function ControlesDoPlayer({
         : comandar({ tipo: "mudo" }),
     [comandar, volume.nivel]
   );
+
   const definirVolume = useCallback(
     (v: number | readonly number[]) =>
       comandar({
-        nivel: Array.isArray(v) ? (v[0] ?? 0) : (v as number),
+        nivel: typeof v === "number" ? v : (v[0] ?? 0),
         tipo: "definir_volume",
       }),
     [comandar]
   );
+
   const alternarLegenda = useCallback(
     () => comandar({ tipo: "legenda" }),
     [comandar]
   );
+
   const alternarTelaCheia = useCallback(
     () => comandar({ tipo: "tela_cheia" }),
     [comandar]

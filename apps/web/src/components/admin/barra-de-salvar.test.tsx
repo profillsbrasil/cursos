@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { ComponentProps } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -8,6 +9,7 @@ const TAG = /<[^>]+>/g;
 const BOTAO = /<button[^>]*>/;
 const SITUACAO = /aria-live="polite"[^>]*>(.*?)<\/div>/;
 const DESCRITO_POR = /aria-describedby="([^"]+)"/;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
 
@@ -49,6 +51,7 @@ describe("BarraDeSalvar", () => {
         },
       ],
     });
+
     expect(t).toContain("Confira 2 campos marcados.");
     expect(t).toContain("O curso tem um valor que o servidor recusa.");
   });
@@ -73,11 +76,14 @@ describe("BarraDeSalvar", () => {
         {...props}
       />
     );
+
     const botao = BOTAO.exec(html)?.[0] ?? "";
     const id = DESCRITO_POR.exec(botao)?.[1];
+
     const descricao = id
       ? texto(new RegExp(`id="${id}"[^>]*>(.*?)</`).exec(html)?.[1] ?? "")
       : null;
+
     return { botao, descricao };
   };
 
@@ -120,9 +126,11 @@ describe("BarraDeSalvar", () => {
 
   test("a coluna e a barra leem a mesma situação e o mesmo Salvar", () => {
     const estado = { ...ESTADO, sujo: true };
+
     const coluna = renderToStaticMarkup(
       <SituacaoESalvar coluna estado={estado} />
     );
+
     const naBarra = renderToStaticMarkup(<BarraDeSalvar {...estado} />);
     const situacao = (html: string) => texto(SITUACAO.exec(html)?.[1] ?? "");
     expect(situacao(coluna)).toBe("Mudanças não salvas.");

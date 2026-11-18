@@ -4,6 +4,7 @@
 // A regra mora em src/dominio/orfaos.ts.
 
 import { parseArgs } from "node:util";
+
 import { createDb } from "@cursos/db";
 
 import { chavesEmUso } from "../src/consultas/orfaos";
@@ -38,6 +39,7 @@ function bucketDe(
   if (!(S3_ENDPOINT && S3_REGION && nome && idDaChave && segredo)) {
     return null;
   }
+
   return {
     bucket: nome,
     endpoint: S3_ENDPOINT,
@@ -55,31 +57,37 @@ const configurados = [
     S3_MATERIAIS_SECRET_ACCESS_KEY
   ),
 ].filter((b) => b !== null);
+
 // No dev, capa e material moram no mesmo bucket: ele é listado uma vez.
 const buckets = [...new Map(configurados.map((b) => [b.bucket, b])).values()];
 
 if (!DATABASE_URL) {
   throw new Error("Falta o DATABASE_URL.");
 }
+
 if (buckets.length === 0) {
   throw new Error("Nenhum bucket configurado: faltam as variáveis S3_*.");
 }
 
 const db = createDb({ DATABASE_URL });
 const emUso = await chavesEmUso(db);
+
 await db.$client.end();
 
 // Antes de listar: com o banco errado, nenhum bucket é tocado.
 const recusa = apagar ? recusaDoApagar(emUso) : null;
+
 if (recusa) {
   throw new Error(recusa);
 }
 
 const agora = new Date();
+
 const coletas = await Promise.all(
   buckets.map(async (cfg) => {
     const bucket = bucketAssinado(cfg, fetch);
     const objetos = await bucket.listar();
+
     return {
       bucket,
       nome: cfg.bucket,
@@ -90,14 +98,18 @@ const coletas = await Promise.all(
 );
 
 const inteiro = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+
 console.log(
   `No banco: ${emUso.capaUrls.length} curso(s) e ${emUso.chavesDeMaterial.length} material(is).`
 );
+
 console.log(
   `Órfão: fora do banco e enviado há mais de ${DIAS_ATE_COLETAR} dias.`
 );
+
 for (const { nome, objetos, orfaos } of coletas) {
   console.log(`\nBucket ${nome}: ${objetos} objetos, ${orfaos.length} órfãos.`);
+
   for (const o of orfaos) {
     const tamanho = tamanhoDoArquivo(o.bytes).padStart(9);
     const idade = inteiro.format(Math.floor(o.idadeEmDias)).padStart(4);
@@ -107,6 +119,7 @@ for (const { nome, objetos, orfaos } of coletas) {
 
 const todos = coletas.flatMap((c) => c.orfaos);
 const bytes = todos.reduce((soma, o) => soma + o.bytes, 0);
+
 console.log(
   todos.length === 0
     ? "\nTotal: nenhum órfão."

@@ -1,10 +1,12 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { ComunicadoNaTela } from "@cursos/api/dominio/comunicado";
 import type { ComunicadoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -60,6 +62,7 @@ describe("onde o aluno lê o comunicado", () => {
     const vazia = texto(
       renderToStaticMarkup(<Comunicados comunicados={[]} cursos={[]} />)
     );
+
     expect(vazia).toContain(
       "Novo comunicado Para todos ou para quem tem um curso"
     );

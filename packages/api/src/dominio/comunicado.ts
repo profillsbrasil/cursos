@@ -67,6 +67,7 @@ export function montarComunicados(
   autores: readonly (Pessoa | null)[]
 ): ComunicadosDoAdmin {
   const nomes = nomesDosAutores(autores);
+
   return {
     comunicados: linhas.comunicados.map((c) => ({
       curso: c.curso,
@@ -123,36 +124,40 @@ export function montarComunicadosDoAluno(
   autores: readonly (Pessoa | null)[]
 ): ComunicadosDoAluno {
   const nomes = nomesDosAutores(autores);
-  const [destaque, ...resto] = linhas.map(
-    (c): ComunicadoDoAluno => ({
-      alvo: c.curso
-        ? {
-            capa: capaDe(c.curso),
-            href: caminhoDoCurso(c.curso.slug),
-            tipo: "curso",
-            titulo: c.curso.titulo,
-          }
-        : { tipo: "geral" },
-      dia: diaLocal(c.publicadoEm),
-      id: c.id,
-      publicadoEm: c.publicadoEm.toISOString(),
-      publicadoPor: nomes.get(c.publicadoPor) ?? null,
-      texto: c.texto,
-      titulo: c.titulo,
-    })
-  );
+
+  const [destaque, ...resto] = linhas.map((c): ComunicadoDoAluno => ({
+    alvo: c.curso
+      ? {
+          capa: capaDe(c.curso),
+          href: caminhoDoCurso(c.curso.slug),
+          tipo: "curso",
+          titulo: c.curso.titulo,
+        }
+      : { tipo: "geral" },
+    dia: diaLocal(c.publicadoEm),
+    id: c.id,
+    publicadoEm: c.publicadoEm.toISOString(),
+    publicadoPor: nomes.get(c.publicadoPor) ?? null,
+    texto: c.texto,
+    titulo: c.titulo,
+  }));
+
   if (!destaque) {
     return { tipo: "vazio" };
   }
+
   const anteriores: { comunicados: ComunicadoDoAluno[]; mes: string }[] = [];
+
   for (const c of resto) {
     const mes = c.dia.slice(0, 7);
     const ultimo = anteriores.at(-1);
+
     if (ultimo?.mes === mes) {
       ultimo.comunicados.push(c);
     } else {
       anteriores.push({ comunicados: [c], mes });
     }
   }
+
   return { anteriores, destaque, tipo: "com_comunicados" };
 }

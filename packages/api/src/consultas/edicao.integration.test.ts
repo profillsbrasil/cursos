@@ -5,6 +5,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
+
 import { createDb } from "@cursos/db";
 import {
   alternativa,
@@ -52,13 +53,16 @@ const ALUNO = `user_teste${S}edicao`;
 /** Como no Storage, a URL sai do conteúdo: o mesmo arquivo dá a mesma URL. */
 const urlDaCapa = (n: number) => `/capas/teste-${S}-${n}.jpg`;
 const CAPA = { altura: 720, largura: 1280, url: urlDaCapa(1) };
+
 const capasDeTeste: Capas = {
   abrir: () => Promise.resolve(null),
   receber: async (arquivo) => {
     const [n = 0] = new Uint8Array(await arquivo.arrayBuffer());
+
     return { imagem: { ...CAPA, url: urlDaCapa(n) }, tipo: "guardada" };
   },
 };
+
 const arquivoDaCapa = (n = 1) => new Blob([new Uint8Array([n])]);
 
 /** Erro sem tradução mostra a restrição violada no lugar do texto do Postgres. */
@@ -69,7 +73,9 @@ const resultado = (p: Promise<unknown>) =>
       if (!(e instanceof TRPCError)) {
         return { code: "não é TRPCError", message: String(e) };
       }
+
       const v = e.code === "INTERNAL_SERVER_ERROR" ? violacaoDe(e) : null;
+
       return {
         code: e.code,
         message: v ? `violou ${v.restricao} (${v.codigo})` : e.message,
@@ -89,6 +95,7 @@ const motivoDe = (p: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+
   const admin = createCaller(
     contextoDeTeste({
       capas: capasDeTeste,
@@ -97,6 +104,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       userId: "user_admin",
     })
   );
+
   const cursos: CursoId[] = [];
   const categorias: string[] = [];
 
@@ -154,6 +162,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   ): DocumentoDoCurso {
     const id = randomUUID() as CursoId;
     cursos.push(id);
+
     return {
       categoriaId,
       descricao: "",
@@ -176,20 +185,25 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       novaAula("A2"),
       novaAula("A3"),
     ]);
+
     const documento = {
       ...documentoNovo([{ ...a, nivelOrdem: 1 }, novoModulo(1, "Módulo B")]),
       niveis: [{ nome: "Básico", ordem: 1 }],
     };
+
     documento.modulos[1]?.aulas.push(novaAula("B1"));
     await salvarComCapa(documento);
-    return abrir(documento.id);
+
+    return await abrir(documento.id);
   }
 
   async function abrir(id: CursoId): Promise<EdicaoDoCurso> {
     const edicao = await admin.admin.catalogo.abrirCurso({ id });
+
     if (!edicao) {
       throw new Error("curso não abriu");
     }
+
     return edicao;
   }
 
@@ -203,9 +217,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
   const modulos = (d: DocumentoDoCurso) => {
     const [a, b] = d.modulos;
+
     if (!(a && b)) {
       throw new Error("o curso de teste tem dois módulos");
     }
+
     return [a, b] as const;
   };
 
@@ -247,6 +263,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     });
 
     await salvarComCapa(documento);
+
     const [linha] = await db
       .select({
         altura: curso.capaAltura,
@@ -255,6 +272,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       })
       .from(curso)
       .where(eq(curso.id, documento.id));
+
     expect(linha).toEqual(CAPA);
   });
 
@@ -262,10 +280,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const [a] = modulos(documento);
     const [a1] = a.aulas;
+
     if (!a1) {
       throw new Error("sem A1");
     }
+
     a1.descricao = "Como ligar a envasadora.";
+
     const salvo = await salvar({
       ...documento,
       descricao: "Curso de envase.",
@@ -292,14 +313,17 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const [a] = modulos(documento);
     const [a1] = a.aulas;
+
     if (!a1) {
       throw new Error("sem A1");
     }
+
     const p1 = novaPergunta(
       "Por onde começa?",
       ["Pedido", "Data", "Visita"],
       2
     );
+
     const p2 = novaPergunta("Quem cuida da obra?", ["Profills", "Cliente"], 1);
     a1.perguntas = [p1, p2];
     const salvo = await salvar(documento);
@@ -310,22 +334,28 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
     const editado = structuredClone(aberto.documento);
     const aula1 = editado.modulos[0]?.aulas[0];
+
     if (!aula1) {
       throw new Error("sem A1");
     }
+
     const [q1] = aula1.perguntas;
+
     if (!q1) {
       throw new Error("sem P1");
     }
+
     q1.alternativas = q1.alternativas.slice(0, 2).map((x, i) => ({
       ...x,
       certa: i === 0,
     }));
+
     const p3 = novaPergunta(
       "Qual etapa é do cliente?",
       ["Obra", "Montagem"],
       0
     );
+
     aula1.perguntas = [q1, p3];
     const salvoDeNovo = await salvar(editado);
 
@@ -335,6 +365,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       p3,
     ]);
     expect(reaberto.documento.versao).toBe(salvoDeNovo.versao);
+
     const linhas = await db
       .select({
         certa: alternativa.certa,
@@ -344,6 +375,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       .from(alternativa)
       .where(eq(alternativa.perguntaId, p1.id))
       .orderBy(asc(alternativa.posicao));
+
     expect(
       linhas.map((l) => [l.id === p1.alternativas[0]?.id, l.certa, l.posicao])
     ).toEqual([
@@ -362,14 +394,18 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("pergunta ou alternativa de outro curso é recusada", async () => {
     const outro = await cursoSalvo();
     const aulaDeFora = outro.documento.modulos[0]?.aulas[0];
+
     if (!aulaDeFora) {
       throw new Error("sem aula no outro");
     }
+
     aulaDeFora.perguntas = [novaPergunta("De fora", ["Sim", "Não"], 0)];
     await salvar(outro.documento);
+
     const [deFora] =
       (await abrir(outro.documento.id)).documento.modulos[0]?.aulas[0]
         ?.perguntas ?? [];
+
     if (!deFora) {
       throw new Error("sem pergunta no outro");
     }
@@ -408,6 +444,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const { id } = documento;
     const aulaId = documento.modulos[0]?.aulas[0]?.id ?? "";
+
     const gravar = (mudanca: Partial<typeof curso.$inferInsert>) =>
       db
         .update(curso)
@@ -417,6 +454,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
           () => "ok",
           (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
         );
+
     const gravarAula = (texto: string) =>
       db
         .update(aula)
@@ -426,14 +464,18 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
           () => "ok",
           (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
         );
+
     const topicos = (n: number, tamanho: number) =>
       Array.from({ length: n }, () => "t".repeat(tamanho));
+
     const { descricao, descricaoDaAula, topico } = CARACTERES;
+
     const perguntaDeTeste = await db
       .insert(pergunta)
       .values({ aulaId, enunciado: "Pergunta", posicao: 1 })
       .returning({ id: pergunta.id })
       .then(([p]) => p?.id ?? "");
+
     const gravarPergunta = (enunciado: string) =>
       db
         .update(pergunta)
@@ -443,6 +485,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
           () => "ok",
           (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
         );
+
     const gravarAlternativa = (texto: string) =>
       db
         .insert(alternativa)
@@ -537,9 +580,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const [a] = modulos(documento);
     const [a1] = a.aulas;
+
     if (!a1) {
       throw new Error("sem A1");
     }
+
     await assistir(a1.id);
     a1.id = a1.id.toUpperCase() as AulaId;
     a1.titulo = "A1 renomeada";
@@ -551,10 +596,12 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       posicao: 1,
       titulo: "A1 renomeada",
     });
+
     const posicoes = await db
       .select({ seg: posicaoAula.posicaoSeg })
       .from(posicaoAula)
       .where(eq(posicaoAula.aulaId, a1.id.toLowerCase()));
+
     expect(posicoes).toEqual([{ seg: 42 }]);
   });
 
@@ -562,9 +609,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const [a, b] = modulos(documento);
     const [a2] = a.aulas.splice(1, 1);
+
     if (!a2) {
       throw new Error("sem A2");
     }
+
     await assistir(a2.id);
     b.aulas.unshift(a2);
 
@@ -581,14 +630,17 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       [false, "B1", 2],
     ]);
     expect(await titulos(a.id)).toEqual(["A1", "A3"]);
+
     const assistidas = await db
       .select({ aulaId: aulaAssistida.aulaId })
       .from(aulaAssistida)
       .where(eq(aulaAssistida.aulaId, a2.id));
+
     const posicoes = await db
       .select({ seg: posicaoAula.posicaoSeg })
       .from(posicaoAula)
       .where(eq(posicaoAula.aulaId, a2.id));
+
     expect([assistidas.length, posicoes]).toEqual([1, [{ seg: 42 }]]);
   });
 
@@ -609,6 +661,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("num salvamento só: módulo 0 novo empurra os outros, aula vai para ele, aula nova em módulo antigo, módulo e nível saem, capa troca", async () => {
     const base = await cursoSalvo();
     const c = { ...novoModulo(5, "Módulo C", [novaAula("C1")]), nivelOrdem: 2 };
+
     const comC = await salvar({
       ...base.documento,
       modulos: [...base.documento.modulos, c],
@@ -619,9 +672,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect(documento.versao).toBe(comC.versao);
     const [a, b] = modulos(documento);
     const [a2] = a.aulas.splice(1, 1);
+
     if (!a2) {
       throw new Error("sem A2");
     }
+
     const zero = novoModulo(0, "Módulo zero", [a2, novaAula("N1")]);
     a.numero = 1;
     b.numero = 2;
@@ -665,10 +720,12 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       "Cheio",
       Array.from({ length: 500 }, (_, i) => novaAula(`X${i + 1}`))
     );
+
     const documento = documentoNovo([
       novoModulo(0, "Pequeno", [novaAula("P1")]),
       cheio,
     ]);
+
     await salvarComCapa(documento);
 
     const aberto = (await abrir(documento.id)).documento;
@@ -697,10 +754,12 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
   test("dois salvamentos da mesma versão em paralelo: um grava, o outro dá CONFLICT", async () => {
     const { documento } = await cursoSalvo();
+
     const codigos = await Promise.all([
       resultado(salvar({ ...documento, titulo: `${documento.titulo} um` })),
       resultado(salvar({ ...documento, descricao: "dois" })),
     ]);
+
     expect(codigos.map((r) => r.code).sort()).toEqual(["CONFLICT", "ok"]);
   });
 
@@ -710,10 +769,12 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect(await salvarComCapa(documento)).toEqual(primeiro);
 
     const outro = documentoNovo();
+
     const paralelos = await Promise.all([
       resultado(salvarComCapa(outro)),
       resultado(salvarComCapa(outro)),
     ]);
+
     expect(paralelos).toEqual([OK, OK]);
     expect((await abrir(documento.id)).documento.versao).toBe(primeiro.versao);
   });
@@ -737,6 +798,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const [deFora] = outro.documento.modulos;
     const aulaDeFora = deFora?.aulas[0];
+
     if (!(deFora && aulaDeFora)) {
       throw new Error("o outro curso tem módulo e aula");
     }
@@ -767,9 +829,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = await cursoSalvo();
     const [a, b] = modulos(documento);
     const [, , a3] = a.aulas;
+
     if (!a3) {
       throw new Error("sem A3");
     }
+
     await assistir(a3.id);
     const antes = await abrir(documento.id);
     a.aulas.pop();
@@ -800,6 +864,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       ...documentoNovo(),
       titulo: `Ação: Reação ${S} — Módulo Único!`,
     };
+
     const salvo = await salvarComCapa(documento);
     expect(salvo.slug).toBe(`acao-reacao-${S}-modulo-unico`);
 
@@ -808,6 +873,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       titulo: "Outro título",
       versao: salvo.versao,
     });
+
     expect([renomeado.slug, (await abrir(documento.id)).slug]).toEqual([
       `acao-reacao-${S}-modulo-unico`,
       `acao-reacao-${S}-modulo-unico`,
@@ -816,13 +882,16 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
   test("o texto alternativo da capa sai do título, na criação e a cada renomeação", async () => {
     const documento = { ...documentoNovo(), titulo: `Pintura ${S}` };
+
     const altNoBanco = async () => {
       const [linha] = await db
         .select({ alt: curso.capaAlt })
         .from(curso)
         .where(eq(curso.id, documento.id));
+
       return linha?.alt;
     };
+
     const salvo = await salvarComCapa(documento);
     const criado = await altNoBanco();
     await salvar({
@@ -839,10 +908,12 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("título que já é endereço de outro curso ganha -2 e -3, também em paralelo", async () => {
     const titulo = `Profills School Comercial ${S}`;
     const primeiro = await salvarComCapa({ ...documentoNovo(), titulo });
+
     const paralelos = await Promise.all([
       salvarComCapa({ ...documentoNovo(), titulo }),
       salvarComCapa({ ...documentoNovo(), titulo }),
     ]);
+
     expect([primeiro.slug, ...paralelos.map((s) => s.slug).sort()]).toEqual([
       `profills-school-comercial-${S}`,
       `profills-school-comercial-${S}-2`,
@@ -853,10 +924,12 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("título que termina como o sufixo de outro disputa a mesma trava e não colide", async () => {
     const base = `Envase ${S}`;
     await salvarComCapa({ ...documentoNovo(), titulo: base });
+
     const paralelos = await Promise.all([
       salvarComCapa({ ...documentoNovo(), titulo: base }),
       salvarComCapa({ ...documentoNovo(), titulo: `${base} 2` }),
     ]);
+
     // Quem pega a trava primeiro decide qual dos dois sai com sufixo.
     expect([
       [`envase-${S}-2`, `envase-${S}-2-2`],
@@ -869,22 +942,31 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const letras = Array.from({ length: 4 }, () =>
       String.fromCharCode(65 + randomInt(26))
     );
+
     const [nova] = await db
       .insert(categoria)
       .values({ nome: `${letras.map((l) => `${l}teste`).join(" ")} ${S}` })
       .returning({ id: categoria.id });
+
     if (!nova) {
       throw new Error("categoria não criada");
     }
+
     categorias.push(nova.id);
     const sigla = letras.join("");
+
     const doisNaNova = [documentoNovo(), documentoNovo()].map((d) => ({
       ...d,
       categoriaId: nova.id as CategoriaId,
     }));
+
     const salvos = await Promise.all(doisNaNova.map((d) => salvarComCapa(d)));
+
     const codigos = async () =>
-      Promise.all(doisNaNova.map(async (d) => (await abrir(d.id)).codigo));
+      await Promise.all(
+        doisNaNova.map(async (d) => (await abrir(d.id)).codigo)
+      );
+
     const criados = await codigos();
     expect(criados.toSorted()).toEqual([`${sigla}-001`, `${sigla}-002`]);
 
@@ -900,11 +982,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const documento = documentoNovo();
     await salvarComCapa(documento);
     const { documento: salvo } = await abrir(documento.id);
+
     const SEM_PRECO = {
       code: "PRECONDITION_FAILED",
       message:
         "Todo curso tem preço em pontos para publicar. Defina o preço de troca ou salve em produção.",
     };
+
     expect(await resultado(salvar({ ...salvo, status: "publicado" }))).toEqual(
       SEM_PRECO
     );
@@ -915,6 +999,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       precoTroca: 150,
       status: "publicado" as const,
     };
+
     await salvar(publicado);
     expect((await abrir(documento.id)).documento).toMatchObject({
       precoTroca: 150,
@@ -934,6 +1019,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       ...documentoNovo(),
       categoriaId: randomUUID() as CategoriaId,
     };
+
     expect(await resultado(salvarComCapa(documento))).toEqual({
       code: "NOT_FOUND",
       message:
@@ -976,19 +1062,24 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("aula assistida que chega depois da conta de uso: apagarCurso diz que o curso está em uso", async () => {
     const { documento } = await cursoSalvo();
     const aulaId = documento.modulos[0]?.aulas[0]?.id;
+
     if (!aulaId) {
       throw new Error("sem aula");
     }
+
     const aluno = await db.$client.connect();
+
     try {
       await aluno.query("begin");
       await aluno.query(
         "insert into aula_assistida (user_id, aula_id) values ($1, $2)",
         [ALUNO, aulaId]
       );
+
       const apagando = resultado(
         admin.admin.catalogo.apagarCurso({ id: documento.id })
       );
+
       await esperarAlguemEsperandoTrava();
       await aluno.query("commit");
 
@@ -1006,10 +1097,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { documento } = structuredClone(antes);
     const [a] = modulos(documento);
     const a1 = a.aulas.shift();
+
     if (!a1) {
       throw new Error("sem A1");
     }
+
     const aluno = await db.$client.connect();
+
     try {
       await aluno.query("begin");
       await aluno.query(
@@ -1028,6 +1122,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     } finally {
       aluno.release();
     }
+
     expect((await abrir(documento.id)).documento).toEqual(antes.documento);
   });
 
@@ -1036,14 +1131,18 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const { rows } = await db.$client.query<{ n: number }>(
       "select count(*)::int as n from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock'"
     );
+
     if ((rows[0]?.n ?? 0) > 0) {
       return;
     }
+
     if (tentativas === 0) {
       throw new Error("o apagamento não chegou a esperar a trava do aluno");
     }
+
     await esperar(50);
-    return esperarAlguemEsperandoTrava(tentativas - 1);
+
+    return await esperarAlguemEsperandoTrava(tentativas - 1);
   }
 
   test("abrirCurso aceita só uuid; id que não existe é null", async () => {

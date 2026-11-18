@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -6,6 +7,7 @@ import { BarraDaLista, contagemDePessoas } from "./barra-da-lista";
 
 const TAG = /<[^>]+>/g;
 const ASPAS = /&quot;/g;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(ASPAS, '"').replace(/\s+/g, " ").trim();
 
@@ -61,6 +63,7 @@ describe("a barra da lista", () => {
         rotuloDasOpcoes="Liberar por"
       />
     );
+
     expect(html).not.toContain("<search");
     expect(texto(html)).toBe("Todos Clientes 2 1 curso, 0 liberados a todos");
   });

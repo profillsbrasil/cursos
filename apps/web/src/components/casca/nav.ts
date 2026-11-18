@@ -32,9 +32,11 @@ export function indiceAtivo(
     if (item.tipo === "em_breve") {
       continue;
     }
+
     if (caminho === item.href) {
       return { ariaCurrent: "page", indice };
     }
+
     if (
       [item.href, ...item.outrosPrefixos].some((p) =>
         caminho.startsWith(`${p}/`)
@@ -43,6 +45,7 @@ export function indiceAtivo(
       return { ariaCurrent: "true", indice };
     }
   }
+
   return null;
 }
 
@@ -51,6 +54,7 @@ export const COOKIE_DA_SIDEBAR = "sidebar_state";
 
 /** Da borda da sidebar ao conteúdo, nos dois modos; casca.tsx aplica no cabeçalho, na lista e no rodapé. */
 export const RECUO = 14;
+
 /** O quadrado recolhido: o item, o botão do cabeçalho, o Continuar e o cartão de conta. */
 const LADO = 40;
 
@@ -90,6 +94,7 @@ export function movimentoDaPilula(
   if (atual === null) {
     return null;
   }
+
   return {
     transform: `translateY(${atual * PASSO}px)`,
     transicao: { duration: reduzir ? 0 : DESLIZE_S, ease: CURVA_FORTE },

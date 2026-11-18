@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { Glob } from "bun";
 
 const SRC = join(import.meta.dir, "../..");
@@ -17,6 +18,7 @@ describe("o app não usa o select do sistema", () => {
         !arquivo.includes(".test.") &&
         SELECT_DO_SISTEMA.test(readFileSync(join(SRC, arquivo), "utf8"))
     );
+
     expect(fora).toEqual([]);
   });
 });

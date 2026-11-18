@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import type { Versao } from "@cursos/api/dominio/tipos";
 
 import {
@@ -67,6 +68,7 @@ const DEPOIS = 4;
 
 function camposEmOrdem(...ids: string[]): Record<string, Campo> {
   const campos: Record<string, Campo> = {};
+
   for (const id of ids) {
     campos[id] = {
       compareDocumentPosition: (outro) =>
@@ -74,6 +76,7 @@ function camposEmOrdem(...ids: string[]): Record<string, Campo> {
       id,
     };
   }
+
   return campos;
 }
 
@@ -113,25 +116,33 @@ describe("focarOPrimeiro", () => {
     const quadros: FrameRequestCallback[] = [];
     const focados: string[] = [];
     const naPagina = new Map<string, { focus: () => void }>();
+
     const global = globalThis as unknown as {
       document: unknown;
       requestAnimationFrame: unknown;
     };
+
     const antes = {
       document: global.document,
       requestAnimationFrame: global.requestAnimationFrame,
     };
+
     global.requestAnimationFrame = (f: FrameRequestCallback) => quadros.push(f);
     global.document = { getElementById: (id: string) => naPagina.get(id) };
+
     try {
       focarOPrimeiro(["aula-duracao"]);
       naPagina.set("aula-duracao", {
-        focus: () => focados.push("aula-duracao"),
+        focus: () => {
+          focados.push("aula-duracao");
+        },
       });
       expect(focados).toEqual([]);
+
       for (const f of quadros) {
         f(0);
       }
+
       expect(focados).toEqual(["aula-duracao"]);
     } finally {
       global.document = antes.document;
@@ -145,10 +156,12 @@ describe("sincronizarComAPagina", () => {
     titulo: string;
     versao: Versao | null;
   }
+
   const doc = (versao: string | null, titulo = "Curso"): Doc => ({
     titulo,
     versao: versao as Versao | null,
   });
+
   const sujo = { limpo: false };
   const limpo = { limpo: true };
 
@@ -181,10 +194,12 @@ describe("sincronizarComAPagina", () => {
 
   test("a versão de fora com o rascunho limpo recomeça da página", () => {
     const pagina = doc("v3", "De outra aba");
+
     const r = sincronizarComAPagina(apoioEm(doc("v1")), {
       ...limpo,
       pagina,
     });
+
     expect(r).toEqual({ apoio: apoioEm(pagina), recomecar: true });
   });
 
@@ -199,10 +214,12 @@ describe("sincronizarComAPagina", () => {
 
   test("a página que volta à versão da base desliga o aviso", () => {
     const base = doc("v1");
+
     const emConflito = sincronizarComAPagina(apoioEm(base), {
       ...sujo,
       pagina: doc("v3", "De outra aba"),
     }).apoio;
+
     const pagina = doc("v1");
     expect(sincronizarComAPagina(emConflito, { ...sujo, pagina })).toEqual({
       apoio: { ...emConflito, pagina, versaoDeFora: false },
@@ -222,9 +239,11 @@ describe("a página monta o editor pela key do id, nunca da versão", () => {
       ),
       "utf8"
     );
+
     const keys = [
       ...pagina.matchAll(/<EditorDoCurso\b[^>]*?\bkey=\{([^}]*)\}/g),
     ];
+
     expect(keys.map((k) => k[1]?.trim())).toEqual(["edicao.documento.id"]);
     expect(pagina).toContain("abrirOuRascunho(");
   });

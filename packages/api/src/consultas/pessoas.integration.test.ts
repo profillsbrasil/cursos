@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
+
 import { createDb } from "@cursos/db";
 import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -13,6 +14,7 @@ import { createCaller } from "../routers/index";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
+
 const codigo = (e: unknown) =>
   e instanceof TRPCError ? e.code : `não é TRPCError: ${String(e)}`;
 
@@ -27,6 +29,7 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
   const ELISA = `user_elisa${S}`;
   const FABIO = `user_fabio${S}`;
   const TODOS = [DONA, ANA, BRUNO, CARLA, DIEGO, ELISA, FABIO];
+
   const pessoas: (Pessoa & Partial<Conta>)[] = [
     {
       email: "dona@profills.com",
@@ -53,9 +56,11 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     { email: null, foto: null, nome: `Elisa ${S}`, userId: ELISA },
     { email: null, foto: null, nome: `Fabio ${S}`, userId: FABIO },
   ];
+
   const admin = createCaller(
     contextoDeTeste({ db, papel: "admin", pessoas, userId: DONA })
   );
+
   const entrar = (userId: string) =>
     createCaller(contextoDeTeste({ db, pessoas, userId })).meusCursos.painel();
 
@@ -75,6 +80,7 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       perfil: null,
       termo: S,
     });
+
     const porNome = Object.fromEntries(lista.map((p) => [p.userId, p]));
     expect(porNome[ANA]?.perfil).toEqual({
       doCadastro: true,
@@ -96,6 +102,7 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       pontos,
       userId,
     });
+
     await db
       .insert(pontoLancamento)
       .values([
@@ -104,10 +111,12 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
         lancamento(DIEGO, "2026-09-03", 130),
         lancamento(ELISA, "2026-09-01", 10),
       ]);
+
     const { pessoas: lista } = await admin.admin.pessoas.lista({
       perfil: null,
       termo: S,
     });
+
     const saldo = Object.fromEntries(lista.map((p) => [p.userId, p.saldo]));
     expect(saldo[DIEGO]).toBe(5130);
     expect(saldo[ELISA]).toBe(10);
@@ -122,10 +131,12 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       perfil: "cliente",
       userId: BRUNO,
     });
+
     const clientes = await admin.admin.pessoas.lista({
       perfil: "cliente",
       termo: S,
     });
+
     expect(clientes.pessoas.map((p) => p.userId)).toEqual([BRUNO]);
     expect(clientes.pessoas[0]?.perfil).toEqual({
       doCadastro: false,
@@ -175,25 +186,30 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
   test("dois admins tirando o papel um do outro ao mesmo tempo: um tira, o outro é recusado", async () => {
     const A = `user_a${S}`;
     const B = `user_b${S}`;
+
     const clerk = pessoasDeTeste([
       { email: null, foto: null, nome: "A", papel: "admin", userId: A },
       { email: null, foto: null, nome: "B", papel: "admin", userId: B },
     ]);
+
     const { definirPapel } = clerk;
     // A espera põe as duas mudanças no ar ao mesmo tempo, antes de uma gravar.
     clerk.definirPapel = async (userId, papel) => {
       await esperar(50);
       await definirPapel(userId, papel);
     };
+
     const como = (userId: string) =>
       createCaller({
         ...contextoDeTeste({ db, papel: "admin", userId }),
         pessoas: clerk,
       });
+
     const resultados = await Promise.allSettled([
       como(A).admin.pessoas.definirPapel({ papel: "aluno", userId: B }),
       como(B).admin.pessoas.definirPapel({ papel: "aluno", userId: A }),
     ]);
+
     expect(resultados.map((r) => r.status).sort()).toEqual([
       "fulfilled",
       "rejected",

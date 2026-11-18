@@ -7,11 +7,13 @@ import {
   InputOTPSlot,
 } from "@cursos/ui/components/input-otp";
 import { cn } from "@cursos/ui/lib/utils";
-import { type FormEvent, useCallback, useId, useState } from "react";
+import { type SubmitEvent, useCallback, useId, useState } from "react";
 
 import { CAMPO, ROTULO } from "@/components/casca/campos";
 import { SELO } from "@/components/casca/selos";
+import { campoDeTexto } from "@/lib/formulario";
 import { MINHA_CONTA } from "@/lib/rotas";
+
 import { contaDoGoogle, podeDesconectarOGoogle } from "./entrada";
 import { IconeDoGoogle } from "./icone-do-google";
 import {
@@ -54,15 +56,20 @@ function PedirCodigo({
 }) {
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
+
   const mandar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const endereco = String(
-        new FormData(e.currentTarget).get("email") ?? ""
+
+      const endereco = campoDeTexto(
+        new FormData(e.currentTarget),
+        "email"
       ).trim();
+
       executar(
         async () => {
           const criado = await user.createEmailAddress({ email: endereco });
+
           return await criado.prepareVerification({ strategy: "email_code" });
         },
         { depois: irAoCodigo, sensivel: true }
@@ -70,6 +77,7 @@ function PedirCodigo({
     },
     [executar, irAoCodigo, user]
   );
+
   return (
     <form className="grid gap-3" onSubmit={mandar}>
       <label className="grid gap-1.5" htmlFor={`${id}-email`}>
@@ -115,8 +123,9 @@ function ConfirmarCodigo({
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
   const [codigo, setCodigo] = useState("");
+
   const confirmar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       executar(() => email.attemptVerification({ code: codigo }), {
         depois: fechar,
@@ -125,6 +134,7 @@ function ConfirmarCodigo({
     },
     [codigo, email, executar, fechar]
   );
+
   const reenviar = useCallback(
     () =>
       executar(() => email.prepareVerification({ strategy: "email_code" }), {
@@ -132,6 +142,7 @@ function ConfirmarCodigo({
       }),
     [email, executar]
   );
+
   return (
     <form className="grid gap-3" onSubmit={confirmar}>
       <div className="grid gap-1.5">
@@ -191,16 +202,20 @@ function AdicionarEmail({ user }: { user: Usuario }) {
   const [novo, setNovo] = useState<Novo>({ passo: "fechado" });
   const fechar = useCallback(() => setNovo({ passo: "fechado" }), []);
   const abrir = useCallback(() => setNovo({ passo: "endereco" }), []);
+
   const irAoCodigo = useCallback(
     (email: EmailDaConta) => setNovo({ email, passo: "codigo" }),
     []
   );
+
   if (novo.passo === "endereco") {
     return <PedirCodigo fechar={fechar} irAoCodigo={irAoCodigo} user={user} />;
   }
+
   if (novo.passo === "codigo") {
     return <ConfirmarCodigo email={novo.email} fechar={fechar} />;
   }
+
   return (
     <div className={ACOES}>
       <button className={CONTORNO_PEQUENO} onClick={abrir} type="button">
@@ -214,6 +229,7 @@ function LinhaDoEmail({ email, user }: { email: EmailDaConta; user: Usuario }) {
   const { executar, pendente } = useAcaoDaConta();
   const principal = email.id === user.primaryEmailAddressId;
   const confirmado = email.verification?.status === "verified";
+
   const tornarPrincipal = useCallback(
     () =>
       executar(() => user.update({ primaryEmailAddressId: email.id }), {
@@ -222,6 +238,7 @@ function LinhaDoEmail({ email, user }: { email: EmailDaConta; user: Usuario }) {
       }),
     [email, executar, user]
   );
+
   const remover = useCallback(
     () =>
       executar(() => email.destroy(), {
@@ -230,12 +247,15 @@ function LinhaDoEmail({ email, user }: { email: EmailDaConta; user: Usuario }) {
       }),
     [email, executar]
   );
+
   let detalhe = "Ainda não confirmado. Remova e adicione de novo.";
+
   if (principal) {
     detalhe = "E-mail principal. Os códigos e avisos chegam aqui.";
   } else if (confirmado) {
     detalhe = "Também serve para entrar.";
   }
+
   return (
     <li className={LINHA}>
       <div className={TEXTO_DA_LINHA}>
@@ -274,6 +294,7 @@ function LinhaDoEmail({ email, user }: { email: EmailDaConta; user: Usuario }) {
 function LinhaDoGoogle({ user }: { user: Usuario }) {
   const { executar, pendente } = useAcaoDaConta();
   const google = contaDoGoogle(user);
+
   const conectar = useCallback(
     () =>
       executar(
@@ -285,6 +306,7 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
         {
           depois: (conta) => {
             const destino = conta.verification?.externalVerificationRedirectURL;
+
             if (destino) {
               window.location.assign(destino);
             }
@@ -294,6 +316,7 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
       ),
     [executar, user]
   );
+
   const desconectar = useCallback(() => {
     if (google) {
       executar(() => google.destroy(), {
@@ -313,6 +336,7 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
       Conectar
     </button>
   );
+
   if (google && podeDesconectarOGoogle(user)) {
     acao = (
       <button
@@ -331,6 +355,7 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
       </span>
     );
   }
+
   return (
     <li className={LINHA}>
       <IconeDoGoogle className="size-[18px] shrink-0" />
@@ -349,6 +374,7 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
 
 export function SecaoDaEntrada({ user }: { user: Usuario }) {
   const id = useId();
+
   return (
     <section aria-labelledby={id} className={CARTAO}>
       <header className={CABECALHO_DO_CARTAO}>

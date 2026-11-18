@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import "../index.css";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import Providers from "@/components/providers";
 import PwaRegistration from "@/components/pwa-registration";
 import { TITULO_DA_RAIZ } from "@/lib/marca";

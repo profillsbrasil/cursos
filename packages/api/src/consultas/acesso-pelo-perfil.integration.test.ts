@@ -5,6 +5,7 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -50,6 +51,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const userId = `user_perfilve${S}x${alunos.length}`;
     alunos.push(userId);
     await definirPerfil(db, ADMIN, userId, perfil, AGORA);
+
     // Cada leitura de caller é um pedido novo, como cada página no app.
     return {
       get caller() {
@@ -70,6 +72,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
 
   async function criarCurso(o: { aulas?: number; precoTroca?: number } = {}) {
     const slug = `teste-${hex()}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -85,14 +88,18 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 0, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     const aulas = await db
       .insert(aula)
       .values(
@@ -106,6 +113,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
         }))
       )
       .returning({ id: aula.id });
+
     return {
       aulas: aulas.map((a) => a.id as AulaId),
       id: c.id as CursoId,
@@ -128,15 +136,18 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await db
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, alunos));
+
     if (comunicados.length > 0) {
       await db.delete(comunicado).where(inArray(comunicado.id, comunicados));
     }
+
     if (cursos.length > 0) {
       await db
         .delete(liberacaoDoPerfil)
         .where(inArray(liberacaoDoPerfil.cursoId, cursos));
       await db.delete(curso).where(inArray(curso.id, cursos));
     }
+
     await db.$client.end();
   });
 
@@ -193,11 +204,13 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const c = await criarCurso();
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const cliente = await aluno("cliente");
+
     const r = await cliente.caller.aula.registrar({
       aulaId: c.aulas[0] ?? "",
       posicaoSeg: 60,
       trechos: [{ fim: 60, inicio: 0 }],
     });
+
     expect(r.assistida).toBe(true);
     expect(
       await cliente.caller.certificado.pagina({ slug: c.slug })
@@ -216,9 +229,11 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
       userId: cliente.userId,
     });
     await db.transaction((tx) => concluirParaQuemCompletou(tx, c.id, AGORA));
+
     const emitidos = await db.query.certificado.findMany({
       where: { cursoId: c.id, userId: cliente.userId },
     });
+
     expect(emitidos).toHaveLength(0);
   });
 
@@ -239,10 +254,13 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     });
     const cliente = await aluno("cliente");
     const publico = await aluno("publico");
+
     const ids = async (x: ReturnType<typeof comoAluno>) =>
       JSON.stringify(await x.aluno.comunicados());
+
     const noPainel = async (x: ReturnType<typeof comoAluno>) =>
       (await x.meusCursos.painel()).comunicado?.id;
+
     // O curso aparece como amostra, mas o comunicado dele é conteúdo do curso.
     expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
     expect(await ids(cliente.caller)).not.toContain(id);
@@ -274,9 +292,11 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const painel = await cliente.caller.troca.painel();
     expect(JSON.stringify(painel.cartoes)).toContain(c.id);
     await cliente.caller.troca.trocar({ cursoId: c.id, precoVisto: 100 });
+
     const lancamentos = await db.query.pontoLancamento.findMany({
       where: { userId: cliente.userId },
     });
+
     expect(lancamentos.map((l) => l.pontos).sort()).toEqual([-100, 500]);
   });
 });

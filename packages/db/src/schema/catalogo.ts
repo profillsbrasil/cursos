@@ -58,7 +58,10 @@ export const curso = tabela(
     slug: text().notNull().unique(),
     status: cursoStatus().notNull().default("em_producao"),
     titulo: text().notNull(),
-    topicos: text().array().notNull().default(sql`'{}'`),
+    topicos: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
   },
   (t) => [
     check("curso_slug_formato", sql`${t.slug} ~ ${SLUG}`),

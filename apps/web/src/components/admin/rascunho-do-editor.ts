@@ -98,6 +98,7 @@ export const proximaOrdem = (niveis: RascunhoDoCurso["niveis"]) =>
 
 const numeroDe = (m: ModuloDoRascunho) => {
   const lido = lerNumeroDoModulo(m.numero);
+
   return "valor" in lido ? lido.valor : null;
 };
 
@@ -114,17 +115,23 @@ const comAulas = (
   trocar: (aulas: AulaDoRascunho[]) => AulaDoRascunho[] | null
 ): RascunhoDoCurso => {
   let mudou = false;
+
   const modulos = r.modulos.map((m) => {
     if (m.id !== moduloId) {
       return m;
     }
+
     const aulas = trocar(m.aulas);
+
     if (aulas === null) {
       return m;
     }
+
     mudou = true;
+
     return { ...m, aulas };
   });
+
   return mudou ? { ...r, modulos } : r;
 };
 
@@ -147,6 +154,7 @@ const comPerguntas = (
   trocar: (perguntas: PerguntaDoRascunho[]) => PerguntaDoRascunho[]
 ): RascunhoDoCurso => {
   const de = moduloDaAula(r, aulaId);
+
   return de
     ? comAulas(r, de.id, (aulas) =>
         aulas.map((a) =>
@@ -162,6 +170,7 @@ const comPergunta = (
   trocar: (p: PerguntaDoRascunho) => PerguntaDoRascunho
 ): RascunhoDoCurso => {
   const aula = aulaDaPergunta(r, id);
+
   return aula
     ? comPerguntas(r, aula.id, (perguntas) =>
         perguntas.map((p) => (p.id === id ? trocar(p) : p))
@@ -175,6 +184,7 @@ const comAlternativa = (
   trocar: (p: PerguntaDoRascunho) => PerguntaDoRascunho
 ): RascunhoDoCurso => {
   const pergunta = perguntaDaAlternativa(r, id);
+
   return pergunta ? comPergunta(r, pergunta.id, trocar) : r;
 };
 
@@ -208,6 +218,7 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
       };
     case "modulo_novo": {
       const numero = Math.max(0, ...r.modulos.map((x) => numeroDe(x) ?? 0));
+
       return {
         ...r,
         modulos: [
@@ -222,6 +233,7 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
         ],
       };
     }
+
     case "modulo_editado":
       return {
         ...r,
@@ -234,16 +246,20 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
     case "modulo_movido": {
       const i = r.modulos.findIndex((x) => x.id === m.id);
       const modulos = trocado(r.modulos, i, m.direcao);
+
       if (modulos === null) {
         return r;
       }
+
       const j = m.direcao === "acima" ? i - 1 : i + 1;
-      const a = modulos[i] as ModuloDoRascunho;
-      const b = modulos[j] as ModuloDoRascunho;
+      const a = modulos[i];
+      const b = modulos[j];
       modulos[i] = { ...a, numero: b.numero };
       modulos[j] = { ...b, numero: a.numero };
+
       return { ...r, modulos };
     }
+
     case "modulo_removido":
       return { ...r, modulos: r.modulos.filter((x) => x.id !== m.id) };
     case "aula_nova":
@@ -260,14 +276,17 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
       ]);
     case "aula_editada": {
       const de = moduloDaAula(r, m.id);
+
       return de
         ? comAulas(r, de.id, (aulas) =>
             aulas.map((a) => (a.id === m.id ? { ...a, ...m.mudanca } : a))
           )
         : r;
     }
+
     case "aula_movida": {
       const de = moduloDaAula(r, m.id);
+
       return de
         ? comAulas(r, de.id, (aulas) =>
             trocado(
@@ -278,9 +297,11 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
           )
         : r;
     }
+
     case "aula_para_modulo": {
       const de = moduloDaAula(r, m.id);
       const aula = de?.aulas.find((a) => a.id === m.id);
+
       if (
         !(de && aula) ||
         de.id === m.moduloId ||
@@ -288,17 +309,22 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
       ) {
         return r;
       }
+
       const sem = comAulas(r, de.id, (aulas) =>
         aulas.filter((a) => a.id !== m.id)
       );
+
       return comAulas(sem, m.moduloId, (aulas) => [...aulas, aula]);
     }
+
     case "aula_removida": {
       const de = moduloDaAula(r, m.id);
+
       return de
         ? comAulas(r, de.id, (aulas) => aulas.filter((a) => a.id !== m.id))
         : r;
     }
+
     case "pergunta_nova":
       return comPerguntas(r, m.aulaId, (perguntas) => [
         ...perguntas,
@@ -316,12 +342,14 @@ export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
       return comPergunta(r, m.id, (p) => ({ ...p, enunciado: m.enunciado }));
     case "pergunta_removida": {
       const aula = aulaDaPergunta(r, m.id);
+
       return aula
         ? comPerguntas(r, aula.id, (perguntas) =>
             perguntas.filter((p) => p.id !== m.id)
           )
         : r;
     }
+
     case "pergunta_restaurada":
       return comPerguntas(r, m.aulaId, (perguntas) =>
         perguntas.toSpliced(Math.min(m.indice, perguntas.length), 0, m.pergunta)
@@ -383,6 +411,7 @@ export const NENHUM_ABERTO: Abertos = new Set();
  */
 function abertosAoAbrir(r: RascunhoDoCurso): Abertos {
   const [unico, ...outros] = r.modulos;
+
   return unico && outros.length === 0 ? new Set([unico.id]) : NENHUM_ABERTO;
 }
 
@@ -453,9 +482,11 @@ export function blocoDoModulo(
   marcados: Marcados
 ): Bloco {
   const campos = camposComErro(m, marcados);
+
   if (campos > 0) {
     return { campos, tipo: "com_erro" };
   }
+
   return abertos.has(m.id) ? { tipo: "aberto" } : { tipo: "fechado" };
 }
 
@@ -473,6 +504,7 @@ function comGrupoDasLetrasTocado(
     )
     .map((p) => ID.pergunta(p.id, "alternativas"))
     .filter((id) => !tocados.has(id));
+
   return certas.length > 0 ? new Set([...tocados, ...certas]) : tocados;
 }
 
@@ -523,6 +555,7 @@ export function aulaEscolhida(
   e: Escolhas
 ): AulaDoRascunho | null {
   const id = e.aulaPorModulo.get(m.id);
+
   return m.aulas.find((a) => a.id === id) ?? m.aulas[0] ?? null;
 }
 
@@ -531,6 +564,7 @@ export function perguntaEscolhida(
   e: Escolhas
 ): PerguntaDoRascunho | null {
   const id = e.perguntaPorAula.get(a.id);
+
   return a.perguntas.find((p) => p.id === id) ?? a.perguntas[0] ?? null;
 }
 
@@ -545,12 +579,15 @@ function comODonoDoCampo(
       if (CAMPOS_DA_AULA.some((c) => ID.aula(a.id, c) === campo)) {
         return comAula(e, m.id, a.id);
       }
+
       const p = a.perguntas.find((x) => idsDaPergunta(x).includes(campo));
+
       if (p) {
         return comPerguntaEscolhida(comAula(e, m.id, a.id), a.id, p.id);
       }
     }
   }
+
   return e;
 }
 
@@ -584,12 +621,14 @@ export function linhasDoMaterial(
     material,
     tipo: "material",
   }));
+
   for (const { posicao, ...envio } of e.daGeracao.envios) {
     linhas.splice(Math.min(posicao, linhas.length), 0, {
       envio,
       tipo: "envio",
     });
   }
+
   return linhas;
 }
 
@@ -628,11 +667,14 @@ function movido(
   const linhas = linhasDoMaterial(e);
   const de = linhas.findIndex((l) => idDaLinha(l) === id);
   const linha = linhas[de];
+
   if (!linha || para === de || para < 0 || para >= linhas.length) {
     return e;
   }
+
   linhas.splice(de, 1);
   linhas.splice(para, 0, linha);
+
   return comLinhas(e, linhas);
 }
 
@@ -684,6 +726,7 @@ export interface RascunhoDoEditor {
 
 export function rascunhoDoEditorEm(pagina: DocumentoDoCurso): RascunhoDoEditor {
   const rascunho = rascunhoDoCurso(pagina);
+
   return {
     abertos: abertosAoAbrir(rascunho),
     apoio: apoioEm(pagina),
@@ -760,12 +803,15 @@ function leitura(e: RascunhoDoEditor): {
   const lido = lerRascunho(e.rascunho, e.apoio.base);
   const { capa } = e.daGeracao;
   const semCapa = ehNovo(e) && capa === null ? [SEM_CAPA] : [];
+
   if (lido.tipo === "problemas") {
     return { achados: [...lido.problemas, ...semCapa], envio: null };
   }
+
   if (semCapa.length > 0) {
     return { achados: semCapa, envio: null };
   }
+
   return {
     achados: [],
     envio: {
@@ -796,9 +842,11 @@ export function telaDo(e: RascunhoDoEditor): Tela {
   const { achados, envio } = leitura(e);
   const { tentou, tocados } = e.daGeracao;
   const deixados = comGrupoDasLetrasTocado(tocados, e.rascunho);
+
   const problemas = tentou
     ? achados
     : achados.filter((p) => p.campo !== null && deixados.has(p.campo));
+
   return {
     envio,
     erros: errosPorCampo(problemas),
@@ -828,10 +876,13 @@ const recomecado = (
 /** O Salvar com erro leva o painel e o foco ao primeiro campo marcado. */
 function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
   const { achados, envio } = leitura(e);
+
   if (envio) {
     return naGeracao(e, { tentou: false });
   }
+
   const campos = achados.flatMap((p) => (p.campo ? [p.campo] : []));
+
   return {
     ...naGeracao(e, { tentou: true }),
     escolhas: campos[0]
@@ -853,12 +904,16 @@ export function dentroDoLimite(
   const subindo = e.daGeracao.envios.filter(
     (x) => x.estado.tipo === "enviando"
   ).length;
+
   let vagas = LIMITES.materiais - e.rascunho.materiais.length - subindo;
+
   return novos.map((x) => {
     if (x.estado.tipo !== "enviando") {
       return x;
     }
+
     vagas -= 1;
+
     return vagas >= 0
       ? x
       : { ...x, estado: { motivo: RECUSA_DO_LIMITE, tipo: "recusado" } };
@@ -876,6 +931,7 @@ function recebido(
   if (!e.daGeracao.envios.some((x) => x.id === material.id)) {
     return e;
   }
+
   return comLinhas(
     e,
     linhasDoMaterial(e).map((l) =>
@@ -901,10 +957,12 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
       };
     case "saiu_do_campo": {
       const { tocados } = e.daGeracao;
+
       return tocados.has(a.id)
         ? e
         : naGeracao(e, { tocados: new Set([...tocados, a.id]) });
     }
+
     case "capa_escolhida":
       return naGeracao(e, { capa: a.arquivo });
     case "materiais_escolhidos":
@@ -940,11 +998,14 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
         limpo: !ehSujo(e),
         pagina: a.pagina,
       });
+
       return s.recomecar ? recomecado(e, s.apoio) : { ...e, apoio: s.apoio };
     }
+
     case "salvo": {
       const gravado = { ...a.envio.documento, versao: a.versao };
       const { capa } = e.daGeracao;
+
       return {
         ...e,
         apoio: apoioSalvo(e.apoio, gravado),
@@ -956,6 +1017,7 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
           : e.rascunho,
       };
     }
+
     case "recusado":
       return a.motivo === "versao_mudou"
         ? { ...e, apoio: { ...e.apoio, versaoDeFora: true } }
@@ -980,9 +1042,11 @@ export function rascunhoDoEditor(
 ): RascunhoDoEditor {
   const e = passo(antes, a);
   const { erros } = telaDo(e);
+
   const comErro = e.rascunho.modulos.flatMap((m) =>
     camposComErro(m, erros) > 0 && !e.abertos.has(m.id) ? [m.id] : []
   );
+
   return comErro.length > 0
     ? { ...e, abertos: comErro.reduce(comAberto, e.abertos) }
     : e;

@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import {
   type EdicaoDoCurso,
@@ -14,6 +15,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -40,10 +42,12 @@ const GATILHO_DA_CATEGORIA =
 function categoriaNoGatilho(html: string) {
   const [, atributos = "", conteudo = ""] =
     GATILHO_DA_CATEGORIA.exec(html) ?? [];
+
   return [texto(conteudo).trim(), atributos.includes(' data-placeholder=""')];
 }
 
 const OUTRA = uuidDeExemplo(32) as CategoriaId;
+
 const CATEGORIAS: CategoriaNaLista[] = [
   {
     cursos: ["Fábrica e montagem"],
@@ -83,10 +87,12 @@ describe("editor do curso: endereço e categoria", () => {
 
   test("o curso novo com título mostra o link que sairia dele", () => {
     const novo = edicaoDeCursoNovo(EDICAO.CURSO);
+
     const html = render({
       ...novo,
       documento: { ...novo.documento, titulo: "Ação: Reação Única" },
     });
+
     expect(texto(html)).toContain(
       "/cursos/acao-reacao-unica gerado a partir do título"
     );
@@ -101,9 +107,11 @@ describe("editor do curso: endereço e categoria", () => {
 
   test("nenhum <p> dentro de outro <p>, que o navegador desfaz e quebra a hidratação", () => {
     const novo = edicaoDeCursoNovo(EDICAO.CURSO);
+
     for (const html of [render(salvo), render(novo)]) {
       let abertos = 0;
       let aninhados = 0;
+
       for (const [tag] of html.matchAll(PARAGRAFO)) {
         if (tag.startsWith("</")) {
           abertos -= 1;
@@ -112,6 +120,7 @@ describe("editor do curso: endereço e categoria", () => {
           abertos += 1;
         }
       }
+
       expect(aninhados).toBe(0);
     }
   });
@@ -124,18 +133,22 @@ describe("editor do curso: endereço e categoria", () => {
 });
 
 const H1 = /<h1[^>]*>(.*?)<\/h1>/;
+
 const TITULO_ESCONDIDO =
   /<h2 class="sr-only" id="capa-e-descricao"[^>]*>Capa e descrição<\/h2>/;
+
 const RESUMO_NO_INDICE = /^[^<]*?2 módulos, 3 aulas, 15 min Capa e descrição/;
 const tituloDaTela = (html: string) => texto(H1.exec(html)?.[1] ?? "").trim();
 
 describe("editor do curso: topo e código", () => {
   test("o curso novo se chama Novo curso, mesmo com título digitado, e o código sai ao salvar", () => {
     const novo = edicaoDeCursoNovo(EDICAO.CURSO);
+
     const html = render({
       ...novo,
       documento: { ...novo.documento, titulo: "Operação da envasadora" },
     });
+
     expect(tituloDaTela(html)).toBe("Novo curso");
     expect(texto(html)).toContain("Código Gerado ao salvar");
     expect(html).not.toContain('name="codigo"');

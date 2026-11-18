@@ -11,6 +11,7 @@ import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { ROTULO } from "@/components/casca/campos";
 import { focarDepois, vizinhoQueFica } from "@/lib/editor";
 import { plural } from "@/lib/formato";
+
 import { TextoDeUmaLinha } from "./campo-lido";
 import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { ICONE, Secao } from "./partes";
@@ -32,11 +33,14 @@ function LinhaDoTopico({
 }) {
   const id = ID.topico(indice);
   const { aria, mensagem } = useErroDoCampo(id);
+
   const editar = useCallback(
     (novo: string) => mudar(indice, novo),
     [indice, mudar]
   );
+
   const tirar = useCallback(() => remover(indice), [indice, remover]);
+
   return (
     <li>
       <Field
@@ -88,11 +92,13 @@ export function TopicosDoCurso({
       despachar({ mudanca: { topicos: novos }, tipo: "campos" }),
     [despachar]
   );
+
   const mudar = useCallback(
     (indice: number, texto: string) =>
       trocar(topicos.map((t, i) => (i === indice ? texto : t))),
     [topicos, trocar]
   );
+
   const remover = useCallback(
     (indice: number) => {
       trocar(topicos.filter((_, i) => i !== indice));
@@ -105,11 +111,14 @@ export function TopicosDoCurso({
     },
     [topicos, trocar]
   );
+
   const adicionar = useCallback(() => {
     trocar([...topicos, ""]);
     focarDepois(ID.topico(topicos.length));
   }, [topicos, trocar]);
+
   const cheio = topicos.length >= LIMITES.topicos;
+
   return (
     <Secao
       id="topicos"
@@ -126,7 +135,6 @@ export function TopicosDoCurso({
             {topicos.map((t, i) => (
               <LinhaDoTopico
                 indice={i}
-                // biome-ignore lint/suspicious/noArrayIndexKey: o tópico é só texto; o índice é a identidade e o id do campo.
                 key={i}
                 mudar={mudar}
                 remover={remover}

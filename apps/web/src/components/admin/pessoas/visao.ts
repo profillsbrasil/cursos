@@ -22,7 +22,9 @@ export function visaoDe(busca: {
   if (umTexto(busca.ver) === CONVIDADOS) {
     return { tipo: "convidados" };
   }
+
   const perfil = umTexto(busca.perfil);
+
   return ehPerfil(perfil) ? { perfil, tipo: "perfil" } : { tipo: "todos" };
 }
 
@@ -45,9 +47,12 @@ export function camposDaVisao(
 /** O único lugar que monta /admin/pessoas?... */
 export function hrefDaVisao(visao: VisaoDePessoas, termo: string): Route {
   const busca = new URLSearchParams(camposDaVisao(visao));
+
   if (termo) {
     busca.set("q", termo);
   }
+
   const texto = busca.toString();
-  return (texto ? `/admin/pessoas?${texto}` : "/admin/pessoas") as Route;
+
+  return texto ? `/admin/pessoas?${texto}` : "/admin/pessoas";
 }

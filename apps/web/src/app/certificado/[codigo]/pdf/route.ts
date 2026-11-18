@@ -6,7 +6,7 @@ export async function GET(
   pedido: Request,
   { params }: RouteContext<"/certificado/[codigo]/pdf">
 ) {
-  return respostaDoPdf(
+  return await respostaDoPdf(
     await conferirCertificado((await params).codigo),
     origemDoPedido(pedido.headers)
   );

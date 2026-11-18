@@ -28,6 +28,7 @@ export async function listarCategorias(
     .from(categoria)
     .leftJoin(curso, eq(curso.categoriaId, categoria.id))
     .groupBy(categoria.id);
+
   return linhas
     .map((l) => ({
       cursos: l.cursos.toSorted(PT_BR.compare),
@@ -51,9 +52,11 @@ export async function salvarCategoria(
     .onConflictDoUpdate({ set: { nome: c.nome }, target: categoria.id })
     // xmax = 0 só na linha que o INSERT criou; na que o ON CONFLICT atualizou, não.
     .returning({ novo: sql<boolean>`xmax = 0` });
+
   if (!linha) {
     throw new Error("O upsert da categoria não devolveu a linha.");
   }
+
   return { id: c.id, novo: linha.novo };
 }
 
@@ -68,22 +71,28 @@ export function apagarCategoria(
       .from(categoria)
       .where(eq(categoria.id, id))
       .for("update");
+
     if (!alvo) {
       return { apagado: false };
     }
+
     // Depois da trava, num statement novo: vê o curso que comitou enquanto esta esperava.
     const [uso] = await tx
       .select({ cursos: count() })
       .from(curso)
       .where(eq(curso.categoriaId, id));
+
     const cursos = uso?.cursos ?? 0;
+
     if (cursos > 0) {
       throw new ErroParaAPessoa({
         code: "PRECONDITION_FAILED",
         message: categoriaEmUso(cursos),
       });
     }
+
     await tx.delete(categoria).where(eq(categoria.id, id));
+
     return { apagado: true };
   });
 }

@@ -5,6 +5,7 @@
 // dominio/material.ts.
 
 import { createHash } from "node:crypto";
+
 import { imageSize } from "image-size";
 
 import {
@@ -36,11 +37,13 @@ export interface Materiais {
 }
 
 const PDF = [0x25, 0x50, 0x44, 0x46, 0x2d];
+
 /** O cabeçalho local do ZIP, e o fim de diretório do ZIP vazio. */
 const ZIP = [
   [0x50, 0x4b, 0x03, 0x04],
   [0x50, 0x4b, 0x05, 0x06],
 ];
+
 const OLE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
 
 const comeca = (bytes: Uint8Array, prefixo: readonly number[]) =>
@@ -88,14 +91,19 @@ export function lerMaterial(
   bytes: Uint8Array<ArrayBuffer>
 ): MaterialLido {
   const antes = recusaAntesDeLer(nome, bytes.length);
+
   if (antes) {
     return recusa(antes);
   }
+
   const tipo = tipoDoNome(nome) as TipoDoMaterial;
+
   if (!confirmaOTipo(bytes, tipo)) {
     return recusa({ esperado: tipo, tipo: "assinatura" });
   }
+
   const hash = createHash("sha256").update(bytes).digest("hex");
+
   return {
     arquivo: {
       bytes: bytes.length,
@@ -133,51 +141,65 @@ export function materiaisNoBucket(
       if (!CHAVE_DO_MATERIAL.test(chave)) {
         return null;
       }
+
       const resposta = await bucket.pedir(chave);
+
       if (resposta.status === 404) {
         return null;
       }
+
       if (!resposta.ok) {
         await falha("a leitura", resposta);
         throw new Error("Não foi possível ler o material.");
       }
+
       return resposta;
     },
     async existe(chave) {
       if (!CHAVE_DO_MATERIAL.test(chave)) {
         return false;
       }
+
       const resposta = await bucket.pedir(chave, "HEAD");
+
       if (resposta.status === 404) {
         return false;
       }
+
       if (!resposta.ok) {
         await falha("a consulta", resposta);
         throw new Error("Não foi possível conferir o material.");
       }
+
       return true;
     },
     async receber(arquivo) {
       const antes = recusaAntesDeLer(arquivo.name, arquivo.size);
+
       if (antes) {
         return recusa(antes);
       }
+
       const lido = lerMaterial(
         arquivo.name,
         new Uint8Array(await arquivo.arrayBuffer())
       );
+
       if (lido.tipo === "recusa") {
         return lido;
       }
+
       const resposta = await bucket.guardar(
         lido.arquivo.chave,
         lido.bytes,
         lido.contentType
       );
+
       if (!resposta.ok) {
         await falha("o envio", resposta);
         throw new Error("Não foi possível enviar o material. Tente de novo.");
       }
+
       return { arquivo: lido.arquivo, tipo: "guardado" };
     },
   };

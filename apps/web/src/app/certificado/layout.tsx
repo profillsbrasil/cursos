@@ -19,6 +19,7 @@ export default async function LayoutDaConferencia({
   children: ReactNode;
 }) {
   const { userId } = await auth();
+
   return (
     <PaginaPublica
       direita={

@@ -27,6 +27,7 @@ async function funcionarios(
   if (entre?.length === 0) {
     return [];
   }
+
   const linhas = await db.query.perfilDaPessoa.findMany({
     columns: { userId: true },
     orderBy: { userId: "asc" },
@@ -34,6 +35,7 @@ async function funcionarios(
       ? { perfil: "funcionario", userId: { in: [...entre] } }
       : { perfil: "funcionario" },
   });
+
   return linhas.map((l) => l.userId);
 }
 
@@ -47,14 +49,18 @@ async function planoDe(
     columns: { perfil: true },
     where: { userId },
   });
+
   if (!perfil) {
     throw new Error(`${userId} não tem linha em perfil_da_pessoa.`);
   }
+
   const busca = await linhasDaBusca(exec, [userId]);
   const [linhas] = busca.pessoas;
+
   if (!linhas) {
     throw new Error(`O statement da busca não trouxe ${userId}.`);
   }
+
   const precos =
     busca.cursos.length === 0
       ? []
@@ -62,15 +68,18 @@ async function planoDe(
           columns: { id: true, precoTroca: true },
           where: { id: { in: busca.cursos.map((c) => c.id) } },
         });
+
   const bonus = await exec.query.pontoLancamento.findFirst({
     columns: { id: true },
     where: { motivo: "bonus_funcionario", userId },
   });
+
   const { saldo } = await linhasDoSaldo(
     exec,
     userId,
     segundaDaSemana(diaLocal(agora))
   );
+
   return planejarVirada({
     ...linhas,
     cursos: busca.cursos,
@@ -96,13 +105,16 @@ export function virarPessoa(
       accessMode: "read only",
     });
   }
+
   return comAlunoTravado(db, userId, async (aluno) => {
     const plano = await planoDe(aluno.tx, aluno.userId, agora);
     const nasceu = plano.bonus > 0 && (await darBonusDaVirada(aluno, agora));
+
     for (const t of plano.trocas) {
-      // biome-ignore lint/performance/noAwaitInLoops: na transação, as escritas rodam em série.
+      // oxlint-disable-next-line no-await-in-loop -- na transação, as escritas rodam em série.
       await trocarNaVirada(aluno, t.cursoId, t.preco, agora);
     }
+
     return { ...plano, bonus: nasceu ? plano.bonus : 0 };
   });
 }
@@ -113,9 +125,11 @@ export async function rodarVirada(
   opcoes: OpcoesDaVirada
 ): Promise<PlanoDaVirada[]> {
   const planos: PlanoDaVirada[] = [];
+
   for (const userId of await funcionarios(db, opcoes.entre)) {
-    // biome-ignore lint/performance/noAwaitInLoops: uma pessoa por vez, cada uma na transação dela.
+    // oxlint-disable-next-line no-await-in-loop -- uma pessoa por vez, cada uma na transação dela.
     planos.push(await virarPessoa(db, userId, opcoes));
   }
+
   return planos;
 }

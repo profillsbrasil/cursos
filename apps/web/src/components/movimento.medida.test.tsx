@@ -6,6 +6,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { Button } from "@cursos/ui/components/button";
 import { Switch } from "@cursos/ui/components/switch";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -19,10 +20,11 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { OPCOES_DO_TOAST } from "./opcoes-do-toast";
 
 const EASE_FORTE = "cubic-bezier(0.23, 1, 0.32, 1)";
+
 /** A vírgula entre os itens de uma lista do CSS, não a de dentro do cubic-bezier. */
 const LISTA = /,\s(?![^(]*\))/;
 
@@ -97,6 +99,7 @@ const corpo = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...corpo.matchAll(CLASSES)].flatMap(([, c = ""]) =>
     c.replaceAll("&amp;", "&").split(ESPACO)
@@ -176,17 +179,21 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
 
   test("botão e alavanca não animam tudo, e o polegar não desliza no reduzido", async () => {
     await abrirPagina(false);
+
     const transicoes = await Promise.all(
       ["#botao", "#link", '[data-slot="switch"]'].map((seletor) =>
         estilo(seletor, ["transition-property", "transition-timing-function"])
       )
     );
+
     for (const [propriedade = "", curva] of transicoes) {
       expect(propriedade).not.toContain("all");
       expect(curva).toBe(EASE_FORTE);
     }
+
     const polegar = () =>
       estilo('[data-slot="switch-thumb"]', ["transition-property"]);
+
     expect((await polegar())[0]).toContain("translate");
     await abrirPagina(true);
     expect(await polegar()).toEqual(["none"]);
@@ -194,6 +201,7 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
 
   test("o toast entra e sai em 200 ms no ease-forte, sem animar a altura", async () => {
     await abrirPagina(false);
+
     const [propriedade = "", duracao = "", curva = ""] = await estilo(
       "#toast",
       [
@@ -202,6 +210,7 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
         "transition-timing-function",
       ]
     );
+
     expect(propriedade).not.toContain("height");
     expect(new Set(duracao.split(LISTA))).toEqual(new Set(["0.2s"]));
     expect(new Set(curva.split(LISTA))).toEqual(new Set([EASE_FORTE]));
@@ -209,16 +218,19 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
 
   test("o toast de trás da pilha sai em 200 ms no ease-forte", async () => {
     await abrirPagina(false);
+
     const [duracao = "", curva = ""] = await estilo("#toast-de-tras", [
       "transition-duration",
       "transition-timing-function",
     ]);
+
     expect(new Set(duracao.split(LISTA))).toEqual(new Set(["0.2s"]));
     expect(new Set(curva.split(LISTA))).toEqual(new Set([EASE_FORTE]));
   });
 
   test("com movimento reduzido, o toast não desliza e segue no fade", async () => {
     await abrirPagina(true);
+
     const transicoes = await Promise.all(
       ["#toast", "#toast-de-tras", "#toast [data-content]"].map((seletor) =>
         estilo(seletor, [
@@ -228,6 +240,7 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
         ])
       )
     );
+
     for (const [propriedade = "", duracao = "", curva = ""] of transicoes) {
       expect(propriedade.split(LISTA)).toContain("opacity");
       expect(propriedade).not.toContain("transform");
@@ -238,6 +251,7 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
 
   test("o ícone do toast leva a cor da paleta: Céu no sucesso, erro no erro", async () => {
     await abrirPagina(false);
+
     const cor = (seletor: string, variavel: string) =>
       avaliar<string[]>(
         enviar,
@@ -248,12 +262,15 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
           return [getComputedStyle(document.querySelector(${JSON.stringify(seletor)})).color, getComputedStyle(sonda).color];
         })()`
       );
+
     const [sucesso, ceu] = await cor("#toast [data-icon]", "--ceu");
     expect(sucesso).toBe(ceu);
+
     const [erro, destructive] = await cor(
       "#toast-de-erro [data-icon]",
       "--destructive"
     );
+
     expect(erro).toBe(destructive);
   });
 });

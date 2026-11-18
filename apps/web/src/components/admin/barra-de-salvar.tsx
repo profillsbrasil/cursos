@@ -5,6 +5,7 @@ import { useId } from "react";
 import { BOTAO, CONTORNO_DESLIGADO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { plural } from "@/lib/formato";
+
 import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
 import { Carregando } from "./confirmacao-na-linha";
 import type { Problema } from "./problemas";
@@ -42,15 +43,19 @@ export function situacaoDoSalvar({
   sujo,
 }: Omit<EstadoDoSalvar, "recarregar" | "versaoMudou">): Situacao {
   const marcados = problemas.filter((p) => p.campo !== null).length;
+
   const frases = problemas
     .filter((p) => p.campo === null)
     .map((p) => p.mensagem);
+
   if (marcados > 0 || frases.length > 0) {
     return { frases, marcados, tipo: "problemas" };
   }
+
   if (pendente) {
     return { suja: true, texto: "Salvando…", tipo: "texto" };
   }
+
   if (novo) {
     return {
       suja: true,
@@ -58,6 +63,7 @@ export function situacaoDoSalvar({
       tipo: "texto",
     };
   }
+
   return sujo
     ? { suja: true, texto: "Mudanças não salvas.", tipo: "texto" }
     : { suja: false, texto: "Tudo salvo.", tipo: "texto" };
@@ -79,6 +85,7 @@ function TextoDaSituacao({ situacao }: { situacao: Situacao }) {
       </ul>
     );
   }
+
   return (
     <p
       className={cn(
@@ -107,6 +114,7 @@ export function SituacaoESalvar({
   const id = useId();
   const desligado = nadaASalvar(estado);
   const { pendente, recarregar, versaoMudou } = estado;
+
   return (
     <div className="grid gap-3">
       {versaoMudou ? <AvisoDeVersaoMudou recarregar={recarregar} /> : null}

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Motivo } from "@cursos/api";
 import {
   type DocumentoDoCurso,
@@ -18,6 +19,7 @@ import type {
   PerguntaId,
   Versao,
 } from "@cursos/api/dominio/tipos";
+
 import { errosPorCampo } from "./problemas";
 import {
   ID,
@@ -68,6 +70,7 @@ const aula = (r: RascunhoDoCurso, id: AulaId) =>
 
 const problemas = (r: RascunhoDoCurso) => {
   const lido = lerRascunho(r);
+
   return lido.tipo === "problemas" ? lido.problemas : [];
 };
 
@@ -85,14 +88,17 @@ const fazer = (e: RascunhoDoEditor, ...acoes: AcaoDoEditor[]) =>
 
 const envioDe = (e: RascunhoDoEditor): Envio => {
   const { envio } = telaDo(e);
+
   if (envio === null) {
     throw new Error("o rascunho devia ler");
   }
+
   return envio;
 };
 
 const blocos = (e: RascunhoDoEditor) => {
   const { erros } = telaDo(e);
+
   return e.rascunho.modulos.map((m) => blocoDoModulo(m, e.abertos, erros));
 };
 
@@ -104,6 +110,7 @@ const saiu = (id: string): AcaoDoEditor => ({ id, tipo: "saiu_do_campo" });
 const painel = (e: RascunhoDoEditor, aulaId: AulaId) => {
   const [m1] = e.rascunho.modulos;
   const a = aula(e.rascunho, aulaId);
+
   return [
     m1 ? aulaEscolhida(m1, e.escolhas)?.id : null,
     a ? perguntaEscolhida(a, e.escolhas)?.id : null,
@@ -116,6 +123,7 @@ describe("campos do curso", () => {
       mudanca: { descricao: "Nova", precoTroca: "300" },
       tipo: "campos",
     });
+
     expect(r.precoTroca).toBe("300");
     expect(r.descricao).toBe("Nova");
     expect(r.titulo).toBe("Curso");
@@ -126,12 +134,14 @@ describe("campos do curso", () => {
 describe("níveis", () => {
   test("o nível novo entra com a ordem que o componente mandou, e renomear muda só o nome", () => {
     const base = exemplo();
+
     const r = aplicar(
       base,
       { ordem: proximaOrdem(base.niveis), tipo: "nivel_novo" },
       { nome: "Especialista", ordem: 3, tipo: "nivel_renomeado" },
       { nome: "Intermediário", ordem: 2, tipo: "nivel_renomeado" }
     );
+
     expect(r.niveis).toEqual([
       { nome: "Básico", ordem: 1 },
       { nome: "Intermediário", ordem: 2 },
@@ -175,6 +185,7 @@ describe("módulos", () => {
       { id: M1, mudanca: { titulo: "Abertura" }, tipo: "modulo_editado" },
       { id: M1, mudanca: { numero: "5" }, tipo: "modulo_editado" }
     );
+
     expect(ordem(r)).toEqual([
       ["5", "Abertura", ["Aula 1", "Aula 2"]],
       ["1", "Módulo um", ["Aula 3"]],
@@ -191,6 +202,7 @@ describe("módulos", () => {
       { id: M1, mudanca: { numero: "1e3" }, tipo: "modulo_editado" },
       { tipo: "modulos_ordenados" }
     );
+
     expect(ordem(r).map(([n]) => n)).toEqual(["1", "1e3"]);
   });
 
@@ -200,15 +212,18 @@ describe("módulos", () => {
       id: M1,
       tipo: "modulo_movido",
     });
+
     expect(ordem(desceu)).toEqual([
       ["0", "Módulo um", ["Aula 3"]],
       ["1", "Módulo zero", ["Aula 1", "Aula 2"]],
     ]);
+
     const subiu = mudar(desceu, {
       direcao: "acima",
       id: M1,
       tipo: "modulo_movido",
     });
+
     expect(ordem(subiu)).toEqual(ordem(exemplo()));
   });
 
@@ -248,6 +263,7 @@ describe("aulas", () => {
       mudanca: { duracao: "12:34", titulo: "Ajuste da válvula" },
       tipo: "aula_editada",
     });
+
     expect(r.modulos[0]?.aulas).toEqual([
       {
         descricao: "",
@@ -274,6 +290,7 @@ describe("aulas", () => {
       id: A1,
       tipo: "aula_movida",
     });
+
     expect(ordem(r)[0]).toEqual(["0", "Módulo zero", ["Aula 2", "Aula 1"]]);
     expect(
       ordem(mudar(r, { direcao: "acima", id: A1, tipo: "aula_movida" }))
@@ -295,6 +312,7 @@ describe("aulas", () => {
       moduloId: M2,
       tipo: "aula_para_modulo",
     });
+
     expect(ordem(r)).toEqual([
       ["0", "Módulo zero", ["Aula 2"]],
       ["1", "Módulo um", ["Aula 3", "Aula 1"]],
@@ -314,6 +332,7 @@ describe("aulas", () => {
       { direcao: "acima", id: A1, tipo: "aula_movida" },
       { direcao: "acima", id: M2, tipo: "modulo_movido" }
     );
+
     expect(aula(r, A1)).toEqual({
       descricao: "",
       duracao: "12:3",
@@ -351,6 +370,7 @@ describe("campos lidos", () => {
         erro: "Use um preço de 1 a 1.000.000 pontos.",
       });
     }
+
     expect(lerPreco(" 300 ")).toEqual({ valor: 300 });
     expect(lerNumeroDoModulo("0x10")).toEqual({
       erro: "Use um número de 0 a 999.",
@@ -364,6 +384,7 @@ describe("campos lidos", () => {
       mudanca: { duracao: "24:00:01" },
       tipo: "aula_editada",
     });
+
     expect(problemas(r)).toEqual([
       {
         campo: ID.aula(A1, "duracao"),
@@ -382,6 +403,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
       { id: M1, mudanca: { titulo: "\t" }, tipo: "modulo_editado" },
       { nome: "  ", ordem: 2, tipo: "nivel_renomeado" }
     );
+
     expect(problemas(r)).toEqual([
       { campo: ID.modulo(M1, "titulo"), mensagem: "Preencha este campo." },
       { campo: ID.aula(A3, "titulo"), mensagem: "Preencha este campo." },
@@ -395,6 +417,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
       mudanca: { categoriaId: "" as CategoriaId },
       tipo: "campos",
     });
+
     expect(problemas(r)).toEqual([
       { campo: ID.curso("categoriaId"), mensagem: "Escolha a categoria." },
     ]);
@@ -406,6 +429,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
       mudanca: { numero: "0" },
       tipo: "modulo_editado",
     });
+
     expect(problemas(r)).toEqual([
       { campo: null, mensagem: "Dois módulos com o número 0." },
     ]);
@@ -416,6 +440,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
       nome: `N${i + 1}`,
       ordem: i + 1,
     }));
+
     const r = { ...exemplo(), niveis: muitos };
     expect(problemas(r)).toContainEqual({
       campo: null,
@@ -429,6 +454,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
       { id: M1, mudanca: { numero: "x" }, tipo: "modulo_editado" },
       { id: M2, mudanca: { numero: "" }, tipo: "modulo_editado" }
     );
+
     expect(problemas(r)).toEqual([
       { campo: ID.modulo(M1, "numero"), mensagem: "Use um número de 0 a 999." },
       { campo: ID.modulo(M2, "numero"), mensagem: "Use um número de 0 a 999." },
@@ -457,6 +483,7 @@ test("o rascunho editado vira um documento que passa no schema do servidor", () 
     { ordem: 2, tipo: "nivel_removido" },
     { mudanca: { precoTroca: "300" }, tipo: "campos" }
   );
+
   const lido = lerRascunho(r);
   expect(lido.tipo).toBe("lido");
   const doc = lido.tipo === "lido" ? lido.documento : null;
@@ -486,6 +513,7 @@ test("o rascunho editado vira um documento que passa no schema do servidor", () 
 test("salvar sem campo na tela devolve a descrição, os tópicos e a descrição da aula que o banco tinha", () => {
   const base = documentoDeExemplo();
   const [m0] = base.modulos;
+
   const salvo = {
     ...base,
     descricao: "Curso de envase.",
@@ -499,13 +527,15 @@ test("salvar sem campo na tela devolve a descrição, os tópicos e a descriçã
       ...base.modulos.slice(1),
     ],
     topicos: ["Ligar a máquina", "Dosar o volume"],
-  } as typeof base;
+  };
+
   const r = aplicar(
     rascunhoDoCurso(salvo),
     { mudanca: { titulo: "Curso novo" }, tipo: "campos" },
     { direcao: "acima", id: A2, tipo: "aula_movida" },
     { id: A2, moduloId: M2, tipo: "aula_para_modulo" }
   );
+
   const lido = lerRascunho(r);
   const doc = lido.tipo === "lido" ? lido.documento : null;
   expect([
@@ -542,6 +572,7 @@ describe("blocos dos módulos", () => {
       { id: M2, tipo: "aberto" },
       { id: M1, tipo: "fechado" }
     );
+
     expect(estados(e)).toEqual(["fechado", "aberto"]);
   });
 
@@ -559,11 +590,13 @@ describe("blocos dos módulos", () => {
       { id: M1, tipo: "aberto" },
       { id: A1, moduloId: M2, tipo: "aula_para_modulo" }
     );
+
     expect(estados(e)).toEqual(["aberto", "aberto"]);
   });
 
   test("mudança dentro de um módulo não abre nem fecha nenhum bloco", () => {
     const aberto = fazer(editor(), { id: M1, tipo: "aberto" });
+
     const mudancas: Mudanca[] = [
       { id: A3, mudanca: { titulo: "Nova" }, tipo: "aula_editada" },
       { direcao: "abaixo", id: A1, tipo: "aula_movida" },
@@ -572,6 +605,7 @@ describe("blocos dos módulos", () => {
       { id: A4, moduloId: M1, tipo: "aula_nova" },
       { id: A2, tipo: "aula_removida" },
     ];
+
     for (const mudanca of mudancas) {
       expect(fazer(aberto, mudanca).abertos).toBe(aberto.abertos);
     }
@@ -583,6 +617,7 @@ describe("blocos dos módulos", () => {
       { id: M1, tipo: "aberto" },
       { id: M1, tipo: "modulo_removido" }
     );
+
     expect(e.abertos.size).toBe(0);
   });
 
@@ -592,6 +627,7 @@ describe("blocos dos módulos", () => {
       [ID.modulo(M2, "titulo"), "Preencha este campo."],
       [ID.curso("titulo"), "Preencha este campo."],
     ]);
+
     expect(
       exemplo().modulos.map((m) => blocoDoModulo(m, NENHUM_ABERTO, erros))
     ).toEqual([{ tipo: "fechado" }, { campos: 2, tipo: "com_erro" }]);
@@ -603,6 +639,7 @@ describe("blocos dos módulos", () => {
       { id: M3, tipo: "modulo_novo" },
       { id: A1, moduloId: M2, tipo: "aula_para_modulo" }
     );
+
     expect(e.rascunho.modulos.map((m) => m.id)).toEqual([M1, M2, M3]);
     expect(estados(e)).toEqual(["fechado", "aberto", "aberto"]);
   });
@@ -617,6 +654,7 @@ describe("nenhum erro fica num bloco fechado", () => {
       mudanca: { duracao: "abc" },
       tipo: "aula_editada",
     });
+
     // Antes de sair do campo, nada marca.
     expect(blocos(digitado)).toEqual([
       { tipo: "fechado" },
@@ -641,6 +679,7 @@ describe("nenhum erro fica num bloco fechado", () => {
       mudanca: { duracao: "5:00" },
       tipo: "aula_editada",
     });
+
     expect(blocos(corrigido)).toEqual([
       { tipo: "fechado" },
       { tipo: "aberto" },
@@ -653,6 +692,7 @@ describe("nenhum erro fica num bloco fechado", () => {
       { id: A3, mudanca: { video: "não é vídeo" }, tipo: "aula_editada" },
       { tipo: "salvar" }
     );
+
     expect(e.abertos.has(M2)).toBe(true);
     expect(blocos(e)[1]).toEqual({ campos: 1, tipo: "com_erro" });
   });
@@ -663,6 +703,7 @@ describe("nenhum erro fica num bloco fechado", () => {
       mudanca: { titulo: "" },
       tipo: "modulo_editado",
     });
+
     expect(blocos(vazio)[1]).toEqual({ tipo: "fechado" });
     const e = fazer(vazio, { tipo: "salvar" });
     expect(telaDo(e).erros.get(ID.modulo(M2, "titulo"))).toBe(
@@ -683,12 +724,15 @@ describe("questionário da aula", () => {
   const X3 = uuidDeExemplo(53) as AlternativaId;
   const Y1 = uuidDeExemplo(61) as AlternativaId;
   const Y2 = uuidDeExemplo(62) as AlternativaId;
+
   const nova = (
     aulaId: AulaId,
     id: PerguntaId,
     alternativas: [AlternativaId, AlternativaId]
   ): Mudanca => ({ alternativas, aulaId, id, tipo: "pergunta_nova" });
+
   const perguntas = (r: RascunhoDoCurso) => aula(r, A1)?.perguntas ?? [];
+
   const completa = (r: RascunhoDoCurso) =>
     aplicar(
       r,
@@ -719,16 +763,19 @@ describe("questionário da aula", () => {
       false,
       true,
     ]);
+
     const comTres = mudar(r, {
       id: X3,
       perguntaId: P1,
       tipo: "alternativa_nova",
     });
+
     expect(perguntas(comTres)[0]?.alternativas.map((x) => x.id)).toEqual([
       X1,
       X2,
       X3,
     ]);
+
     const cheia = [54, 55, 56].reduce(
       (acc, n) =>
         mudar(acc, {
@@ -738,6 +785,7 @@ describe("questionário da aula", () => {
         }),
       comTres
     );
+
     expect(perguntas(cheia)[0]?.alternativas.length).toBe(5);
     const semA = mudar(r, { id: X1, tipo: "alternativa_removida" });
     expect(semA).toEqual(r);
@@ -754,18 +802,23 @@ describe("questionário da aula", () => {
       nova(A1, P1, [X1, X2]),
       nova(A1, P2, [Y1, Y2])
     );
+
     const [p1] = perguntas(r);
+
     if (!p1) {
       throw new Error("sem P1");
     }
+
     const tirada = mudar(r, { id: P1, tipo: "pergunta_removida" });
     expect(perguntas(tirada).map((p) => p.id)).toEqual([P2]);
+
     const devolvida = mudar(tirada, {
       aulaId: A1,
       indice: 0,
       pergunta: p1,
       tipo: "pergunta_restaurada",
     });
+
     expect(devolvida).toEqual(r);
   });
 
@@ -783,6 +836,7 @@ describe("questionário da aula", () => {
   test("uma alternativa só, vinda de fora do editor, marca o grupo com a regra do mínimo", () => {
     const r = completa(mudar(exemplo(), nova(A1, P1, [X1, X2])));
     const [p] = perguntas(r);
+
     const quebrado = {
       ...r,
       modulos: r.modulos.map((m) => ({
@@ -797,6 +851,7 @@ describe("questionário da aula", () => {
         ),
       })),
     };
+
     expect(problemas(quebrado)).toEqual([
       {
         campo: ID.pergunta(P1, "alternativas"),
@@ -811,28 +866,29 @@ describe("questionário da aula", () => {
     const a1 = aula(r, A1);
     const a2 = aula(r, A2);
     const [m1] = r.modulos;
+
     if (!(a1 && a2 && m1)) {
       throw new Error("sem o exemplo");
     }
+
     expect([
       errosNaAula(a1, marcados),
       errosNaAula(a2, marcados),
-      errosNaPergunta(
-        a1.perguntas[0] as NonNullable<(typeof a1.perguntas)[0]>,
-        marcados
-      ),
+      errosNaPergunta(a1.perguntas[0], marcados),
       blocoDoModulo(m1, NENHUM_ABERTO, marcados),
     ]).toEqual([4, 0, 4, { campos: 4, tipo: "com_erro" }]);
   });
 
   test("o grupo das letras conta como deixado quando o enunciado e todas as alternativas foram deixados", () => {
     const grupo = ID.pergunta(P1, "alternativas");
+
     const parcial = fazer(
       editor(),
       nova(A1, P1, [X1, X2]),
       saiu(ID.pergunta(P1, "enunciado")),
       saiu(ID.alternativa(X1))
     );
+
     expect(telaDo(parcial).erros.has(grupo)).toBe(false);
     const todos = fazer(parcial, saiu(ID.alternativa(X2)));
     expect(telaDo(todos).erros.get(grupo)).toBe(SEM_CERTA);
@@ -844,11 +900,14 @@ describe("questionário da aula", () => {
       nova(A1, P1, [X1, X2]),
       nova(A1, P2, [Y1, Y2])
     );
+
     const [m1] = r.modulos;
     const a1 = aula(r, A1);
+
     if (!(m1 && a1)) {
       throw new Error("sem o exemplo");
     }
+
     expect([
       aulaEscolhida(m1, NADA_ESCOLHIDO)?.id,
       perguntaEscolhida(a1, NADA_ESCOLHIDO)?.id,
@@ -861,9 +920,11 @@ describe("questionário da aula", () => {
       { aulaId: A2, moduloId: M1, tipo: "aula_escolhida" },
       { aulaId: A1, perguntaId: P1, tipo: "pergunta_escolhida" }
     );
+
     expect(painel(escolhido, A1)).toEqual([A2, P1]);
 
     const P3 = uuidDeExemplo(43) as PerguntaId;
+
     const comNova = fazer(
       escolhido,
       nova(A1, P3, [
@@ -871,17 +932,21 @@ describe("questionário da aula", () => {
         uuidDeExemplo(72) as AlternativaId,
       ])
     );
+
     expect(painel(comNova, A1)[1]).toBe(P3);
 
     const [p1] = perguntas(comNova.rascunho);
+
     if (!p1) {
       throw new Error("sem P1");
     }
+
     const restaurada = fazer(
       comNova,
       { id: P1, tipo: "pergunta_removida" },
       { aulaId: A1, indice: 0, pergunta: p1, tipo: "pergunta_restaurada" }
     );
+
     expect(painel(restaurada, A1)[1]).toBe(P1);
 
     const comAula = fazer(restaurada, {
@@ -889,6 +954,7 @@ describe("questionário da aula", () => {
       moduloId: M2,
       tipo: "aula_nova",
     });
+
     expect(comAula.escolhas.aulaPorModulo.get(M2)).toBe(A4);
     expect(aulaEscolhida({ ...m1, aulas: [a1] }, escolhido.escolhas)?.id).toBe(
       A1
@@ -906,6 +972,7 @@ describe("questionário da aula", () => {
       { alternativaId: Y2, perguntaId: P2, tipo: "certa_marcada" },
       { aulaId: A1, moduloId: M1, tipo: "aula_escolhida" }
     );
+
     expect([
       estados(antes),
       painel(antes, A2),
@@ -939,6 +1006,7 @@ describe("questionário da aula", () => {
       { id: X2, texto: "O líder", tipo: "alternativa_editada" },
       { alternativaId: X1, perguntaId: P1, tipo: "certa_marcada" }
     );
+
     expect(estados(corrigido)).toEqual(["aberto", "fechado"]);
     expect(telaDo(corrigido).envio).not.toBeNull();
   });
@@ -949,6 +1017,7 @@ describe("questionário da aula", () => {
       { id: A2, mudanca: { video: "não é vídeo" }, tipo: "aula_editada" },
       { tipo: "salvar" }
     );
+
     expect(painel(e, A2)[0]).toBe(A2);
     expect(e.foco).toEqual([ID.aula(A2, "video")]);
   });
@@ -957,6 +1026,7 @@ describe("questionário da aula", () => {
     const r = completa(mudar(exemplo(), nova(A1, P1, [X1, X2])));
     const lido = lerRascunho(r);
     expect(lido.tipo).toBe("lido");
+
     if (lido.tipo === "lido") {
       expect(documentoDoCurso.safeParse(lido.documento).success).toBe(true);
       expect(lido.documento.modulos[0]?.aulas[0]?.perguntas).toEqual([
@@ -976,23 +1046,28 @@ describe("questionário da aula", () => {
 describe("o rascunho apoiado na página", () => {
   const V2 = "v2" as Versao;
   const V3 = "v3" as Versao;
+
   const digitar = (titulo: string): Mudanca => ({
     mudanca: { titulo },
     tipo: "campos",
   });
+
   const salvo = (e: RascunhoDoEditor, versao: Versao = V2): AcaoDoEditor => ({
     envio: envioDe(e),
     tipo: "salvo",
     versao,
   });
+
   const recusado = (
     e: RascunhoDoEditor,
     motivo: Motivo | null
   ): AcaoDoEditor => ({ envio: envioDe(e), motivo, tipo: "recusado" });
+
   const pagina = (p: DocumentoDoCurso): AcaoDoEditor => ({
     pagina: p,
     tipo: "pagina",
   });
+
   const recarregar: AcaoDoEditor = { tipo: "descartado" };
   const sujo = (e: RascunhoDoEditor) => telaDo(e).sujo;
 
@@ -1006,11 +1081,13 @@ describe("o rascunho apoiado na página", () => {
 
   test("o que o admin digitou com o salvar pendente fica, apoiado na versão nova", () => {
     const enviando = fazer(editor(), digitar("Curso   "));
+
     const depois = fazer(
       enviando,
       { mudanca: { descricao: "Outra descrição" }, tipo: "campos" },
       salvo(enviando)
     );
+
     expect([depois.rascunho.descricao, depois.rascunho.titulo]).toEqual([
       "Outra descrição",
       "Curso   ",
@@ -1030,10 +1107,12 @@ describe("o rascunho apoiado na página", () => {
     const inicio = editor();
     const avisado = fazer(inicio, recusado(inicio, "versao_mudou"));
     expect(telaDo(avisado).versaoMudou).toBe(true);
+
     const depois = fazer(
       avisado,
       pagina(documento({ titulo: "De outra aba", versao: V3 }))
     );
+
     expect(depois.geracao).toBe(1);
     expect(depois.rascunho.titulo).toBe("De outra aba");
     expect(telaDo(depois).versaoMudou).toBe(false);
@@ -1046,6 +1125,7 @@ describe("o rascunho apoiado na página", () => {
       { id: ID.curso("titulo"), tipo: "saiu_do_campo" },
       { tipo: "salvar" }
     );
+
     const nova = documento({ titulo: "De outra aba", versao: V3 });
     const emConflito = fazer(inicio, pagina(nova));
     expect(telaDo(emConflito).versaoMudou).toBe(true);
@@ -1066,11 +1146,13 @@ describe("o rascunho apoiado na página", () => {
 
   test("Salvar recusado por versao_mudou com o rascunho sujo: o aviso fica até o Recarregar", () => {
     const sujoAntes = fazer(editor(), digitar("X"));
+
     const emConflito = fazer(
       sujoAntes,
       recusado(sujoAntes, "versao_mudou"),
       pagina(documento({ titulo: "De outra aba", versao: V2 }))
     );
+
     expect(telaDo(emConflito).versaoMudou).toBe(true);
     expect(emConflito.rascunho.titulo).toBe("X");
     expect(emConflito.geracao).toBe(0);
@@ -1101,12 +1183,14 @@ describe("o rascunho apoiado na página", () => {
     const capa = new File(["capa"], "capa.png", { type: "image/png" });
     const inicio = editor(documento({ versao: null }));
     expect(telaDo(inicio).envio).toBeNull();
+
     const enviando = fazer(
       inicio,
       digitar("Operador"),
       { arquivo: capa, tipo: "capa_escolhida" },
       { tipo: "salvar" }
     );
+
     const envio = envioDe(enviando);
     expect([envio.novo, envio.capa]).toEqual([true, capa]);
     const depois = fazer(enviando, salvo(enviando, V1));

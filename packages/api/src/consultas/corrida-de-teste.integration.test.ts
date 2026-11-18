@@ -2,6 +2,7 @@
 // no mesmo banco, parado num lock com o mesmo começo de SQL, não entra na conta.
 
 import { afterAll, describe, expect, test } from "bun:test";
+
 import { createDb } from "@cursos/db";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 
@@ -13,6 +14,7 @@ describe.skipIf(URL_TESTE === null)("esperas", () => {
   const meu = createDb({
     DATABASE_URL: urlDaCorrida(URL_TESTE),
   });
+
   const deFora = createDb({ DATABASE_URL: URL_TESTE ?? "" });
 
   afterAll(async () => {
@@ -24,6 +26,7 @@ describe.skipIf(URL_TESTE === null)("esperas", () => {
     const chave = `corrida-de-teste:${Date.now()}`;
     const dona = await deFora.$client.connect();
     const parada = await deFora.$client.connect();
+
     try {
       await dona.query("begin");
       await dona.query(
@@ -31,10 +34,12 @@ describe.skipIf(URL_TESTE === null)("esperas", () => {
         [chave]
       );
       await parada.query("begin");
+
       const esperando = parada.query(
         "select pg_advisory_xact_lock(hashtextextended($1, 0))",
         [chave]
       );
+
       // A espera de fora aparece no banco antes de conferir a do teste.
       await esperas(deFora, 1, ["select pg_advisory_xact_lock"]);
 

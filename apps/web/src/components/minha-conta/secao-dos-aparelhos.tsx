@@ -7,6 +7,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 
 import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
+
 import { type Aparelho, aparelhosDe } from "./aparelhos";
 import { fraseDoErro } from "./erros";
 import {
@@ -44,6 +45,7 @@ function LinhaDoAparelho({
   pendente: boolean;
 }) {
   const sair = useCallback(() => aoSair?.(aparelho.id), [aoSair, aparelho.id]);
+
   return (
     <li className={LINHA}>
       <span className={ICONE_DO_APARELHO}>
@@ -99,6 +101,7 @@ function ListaDosAparelhos({
   const { executar, pendente } = useAcaoDaConta();
   const { antigos, atual, recentes } = aparelhosDe(sessoes, idDaAtual, agora);
   const outras = sessoes.filter((s) => s.id !== idDaAtual);
+
   const sairDe = useCallback(
     (alvo: SessaoComAtividade[], sucesso: string) =>
       executar(() => Promise.all(alvo.map((s) => s.revoke())), {
@@ -107,6 +110,7 @@ function ListaDosAparelhos({
       }),
     [executar, recarregar]
   );
+
   const sairDeUm = useCallback(
     (id: string) =>
       sairDe(
@@ -115,10 +119,12 @@ function ListaDosAparelhos({
       ),
     [sairDe, sessoes]
   );
+
   const sairDosOutros = useCallback(
     () => sairDe(outras, "Você saiu de todos os outros aparelhos."),
     [outras, sairDe]
   );
+
   return (
     <>
       <ul className="grid">
@@ -178,7 +184,7 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
   const [versao, setVersao] = useState(0);
   const recarregar = useCallback(() => setVersao((v) => v + 1), []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a lista recarrega pela versão, e o objeto user muda a cada edição da conta.
+  // oxlint-disable react-hooks/exhaustive-deps -- a lista recarrega pela versão, e o objeto user muda a cada edição da conta.
   useEffect(() => {
     let vivo = true;
     user.getSessions().then(
@@ -193,10 +199,12 @@ export function SecaoDosAparelhos({ user }: { user: Usuario }) {
         }
       }
     );
+
     return () => {
       vivo = false;
     };
   }, [user.id, versao]);
+  // oxlint-enable react-hooks/exhaustive-deps
 
   return (
     <section aria-labelledby={id} className={CARTAO}>

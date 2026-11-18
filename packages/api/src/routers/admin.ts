@@ -91,6 +91,7 @@ const userId = z.string().regex(USER_ID);
 
 const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
 const categoriaId = z.uuid().transform((id) => id.toLowerCase() as CategoriaId);
+
 /** O mesmo formato do check categoria_nome_formato: aparado, de 1 a 80 caracteres. */
 const nomeDaCategoria = z.string().trim().min(1).max(CARACTERES.categoria);
 
@@ -106,10 +107,13 @@ const email = z
   .max(254)
   .transform((texto, ctx) => {
     const lido = lerEmail(texto);
+
     if (!lido) {
       ctx.addIssue({ code: "custom", message: "e-mail" });
+
       return z.NEVER;
     }
+
     return lido;
   });
 
@@ -144,16 +148,20 @@ export const adminRouter = router({
       .input(z.instanceof(FormData))
       .mutation(async ({ ctx, input }): Promise<MaterialEnviado> => {
         const arquivo = arquivoDoFormulario(input);
+
         if (!arquivo) {
           throw new ErroParaAPessoa({
             code: "BAD_REQUEST",
             message: "O envio veio sem o arquivo.",
           });
         }
+
         const recebido = await ctx.materiais.receber(arquivo);
+
         if (recebido.tipo === "recusa") {
           throw erroDoMaterial(recebido.recusa);
         }
+
         return {
           ...recebido.arquivo,
           tituloSugerido: tituloSugerido(recebido.arquivo.nomeDoArquivo),
@@ -188,6 +196,7 @@ export const adminRouter = router({
     lista: adminProcedure.query(async ({ ctx }) => {
       const linhas = await linhasDosComunicados(ctx.db);
       const autores = new Set(linhas.comunicados.map((c) => c.publicadoPor));
+
       return montarComunicados(
         linhas,
         await Promise.all([...autores].map((id) => ctx.pessoas.porId(id)))
@@ -241,7 +250,8 @@ export const adminRouter = router({
         ) {
           throw naoEMaisAdmin();
         }
-        return convidar(
+
+        return await convidar(
           ctx.db,
           ctx,
           ctx.admin,
@@ -256,6 +266,7 @@ export const adminRouter = router({
           linhasDosConvites(ctx.db, input.termo),
           contagemPorPerfil(ctx.db),
         ]);
+
         return montarPainelDeConvites(linhas, contagem, new Date());
       }),
     reenviar: adminProcedure
@@ -267,6 +278,7 @@ export const adminRouter = router({
           input.id,
           new Date()
         );
+
         return { enviadoEm: diaLocal(enviadoEm) };
       }),
   }),
@@ -278,10 +290,12 @@ export const adminRouter = router({
         if (!USER_ID.test(input.userId)) {
           return null;
         }
+
         const [pessoa, linhas] = await Promise.all([
           ctx.pessoas.porId(input.userId),
           linhasDoAcesso(ctx.db, input.userId),
         ]);
+
         return montarAcesso(input.userId, pessoa, linhas, diaLocal(new Date()));
       }),
     // Duas idas em série: o Clerk entrega a página, e o banco lê o estudo dos userIds dela.
@@ -289,23 +303,33 @@ export const adminRouter = router({
       .input(z.object({ termo: z.string().trim().max(100) }))
       .query(async ({ ctx, input }) => {
         const resultado = await ctx.pessoas.buscar(input.termo);
+
         const linhas = await linhasDaBusca(
           ctx.db,
           resultado.pessoas.map((p) => p.userId)
         );
+
         return montarBusca(resultado, linhas, diaLocal(new Date()));
       }),
     liberar: adminProcedure
       .input(z.object({ cursoId, userId }))
       .mutation(async ({ ctx, input }) => {
         const pessoa = await ctx.pessoas.porId(input.userId);
+
         if (!pessoa) {
           throw new ErroParaAPessoa({
             code: "NOT_FOUND",
             message: PESSOA_SUMIU,
           });
         }
-        return liberar(ctx.db, ctx.admin, pessoa, input.cursoId, new Date());
+
+        return await liberar(
+          ctx.db,
+          ctx.admin,
+          pessoa,
+          input.cursoId,
+          new Date()
+        );
       }),
     /** Um resultado por pessoa: a falha de uma não recusa o lote. */
     liberarVarios: adminProcedure
@@ -337,6 +361,7 @@ export const adminRouter = router({
         linhasDaGrade(ctx.db),
         contagemPorPerfil(ctx.db),
       ]);
+
       return montarGrade(linhas, contagem);
     }),
     liberar: adminProcedure
@@ -383,7 +408,8 @@ export const adminRouter = router({
         if (!(await ctx.pessoas.conta(input.userId))) {
           throw pessoaSumiu();
         }
-        return concederPontos(ctx.db, ctx.admin, input, new Date());
+
+        return await concederPontos(ctx.db, ctx.admin, input, new Date());
       }),
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
@@ -396,6 +422,7 @@ export const adminRouter = router({
             message: "Você não pode tirar o seu próprio papel de admin.",
           });
         }
+
         // Sob a trava, o papel de quem pede vem do Clerk, não do token: o token
         // diz admin por até 60 s depois de outro admin tirar o papel dele.
         return comTrava(ctx.db, "papel", async (tx) => {
@@ -403,17 +430,21 @@ export const adminRouter = router({
             ctx.pessoas.conta(ctx.admin),
             ctx.pessoas.conta(input.userId),
           ]);
+
           if (eu?.papel !== "admin") {
             throw naoEMaisAdmin();
           }
+
           if (!alvo) {
             throw pessoaSumiu();
           }
+
           // Antes do Clerk: se o Clerk falha, o rollback desfaz o encerramento.
           // Na ordem contrária, a falha daqui deixaria o convite regravar admin
           // por cima do papel que a ficha acabou de gravar.
           await encerrarPapelDoConvite(tx, input.userId, new Date());
           await ctx.pessoas.definirPapel(input.userId, input.papel);
+
           return { papel: input.papel };
         });
       }),
@@ -423,6 +454,7 @@ export const adminRouter = router({
         if (!(await ctx.pessoas.conta(input.userId))) {
           throw pessoaSumiu();
         }
+
         const { bonus } = await definirPerfil(
           ctx.db,
           ctx.admin,
@@ -430,6 +462,7 @@ export const adminRouter = router({
           input.perfil,
           new Date()
         );
+
         return { bonus, perfil: input.perfil };
       }),
     // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
@@ -439,21 +472,27 @@ export const adminRouter = router({
         if (!USER_ID.test(input.userId)) {
           return null;
         }
+
         const segunda = segundaDaSemana(diaLocal(new Date()));
+
         const [conta, [linha], { saldo }, concessoes] = await Promise.all([
           ctx.pessoas.conta(input.userId),
           linhasDosPerfis(ctx.db, [input.userId]),
           linhasDoSaldo(ctx.db, input.userId, segunda),
           linhasDasConcessoes(ctx.db, input.userId),
         ]);
+
         if (!conta) {
           return null;
         }
+
         const autores = new Set(concessoes.map((c) => c.concedidaPor));
+
         const [quemMudou, ...quemConcedeu] = await Promise.all([
           linha?.definidoPor ? ctx.pessoas.porId(linha.definidoPor) : null,
           ...[...autores].map((id) => ctx.pessoas.porId(id)),
         ]);
+
         return montarFicha(conta, linha, quemMudou ?? null, ctx.admin, {
           concessoes: montarConcessoes(concessoes, quemConcedeu),
           saldo,
@@ -474,15 +513,19 @@ export const adminRouter = router({
         const entre = input.perfil
           ? await quemTemOPerfil(ctx.db, input.perfil, TETO_DO_FILTRO)
           : undefined;
+
         const [busca, contagem] = await Promise.all([
           ctx.pessoas.buscar(input.termo, entre),
           contagemPorPerfil(ctx.db),
         ]);
+
         const ids = busca.pessoas.map((p) => p.userId);
+
         const [linhas, saldos] = await Promise.all([
           linhasDosPerfis(ctx.db, ids),
           saldosDe(ctx.db, ids),
         ]);
+
         return montarListaDePessoas(
           busca,
           linhas,

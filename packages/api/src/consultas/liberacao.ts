@@ -1,6 +1,7 @@
 import type { Database } from "@cursos/db";
 import { liberacao } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
+
 import {
   acaoNaLiberacao,
   type LiberacaoNaPessoa,
@@ -51,9 +52,11 @@ export async function inserirLiberacao(
       userId: aluno.userId,
     })
     .returning({ id: liberacao.id });
+
   if (!linha) {
     throw new Error("O insert da liberação não devolveu a linha.");
   }
+
   return linha.id as LiberacaoId;
 }
 
@@ -77,6 +80,7 @@ async function cursoExiste(exec: Executor, id: CursoId): Promise<boolean> {
     columns: { id: true },
     where: { id },
   });
+
   return c !== undefined;
 }
 
@@ -96,6 +100,7 @@ async function ativaDoCurso(
     columns: { id: true, liberadaEm: true, origem: true },
     where: { ...filtroLiberacaoAtiva(userId), cursoId },
   });
+
   return l
     ? {
         liberacaoId: l.id as LiberacaoId,
@@ -132,16 +137,21 @@ export async function liberarNoAlunoTravado(
   if (!(await cursoExiste(aluno.tx, cursoId))) {
     return null;
   }
+
   const existente = await ativaDoCurso(aluno.tx, aluno.userId, cursoId);
+
   if (existente) {
     return { ...existente, nova: false };
   }
+
   const liberacaoId = await inserirLiberacao(
     aluno,
     { cursoId, origem: "admin", por: admin },
     agora
   );
+
   await abrirOCursoInteiro(aluno, cursoId, agora);
+
   return { liberacaoId, liberadaEm: agora, nova: true, origem: "admin" };
 }
 
@@ -166,9 +176,11 @@ export async function liberar(
         cursoId,
         agora
       );
+
       if (!liberada) {
         throw cursoSumiu();
       }
+
       return liberada;
     });
   } catch (erro) {
@@ -177,6 +189,7 @@ export async function liberar(
     if (violacaoDe(erro)?.restricao === FK_DO_CURSO) {
       throw cursoSumiu(erro);
     }
+
     throw erro;
   }
 }
@@ -187,11 +200,15 @@ function falhaNoLog(erro: unknown, userId: string): LiberacaoNaPessoa {
   if (erro instanceof ErroParaAPessoa) {
     return { mensagem: erro.message, tipo: "nao_liberou" };
   }
+
   const doBanco = mensagemDoBanco(erro);
+
   if (doBanco) {
     return { mensagem: doBanco.message, tipo: "nao_liberou" };
   }
+
   console.error(`liberarVarios: ${userId} não liberou`, erro);
+
   return { mensagem: NAO_LIBEROU, tipo: "nao_liberou" };
 }
 
@@ -209,11 +226,14 @@ async function liberarNaPessoa(
   if ("erro" in procura) {
     return falhaNoLog(procura.erro, procura.userId);
   }
+
   if (procura.pessoa === null) {
     return { mensagem: PESSOA_SUMIU, tipo: "nao_liberou" };
   }
+
   try {
     const r = await liberar(db, admin, procura.pessoa, cursoId, agora);
+
     return r.nova
       ? { tipo: "liberada_agora" }
       : {
@@ -237,6 +257,7 @@ export async function liberarVarios(
   if (!(await cursoExiste(db, cursoId))) {
     throw cursoSumiu();
   }
+
   const procuras = await Promise.all(
     [...new Set(userIds)].map((userId) =>
       porId(userId).then(
@@ -245,14 +266,17 @@ export async function liberarVarios(
       )
     )
   );
+
   const pessoas: ResultadoNaPessoa[] = [];
+
   for (const procura of procuras) {
     pessoas.push({
       userId: procura.userId,
-      // biome-ignore lint/performance/noAwaitInLoops: uma pessoa por vez, para o lote ocupar uma conexão do pool, não todas.
+      // oxlint-disable-next-line no-await-in-loop -- uma pessoa por vez, para o lote ocupar uma conexão do pool, não todas.
       ...(await liberarNaPessoa(db, admin, procura, cursoId, agora)),
     });
   }
+
   return { hoje: diaLocal(agora), pessoas };
 }
 
@@ -272,21 +296,26 @@ export async function revogar(
     columns: { userId: true },
     where: { id: liberacaoId },
   });
+
   if (!dono) {
     throw new ErroParaAPessoa({
       code: "NOT_FOUND",
       message: "Esta liberação não existe.",
     });
   }
-  return comAlunoTravado(db, dono.userId, async (aluno) => {
+
+  return await comAlunoTravado(db, dono.userId, async (aluno) => {
     const linha = await aluno.tx.query.liberacao.findFirst({
       columns: { origem: true, revogadaEm: true },
       where: { id: liberacaoId },
     });
+
     if (!linha) {
       throw new Error(`Liberação ${liberacaoId} sumiu com o aluno travado.`);
     }
+
     const acao = acaoNaLiberacao(linha);
+
     switch (acao.tipo) {
       case "fixa_por_troca":
         throw new ErroParaAPessoa({
@@ -306,6 +335,7 @@ export async function revogar(
           .where(
             and(eq(liberacao.id, liberacaoId), isNull(liberacao.revogadaEm))
           );
+
         return { revogada: true };
       default:
         return acao satisfies never;
@@ -351,6 +381,7 @@ export async function linhasDoAcesso(
       orderBy: { titulo: "asc" },
     }),
   ]);
+
   const doPerfil = perfil
     ? perfil.liberacoesDoPerfil.map((l) => ({
         curso: paraCatalogo(l.curso),
@@ -361,6 +392,7 @@ export async function linhasDoAcesso(
         revogadaEm: null,
       }))
     : [];
+
   return {
     catalogo: catalogo.map((c) => ({ ...c, id: c.id as CursoId })),
     historico,

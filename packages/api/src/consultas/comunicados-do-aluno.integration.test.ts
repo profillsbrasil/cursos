@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   comunicado,
@@ -24,6 +25,7 @@ const AUTORA = `user_autora${S}`;
 describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const cursos: string[] = [];
+
   const ids = {
     deCursoLiberado: crypto.randomUUID(),
     deCursoNaoLiberado: crypto.randomUUID(),
@@ -31,6 +33,7 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
     geralNovo: crypto.randomUUID(),
     geralVelho: crypto.randomUUID(),
   };
+
   const nossos = new Set<string>(Object.values(ids));
 
   async function novoCurso(nome: string) {
@@ -47,10 +50,13 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
         titulo: `${nome} ${S}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     return c.id;
   }
 
@@ -165,6 +171,7 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
     const doCurso = osDesteTesteNaOrdemDaTela(await lista(ALUNO)).find(
       (c) => c.id === ids.deCursoLiberado
     );
+
     expect(doCurso).toMatchObject({
       alvo: {
         capa: { alt: "Capa de liberado", altura: 604, largura: 900 },
@@ -175,9 +182,11 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
       publicadoPor: "Marina Duarte",
       texto: "Do curso liberado.",
     });
+
     const geral = osDesteTesteNaOrdemDaTela(await lista(ALUNO)).find(
       (c) => c.id === ids.geralNovo
     );
+
     expect(geral?.publicadoPor).toBeNull();
   });
 

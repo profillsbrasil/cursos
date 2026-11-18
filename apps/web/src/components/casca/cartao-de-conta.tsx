@@ -64,9 +64,11 @@ const DIVISORIA = "-mx-1.5 my-1";
 
 function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);
+
   if (!p) {
     return null;
   }
+
   return (
     <span className="text-muted-foreground flex gap-2 text-xs tabular-nums">
       <span className="text-sol inline-flex items-center gap-1 font-semibold">
@@ -88,6 +90,7 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
 
 function SaldoDaDica({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);
+
   return p ? <span className={DICA_SECUNDARIA}>{fmtPts(p.saldo)}</span> : null;
 }
 
@@ -95,9 +98,11 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);
   // Em /trocar-pontos o caminho não muda, e só este clique fecha a gaveta.
   const { fecharNoCelular } = useAlternarNavegacao();
+
   if (!p) {
     return null;
   }
+
   return (
     <>
       <div
@@ -144,13 +149,16 @@ export function CartaoDeConta({
   const { fecharNoCelular } = useAlternarNavegacao();
   const { recolhida } = useModoDaCasca();
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
+
   const aceso = useSyncExternalStore(
     anelDosPontos.assinar,
     anelDosPontos.aceso,
     apagado
   );
+
   const nome =
     user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? "Sua conta";
+
   return (
     <DropdownMenu>
       <Tooltip disabled={!recolhida}>
@@ -229,7 +237,12 @@ export function CartaoDeConta({
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator className={DIVISORIA} />
-        <DropdownMenuItem className={ITEM} onClick={sair}>
+        <DropdownMenuItem
+          className={ITEM}
+          onClick={() => {
+            void sair();
+          }}
+        >
           <LogOut aria-hidden="true" />
           Sair
         </DropdownMenuItem>

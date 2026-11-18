@@ -5,6 +5,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { Checkbox } from "@cursos/ui/components/checkbox";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -19,7 +20,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { ConteudoDoCurso } from "./curso/conteudo-do-curso";
 import { fabrica } from "./curso/exemplo-de-teste";
 import {
@@ -82,6 +83,7 @@ const PAGINA = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...PAGINA.matchAll(CLASSES)].flatMap(([, c = ""]) =>
     c.replaceAll("&amp;", "&").split(ESPACO)
@@ -152,6 +154,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o alvo de toque em 390 px", () => {
         return [a.right - 1, b.left + 1].map((x) => document.elementFromPoint(x, y)?.id ?? "");
       })()`
     );
+
     expect(lados).toEqual(["trocar-foto", "remover"]);
   });
 });

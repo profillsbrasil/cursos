@@ -2,6 +2,7 @@
 // navegação, o link e o toast falsos. Só os testes importam este módulo.
 
 import { join } from "node:path";
+
 import { build } from "bun";
 
 const ENTRADA = join(import.meta.dir, "convidar.entrada.tsx");
@@ -75,11 +76,14 @@ export async function empacotarConvidar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 /**

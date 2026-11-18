@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   concessaoDePontos,
@@ -21,6 +22,7 @@ import { linhasDoSaldo } from "./pontos";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
+
 // Terça: a segunda da semana é 26 de outubro.
 const AGORA = new Date("2026-10-27T15:00:00Z");
 const SEGUNDA = segundaDaSemana(diaLocal(AGORA));
@@ -53,6 +55,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
         userId,
       },
     ]);
+
     return userId;
   }
 
@@ -99,21 +102,25 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
       entradasDaSemana: 30,
       saldo: 130,
     });
+
     const r = await concederPontos(
       db,
       ADMIN as AdminId,
       { motivo: "Campanha de vendas", pontos: 3000, userId },
       AGORA
     );
+
     expect(r.saldo).toBe(3130);
     expect(await linhasDoSaldo(db, userId, SEGUNDA)).toEqual({
       entradasDaSemana: 30,
       saldo: 3130,
     });
+
     const [concessao] = await db
       .select()
       .from(concessaoDePontos)
       .where(eq(concessaoDePontos.id, r.concessaoId));
+
     expect(concessao).toMatchObject({
       concedidaEm: AGORA,
       concedidaPor: ADMIN,
@@ -121,6 +128,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
       pontos: 3000,
       userId,
     });
+
     const lancamentos = await db
       .select({
         motivo: pontoLancamento.motivo,
@@ -128,6 +136,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
       })
       .from(pontoLancamento)
       .where(eq(pontoLancamento.concessaoId, r.concessaoId));
+
     expect(lancamentos).toEqual([{ motivo: "concessao", pontos: 3000 }]);
   });
 
@@ -139,9 +148,11 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
       pontos: -40,
       userId,
     });
+
     const painel = await createCaller(
       contextoDeTeste({ db, pessoas: pessoas(), userId })
     ).troca.painel();
+
     expect(painel.saldo).toBe(90);
     expect(painel.pontosSemana).toBe(30);
     expect(painel.extrato[0]).toMatchObject({
@@ -152,6 +163,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
 
   test("tirar além do saldo é recusado com o saldo na frase, e nada se grava", async () => {
     const userId = await aluno(100);
+
     const erro = await comoAdmin()
       .admin.pessoas.concederPontos({
         motivo: "Ajuste",
@@ -159,28 +171,34 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
         userId,
       })
       .then(() => null, recusa);
+
     expect(erro).toBe("A pessoa tem só 130 pontos.");
     expect((await linhasDoSaldo(db, userId, SEGUNDA)).saldo).toBe(130);
+
     const gravadas = await db
       .select({ id: concessaoDePontos.id })
       .from(concessaoDePontos)
       .where(eq(concessaoDePontos.userId, userId));
+
     expect(gravadas).toEqual([]);
   });
 
   test("tirar o saldo inteiro deixa zero", async () => {
     const userId = await aluno(0);
+
     const r = await concederPontos(
       db,
       ADMIN as AdminId,
       { motivo: "Ajuste", pontos: -30, userId },
       AGORA
     );
+
     expect(r.saldo).toBe(0);
   });
 
   test("duas retiradas ao mesmo tempo não deixam o saldo negativo", async () => {
     const userId = await aluno(70);
+
     const resultados = await Promise.allSettled(
       [1, 2].map(() =>
         concederPontos(
@@ -191,15 +209,18 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
         )
       )
     );
+
     const recusas = resultados.flatMap((r) =>
       r.status === "rejected" ? [recusa(r.reason)] : []
     );
+
     expect(recusas).toEqual(["A pessoa tem só 40 pontos."]);
     expect((await linhasDoSaldo(db, userId, SEGUNDA)).saldo).toBe(40);
   });
 
   test("motivo vazio ou só de espaços é recusado antes do banco", async () => {
     const userId = await aluno(0);
+
     const codigos = await Promise.all(
       ["", "   "].map((motivo) =>
         comoAdmin()
@@ -210,11 +231,13 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
           )
       )
     );
+
     expect(codigos).toEqual(["BAD_REQUEST", "BAD_REQUEST"]);
   });
 
   test("zero pontos e acima do teto são recusados antes do banco", async () => {
     const userId = await aluno(0);
+
     const codigos = await Promise.all(
       [0, 100_001, -100_001, 1.5].map((pontos) =>
         comoAdmin()
@@ -225,6 +248,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
           )
       )
     );
+
     expect(codigos).toEqual([
       "BAD_REQUEST",
       "BAD_REQUEST",
@@ -241,6 +265,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
         userId: `user_ninguem${S}`,
       })
       .then(() => null, recusa);
+
     expect(erro).toBe(PESSOA_SUMIU);
   });
 

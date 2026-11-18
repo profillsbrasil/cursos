@@ -8,6 +8,7 @@ import { useCallback, useState } from "react";
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, fmtPts } from "@/lib/formato";
+
 import { ComoGanhar } from "./como-ganhar";
 
 export function SaldoDeTroca({
@@ -23,6 +24,7 @@ export function SaldoDeTroca({
 }) {
   const [aberta, setAberta] = useState(false);
   const alternar = useCallback(() => setAberta((a) => !a), []);
+
   return (
     <section
       aria-labelledby="saldo-titulo"

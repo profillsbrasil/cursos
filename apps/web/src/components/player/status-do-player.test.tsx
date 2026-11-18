@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { StatusDoPlayer } from "./status-do-player";
@@ -77,6 +78,7 @@ describe("o visto e o aviso da conquista na barra", () => {
       conquista: { bonusSequencia: 30, pontos: 10, sequenciaDias: 7 },
       pct: 91,
     });
+
     expect(h).toContain("Sequência de 7 dias úteis: +30 pts");
   });
 });

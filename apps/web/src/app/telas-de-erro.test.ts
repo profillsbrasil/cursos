@@ -5,6 +5,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
+
 import { Glob } from "bun";
 
 const APP = import.meta.dir;
@@ -12,12 +13,15 @@ const APP = import.meta.dir;
 /** A pasta do error.tsx que pega o erro da página, ou null. */
 function erroDe(pagina: string) {
   let pasta = dirname(pagina);
+
   while (pasta.startsWith(APP)) {
     if (existsSync(join(pasta, "error.tsx"))) {
       return relative(APP, pasta);
     }
+
     pasta = dirname(pasta);
   }
+
   return null;
 }
 

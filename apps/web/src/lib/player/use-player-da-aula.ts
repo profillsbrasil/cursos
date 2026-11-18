@@ -3,7 +3,8 @@
 import type { Conquista, Pedido } from "@cursos/api/dominio/registro";
 import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
 import type { Trechos } from "@cursos/api/dominio/trechos";
-import { TRPCClientError } from "@trpc/client";
+import type { AppRouter } from "@cursos/api/routers/index";
+import { isTRPCClientError } from "@trpc/client";
 import { useRouter } from "next/navigation";
 import {
   startTransition,
@@ -15,6 +16,7 @@ import {
 } from "react";
 
 import { trpcClient } from "@/utils/trpc";
+
 import {
   criarSessaoComPreferencias,
   PREFERENCIAS_PADRAO,
@@ -54,12 +56,13 @@ async function enviarRegistro(
       posicaoSeg: pedido.posicaoSeg,
       trechos: [...pedido.trechos],
     });
+
     return { registro, tipo: "ok" };
   } catch (e) {
-    const motivo =
-      e instanceof TRPCClientError
-        ? motivoParadoDe(String(e.data?.code))
-        : undefined;
+    const motivo = isTRPCClientError<AppRouter>(e)
+      ? motivoParadoDe(String(e.data?.code))
+      : undefined;
+
     return motivo ? { motivo, tipo: "definitivo" } : { tipo: "rede" };
   }
 }
@@ -69,17 +72,21 @@ const apagado = () => false;
 
 function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
   const alvo = e.target as HTMLElement;
+
   if (alvo === container) {
     return false;
   }
+
   // As folhas dos Ajustes e dos atalhos ficam com as teclas delas: as setas andam
   // na velocidade, e nenhuma letra lá dentro toca ou anda no vídeo.
   if (alvo.closest("[role=dialog]")) {
     return true;
   }
+
   if (e.key === " " || e.key === "Enter") {
     return alvo.closest("button, a, input") !== null;
   }
+
   return alvo.closest("[data-slot=slider]") !== null;
 }
 
@@ -88,30 +95,37 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   const refVideo = useRef<HTMLDivElement>(null);
   const refContainer = useRef<HTMLElement>(null);
   const [inicial] = useState(entrada);
+
   // O servidor não lê localStorage: o snapshot antes da sessão usa o padrão.
   const [estadoAntes] = useState(() =>
     estadoInicial({ ...inicial, preferencias: PREFERENCIAS_PADRAO })
   );
+
   const [sessao, setSessao] = useState<SessaoDeEstudo | null>(null);
   const [conquista, setConquista] = useState<Conquista | null>(null);
   const [aviso] = useState(() => criarSinal(agendarNoNavegador, AVISO_MS));
+
   const avisoAparente = useSyncExternalStore(
     aviso.assinar,
     aviso.aceso,
     apagado
   );
+
   const [telaCheia, setTelaCheia] = useState(false);
   const [atalhosAbertos, setAtalhosAbertos] = useState(false);
   const [podeTelaCheia, setPodeTelaCheia] = useState(false);
 
   useEffect(() => {
     const elemento = refVideo.current;
+
     if (!elemento) {
       return;
     }
+
     const ligacao = ligarRefreshDaSaida({
       agendar: (fn, ms) => {
         const id = window.setTimeout(fn, ms);
+
         return () => window.clearTimeout(id);
       },
       aoConquistar: (c) => {
@@ -124,26 +138,31 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       pedirRefresh: () => startTransition(() => router.refresh()),
       relogio: () => performance.now(),
     });
+
     const { pararDeGravar, sessao: s } = criarSessaoComPreferencias(
       inicial,
       ligacao.sessao
     );
+
     setSessao(s);
+
     const aoEsconder = () => {
       if (document.visibilityState === "hidden") {
         s.salvarAgora();
       }
     };
+
     const aoSair = () => s.salvarAgora();
     document.addEventListener("visibilitychange", aoEsconder);
     window.addEventListener("pagehide", aoSair);
+
     return () => {
       pararDeGravar();
       document.removeEventListener("visibilitychange", aoEsconder);
       window.removeEventListener("pagehide", aoSair);
       // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
       // página nova e o layout junto, com o "Continuar" do rodapé em dia.
-      s.encerrar().then(ligacao.aoEncerrar);
+      void s.encerrar().then(ligacao.aoEncerrar);
       aviso.encerrar();
     };
   }, [aviso, inicial, router]);
@@ -154,9 +173,12 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       document.fullscreenEnabled &&
         typeof container?.requestFullscreen === "function"
     );
+
     const aoMudar = () =>
       setTelaCheia(document.fullscreenElement === refContainer.current);
+
     document.addEventListener("fullscreenchange", aoMudar);
+
     return () => document.removeEventListener("fullscreenchange", aoMudar);
   }, []);
 
@@ -174,12 +196,16 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
         } else {
           refContainer.current?.requestFullscreen().catch(() => undefined);
         }
+
         return;
       }
+
       if (c.tipo === "atalhos") {
         setAtalhosAbertos(true);
+
         return;
       }
+
       sessao?.comandar(c);
     },
     [sessao]
@@ -187,18 +213,24 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
 
   useEffect(() => {
     const container = refContainer.current;
+
     if (!container) {
       return;
     }
+
     const aoTeclar = (e: KeyboardEvent) => {
       const c = comandoDaTecla(e);
+
       if (!c || teclaDoControle(e, container)) {
         return;
       }
+
       e.preventDefault();
       comandar(c);
     };
+
     container.addEventListener("keydown", aoTeclar);
+
     return () => container.removeEventListener("keydown", aoTeclar);
   }, [comandar]);
 

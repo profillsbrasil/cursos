@@ -167,27 +167,6 @@
    campo montada no app. O campo com erro (aria-invalid) fica vermelho, e o desligado
    fica como está. */
 :is(
-  [data-slot="input"],
-  [data-slot="textarea"],
-  [data-slot="select-trigger"],
-  [data-slot="input-group"],
-  [data-slot="combobox-chips"],
-  [data-slot="switch"],
-  [data-slot="checkbox"],
-  [data-slot="radio-group-item"],
-  [data-campo]
-):is(:focus-visible, :has(:focus-visible)):not(
-  [aria-invalid="true"],
-  :has([aria-invalid="true"]),
-  :disabled,
-  :has(:disabled),
-  [data-disabled]
-) {
-  border-color: var(--ceu);
-}
-
-@media (hover: hover) {
-  :is(
     [data-slot="input"],
     [data-slot="textarea"],
     [data-slot="select-trigger"],
@@ -197,13 +176,34 @@
     [data-slot="checkbox"],
     [data-slot="radio-group-item"],
     [data-campo]
-  ):hover:not(
+  ):is(:focus-visible, :has(:focus-visible)):not(
     [aria-invalid="true"],
     :has([aria-invalid="true"]),
     :disabled,
     :has(:disabled),
     [data-disabled]
   ) {
+  border-color: var(--ceu);
+}
+
+@media (hover: hover) {
+  :is(
+      [data-slot="input"],
+      [data-slot="textarea"],
+      [data-slot="select-trigger"],
+      [data-slot="input-group"],
+      [data-slot="combobox-chips"],
+      [data-slot="switch"],
+      [data-slot="checkbox"],
+      [data-slot="radio-group-item"],
+      [data-campo]
+    ):hover:not(
+      [aria-invalid="true"],
+      :has([aria-invalid="true"]),
+      :disabled,
+      :has(:disabled),
+      [data-disabled]
+    ) {
     border-color: var(--ceu);
   }
 }

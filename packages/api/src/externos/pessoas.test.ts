@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { ClerkClient, User } from "@clerk/backend";
 
 import type { Email } from "../dominio/convite";
@@ -36,6 +37,7 @@ describe("paraPessoa", () => {
       usuario({ primaryEmailAddress: email("ana@x.com") }),
       usuario({}),
     ].map((u) => paraPessoa(u).nome);
+
     expect(nomes).toEqual(["Ana Souza", "ana", "ana@x.com", "user_ana"]);
   });
 
@@ -59,6 +61,7 @@ describe("pessoasDoClerk.buscar", () => {
           Promise.resolve({ data: [usuario({})], totalCount: 143 }),
       },
     } as unknown as ClerkClient;
+
     const r = await pessoasDoClerk(clerk).buscar("ana");
     expect({ nomes: r.pessoas.map((p) => p.nome), total: r.total }).toEqual({
       nomes: ["user_ana"],
@@ -74,13 +77,16 @@ describe("a conta que o Clerk devolve na busca", () => {
         getUserList: () => Promise.resolve({ data: [u], totalCount: 1 }),
       },
     } as unknown as ClerkClient;
+
     const [conta] = (await pessoasDoClerk(clerk).buscar("")).pessoas;
+
     return conta;
   };
 
   test("o papel vem do Public metadata, e qualquer outro valor é aluno", async () => {
     const papel = async (publicMetadata: Record<string, unknown>) =>
       (await umaConta(usuario({ publicMetadata })))?.papel;
+
     expect(await papel({ papel: "admin" })).toBe("admin");
     expect(await papel({ papel: "Admin" })).toBe("aluno");
     expect(await papel({})).toBe("aluno");
@@ -96,6 +102,7 @@ describe("a conta que o Clerk devolve na busca", () => {
           })
         )
       )?.jeitosDeEntrar;
+
     expect(await jeitos("oauth_google", true)).toEqual(["senha", "google"]);
     expect(await jeitos("google", false)).toEqual(["google"]);
     expect(await jeitos("oauth_github", false)).toEqual([]);
@@ -113,6 +120,7 @@ describe("a conta que o Clerk devolve na busca", () => {
           })
         )
       )?.emailVerificado;
+
     expect(await verificado("verified")).toBe(true);
     expect(await verificado("unverified")).toBe(false);
     expect(await verificado(null)).toBe(false);
@@ -138,6 +146,7 @@ describe("pessoasDoClerk.contasCom", () => {
           offset?: number;
         }) => {
           pedidos.push(p);
+
           const casados = usuarios.filter((u) =>
             u.emailAddresses.some((e) =>
               p.emailAddress.some((trecho) =>
@@ -145,7 +154,9 @@ describe("pessoasDoClerk.contasCom", () => {
               )
             )
           );
+
           const inicio = p.offset ?? 0;
+
           return Promise.resolve({
             data: casados.slice(inicio, inicio + p.limit),
             totalCount: casados.length,
@@ -156,9 +167,11 @@ describe("pessoasDoClerk.contasCom", () => {
 
   test("ana@ não é a conta de diana@: o trecho que o Clerk casa não conta", async () => {
     const clerk = clerkCom([comEmails("user_diana", "diana@x.com")]);
+
     const contas = await pessoasDoClerk(clerk).contasCom([
       "ana@x.com" as Email,
     ]);
+
     expect([...contas]).toEqual([]);
   });
 
@@ -167,10 +180,12 @@ describe("pessoasDoClerk.contasCom", () => {
       comEmails("user_diana", "diana@x.com"),
       comEmails("user_ana", "pessoal@y.com", "Ana@X.com"),
     ]);
+
     const contas = await pessoasDoClerk(clerk).contasCom([
       "ana@x.com" as Email,
       "bia@x.com" as Email,
     ]);
+
     expect([...contas]).toEqual([["ana@x.com" as Email, "user_ana"]]);
   });
 
@@ -178,14 +193,18 @@ describe("pessoasDoClerk.contasCom", () => {
     const parecidas = Array.from({ length: 100 }, (_, i) =>
       comEmails(`user_d${i}`, `d${i}ana@x.com`)
     );
+
     const pedidos: { offset?: number }[] = [];
+
     const clerk = clerkCom(
       [...parecidas, comEmails("user_ana", "ana@x.com")],
       pedidos
     );
+
     const contas = await pessoasDoClerk(clerk).contasCom([
       "ana@x.com" as Email,
     ]);
+
     expect(contas.get("ana@x.com" as Email)).toBe("user_ana");
     expect(pedidos.map((p) => p.offset)).toEqual([0, 100]);
   });
@@ -201,14 +220,17 @@ describe("pessoasDoClerk.contasCom", () => {
 describe("pessoasDoClerk.buscar entre userIds", () => {
   test("a lista vazia não chega ao Clerk, que leria sem filtro", async () => {
     let chamadas = 0;
+
     const clerk = {
       users: {
         getUserList: () => {
           chamadas += 1;
+
           return Promise.resolve({ data: [], totalCount: 0 });
         },
       },
     } as unknown as ClerkClient;
+
     expect(await pessoasDoClerk(clerk).buscar("", [])).toEqual({
       pessoas: [],
       total: 0,
@@ -218,14 +240,17 @@ describe("pessoasDoClerk.buscar entre userIds", () => {
 
   test("os userIds vão no filtro do Clerk junto com o termo", async () => {
     const pedidos: unknown[] = [];
+
     const clerk = {
       users: {
         getUserList: (p: unknown) => {
           pedidos.push(p);
+
           return Promise.resolve({ data: [], totalCount: 0 });
         },
       },
     } as unknown as ClerkClient;
+
     await pessoasDoClerk(clerk).buscar("ana", ["user_a", "user_b"]);
     expect(pedidos).toEqual([
       { limit: 20, query: "ana", userId: ["user_a", "user_b"] },

@@ -8,6 +8,7 @@
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import type {
@@ -26,17 +27,17 @@ import { PREFERENCIAS_PADRAO } from "@/lib/player/preferencias";
 import { estadoInicial } from "@/lib/player/sessao";
 
 import type { Continuar } from "./aluno/continuar";
-
 import {
   abrirChromium,
   CHROMIUM,
   cssDoApp,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 
 // Fora do App Router o usePathname não tem de onde ler e o useRouter lança; o teste
 // diz o caminho, e o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   usePathname: () => "/meus-cursos",
@@ -50,11 +51,14 @@ mock.module("next/navigation", () => ({
 // A Casca inteira, para o link de pular: ela lê o cookie da sidebar, e o cartão de
 // conta lê a pessoa do Clerk, que sem o ClerkProvider lança.
 const cabecalhos = await import("next/headers");
+
 mock.module("next/headers", () => ({
   ...cabecalhos,
   cookies: () => Promise.resolve({ get: () => undefined }),
 }));
+
 const clerk = await import("@clerk/nextjs");
+
 mock.module("@clerk/nextjs", () => ({
   ...clerk,
   useClerk: () => ({ signOut: () => undefined }),
@@ -106,7 +110,9 @@ const aula = (id: string, titulo: string, atual: boolean): AulaNaColuna => ({
   questionario: { tipo: "sem" },
   titulo,
 });
+
 const PRIMEIRA = aula("11111111-1111-4111-8111-111111111111", "Abertura", true);
+
 const coluna = renderToStaticMarkup(
   <ColunaDoCurso
     dados={
@@ -156,6 +162,7 @@ const coluna = renderToStaticMarkup(
 
 // Os controles do player, com o player pronto e a tela cheia disponível.
 const nada = () => undefined;
+
 const controles = renderToStaticMarkup(
   <ControlesDoPlayer
     aoMudarAtalhos={nada}
@@ -179,6 +186,7 @@ const controles = renderToStaticMarkup(
 );
 
 const HOJE = "2026-10-14" as DiaISO;
+
 const pessoas = renderToStaticMarkup(
   <ProvedorDoLote>
     <ListaDePessoas
@@ -221,6 +229,7 @@ const liberacao = (
   liberadaEm: "2026-10-01T15:00:00.000Z",
   origem: "admin",
 });
+
 const acesso = renderToStaticMarkup(
   <AcessoDoAluno
     acesso={{
@@ -240,6 +249,7 @@ const acesso = renderToStaticMarkup(
     }}
   />
 );
+
 const faixa = renderToStaticMarkup(
   <FaixaComunicado
     comunicado={{
@@ -265,6 +275,7 @@ const COMECAR: Continuar = {
   tipo: "comecar",
   titulo: "Filmagem da instalação",
 };
+
 const continuar = renderToStaticMarkup(
   <ProvedorDaCasca aberta>
     <Sidebar collapsible="icon" variant="sidebar">
@@ -283,6 +294,7 @@ const continuar = renderToStaticMarkup(
 // A casca do aluno como o layout a monta, com o Continuar no rodapé e uma página
 // cujo primeiro controle é "Começar o curso".
 const PRIMEIRO_DO_CONTEUDO = "Começar o curso";
+
 const casca = renderToStaticMarkup(
   await Casca({
     children: (
@@ -319,6 +331,7 @@ const apagarNaLinha = renderToStaticMarkup(
     pergunta="Apagar Envase?"
   />
 );
+
 const perfilDaPessoa = renderToStaticMarkup(
   <AcessoDaPessoa
     nome="Ana Exemplo"
@@ -328,12 +341,14 @@ const perfilDaPessoa = renderToStaticMarkup(
     userId="user_exemplo"
   />
 );
+
 const pedeDaConta = renderToStaticMarkup(
   <SecaoDeSair
     certificados={0}
     user={{} as Parameters<typeof SecaoDeSair>[0]["user"]}
   />
 );
+
 // O diálogo de Excluir conta abre num portal, que o HTML do servidor não traz.
 const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;
 
@@ -356,6 +371,7 @@ function elementos(html: string): Elemento[] {
         valor.replaceAll("&amp;", "&"),
       ])
     );
+
     return {
       atributos,
       classes: (atributos.class ?? "").split(ESPACO).filter(Boolean),
@@ -378,6 +394,7 @@ const todos = [
   pedeDaConta,
   excluirDoDialogo,
 ].flatMap(elementos);
+
 const css = await cssDoApp(todos.flatMap((e) => e.classes));
 
 interface Regra {
@@ -390,6 +407,7 @@ function regrasDoCss(texto: string): Regra[] {
   const regras: Regra[] = [];
   const pilha: string[] = [];
   let trecho = "";
+
   for (const c of texto) {
     if (c === "{") {
       pilha.push(trecho.trim());
@@ -397,17 +415,21 @@ function regrasDoCss(texto: string): Regra[] {
     } else if (c === "}" || c === ";") {
       const declaracao = trecho.trim().replace(/\s+/g, " ");
       const seletor = pilha.findLast((p) => !p.startsWith("@"));
+
       if (declaracao && seletor) {
         regras.push({ declaracoes: [declaracao], seletor });
       }
+
       if (c === "}") {
         pilha.pop();
       }
+
       trecho = "";
     } else {
       trecho += c;
     }
   }
+
   return regras;
 }
 
@@ -418,20 +440,25 @@ function dentroDoIs(seletor: string) {
   if (!seletor.startsWith(":is(")) {
     return null;
   }
+
   let fundo = 0;
+
   for (let i = 3; i < seletor.length; i += 1) {
     const c = seletor[i];
+
     if (c === "\\") {
       i += 1;
     } else if (c === "(") {
       fundo += 1;
     } else if (c === ")") {
       fundo -= 1;
+
       if (fundo === 0) {
         return seletor.slice(4, i);
       }
     }
   }
+
   return null;
 }
 
@@ -442,6 +469,7 @@ function dentroDoIs(seletor: string) {
  */
 function regrasDe(classe: string) {
   const escapada = `.${classe.replace(/[^\w-]/g, (c) => `\\${c}`)}`;
+
   return regras.filter(
     (r) =>
       (r.seletor.startsWith(escapada) &&
@@ -449,8 +477,10 @@ function regrasDe(classe: string) {
       (dentroDoIs(r.seletor)?.endsWith(` ${escapada}`) ?? false)
   );
 }
+
 const CONTINUA_A_CLASSE = /^(?:\\.|[\w-])/;
 const NOME_DE_CLASSE = /\.(?:\\.|[\w-])+/g;
+
 const casaComFoco = (r: Regra) =>
   r.seletor.replace(NOME_DE_CLASSE, "").includes(":focus-visible");
 
@@ -468,13 +498,11 @@ const noFoco = (e: Elemento) =>
 
 function unico(lista: Elemento[], descricao: string) {
   expect(lista.map(() => descricao)).toEqual([descricao]);
-  return lista[0] as Elemento;
+
+  return lista[0];
 }
 
-const COR = /^color:/;
-const FUNDO = /^background-color:/;
-
-// O Chromium da máquina (chromium-de-teste.ts) avalia o seletor da variante
+// O Chromium da máquina (chromium.test-utils.ts) avalia o seletor da variante
 // ativo-aceso (:has com ~) contra o HTML renderizado, com o CSS compilado.
 // Preenchidos pelo beforeAll da suíte do Chromium; sem Chromium, a suíte pula.
 let enviar: Awaited<ReturnType<typeof abrirChromium>>;
@@ -489,6 +517,7 @@ async function avaliar<T>(expressao: string) {
     expression: expressao,
     returnByValue: true,
   })) as { result: { value: T } };
+
   return result.value;
 }
 
@@ -497,7 +526,9 @@ async function noDe(seletor: string) {
     nodeId: raiz,
     selector: seletor,
   })) as { nodeId: number };
+
   expect(nodeId).toBeGreaterThan(0);
+
   return nodeId;
 }
 
@@ -506,10 +537,12 @@ async function tabAte(condicao: string, tentativas: number): Promise<void> {
   if (tentativas === 0 || (await avaliar<boolean>(condicao))) {
     return;
   }
+
   const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
   await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
-  return tabAte(condicao, tentativas - 1);
+
+  return await tabAte(condicao, tentativas - 1);
 }
 
 const LINK_ATIVO = 'nav a[aria-current="page"]';
@@ -533,6 +566,7 @@ async function pilulaCom(link: string, estado: "hover" | "focus-visible") {
     forcedPseudoClasses: [],
     nodeId,
   });
+
   return pilula;
 }
 
@@ -551,9 +585,11 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         );
         await enviar("DOM.enable");
         await enviar("CSS.enable");
+
         const { root } = (await enviar("DOM.getDocument")) as {
           root: { nodeId: number };
         };
+
         raiz = root.nodeId;
         temCursor = await avaliar<boolean>(
           "matchMedia('(hover: hover)').matches"
@@ -693,6 +729,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         fundo: string;
         sombra: string;
       }
+
       let emRepouso: Redondo;
       let comFoco: Redondo;
       let comCursor: Redondo;
@@ -728,9 +765,11 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         );
         await enviar("DOM.enable");
         await enviar("CSS.enable");
+
         const { root } = (await enviar("DOM.getDocument")) as {
           root: { nodeId: number };
         };
+
         raiz = root.nodeId;
         solHoverAqui = await avaliar<string>(
           "getComputedStyle(document.getElementById('sonda')).backgroundColor"
@@ -784,14 +823,16 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     const emBreve = elementos(nav).filter(
       (e) => e.atributos["aria-disabled"] === "true"
     );
+
     expect(emBreve.map((e) => e.texto || "item")).toHaveLength(1);
+
     for (const item of emBreve) {
       const foco = noFoco(item);
-      expect(foco.filter((d) => COR.test(d))).toEqual([
+      expect(foco.filter((d) => d.startsWith("color:"))).toEqual([
         "color: var(--foreground)",
         "color: var(--foreground)",
       ]);
-      expect(foco.filter((d) => FUNDO.test(d))).toEqual([]);
+      expect(foco.filter((d) => d.startsWith("background-color:"))).toEqual([]);
     }
   });
 
@@ -800,14 +841,16 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     // O módulo 2 está fechado: o título não vem claro do group-open.
     const resumos = daColuna.filter((e) => e.classes.includes("list-none"));
     expect(resumos).toHaveLength(2);
-    const resumo = resumos[1] as Elemento;
-    expect(noFoco(resumo).filter((d) => FUNDO.test(d))).toContain(
-      "background-color: color-mix(in srgb, #fff 8%, transparent)"
-    );
+    const [, resumo] = resumos;
+    expect(
+      noFoco(resumo).filter((d) => d.startsWith("background-color:"))
+    ).toContain("background-color: color-mix(in srgb, #fff 8%, transparent)");
+
     const titulo = unico(
       daColuna.filter((e) => e.texto === "Limpeza da envasadora"),
       "título do módulo 2"
     );
+
     expect(noFoco(titulo)).toContain("color: var(--titulo)");
     // O título acende pelo grupo do summary, que precisa existir.
     expect(resumo.classes).toContain("group/modulo");
@@ -815,6 +858,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
 
   test("na barra do player, cada botão de ícone, a legenda, os Ajustes e o visto ganham o fundo do cursor", () => {
     const daBarra = elementos(controles);
+
     const comFoco = [
       ...[
         "Reproduzir",
@@ -839,15 +883,17 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         "visto"
       ),
     ];
+
     for (const e of comFoco) {
-      expect(noFoco(e).filter((d) => FUNDO.test(d))).toContain(
-        "background-color: var(--accent)"
-      );
+      expect(
+        noFoco(e).filter((d) => d.startsWith("background-color:"))
+      ).toContain("background-color: var(--accent)");
     }
   });
 
   test("na linha da busca de pessoas, a caixa ganha a borda Céu, o nome clareia e a seta vira Céu", () => {
     const daLista = elementos(pessoas);
+
     const nome = unico(
       daLista.filter(
         (e) =>
@@ -856,21 +902,28 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       ),
       "nome"
     );
+
     expect(noFoco(nome)).toContain("color: var(--titulo)");
+
     const seta = unico(
       daLista.filter((e) => e.classes.includes("lucide-chevron-right")),
       "seta"
     );
+
     expect(noFoco(seta)).toContain("color: var(--ceu)");
+
     const linkDaSeta = unico(
       daLista.filter((e) => e.atributos["aria-label"] === "Abrir Ana Exemplo"),
       "link da seta"
     );
+
     expect(linkDaSeta.classes).toContain("group/seta");
+
     const caixa = unico(
       daLista.filter((e) => e.atributos["aria-label"] === "Marcar Ana Exemplo"),
       "caixa"
     );
+
     expect(caixa.atributos["data-slot"]).toBe("checkbox");
   });
 
@@ -879,6 +932,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       elementos(acesso).filter((e) => e.classes.includes("list-none")),
       "summary das revogadas"
     );
+
     expect(noFoco(resumo)).toContain(
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
@@ -887,17 +941,21 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
 
   test("no Continuar da sidebar, o play redondo ganha sol-hover e o brilho pelo grupo do link", () => {
     const doCartao = elementos(continuar);
+
     const link = unico(
       doCartao.filter((e) => e.atributos["aria-label"] === COMECAR.rotulo),
       "link do Continuar"
     );
+
     expect(link.classes).toContain("group/continuar");
+
     const redondo = unico(
       doCartao.filter(
         (e) => e.classes.includes("bg-sol") && e.classes.includes("size-8")
       ),
       "redondo"
     );
+
     expect(noFoco(redondo)).toContain("background-color: var(--sol-hover)");
     expect(noFoco(redondo).some((d) => d.startsWith("--tw-shadow:"))).toBe(
       true
@@ -909,6 +967,7 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       elementos(faixa).filter((e) => e.classes.includes("list-none")),
       "summary da faixa"
     );
+
     expect(noFoco(resumo)).toContain(
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
@@ -917,7 +976,9 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
 
 /** As cores de texto que o foco põe no elemento e que não são a de repouso. */
 const outraCorNoFoco = (e: Elemento, corDeRepouso: string) =>
-  noFoco(e).filter((d) => COR.test(d) && d !== `color: var(--${corDeRepouso})`);
+  noFoco(e).filter(
+    (d) => d.startsWith("color:") && d !== `color: var(--${corDeRepouso})`
+  );
 
 describe("a ação que não se desfaz fica no erro, também com o foco", () => {
   test("o Apagar da confirmação na linha é o erro cheio, com texto sobre-cor no foco", () => {
@@ -927,6 +988,7 @@ describe("a ação que não se desfaz fica no erro, também com o foco", () => {
       ),
       "Apagar"
     );
+
     expect(apagar.classes).toContain("bg-destructive");
     expect(apagar.classes).toContain("text-sobre-cor");
     expect(outraCorNoFoco(apagar, "sobre-cor")).toEqual([]);
@@ -939,6 +1001,7 @@ describe("a ação que não se desfaz fica no erro, também com o foco", () => {
       ),
       "Excluir conta"
     );
+
     expect(outraCorNoFoco(excluir, "destructive")).toEqual([]);
   });
 
@@ -956,6 +1019,7 @@ describe("o foco passa de branco a 4% para o sinal do cursor", () => {
       ),
       "aula Limpeza"
     );
+
     expect(noFoco(link)).toContain(
       "background-color: color-mix(in srgb, #fff 8%, transparent)"
     );
@@ -966,13 +1030,17 @@ describe("o foco passa de branco a 4% para o sinal do cursor", () => {
     const doPerfil = elementos(perfilDaPessoa);
     const radios = doPerfil.filter((e) => e.atributos.type === "radio");
     expect(radios.length).toBeGreaterThan(1);
+
     for (const radio of radios) {
       expect(radio.atributos).toHaveProperty("data-campo");
     }
+
     const linhas = doPerfil.filter((e) =>
       e.classes.includes("has-checked:bg-sol/6")
     );
+
     expect(linhas).toHaveLength(radios.length);
+
     for (const linha of linhas) {
       expect(noFoco(linha)).toContain(
         "background-color: color-mix(in srgb, #fff 8%, transparent)"
@@ -991,6 +1059,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
       fundo: string;
       visivel: boolean;
     }
+
     let antes: Pular;
     let noPrimeiroTab: Pular;
     let depoisDoEnter: string;
@@ -1003,12 +1072,14 @@ describe.skipIf(!existsSync(CHROMIUM))(
         key,
         windowsVirtualKeyCode: key === "Tab" ? 9 : 13,
       };
+
       const texto = key === "Enter" ? { text: "\r" } : {};
       await enviar("Input.dispatchKeyEvent", {
         ...base,
         ...texto,
         type: "rawKeyDown",
       });
+
       if (key === "Enter") {
         await enviar("Input.dispatchKeyEvent", {
           ...base,
@@ -1016,6 +1087,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
           type: "char",
         });
       }
+
       await enviar("Input.dispatchKeyEvent", { ...base, type: "keyUp" });
     }
 

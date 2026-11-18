@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import { build } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -11,7 +12,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import {
   APROVADO_NA_PRIMEIRA,
   BLOQUEIO,
@@ -122,21 +123,26 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(
       `o pacote do questionário não saiu: ${pacote.logs.join("\n")}`
     );
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 const navegacao = await import("next/navigation");
 const { mock } = await import("bun:test");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
 }));
+
 const { QuestionarioDaAula } = await import("./questionario-da-aula");
 
 const ESTADOS = [
@@ -144,6 +150,7 @@ const ESTADOS = [
   { ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA },
   { ...CRONOGRAMA, ultima: APROVADO_NA_PRIMEIRA },
 ];
+
 const htmlDe = (q: (typeof ESTADOS)[number]) =>
   renderToStaticMarkup(
     <QuestionarioDaAula
@@ -154,8 +161,10 @@ const htmlDe = (q: (typeof ESTADOS)[number]) =>
       temVideo
     />
   );
+
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 // A alternativa marcada só existe depois do clique: as classes dela vêm à mão.
 const css = await cssDoApp(
   ESTADOS.flatMap((q) =>
@@ -185,6 +194,7 @@ async function abrir(largura: number, corpo: string, pacote?: string) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><main style="padding:32px ${recuo}px"><div id="raiz">${corpo}</div></main></body></html>`
     )}); document.close(); window.scrollTo(0, 0);`
   );
+
   if (pacote) {
     await avaliar(enviar, pacote);
   }
@@ -292,6 +302,7 @@ const MEDIR = `(() => {
     titulo: caixa(status.querySelector("h2")),
   };
 })()`;
+
 const medir = () => avaliar<Medida>(enviar, MEDIR);
 
 interface Divisoria {
@@ -324,6 +335,7 @@ const DIVISORIAS = `(() => {
     }),
   };
 })()`;
+
 const divisorias = () =>
   avaliar<{ perguntas: Divisoria[] }>(enviar, DIVISORIAS);
 
@@ -361,6 +373,7 @@ async function anuncioDoFoco() {
   const { result } = (await enviar("Runtime.evaluate", {
     expression: "document.activeElement",
   })) as { result: { objectId: string } };
+
   const { nodes } = (await enviar("Accessibility.getPartialAXTree", {
     fetchRelatives: false,
     objectId: result.objectId,
@@ -371,6 +384,7 @@ async function anuncioDoFoco() {
       role?: { value: string };
     }[];
   };
+
   return {
     descricao: nodes[0]?.description?.value,
     nome: nodes[0]?.name?.value,
@@ -420,9 +434,11 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     expect(await textoDe('[role="status"] p')).toContain(
       "Você errou a pergunta 2."
     );
+
     const pedidos = await avaliar<
       { respostas: unknown[]; tentativaId: string }[]
     >(enviar, "window.pedidos");
+
     expect(pedidos).toHaveLength(2);
     expect(pedidos[0]?.tentativaId).toBe(pedidos[1]?.tentativaId);
     expect(pedidos[1]?.respostas).toHaveLength(3);
@@ -434,10 +450,12 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     await marcarAsCertas();
     await clicarNoBotao("Enviar respostas");
     await esperar("window.pedidos.length === 3");
+
     const terceiro = await avaliar<{ tentativaId: string }[]>(
       enviar,
       "window.pedidos"
     );
+
     expect(terceiro[2]?.tentativaId).not.toBe(terceiro[0]?.tentativaId);
   });
 
@@ -500,6 +518,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
       await abrir(1280, htmlDe(q));
       const { perguntas } = await divisorias();
       expect(perguntas.length).toBeGreaterThan(0);
+
       for (const p of perguntas) {
         expect(p.esquerda).toBe(0);
         expect(p.largura).toBe(0);
@@ -525,6 +544,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
 
   test("entre o resultado e a pergunta 1 fica uma linha só, de 1 px", async () => {
     await abrir(1280, htmlDe({ ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }));
+
     const linha = await avaliar<number>(
       enviar,
       `(() => {
@@ -534,6 +554,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
         return larguraDe(resultado, "borderBottomWidth") + larguraDe(pergunta, "borderTopWidth");
       })()`
     );
+
     expect(linha).toBe(1);
   });
 
@@ -544,12 +565,14 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     expect(m.secao.largura).toBe(m.larguraSemRolagem - 32);
     const linha = m.secao.largura - 36;
     expect(m.acoes).toHaveLength(2);
+
     for (const botao of m.acoes) {
       expect(botao.largura).toBeGreaterThanOrEqual((linha - 8) / 2);
       expect(botao.esquerda + botao.largura).toBeLessThanOrEqual(
         m.secao.esquerda + m.secao.largura - 18
       );
     }
+
     expect(m.alternativa.largura).toBe(m.pergunta.largura);
   });
 });

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import { build } from "bun";
 
 import {
@@ -9,7 +10,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "comunicados-apagar.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-comunicados-falso.js");
@@ -26,6 +27,7 @@ const comunicado = (n: number, titulo: string) => ({
   texto: "O que mudou e onde o aluno encontra.",
   titulo,
 });
+
 const APAGADO = comunicado(1, "Módulo 13 atualizado");
 const FICA = comunicado(2, "Nova aula de limpeza");
 
@@ -69,11 +71,14 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 let enviar: Enviar;

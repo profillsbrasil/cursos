@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 const GOOGLE = {
@@ -9,6 +10,7 @@ const GOOGLE = {
 };
 
 let conta = {};
+
 const usuario = (c: Record<string, unknown> = {}) => ({
   emailAddresses: [
     {
@@ -31,6 +33,7 @@ const usuario = (c: Record<string, unknown> = {}) => ({
 
 // Sem o ClerkProvider, os hooks do Clerk lançam; o resto do módulo fica o de verdade.
 const clerk = await import("@clerk/nextjs");
+
 mock.module("@clerk/nextjs", () => ({
   ...clerk,
   useClerk: () => ({ signOut: () => undefined }),
@@ -40,15 +43,16 @@ mock.module("@clerk/nextjs", () => ({
 }));
 
 const { TelaDaMinhaConta } = await import("./tela-da-minha-conta");
-const { folhaDeExemplo, folhaDo, enderecoDaConferencia } = await import(
-  "@/components/certificado/folha"
-);
+
+const { folhaDeExemplo, folhaDo, enderecoDaConferencia } =
+  await import("@/components/certificado/folha");
 
 /** A barra colorida da prévia antiga: um traço absoluto na esquerda ou uma borda esquerda grossa ou colorida. */
 const BARRA_LATERAL =
   /inset-y-0 left-0|w-\[5px\]|border-l-\[?\d|border-l-(sol|ceu|canela)/;
 
 const ORIGEM = "https://cursos.profills.com.br";
+
 const GANHA = {
   exemplo: false,
   folha: folhaDo(
@@ -62,6 +66,7 @@ const GANHA = {
     enderecoDaConferencia(ORIGEM, "PF7K-2Q9M")
   ),
 };
+
 const EXEMPLO = { exemplo: true, folha: folhaDeExemplo(ORIGEM) };
 
 const texto = (h: string) =>
@@ -72,6 +77,7 @@ const texto = (h: string) =>
 
 function tela(certificados: number, c: Record<string, unknown> = {}) {
   conta = usuario(c);
+
   return renderToStaticMarkup(
     <TelaDaMinhaConta
       certificados={certificados}
@@ -83,9 +89,11 @@ function tela(certificados: number, c: Record<string, unknown> = {}) {
 describe("a página Minha conta", () => {
   test("as seções seguem a ordem do protótipo B, com Excluir conta no fim", () => {
     const h = tela(0);
+
     const titulos = [...h.matchAll(/<h[12][^>]*>(.*?)<\/h[12]>/g)].map(
       (m) => m[1]
     );
+
     expect(titulos).toEqual([
       "Minha conta",
       "Ana Souza",

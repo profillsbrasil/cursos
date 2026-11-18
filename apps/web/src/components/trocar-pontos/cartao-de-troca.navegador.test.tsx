@@ -3,6 +3,7 @@
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToString } from "react-dom/server";
 
@@ -13,10 +14,11 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -75,6 +77,7 @@ const HTML = renderToString(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...HTML.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
 );
@@ -108,9 +111,11 @@ describe.skipIf(!existsSync(CHROMIUM))("os botões dos cartões de troca", () =>
         role?: { value: string };
       }[];
     };
+
     const botoes = nodes
       .filter((n) => !n.ignored && n.role?.value === "button")
       .map((n) => n.name?.value);
+
     expect(botoes).toEqual([
       "Faltam 190 pts",
       "Falta 1 pt",

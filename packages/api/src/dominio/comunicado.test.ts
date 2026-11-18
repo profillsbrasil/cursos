@@ -91,9 +91,11 @@ describe("os comunicados do aluno", () => {
       ],
       [MARINA]
     );
+
     if (r.tipo !== "com_comunicados") {
       throw new Error("esperava comunicados");
     }
+
     expect(r.destaque).toEqual({
       alvo: {
         capa: {
@@ -130,9 +132,11 @@ describe("os comunicados do aluno", () => {
       ],
       []
     );
+
     if (r.tipo !== "com_comunicados") {
       throw new Error("esperava comunicados");
     }
+
     expect(r.anteriores).toMatchObject([
       { comunicados: [{ dia: "2026-09-30", id: "virada" }], mes: "2026-09" },
     ]);
@@ -144,6 +148,7 @@ describe("os comunicados do aluno", () => {
       [doAluno("so", "2026-10-14T13:00:00Z")],
       [MARINA]
     );
+
     expect(r).toMatchObject({ anteriores: [], tipo: "com_comunicados" });
   });
 });

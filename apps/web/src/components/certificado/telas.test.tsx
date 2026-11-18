@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type {
   CertificadoEmitido,
   PaginaDoCertificado,
@@ -11,6 +12,7 @@ import { enderecoDaConferencia, origemDoPedido } from "./folha";
 import { TelaDoCertificado } from "./tela-do-certificado";
 
 const HOJE = "2026-10-16" as DiaISO;
+
 const ANA: CertificadoEmitido = {
   codigo: "7K3M-Q9TD",
   emitidoEm: "2026-10-14T15:00:00Z",
@@ -18,6 +20,7 @@ const ANA: CertificadoEmitido = {
   nome: "Ana Souza",
   tituloDoCurso: "Fábrica e montagem",
 };
+
 const EMITIDO: PaginaDoCertificado = {
   categoria: "Produção e montagem",
   certificado: ANA,
@@ -41,6 +44,7 @@ const tela = (pagina: PaginaDoCertificado) =>
   );
 
 const ICONE_DO_ITEM = /lucide-(play|list-checks)\b/;
+
 const LINK_DO_CURSO =
   /<a[^>]*href="\/cursos\/fabrica-e-montagem"[^>]*>(.*?)<\/a>/;
 
@@ -82,6 +86,7 @@ describe("a página do aluno", () => {
       questionarios: { aprovados: 0, total: 0 },
       tipo: "falta",
     });
+
     expect(texto(html)).toContain(
       "O certificado sai quando você concluir o curso"
     );
@@ -100,6 +105,7 @@ describe("a página do aluno", () => {
         tipo: "falta",
       })
     );
+
     expect(lido).toContain("7 de 7 aulas assistidas");
     expect(lido).toContain("4 de 7 questionários aprovados");
     expect(lido.indexOf("aulas assistidas")).toBeLessThan(
@@ -114,9 +120,11 @@ describe("a página do aluno", () => {
       questionarios: { aprovados: 1, total: 3 },
       tipo: "falta",
     });
+
     const itens = [...html.matchAll(/<li[^>]*>(.*?)<\/li>/g)].map(
       ([, li = ""]) => li
     );
+
     expect(itens.map((li) => ICONE_DO_ITEM.exec(li)?.[1])).toEqual([
       "play",
       "list-checks",
@@ -150,7 +158,9 @@ describe("a conferência pública", () => {
     const html = renderToStaticMarkup(
       <ReciboDaConferencia certificado={ANA} hoje={HOJE} />
     );
+
     const lido = texto(html);
+
     for (const trecho of [
       "Certificado válido",
       "Ana Souza",
@@ -162,6 +172,7 @@ describe("a conferência pública", () => {
     ]) {
       expect(lido).toContain(trecho);
     }
+
     expect(html).toContain('href="/certificado/7K3M-Q9TD/pdf"');
   });
 
@@ -169,6 +180,7 @@ describe("a conferência pública", () => {
     const html = renderToStaticMarkup(
       <ReciboDaConferencia certificado={{ ...ANA, nome: null }} hoje={HOJE} />
     );
+
     expect(texto(html)).toContain("Nome não disponível");
     expect(html).not.toContain("/pdf");
   });
@@ -190,6 +202,7 @@ describe("o endereço da conferência", () => {
         "x-forwarded-proto": "https",
       })
     );
+
     expect(enderecoDaConferencia(origem, "7K3M-Q9TD")).toEqual({
       exibido: "cursos.profills.com/certificado/7K3M-Q9TD",
       url: "https://cursos.profills.com/certificado/7K3M-Q9TD",

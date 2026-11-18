@@ -65,9 +65,12 @@ export function corrigir(
   const marcadas = new Map(
     respostas.map((r) => [r.perguntaId, r.alternativaId])
   );
+
   const corrigidas: Omit<RespostaCorrigida, "certaId">[] = [];
+
   for (const p of perguntas) {
     const alternativaId = marcadas.get(p.id);
+
     if (
       alternativaId !== undefined &&
       p.alternativas.some((a) => a.id === alternativaId)
@@ -79,12 +82,16 @@ export function corrigir(
       });
     }
   }
+
   const faltam = perguntas.length - corrigidas.length;
+
   if (faltam > 0) {
     return { faltam, tipo: "incompleta" };
   }
+
   const acertos = corrigidas.filter((r) => r.certa).length;
   const total = perguntas.length;
+
   return {
     acertos,
     aprovada: acertos >= acertosParaPassar(total),
@@ -149,6 +156,7 @@ export function resultadoDaTentativa(
   primeira: Pick<TentativaGravada, "acertos">
 ): ResultadoDoQuestionario {
   const respostaDe = new Map(tentativa.respostas.map((r) => [r.perguntaId, r]));
+
   return {
     acertos: tentativa.acertos,
     aprovada: tentativa.aprovada,
@@ -157,6 +165,7 @@ export function resultadoDaTentativa(
     pontosDaPrimeira: pontosDaTentativa(1, primeira.acertos),
     respostas: perguntas.flatMap((p) => {
       const r = respostaDe.get(p.id);
+
       return r
         ? [
             {
@@ -181,8 +190,10 @@ export function montarQuestionarioDaAula(
   if (perguntas.length === 0) {
     return null;
   }
+
   const [primeira] = tentativas;
   const ultima = tentativas.at(-1);
+
   return {
     paraPassar: acertosParaPassar(perguntas.length),
     perguntas: perguntas.map(semGabarito),
@@ -209,9 +220,11 @@ export function marcaDoQuestionario(
   if (perguntas === 0) {
     return { tipo: "sem" };
   }
+
   if (!estudo) {
     return { tipo: "a_fazer" };
   }
+
   return estudo.aprovada
     ? { tipo: "aprovado" }
     : { tipo: "reprovado", ultima: estudo.ultima };

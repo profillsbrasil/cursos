@@ -21,6 +21,7 @@ import {
 
 import { AREA, CAMPO, ROTULO } from "@/components/casca/campos";
 import { fmtNum } from "@/lib/formato";
+
 import { ErroDoCampo, SaiuDoCampo, useErroDoCampo } from "./erros-do-editor";
 
 const SEM_QUEBRA = /\r?\n/g;
@@ -46,12 +47,14 @@ export function TextoDeUmaLinha({
       aoMudar(e.target.value.replace(SEM_QUEBRA, " ")),
     [aoMudar]
   );
+
   const enviar = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       e.preventDefault();
       e.currentTarget.form?.requestSubmit();
     }
   }, []);
+
   return (
     <Textarea
       {...area}
@@ -83,6 +86,7 @@ export function CampoDeTexto({
     id,
     ajuda ? `${id}-ajuda` : undefined
   );
+
   return (
     <Field className={campoClasse} data-invalid={mensagem ? true : undefined}>
       <FieldLabel className={cn(ROTULO, rotuloClasse)} htmlFor={id}>
@@ -130,12 +134,15 @@ export function CampoLido({
     (e: ChangeEvent<HTMLInputElement>) => aoMudar(e.target.value),
     [aoMudar]
   );
+
   const sair = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
       saiuDoCampo(id);
+
       if (aoSair) {
         const proximo = e.relatedTarget;
         aoSair();
+
         // O React move o bloco na lista, e o foco que ia para ele se perde.
         if (proximo instanceof HTMLElement) {
           requestAnimationFrame(() => proximo.focus());
@@ -195,11 +202,14 @@ export function AreaDeTexto({
   const saiuDoCampo = useContext(SaiuDoCampo);
   const pe = ajuda || maximo !== undefined;
   const { aria, mensagem } = useErroDoCampo(id, pe ? `${id}-pe` : undefined);
+
   const mudar = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => aoMudar(e.target.value),
     [aoMudar]
   );
+
   const sair = useCallback(() => saiuDoCampo(id), [id, saiuDoCampo]);
+
   return (
     <Field
       // relative: o rótulo sr-only é absolute e, sem isto, escapa para fora do painel.

@@ -1,9 +1,11 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import { cloneElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Sem o ClerkProvider, useUser e useClerk lançam; o resto do módulo fica o de verdade.
 const clerk = await import("@clerk/nextjs");
+
 mock.module("@clerk/nextjs", () => ({
   ...clerk,
   useClerk: () => ({ signOut: () => undefined }),
@@ -16,9 +18,11 @@ mock.module("@clerk/nextjs", () => ({
 // O menu do Base UI só monta no navegador, em portal. Aqui ele vira HTML em linha,
 // para o teste ler as placas do menu aberto.
 const menu = await import("@cursos/ui/components/dropdown-menu");
+
 const EmLinha = ({ children }: { children?: ReactNode }) => (
   <div data-teste="menu">{children}</div>
 );
+
 const ItemEmLinha = ({
   children,
   render,
@@ -26,7 +30,9 @@ const ItemEmLinha = ({
   children?: ReactNode;
   render?: ReactElement;
 }) => (render ? cloneElement(render, {}, children) : <div>{children}</div>);
+
 const Separador = () => <hr />;
+
 mock.module("@cursos/ui/components/dropdown-menu", () => ({
   ...menu,
   DropdownMenuContent: EmLinha,

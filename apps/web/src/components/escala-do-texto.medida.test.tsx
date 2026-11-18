@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
@@ -19,7 +20,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "./chromium-de-teste";
+} from "./chromium.test-utils";
 import { VARIOS, VAZIO } from "./comunicados-do-aluno/exemplo-de-teste";
 import { TelaDeComunicados } from "./comunicados-do-aluno/tela-de-comunicados";
 import { fabrica, HOJE } from "./curso/exemplo-de-teste";
@@ -102,6 +103,7 @@ const PAGINA = renderToStaticMarkup(
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [...PAGINA.matchAll(CLASSES)].flatMap(([, c = ""]) =>
     c.replaceAll("&amp;", "&").split(ESPACO)

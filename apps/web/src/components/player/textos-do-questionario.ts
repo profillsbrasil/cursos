@@ -23,13 +23,17 @@ export const ganhoDe = (pontos: number) => `+${fmtPts(pontos)}`;
 /** "a pergunta 2", "as perguntas 2 e 3", na ordem das perguntas. */
 export function erradasDe(r: ResultadoDoQuestionario): string | null {
   const numeros = r.respostas.flatMap((x, i) => (x.certa ? [] : [i + 1]));
+
   if (numeros.length === 0) {
     return null;
   }
+
   if (numeros.length === 1) {
     return `a pergunta ${numeros[0]}`;
   }
+
   const ultimo = numeros.at(-1);
+
   return `as perguntas ${numeros.slice(0, -1).join(", ")} e ${ultimo}`;
 }
 
@@ -46,20 +50,24 @@ export function fraseDoResultado(r: ResultadoDoQuestionario): FraseDoResultado {
       titulo: `Aprovado: ${nota(r)}`,
     };
   }
+
   if (r.aprovada) {
     return {
       texto: `Esta tentativa não vale pontos: eles contam só na primeira, em que você ganhou ${ganhoDe(r.pontosDaPrimeira)}.`,
       titulo: `Aprovado na ${r.tentativa}ª tentativa: ${nota(r)}`,
     };
   }
+
   const erradas = erradasDe(r);
   const errou = erradas ? `Você errou ${erradas}. ` : "";
   const regra = regraDaNota(r.paraPassar, r.total);
+
   // A regra fala do questionário: a aula assistida e a sequência pontuam à parte.
   const pontos =
     r.pontos > 0
       ? `${SO_NA_PRIMEIRA}: você ganhou ${ganhoDe(r.pontos)} pelos acertos dela.`
       : `${SO_NA_PRIMEIRA}.`;
+
   return {
     texto:
       r.tentativa === 1
@@ -74,9 +82,11 @@ export const ENVIO_FALHOU =
 
 export function textoDoEnvio(respondidas: number, total: number): string {
   const faltam = total - respondidas;
+
   const conta =
     faltam === 0
       ? `${plural(total, "pergunta respondida", "perguntas respondidas")}.`
       : `${faltam === 1 ? "Falta" : "Faltam"} ${plural(faltam, "pergunta", "perguntas")}.`;
+
   return `${conta} ${PTS_POR_ACERTO}`;
 }

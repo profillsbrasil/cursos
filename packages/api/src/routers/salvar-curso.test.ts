@@ -3,6 +3,7 @@
 // quebrado é recusado pelo leitor do formulário antes de qualquer consulta.
 
 import { describe, expect, test } from "bun:test";
+
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { contextoDeTeste } from "../contexto-de-teste";
@@ -30,6 +31,7 @@ describe("salvarCurso por HTTP", () => {
     corpo.set("capa", new Blob([new Uint8Array([1])]), "capa.jpg");
 
     const resposta = await enviar(corpo);
+
     const json = (await resposta.json()) as {
       error: { data: { code: string }; message: string };
     };

@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type {
   ConvidadoNaTela,
   Email,
@@ -9,6 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -22,8 +24,10 @@ const { Convidar } = await import("./convidar");
 const { ListaDeConvidados } = await import("./lista-de-convidados");
 
 const TAG = /<[^>]+>/g;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
+
 const BOTAO = /<button[^>]*>.*?<\/button>/g;
 const NOME = /aria-label="([^"]+)"/;
 
@@ -101,6 +105,7 @@ describe("a opção Convidados", () => {
     const nomes = (tela.match(BOTAO) ?? []).map(
       (b) => NOME.exec(b)?.[1] ?? texto(b)
     );
+
     expect(nomes).toEqual([
       "Reenviar o convite de ana@x.com",
       "Cancelar o convite de ana@x.com",
@@ -137,6 +142,7 @@ describe("a opção Convidados", () => {
         termo=""
       />
     );
+
     expect(texto(cortada)).toContain(
       "Mostrando os 1 mais recentes. Busque pelo e-mail para achar quem falta."
     );

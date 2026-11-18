@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 import CarregandoCurso from "@/app/(aluno)/cursos/[slug]/loading";
@@ -12,17 +13,19 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { fabrica, HOJE } from "./exemplo-de-teste";
 import { TelaDoCurso } from "./tela-do-curso";
 
 const PAGINA = renderToStaticMarkup(
   <TelaDoCurso hoje={HOJE} pagina={fabrica.emAndamento} />
 );
+
 const ESQUELETO = renderToStaticMarkup(<CarregandoCurso />);
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const ENTIDADES: Record<string, string> = {
   "&#x27;": "'",
   "&amp;": "&",
@@ -30,10 +33,13 @@ const ENTIDADES: Record<string, string> = {
   "&lt;": "<",
   "&quot;": '"',
 };
+
 const ENTIDADE = /&(?:#x27|amp|gt|lt|quot);/g;
+
 // O renderToStaticMarkup escapa a classe, e o Tailwind precisa dela como o browser a lê.
 const semEntidades = (c: string) =>
   c.replace(ENTIDADE, (e) => ENTIDADES[e] ?? e);
+
 const css = await cssDoApp(
   [PAGINA, ESQUELETO].flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) =>
@@ -150,6 +156,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
 
   test("resumo estreito: a linha que quebra começa no texto, sem o separador na frente", async () => {
     await abrir(560, PAGINA);
+
     const linhas = await avaliar<{ esquerda: number; inicio: number }[]>(
       enviar,
       `(() => {
@@ -170,7 +177,9 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
         return inicios;
       })()`
     );
+
     expect(linhas.length).toBeGreaterThan(0);
+
     for (const { esquerda, inicio } of linhas) {
       expect(inicio).toBe(esquerda);
     }
@@ -181,19 +190,23 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
       const r = document.querySelector('[aria-busy="true"]').children[1].getBoundingClientRect();
       return { esquerda: Math.round(r.left), largura: Math.round(r.width), topo: Math.round(r.top) };
     })()`;
+
     for (const largura of [1280, 1080]) {
-      // biome-ignore lint/performance/noAwaitInLoops: as duas larguras dividem a mesma aba do Chromium.
+      // oxlint-disable no-await-in-loop -- as duas larguras dividem a mesma aba do Chromium.
       await abrir(largura, PAGINA);
       const { cartao } = await medir();
       await abrir(largura, ESQUELETO);
+
       const esqueleto = await avaliar<Omit<Caixa, "pe">>(
         enviar,
         cartaoDoEsqueleto
       );
+
       expect({
         esquerda: esqueleto.esquerda,
         largura: esqueleto.largura,
       }).toEqual({ esquerda: cartao.esquerda, largura: cartao.largura });
+      // oxlint-enable no-await-in-loop
     }
   });
 });

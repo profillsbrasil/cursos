@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { AulaId } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
+
 import CarregandoAula from "@/app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading";
 
 import {
@@ -63,6 +65,7 @@ const PARAGRAFO_DA_DESCRICAO = /<p class="([^"]*)">Por que filmar/;
 
 const comDescricao = (descricao: string) => {
   const dados = { ...DADOS, aula: { ...DADOS.aula, descricao } };
+
   return {
     cabecalho: renderToStaticMarkup(<CabecalhoDaAula dados={dados} />),
     descricao: renderToStaticMarkup(<DescricaoDaAula dados={dados} />),

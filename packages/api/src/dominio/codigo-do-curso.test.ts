@@ -43,19 +43,24 @@ describe("codigoLivre", () => {
         (_, i) => `PE-${String(i + 1).padStart(3, "0")}`
       )
     );
+
     expect(codigoLivre("PE", ocupados)).toBe("PE-1000");
   });
 });
 
 test("o seed dá a cada curso o código da regra, menos o POP-COM-001, de antes dela", () => {
   const ocupados = new Set(["POP-COM-001"]);
+
   const esperados = CURSOS.map((c) => {
     if (ocupados.has(c.codigo)) {
       return c.codigo;
     }
+
     const codigo = codigoLivre(siglaDaCategoria(c.categoria), ocupados);
     ocupados.add(codigo);
+
     return codigo;
   });
+
   expect(CURSOS.map((c) => c.codigo)).toEqual(esperados);
 });

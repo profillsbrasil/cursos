@@ -15,6 +15,7 @@ export default async function MeusCursos() {
     carregarResumo(),
     carregarTemCursoTrocavelNaVitrine(),
   ]);
+
   return (
     <ConteudoMeusCursos
       painel={painel}

@@ -4,6 +4,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -14,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ProvedorDaCasca } from "./provedor-da-casca";
 
 const casca = (aberta: boolean) =>
@@ -31,6 +32,7 @@ const casca = (aberta: boolean) =>
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [casca(true), casca(false)].flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -170,6 +172,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a Moldura no browser", () => {
     await enviar("Emulation.setEmulatedMedia", {
       features: [{ name: "prefers-reduced-motion", value: "reduce" }],
     });
+
     try {
       await abrirPagina(1280, casca(true));
       await avaliar(

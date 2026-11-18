@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import { build } from "bun";
 
 import {
@@ -9,7 +10,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../../chromium-de-teste";
+} from "../../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "concessao-de-pontos.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-concessao-falso.js");
@@ -67,11 +68,14 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 // Funções da página: clicam no rótulo como a pessoa, escrevem no campo pelo
@@ -113,6 +117,7 @@ interface Botao {
 }
 
 const botao = () => avaliar<Botao>(enviar, "window.botao()");
+
 const rodar = (codigo: string) =>
   avaliar(enviar, `(async () => { ${codigo} })()`);
 
@@ -163,11 +168,13 @@ describe.skipIf(!existsSync(CHROMIUM))("concessão de pontos no browser", () => 
 
   test("o campo Pontos só aparece com Outro valor e aceita 3.000 e 3000", async () => {
     await abrir();
+
     const temCampo = () =>
       avaliar<boolean>(
         enviar,
         `Boolean(document.querySelector('input[name="quantidade"]'))`
       );
+
     expect(await temCampo()).toBe(false);
     await rodar(`clicar("Outro valor"); await esperar(0);`);
     expect(await temCampo()).toBe(true);

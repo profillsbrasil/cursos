@@ -1,10 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
+
 import CarregandoLiberacoes from "@/app/(admin)/admin/liberacoes/loading";
 import CarregandoPerfis from "@/app/(admin)/admin/liberacoes/perfis/loading";
 import CarregandoPessoas from "@/app/(admin)/admin/pessoas/loading";
+
 import {
   abrirChromium,
   avaliar,
@@ -12,8 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
-
+} from "../chromium.test-utils";
 import { abasDasLiberacoes } from "./abas-das-liberacoes";
 import { BarraDaLista, contagemDePessoas } from "./barra-da-lista";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";
@@ -102,6 +104,7 @@ const TELAS = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(TELAS).flatMap(({ esqueleto, pronta }) =>
     [esqueleto, pronta].flatMap((html) =>
@@ -129,8 +132,9 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronta" style="width:${largura}px">${pronta}</div><div id="esqueleto" style="width:${largura}px">${esqueleto}</div></body></html>`
     )}); document.close();`
   );
+
   // No loading.tsx, a barra vem depois do texto do leitor de tela e do cabeçalho.
-  return avaliar<Medida>(
+  return await avaliar<Medida>(
     enviar,
     `new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => {
       const barra = document.querySelector("#pronta").firstElementChild;

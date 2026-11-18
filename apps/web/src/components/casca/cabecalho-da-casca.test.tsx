@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { CabecalhoDaCasca } from "./cabecalho-da-casca";
@@ -14,6 +15,7 @@ function botoes(aberta: boolean) {
       <CabecalhoDaCasca />
     </ProvedorDaCasca>
   );
+
   return [...html.matchAll(BOTAO)].map(([tag]) =>
     Object.fromEntries(
       [...tag.matchAll(ATRIBUTO)].map(([, nome, valor]) => [nome, valor])

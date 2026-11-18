@@ -23,6 +23,7 @@ const C1 = "curso-1" as CursoId;
 const C2 = "curso-2" as CursoId;
 const C3 = "curso-3" as CursoId;
 const HOJE = "2026-10-14" as DiaISO;
+
 const SEM_HISTORICO: LinhasHistorico = {
   assistidas: [],
   certificados: [],
@@ -36,6 +37,7 @@ function linha(
   parcial: Partial<LinhaDaPessoa> & { titulo?: string } = {}
 ): LinhaDaPessoa {
   const { titulo = id, ...resto } = parcial;
+
   return {
     curso: { ...cursoCat(id, { aulas: [1] }), titulo },
     id: `lib-${id}` as LiberacaoId,
@@ -82,11 +84,13 @@ describe("montarAcesso", () => {
     nome: "Ana",
     userId: "user_ana",
   };
+
   const catalogo: LinhasDoAcesso["catalogo"] = [
     { id: C1, status: "publicado", titulo: "BPF" },
     { id: C2, status: "publicado", titulo: "APPCC" },
     { id: C3, status: "em_producao", titulo: "Excel" },
   ];
+
   const acessoDe = (
     userId: string,
     quem: Pessoa | null,
@@ -108,6 +112,7 @@ describe("montarAcesso", () => {
       linha(C3, { titulo: "Excel" }),
       linha(C2, { revogadaEm: new Date(), titulo: "APPCC" }),
     ]);
+
     expect(
       acesso?.cursos.map((c) => [c.curso.titulo, c.liberado, c.emProducao])
     ).toEqual([
@@ -119,11 +124,13 @@ describe("montarAcesso", () => {
 
   test("ativas primeiro, a mais recente antes; revogadas no fim", () => {
     const dia = (d: number) => new Date(Date.UTC(2026, 9, d, 12));
+
     const acesso = acessoDe("user_ana", pessoa, [
       linha(C2, { liberadaEm: dia(1), revogadaEm: dia(3) }),
       linha(C1, { liberadaEm: dia(2) }),
       linha(C3, { liberadaEm: dia(4) }),
     ]);
+
     expect(acesso?.liberacoes.map((l) => [l.curso.id, l.acao.tipo])).toEqual([
       [C3, "revogar"],
       [C1, "revogar"],
@@ -162,6 +169,7 @@ describe("montarAcesso", () => {
         },
       ],
     };
+
     const [doC1, doC2] =
       acessoDe(
         "user_ana",
@@ -175,6 +183,7 @@ describe("montarAcesso", () => {
         ],
         historico
       )?.liberacoes ?? [];
+
     expect(doC1?.acompanhamento).toEqual({
       progresso: { feitas: 0, pct: 0, total: 1 },
       situacao: { tipo: "nunca_abriu" },

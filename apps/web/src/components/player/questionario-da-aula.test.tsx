@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { QuestionarioDaAula as Questionario } from "@cursos/api/dominio/questionario";
 import type { AulaId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -19,16 +20,17 @@ import {
 
 // Fora do App Router o useRouter não tem de onde ler; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
 }));
 
-const { QuestionarioDaAula, Resultado } = await import(
-  "./questionario-da-aula"
-);
+const { QuestionarioDaAula, Resultado } =
+  await import("./questionario-da-aula");
 
 const AULA = "00000000-0000-4000-8000-00000000aaaa" as AulaId;
+
 const PROXIMA = {
   id: "00000000-0000-4000-8000-00000000bbbb" as AulaId,
   titulo: "Responsabilidades do cliente",
@@ -116,6 +118,7 @@ describe("não aprovado na primeira", () => {
       { ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA },
       { temVideo: false }
     );
+
     expect(semVideo).not.toContain("Rever o vídeo");
     expect(texto(semVideo)).toContain("Tentar de novo");
   });
@@ -145,6 +148,7 @@ describe("aprovado", () => {
       { ...CRONOGRAMA, ultima: APROVADO_NA_PRIMEIRA },
       { proxima: null }
     );
+
     expect(texto(html)).toContain("Ver o curso");
     expect(html).toContain('href="/cursos/comercial"');
   });
@@ -177,6 +181,7 @@ describe("os textos", () => {
         certa: false,
       })),
     });
+
     expect(frase).toBe(
       "Você errou as perguntas 1, 2, 3 e 4. Para passar, 3 de 4. O questionário pontua só na primeira tentativa."
     );
@@ -218,6 +223,7 @@ describe("os textos", () => {
 
 const LINK_DO_CERTIFICADO =
   /<a[^>]*href="\/cursos\/comercial\/certificado"[^>]*>o certificado já está na página dele<\/a>/;
+
 const nada = () => undefined;
 
 describe("o resultado que concluiu o curso", () => {

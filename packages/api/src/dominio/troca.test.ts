@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { CursoId, DiaISO } from "./tipos";
 import {
   type Acesso,
@@ -13,6 +14,7 @@ import {
 } from "./troca";
 
 const HOJE = "2026-10-07" as DiaISO;
+
 const TROCADO: Acesso = {
   lancamentoId: "lanc-1",
   pago: 300,
@@ -103,6 +105,7 @@ describe("decidirTroca", () => {
       recusa: { tipo: "indisponivel" },
       tipo: "recusa",
     } as const;
+
     expect(decidirTroca(null, 1000, 500)).toEqual(indisponivel);
     expect(decidirTroca(curso({ precoTroca: null }), 1000, 500)).toEqual(
       indisponivel
@@ -185,6 +188,7 @@ describe("paraCursoDaTroca", () => {
         ],
       })
     );
+
     expect(c.acesso).toEqual({
       lancamentoId: "lanc-9",
       pago: 200,
@@ -197,6 +201,7 @@ describe("paraCursoDaTroca", () => {
       origem: "admin",
       trocaLancamento: { id: "lanc-9", pontos: -200 },
     } as const;
+
     expect(paraCursoDaTroca(linha({ liberacoes: [doAdmin] })).acesso.tipo).toBe(
       "liberado"
     );
@@ -214,6 +219,7 @@ describe("paraCursoDaTroca", () => {
       origem: "troca",
       trocaLancamento: { id: "lanc-1", pontos: -300 },
     } as const;
+
     expect(paraCursoDaTroca(linha({ liberacoes: [trocada] })).acesso).toEqual({
       lancamentoId: "lanc-1",
       pago: 300,
@@ -251,6 +257,7 @@ describe("montarPainelDeTroca", () => {
       },
       HOJE
     );
+
     expect(painel.cartoes.map((c) => [String(c.curso.id), c.tipo])).toEqual([
       ["a", "pode_trocar"],
       ["b", "pode_trocar"],

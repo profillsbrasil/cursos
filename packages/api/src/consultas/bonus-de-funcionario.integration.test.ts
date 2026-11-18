@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
@@ -40,6 +41,7 @@ const login = (daPessoa: Conta) => ({
 describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const ids: string[] = [];
+
   const pessoas: Pessoa[] = [
     { email: null, foto: null, nome: "Admin", userId: ADMIN },
   ];
@@ -48,6 +50,7 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
     const userId = `user_bonus${S}${ids.length}`;
     ids.push(userId);
     pessoas.push({ email: null, foto: null, nome: `Pessoa ${userId}`, userId });
+
     return userId;
   };
 
@@ -104,10 +107,12 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
   test("dois primeiros acessos ao mesmo tempo dão um bônus só", async () => {
     const userId = pessoa();
     const ler = login(conta(userId, "duda@profills.com"));
+
     const lidos = await Promise.all([
       perfilDe(db, userId, ler, new Date()),
       perfilDe(db, userId, ler, new Date()),
     ]);
+
     expect(lidos).toEqual(["funcionario", "funcionario"]);
     expect(await bonusDe(userId)).toEqual([BONUS_DE_FUNCIONARIO]);
   });
@@ -142,10 +147,12 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
 
   test("duas mudanças para Funcionário ao mesmo tempo dão um bônus só", async () => {
     const userId = pessoa();
+
     const r = await Promise.all([
       mudar(userId, "funcionario"),
       mudar(userId, "funcionario"),
     ]);
+
     expect(r.map((x) => x.bonus).sort()).toEqual([false, true]);
     expect(await bonusDe(userId)).toEqual([BONUS_DE_FUNCIONARIO]);
   });

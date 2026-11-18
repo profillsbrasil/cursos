@@ -3,6 +3,7 @@
 // desligado com o saldo curto.
 
 import { describe, expect, mock, test } from "bun:test";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
 import type { CursoVM } from "@cursos/api/dominio/painel";
@@ -12,6 +13,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -30,6 +32,7 @@ const { fabrica, HOJE, RISCOS } = await import("./exemplo-de-teste");
 const CURSO = "00000000-0000-4000-8000-0000000000c1" as CursoId;
 const AULA_1 = "00000000-0000-4000-8000-000000000001" as AulaId;
 const AULA_2 = "00000000-0000-4000-8000-000000000002" as AulaId;
+
 const CAPA = {
   alt: "Capa do curso Curso de Filmagem",
   altura: 720,
@@ -38,13 +41,17 @@ const CAPA = {
 };
 
 const TAG = /<[^>]+>/g;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replaceAll("&quot;", '"').replace(/\s+/g, " ").trim();
+
 const BOTOES = /<button[^>]*>.*?<\/button>/g;
 const LINKS = /<a [^>]*href="([^"]+)"/g;
 const DESCRITO_POR = /aria-describedby="([^"]+)"/;
+
 const SECAO_DO_CONTEUDO =
   /<section aria-labelledby="conteudo-do-curso">(.*?)<\/section>/;
+
 const FECHADA = /Fechada\./g;
 const TROQUE = /Troque para assistir/g;
 const nada = () => undefined;
@@ -63,6 +70,7 @@ function desligadoEFocavel(botao: string) {
 function razaoDo(botao: string, html: string): string {
   const id = DESCRITO_POR.exec(botao)?.[1] ?? "";
   const alvo = new RegExp(`<p[^>]*id="${id}"[^>]*>(.*?)</p>`).exec(html);
+
   return texto(alvo?.[1] ?? "");
 }
 
@@ -100,10 +108,13 @@ describe("o cartão da amostra em Meus cursos", () => {
         }}
       />
     );
+
     expect(texto(vista)).toContain("Amostra vista");
+
     const breve = renderToStaticMarkup(
       <CapaCurso curso={{ ...curso, estado: { tipo: "em_breve" } }} />
     );
+
     expect(texto(breve)).toContain("Em produção");
     expect(texto(breve)).not.toContain("Amostra");
   });
@@ -187,6 +198,7 @@ describe("o fim do vídeo da aula de amostra", () => {
     proxima: null,
     questionario: null,
   });
+
   const fim = (saldo: number) =>
     renderToStaticMarkup(
       <FimDoVideo
@@ -226,6 +238,7 @@ describe("a página do curso na amostra", () => {
       saldo: 5010,
     },
   };
+
   const h = renderToStaticMarkup(<TelaDoCurso hoje={HOJE} pagina={pagina} />);
 
   test("a coluna troca o curso no lugar de Seu progresso", () => {
