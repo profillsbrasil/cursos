@@ -23,13 +23,13 @@
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "aws4fetch": "1.0.20",
-    "drizzle-orm": "1.0.0-rc.4",
-    "image-size": "^2.0.4",
+    "drizzle-orm": "1.0.0-rc.5",
+    "image-size": "^2.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@cursos/config": "workspace:*",
-    "@types/bun": "^1.4.2",
+    "@types/bun": "^1.4.4",
     "typescript": "catalog:"
   }
 }
