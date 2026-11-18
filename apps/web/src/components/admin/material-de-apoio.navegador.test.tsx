@@ -26,7 +26,7 @@ const SUBSTITUTOS: [RegExp, string][] = [
   [/^next\/navigation$/, NAVEGACAO],
 ];
 
-const material = (n: number): MaterialDoDocumento => ({
+const material = (n: number) => ({
   bytes: 1000 * n,
   chave: `${String(n).padStart(64, "0")}.pdf`,
   id: uuidDeExemplo(900 + n) as MaterialId,

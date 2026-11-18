@@ -18,7 +18,7 @@ const acessoDaUrl = async (params: Props["params"]) => {
   return acesso;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props) {
   const { pessoa, userId } = await acessoDaUrl(params);
 
   return { title: `Acesso de ${pessoa?.nome ?? userId}` };

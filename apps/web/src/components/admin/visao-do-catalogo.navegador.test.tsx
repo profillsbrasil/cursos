@@ -304,7 +304,7 @@ const CEU = "rgb(170, 210, 234)";
 const ATALHO = "a[href$='/novo']:not(header a)";
 
 /** Aperta Tab, como a pessoa, até o foco chegar ao seletor. */
-async function tabAte(seletor: string, tentativas = 20): Promise<void> {
+async function tabAte(seletor: string, tentativas = 20) {
   const chegou = await avaliar<boolean>(
     enviar,
     `document.activeElement?.matches(${JSON.stringify(seletor)}) ?? false`

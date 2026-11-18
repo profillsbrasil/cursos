@@ -5,7 +5,7 @@ import type {
 } from "@cursos/api/dominio/comunicado";
 import type { ComunicadoId, DiaISO } from "@cursos/api/dominio/tipos";
 
-const curso = (slug: string, titulo: string): AlvoDoComunicado => ({
+const curso = (slug: string, titulo: string) => ({
   capa: {
     alt: `Capa de ${titulo}`,
     altura: 604,
@@ -28,7 +28,7 @@ const comunicado = (
   publicadoPor: string | null,
   titulo: string,
   texto: string
-): ComunicadoDoAluno => ({
+) => ({
   alvo,
   dia: dia as DiaISO,
   id: id as ComunicadoId,

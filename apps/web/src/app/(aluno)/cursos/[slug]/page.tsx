@@ -10,7 +10,7 @@ interface Props {
 }
 
 // O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props) {
   const pagina = await carregarPaginaDoCurso((await params).slug);
 
   if (!pagina) {

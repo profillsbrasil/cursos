@@ -138,7 +138,7 @@ function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
  * A seção cujo título passou pelo terço de cima da janela por último. Um só
  * observador para todas; sem IntersectionObserver, nenhuma fica marcada.
  */
-function useSecaoAtual(ids: readonly string[]): string | null {
+function useSecaoAtual(ids: readonly string[]) {
   const [atual, setAtual] = useState<string | null>(null);
   const chave = ids.join(" ");
   useEffect(() => {

@@ -374,10 +374,7 @@ async function apertar(key: string) {
 }
 
 /** Cada parada do Tab até o controle com o rótulo pedido, em no máximo 10 Tabs. */
-async function tabAte(
-  rotulo: string,
-  paradas: string[] = []
-): Promise<string[]> {
+async function tabAte(rotulo: string, paradas: string[] = []) {
   await apertar("Tab");
 
   const parada = await avaliar<string>(

@@ -11,7 +11,7 @@ const QUINTA = "2026-10-15" as DiaISO;
 const SABADO = "2026-10-17" as DiaISO;
 
 /** A semana de 12 a 18 de outubro de 2026, montada pelo domínio: dias, nomes e sequência. */
-const resumo = (estudados: readonly string[], hoje: DiaISO): ResumoAluno => {
+const resumo = (estudados: readonly string[], hoje: DiaISO) => {
   const dias = new Set(estudados as DiaISO[]);
 
   return {

@@ -13,7 +13,7 @@ const emPercentual = (nome: string) =>
     (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
   );
 
-export function disposicaoDoAnexo(nome: string): string {
+export function disposicaoDoAnexo(nome: string) {
   const ascii = nome
     .normalize("NFD")
     .replace(ACENTOS, "")

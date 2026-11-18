@@ -496,7 +496,7 @@ const rodarOsDois = async (copia: string) => {
   return { tsc: tsc.erros, tsrs: tsrs.erros };
 };
 
-const comparar = (tsc: Set<string>, tsrs: Set<string>): Resultado => {
+const comparar = (tsc: Set<string>, tsrs: Set<string>) => {
   if (tsc.size === 0) {
     return tsrs.size === 0 ? "nenhum" : "só o tsrs";
   }

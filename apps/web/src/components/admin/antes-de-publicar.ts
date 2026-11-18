@@ -26,10 +26,7 @@ type Lido = Pick<
 >;
 
 /** `temCapa`: a capa salva ou a escolhida agora, que mora fora do rascunho. */
-export function antesDePublicar(
-  rascunho: Lido,
-  temCapa: boolean
-): ItemAntesDePublicar[] {
+export function antesDePublicar(rascunho: Lido, temCapa: boolean) {
   const aulas = rascunho.modulos.flatMap((m) => m.aulas);
   const comVideo = aulas.filter((a) => videoDoTexto(a.video) !== null).length;
   const semQuestionario = aulas.filter((a) => a.perguntas.length === 0).length;
@@ -75,9 +72,7 @@ export function antesDePublicar(
 }
 
 /** "3 módulos, 14 aulas, 2 h", no alto do índice; sem vídeo, sem a duração. */
-export function resumoDoCurso(
-  rascunho: Pick<RascunhoDoCurso, "modulos">
-): string {
+export function resumoDoCurso(rascunho: Pick<RascunhoDoCurso, "modulos">) {
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
 
   const duracao = rascunho.modulos.reduce(
@@ -105,7 +100,7 @@ export function secoesDoEditor(
     "materiais" | "modulos" | "niveis" | "topicos"
   >,
   novo: boolean
-): SecaoDoIndice[] {
+) {
   const secoes: SecaoDoIndice[] = [
     { contagem: null, id: "capa-e-descricao", nome: "Capa e descrição" },
     {

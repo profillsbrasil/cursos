@@ -55,7 +55,7 @@ export const carregarResumo = cache(
 export function paraACasca<T>(
   peca: "continuar" | "placar",
   carregar: Promise<T>
-): Promise<T | null> {
+) {
   return carregar.catch((erro: unknown) => {
     unstable_rethrow(erro);
     console.error(`casca: ${peca} não carregou`, erro);

@@ -5,7 +5,7 @@ import { type ContaParaEntrar, podeDesconectarOGoogle } from "./entrada";
 // O linkedTo do e-mail aponta para a identificação do Google, não para a conta.
 const GOOGLE = { id: "eac_1", identificationId: "idn_g", provider: "google" };
 
-const conta = (c: Partial<ContaParaEntrar>): ContaParaEntrar => ({
+const conta = (c: Partial<ContaParaEntrar>) => ({
   emailAddresses: [],
   externalAccounts: [GOOGLE],
   passwordEnabled: false,

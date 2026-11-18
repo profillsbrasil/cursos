@@ -21,7 +21,7 @@ const curso = (
   situacao: Acompanhamento["situacao"],
   feitas = 0,
   total = 2
-): Acompanhamento => ({
+) => ({
   progresso: { feitas, pct: Math.floor((feitas * 100) / total), total },
   situacao,
 });
@@ -188,7 +188,7 @@ describe("as datas do item da liberação", () => {
     liberadaEm: string,
     acao: LiberacaoNaTela["acao"] = { tipo: "revogar" },
     origem: LiberacaoNaTela["origem"] = "admin"
-  ): LiberacaoNaTela => ({
+  ) => ({
     acao,
     acompanhamento: concluido,
     curso: { id: "c1" as CursoId, titulo: "Segurança" },

@@ -67,7 +67,7 @@ function desligadoEFocavel(botao: string) {
 }
 
 /** A frase que o aria-describedby do botão aponta. */
-function razaoDo(botao: string, html: string): string {
+function razaoDo(botao: string, html: string) {
   const id = DESCRITO_POR.exec(botao)?.[1] ?? "";
   const alvo = new RegExp(`<p[^>]*id="${id}"[^>]*>(.*?)</p>`).exec(html);
 
@@ -170,7 +170,7 @@ describe("a coluna de troca da página do curso", () => {
 });
 
 describe("o fim do vídeo da aula de amostra", () => {
-  const dados = (saldo: number): AulaNoPlayer => ({
+  const dados = (saldo: number) => ({
     amostra: {
       cursoId: CURSO,
       preco: 2000,

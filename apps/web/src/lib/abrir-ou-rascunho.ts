@@ -12,7 +12,7 @@ export async function abrirOuRascunho<T>(
     /** Recebe o id em minúscula, como o Postgres devolve. */
     rascunho: (id: string) => T;
   }
-): Promise<T | null> {
+) {
   if (!UUID.safeParse(id).success) {
     return null;
   }

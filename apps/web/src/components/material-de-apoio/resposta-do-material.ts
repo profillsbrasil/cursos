@@ -14,7 +14,7 @@ export interface MaterialAberto {
  * dos dois. A capa é pública; o material não. Nem o navegador guarda: com cache,
  * quem saiu da conta ou perdeu a liberação ainda abria o arquivo pela mesma URL.
  */
-export function respostaDoMaterial(aberto: MaterialAberto | null): Response {
+export function respostaDoMaterial(aberto: MaterialAberto | null) {
   if (!aberto) {
     return new Response(null, { status: 404 });
   }

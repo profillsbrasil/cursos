@@ -17,10 +17,7 @@ export interface EnderecoDaConferencia {
   url: string;
 }
 
-export function enderecoDaConferencia(
-  origem: string,
-  codigo: string
-): EnderecoDaConferencia {
+export function enderecoDaConferencia(origem: string, codigo: string) {
   const url = new URL(caminhoDaConferencia(codigo), origem);
 
   return { exibido: `${url.host}${url.pathname}`, url: url.href };
@@ -28,7 +25,7 @@ export function enderecoDaConferencia(
 
 const primeiro = (valor: string | null) => valor?.split(",")[0]?.trim();
 
-export function origemDoPedido(cabecalhos: Headers): string {
+export function origemDoPedido(cabecalhos: Headers) {
   const host =
     primeiro(cabecalhos.get("x-forwarded-host")) ??
     primeiro(cabecalhos.get("host"));
@@ -46,9 +43,8 @@ export function origemDoPedido(cabecalhos: Headers): string {
 
 export type CertificadoComNome = CertificadoEmitido & { nome: string };
 
-export const comNome = (
-  c: CertificadoEmitido | null
-): CertificadoComNome | null => (c?.nome ? { ...c, nome: c.nome } : null);
+export const comNome = (c: CertificadoEmitido | null) =>
+  c?.nome ? { ...c, nome: c.nome } : null;
 
 export const cargaEmHoras = (horas: number) => plural(horas, "hora", "horas");
 
@@ -73,7 +69,7 @@ const DE_TODA_FOLHA = {
 export function folhaDo(
   c: CertificadoComNome,
   endereco: EnderecoDaConferencia
-): FolhaDoCertificado {
+) {
   const cursoEmTamanho = tamanhoPara(c.tituloDoCurso, FOLHA_EM_PX.curso);
 
   const escrito = nomeNaFolha(c.nome, {
@@ -101,7 +97,7 @@ export function folhaDo(
  * conferência de verdade, onde a pessoa digita um código. O nome fica vazio: a tela
  * põe o que a pessoa digita.
  */
-export function folhaDeExemplo(origem: string): FolhaDoCertificado {
+export function folhaDeExemplo(origem: string) {
   const url = new URL("/certificado", origem);
 
   return {

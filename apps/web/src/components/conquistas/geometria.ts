@@ -13,10 +13,7 @@ export interface PontoNaTrilha {
  * centro de uma medalha e o da seguinte. No primeiro trecho ele parte da borda
  * esquerda, então o recuo cresce de 0 até meia medalha.
  */
-export function pontoNaTrilha(
-  feitas: number,
-  metas: readonly number[]
-): PontoNaTrilha {
+export function pontoNaTrilha(feitas: number, metas: readonly number[]) {
   const meia = MEDALHA_DA_TRILHA / 2;
   let antes = 0;
 
@@ -49,7 +46,7 @@ export const cssDoPonto = ({ porcento, recuoPx }: PontoNaTrilha) =>
  * Até 4 cursos, uma coluna por curso. Acima, 4 colunas, ou 3 quando 4 deixariam
  * um cartão sozinho na última linha (5 cursos viram 3 e 2; 9 viram 3, 3 e 3).
  */
-export function colunasDosCertificados(n: number): number {
+export function colunasDosCertificados(n: number) {
   if (n <= 4) {
     return Math.max(n, 1);
   }

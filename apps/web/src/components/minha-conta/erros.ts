@@ -63,7 +63,7 @@ function campoDoErro(erro: { meta?: { paramName?: unknown } } | undefined) {
 }
 
 /** A frase em pt-BR de um erro do Clerk, ou a genérica. */
-export function fraseDoErro(e: unknown): string {
+export function fraseDoErro(e: unknown) {
   if (isReverificationCancelledError(e)) {
     return CANCELADA;
   }

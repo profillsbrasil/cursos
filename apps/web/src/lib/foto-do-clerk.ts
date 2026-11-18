@@ -4,7 +4,7 @@
  * arredonda a largura para a faixa dele (80, 160, 200...) e não a altura, e com as
  * duas a foto sairia mais larga que alta.
  */
-export function fotoNoLado(url: string, lado: number): string {
+export function fotoNoLado(url: string, lado: number) {
   const foto = new URL(url);
 
   if (foto.hostname !== "img.clerk.com") {

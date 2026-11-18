@@ -15,7 +15,7 @@ export function registrarErroInterno({
   ctx?: { auth: { userId: string } | null };
   error: TRPCError;
   path: string | undefined;
-}): void {
+}) {
   const caminho = path ?? "(sem caminho)";
 
   if (error.code === "INTERNAL_SERVER_ERROR") {

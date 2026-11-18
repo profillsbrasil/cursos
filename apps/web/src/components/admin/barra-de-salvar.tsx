@@ -41,7 +41,7 @@ export function situacaoDoSalvar({
   pendente,
   problemas,
   sujo,
-}: Omit<EstadoDoSalvar, "recarregar" | "versaoMudou">): Situacao {
+}: Omit<EstadoDoSalvar, "recarregar" | "versaoMudou">) {
   const marcados = problemas.filter((p) => p.campo !== null).length;
 
   const frases = problemas

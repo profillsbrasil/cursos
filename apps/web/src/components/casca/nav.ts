@@ -24,10 +24,7 @@ export interface ItemAtivo {
  * outrosPrefixos ("true"). Item em breve nunca é ativo. A lista real (aria-current)
  * e a pílula leem o mesmo índice.
  */
-export function indiceAtivo(
-  caminho: string,
-  itens: readonly ItemDoMenu[]
-): ItemAtivo | null {
+export function indiceAtivo(caminho: string, itens: readonly ItemDoMenu[]) {
   for (const [indice, item] of itens.entries()) {
     if (item.tipo === "em_breve") {
       continue;
@@ -87,10 +84,7 @@ export interface MovimentoDaPilula {
  * reduzido. Quando ela acabou de aparecer, o initial={false} do motion.li já a põe
  * no lugar sem animar. null: nenhum item ativo, e a pílula não é desenhada.
  */
-export function movimentoDaPilula(
-  atual: number | null,
-  reduzir: boolean
-): MovimentoDaPilula | null {
+export function movimentoDaPilula(atual: number | null, reduzir: boolean) {
   if (atual === null) {
     return null;
   }

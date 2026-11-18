@@ -21,10 +21,7 @@ const { Comunicados } = await import("./comunicados");
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
-const comunicado = (
-  id: string,
-  publicadoPor: string | null
-): ComunicadoNaTela => ({
+const comunicado = (id: string, publicadoPor: string | null) => ({
   curso: null,
   id: id as ComunicadoId,
   publicadoEm: "2026-10-01T12:00:00.000Z",

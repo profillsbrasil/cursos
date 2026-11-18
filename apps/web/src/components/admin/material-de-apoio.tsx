@@ -112,7 +112,7 @@ const tirarDe = (id: string) => `material-${id}-tirar`;
 
 export function resumoDoMaterial(
   materiais: readonly Pick<MaterialDoDocumento, "bytes">[]
-): string {
+) {
   if (materiais.length === 0) {
     return "Nenhum arquivo";
   }
@@ -368,7 +368,7 @@ function LinhaDoEnvio({
   );
 }
 
-function envioDe(arquivo: File): EnvioDeMaterial {
+function envioDe(arquivo: File) {
   const recusa = recusaAntesDeLer(arquivo.name, arquivo.size);
 
   return {

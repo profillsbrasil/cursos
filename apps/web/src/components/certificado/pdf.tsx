@@ -50,7 +50,7 @@ const ATRIBUTO = /([a-z]+)="([^"]*)"/g;
 const TAG = /<([a-zA-Z]+)\b[^>]*>/g;
 const O_QUE_O_PDF_DESENHA = new Set(["svg", "title", "path", "circle"]);
 
-function formasDoLockup(svg: string): Forma[] {
+function formasDoLockup(svg: string) {
   for (const [tag, nome = ""] of svg.matchAll(TAG)) {
     if (!O_QUE_O_PDF_DESENHA.has(nome) || tag.includes("transform")) {
       throw new Error(
@@ -293,7 +293,7 @@ function FolhaEmPdf({ folha }: { folha: FolhaDoCertificado }) {
   );
 }
 
-export function pdfDaFolha(folha: FolhaDoCertificado): Promise<Buffer> {
+export function pdfDaFolha(folha: FolhaDoCertificado) {
   return renderToBuffer(
     <Document
       author={folha.emissor}

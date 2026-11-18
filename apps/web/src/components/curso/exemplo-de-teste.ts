@@ -15,7 +15,7 @@ const aula = (
   titulo: string,
   duracaoSeg: number,
   descricao = ""
-): AulaDaPagina => ({
+) => ({
   assistida: false,
   descricao,
   duracaoSeg,
@@ -100,7 +100,7 @@ const material = (
   titulo: string,
   tipo: MaterialDaPagina["tipo"],
   bytes: number
-): MaterialDaPagina => {
+) => {
   const idDoMaterial =
     `00000000-0000-4000-9000-${String(n).padStart(12, "0")}` as MaterialId;
 

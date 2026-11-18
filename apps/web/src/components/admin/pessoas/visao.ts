@@ -18,7 +18,7 @@ const umTexto = (v: string | string[] | undefined) =>
 export function visaoDe(busca: {
   perfil?: string | string[];
   ver?: string | string[];
-}): VisaoDePessoas {
+}) {
   if (umTexto(busca.ver) === CONVIDADOS) {
     return { tipo: "convidados" };
   }
@@ -29,9 +29,7 @@ export function visaoDe(busca: {
 }
 
 /** Os parâmetros que guardam a visão na URL, sem a busca. */
-export function camposDaVisao(
-  visao: VisaoDePessoas
-): Record<string, string> | undefined {
+export function camposDaVisao(visao: VisaoDePessoas) {
   switch (visao.tipo) {
     case "todos":
       return;
@@ -45,7 +43,7 @@ export function camposDaVisao(
 }
 
 /** O único lugar que monta /admin/pessoas?... */
-export function hrefDaVisao(visao: VisaoDePessoas, termo: string): Route {
+export function hrefDaVisao(visao: VisaoDePessoas, termo: string) {
   const busca = new URLSearchParams(camposDaVisao(visao));
 
   if (termo) {

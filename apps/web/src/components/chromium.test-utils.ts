@@ -101,7 +101,7 @@ export type Enviar = (
   params?: Record<string, unknown>
 ) => Promise<Record<string, unknown>>;
 
-export async function abrirChromium(prefixo: string): Promise<Enviar> {
+export async function abrirChromium(prefixo: string) {
   const perfil = mkdtempSync(join(tmpdir(), `${prefixo}-`));
   limpezas.push(() => rmSync(perfil, { force: true, recursive: true }));
 

@@ -19,7 +19,7 @@ export function rolagemDaColuna({
   alturaDoConteudo,
   alturaVisivel,
   topoDaAula,
-}: MedidasDaColuna): number | null {
+}: MedidasDaColuna) {
   const maximo = alturaDoConteudo - alturaVisivel;
 
   if (maximo <= 0) {
@@ -44,7 +44,7 @@ export function centrarAAulaAtual(
   coluna: HTMLElement,
   calcular: (medidas: MedidasDaColuna) => number | null,
   quadros = 300
-): void {
+) {
   if (coluna.getClientRects().length === 0) {
     if (quadros > 0) {
       requestAnimationFrame(() =>

@@ -67,7 +67,7 @@ type Fase =
       resultado: ResultadoDoQuestionario;
     };
 
-const novaTentativa = (focar: boolean): Fase => ({
+const novaTentativa = (focar: boolean) => ({
   falhou: false,
   focar,
   marcadas: {},
@@ -75,7 +75,7 @@ const novaTentativa = (focar: boolean): Fase => ({
   tipo: "respondendo",
 });
 
-const faseInicial = (q: Questionario): Fase =>
+const faseInicial = (q: Questionario) =>
   q.ultima
     ? {
         concluiuOCurso: false,
@@ -189,7 +189,7 @@ const ETIQUETA: Record<Veredito, string | null> = {
 function vereditoDe(
   alternativaId: AlternativaId,
   resposta: RespostaCorrigida | undefined
-): Veredito {
+) {
   if (resposta?.alternativaId === alternativaId) {
     return resposta.certa ? "certa" : "errada";
   }

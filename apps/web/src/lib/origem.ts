@@ -4,7 +4,7 @@
  * admin.catalogo.salvarCurso, então o multipart só passa vindo da própria origem.
  * JSON exige preflight, e o CORS já o barra.
  */
-export function recusaDeOrigem(req: Request, origem: string): Response | null {
+export function recusaDeOrigem(req: Request, origem: string) {
   const multipart = req.headers
     .get("content-type")
     ?.startsWith("multipart/form-data");

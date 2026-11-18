@@ -51,10 +51,7 @@ export const LOTE_VAZIO: EstadoDoLote = {
   marcadas: [],
 };
 
-function doServidor(
-  resultado: ResultadoDoLote,
-  userId: string
-): LiberacaoNaPessoa {
+function doServidor(resultado: ResultadoDoLote, userId: string) {
   const r = resultado.pessoas.find((p) => p.userId === userId);
 
   if (!r) {
@@ -64,7 +61,7 @@ function doServidor(
   return r;
 }
 
-export function lote(estado: EstadoDoLote, e: EventoDoLote): EstadoDoLote {
+export function lote(estado: EstadoDoLote, e: EventoDoLote) {
   switch (e.tipo) {
     case "marcar":
       return estado.marcadas.some((p) => p.userId === e.pessoa.userId)
@@ -134,7 +131,7 @@ export type ProntoParaLiberar =
   | { tipo: "falta_curso" }
   | { sobram: number; tipo: "passou_do_teto" };
 
-export function prontoParaLiberar(estado: EstadoDoLote): ProntoParaLiberar {
+export function prontoParaLiberar(estado: EstadoDoLote) {
   const { fase, marcadas } = estado;
 
   if (marcadas.length === 0) {
@@ -192,7 +189,7 @@ export function resumoDoResultado(linhas: readonly LinhaDoResultado[]) {
     .join(", ");
 }
 
-export function detalheDoResultado(l: LinhaDoResultado, hoje: DiaISO): string {
+export function detalheDoResultado(l: LinhaDoResultado, hoje: DiaISO) {
   const { liberacao, pessoa } = l;
 
   switch (liberacao.tipo) {
@@ -213,10 +210,7 @@ export function detalheDoResultado(l: LinhaDoResultado, hoje: DiaISO): string {
   }
 }
 
-export function jaTem(
-  pessoa: PessoaComSituacao,
-  curso: CursoDoLote | null
-): string | null {
+export function jaTem(pessoa: PessoaComSituacao, curso: CursoDoLote | null) {
   // O curso aberto ao perfil ainda se libera à pessoa: a liberação dela fica se o perfil mudar.
   const ativa = curso
     ? pessoa.ativas.find((l) => l.cursoId === curso.id && l.origem !== "perfil")

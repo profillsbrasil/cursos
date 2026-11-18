@@ -68,7 +68,7 @@ function proximoPassoDoCursoMaisPerto(c: CursoPerto) {
   return `${faltam(resta)} ${plural(resta, "aula", "aulas")} em ${c.curso}.`;
 }
 
-function primeiraAula(m: PorGanhar<MedalhaDo<"primeira_aula">>): Frases {
+function primeiraAula(m: PorGanhar<MedalhaDo<"primeira_aula">>) {
   const p = m.proxima;
   const verbo = p?.tipo === "continuar" ? "Termine" : "Comece por";
 
@@ -80,7 +80,7 @@ function primeiraAula(m: PorGanhar<MedalhaDo<"primeira_aula">>): Frases {
   };
 }
 
-const primeiraTroca = (m: PorGanhar<MedalhaDo<"primeira_troca">>): Frases => ({
+const primeiraTroca = (m: PorGanhar<MedalhaDo<"primeira_troca">>) => ({
   detalhe: `Cada aula vale ${fmtPts(m.pontosPorAula)}.`,
   falta:
     m.maisBarato === null
@@ -88,7 +88,7 @@ const primeiraTroca = (m: PorGanhar<MedalhaDo<"primeira_troca">>): Frases => ({
       : `O curso mais barato custa ${fmtPts(m.maisBarato)}.`,
 });
 
-const primeiroCurso = (m: PorGanhar<MedalhaDo<"primeiro_curso">>): Frases => ({
+const primeiroCurso = (m: PorGanhar<MedalhaDo<"primeiro_curso">>) => ({
   detalhe:
     "O certificado sai com todas as aulas assistidas e todos os questionários aprovados.",
   falta: m.maisPerto
@@ -96,7 +96,7 @@ const primeiroCurso = (m: PorGanhar<MedalhaDo<"primeiro_curso">>): Frases => ({
     : "Conclua um curso e receba o certificado.",
 });
 
-const tresTrocas = (m: Contagem): Frases => {
+const tresTrocas = (m: Contagem) => {
   const resta = m.total - m.feitas;
 
   return {
@@ -105,7 +105,7 @@ const tresTrocas = (m: Contagem): Frases => {
   };
 };
 
-const amostraETroca = (m: PorGanhar<MedalhaDo<"amostra_e_troca">>): Frases =>
+const amostraETroca = (m: PorGanhar<MedalhaDo<"amostra_e_troca">>) =>
   m.amostraVista === null
     ? {
         detalhe:
@@ -117,7 +117,7 @@ const amostraETroca = (m: PorGanhar<MedalhaDo<"amostra_e_troca">>): Frases =>
         falta: `Falta trocar ${m.amostraVista}.`,
       };
 
-function trocaAteOFim(m: PorGanhar<MedalhaDo<"troca_ate_o_fim">>): Frases {
+function trocaAteOFim(m: PorGanhar<MedalhaDo<"troca_ate_o_fim">>) {
   const detalhe = "O certificado de um curso que você trocou fecha a medalha.";
   const c = m.maisAdiantado;
 
@@ -134,7 +134,7 @@ function trocaAteOFim(m: PorGanhar<MedalhaDo<"troca_ate_o_fim">>): Frases {
   };
 }
 
-const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>): Frases =>
+const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>) =>
   m.melhor
     ? {
         detalhe:
@@ -146,7 +146,7 @@ const notaCheia = (m: PorGanhar<MedalhaDo<"nota_cheia">>): Frases =>
         falta: "Acerte todas as perguntas na primeira tentativa.",
       };
 
-const tresCursos = (m: Contagem): Frases => {
+const tresCursos = (m: Contagem) => {
   const resta = m.total - m.feitas;
 
   return {
@@ -155,12 +155,12 @@ const tresCursos = (m: Contagem): Frases => {
   };
 };
 
-const milPontos = (m: Contagem): Frases => ({
+const milPontos = (m: Contagem) => ({
   detalhe: "Bônus e pontos do admin não contam.",
   falta: `${fmtNum(m.feitas)} de ${fmtPts(m.total)}.`,
 });
 
-function frases(m: MedalhaDaGrade): Frases {
+function frases(m: MedalhaDaGrade) {
   const p = m.medalha;
 
   if (p.estado === "ganha") {
@@ -196,7 +196,7 @@ function frases(m: MedalhaDaGrade): Frases {
   }
 }
 
-export function linhaDaGrade(m: MedalhaDaGrade): LinhaDaGrade {
+export function linhaDaGrade(m: MedalhaDaGrade) {
   const base = { nome: NOME[m.tipo], tipo: m.tipo };
 
   return m.medalha.estado === "ganha"
@@ -211,10 +211,7 @@ const peloNome = (a: { nome: string }, b: { nome: string }) =>
  * As ganhas pela data, as por ganhar da maior porcentagem para a menor; o
  * empate vai pelo nome.
  */
-export function gradeDasMedalhas(medalhas: readonly MedalhaDaGrade[]): {
-  ganhas: Extract<LinhaDaGrade, { estado: "ganha" }>[];
-  porGanhar: Extract<LinhaDaGrade, { estado: "por_ganhar" }>[];
-} {
+export function gradeDasMedalhas(medalhas: readonly MedalhaDaGrade[]) {
   const linhas = medalhas.map(linhaDaGrade);
 
   return {
@@ -231,7 +228,7 @@ export const contagemDaGrade = (medalhas: readonly MedalhaDaGrade[]) =>
   `${fmtNum(ganhas(medalhas.map((m) => m.medalha)))} de ${fmtNum(medalhas.length)}`;
 
 /** O cartão Ganhas sem nenhuma: a primeira vem com a primeira aula. */
-export function semGanha(medalhas: readonly MedalhaDaGrade[]): string {
+export function semGanha(medalhas: readonly MedalhaDaGrade[]) {
   const aula = medalhas.find((m) => m.tipo === "primeira_aula");
 
   const passo =
@@ -251,10 +248,7 @@ export interface DegrauDaTrilha {
  * As três medalhas de aulas como uma trilha. Toda medalha por ganhar conta as
  * mesmas aulas; com as três ganhas, a trilha para na última meta.
  */
-export function trilhaDeAulas(marcos: readonly Marco[]): {
-  degraus: DegrauDaTrilha[];
-  feitas: number;
-} {
+export function trilhaDeAulas(marcos: readonly Marco[]) {
   const degraus = marcos.flatMap((m) =>
     m.tipo === "aulas" ? [{ medalha: m.medalha, meta: m.meta }] : []
   );
@@ -276,7 +270,7 @@ const proximoDegrau = (degraus: readonly DegrauDaTrilha[]) =>
 export function tituloDaTrilha(
   feitas: number,
   degraus: readonly DegrauDaTrilha[]
-): [string, string] {
+) {
   const proximo = proximoDegrau(degraus);
 
   if (!proximo) {
@@ -374,7 +368,7 @@ export const emitidoEm = (
 const ganhas = (xs: readonly { estado: string }[]) =>
   xs.filter((x) => x.estado === "ganha").length;
 
-export function contagemDasMedalhas(c: Conquistas): string {
+export function contagemDasMedalhas(c: Conquistas) {
   const todas = [...c.marcos, ...c.medalhas].map((m) => m.medalha);
   const n = ganhas(todas) + ganhas(c.certificados);
   const total = todas.length + c.certificados.length;

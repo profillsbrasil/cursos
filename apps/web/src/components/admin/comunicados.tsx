@@ -55,7 +55,7 @@ const TODOS_OS_ALUNOS: ItemDaSelecao = {
   valor: "",
 };
 
-function paraQuem(cursos: readonly CursoDoComunicado[]): ItemDaSelecao[] {
+function paraQuem(cursos: readonly CursoDoComunicado[]) {
   return cursos.length > 0
     ? [
         TODOS_OS_ALUNOS,

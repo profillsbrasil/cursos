@@ -87,7 +87,7 @@ export function mmss(seg: number) {
 const MM_SS = /^(\d+):([0-5]\d)$/;
 const H_MM_SS = /^(\d+):([0-5]\d):([0-5]\d)$/;
 
-export function duracaoDoTexto(texto: string): number | null {
+export function duracaoDoTexto(texto: string) {
   const s = texto.trim();
   const curta = MM_SS.exec(s);
   const longa = H_MM_SS.exec(s);

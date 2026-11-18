@@ -12,7 +12,7 @@ const IMPORTACAO =
 
 const SO_TIPOS = /^\{([^}]*)\}$/;
 
-function resolver(de: string, especificador: string): string | null {
+function resolver(de: string, especificador: string) {
   let base: string | null = null;
 
   if (especificador.startsWith(".")) {
@@ -46,7 +46,7 @@ const soTipos = (clausula: string) => {
   );
 };
 
-function caminhoAteOZod(arquivo: string, visto: Set<string>): string[] | null {
+function caminhoAteOZod(arquivo: string, visto: Set<string>) {
   if (visto.has(arquivo)) {
     return null;
   }
@@ -76,7 +76,7 @@ function caminhoAteOZod(arquivo: string, visto: Set<string>): string[] | null {
   return null;
 }
 
-function grafo(arquivo: string, visto = new Set<string>()): Set<string> {
+function grafo(arquivo: string, visto = new Set<string>()) {
   if (visto.has(arquivo)) {
     return visto;
   }

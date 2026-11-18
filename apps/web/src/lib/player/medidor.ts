@@ -21,17 +21,17 @@ const FOLGA_MIN_SEG = 1;
 const FOLGA_PROPORCIONAL = 0.25;
 const RECUO_TOLERADO_SEG = 0.25;
 
-const abrir = (a: Amostra): Medidor => ({
+const abrir = (a: Amostra) => ({
   aberto: { inicioSeg: a.videoSeg, ultima: a },
 });
 
-const trechoAte = (inicioSeg: number, fimSeg: number): Trecho[] => {
+const trechoAte = (inicioSeg: number, fimSeg: number) => {
   const t = quantizar(inicioSeg, fimSeg);
 
   return t ? [t] : [];
 };
 
-export function amostrar(m: Medidor, a: Amostra): Medida {
+export function amostrar(m: Medidor, a: Amostra) {
   if (!m.aberto) {
     return { medidor: abrir(a), trechos: [] };
   }
@@ -54,14 +54,14 @@ export function amostrar(m: Medidor, a: Amostra): Medida {
   return { medidor: { aberto: { inicioSeg, ultima: a } }, trechos: [] };
 }
 
-export const fechar = (m: Medidor): Medida => ({
+export const fechar = (m: Medidor) => ({
   medidor: MEDIDOR_PARADO,
   trechos: m.aberto
     ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg)
     : [],
 });
 
-export function cortar(m: Medidor): Medida {
+export function cortar(m: Medidor) {
   if (!m.aberto) {
     return { medidor: m, trechos: [] };
   }
@@ -75,5 +75,5 @@ export function cortar(m: Medidor): Medida {
   };
 }
 
-export const trechoAberto = (m: Medidor): readonly Trecho[] =>
+export const trechoAberto = (m: Medidor) =>
   m.aberto ? trechoAte(m.aberto.inicioSeg, m.aberto.ultima.videoSeg) : [];

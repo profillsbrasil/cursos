@@ -5,7 +5,7 @@ import { ENV } from "./env.server";
 import { clerk, servicos } from "./services";
 
 /** Context do route.ts do tRPC. O papel sai de contextoDe, a mesma leitura de server/api.ts. */
-export async function createContext(req: NextRequest): Promise<Context> {
+export async function createContext(req: NextRequest) {
   const estado = await clerk.authenticateRequest(req, {
     authorizedParties: [ENV.CORS_ORIGIN],
   });

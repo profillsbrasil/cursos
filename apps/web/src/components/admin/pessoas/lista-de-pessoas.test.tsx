@@ -21,7 +21,7 @@ const pessoa = (
   doCadastro: boolean,
   papel: PessoaNaLista["papel"] = "aluno",
   saldo = 0
-): PessoaNaLista => ({
+) => ({
   email: `${nome.toLowerCase()}@example.com`,
   foto: null,
   nome,

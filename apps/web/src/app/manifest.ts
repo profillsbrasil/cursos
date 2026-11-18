@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { PRODUTO } from "@/lib/marca";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default function manifest() {
   return {
     background_color: "#1A1D22",
     description:

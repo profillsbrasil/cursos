@@ -59,7 +59,7 @@ function textos(r: Retomada) {
 }
 
 /** null: sem retomada ("Tudo em dia" no banner), e o rodapé não desenha o cartão. */
-export function continuarDe(retomada: Retomada | null): Continuar | null {
+export function continuarDe(retomada: Retomada | null) {
   if (!retomada) {
     return null;
   }
@@ -83,7 +83,7 @@ export interface AcaoDaRetomada {
   texto: string;
 }
 
-export function acaoDaRetomada(retomada: Retomada | null): AcaoDaRetomada {
+export function acaoDaRetomada(retomada: Retomada | null) {
   if (!retomada) {
     return { href: "/meus-cursos", icone: null, texto: "Ver Meus cursos" };
   }

@@ -76,7 +76,7 @@ const problemas = (r: RascunhoDoCurso) => {
 
 const V1 = "v1" as Versao;
 
-const documento = (o: Partial<DocumentoDoCurso> = {}): DocumentoDoCurso => ({
+const documento = (o: Partial<DocumentoDoCurso> = {}) => ({
   ...documentoDeExemplo(V1),
   ...o,
 });
@@ -86,7 +86,7 @@ const editor = (d: DocumentoDoCurso = documento()) => rascunhoDoEditorEm(d);
 const fazer = (e: RascunhoDoEditor, ...acoes: AcaoDoEditor[]) =>
   acoes.reduce(rascunhoDoEditor, e);
 
-const envioDe = (e: RascunhoDoEditor): Envio => {
+const envioDe = (e: RascunhoDoEditor) => {
   const { envio } = telaDo(e);
 
   if (envio === null) {
@@ -104,7 +104,7 @@ const blocos = (e: RascunhoDoEditor) => {
 
 const estados = (e: RascunhoDoEditor) => blocos(e).map((b) => b.tipo);
 
-const saiu = (id: string): AcaoDoEditor => ({ id, tipo: "saiu_do_campo" });
+const saiu = (id: string) => ({ id, tipo: "saiu_do_campo" });
 
 /** A aula que o painel do primeiro módulo mostra e a pergunta da aula pedida. */
 const painel = (e: RascunhoDoEditor, aulaId: AulaId) => {
@@ -729,7 +729,7 @@ describe("questionário da aula", () => {
     aulaId: AulaId,
     id: PerguntaId,
     alternativas: [AlternativaId, AlternativaId]
-  ): Mudanca => ({ alternativas, aulaId, id, tipo: "pergunta_nova" });
+  ) => ({ alternativas, aulaId, id, tipo: "pergunta_nova" });
 
   const perguntas = (r: RascunhoDoCurso) => aula(r, A1)?.perguntas ?? [];
 
@@ -1047,23 +1047,24 @@ describe("o rascunho apoiado na página", () => {
   const V2 = "v2" as Versao;
   const V3 = "v3" as Versao;
 
-  const digitar = (titulo: string): Mudanca => ({
+  const digitar = (titulo: string) => ({
     mudanca: { titulo },
     tipo: "campos",
   });
 
-  const salvo = (e: RascunhoDoEditor, versao: Versao = V2): AcaoDoEditor => ({
+  const salvo = (e: RascunhoDoEditor, versao: Versao = V2) => ({
     envio: envioDe(e),
     tipo: "salvo",
     versao,
   });
 
-  const recusado = (
-    e: RascunhoDoEditor,
-    motivo: Motivo | null
-  ): AcaoDoEditor => ({ envio: envioDe(e), motivo, tipo: "recusado" });
+  const recusado = (e: RascunhoDoEditor, motivo: Motivo | null) => ({
+    envio: envioDe(e),
+    motivo,
+    tipo: "recusado",
+  });
 
-  const pagina = (p: DocumentoDoCurso): AcaoDoEditor => ({
+  const pagina = (p: DocumentoDoCurso) => ({
     pagina: p,
     tipo: "pagina",
   });

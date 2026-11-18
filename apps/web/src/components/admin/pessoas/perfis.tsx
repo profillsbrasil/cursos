@@ -63,7 +63,7 @@ export const ehPerfil = (texto: unknown): texto is Perfil =>
  * Perfil não é estado: contorno sem cor, como o selo de categoria. O perfil do
  * cadastro, ainda sem linha no banco e fora dos filtros, vem tracejado e apagado.
  */
-export const seloDoPerfil = ({ doCadastro, perfil }: PerfilNaTela): Selo => ({
+export const seloDoPerfil = ({ doCadastro, perfil }: PerfilNaTela) => ({
   classe: doCadastro
     ? "border-dashed border-muted-foreground bg-transparent text-muted-foreground"
     : "bg-transparent text-foreground ring-1 ring-muted-foreground ring-inset",

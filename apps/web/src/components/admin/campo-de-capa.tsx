@@ -30,7 +30,7 @@ import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];
 
-function mensagem(r: RecusaDaCapa, arquivo: File): string {
+function mensagem(r: RecusaDaCapa, arquivo: File) {
   switch (r.tipo) {
     case "formato":
       return "Use uma imagem JPG, PNG ou WebP.";
@@ -55,9 +55,7 @@ interface Medida {
   largura: number;
 }
 
-async function conferir(
-  arquivo: File
-): Promise<{ medida: Medida } | { erro: string }> {
+async function conferir(arquivo: File) {
   if (!TIPOS.includes(arquivo.type)) {
     return { erro: mensagem({ tipo: "formato" }, arquivo) };
   }
@@ -101,10 +99,7 @@ const VAZIO: EstadoDaCapa = { erro: null, escolhida: null };
  * O campo zera quando o editor deixa de guardar o arquivo que ele mostra, como
  * depois do salvar que o enviou. O recomeço do editor o remonta pela key.
  */
-export const capaNoCampo = (
-  e: EstadoDaCapa,
-  arquivo: File | null
-): EstadoDaCapa =>
+export const capaNoCampo = (e: EstadoDaCapa, arquivo: File | null) =>
   e.escolhida !== null && e.escolhida.arquivo !== arquivo ? VAZIO : e;
 
 const AREA_DA_CAPA =

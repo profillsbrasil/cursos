@@ -16,7 +16,7 @@ export interface RefreshDaSaida extends Ligacoes {
  */
 export function criarRefreshDaSaida(
   deps: Ligacoes & { pedirRefresh: () => void }
-): RefreshDaSaida {
+) {
   let gravouSemRefresh = false;
 
   return {
@@ -49,7 +49,7 @@ export function criarRefreshDaSaida(
  */
 export function ligarRefreshDaSaida(
   deps: DependenciasDaSessao & { pedirRefresh: () => void }
-): { aoEncerrar: RefreshDaSaida["aoEncerrar"]; sessao: DependenciasDaSessao } {
+) {
   const { pedirRefresh, ...daSessao } = deps;
 
   const saida = criarRefreshDaSaida({

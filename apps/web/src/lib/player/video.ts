@@ -45,7 +45,7 @@ export function criarPlayerDeVideo(
   video: VideoDaAula,
   elemento: HTMLElement,
   opcoes: OpcoesDoPlayer
-): PlayerDeVideo {
+) {
   switch (video.provedor) {
     case "youtube":
       return criarPlayerDoYoutube(video.id, elemento, opcoes);

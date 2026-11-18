@@ -25,10 +25,7 @@ const texto = (html: string) =>
 
 const CAPA = { alt: "Capa", altura: 604, largura: 900, url: "/capas/x.jpg" };
 
-const curso = (
-  titulo: string,
-  extra: Partial<CursoNaVisao> = {}
-): CursoNaVisao => ({
+const curso = (titulo: string, extra: Partial<CursoNaVisao> = {}) => ({
   aulas: 0,
   capa: CAPA,
   categoria: "Vendas e negócios",

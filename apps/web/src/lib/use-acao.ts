@@ -33,7 +33,7 @@ export async function rodarAcao<T>(
   fazer: () => Promise<T>,
   opcoes: OpcoesDaAcao<T>,
   efeitos: Efeitos
-): Promise<void> {
+) {
   try {
     const r = await fazer();
 
@@ -73,7 +73,7 @@ export interface Acao {
  * O caminho das mutações que a pessoa dispara: a chamada roda numa transition,
  * e `pendente` vale até a página recarregada aparecer.
  */
-export function useAcao(): Acao {
+export function useAcao() {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
 

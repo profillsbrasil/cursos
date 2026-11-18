@@ -14,9 +14,7 @@ export interface ContaParaEntrar {
   passwordEnabled: boolean;
 }
 
-export const contaDoGoogle = <C extends ContaParaEntrar>(
-  c: C
-): C["externalAccounts"][number] | null =>
+export const contaDoGoogle = <C extends ContaParaEntrar>(c: C) =>
   c.externalAccounts.find((a) => a.provider === "google") ?? null;
 
 /**
@@ -24,7 +22,7 @@ export const contaDoGoogle = <C extends ContaParaEntrar>(
  * e-mail confirmado que não veio do Google, que recebe o código de entrada.
  * O e-mail ligado à conta do Google pode sair junto com ela.
  */
-export function podeDesconectarOGoogle(c: ContaParaEntrar): boolean {
+export function podeDesconectarOGoogle(c: ContaParaEntrar) {
   const google = contaDoGoogle(c);
 
   if (!google) {

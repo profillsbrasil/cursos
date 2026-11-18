@@ -8,7 +8,7 @@ describe("capaNoCampo: quando o campo da capa zera", () => {
   const foto = new File(["a"], "capa.jpg", { type: "image/jpeg" });
   const outra = new File(["b"], "outra.png", { type: "image/png" });
 
-  const com = (arquivo: File): EstadoDaCapa => ({
+  const com = (arquivo: File) => ({
     erro: null,
     escolhida: {
       arquivo,

@@ -93,22 +93,14 @@ const MARCOS_SEM_TITULO_A_VISTA =
 
 const PILULA_VOCE = /<b class="([^"]*)" data-voce="true" style="([^"]*)"/;
 
-const comMarco = (
-  base: Conquistas,
-  i: number,
-  medalha: object
-): Conquistas => ({
+const comMarco = (base: Conquistas, i: number, medalha: object) => ({
   ...base,
   marcos: base.marcos.map((m, j) =>
     j === i ? ({ ...m, medalha } as (typeof base.marcos)[number]) : m
   ),
 });
 
-const comMedalha = (
-  base: Conquistas,
-  tipo: string,
-  medalha: object
-): Conquistas => ({
+const comMedalha = (base: Conquistas, tipo: string, medalha: object) => ({
   ...base,
   medalhas: base.medalhas.map((m) =>
     m.tipo === tipo ? ({ ...m, medalha } as (typeof base.medalhas)[number]) : m

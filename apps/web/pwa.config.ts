@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-export function withPwa(config: NextConfig): NextConfig {
+export function withPwa(config: NextConfig) {
   // Static exports need these headers configured at the hosting layer.
   if (config.output === "export") {
     return config;

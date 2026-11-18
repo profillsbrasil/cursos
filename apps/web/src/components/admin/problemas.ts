@@ -12,7 +12,7 @@ export interface Problema {
 
 export type Problemas = readonly [Problema, ...Problema[]];
 
-export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
+export function mensagemDoTexto(i: z.core.$ZodIssue) {
   if (i.code === "too_small" && i.origin === "string") {
     return "Preencha este campo.";
   }
@@ -32,7 +32,7 @@ export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
 export const fraseDeReserva = (caminho: readonly PropertyKey[]) =>
   `O curso tem um valor que o servidor recusa (${caminho.map(String).join(".") || "documento"}). Recarregue a página e tente de novo.`;
 
-export function semRepetir([primeiro, ...resto]: Problemas): Problemas {
+export function semRepetir([primeiro, ...resto]: Problemas) {
   const chave = (p: Problema) => p.campo ?? `frase:${p.mensagem}`;
   const vistos = new Set([chave(primeiro)]);
 
@@ -54,9 +54,7 @@ export const naoVazia = (
   problemas: readonly Problema[]
 ): problemas is Problemas => problemas.length > 0;
 
-export const errosPorCampo = (
-  problemas: readonly Problema[]
-): ReadonlyMap<string, string> =>
+export const errosPorCampo = (problemas: readonly Problema[]) =>
   new Map(
     problemas.flatMap((p) => (p.campo ? [[p.campo, p.mensagem] as const] : []))
   );

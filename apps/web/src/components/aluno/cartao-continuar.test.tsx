@@ -46,7 +46,7 @@ const QUESTIONARIO_FORA_DA_AULA: Continuar = {
 };
 
 // O use() lê na hora uma Promise marcada como cumprida, sem suspender.
-function cumprida<T>(valor: T): Promise<T> {
+function cumprida<T>(valor: T) {
   return Object.assign(Promise.resolve(valor), {
     status: "fulfilled",
     value: valor,

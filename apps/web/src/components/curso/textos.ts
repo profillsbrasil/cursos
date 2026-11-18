@@ -18,7 +18,7 @@ import {
 } from "@/lib/formato";
 import { caminhoDoCertificado } from "@/lib/rotas";
 
-export const paragrafos = (descricao: string): string[] =>
+export const paragrafos = (descricao: string) =>
   descricao
     .split("\n")
     .map((p) => p.trim())
@@ -30,7 +30,7 @@ const aulasDe = (modulos: readonly ModuloDaPagina[]) =>
 const duracaoDe = (aulas: readonly AulaDaPagina[]) =>
   aulas.reduce((soma, a) => soma + a.duracaoSeg, 0);
 
-export function resumoDoCurso(p: PaginaDoCurso): string[] {
+export function resumoDoCurso(p: PaginaDoCurso) {
   const aulas = aulasDe(p.modulos);
 
   const partes = [
@@ -46,7 +46,7 @@ export function resumoDoCurso(p: PaginaDoCurso): string[] {
   return partes;
 }
 
-export function tempoDaPosicao(seg: number): string {
+export function tempoDaPosicao(seg: number) {
   const s = Math.max(0, Math.floor(seg));
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -55,10 +55,10 @@ export function tempoDaPosicao(seg: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
-export const aulaAtual = (p: PaginaDoCurso): AulaId | null =>
+export const aulaAtual = (p: PaginaDoCurso) =>
   p.acao.tipo === "continuar" ? p.acao.aulaId : null;
 
-export const parouEm = (p: PaginaDoCurso): string | null =>
+export const parouEm = (p: PaginaDoCurso) =>
   p.acao.tipo === "continuar" && p.acao.posicaoSeg > 0
     ? `Você parou em ${tempoDaPosicao(p.acao.posicaoSeg)}`
     : null;
@@ -76,7 +76,7 @@ const questionariosPendentes = (m: ModuloDaPagina) =>
  * Os módulos abertos de saída: todos até 3; acima, o da aula de começar ou
  * continuar, ou, com as aulas assistidas, os que ainda devem questionário.
  */
-export function abertosDeSaida(p: PaginaDoCurso): number[] {
+export function abertosDeSaida(p: PaginaDoCurso) {
   if (p.modulos.length <= ATE_TODOS_ABERTOS) {
     return p.modulos.map((m) => m.numero);
   }
@@ -101,10 +101,7 @@ export function abertosDeSaida(p: PaginaDoCurso): number[] {
 export type MarcaDoModulo = "feito" | "atual" | "pendente" | "questionario";
 
 /** Com as aulas do módulo assistidas, o que falta é o questionário de alguma delas. */
-export function marcaDoModulo(
-  m: ModuloDaPagina,
-  atual: AulaId | null
-): MarcaDoModulo {
+export function marcaDoModulo(m: ModuloDaPagina, atual: AulaId | null) {
   if (m.aulas.length > 0 && m.aulas.every((a) => a.assistida)) {
     return questionariosPendentes(m) > 0 ? "questionario" : "feito";
   }
@@ -112,10 +109,7 @@ export function marcaDoModulo(
   return m.aulas.some((a) => a.id === atual) ? "atual" : "pendente";
 }
 
-export function linhasDoModulo(
-  m: ModuloDaPagina,
-  comecou: boolean
-): { direita: string | null; questionarios: string | null; sob: string } {
+export function linhasDoModulo(m: ModuloDaPagina, comecou: boolean) {
   if (m.aulas.length === 0) {
     return { direita: null, questionarios: null, sob: "Nenhuma aula ainda" };
   }
@@ -143,9 +137,7 @@ export function linhasDoModulo(
 }
 
 /** O selo da aula no índice de livro, quando o questionário dela ainda falta. */
-export function seloDoQuestionario(
-  a: AulaDaPagina
-): { tipo: "a_fazer" | "reprovado"; texto: string } | null {
+export function seloDoQuestionario(a: AulaDaPagina) {
   switch (a.questionario.tipo) {
     case "reprovado":
       return {
@@ -171,10 +163,7 @@ export const aulasAssistidas = ({
  * A barra do cartão: as aulas assistidas e, com todas assistidas e questionário
  * por aprovar, os questionários aprovados.
  */
-export function progressoDoCartao(p: PaginaDoCurso): {
-  linha: string;
-  progresso: Progresso;
-} {
+export function progressoDoCartao(p: PaginaDoCurso) {
   if (p.acao.tipo === "questionario") {
     const { questionarios } = p.acao;
 
@@ -230,7 +219,7 @@ const CERTIFICADO_NO_FIM: LinhaDoCartao = {
   texto: "Certificado no fim do curso",
 };
 
-function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
+function linhaDosNiveis(p: PaginaDoCurso) {
   if (p.proximoNivel) {
     return [{ icone: "nivel", texto: `Próximo nível: ${p.proximoNivel.nome}` }];
   }
@@ -247,7 +236,7 @@ function linhaDosNiveis(p: PaginaDoCurso): LinhaDoCartao[] {
   return [];
 }
 
-export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
+export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO) {
   const { acao } = p;
 
   switch (acao.tipo) {

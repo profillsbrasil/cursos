@@ -24,7 +24,7 @@ export interface Ficha {
 }
 
 /** As fichas com o texto colado ou digitado, sem repetir e-mail nem pedaço ruim. */
-export function fichasCom(fichas: readonly Ficha[], texto: string): Ficha[] {
+export function fichasCom(fichas: readonly Ficha[], texto: string) {
   const lido = lerEmails(texto);
   const ja = new Set(fichas.map((f) => f.email ?? f.texto));
 
@@ -47,7 +47,7 @@ export type EnvioDasFichas =
 export function envioDasFichas(
   fichas: readonly Ficha[],
   cursosMarcados: number
-): EnvioDasFichas {
+) {
   const emails = fichas.flatMap((f) => f.email ?? []);
 
   const rotulo =
@@ -99,7 +99,7 @@ export function envioDasFichas(
 export function anuncioDasFichas(
   fichas: readonly Ficha[],
   envio: EnvioDasFichas
-): string {
+) {
   if (fichas.length === 0) {
     return "Nenhum e-mail escrito.";
   }
@@ -110,7 +110,7 @@ export function anuncioDasFichas(
 }
 
 /** A frase da ficha que não saiu. O `enviado` não chega aqui: a ficha dele some. */
-export function fraseDoResultado(r: ResultadoDoConvite): string {
+export function fraseDoResultado(r: ResultadoDoConvite) {
   switch (r.tipo) {
     case "enviado":
       return "Convite enviado.";
@@ -130,7 +130,7 @@ export function fraseDoResultado(r: ResultadoDoConvite): string {
 }
 
 /** O toast do envio: "3 convites enviados", ou "" quando nenhum saiu. */
-export function textoDoEnvio(r: ResultadoDoEnvio): string {
+export function textoDoEnvio(r: ResultadoDoEnvio) {
   const enviados = r.convites.filter((c) => c.tipo === "enviado").length;
 
   if (enviados === 0) {
@@ -149,7 +149,7 @@ const NEUTRO = "bg-popover text-foreground";
 const CONTORNO_APAGADO =
   "bg-transparent text-muted-foreground ring-1 ring-muted-foreground ring-inset";
 
-export function seloDoConvidado(estado: ConvidadoNaTela["estado"]): Selo {
+export function seloDoConvidado(estado: ConvidadoNaTela["estado"]) {
   switch (estado.tipo) {
     case "pendente":
       return { classe: SOL_SUAVE, icone: Clock, rotulo: "Pendente" };
@@ -163,7 +163,7 @@ export function seloDoConvidado(estado: ConvidadoNaTela["estado"]): Selo {
 }
 
 /** A linha sob o e-mail do convidado: o dia do envio, do vencimento ou do convite. */
-export function quandoDoConvidado(c: ConvidadoNaTela, hoje: string): string {
+export function quandoDoConvidado(c: ConvidadoNaTela, hoje: string) {
   switch (c.estado.tipo) {
     case "pendente":
       return `Enviado ${noDia(c.estado.enviadoEm, hoje)}`;
@@ -177,7 +177,7 @@ export function quandoDoConvidado(c: ConvidadoNaTela, hoje: string): string {
 }
 
 /** "Nenhum curso", o título do único curso ou "3 cursos". */
-export function cursosDoConvidado(cursos: ConvidadoNaTela["cursos"]): string {
+export function cursosDoConvidado(cursos: ConvidadoNaTela["cursos"]) {
   const [unico] = cursos;
 
   if (!unico) {
@@ -194,7 +194,7 @@ export function contagemDeConvidados(
   mostrados: number,
   total: number,
   termo: string
-): string {
+) {
   if (termo) {
     return `${plural(mostrados, "convidado", "convidados")} para "${termo}"`;
   }

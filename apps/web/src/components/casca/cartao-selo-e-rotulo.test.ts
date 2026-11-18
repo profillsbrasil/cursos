@@ -12,7 +12,7 @@ const SRC = join(import.meta.dir, "../..");
 const FUNDO_DO_CARTAO = /\sbg-card[\s/"]/;
 const DEFINE_ROTULO = /export const ROTULO\b/;
 
-function linhasQue(casa: (linha: string) => boolean, dono: string): string[] {
+function linhasQue(casa: (linha: string) => boolean, dono: string) {
   return [...new Glob("**/*.{ts,tsx}").scanSync(SRC)]
     .filter((a) => !(a.includes(".test.") || a === dono))
     .flatMap((a) =>
@@ -27,7 +27,7 @@ const tem = (linha: string, ...classes: string[]) =>
     new RegExp(`(^|[\\s"'\`])${escapar(c)}($|[\\s"'\`])`).test(linha)
   );
 
-function escapar(texto: string): string {
+function escapar(texto: string) {
   return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 

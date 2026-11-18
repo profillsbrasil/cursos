@@ -26,7 +26,7 @@ export function comandoDaTecla(e: {
   ctrlKey: boolean;
   key: string;
   metaKey: boolean;
-}): ComandoDoTeclado | null {
+}) {
   if (e.altKey || e.ctrlKey || e.metaKey) {
     return null;
   }

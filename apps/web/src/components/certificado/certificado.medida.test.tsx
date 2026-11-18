@@ -43,7 +43,7 @@ const LONGO: CertificadoEmitido = {
     "Operação, ajuste, limpeza e manutenção preventiva da envasadora volumétrica pneumática de pistão para produtos pastosos e líquidos",
 };
 
-const emitido = (certificado: CertificadoEmitido): PaginaDoCertificado => ({
+const emitido = (certificado: CertificadoEmitido) => ({
   categoria: "Produção e montagem",
   certificado,
   slug: "fabrica-e-montagem",

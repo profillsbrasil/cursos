@@ -1,6 +1,6 @@
 const AULA = /^\/cursos\/[^/]+\/aulas\/[^/]+/;
 
-export function aulaDoCaminho(caminho: string | null): string | null {
+export function aulaDoCaminho(caminho: string | null) {
   return caminho?.match(AULA)?.[0] ?? null;
 }
 
@@ -8,10 +8,7 @@ export type Abertura =
   | { lugar: "fora"; preferida: boolean }
   | { aberta: boolean; aula: string; lugar: "aula"; preferida: boolean };
 
-export function aberturaEm(
-  caminho: string | null,
-  preferida: boolean
-): Abertura {
+export function aberturaEm(caminho: string | null, preferida: boolean) {
   const aula = aulaDoCaminho(caminho);
 
   return aula === null
@@ -22,10 +19,7 @@ export function aberturaEm(
 export const estaAberta = (a: Abertura) =>
   a.lugar === "aula" ? a.aberta : a.preferida;
 
-export function navegar(
-  a: Abertura,
-  caminho: string | null
-): Abertura | "mesmo_lugar" {
+export function navegar(a: Abertura, caminho: string | null) {
   const aula = aulaDoCaminho(caminho);
 
   if (aula === (a.lugar === "aula" ? a.aula : null)) {
@@ -35,6 +29,6 @@ export function navegar(
   return aberturaEm(caminho, a.preferida);
 }
 
-export function alternar(a: Abertura, aberta: boolean): Abertura {
+export function alternar(a: Abertura, aberta: boolean) {
   return a.lugar === "aula" ? { ...a, aberta } : { ...a, preferida: aberta };
 }

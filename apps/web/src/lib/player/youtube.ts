@@ -59,7 +59,7 @@ const HOST_DO_PLAYER = "https://www.youtube-nocookie.com";
  * do player e o pedido da IFrame API, que o cliente só injetaria depois de
  * hidratar. O i.ytimg.com serve o pôster do vídeo.
  */
-export function adiantarOYoutube(): void {
+export function adiantarOYoutube() {
   preconnect("https://www.youtube.com");
   preconnect(HOST_DO_PLAYER);
   preconnect("https://i.ytimg.com");
@@ -68,7 +68,7 @@ export function adiantarOYoutube(): void {
 
 let carregando: Promise<YtApi> | null = null;
 
-function carregarApi(): Promise<YtApi> {
+function carregarApi() {
   if (window.YT?.Player) {
     return Promise.resolve(window.YT);
   }
@@ -105,7 +105,7 @@ const ESTADOS: Readonly<
 // de reaplicar a legenda é o eco da chamada, e reaplicar de novo seria um laço.
 const ECO_DA_LEGENDA_MS = 1000;
 
-const motivoDoErro = (codigo: number): MotivoIndisponivel => {
+const motivoDoErro = (codigo: number) => {
   if (codigo === 100) {
     return "nao_encontrado";
   }
@@ -119,7 +119,7 @@ export function criarPlayerDoYoutube(
   videoId: VideoId,
   elemento: HTMLElement,
   opcoes: OpcoesDoPlayer
-): PlayerDeVideo {
+) {
   let instancia: YtPlayer | null = null;
   let playerPronto: YtPlayer | null = null;
   let destruido = false;

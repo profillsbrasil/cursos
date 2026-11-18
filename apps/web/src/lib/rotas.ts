@@ -17,7 +17,7 @@ export const caminhoDoQuestionario = (slug: string, aulaId: string) =>
   questionario(slug, aulaId) as Route;
 
 /** Para onde a retomada leva: a aula, ou o questionário dela quando só ele falta. O banner e o cartão do rodapé usam a mesma regra. */
-export const hrefDaRetomada = (r: Retomada): Route =>
+export const hrefDaRetomada = (r: Retomada) =>
   r.tipo === "questionario"
     ? caminhoDoQuestionario(r.curso.slug, r.aula.id)
     : caminhoDaAula(r.curso.slug, r.aula.id);

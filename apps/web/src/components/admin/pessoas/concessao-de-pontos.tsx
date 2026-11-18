@@ -61,7 +61,7 @@ const ATALHO =
   "inline-flex h-9 cursor-pointer items-center rounded-full border border-muted-foreground px-3.5 font-semibold text-[13px] text-foreground transition-colors has-checked:border-sol has-checked:text-sol has-disabled:cursor-not-allowed has-disabled:opacity-50";
 
 /** "3.000" e "3000" valem 3000; o resto, null. */
-function lerQuantidade(texto: string): number | null {
+function lerQuantidade(texto: string) {
   const limpo = texto.replaceAll(".", "").replaceAll(" ", "");
 
   if (!SO_ALGARISMOS.test(limpo)) {
@@ -86,7 +86,7 @@ function envioDe(
   sentido: Sentido,
   escolha: Escolha,
   outro: string
-): Envio {
+) {
   const n = escolha === OUTRO ? lerQuantidade(outro) : escolha;
 
   if (n === null) {

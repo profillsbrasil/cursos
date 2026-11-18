@@ -78,7 +78,7 @@ function hora(d: Date) {
 }
 
 /** "hoje às 10h32", "ontem às 19h40", "quinta às 10h32" ou "2 de out.". */
-export function quandoFoi(d: Date, agora: Date): string {
+export function quandoFoi(d: Date, agora: Date) {
   const dia = diaEmSaoPaulo(d);
   const hoje = diaEmSaoPaulo(agora);
   const atras = Math.round((hoje.getTime() - dia.getTime()) / MS_POR_DIA);
@@ -106,7 +106,7 @@ export function quandoFoi(d: Date, agora: Date): string {
 /** O nome que o Clerk lê do user agent e o que a pessoa reconhece. */
 const SISTEMAS: Record<string, string> = { Macintosh: "Mac", X11: "Linux" };
 
-function nomeDo(a: SessaoDoClerk["latestActivity"]): string {
+function nomeDo(a: SessaoDoClerk["latestActivity"]) {
   const lido = a.deviceType?.trim();
   const sistema = lido ? (SISTEMAS[lido] ?? lido) : undefined;
   const navegador = a.browserName?.trim();
@@ -118,7 +118,7 @@ function nomeDo(a: SessaoDoClerk["latestActivity"]): string {
   return navegador || sistema || (a.isMobile ? "Celular" : "Computador");
 }
 
-function aparelho(s: SessaoDoClerk, quando: string): Aparelho {
+function aparelho(s: SessaoDoClerk, quando: string) {
   const a = s.latestActivity;
   const lugar = a.city?.trim() || a.country?.trim();
 
@@ -138,7 +138,7 @@ export function aparelhosDe(
   sessoes: readonly SessaoDoClerk[],
   idDaAtual: string | null,
   agora: Date
-): Aparelhos {
+) {
   const atual = sessoes.find((s) => s.id === idDaAtual);
 
   const outras = sessoes

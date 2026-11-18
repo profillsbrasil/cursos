@@ -223,7 +223,7 @@ function Niveis({
 const lista = (itens: readonly string[]) =>
   new Intl.ListFormat("pt-BR", { type: "conjunction" }).format(itens);
 
-function motivosDoUso(uso: EdicaoDoCurso["uso"]): string[] {
+function motivosDoUso(uso: EdicaoDoCurso["uso"]) {
   const aulas = Object.values(uso.assistidasPorAula).filter(
     (n) => n > 0
   ).length;

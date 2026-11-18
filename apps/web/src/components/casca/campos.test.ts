@@ -6,7 +6,7 @@ import { AREA, CAMPO } from "./campos";
 
 const SRC = join(import.meta.dir, "..", "..");
 
-function arquivos(pasta: string): string[] {
+function arquivos(pasta: string) {
   return readdirSync(pasta, { recursive: true, withFileTypes: true })
     .filter(
       (e) =>
@@ -21,7 +21,7 @@ function arquivos(pasta: string): string[] {
 const ALTURA = /(^|\s)([\w-]+:)*h-(\d|\[)/;
 
 /** As classes que um uso acrescenta ao campo: cn(CAMPO|AREA, "...") e o className dos campos do editor. */
-function classesDoUso(codigo: string): string[] {
+function classesDoUso(codigo: string) {
   const achadas: string[] = [];
 
   for (const m of codigo.matchAll(/cn\(\s*(?:CAMPO|AREA),\s*"([^"]*)"/g)) {

@@ -6,11 +6,7 @@ export const focarDepois = (id: string) =>
 
 export type Direcao = "acima" | "abaixo";
 
-export function trocado<T>(
-  lista: readonly T[],
-  i: number,
-  direcao: Direcao
-): T[] | null {
+export function trocado<T>(lista: readonly T[], i: number, direcao: Direcao) {
   const j = direcao === "acima" ? i - 1 : i + 1;
 
   if (i < 0 || j < 0 || j >= lista.length) {
@@ -24,10 +20,7 @@ export function trocado<T>(
 }
 
 /** A seta da borda desabilita e perderia o foco. */
-export const setaDepoisDeMover = (
-  direcao: Direcao,
-  chegouNaBorda: boolean
-): Direcao => {
+export const setaDepoisDeMover = (direcao: Direcao, chegouNaBorda: boolean) => {
   if (!chegouNaBorda) {
     return direcao;
   }
@@ -36,7 +29,7 @@ export const setaDepoisDeMover = (
 };
 
 /** Quem recebe o foco quando um item some: o que toma o lugar dele, senão o anterior. */
-export const vizinhoQueFica = <T>(lista: readonly T[], i: number): T | null =>
+export const vizinhoQueFica = <T>(lista: readonly T[], i: number) =>
   lista[i + 1] ?? lista[i - 1] ?? null;
 
 interface NaPagina<T> {
@@ -48,7 +41,7 @@ const VEM_ANTES = 2;
 
 export function primeiroNaPagina<T extends NaPagina<T>>(
   elementos: readonly T[]
-): T | undefined {
+) {
   return elementos.reduce<T | undefined>(
     (primeiro, e) =>
       primeiro === undefined ||
@@ -86,16 +79,17 @@ export interface Apoio<D extends ComVersao> {
   versaoDeFora: boolean;
 }
 
-export const apoioEm = <D extends ComVersao>(pagina: D): Apoio<D> => ({
+export const apoioEm = <D extends ComVersao>(pagina: D) => ({
   base: pagina,
   pagina,
   versaoDeFora: false,
 });
 
-export const apoioSalvo = <D extends ComVersao>(
-  apoio: Apoio<D>,
-  salvo: D
-): Apoio<D> => ({ ...apoio, base: salvo, versaoDeFora: false });
+export const apoioSalvo = <D extends ComVersao>(apoio: Apoio<D>, salvo: D) => ({
+  ...apoio,
+  base: salvo,
+  versaoDeFora: false,
+});
 
 export interface Sincronia<D extends ComVersao> {
   apoio: Apoio<D>;
@@ -112,7 +106,7 @@ export interface Sincronia<D extends ComVersao> {
 export function sincronizarComAPagina<D extends ComVersao>(
   apoio: Apoio<D>,
   { limpo, pagina }: { limpo: boolean; pagina: D }
-): Sincronia<D> {
+) {
   if (pagina.versao === apoio.base.versao) {
     return {
       apoio: { ...apoio, pagina, versaoDeFora: false },

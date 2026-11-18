@@ -14,10 +14,7 @@ import { carregarConquistas, carregarPaginaDoCertificado } from "@/server/api";
 export const metadata: Metadata = { title: "Minha conta" };
 
 /** O QR sai aqui, no servidor: `folha.ts` traz o `uqr`, que não vai ao cliente. */
-async function folhaDaConta(
-  slug: string | undefined,
-  origem: string
-): Promise<FolhaDaConta> {
+async function folhaDaConta(slug: string | undefined, origem: string) {
   const pagina = slug ? await carregarPaginaDoCertificado(slug) : null;
 
   if (pagina?.tipo !== "emitido") {

@@ -18,7 +18,7 @@ export function trocaDaAmostra({
 }: {
   preco: number | null;
   saldo: number;
-}): TrocaDaAmostra {
+}) {
   if (preco === null) {
     return { frase: SEM_PRECO, tipo: "sem_preco" };
   }
@@ -47,7 +47,7 @@ export function linhaDaAmostra(c: {
   aulas: number;
   duracaoSeg: number;
   vista: boolean;
-}): string {
+}) {
   return c.vista
     ? "Amostra vista"
     : `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)} · a primeira é aberta`;
@@ -62,7 +62,7 @@ export function conviteDaAmostra({
   preco: number | null;
   proxima: { titulo: string } | null;
   saldo: number;
-}): { detalhe: string; titulo: string } {
+}) {
   return {
     detalhe:
       preco === null

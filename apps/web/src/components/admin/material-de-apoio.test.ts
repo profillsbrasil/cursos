@@ -32,7 +32,7 @@ const { MaterialDeApoio, resumoDoMaterial } =
 
 const idDe = (n: number) => uuidDeExemplo(900 + n) as MaterialId;
 
-const material = (n: number): MaterialDoDocumento => ({
+const material = (n: number) => ({
   bytes: 1000 * n,
   chave: `${String(n).padStart(64, "0")}.pdf`,
   id: idDe(n),
@@ -41,7 +41,7 @@ const material = (n: number): MaterialDoDocumento => ({
   titulo: `Material ${n}`,
 });
 
-const enviando = (n: number): EnvioDeMaterial => ({
+const enviando = (n: number) => ({
   bytes: 1000 * n,
   estado: { tipo: "enviando" },
   id: idDe(n),

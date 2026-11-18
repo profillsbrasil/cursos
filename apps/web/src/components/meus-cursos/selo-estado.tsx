@@ -17,7 +17,7 @@ interface Aparencia {
   rotulo: string;
 }
 
-function aparencia(estado: EstadoCurso): Aparencia {
+function aparencia(estado: EstadoCurso) {
   switch (estado.tipo) {
     case "concluido":
       return {

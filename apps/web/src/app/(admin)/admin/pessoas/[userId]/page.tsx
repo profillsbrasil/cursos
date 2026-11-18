@@ -19,7 +19,7 @@ const fichaDaUrl = async (params: Props["params"]) => {
   return ficha;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props) {
   return { title: (await fichaDaUrl(params)).conta.nome };
 }
 

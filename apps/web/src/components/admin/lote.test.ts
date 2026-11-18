@@ -19,7 +19,7 @@ import {
 
 const HOJE = "2026-10-16" as DiaISO;
 
-const pessoa = (userId: string, nome: string): Pessoa => ({
+const pessoa = (userId: string, nome: string) => ({
   email: `${userId}@exemplo.com`,
   foto: null,
   nome,
@@ -51,7 +51,7 @@ describe("a seleção", () => {
   });
 
   test("o X tira uma, e Desmarcar todas tira as outras", () => {
-    const tres = [ANA, CAMILA, LUANA].map((p): EventoDoLote => ({
+    const tres = [ANA, CAMILA, LUANA].map((p) => ({
       pessoa: p,
       tipo: "marcar",
     }));
@@ -85,7 +85,7 @@ describe("o Liberar", () => {
   });
 
   test("passa de 50 marcadas e diz quantas sobram", () => {
-    const marcar = Array.from({ length: 53 }, (_, i): EventoDoLote => ({
+    const marcar = Array.from({ length: 53 }, (_, i) => ({
       pessoa: pessoa(`user_p${i}`, `Pessoa ${i}`),
       tipo: "marcar",
     }));
@@ -198,9 +198,7 @@ describe("o resultado", () => {
 });
 
 describe("Já tem", () => {
-  const comAtivas = (
-    ativas: PessoaComSituacao["ativas"]
-  ): PessoaComSituacao => ({
+  const comAtivas = (ativas: PessoaComSituacao["ativas"]) => ({
     ...ANA,
     ativas,
     situacao: { revogadas: 0, tipo: "sem_liberacao", ultimaRevogacao: null },

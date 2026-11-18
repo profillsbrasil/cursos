@@ -32,7 +32,7 @@ async function abrir({ params, searchParams }: Props) {
   return edicao;
 }
 
-export async function generateMetadata(props: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props) {
   const { documento } = await abrir(props);
 
   return { title: documento.titulo.trim() || "Curso novo" };

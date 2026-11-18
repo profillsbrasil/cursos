@@ -26,7 +26,7 @@ const aula = {
 
 const NA_AULA = "/cursos/comercial/aulas/11111111-1111-4111-8111-111111111111";
 
-const continuar = (faltaSeg: number): Retomada => ({
+const continuar = (faltaSeg: number) => ({
   aula: { ...aula, faltaSeg, posicaoSeg: aula.duracaoSeg - faltaSeg },
   curso,
   modulo,

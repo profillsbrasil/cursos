@@ -61,7 +61,7 @@ const DADOS: AulaNoPlayer = {
 
 const nada = () => undefined;
 
-const html = (props: Partial<Parameters<typeof FimDoVideo>[0]> = {}): string =>
+const html = (props: Partial<Parameters<typeof FimDoVideo>[0]> = {}) =>
   renderToStaticMarkup(
     <FimDoVideo
       aoRever={nada}

@@ -39,15 +39,12 @@ const temPalavraLonga = (texto: string) =>
 function comProblema(
   campos: Record<CampoDoNome, string>,
   regra: (texto: string) => boolean
-): CampoDoNome[] {
+) {
   return (Object.keys(campos) as CampoDoNome[]).filter((c) => regra(campos[c]));
 }
 
 /** O primeiro problema do nome digitado, com os campos onde ele está, ou `null`. */
-export function problemaDoNome(
-  nome: string,
-  sobrenome: string
-): ProblemaDoNome | null {
+export function problemaDoNome(nome: string, sobrenome: string) {
   const campos = { nome, sobrenome };
 
   if (nome.trim() === "") {

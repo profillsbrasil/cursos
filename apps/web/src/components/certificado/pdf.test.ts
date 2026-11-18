@@ -52,7 +52,7 @@ describe("o PDF do certificado", () => {
 const POPPLER = ["/usr/bin/pdftoppm", "/usr/bin/pdftotext"].every(existsSync);
 const ZBAR = existsSync("/usr/bin/zbarimg");
 
-function emDisco<T>(pdf: Buffer, ler: (arquivo: string) => T): T {
+function emDisco<T>(pdf: Buffer, ler: (arquivo: string) => T) {
   const pasta = mkdtempSync(join(tmpdir(), "certificado-"));
 
   try {

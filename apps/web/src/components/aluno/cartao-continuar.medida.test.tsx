@@ -39,7 +39,7 @@ const COMECAR: Continuar = {
 
 const CONTINUAR: Continuar = { ...COMECAR, chamada: "Continuar", pct: 51 };
 
-function cumprida<T>(valor: T): Promise<T> {
+function cumprida<T>(valor: T) {
   return Object.assign(Promise.resolve(valor), {
     status: "fulfilled",
     value: valor,

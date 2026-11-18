@@ -26,7 +26,7 @@ const objeto = (valor: unknown): valor is Record<string, unknown> =>
   typeof valor === "object" && valor !== null;
 
 // Checagem à mão: o Zod levaria cerca de 90 KB em gzip ao cliente da aula.
-function paraVolume(valor: unknown): Volume | null {
+function paraVolume(valor: unknown) {
   if (!objeto(valor)) {
     return null;
   }
@@ -42,7 +42,7 @@ function paraVolume(valor: unknown): Volume | null {
     : null;
 }
 
-export function paraPreferencias(texto: string | null): Preferencias {
+export function paraPreferencias(texto: string | null) {
   if (texto === null) {
     return PREFERENCIAS_PADRAO;
   }
@@ -69,7 +69,7 @@ export function paraPreferencias(texto: string | null): Preferencias {
     : PREFERENCIAS_PADRAO;
 }
 
-export function lerPreferencias(): Preferencias {
+export function lerPreferencias() {
   try {
     return paraPreferencias(window.localStorage.getItem(CHAVE));
   } catch {
@@ -77,7 +77,7 @@ export function lerPreferencias(): Preferencias {
   }
 }
 
-export function gravarPreferencias(p: Preferencias): void {
+export function gravarPreferencias(p: Preferencias) {
   try {
     window.localStorage.setItem(CHAVE, JSON.stringify(p));
   } catch {
@@ -88,7 +88,7 @@ export function gravarPreferencias(p: Preferencias): void {
 export function criarSessaoComPreferencias(
   entrada: Omit<EntradaDaSessao, "preferencias">,
   deps: DependenciasDaSessao
-): { pararDeGravar: () => void; sessao: SessaoDeEstudo } {
+) {
   let gravadas = lerPreferencias();
 
   const sessao = criarSessaoDeEstudo(

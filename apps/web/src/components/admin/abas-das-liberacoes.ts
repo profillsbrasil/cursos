@@ -12,9 +12,7 @@ const ABAS = [
 ] as const;
 
 /** As duas telas de Liberações, como opções da barra: cada aba é um endereço. */
-export const abasDasLiberacoes = (
-  ativa: (typeof ABAS)[number]["id"]
-): OpcaoDaBarra[] =>
+export const abasDasLiberacoes = (ativa: (typeof ABAS)[number]["id"]) =>
   ABAS.map((a) => ({
     ativa: a.id === ativa,
     href: a.href,

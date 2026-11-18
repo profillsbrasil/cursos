@@ -40,7 +40,7 @@ const servir = () => {
   return `http://127.0.0.1:${servidor.port}/admin/catalogo/cursos/x`;
 };
 
-async function esperarAPagina(tentativas = 50): Promise<void> {
+async function esperarAPagina(tentativas = 50) {
   const pronta = await avaliar<boolean>(
     enviar,
     'document.getElementById("catalogo") !== null'
@@ -65,7 +65,7 @@ function clicar(
   id: string,
   resposta: boolean,
   opcoes: { ctrl?: boolean; desligar?: boolean } = {}
-): Promise<Clique> {
+) {
   return avaliar<Clique>(
     enviar,
     `(() => {

@@ -40,7 +40,7 @@ function relogioFalso() {
       setImmediate(r);
     });
 
-  async function avancar(ms: number): Promise<void> {
+  async function avancar(ms: number) {
     // Respostas já resolvidas agendam timers em microtask: elas rodam antes da varredura.
     await flush();
     const fim = agora + ms;
@@ -188,7 +188,7 @@ function servidorFalso(relogio: Relogio) {
 
   return {
     coberturaSeg: () => segundos(salvo.trechos),
-    enviar(p: Pedido): Promise<RespostaDoEnvio> {
+    enviar(p: Pedido) {
       pedidos.push({ ...p, emMs: relogio.agora() });
 
       if (falha) {
@@ -295,7 +295,7 @@ function montar(
   };
 }
 
-const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
+const t = (inicio: number, fim: number) => ({ fim, inicio });
 
 describe("sessão de estudo", () => {
   test("tocar de 0 a 540 a 1x envia a cada 15 s e dá uma conquista", async () => {

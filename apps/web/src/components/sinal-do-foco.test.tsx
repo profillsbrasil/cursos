@@ -102,7 +102,7 @@ const nav = renderToStaticMarkup(
   </ProvedorDaCasca>
 );
 
-const aula = (id: string, titulo: string, atual: boolean): AulaNaColuna => ({
+const aula = (id: string, titulo: string, atual: boolean) => ({
   assistida: false,
   atual,
   duracaoSeg: 300,
@@ -218,7 +218,7 @@ const liberacao = (
   id: string,
   titulo: string,
   acao: LiberacaoNaTela["acao"]
-): LiberacaoNaTela => ({
+) => ({
   acao,
   acompanhamento: {
     progresso: { feitas: 0, pct: 0, total: 2 },
@@ -363,7 +363,7 @@ const TAG = /<([a-z]+)((?:\s+[\w:-]+(?:="[^"]*")?)*)\s*\/?>([^<]*)/g;
 const ATRIBUTO = /([\w:-]+)(?:="([^"]*)")?/g;
 const ESPACO = /\s+/;
 
-function elementos(html: string): Elemento[] {
+function elementos(html: string) {
   return [...html.matchAll(TAG)].map(([, , attrs = "", texto = ""]) => {
     const atributos = Object.fromEntries(
       [...attrs.matchAll(ATRIBUTO)].map(([, nome = "", valor = ""]) => [
@@ -403,7 +403,7 @@ interface Regra {
 }
 
 /** Cada regra com as declarações dela; o @media e o @supports não contam como seletor. */
-function regrasDoCss(texto: string): Regra[] {
+function regrasDoCss(texto: string) {
   const regras: Regra[] = [];
   const pilha: string[] = [];
   let trecho = "";
@@ -533,7 +533,7 @@ async function noDe(seletor: string) {
 }
 
 /** Aperta Tab, como a pessoa, até a condição valer ou acabarem as tentativas. */
-async function tabAte(condicao: string, tentativas: number): Promise<void> {
+async function tabAte(condicao: string, tentativas: number) {
   if (tentativas === 0 || (await avaliar<boolean>(condicao))) {
     return;
   }

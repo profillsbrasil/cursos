@@ -95,7 +95,7 @@ const NUNCA_ABRIU: Selo = {
   rotulo: "Nunca abriu",
 };
 
-export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]): Selo {
+export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]) {
   switch (tipo) {
     case "em_producao":
       return { classe: CONTORNO_CEU, icone: Clock, rotulo: "Em produção" };
@@ -116,7 +116,7 @@ export function seloDoCurso(tipo: SituacaoNoCurso["tipo"]): Selo {
   }
 }
 
-export function seloDaPessoa(r: SituacaoDaPessoa): Selo {
+export function seloDaPessoa(r: SituacaoDaPessoa) {
   switch (r.tipo) {
     case "sem_liberacao":
       return {
@@ -151,7 +151,7 @@ const aulasVistas = (total: number) =>
  * A situação do curso, como o item da liberação a escreve. Sem frase quando o
  * selo ao lado já diz tudo.
  */
-export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase | null {
+export function fraseDoCurso(c: Acompanhamento, hoje: string) {
   const s = c.situacao;
 
   switch (s.tipo) {
@@ -183,7 +183,7 @@ export function fraseDoCurso(c: Acompanhamento, hoje: string): Frase | null {
  * O rodapé do item da liberação: quando chegou e, na revogada, quando saiu. No
  * formato curto, o mesmo do "Concluído em" da frase logo acima.
  */
-export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string): string {
+export function dataDaLiberacao(l: LiberacaoNaTela, hoje: string) {
   const curta = (iso: string) => diaCurto(diaEmSaoPaulo(iso), hoje);
   const quando = curta(l.liberadaEm);
 
@@ -208,10 +208,7 @@ const frase = (partes: readonly (string | null)[]) =>
  * A linha de números da busca: "2 de 4 cursos concluídos · 1 em produção · último
  * estudo ontem". Null quando o selo já diz tudo.
  */
-export function fraseDaPessoa(
-  r: SituacaoDaPessoa,
-  hoje: string
-): string | null {
+export function fraseDaPessoa(r: SituacaoDaPessoa, hoje: string) {
   switch (r.tipo) {
     case "sem_liberacao":
       if (r.revogadas === 0 || r.ultimaRevogacao === null) {

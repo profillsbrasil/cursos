@@ -13,7 +13,7 @@ const sessao = (
     city: "Curitiba",
     deviceType: "Windows",
   }
-): SessaoDoClerk => ({
+) => ({
   id,
   lastActiveAt: new Date(quando),
   latestActivity: atividade,

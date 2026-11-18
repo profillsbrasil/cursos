@@ -33,10 +33,7 @@ const NOME = /aria-label="([^"]+)"/;
 
 const HOJE = "2026-11-11" as DiaISO;
 
-const convidado = (
-  email: string,
-  mudar: Partial<ConvidadoNaTela> = {}
-): ConvidadoNaTela => ({
+const convidado = (email: string, mudar: Partial<ConvidadoNaTela> = {}) => ({
   comoAdmin: false,
   convidadoEm: "2026-11-04" as DiaISO,
   cursos: [],

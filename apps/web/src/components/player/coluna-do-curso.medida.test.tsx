@@ -33,7 +33,7 @@ const idDaAula = (modulo: number, aula: number) =>
   `00000000-0000-4000-8000-${String(modulo * 100 + aula).padStart(12, "0")}` as AulaId;
 
 /** O curso de 16 módulos de 8 aulas, com a aula atual onde o teste pedir. */
-function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
+function cursoNaAula(modulo: number, aula: number) {
   const atual = idDaAula(modulo, aula);
 
   return {

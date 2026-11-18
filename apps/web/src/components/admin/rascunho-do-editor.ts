@@ -113,7 +113,7 @@ const comAulas = (
   r: RascunhoDoCurso,
   moduloId: ModuloId,
   trocar: (aulas: AulaDoRascunho[]) => AulaDoRascunho[] | null
-): RascunhoDoCurso => {
+) => {
   let mudou = false;
 
   const modulos = r.modulos.map((m) => {
@@ -152,7 +152,7 @@ const comPerguntas = (
   r: RascunhoDoCurso,
   aulaId: AulaId,
   trocar: (perguntas: PerguntaDoRascunho[]) => PerguntaDoRascunho[]
-): RascunhoDoCurso => {
+) => {
   const de = moduloDaAula(r, aulaId);
 
   return de
@@ -168,7 +168,7 @@ const comPergunta = (
   r: RascunhoDoCurso,
   id: PerguntaId,
   trocar: (p: PerguntaDoRascunho) => PerguntaDoRascunho
-): RascunhoDoCurso => {
+) => {
   const aula = aulaDaPergunta(r, id);
 
   return aula
@@ -182,13 +182,13 @@ const comAlternativa = (
   r: RascunhoDoCurso,
   id: AlternativaId,
   trocar: (p: PerguntaDoRascunho) => PerguntaDoRascunho
-): RascunhoDoCurso => {
+) => {
   const pergunta = perguntaDaAlternativa(r, id);
 
   return pergunta ? comPergunta(r, pergunta.id, trocar) : r;
 };
 
-export function mudar(r: RascunhoDoCurso, m: Mudanca): RascunhoDoCurso {
+export function mudar(r: RascunhoDoCurso, m: Mudanca) {
   switch (m.tipo) {
     case "campos":
       return { ...r, ...m.mudanca };
@@ -409,7 +409,7 @@ export const NENHUM_ABERTO: Abertos = new Set();
  * Os blocos abertos quando o editor monta: o curso de um módulo só abre com ele
  * aberto, porque fechado ele custaria um clique sem esconder nada.
  */
-function abertosAoAbrir(r: RascunhoDoCurso): Abertos {
+function abertosAoAbrir(r: RascunhoDoCurso) {
   const [unico, ...outros] = r.modulos;
 
   return unico && outros.length === 0 ? new Set([unico.id]) : NENHUM_ABERTO;
@@ -424,14 +424,14 @@ export type Bloco =
   | { tipo: "aberto" }
   | { tipo: "com_erro"; campos: number };
 
-const comAberto = (abertos: Abertos, id: ModuloId): Abertos =>
+const comAberto = (abertos: Abertos, id: ModuloId) =>
   abertos.has(id) ? abertos : new Set([...abertos, id]);
 
-const semAberto = (abertos: Abertos, id: ModuloId): Abertos =>
+const semAberto = (abertos: Abertos, id: ModuloId) =>
   abertos.has(id) ? new Set([...abertos].filter((x) => x !== id)) : abertos;
 
 /** O foco vai para dentro do módulo novo e do destino da aula movida. */
-function abertosDepoisDe(abertos: Abertos, m: Mudanca): Abertos {
+function abertosDepoisDe(abertos: Abertos, m: Mudanca) {
   switch (m.tipo) {
     case "modulo_novo":
       return comAberto(abertos, m.id);
@@ -480,7 +480,7 @@ export function blocoDoModulo(
   m: ModuloDoRascunho,
   abertos: Abertos,
   marcados: Marcados
-): Bloco {
+) {
   const campos = camposComErro(m, marcados);
 
   if (campos > 0) {
@@ -494,7 +494,7 @@ export function blocoDoModulo(
 function comGrupoDasLetrasTocado(
   tocados: ReadonlySet<string>,
   r: RascunhoDoCurso
-): ReadonlySet<string> {
+) {
   const certas = r.modulos
     .flatMap((m) => m.aulas.flatMap((a) => a.perguntas))
     .filter(
@@ -518,7 +518,7 @@ export const NADA_ESCOLHIDO: Escolhas = {
   perguntaPorAula: new Map(),
 };
 
-const comAula = (e: Escolhas, moduloId: ModuloId, aulaId: AulaId): Escolhas =>
+const comAula = (e: Escolhas, moduloId: ModuloId, aulaId: AulaId) =>
   e.aulaPorModulo.get(moduloId) === aulaId
     ? e
     : { ...e, aulaPorModulo: new Map(e.aulaPorModulo).set(moduloId, aulaId) };
@@ -527,7 +527,7 @@ const comPerguntaEscolhida = (
   e: Escolhas,
   aulaId: AulaId,
   perguntaId: PerguntaId
-): Escolhas =>
+) =>
   e.perguntaPorAula.get(aulaId) === perguntaId
     ? e
     : {
@@ -535,7 +535,7 @@ const comPerguntaEscolhida = (
         perguntaPorAula: new Map(e.perguntaPorAula).set(aulaId, perguntaId),
       };
 
-function escolhasDepoisDe(e: Escolhas, m: Mudanca): Escolhas {
+function escolhasDepoisDe(e: Escolhas, m: Mudanca) {
   switch (m.tipo) {
     case "aula_nova":
       return comAula(e, m.moduloId, m.id);
@@ -550,30 +550,20 @@ function escolhasDepoisDe(e: Escolhas, m: Mudanca): Escolhas {
   }
 }
 
-export function aulaEscolhida(
-  m: ModuloDoRascunho,
-  e: Escolhas
-): AulaDoRascunho | null {
+export function aulaEscolhida(m: ModuloDoRascunho, e: Escolhas) {
   const id = e.aulaPorModulo.get(m.id);
 
   return m.aulas.find((a) => a.id === id) ?? m.aulas[0] ?? null;
 }
 
-export function perguntaEscolhida(
-  a: AulaDoRascunho,
-  e: Escolhas
-): PerguntaDoRascunho | null {
+export function perguntaEscolhida(a: AulaDoRascunho, e: Escolhas) {
   const id = e.perguntaPorAula.get(a.id);
 
   return a.perguntas.find((p) => p.id === id) ?? a.perguntas[0] ?? null;
 }
 
 /** Os painéis passam a mostrar a aula e a pergunta donas do campo. */
-function comODonoDoCampo(
-  e: Escolhas,
-  r: RascunhoDoCurso,
-  campo: string
-): Escolhas {
+function comODonoDoCampo(e: Escolhas, r: RascunhoDoCurso, campo: string) {
   for (const m of r.modulos) {
     for (const a of m.aulas) {
       if (CAMPOS_DA_AULA.some((c) => ID.aula(a.id, c) === campo)) {
@@ -616,7 +606,7 @@ export type LinhaDaLista =
 /** As linhas da seção, de cima para baixo: os materiais do rascunho com cada envio no lugar dele. */
 export function linhasDoMaterial(
   e: Pick<RascunhoDoEditor, "daGeracao" | "rascunho">
-): LinhaDaLista[] {
+) {
   const linhas: LinhaDaLista[] = e.rascunho.materiais.map((material) => ({
     material,
     tipo: "material",
@@ -632,17 +622,14 @@ export function linhasDoMaterial(
   return linhas;
 }
 
-export const idDaLinha = (l: LinhaDaLista): MaterialId =>
+export const idDaLinha = (l: LinhaDaLista) =>
   l.tipo === "material" ? l.material.id : l.envio.id;
 
 /**
  * O inverso de linhasDoMaterial: os materiais vão ao rascunho na ordem das
  * linhas, e cada envio guarda a posição da linha dele.
  */
-function comLinhas(
-  e: RascunhoDoEditor,
-  linhas: readonly LinhaDaLista[]
-): RascunhoDoEditor {
+function comLinhas(e: RascunhoDoEditor, linhas: readonly LinhaDaLista[]) {
   return {
     ...naGeracao(e, {
       envios: linhas.flatMap((l, posicao) =>
@@ -659,11 +646,7 @@ function comLinhas(
 }
 
 /** As setas e o arrastar pela alça põem a linha no índice pedido; fora da lista, nada muda. */
-function movido(
-  e: RascunhoDoEditor,
-  id: MaterialId,
-  para: number
-): RascunhoDoEditor {
+function movido(e: RascunhoDoEditor, id: MaterialId, para: number) {
   const linhas = linhasDoMaterial(e);
   const de = linhas.findIndex((l) => idDaLinha(l) === id);
   const linha = linhas[de];
@@ -724,7 +707,7 @@ export interface RascunhoDoEditor {
   rascunho: RascunhoDoCurso;
 }
 
-export function rascunhoDoEditorEm(pagina: DocumentoDoCurso): RascunhoDoEditor {
+export function rascunhoDoEditorEm(pagina: DocumentoDoCurso) {
   const rascunho = rascunhoDoCurso(pagina);
 
   return {
@@ -796,10 +779,7 @@ const ehSujo = (e: RascunhoDoEditor) =>
   !mesmoRascunho(rascunhoDoCurso(e.apoio.base), e.rascunho);
 
 /** O que o Salvar recusa sem ir ao servidor, ou o envio quando não há nada. */
-function leitura(e: RascunhoDoEditor): {
-  achados: Problema[];
-  envio: Envio | null;
-} {
+function leitura(e: RascunhoDoEditor) {
   const lido = lerRascunho(e.rascunho, e.apoio.base);
   const { capa } = e.daGeracao;
   const semCapa = ehNovo(e) && capa === null ? [SEM_CAPA] : [];
@@ -838,7 +818,7 @@ export interface Tela {
  * deixou, como o "abc" na duração; depois do Salvar recusado, tudo o que o
  * Salvar recusaria.
  */
-export function telaDo(e: RascunhoDoEditor): Tela {
+export function telaDo(e: RascunhoDoEditor) {
   const { achados, envio } = leitura(e);
   const { tentou, tocados } = e.daGeracao;
   const deixados = comGrupoDasLetrasTocado(tocados, e.rascunho);
@@ -857,15 +837,12 @@ export function telaDo(e: RascunhoDoEditor): Tela {
   };
 }
 
-const naGeracao = (
-  e: RascunhoDoEditor,
-  mudanca: Partial<DaGeracao>
-): RascunhoDoEditor => ({ ...e, daGeracao: { ...e.daGeracao, ...mudanca } });
+const naGeracao = (e: RascunhoDoEditor, mudanca: Partial<DaGeracao>) => ({
+  ...e,
+  daGeracao: { ...e.daGeracao, ...mudanca },
+});
 
-const recomecado = (
-  e: RascunhoDoEditor,
-  apoio: Apoio<DocumentoDoCurso>
-): RascunhoDoEditor => ({
+const recomecado = (e: RascunhoDoEditor, apoio: Apoio<DocumentoDoCurso>) => ({
   ...e,
   apoio,
   daGeracao: INICIO_DA_GERACAO,
@@ -874,7 +851,7 @@ const recomecado = (
 });
 
 /** O Salvar com erro leva o painel e o foco ao primeiro campo marcado. */
-function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
+function salvar(e: RascunhoDoEditor) {
   const { achados, envio } = leitura(e);
 
   if (envio) {
@@ -900,7 +877,7 @@ function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
 export function dentroDoLimite(
   e: Pick<RascunhoDoEditor, "daGeracao" | "rascunho">,
   novos: readonly EnvioDeMaterial[]
-): EnvioDeMaterial[] {
+) {
   const subindo = e.daGeracao.envios.filter(
     (x) => x.estado.tipo === "enviando"
   ).length;
@@ -924,10 +901,7 @@ export function dentroDoLimite(
  * O envio de outra geração (o admin pediu Recarregar enquanto o arquivo subia)
  * não entra: o rascunho dele foi jogado fora.
  */
-function recebido(
-  e: RascunhoDoEditor,
-  material: MaterialDoDocumento
-): RascunhoDoEditor {
+function recebido(e: RascunhoDoEditor, material: MaterialDoDocumento) {
   if (!e.daGeracao.envios.some((x) => x.id === material.id)) {
     return e;
   }
@@ -942,7 +916,7 @@ function recebido(
   );
 }
 
-function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
+function passo(e: RascunhoDoEditor, a: AcaoDoEditor) {
   switch (a.tipo) {
     case "aberto":
       return { ...e, abertos: comAberto(e.abertos, a.id) };
@@ -1036,10 +1010,7 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
  * Nenhum erro fica num bloco fechado: o bloco abre na ação em que o erro
  * aparece e continua aberto depois da correção.
  */
-export function rascunhoDoEditor(
-  antes: RascunhoDoEditor,
-  a: AcaoDoEditor
-): RascunhoDoEditor {
+export function rascunhoDoEditor(antes: RascunhoDoEditor, a: AcaoDoEditor) {
   const e = passo(antes, a);
   const { erros } = telaDo(e);
 

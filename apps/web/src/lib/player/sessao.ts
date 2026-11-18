@@ -54,8 +54,7 @@ const PARADO_POR: Readonly<Record<string, MotivoParado>> = {
   UNAUTHORIZED: "sessao_expirada",
 };
 
-export const motivoParadoDe = (codigo: string): MotivoParado | undefined =>
-  PARADO_POR[codigo];
+export const motivoParadoDe = (codigo: string) => PARADO_POR[codigo];
 
 export type EstadoEnvio =
   | { tipo: "em_dia" }
@@ -134,10 +133,7 @@ const NOVA_TENTATIVA_MS = 2000;
 const NOVA_TENTATIVA_MAX_MS = 60_000;
 const DIFERENCA_DE_DURACAO_SEG = 2;
 
-export function transicao(
-  e: EstadoReproducao,
-  ev: EventoDoVideo
-): EstadoReproducao {
+export function transicao(e: EstadoReproducao, ev: EventoDoVideo) {
   if (e.tipo === "indisponivel") {
     return e;
   }
@@ -163,7 +159,7 @@ export function transicao(
   }
 }
 
-export const estadoInicial = (e: EntradaDaSessao): EstadoDaSessao => ({
+export const estadoInicial = (e: EntradaDaSessao) => ({
   assistida: e.estudo.assistida,
   cobertura: cobertura(e.estudo.trechos, e.duracaoSeg),
   duracaoSeg: e.duracaoSeg,
@@ -182,7 +178,7 @@ const limitar = (n: number, min: number, max: number) =>
 export function criarSessaoDeEstudo(
   entrada: EntradaDaSessao,
   deps: DependenciasDaSessao
-): SessaoDeEstudo {
+) {
   const { duracaoSeg } = entrada;
   let foto = estadoInicial(entrada);
 
@@ -209,7 +205,7 @@ export function criarSessaoDeEstudo(
       canonizar([...pendentes, ...trechoAberto(medidor)], duracaoSeg)
     );
 
-  function fotografar(): EstadoDaSessao {
+  function fotografar() {
     const trechos = vistos();
 
     return {
@@ -585,7 +581,7 @@ export function criarSessaoDeEstudo(
         );
       });
 
-      const assentou = Promise.allSettled(emVoo).then((): FimDaSessao => {
+      const assentou = Promise.allSettled(emVoo).then(() => {
         pararTeto();
 
         return "assentou";

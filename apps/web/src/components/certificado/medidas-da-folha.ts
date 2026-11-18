@@ -176,7 +176,7 @@ function alturaParaONome(cursoNaFolha: { tamanho: number; texto: string }) {
 export function nomeNaFolha(
   texto: string,
   cursoNaFolha: { tamanho: number; texto: string }
-): { nome: string; tamanho: number } {
+) {
   const altura = alturaParaONome(cursoNaFolha);
   const menor = nome.degraus.at(-1) ?? 0;
 
@@ -235,10 +235,7 @@ export const quebravel = (texto: string, tamanho: number) =>
     .join(" ");
 
 /** A mesma folha com outro nome, no tamanho que esse nome pede. */
-export function folhaComONome(
-  folha: FolhaDoCertificado,
-  texto: string
-): FolhaDoCertificado {
+export function folhaComONome(folha: FolhaDoCertificado, texto: string) {
   const escrito = nomeNaFolha(texto, {
     tamanho: folha.cursoEmTamanho,
     texto: folha.curso,

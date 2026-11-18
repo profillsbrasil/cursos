@@ -66,7 +66,7 @@ interface Campo {
 const ANTES = 2;
 const DEPOIS = 4;
 
-function camposEmOrdem(...ids: string[]): Record<string, Campo> {
+function camposEmOrdem(...ids: string[]) {
   const campos: Record<string, Campo> = {};
 
   for (const id of ids) {
@@ -157,7 +157,7 @@ describe("sincronizarComAPagina", () => {
     versao: Versao | null;
   }
 
-  const doc = (versao: string | null, titulo = "Curso"): Doc => ({
+  const doc = (versao: string | null, titulo = "Curso") => ({
     titulo,
     versao: versao as Versao | null,
   });

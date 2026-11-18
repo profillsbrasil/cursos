@@ -42,7 +42,7 @@ declare global {
  * token da sessão ainda vale nesse intervalo, e o servidor aceita 5 s de folga de
  * relógio. Sem ele, ou com ele vencido, o envio espera o getToken.
  */
-export function getClerkAuthTokenSemEspera(): Promise<string | null> {
+export function getClerkAuthTokenSemEspera() {
   const ultimo = globalThis.Clerk?.session?.lastActiveToken;
   const exp = ultimo?.jwt?.claims.exp;
 

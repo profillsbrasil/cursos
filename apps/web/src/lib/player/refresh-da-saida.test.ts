@@ -14,7 +14,7 @@ const CONQUISTA: Conquista = {
 
 const PEDIDO: Pedido = { posicaoSeg: 30, trechos: [] };
 
-const aceito = (conquista: Conquista | null): RespostaDoEnvio => ({
+const aceito = (conquista: Conquista | null) => ({
   registro: {
     assistida: conquista !== null,
     cobertura: { pct: 0, vistosSeg: 0 },

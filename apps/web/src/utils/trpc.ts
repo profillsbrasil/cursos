@@ -12,10 +12,10 @@ import {
   getClerkAuthTokenSemEspera,
 } from "@/utils/clerk-auth";
 
-const comToken = (token: string | null): Record<string, string> =>
+const comToken = (token: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
-async function headers(): Promise<Record<string, string>> {
+async function headers() {
   if (typeof window !== "undefined") {
     return comToken(await getClerkAuthToken());
   }

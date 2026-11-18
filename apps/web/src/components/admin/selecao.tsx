@@ -187,7 +187,7 @@ interface GrupoDaBusca {
 }
 
 /** As opções soltas viram um grupo sem rótulo, porque o Combobox filtra grupos. */
-function gruposDaBusca(itens: readonly ItemDaSelecao[]): GrupoDaBusca[] {
+function gruposDaBusca(itens: readonly ItemDaSelecao[]) {
   const grupos: { grupo: string; items: OpcaoDaSelecao[] }[] = [];
 
   for (const item of itens) {
@@ -232,7 +232,7 @@ function opcoesComCriar(
   opcoes: readonly ItemDaSelecao[],
   criar: CriarNaSelecao | undefined,
   busca: string
-): readonly ItemDaSelecao[] {
+) {
   const nome = busca.trim();
 
   if (!criar || nome === "") {

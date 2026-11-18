@@ -6,7 +6,7 @@ import { pdfDaFolha } from "./pdf";
 export async function respostaDoPdf(
   certificado: CertificadoEmitido | null,
   origem: string
-): Promise<Response> {
+) {
   const comONome = comNome(certificado);
 
   if (!comONome) {

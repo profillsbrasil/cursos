@@ -72,7 +72,7 @@ export type RascunhoDoCurso = Omit<
 const linkDoVideo = (v: AulaDoDocumento["video"]) =>
   v ? linkCurtoDoVideo(v) : "";
 
-export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
+export function rascunhoDoCurso(d: DocumentoDoCurso) {
   return {
     categoriaId: d.categoriaId,
     descricao: d.descricao,
@@ -141,7 +141,7 @@ function emOrdem(r: RascunhoDoCurso) {
 
 export type Leitura<T> = { valor: T } | { erro: string };
 
-export function lerDuracao(texto: string): Leitura<number> {
+export function lerDuracao(texto: string) {
   const seg = duracaoDoTexto(texto);
 
   if (seg === null) {
@@ -153,7 +153,7 @@ export function lerDuracao(texto: string): Leitura<number> {
     : { valor: seg };
 }
 
-export function lerVideo(texto: string): Leitura<AulaDoDocumento["video"]> {
+export function lerVideo(texto: string) {
   if (texto.trim() === "") {
     return { valor: null };
   }
@@ -169,8 +169,7 @@ export function lerVideo(texto: string): Leitura<AulaDoDocumento["video"]> {
 const SO_ALGARISMOS = /^\d+$/;
 
 const lerInteiro =
-  (min: number, max: number, erro: string) =>
-  (texto: string): Leitura<number> => {
+  (min: number, max: number, erro: string) => (texto: string) => {
     const s = texto.trim();
     const n = Number(s);
 
@@ -229,10 +228,7 @@ const CAMPOS_DO_CURSO = new Set<string>([
 ] satisfies CampoDoCursoComId[]);
 
 /** Os tópicos, o material e os níveis; undefined quando o caminho é de outra lista. */
-function campoNaLista(
-  r: RascunhoDoCurso,
-  caminho: readonly PropertyKey[]
-): string | null | undefined {
+function campoNaLista(r: RascunhoDoCurso, caminho: readonly PropertyKey[]) {
   const [a, b, c] = caminho;
 
   if (typeof b !== "number") {
@@ -258,10 +254,7 @@ function campoNaLista(
   return undefined;
 }
 
-function campoDoCaminho(
-  r: RascunhoDoCurso,
-  caminho: readonly PropertyKey[]
-): string | null {
+function campoDoCaminho(r: RascunhoDoCurso, caminho: readonly PropertyKey[]) {
   const [a, b, c, d] = caminho;
 
   if (caminho.length === 1 && CAMPOS_DO_CURSO.has(String(a))) {
@@ -292,10 +285,7 @@ function campoDoCaminho(
   return aula ? campoNaAula(aula, caminho.slice(4)) : null;
 }
 
-function campoNaAula(
-  aula: AulaDoRascunho,
-  resto: readonly PropertyKey[]
-): string | null {
+function campoNaAula(aula: AulaDoRascunho, resto: readonly PropertyKey[]) {
   const [e, f, g, h, i] = resto;
 
   if (resto.length === 1) {
@@ -351,7 +341,7 @@ const NOME_DA_LISTA: Record<string, string> = {
 
 export const MINIMO_DE_ALTERNATIVAS = `Toda pergunta tem pelo menos ${ALTERNATIVAS.min} alternativas.`;
 
-function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
+function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean) {
   if (i.code === "custom") {
     return i.message;
   }
@@ -382,10 +372,10 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
 export function lerRascunho(
   r: RascunhoDoCurso,
   salvo: Pick<DocumentoDoCurso, "versao">
-): RascunhoLido {
+) {
   const problemas: Problema[] = [];
 
-  const ler = <T>(leitura: Leitura<T>, campo: string, substituto: T): T => {
+  const ler = <T>(leitura: Leitura<T>, campo: string, substituto: T) => {
     if ("valor" in leitura) {
       return leitura.valor;
     }

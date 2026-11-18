@@ -46,10 +46,7 @@ export interface EntradaDoPlayer {
   video: VideoDaAula;
 }
 
-async function enviarRegistro(
-  aulaId: AulaId,
-  pedido: Pedido
-): Promise<RespostaDoEnvio> {
+async function enviarRegistro(aulaId: AulaId, pedido: Pedido) {
   try {
     const registro = await trpcClient.aula.registrar.mutate({
       aulaId,

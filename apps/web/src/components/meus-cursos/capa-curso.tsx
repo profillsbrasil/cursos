@@ -24,7 +24,7 @@ const aulasEDuracao = (c: CursoVM) =>
  * A etiqueta sobre a imagem, como no protótipo aprovado: "Em produção" no curso em
  * produção e, nos outros, as aulas e a duração do curso inteiro.
  */
-function etiquetaDe(c: CursoVM): Etiqueta {
+function etiquetaDe(c: CursoVM) {
   if (c.estado.tipo === "em_breve") {
     return { tipo: "em_producao" };
   }
@@ -42,7 +42,7 @@ const ESPACO_QUE_NAO_QUEBRA = " ";
  * com espaços que não quebram: a linha quebra dentro de uma parte, nunca em
  * "2 de / 2 aulas" nem com um "·" sozinho na ponta.
  */
-export function linhaDoCurso(c: CursoVM): string {
+export function linhaDoCurso(c: CursoVM) {
   const partes = [c.categoria, c.codigo];
   const { feitas, total } = c.progresso;
 

@@ -21,7 +21,7 @@ export const regraDaNota = (paraPassar: number, total: number) =>
 export const ganhoDe = (pontos: number) => `+${fmtPts(pontos)}`;
 
 /** "a pergunta 2", "as perguntas 2 e 3", na ordem das perguntas. */
-export function erradasDe(r: ResultadoDoQuestionario): string | null {
+export function erradasDe(r: ResultadoDoQuestionario) {
   const numeros = r.respostas.flatMap((x, i) => (x.certa ? [] : [i + 1]));
 
   if (numeros.length === 0) {
@@ -43,7 +43,7 @@ export interface FraseDoResultado {
 }
 
 /** O topo do cartão depois do envio. Na reprovação, as perguntas erradas vêm primeiro. */
-export function fraseDoResultado(r: ResultadoDoQuestionario): FraseDoResultado {
+export function fraseDoResultado(r: ResultadoDoQuestionario) {
   if (r.aprovada && r.tentativa === 1) {
     return {
       texto: `${ganhoDe(r.pontos)}, ${POR_ACERTO}. O questionário desta aula está feito.`,
@@ -80,7 +80,7 @@ export function fraseDoResultado(r: ResultadoDoQuestionario): FraseDoResultado {
 export const ENVIO_FALHOU =
   "Não deu para enviar. Suas respostas continuam marcadas; tente de novo.";
 
-export function textoDoEnvio(respondidas: number, total: number): string {
+export function textoDoEnvio(respondidas: number, total: number) {
   const faltam = total - respondidas;
 
   const conta =
