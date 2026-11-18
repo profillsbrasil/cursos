@@ -54,9 +54,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
     "@cursos/config": "workspace:*",
     "@types/node": "catalog:",
+    "oxfmt": "0.79.0",
+    "oxlint": "1.94.0",
     "railway": "^3.17.0",
     "turbo": "^2.11.13",
     "typescript": "catalog:",

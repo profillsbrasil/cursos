@@ -1,6 +1,5 @@
 // Gera os três SVG do cubo da marca a partir das faces abaixo.
 // Uso, da raiz do repo: bun docs/marca/cubo.ts apps/web
-import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -155,21 +154,3 @@ const arquivoDoFavicon = join(web, "src", "app", "icon.svg");
 writeFileSync(arquivoDoIcone, quadrado(216, "Profills Cursos"));
 writeFileSync(arquivoDoFavicon, quadrado(512, "Cubo da Profills"));
 writeFileSync(arquivoDoLockup, lockup(readFileSync(arquivoDoLockup, "utf8")));
-
-// O Biome formata SVG; sem isto, o `ultracite check` acusa o arquivo gerado.
-const formatar = spawnSync(
-  "bun",
-  [
-    "x",
-    "biome",
-    "format",
-    "--write",
-    arquivoDoLockup,
-    arquivoDoIcone,
-    arquivoDoFavicon,
-  ],
-  { stdio: ["ignore", "ignore", "inherit"] }
-);
-if (formatar.status !== 0) {
-  throw new Error("O Biome não formatou os SVG da marca.");
-}
