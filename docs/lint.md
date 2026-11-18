@@ -117,3 +117,67 @@ Contagem do `oxlint -f json .` com os presets `core`, `react` e `next`, depois d
 | `eslint(no-new-func)` | 1 | (b) desligada nos testes | Só nos testes: `service-worker.test.ts` executa a fonte do `public/sw.js`. |
 | `promise(prefer-await-to-callbacks)` | 1 | (b) desligada | Estilo: o `.catch` do registro do service worker. |
 | `jsdoc(check-tag-names)` | 1 | (c) à mão | O comentário de `foco.test.ts:120` começava a linha com `@supports`, que o JSDoc lê como tag. A linha põe `@supports` e `@media` em crase. |
+
+## Type-aware
+
+### Escopo
+
+- `.claude/**`, `.railway/**` e `docs/marca/**` ficam fora dos 4 tsconfig (`apps/web`, `packages/api`, `packages/db` e `packages/ui`) e saem do type-aware: um override desliga nelas as 57 regras com tipos que os presets ligam (`REGRAS_COM_TIPOS` no `oxlint.config.ts`). Sem os tipos certos, essas regras acusavam 196 falsos positivos ali; no `.claude/hooks`, o tsconfig da raiz não traz os tipos do bun. O Oxlint 1.94.0 não liga o type-aware por arquivo. A lista é a interseção das regras com `type_aware: true` no `oxlint --rules -f json` e das que os presets ligam; uma regra type-aware nova num upgrade acusa nessas pastas e entra na lista.
+- `oxlint.config.ts` e `oxfmt.config.ts` também ficam fora dos 4 tsconfig, mas o tsconfig da raiz os tipa, e eles passam sem diagnóstico.
+- `partes.test.ts` e `partes.test.tsx` de `components/admin` viraram um `partes.test.tsx` só. Com dois arquivos do mesmo nome base, um `.ts` e um `.tsx`, na mesma pasta, o tsrs perde o `bun:test` do `.tsx` (TS2307) e cascateia 9 `no-unsafe-*`; renomear qualquer um dos dois zera o erro, e o `tsc` aceita os dois. Era o único par do repo (`git ls-files`).
+
+### Decisões
+
+Contagem do `oxlint -f json` com o type-aware ligado e o escopo acima, antes das correções: 1.857 diagnósticos em 33 regras type-aware. Saídas: (a) autofix seguro, (b) desligada ou com opção no config, (c) corrigida à mão.
+
+| Regra | Ocorrências | Decisão | Motivo |
+| --- | --- | --- | --- |
+| `no-unsafe-type-assertion` | 621 | warn, fora do gate | É a regra que cobra os `as`. Os 7 `as` que o `no-unnecessary-type-assertion` tirou baixaram para 614, repartidos na tabela de baixo. |
+| `promise-function-async` | 472 | (b) desligada | O fix põe `async` em 463 linhas de 135 arquivos e muda o canal de erro de quem lança antes de devolver a promessa. Com o `return-await` em `always`, ele leva o `return-await` de 72 para 551, quase tudo `async () => await f()`. Dos 472 corpos, só 3 lançam síncrono antes do `return` (`index.ts:54`, `index.ts:119` e `routers/admin.ts:390`), e os 3 são middleware ou resolver que o tRPC aguarda. |
+| `strict-boolean-expressions` | 239 | (b) desligada | 158 são `string \| undefined` em condição, onde a regra pede tratar `""` à parte do `undefined`: mudar cada um é decidir de novo o que a string vazia quer dizer ali, sem defeito apontado. 51 são guardas de objeto que o tipo dá como sempre presente; 48 delas leem índice ou desestruturação de array (`const [saida] = pacote.outputs`), que sem o `noUncheckedIndexedAccess` não inclui `undefined`, e tirar a guarda muda o caso do array vazio. Nos 3 de número, o 0 vale ausente de propósito: bônus 0 não aparece em `status-do-player.tsx`, preço 0 é curso sem preço no seed e contagem 0 espera de novo no `troca.integration.test.ts`. |
+| `no-confusing-void-expression` | 179 | (b) `ignoreArrowShorthand` e desligada nos testes | 174 são arrow curto que devolve `void` a quem ignora o retorno (handler e callback). Nos testes, os 5 `await expect(...).rejects` acusam porque o `bun-types` declara os matchers de `rejects` e `resolves` como `void`, e as 6 funções recursivas `Promise<void>` dos testes não satisfazem esta regra e o `return-await` ao mesmo tempo. |
+| `return-await` | 72 | (a) autofix | Nenhum dos 72 está dentro de `try`: o `await` acrescenta a função ao stack trace e não muda o que o `catch` pega nem quando o `finally` roda. |
+| `no-floating-promises` | 39 | (b) opção e (c) | O `allowForKnownSafeCalls` aceita o `mock.module` do `bun:test` (26), que devolve `void \| Promise<void>` e só é promessa com fábrica assíncrona. Os 13 restantes viraram `void` (o `receber` de `campo-de-capa.tsx`, porque o `conferir` devolve o erro em vez de lançar; o `encerrar()` do player, que não rejeita; os do `sessao.test.ts`, que avançam o relógio à mão) ou `await` (os `servidor.stop(true)` dos `afterAll`). |
+| `prefer-regexp-exec` | 34 | (b) desligada | Sem autofix; `match` e `exec` dão o mesmo sem a flag `g`, e os 34 estão em teste. |
+| `no-unnecessary-type-assertion` | 27 | (a) autofix | Tira `as` de tipo que o valor já tem; o `tsc` confere. |
+| `no-base-to-string` | 25 | (b) opção e (c) | Os 18 `pacote.logs.join` são `BuildMessage` e `ResolveMessage` do `Bun.build`, que têm `toString` em runtime ("ResolveMessage: Could not resolve...") que o `bun-types` não declara; entram no `ignoredTypeNames`. Os 7 `String(dados.get(...))` de formulário viraram `campoDeTexto` (`lib/formulario.ts`): o mesmo texto para os campos de texto, e `""` no lugar de `"[object File]"` se um arquivo aparecesse ali. |
+| `non-nullable-type-assertion-style` | 22 | (b) desligada | O fix escreve `x!`, que o `no-non-null-assertion` do mesmo preset recusa. |
+| `strict-void-return` | 21 | (c) à mão | Arrow que devolve o resultado de `push`, `delete` ou `setTimeout` a quem espera `void` ganhou chaves; os handlers `async` do JSX (`sair`, `copiar`) viraram `() => { void f(); }`; o `.finally(() => db.$client.end())` do `codigo-gerado.integration.test.ts` virou `try`/`finally`. |
+| `consistent-return` | 10 | (b) desligada | 7 são efeito ou callback de ref que devolve a limpeza só quando assinou algo, o que o React aceita (5 `useEffect`, 1 `useLayoutEffect` e o `reservarOTopo` de `modulos-do-curso.tsx`); 3 são os ramos de `camposDaVisao` em `visao.ts`, que devolve `undefined` para "todos". |
+| `no-unsafe-assignment` | 10 | (b) nos testes e em `clerk.ts`, (c) no resto | Nos testes (7), o `bun-types` declara `AsymmetricMatcher` como `any` (`expect.any`, `stringMatching`), e `mock.calls`, `Reflect.get` e `rows` sem tipo devolvem `any`. Em `entrada/clerk.ts`, o `JSON.parse` que troca o nome do produto no `ptBR` é um cast de JSON e entra na frente dos casts. `controles-do-player.tsx` lê o volume por `typeof`, e `utils/clerk-auth.ts` lê `globalThis.Clerk` declarado com o `ClerkNoNavegador`. |
+| `require-array-sort-compare` | 10 | (b) desligada nos testes | Os 10 ordenam para comparar como conjunto: 6 arrays de tupla ou string, 2 de booleano e 2 de número, `[-100, 500]` e `[100, 150]`, em que a ordem de texto e a numérica coincidem. |
+| `no-deprecated` | 9 | (c) à mão | `FormEvent` virou `SubmitEvent`, o tipo que o `onSubmit` do `@types/react` 19.3 pede. |
+| `prefer-nullish-coalescing` | 8 | (b) desligada | O fix troca `\|\|` por `??`, e nos 8 o `\|\|` cobre a string vazia de propósito (`navegador.platform \|\| ""`, `process.env.DATABASE_URL \|\| ""`, o nome do nível em branco). |
+| `no-unsafe-argument` | 7 | (b) nos testes, (c) em `erros.ts` | Nos testes, 5 são o `expect.arrayContaining` (`AsymmetricMatcher`) e 1 é o `new Array(3).fill(...)`, que sai `any[]`. Em `minha-conta/erros.ts`, o `ClerkAPIError` do Clerk tem `Meta = any`; o `campoDoErro` lê o `paramName` como `unknown`. |
+| `no-unnecessary-type-arguments` | 7 | (b) desligada | O fix tira `expect<unknown>`, e o `tsc` acusa TS2769 nos 7: o default do parâmetro é `unknown`, mas sem o argumento o tipo vem do valor. |
+| `no-misused-spread` | 5 | (b) desligada | Os 5 espalham string para contar code points de propósito (`medidas-da-folha.ts`, `minha-conta/nome.ts`); o `Intl.Segmenter` que a regra sugere mudaria a contagem. |
+| `prefer-string-starts-ends-with` | 5 | (a) autofix | Regex com âncora `^` e texto fixo virou `startsWith`; as duas constantes de regex que sobraram saíram. |
+| `await-thenable` | 5 | (b) desligada nos testes | Os 5 são `await expect(...).rejects` e `.resolves`, que devolvem promessa em runtime e `void` no `bun-types` 1.4.4. Tirar o `await` faria o teste não esperar a asserção. |
+| `switch-exhaustiveness-check` | 4 | (b) `considerDefaultExhaustiveForUnions` | Os 4 `switch` têm `default` que cobre o resto de propósito. |
+| `no-misused-promises` | 4 | (c) à mão | Os mesmos handlers `async` do JSX e o `.finally` do `strict-void-return`. |
+| `use-unknown-in-catch-callback-variable` | 4 | (a) e (c) | O autofix pôs `unknown`; nos 3 testes que leem `e.code`, a leitura passou a `e instanceof TRPCError ? e.code : undefined`, como o `liberacao.integration.test.ts` já fazia. |
+| `unbound-method` | 3 | (c) à mão | `assinar` de `lib/player/sinal.ts` e `agendar` do relógio do `sessao.test.ts` viraram propriedade arrow; nenhum lia `this`. |
+| `no-unsafe-member-access` | 3 | (c) à mão | `isTRPCClientError<AppRouter>` tipa o `data` do erro em `use-player-da-aula.ts`; `campoDoErro` em `erros.ts`; `c.query<{ id: string }>` no `restricoes.integration.test.ts`. |
+| `no-generated-empty-object-type` | 3 | (c) à mão | `Record<never, never>` virou `unknown` em `dominio/conquistas.ts`: a `Medalha` só usa o tipo em interseção, e `T & unknown` é `T`. |
+| `restrict-template-expressions` | 2 | (c) à mão | `coluna-do-curso.tsx` interpola a fonte de duas funções no script inline; agora com `.toString()` explícito, o mesmo texto. |
+| `no-unnecessary-type-conversion` | 2 | (a) autofix | `Number` sobre número e `String` sobre string. |
+| `prefer-includes` | 2 | (a) autofix | Regex sem metacaractere virou `includes`; as constantes que sobraram saíram. |
+| `no-unsafe-call` | 1 | (b) desligada em `service-worker.test.ts` | O teste executa a fonte do `public/sw.js` por `new Function`, como o `no-new-func` dos testes. |
+| `no-implied-eval` | 1 | (b) desligada em `service-worker.test.ts` | O mesmo `new Function`. |
+| `no-unnecessary-type-parameters` | 1 | (b) desligada | `novoId<T>()` de `lib/editor.ts` usa o genérico só no retorno para o editor fabricar ids com marca; trocar pede um construtor por marca. |
+
+### Os casts que ficam em warn
+
+Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo texto de cada asserção:
+
+| Padrão | Teste | Produção | Total |
+| --- | --- | --- | --- |
+| Marca (`*Id`, `Email`, `Versao`, `DiaISO`, `Route`) | 350 | 143 | 493 |
+| Outro tipo do domínio | 45 | 22 | 67 |
+| `never` ou `as unknown as` | 22 | 1 | 23 |
+| Genérico ou indexado | 12 | 6 | 18 |
+| DOM | 2 | 5 | 7 |
+| JSON | 6 | 0 | 6 |
+| Total | 437 | 177 | 614 |
+
+`packages/api/src` tem 404 deles e `apps/web/src/components`, 192. O `JSON.parse` de `entrada/clerk.ts` é o sétimo cast de JSON, contado no `no-unsafe-assignment`.
