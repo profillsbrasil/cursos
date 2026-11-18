@@ -67,6 +67,7 @@ describe("montarCursoAberto", () => {
     const visto = montarCursoVisto(
       linhas(comAcesso(a, { liberado: false, peloPerfil: true }))
     );
+
     expect(visto?.amostra).toEqual({
       aulaId: idAula("a", 0, 1) as AulaId,
       preco: null,
@@ -76,9 +77,11 @@ describe("montarCursoAberto", () => {
         linhas(comAcesso(a, { liberado: false, peloPerfil: true }))
       )
     ).toBeNull();
+
     if (!visto) {
       throw new Error("a amostra abriu");
     }
+
     expect(abreAAula(visto, idAula("a", 0, 1))).toBe(true);
     expect(abreAAula(visto, idAula("a", 0, 2))).toBe(false);
   });
@@ -87,6 +90,7 @@ describe("montarCursoAberto", () => {
     const visto = montarCursoVisto(
       linhas(comAcesso(a, { liberado: true, peloPerfil: true }))
     );
+
     expect(visto?.amostra).toBeNull();
     expect(visto && abreAAula(visto, idAula("a", 0, 2))).toBe(true);
   });
@@ -94,6 +98,7 @@ describe("montarCursoAberto", () => {
   test("o curso concluído que ficou sem aula abre inteiro, e a amostra dele não existe", () => {
     // O certificado vence a falta de aula (concluido), como antes da amostra.
     const vazio = cursoLinha("vazio", { aulas: [0] });
+
     const certificados = [
       {
         codigo: "RI-001",
@@ -101,11 +106,13 @@ describe("montarCursoAberto", () => {
         emitidoEm: em("2026-10-06T15:00:00Z"),
       },
     ];
+
     const inteiro = montarCursoAberto(
       linhas(comAcesso(vazio, { liberado: true, peloPerfil: true }), {
         certificados,
       })
     );
+
     expect(inteiro?.amostra).toBeNull();
     expect(inteiro?.leitura.estado.tipo).toBe("concluido");
     expect(
@@ -142,11 +149,14 @@ describe("montarCursoAberto", () => {
     const exemplo = exemploDoPrototipo();
     const painel = montarPainel(exemplo, HOJE_DO_EXEMPLO);
     expect(painel.cursos.length).toBeGreaterThan(3);
+
     for (const vm of painel.cursos) {
       const linha = exemplo.liberacoes.find((l) => l.curso.id === vm.id)?.curso;
+
       if (!linha) {
         throw new Error(`curso ${vm.slug} sem linha`);
       }
+
       const aberto = montarCursoAberto({
         assistidas: exemplo.assistidas.map((x) => ({
           ...x,
@@ -157,6 +167,7 @@ describe("montarCursoAberto", () => {
         posicoes: exemplo.posicoes.map((p) => ({ ...p, trechosVistos: [] })),
         questionarios: [],
       });
+
       expect(aberto?.leitura.estado ?? null).toEqual(
         podeAbrir(vm.estado) ? vm.estado : null
       );
@@ -166,6 +177,7 @@ describe("montarCursoAberto", () => {
 
 describe("montarAulaNoPlayer", () => {
   const c = cursoLinha("c", { aulas: [2, 3], duracaoSeg: 600 });
+
   const aberto = montarCursoAberto(
     linhas(comAcesso(c, { liberado: true }), {
       assistidas: [assistida(idAula("c", 0, 1))],
@@ -182,14 +194,18 @@ describe("montarAulaNoPlayer", () => {
       ],
     })
   );
+
   if (!aberto) {
     throw new Error("curso c não abriu");
   }
+
   const vm = (id: string) => {
     const aula = aulaPorId(aberto, id);
+
     if (!aula) {
       throw new Error(`aula ${id} fora do curso`);
     }
+
     return montarAulaNoPlayer(aberto, aula, SEM_QUESTIONARIO, 0);
   };
 
@@ -229,15 +245,19 @@ describe("montarAulaNoPlayer", () => {
         ),
       })),
     };
+
     const e = montarCursoAberto(
       linhas(comAcesso(comDescricao, { liberado: true }))
     );
+
     const descricao = (id: string) => {
       const aula = e && aulaPorId(e, id);
+
       return e && aula
         ? montarAulaNoPlayer(e, aula, SEM_QUESTIONARIO, 0).aula.descricao
         : null;
     };
+
     expect([
       descricao(idAula("c", 1, 1)),
       descricao(idAula("c", 1, 2)),
@@ -251,6 +271,7 @@ describe("montarAulaNoPlayer", () => {
   test("aula N de M segue a ordem da coluna, mesmo com buraco na posição", () => {
     const base = cursoLinha("d", { aulas: [3] });
     const posicoes = [1, 3, 7];
+
     const comBuraco: CursoLinha = {
       ...base,
       modulos: base.modulos.map((m) => ({
@@ -258,13 +279,17 @@ describe("montarAulaNoPlayer", () => {
         aulas: m.aulas.map((a, i) => ({ ...a, posicao: posicoes[i] ?? 0 })),
       })),
     };
+
     const d = montarCursoAberto(
       linhas(comAcesso(comBuraco, { liberado: true }))
     );
+
     const ultima = d && aulaPorId(d, idAula("d", 0, 3));
+
     if (!(d && ultima)) {
       throw new Error("curso d não abriu");
     }
+
     expect(
       montarAulaNoPlayer(d, ultima, SEM_QUESTIONARIO, 0).aula
     ).toMatchObject({

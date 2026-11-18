@@ -28,6 +28,7 @@ async function ativa(
     columns: { id: true },
     where: { cursoId, perfil, revogadaEm: { isNull: true } },
   });
+
   return (linha?.id as LiberacaoDoPerfilId | undefined) ?? null;
 }
 
@@ -44,29 +45,37 @@ export async function liberarParaPerfil(
   agora: Date
 ): Promise<{ id: LiberacaoDoPerfilId; nova: boolean }> {
   const existente = await ativa(db, perfil, cursoId);
+
   if (existente) {
     return { id: existente, nova: false };
   }
+
   try {
     const [linha] = await db
       .insert(liberacaoDoPerfil)
       .values({ cursoId, liberadaEm: agora, liberadaPor: admin, perfil })
       .returning({ id: liberacaoDoPerfil.id });
+
     if (!linha) {
       throw new Error("O insert da liberação do perfil não devolveu a linha.");
     }
+
     return { id: linha.id as LiberacaoDoPerfilId, nova: true };
   } catch (erro) {
     const restricao = violacaoDe(erro)?.restricao;
+
     if (restricao === FK_DO_CURSO) {
       throw cursoSumiu(erro);
     }
+
     // Outro admin liberou entre a leitura e o insert: a dele vale.
     const ganhadora =
       restricao === ATIVA_UNICA ? await ativa(db, perfil, cursoId) : null;
+
     if (ganhadora) {
       return { id: ganhadora, nova: false };
     }
+
     throw erro;
   }
 }
@@ -92,6 +101,7 @@ export async function revogarDoPerfil(
       and(eq(liberacaoDoPerfil.id, id), isNull(liberacaoDoPerfil.revogadaEm))
     )
     .returning({ id: liberacaoDoPerfil.id });
+
   return { revogada: linhas.length > 0 };
 }
 

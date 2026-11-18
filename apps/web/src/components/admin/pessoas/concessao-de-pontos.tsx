@@ -10,7 +10,7 @@ import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   type ChangeEvent,
-  type FormEvent,
+  type SubmitEvent,
   type RefObject,
   useCallback,
   useId,
@@ -63,10 +63,13 @@ const ATALHO =
 /** "3.000" e "3000" valem 3000; o resto, null. */
 function lerQuantidade(texto: string): number | null {
   const limpo = texto.replaceAll(".", "").replaceAll(" ", "");
+
   if (!SO_ALGARISMOS.test(limpo)) {
     return null;
   }
+
   const n = Number(limpo);
+
   return n >= 1 && n <= TETO_DA_CONCESSAO ? n : null;
 }
 
@@ -85,15 +88,20 @@ function envioDe(
   outro: string
 ): Envio {
   const n = escolha === OUTRO ? lerQuantidade(outro) : escolha;
+
   if (n === null) {
     let razao = SEM_VALOR;
+
     if (escolha === OUTRO) {
       razao = outro.trim() === "" ? SEM_OUTRO : QUANTIDADE_INVALIDA;
     }
+
     return { razao, rotulo: "Escolha o valor", tipo: "desligado" };
   }
+
   const pontos = sentido === "dar" ? n : -n;
   const novo = saldo + pontos;
+
   if (novo < 0) {
     return {
       razao: `Tirar ${fmtPts(n)} deixaria o saldo negativo.`,
@@ -104,7 +112,9 @@ function envioDe(
       tipo: "desligado",
     };
   }
+
   const verbo = sentido === "dar" ? "Dar" : "Tirar";
+
   return {
     pontos,
     rotulo: `${verbo} ${fmtPts(n)}. Saldo vai a ${fmtNum(novo)}`,
@@ -140,7 +150,9 @@ function GrupoDoValor({
     ...ATALHOS.map((n) => ({ rotulo: fmtNum(n), valor: n })),
     { rotulo: "Outro valor", valor: OUTRO },
   ];
+
   const erroDoValor = `${id}-valor-erro`;
+
   return (
     <fieldset
       aria-describedby={erro ? erroDoValor : undefined}
@@ -190,6 +202,7 @@ function CampoPontos({
   texto: string;
 }) {
   const erro = `${id}-outro-erro`;
+
   return (
     <Field
       className="max-w-40 gap-1.5"
@@ -246,6 +259,7 @@ export function ConcessaoDePontos({
   const motivo = useRef<HTMLInputElement>(null);
 
   const envio = envioDe(saldo, sentido, escolha, outro);
+
   const outroInvalido =
     escolha === OUTRO && outro.trim() !== "" && lerQuantidade(outro) === null;
 
@@ -253,23 +267,27 @@ export function ConcessaoDePontos({
     setSentido(e.currentTarget.value as Sentido);
     setErros((x) => ({ ...x, valor: null }));
   }, []);
+
   const escolherValor = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const v = e.currentTarget.value;
     setEscolha(v === OUTRO ? OUTRO : Number(v));
     setErros((x) => ({ ...x, valor: null }));
   }, []);
+
   const escreverOutro = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setOutro(e.currentTarget.value);
     setErros((x) => ({ ...x, valor: null }));
   }, []);
+
   const limparMotivo = useCallback(
     () => setErros((x) => ({ ...x, motivo: null })),
     []
   );
 
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
+
       // O botão desligado segue focável, e o Enter no Motivo ainda envia.
       if (envio.tipo !== "pronto") {
         if (escolha === OUTRO) {
@@ -279,14 +297,19 @@ export function ConcessaoDePontos({
             ?.querySelector<HTMLInputElement>("input:checked, input")
             ?.focus();
         }
+
         return;
       }
+
       const texto = (motivo.current?.value ?? "").trim();
+
       if (texto === "") {
         setErros({ motivo: MOTIVO_VAZIO, valor: null });
         motivo.current?.focus();
+
         return;
       }
+
       setErros(SEM_ERRO);
       const { pontos } = envio;
       executar(
@@ -306,6 +329,7 @@ export function ConcessaoDePontos({
             setSentido("dar");
             setEscolha(null);
             setOutro("");
+
             if (motivo.current) {
               motivo.current.value = "";
             }
@@ -322,9 +346,11 @@ export function ConcessaoDePontos({
   const erroDoMotivo = `${id}-motivo-erro`;
   const razao = `${id}-razao`;
   let descricaoDoBotao: string | undefined;
+
   if (envio.tipo === "desligado") {
     descricaoDoBotao = outroInvalido ? erroDoOutro : razao;
   }
+
   return (
     <form
       className="border-border grid gap-4 border-t px-[22px] py-4"

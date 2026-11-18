@@ -10,7 +10,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "categorias.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-falso.js");
@@ -99,11 +99,14 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 let enviar: Enviar;
@@ -147,6 +150,7 @@ async function teclar(tecla: keyof typeof CODIGO_DA_TECLA) {
     key: tecla,
     windowsVirtualKeyCode: CODIGO_DA_TECLA[tecla],
   };
+
   await enviar("Input.dispatchKeyEvent", {
     ...evento,
     text: tecla === "Enter" ? "\r" : undefined,

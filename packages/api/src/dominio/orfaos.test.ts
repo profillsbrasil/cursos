@@ -8,12 +8,14 @@ import {
 } from "./orfaos";
 
 const AGORA = new Date("2026-10-20T12:00:00Z");
+
 const diasAtras = (dias: number) =>
   new Date(AGORA.getTime() - dias * 24 * 60 * 60 * 1000);
 
 const chave = (letra: string, ext: string) => `${letra.repeat(64)}.${ext}`;
 const CAPA = chave("a", "jpg");
 const MATERIAL = chave("b", "pdf");
+
 const objeto = (c: string, dias: number) => ({
   bytes: 1000,
   chave: c,
@@ -80,11 +82,13 @@ describe("orfaosDoBucket", () => {
 
   test("capa do public/ não protege a chave de mesmo nome no bucket", () => {
     const mesmoNome = chave("9", "jpg");
+
     const orfaos = orfaosDoBucket(
       { capaUrls: [`/capas/${mesmoNome}`], chavesDeMaterial: [] },
       [objeto(mesmoNome, 30)],
       AGORA
     );
+
     expect(orfaos.map((o) => o.chave)).toEqual([mesmoNome]);
   });
 });
@@ -97,6 +101,7 @@ describe("só o que o app gravou é candidato", () => {
       objeto(`${"a".repeat(63)}.jpg`, 30),
       objeto(`${"A".repeat(64)}.jpg`, 30),
     ];
+
     expect(orfaosDoBucket(EM_USO, alheios, AGORA)).toEqual([]);
   });
 });

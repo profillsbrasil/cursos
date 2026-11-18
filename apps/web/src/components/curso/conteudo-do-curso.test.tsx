@@ -11,7 +11,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { comercial } from "./exemplo-de-teste";
 
@@ -66,11 +66,14 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da sanfona não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 let enviar: Enviar;
@@ -95,7 +98,8 @@ async function clicar(seletor: string) {
     `document.querySelector(${JSON.stringify(seletor)}).click()`
   );
   await avaliar(enviar, DEPOIS_DO_RENDER);
-  return avaliar<Estado>(enviar, ESTADO);
+
+  return await avaliar<Estado>(enviar, ESTADO);
 }
 
 describe.skipIf(!existsSync(CHROMIUM))("a sanfona dos módulos", () => {

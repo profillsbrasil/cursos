@@ -12,9 +12,11 @@ export const metadata: Metadata = { title: "Liberações por perfil" };
 
 export default async function LiberacoesPorPerfil() {
   const grade = await carregarGradeDosPerfis();
+
   const abertos = grade.cursos.filter((c) =>
     ORDEM_DOS_PERFIS.every((p) => c.liberacoes[p] !== null)
   ).length;
+
   return (
     <>
       <CabecalhoDaPagina

@@ -57,22 +57,28 @@ function historicoDe(l: LinhasHistorico): Historico {
 
 function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
   const atividade = new Map<AulaId, string>();
+
   const anotar = (aulaId: string, quando: Date) => {
     const iso = quando.toISOString();
     const atual = atividade.get(aulaId as AulaId);
+
     if (!atual || iso > atual) {
       atividade.set(aulaId as AulaId, iso);
     }
   };
+
   for (const a of l.assistidas) {
     anotar(a.aulaId, a.assistidaEm);
   }
+
   for (const p of l.posicoes) {
     anotar(p.aulaId, p.atualizadaEm);
   }
+
   for (const q of l.questionarios) {
     anotar(q.aulaId, q.ultimaEm);
   }
+
   return atividade;
 }
 
@@ -85,6 +91,7 @@ export interface Estudo {
 /** Posição em 0 s não é estudo: nem o histórico nem a atividade a contam. */
 export function estudoDe(l: LinhasHistorico): Estudo {
   const comecadas = { ...l, posicoes: l.posicoes.filter(posicaoComecada) };
+
   return {
     atividade: atividadeDe(comecadas),
     historico: historicoDe(comecadas),

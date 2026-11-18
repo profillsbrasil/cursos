@@ -47,6 +47,7 @@ function linhasDasTentativas(
 ): Promise<LinhasDasConquistas["questionarios"]> {
   const t = questionarioTentativa;
   const daPrimeira = sql`filter (where ${t.numero} = 1)`;
+
   return exec
     .select({
       ...COLUNAS_DO_QUESTIONARIO,
@@ -68,6 +69,7 @@ export async function linhasDasConquistas(
   aluno: Aluno
 ): Promise<LinhasDasConquistas> {
   const { userId } = aluno;
+
   const [
     liberacoes,
     assistidas,
@@ -144,6 +146,7 @@ export async function linhasDasConquistas(
     // 8. as entradas de estudo por dia, para Mil pontos estudando
     estudoPorDia(db, userId),
   ]);
+
   return {
     assistidas,
     certificados,

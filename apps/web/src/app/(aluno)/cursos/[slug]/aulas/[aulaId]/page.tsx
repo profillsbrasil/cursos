@@ -15,26 +15,32 @@ interface Props {
 
 async function aulaDaUrl(params: Props["params"]) {
   const { aulaId, slug } = await params;
-  return carregarAula(slug, aulaId);
+
+  return await carregarAula(slug, aulaId);
 }
 
 // O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dados = await aulaDaUrl(params);
+
   if (!dados) {
     notFound();
   }
+
   return { title: `${dados.aula.titulo} · ${dados.curso.titulo}` };
 }
 
 export default async function PaginaDaAula({ params }: Props) {
   const dados = await aulaDaUrl(params);
+
   if (!dados) {
     notFound();
   }
+
   if (dados.aula.video) {
     adiantarOYoutube();
   }
+
   return (
     <div className="grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]">
       <div className="grid min-w-0 gap-6">

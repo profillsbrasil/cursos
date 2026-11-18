@@ -56,6 +56,7 @@ export async function linhasDoCurso(
   { serial }: { serial: boolean }
 ): Promise<LinhasCurso> {
   const { userId } = aluno;
+
   const consultas = [
     exec.query.curso.findFirst({
       ...COM_CONTEUDO,
@@ -96,6 +97,7 @@ export async function linhasDoCurso(
       .where(eq(posicaoAula.userId, userId)),
     linhasDosQuestionarios(exec, userId),
   ] as const;
+
   const [curso, certificados, assistidas, posicoes, questionarios] = serial
     ? ([
         await consultas[0],
@@ -105,6 +107,7 @@ export async function linhasDoCurso(
         await consultas[4],
       ] as const)
     : await Promise.all(consultas);
+
   return {
     assistidas,
     certificados,
@@ -124,11 +127,14 @@ export async function carregarAula(
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
     linhasDoQuestionario(db, aluno.userId, aulaId as AulaId),
   ]);
+
   const aberto = montarCursoVisto(linhas);
   const aula = aberto && abreAAula(aberto, aulaId) && aulaPorId(aberto, aulaId);
+
   if (!(aberto && aula)) {
     return null;
   }
+
   return montarAulaNoPlayer(
     aberto,
     aula,
@@ -150,10 +156,13 @@ export async function carregarPaginaDoCurso(
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
     materiaisDaPagina(db, slug),
   ]);
+
   const aberto = montarCursoVisto(linhas);
+
   if (!aberto) {
     return null;
   }
+
   // A amostra não lista o material de apoio: o download também a recusa.
   return montarPaginaDoCurso(
     aberto,
@@ -221,11 +230,13 @@ export function registrar(
   agora: Date
 ): Promise<Registro> {
   const { userId } = aluno;
+
   return db.transaction(async (tx) => {
     // set_config(..., true) é o SET LOCAL: vale só até o fim desta transação.
     await tx.execute(
       sql`select set_config('lock_timeout', ${`${ESPERA_PELA_COTA_MS}ms`}, true)`
     );
+
     // O DO UPDATE trava a linha do aluno até o fim da transação.
     const [cota] = await tx
       .insert(cotaVideo)
@@ -238,27 +249,35 @@ export function registrar(
         atualizadaEm: cotaVideo.atualizadaEm,
         segundos: cotaVideo.segundos,
       });
+
     if (!cota) {
       throw new Error("O upsert da cota não devolveu a linha.");
     }
+
     const aberto = montarCursoVisto(
       await linhasDoCurso(tx, aluno, { aulaId }, { serial: true })
     );
+
     const aula =
       aberto && abreAAula(aberto, aulaId) && aulaPorId(aberto, aulaId);
+
     if (!(aberto && aula)) {
       throw erroSemAcesso();
     }
+
     if (!aula.video) {
       throw erroSemVideo();
     }
+
     const salvo = estudoDaAula(aberto, aula);
+
     const r = aplicarRegistro(
       { ...salvo, duracaoSeg: aula.duracaoSeg },
       cota,
       pedido,
       agora
     );
+
     await tx
       .insert(posicaoAula)
       .values({
@@ -279,12 +298,14 @@ export function registrar(
     await tx.update(cotaVideo).set(r.cota).where(eq(cotaVideo.userId, userId));
 
     let conquista: Registro["conquista"] = null;
+
     if (r.viraAssistida) {
       const [fato] = await tx
         .insert(aulaAssistida)
         .values({ assistidaEm: agora, aulaId, userId })
         .onConflictDoNothing()
         .returning({ dia: aulaAssistida.dia });
+
       // A amostra grava o fato e não lança: os pontos dela entram na troca
       // (lancarAulasAssistidas), e o curso não conclui sem ela.
       if (fato && !aberto.amostra) {
@@ -293,6 +314,7 @@ export function registrar(
           fato.dia as DiaISO,
           aberto.diasComAulaAssistida
         );
+
         const gravados = await tx
           .insert(pontoLancamento)
           .values(
@@ -307,14 +329,16 @@ export function registrar(
             motivo: pontoLancamento.motivo,
             pontos: pontoLancamento.pontos,
           });
+
         conquista = conquistaDe(gravados, efeitos.sequenciaDias);
         await concluirCurso(
           await travarAluno(tx, userId),
-          aberto.curso.id as CursoId,
+          aberto.curso.id,
           agora
         );
       }
     }
+
     return {
       assistida: salvo.assistida || r.viraAssistida,
       cobertura: cobertura(r.trechos, aula.duracaoSeg),

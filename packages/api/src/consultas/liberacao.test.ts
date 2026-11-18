@@ -15,6 +15,7 @@ describe("inserirLiberacao", () => {
         INSERT_EM_LIBERACAO.test(readFileSync(join(SRC, arquivo), "utf8"))
       )
       .sort();
+
     expect(comInsert).toEqual(["consultas/liberacao.ts"]);
   });
 });

@@ -26,18 +26,24 @@ const { values } = parseArgs({ options: { gravar: { type: "boolean" } } });
 const gravar = values.gravar === true;
 
 const { CLERK_SECRET_KEY, DATABASE_URL } = process.env;
+
 if (!DATABASE_URL) {
   throw new Error("Falta o DATABASE_URL.");
 }
+
 const url = new URL(DATABASE_URL);
+
 console.log(`Banco: ${url.host}${url.pathname}`);
 
 const db = createDb({ DATABASE_URL });
+
 try {
   const contagem = await contagemPorPerfil(db);
+
   const recusa = gravar
     ? recusaDaGravacao(Object.values(contagem).reduce((s, n) => s + n, 0))
     : null;
+
   if (recusa) {
     throw new Error(recusa);
   }
@@ -45,17 +51,21 @@ try {
   const planos = await rodarVirada(db, { agora: new Date(), gravar });
 
   const nomes = new Map<string, string>();
+
   if (CLERK_SECRET_KEY) {
     const pessoas = pessoasDoClerk(
       createClerkClient({ secretKey: CLERK_SECRET_KEY })
     );
+
     const ids = planos.map((p) => p.userId);
+
     for (let i = 0; i < ids.length; i += LIMITE) {
       // oxlint-disable-next-line no-await-in-loop -- uma página do Clerk por vez, longe do limite de taxa.
       const { pessoas: lote } = await pessoas.buscar(
         "",
         ids.slice(i, i + LIMITE)
       );
+
       for (const p of lote) {
         nomes.set(p.userId, p.nome.split(" ")[0] ?? p.nome);
       }
@@ -63,6 +73,7 @@ try {
   }
 
   const pts = new Intl.NumberFormat("pt-BR");
+
   const motivo = (m: MotivoDoPulo) => {
     switch (m.tipo) {
       case "sem_preco":
@@ -82,18 +93,23 @@ try {
       : "Ensaio: transação read only, nada se grava."
   );
   console.log(`Funcionários: ${planos.length}.`);
+
   for (const plano of planos) {
     const nome = nomes.get(plano.userId);
     console.log(`\n${plano.userId}${nome ? ` (${nome})` : ""}`);
+
     if (nadaAFazer(plano)) {
       console.log("  nada a fazer");
     }
+
     if (plano.bonus > 0) {
       console.log(`  bônus: +${pts.format(plano.bonus)} pts`);
     }
+
     for (const t of plano.trocas) {
       console.log(`  troca: ${t.titulo}  -${pts.format(t.preco)} pts`);
     }
+
     for (const p of plano.pulados) {
       console.log(`  pula: ${p.titulo}  (${motivo(p.motivo)})`);
     }

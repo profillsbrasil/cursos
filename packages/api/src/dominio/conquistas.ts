@@ -25,10 +25,13 @@ import { type CursoDaTroca, situacao } from "./troca";
 
 /** As trocas de Três cursos trocados. */
 export const META_DE_TROCAS = 3;
+
 /** Os certificados de Três cursos concluídos. */
 export const META_DE_CURSOS = 3;
+
 /** As entradas de estudo de Mil pontos estudando. */
 export const META_DE_PONTOS_DE_ESTUDO = 1000;
+
 /** Da amostra à troca: assistir à amostra de um curso e trocar aquele curso. */
 export const PASSOS_DA_AMOSTRA_A_TROCA = 2;
 
@@ -93,6 +96,7 @@ export interface AulaNoCurso {
 }
 
 export const METAS_DE_AULAS = [10, 50, 100] as const;
+
 export type MetaDeAulas = (typeof METAS_DE_AULAS)[number];
 
 /** As aulas de um curso: quantas a pessoa assistiu de quantas. */
@@ -107,7 +111,7 @@ export type Marco =
   | {
       tipo: "aulas";
       meta: MetaDeAulas;
-      medalha: Medalha<Record<never, never>, { feitas: number }>;
+      medalha: Medalha<unknown, { feitas: number }>;
     }
   | {
       tipo: "sequencia";
@@ -118,7 +122,7 @@ export type Marco =
     };
 
 interface NaGrade<T extends string, PorGanhar> {
-  medalha: Medalha<Record<never, never>, { pct: number } & PorGanhar>;
+  medalha: Medalha<unknown, { pct: number } & PorGanhar>;
   tipo: T;
 }
 
@@ -145,7 +149,7 @@ export type MedalhaDaGrade =
   | NaGrade<"tres_trocas", Contagem>
   | NaGrade<"amostra_e_troca", Contagem & { amostraVista: string | null }>
   | NaGrade<"troca_ate_o_fim", { maisAdiantado: CursoPerto | null }>
-  | NaGrade<"primeiro_questionario", Record<never, never>>
+  | NaGrade<"primeiro_questionario", unknown>
   | NaGrade<"nota_cheia", { melhor: Contagem | null }>
   | NaGrade<"tres_cursos", Contagem>
   | NaGrade<"mil_pontos", Contagem>;
@@ -210,7 +214,9 @@ const primeiraData = (datas: readonly (Date | null)[]): Date | undefined =>
   );
 
 type Assistida = LinhasDasConquistas["assistidas"][number];
+
 type Lancamento = LinhasDasConquistas["lancamentos"][number];
+
 interface Troca {
   criadoEm: Date;
   cursoId: string;
@@ -237,6 +243,7 @@ function certificados(
       estado: "ganha" as const,
       horas: cargaHoraria(c.segundosDeVideo),
     }));
+
   // A amostra não conclui o curso, então não tem certificado por ganhar.
   const porGanhar = cursosQueAbremAula(painel).map((c) => ({
     categoria: c.categoria,
@@ -245,6 +252,7 @@ function certificados(
     feitas: c.progresso.feitas,
     total: c.progresso.total,
   }));
+
   return { emitidos, porGanhar };
 }
 
@@ -265,6 +273,7 @@ const metaDeAulas = (
   meta: MetaDeAulas
 ): Marco => {
   const aDaMeta = assistidas[meta - 1];
+
   return {
     medalha: aDaMeta
       ? ganha(aDaMeta.assistidaEm)
@@ -281,13 +290,16 @@ function sequencia(
 ): Marco {
   const vezes = lancamentos.filter((l) => l.motivo === "sequencia_7_dias");
   const aPrimeira = oMaisAntigo(vezes);
+
   if (aPrimeira) {
     return {
       medalha: { ...ganha(aPrimeira.criadoEm), vezes: vezes.length },
       tipo: "sequencia",
     };
   }
+
   const dias = new Set(assistidas.map((a) => diaLocal(a.assistidaEm)));
+
   return {
     medalha: {
       dias: Math.min(sequenciaDiasUteis(dias, hoje), META_SEQUENCIA),
@@ -302,13 +314,16 @@ function sequencia(
 /** As trocas em ordem de data; a troca sem o curso da liberação é erro do banco. */
 function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
   return lancamentos
+    .values()
     .filter((l) => l.motivo === "troca")
     .map((l) => {
       if (l.cursoId === null) {
         throw new Error("Lançamento de troca sem o curso da liberação.");
       }
+
       return { criadoEm: l.criadoEm, cursoId: l.cursoId };
     })
+    .toArray()
     .sort((a, b) => a.criadoEm.getTime() - b.criadoEm.getTime());
 }
 
@@ -320,6 +335,7 @@ function contagem<T extends "tres_trocas" | "tres_cursos">(
 ): Extract<MedalhaDaGrade, { tipo: T }> {
   const ordenadas = [...datas].sort((a, b) => a.getTime() - b.getTime());
   const aDaMeta = ordenadas[total - 1];
+
   return {
     medalha: aDaMeta
       ? ganha(aDaMeta)
@@ -338,6 +354,7 @@ function primeiraAula(
   r: Retomada | null
 ): MedalhaDaGrade {
   const [a] = assistidas;
+
   return {
     medalha: a
       ? ganha(a.assistidaEm)
@@ -358,13 +375,17 @@ function primeiraTroca(
   vitrine: readonly CursoDaTroca[]
 ): MedalhaDaGrade {
   const [aPrimeira] = trocas;
+
   if (aPrimeira) {
     return { medalha: ganha(aPrimeira.criadoEm), tipo: "primeira_troca" };
   }
+
   const precos = vitrine.flatMap((c) => {
     const s = situacao(c, 0);
+
     return s.tipo === "a_venda" ? [s.preco] : [];
   });
+
   return {
     medalha: {
       estado: "por_ganhar",
@@ -384,11 +405,14 @@ function oMaisAdiantado<T extends { feitas: number; total: number }>(
     if (!melhor) {
       return x;
     }
+
     const pct = porcentagemPorGanhar(x.feitas, x.total);
     const melhorPct = porcentagemPorGanhar(melhor.feitas, melhor.total);
+
     if (pct !== melhorPct) {
       return pct > melhorPct ? x : melhor;
     }
+
     return x.total - x.feitas < melhor.total - melhor.feitas ? x : melhor;
   }, null);
 }
@@ -397,11 +421,14 @@ function oMaisAdiantado<T extends { feitas: number; total: number }>(
 function itensDosCursos(linhas: LinhasDasConquistas, painel: PainelMeusCursos) {
   const estudo = estudoDe(linhas);
   const abrem = new Set<string>(cursosQueAbremAula(painel).map((c) => c.id));
+
   return linhas.liberacoes.flatMap(({ curso }) => {
     if (!abrem.has(curso.id)) {
       return [];
     }
+
     const leitura = lerCursoDoAluno(paraCatalogo(curso), estudo);
+
     return [
       {
         aulas: leitura.progresso,
@@ -427,13 +454,16 @@ function primeiroCurso(
   itens: readonly ItensDoCurso[]
 ): MedalhaDaGrade {
   const [oPrimeiro] = emitidos;
+
   if (oPrimeiro) {
     return {
       medalha: { dia: oPrimeiro.dia, estado: "ganha" },
       tipo: "primeiro_curso",
     };
   }
+
   const perto = oMaisAdiantado(itens);
+
   return {
     medalha: {
       estado: "por_ganhar",
@@ -459,19 +489,25 @@ function amostraETroca(
       aulaDeAmostra(paraCatalogo(curso)),
     ])
   );
+
   const vistaEm = new Map(
     linhas.assistidas.map((a) => [a.aulaId, a.assistidaEm])
   );
+
   const aTroca = trocas.find((t) => {
     const aula = amostraDe.get(t.cursoId);
     const vista = aula ? vistaEm.get(aula) : undefined;
+
     return vista !== undefined && vista < t.criadoEm;
   });
+
   if (aTroca) {
     return { medalha: ganha(aTroca.criadoEm), tipo: "amostra_e_troca" };
   }
+
   const vista = painel.cursos.find((c) => c.amostra?.vista);
   const feitas = vista ? 1 : 0;
+
   return {
     medalha: {
       amostraVista: vista?.titulo ?? null,
@@ -491,17 +527,27 @@ function trocaAteOFim(
   itens: readonly ItensDoCurso[]
 ): MedalhaDaGrade {
   const trocadoEm = new Map(trocas.map((t) => [t.cursoId, t.criadoEm]));
+
   const fechadas = linhas.certificados.flatMap((c) => {
     const troca = trocadoEm.get(c.cursoId);
+
     return troca ? [troca > c.emitidoEm ? troca : c.emitidoEm] : [];
   });
+
   const quando = primeiraData(fechadas);
+
   if (quando) {
     return { medalha: ganha(quando), tipo: "troca_ate_o_fim" };
   }
+
   const adiantado = oMaisAdiantado(
-    itens.filter((c) => trocadoEm.has(c.cursoId)).map(cursoPerto)
+    itens
+      .values()
+      .filter((c) => trocadoEm.has(c.cursoId))
+      .map(cursoPerto)
+      .toArray()
   );
+
   return {
     medalha: {
       estado: "por_ganhar",
@@ -518,6 +564,7 @@ function primeiroQuestionario(
   questionarios: readonly TentativasDaAula[]
 ): MedalhaDaGrade {
   const quando = primeiraData(questionarios.map((q) => q.aprovadaEm));
+
   return {
     medalha: quando ? ganha(quando) : { estado: "por_ganhar", pct: 0 },
     tipo: "primeiro_questionario",
@@ -540,12 +587,19 @@ function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
         ]
       : []
   );
+
   const quando = primeiraData(
-    primeiras.filter((p) => p.feitas === p.total).map((p) => p.em)
+    primeiras
+      .values()
+      .filter((p) => p.feitas === p.total)
+      .map((p) => p.em)
+      .toArray()
   );
+
   if (quando) {
     return { medalha: ganha(quando), tipo: "nota_cheia" };
   }
+
   const melhor = primeiras.reduce<Contagem | null>(
     (m, p) =>
       !m ||
@@ -555,6 +609,7 @@ function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
         : m,
     null
   );
+
   return {
     medalha: {
       estado: "por_ganhar",
@@ -571,8 +626,10 @@ function milPontos(
 ): MedalhaDaGrade {
   const dias = [...estudoPorDia].sort((a, b) => a.dia.localeCompare(b.dia));
   let soma = 0;
+
   for (const d of dias) {
     soma += d.pontos;
+
     if (soma >= META_DE_PONTOS_DE_ESTUDO) {
       return {
         medalha: { dia: d.dia as DiaISO, estado: "ganha" },
@@ -580,6 +637,7 @@ function milPontos(
       };
     }
   }
+
   return {
     medalha: {
       estado: "por_ganhar",
@@ -606,12 +664,16 @@ export function montarConquistas(
     },
     hoje
   );
+
   const certs = certificados(linhas, painel);
+
   const assistidas = [...linhas.assistidas].sort(
     (a, b) => a.assistidaEm.getTime() - b.assistidaEm.getTime()
   );
+
   const trocas = trocasDe(linhas.lancamentos);
   const itens = itensDosCursos(linhas, painel);
+
   return {
     certificados: [...certs.emitidos, ...certs.porGanhar],
     hoje,

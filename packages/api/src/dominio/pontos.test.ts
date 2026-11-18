@@ -50,6 +50,7 @@ describe("itemDoExtrato", () => {
       }),
       linha({ motivo: "bonus_funcionario", pontos: 5000 }),
     ];
+
     expect(linhas.map(itemDoExtrato).map((i) => [i.texto, i.pontos])).toEqual([
       ["Aula assistida: O funil da semana", 10],
       ["Curso concluído: Nova rotina", 100],

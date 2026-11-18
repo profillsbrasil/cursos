@@ -26,6 +26,7 @@ describe("niveis", () => {
       idAula("n", 0, 2),
       idAula("n", 1, 1),
     ] as AulaId[]);
+
     expect(niveis(comNiveis, quase).faixas[0]).toMatchObject({
       feitas: 3,
       obtido: false,
@@ -46,6 +47,7 @@ describe("niveis", () => {
 
   test("próximo nível é o primeiro não obtido e é null com todos obtidos", () => {
     expect(niveis(comNiveis, new Set()).proximo?.nome).toBe("Primeiro");
+
     const semVazio = cursoCat("s", {
       aulas: [1, 1],
       niveis: [
@@ -54,6 +56,7 @@ describe("niveis", () => {
       ],
       nivelPorModulo: [1, 2],
     });
+
     const tudo = new Set(todas("s", [1, 1]) as AulaId[]);
     expect(niveis(semVazio, tudo).proximo).toBeNull();
   });
@@ -68,6 +71,7 @@ describe("niveis", () => {
       ],
       nivelPorModulo: [1, 3],
     });
+
     const soA = new Set([idAula("v", 0, 1)] as AulaId[]);
     expect(niveis(meio, soA).proximo?.nome).toBe("C");
     const tudo = new Set(todas("v", [1, 1]) as AulaId[]);

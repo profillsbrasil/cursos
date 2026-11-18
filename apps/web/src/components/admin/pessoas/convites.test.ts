@@ -162,6 +162,7 @@ describe("a linha do convidado", () => {
       { em: HOJE, tipo: "expirado" as const },
       { tipo: "nao_enviado" as const },
     ].map(seloDoConvidado);
+
     expect(selos.map((s) => s.rotulo)).toEqual([
       "Pendente",
       "Expirado",

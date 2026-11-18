@@ -8,6 +8,7 @@ export const alunoRouter = router({
   comunicados: alunoProcedure.query(async ({ ctx }) => {
     const linhas = await linhasDosComunicadosDoAluno(ctx.db, ctx.aluno);
     const autores = new Set(linhas.map((c) => c.publicadoPor));
+
     return montarComunicadosDoAluno(
       linhas,
       await Promise.all([...autores].map((id) => ctx.pessoas.porId(id)))

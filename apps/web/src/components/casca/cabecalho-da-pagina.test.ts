@@ -37,14 +37,17 @@ const H1_PROPRIO = new Set([
 describe("cabeçalho da página", () => {
   test("toda página com título e resumo usa o CabecalhoDaPagina", () => {
     const fora: string[] = [];
+
     for (const arquivo of new Glob("{app,components}/**/*.tsx").scanSync(SRC)) {
       if (arquivo.includes(".test.") || H1_PROPRIO.has(arquivo)) {
         continue;
       }
+
       if (readFileSync(join(SRC, arquivo), "utf8").includes("<h1")) {
         fora.push(arquivo);
       }
     }
+
     expect(fora).toEqual([]);
   });
 
@@ -56,6 +59,7 @@ describe("cabeçalho da página", () => {
         titulo: "Seu certificado",
       })
     );
+
     expect(html).toContain("Seu certificado");
     expect(html).not.toContain('data-slot="skeleton"');
   });
@@ -63,16 +67,21 @@ describe("cabeçalho da página", () => {
   test("o esqueleto repete o resumo fixo da página, para quebrar nas mesmas linhas", () => {
     const resumo = (arquivo: string) =>
       readFileSync(join(SRC, arquivo), "utf8").match(RESUMO_FIXO)?.[1];
+
     const diferentes: string[] = [];
+
     for (const esqueleto of new Glob("app/**/loading.tsx").scanSync(SRC)) {
       const pagina = esqueleto.replace(ESQUELETO, "page.tsx");
+
       const daPagina = existsSync(join(SRC, pagina))
         ? resumo(pagina)
         : undefined;
+
       if (daPagina !== undefined && resumo(esqueleto) !== daPagina) {
         diferentes.push(esqueleto);
       }
     }
+
     expect(diferentes).toEqual([]);
   });
 });

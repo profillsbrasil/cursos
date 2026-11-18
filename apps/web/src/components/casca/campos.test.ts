@@ -23,14 +23,17 @@ const ALTURA = /(^|\s)([\w-]+:)*h-(\d|\[)/;
 /** As classes que um uso acrescenta ao campo: cn(CAMPO|AREA, "...") e o className dos campos do editor. */
 function classesDoUso(codigo: string): string[] {
   const achadas: string[] = [];
+
   for (const m of codigo.matchAll(/cn\(\s*(?:CAMPO|AREA),\s*"([^"]*)"/g)) {
     achadas.push(m[1] ?? "");
   }
+
   for (const m of codigo.matchAll(
     /<(?:CampoDeTexto|CampoLido)\b[^>]*?\sclassName="([^"]*)"/g
   )) {
     achadas.push(m[1] ?? "");
   }
+
   return achadas;
 }
 
@@ -47,6 +50,7 @@ describe("o campo e a área de texto do kit C", () => {
         .filter((classes) => ALTURA.test(classes))
         .map((classes) => `${relative(SRC, arquivo)}: "${classes}"`)
     );
+
     expect(soltas).toEqual([]);
   });
 });

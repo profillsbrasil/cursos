@@ -55,6 +55,7 @@ describe("fraseDoErro", () => {
     const cancelada = new ClerkRuntimeError("cancelada", {
       code: "reverification_cancelled",
     });
+
     expect(fraseDoErro(cancelada)).toBe(
       "Você não confirmou quem é, então nada mudou."
     );

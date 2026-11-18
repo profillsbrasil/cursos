@@ -55,11 +55,13 @@ const FUSO = "America/Sao_Paulo";
 function idFixo(chave: string): string {
   const h = createHash("sha1").update(`cursos-seed:${chave}`).digest("hex");
   const variante = ((Number.parseInt(h[16] ?? "0", 16) % 4) + 8).toString(16);
+
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${variante}${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 
 const idCurso = (c: string) => idFixo(`curso:${c}`);
 const idModulo = (c: string, n: number) => idFixo(`modulo:${c}:${n}`);
+
 const idAula = (c: string, n: number, p: number) =>
   idFixo(`aula:${c}:${n}:${p}`);
 
@@ -76,39 +78,49 @@ function diasAtras(hoje: string, dias: number, hora: number): Date {
   const d = new Date(`${hoje}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() - dias);
   d.setUTCHours(hora + 3, 0, 0, 0);
+
   return d;
 }
 
 /** Os `n` dias úteis mais recentes até hoje, em dias atrás (0 = hoje). */
 function ultimosDiasUteis(hoje: string, n: number): number[] {
   const dias: number[] = [];
+
   for (let atras = 0; dias.length < n; atras += 1) {
     const semana = diasAtras(hoje, atras, 12).getUTCDay();
+
     if (semana !== 0 && semana !== 6) {
       dias.push(atras);
     }
   }
+
   return dias;
 }
 
 function destino(argv: { cloud: boolean; simCloud: boolean }): string {
   if (argv.cloud) {
     const url = process.env.DATABASE_URL;
+
     if (!url) {
       throw new Error("--cloud pede DATABASE_URL no ambiente.");
     }
+
     const alvo = new URL(url);
     console.log(`Destino: ${alvo.hostname}:${alvo.port || "5432"} (cloud)`);
+
     if (!argv.simCloud) {
       throw new Error(
         "Escrita no cloud recusada: repita com --sim-cloud para confirmar o destino acima."
       );
     }
+
     return url;
   }
+
   const url = process.env.SEED_DATABASE_URL ?? URL_LOCAL_PADRAO;
   const { host, porta } = garantirBancoLocal(url);
   console.log(`Destino: ${host}:${porta} (local)`);
+
   return url;
 }
 
@@ -120,12 +132,15 @@ function lerArgs() {
       "sim-cloud": { default: false, type: "boolean" },
     },
   });
+
   const aluno = values.aluno ?? (values.cloud ? undefined : "user_seedA");
+
   if (!(aluno && USER_ID_CLERK.test(aluno))) {
     throw new Error(
       "--aluno precisa do userId do Clerk (user_...). No cloud ele é obrigatório."
     );
   }
+
   return { aluno, cloud: values.cloud, simCloud: values["sim-cloud"] };
 }
 
@@ -143,10 +158,12 @@ async function plantarCategorias(
     .insert(categoria)
     .values(nomes.map((nome) => ({ nome })))
     .onConflictDoNothing({ target: categoria.nome });
+
   const linhas = await tx
     .select({ id: categoria.id, nome: categoria.nome })
     .from(categoria)
     .where(inArray(categoria.nome, nomes));
+
   return new Map(linhas.map((l) => [l.nome, l.id]));
 }
 
@@ -154,11 +171,14 @@ async function plantarCategorias(
 function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
   const idDaCategoria = (nome: string) => {
     const id = categorias.get(nome);
+
     if (!id) {
       throw new Error(`Categoria ${nome} não foi plantada.`);
     }
+
     return id;
   };
+
   const cursos = CURSOS.map((c) => ({
     capaAlt: c.capaAlt,
     capaAltura: c.capaAltura,
@@ -174,6 +194,7 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
     titulo: c.titulo,
     topicos: c.topicos,
   }));
+
   const niveis = CURSOS.flatMap((c) =>
     c.niveis.map((n) => ({
       cursoId: idCurso(c.chave),
@@ -181,6 +202,7 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
       ordem: n.ordem,
     }))
   );
+
   const modulos = CURSOS.flatMap((c) =>
     c.modulos.map((m) => ({
       cursoId: idCurso(c.chave),
@@ -190,6 +212,7 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
       titulo: m.titulo,
     }))
   );
+
   const aulas = CURSOS.flatMap((c) =>
     c.modulos.flatMap((m) =>
       m.aulas.map((a, i) => ({
@@ -204,6 +227,7 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
       }))
     )
   );
+
   return { aulas, cursos, modulos, niveis };
 }
 
@@ -213,6 +237,7 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
  */
 async function plantarConteudo(tx: Transacao) {
   const l = linhasDeConteudo(await plantarCategorias(tx));
+
   const cursosNovos = new Set(
     (
       await tx
@@ -222,24 +247,30 @@ async function plantarConteudo(tx: Transacao) {
         .returning({ id: curso.id })
     ).map((r) => r.id)
   );
+
   const niveis = l.niveis.filter((n) => cursosNovos.has(n.cursoId));
   const modulos = l.modulos.filter((m) => cursosNovos.has(m.cursoId));
   const modulosNovos = new Set(modulos.map((m) => m.id));
   const aulas = l.aulas.filter((a) => modulosNovos.has(a.moduloId));
+
   if (niveis.length > 0) {
     await tx.insert(nivel).values(niveis).onConflictDoNothing();
   }
+
   if (modulos.length > 0) {
     await tx.insert(modulo).values(modulos).onConflictDoNothing();
   }
+
   if (aulas.length > 0) {
     await tx.insert(aula).values(aulas).onConflictDoNothing();
   }
+
   return { cursosNovos: cursosNovos.size };
 }
 
 export async function semear(url: string, alunoA: string) {
   const db = createDb({ DATABASE_URL: url });
+
   try {
     await semearNoBanco(db, alunoA);
   } finally {
@@ -300,15 +331,18 @@ async function semearNoBanco(db: Database, alunoA: string) {
     const assistidas = PROGRESSO_A.flatMap((p) => {
       const c = CURSOS.find((x) => x.chave === p.curso);
       const m = c?.modulos.find((x) => x.numero === p.modulo);
+
       if (!m) {
         throw new Error(
           `Progresso aponta para módulo inexistente: ${p.curso} ${p.modulo}`
         );
       }
+
       return m.aulas
         .slice(0, Math.min(p.aulas, m.aulas.length))
         .map((_, i) => idAula(p.curso, p.modulo, i + 1));
     });
+
     // As 5 últimas assistidas caem nos 5 últimos dias úteis (a sequência mostra 5);
     // o resto fica entre 40 e 20 dias atrás. Ordem: comercial até a aula 3 do módulo 8,
     // depois Nova Rotina e Autoavaliação.
@@ -319,9 +353,11 @@ async function semearNoBanco(db: Database, alunoA: string) {
       idAula("nova-rotina", 1, 3),
       idAula("nova-rotina", 1, 2),
     ];
+
     const antigas = assistidas.filter((id) => !recentes.includes(id));
     const diasUteis = ultimosDiasUteis(hoje, recentes.length);
     const quando = new Map<string, Date>();
+
     for (const [i, id] of recentes.entries()) {
       const atras = diasUteis[i] ?? 0;
       quando.set(
@@ -331,17 +367,21 @@ async function semearNoBanco(db: Database, alunoA: string) {
           : diasAtras(hoje, atras, 14)
       );
     }
+
     for (const [i, id] of antigas.entries()) {
       const atras = 40 - Math.floor((i * 20) / antigas.length);
       quando.set(id, diasAtras(hoje, atras, 15));
     }
+
     // Aula de exemplo que o admin apagou fica sem fato: o seed não a recria.
     const aulaDaPosicao = idAula(
       POSICAO_A.curso,
       POSICAO_A.modulo,
       POSICAO_A.aula
     );
+
     const pedidas = [...quando.keys(), aulaDaPosicao];
+
     const existentes = new Set(
       (
         await tx
@@ -350,13 +390,17 @@ async function semearNoBanco(db: Database, alunoA: string) {
           .where(inArray(aula.id, pedidas))
       ).map((r) => r.id)
     );
-    const fatos = [...quando.entries()]
+
+    const fatos = quando
+      .entries()
       .filter(([aulaId]) => existentes.has(aulaId))
       .map(([aulaId, assistidaEm]) => ({
         assistidaEm,
         aulaId,
         userId: alunoA,
-      }));
+      }))
+      .toArray();
+
     if (fatos.length > 0) {
       await tx.insert(aulaAssistida).values(fatos);
     }
@@ -372,6 +416,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
     }
 
     const emitidoEm = diasAtras(hoje, 20, 16);
+
     // A carga horária fica congelada no certificado: a soma dos vídeos do curso como está no banco.
     const [carga] = await tx
       .select({
@@ -380,6 +425,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
       .from(aula)
       .innerJoin(modulo, eq(modulo.id, aula.moduloId))
       .where(eq(modulo.cursoId, idCurso(CERTIFICADO_A.curso)));
+
     await tx.insert(certificado).values({
       codigo: codigoCertificado(alunoA),
       cursoId: idCurso(CERTIFICADO_A.curso),
@@ -406,12 +452,15 @@ async function semearNoBanco(db: Database, alunoA: string) {
     ]);
 
     const trocado = CURSOS.find((c) => c.chave === TROCA_A.curso);
+
     if (!trocado?.precoTroca) {
       throw new Error(
         `Troca de exemplo aponta para curso sem preço: ${TROCA_A.curso}`
       );
     }
+
     const trocadoEm = diasAtras(hoje, TROCA_A.diasAtras, 11);
+
     const [lib] = await tx
       .insert(liberacao)
       .values({
@@ -422,6 +471,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
         userId: alunoA,
       })
       .returning({ id: liberacao.id });
+
     await tx.insert(pontoLancamento).values({
       criadoEm: trocadoEm,
       liberacaoId: lib?.id,
@@ -429,6 +479,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
       pontos: -trocado.precoTroca,
       userId: alunoA,
     });
+
     return { ...plantado, aulasAusentes: pedidas.length - existentes.size };
   });
 
@@ -444,6 +495,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
     union all select 'certificado', count(*)::int from certificado
     union all select 'ponto_lancamento', count(*)::int from ponto_lancamento
     union all select 'comunicado', count(*)::int from comunicado`);
+
   console.table(contagem.rows);
   console.log(
     `Cursos novos: ${resumo.cursosNovos}. Aulas de exemplo que o admin apagou (fatos pulados): ${resumo.aulasAusentes}.`
@@ -462,6 +514,7 @@ if (import.meta.main) {
     } else {
       console.error(erro instanceof Error ? erro.message : erro);
     }
+
     process.exit(1);
   }
 }

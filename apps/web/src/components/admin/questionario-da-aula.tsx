@@ -64,10 +64,12 @@ const camposParaCorrigir = (n: number) =>
 function fraseDaRegra(perguntas: number) {
   const k = acertosParaPassar(perguntas);
   const conta = `${NOTA_MINIMA}% de ${perguntas} é ${PERCENTUAL.format((perguntas * NOTA_MINIMA) / 100)}`;
+
   const explicacao =
     k === perguntas
       ? `Com ${plural(perguntas, "pergunta", "perguntas")}, o aluno precisa acertar ${perguntas === 1 ? "a pergunta" : `as ${perguntas}`}: ${conta}, e a nota mínima arredonda para cima. Com 4 perguntas, ele pode errar uma.`
       : `Com ${perguntas} perguntas, o aluno passa com ${k} acertos e pode errar ${perguntas - k === 1 ? "uma" : perguntas - k}: ${conta}, arredondado para cima.`;
+
   return {
     acertos: k,
     explicacao: `${explicacao} A nota mínima é ${NOTA_MINIMA}% em todo curso, e quem não passa tenta de novo.`,
@@ -81,6 +83,7 @@ function RegraDaNota({
   perguntas: readonly PerguntaDoRascunho[];
 }) {
   const regra = fraseDaRegra(perguntas.length);
+
   return (
     <div
       className="bg-ceu/8 ring-ceu/30 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1 rounded-[14px] px-4 py-3 ring-1 ring-inset"
@@ -122,6 +125,7 @@ function ItemDaLista({
   const enunciado = pergunta.enunciado.trim();
   const certa = pergunta.alternativas.findIndex((x) => x.certa);
   const ir = useCallback(() => escolher(pergunta.id), [escolher, pergunta.id]);
+
   return (
     <li>
       <button
@@ -185,10 +189,12 @@ function Letra({
   pergunta: PerguntaDoRascunho;
 }) {
   const letra = letraDa(indice);
+
   const escolher = useCallback(
     () => marcar(alternativa.id),
     [alternativa.id, marcar]
   );
+
   return (
     <label
       className="group/letra hover:bg-popover grid size-9 cursor-pointer place-items-center rounded-full transition-colors duration-150"
@@ -234,12 +240,15 @@ function TirarAlternativa({
   tirar: (id: AlternativaId) => void;
 }) {
   const letra = letraDa(indice);
+
   const clicar = useCallback(
     () => tirar(alternativa.id),
     [alternativa.id, tirar]
   );
+
   if (minimo) {
     const frase = `Toda pergunta tem pelo menos ${ALTERNATIVAS.min} alternativas.`;
+
     return (
       <Tooltip>
         <TooltipTrigger
@@ -267,6 +276,7 @@ function TirarAlternativa({
       </Tooltip>
     );
   }
+
   return (
     <Button
       aria-label={`Tirar a alternativa ${letra}`}
@@ -282,6 +292,7 @@ function TirarAlternativa({
 function SituacaoDaCerta({ pergunta }: { pergunta: PerguntaDoRascunho }) {
   const indice = pergunta.alternativas.findIndex((x) => x.certa);
   const certa = pergunta.alternativas[indice];
+
   if (!certa) {
     return (
       <p className="text-muted-foreground text-xs">
@@ -289,6 +300,7 @@ function SituacaoDaCerta({ pergunta }: { pergunta: PerguntaDoRascunho }) {
       </p>
     );
   }
+
   return (
     <p className="text-ceu flex min-w-0 items-center gap-1.5 text-xs font-semibold">
       <Check
@@ -322,6 +334,7 @@ function Alternativas({
   const rotulo = useId();
   const grupo = ID.pergunta(pergunta.id, "alternativas");
   const { aria, mensagem } = useErroDoCampo(grupo);
+
   const marcar = useCallback(
     (alternativaId: AlternativaId) =>
       despachar({
@@ -331,28 +344,34 @@ function Alternativas({
       }),
     [despachar, pergunta.id]
   );
+
   const editar = useCallback(
     (id: AlternativaId) => (texto: string) =>
       despachar({ id, texto, tipo: "alternativa_editada" }),
     [despachar]
   );
+
   const tirar = useCallback(
     (id: AlternativaId) => {
       const i = pergunta.alternativas.findIndex((x) => x.id === id);
       const fica = vizinhoQueFica(pergunta.alternativas, i);
       despachar({ id, tipo: "alternativa_removida" });
+
       if (fica) {
         focarDepois(ID.alternativa(fica.id));
       }
     },
     [despachar, pergunta.alternativas]
   );
+
   const adicionar = useCallback(() => {
     const id = novoId<AlternativaId>();
     despachar({ id, perguntaId: pergunta.id, tipo: "alternativa_nova" });
     focarDepois(ID.alternativa(id));
   }, [despachar, pergunta.id]);
+
   const noMinimo = pergunta.alternativas.length <= ALTERNATIVAS.min;
+
   return (
     <>
       <div className="mt-1 flex items-baseline justify-between gap-2">
@@ -450,10 +469,12 @@ function EdicaoDaPergunta({
       despachar({ enunciado, id: pergunta.id, tipo: "pergunta_editada" }),
     [despachar, pergunta.id]
   );
+
   const remover = useCallback(
     () => tirar(pergunta, indice),
     [indice, pergunta, tirar]
   );
+
   return (
     <div className="grid min-w-0 content-start gap-3 p-4 pb-[18px]">
       <div className="-mb-1 flex items-center justify-between gap-2">
@@ -528,6 +549,7 @@ export function QuestionarioDaAula({
 }) {
   const [tirada, guardarTirada] = useState<Tirada | null>(null);
   const { perguntas } = aula;
+
   const escolher = useCallback(
     (perguntaId: PerguntaId) =>
       despachar({
@@ -537,6 +559,7 @@ export function QuestionarioDaAula({
       }),
     [aula.id, despachar]
   );
+
   const adicionar = useCallback(() => {
     const id = novoId<PerguntaId>();
     guardarTirada(null);
@@ -548,22 +571,27 @@ export function QuestionarioDaAula({
     });
     focarDepois(ID.pergunta(id, "enunciado"));
   }, [aula.id, despachar]);
+
   const tirar = useCallback(
     (pergunta: PerguntaDoRascunho, posicao: number) => {
       const fica = vizinhoQueFica(perguntas, posicao);
+
       if (fica) {
         escolher(fica.id);
       }
+
       despachar({ id: pergunta.id, tipo: "pergunta_removida" });
       guardarTirada({ indice: posicao, pergunta });
       focarDepois(ALVO_DO_QUIZ.desfazer(aula.id));
     },
     [aula.id, despachar, escolher, perguntas]
   );
+
   const desfazer = useCallback(() => {
     if (!tirada) {
       return;
     }
+
     despachar({
       aulaId: aula.id,
       indice: tirada.indice,
@@ -618,6 +646,7 @@ export function QuestionarioDaAula({
   }
 
   const indice = perguntas.indexOf(escolhida);
+
   const itens = perguntas.map((p, i) => (
     <ItemDaLista
       escolher={escolher}
@@ -628,6 +657,7 @@ export function QuestionarioDaAula({
       selecionada={p.id === escolhida.id}
     />
   ));
+
   if (tirada) {
     itens.splice(
       tirada.indice,
@@ -637,6 +667,7 @@ export function QuestionarioDaAula({
       </li>
     );
   }
+
   return (
     <>
       {cabecalho}
@@ -681,6 +712,7 @@ export function ResumoDoQuiz({ aula }: { aula: AulaDoRascunho }) {
   if (aula.perguntas.length === 0) {
     return null;
   }
+
   return (
     <span className="inline-flex items-center gap-1.5">
       <ListChecks aria-hidden="true" className="text-ceu size-[13px]" />

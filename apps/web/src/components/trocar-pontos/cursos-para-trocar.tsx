@@ -33,12 +33,15 @@ function subtitulo(
   temCursoTrocavelNaVitrine: boolean
 ) {
   const podeTrocar = cartoes.filter((c) => c.tipo === "pode_trocar").length;
+
   if (podeTrocar > 0) {
     return `Seu saldo já cobre ${podeTrocar} ${podeTrocar === 1 ? "curso" : "cursos"}`;
   }
+
   if (temCursoTrocavelNaVitrine) {
     return "Continue estudando para juntar pontos";
   }
+
   return cartoes.length === 0
     ? "Seus pontos continuam no saldo"
     : NENHUM_CURSO_NOVO;
@@ -88,6 +91,7 @@ export function CursosParaTrocar({
   }
 
   const sizes = sizesDaCapa(cartoes.length);
+
   return (
     <>
       {/* Nó sempre montado, fora da grade que redesenha, para o leitor de tela anunciar. */}

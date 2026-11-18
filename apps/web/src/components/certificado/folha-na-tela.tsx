@@ -30,6 +30,7 @@ export function FolhaNaTela({
   folha: FolhaDoCertificado;
 }) {
   const { centro, confere, faixa, nome, pe, quem, traco } = FOLHA_EM_PX;
+
   return (
     <figure
       aria-label={`Prévia da folha do certificado de ${folha.nome}`}

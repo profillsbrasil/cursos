@@ -28,6 +28,7 @@ function FimDaAmostra({
   const convite = conviteDaAmostra(amostra);
   const troca = trocaDaAmostra(amostra);
   const idDaRazao = `convite-da-troca-${amostra.cursoId}`;
+
   return (
     <div className="bg-sidebar grid min-h-full w-full place-items-center p-6 text-center">
       <div className="grid max-w-[460px] justify-items-center gap-2.5">
@@ -66,13 +67,16 @@ export function FimDoVideo({
   dados: AulaNoPlayer;
 }) {
   const { amostra, curso, proxima } = dados;
+
   if (amostra) {
     return <FimDaAmostra amostra={amostra} slug={curso.slug} />;
   }
+
   const duracaoDaProxima = proxima
     ? dados.modulos.flatMap((m) => m.aulas).find((a) => a.id === proxima.id)
         ?.duracaoSeg
     : undefined;
+
   return (
     <div className="bg-sidebar grid min-h-full w-full place-items-center p-6 text-center">
       <div className="grid max-w-[420px] justify-items-center gap-2.5">

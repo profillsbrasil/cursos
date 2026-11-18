@@ -17,7 +17,7 @@ import {
 import { cn } from "@cursos/ui/lib/utils";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
-  type FormEvent,
+  type SubmitEvent,
   type KeyboardEvent,
   type ReactNode,
   type RefObject,
@@ -38,6 +38,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import { DICA } from "@/components/casca/estilo";
 import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
+import { campoDeTexto } from "@/lib/formulario";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -59,16 +60,20 @@ function useSalvarCategoria(id: CategoriaId, depois: () => void) {
   const { executar, pendente } = useAcao();
   const [erro, setErro] = useState<string | null>(null);
   const campo = useRef<HTMLInputElement>(null);
+
   const marcar = useCallback((mensagem: string) => {
     setErro(mensagem);
     campo.current?.focus();
   }, []);
+
   const salvar = useCallback(
     (nome: string) => {
       if (nome === "") {
         marcar(NOME_VAZIO);
+
         return;
       }
+
       setErro(null);
       executar(() => trpcClient.admin.categorias.salvar.mutate({ id, nome }), {
         aoRecusar: (_motivo, mensagem) => {
@@ -85,7 +90,9 @@ function useSalvarCategoria(id: CategoriaId, depois: () => void) {
     },
     [executar, id, depois, marcar]
   );
+
   const limpar = useCallback(() => setErro(null), []);
+
   return { campo, erro, limpar, pendente, salvar };
 }
 
@@ -115,13 +122,15 @@ function CampoDoNome({
   rotulo: string;
 }) {
   const id = useId();
+
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
-      aoEnviar(String(new FormData(e.currentTarget).get("nome") ?? "").trim());
+      aoEnviar(campoDeTexto(new FormData(e.currentTarget), "nome").trim());
     },
     [aoEnviar]
   );
+
   const cancelar = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape" && aoCancelar && !enviando) {
@@ -131,10 +140,12 @@ function CampoDoNome({
     },
     [aoCancelar, enviando]
   );
+
   const descritoPor =
     [erro ? `${id}-erro` : null, ajuda ? `${id}-ajuda` : null]
       .filter(Boolean)
       .join(" ") || undefined;
+
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Escape fecha o renomear de qualquer controle do formulário.
     <form
@@ -180,12 +191,15 @@ function CampoDoNome({
 function NovaCategoria({ aoCriar }: { aoCriar: (id: CategoriaId) => void }) {
   const [idQueReenviarNaoDuplica, trocarId] = useState(novoId);
   const [criou, setCriou] = useState(false);
+
   const depois = useCallback(() => {
     aoCriar(idQueReenviarNaoDuplica);
     setCriou(true);
     trocarId(novoId());
   }, [aoCriar, idQueReenviarNaoDuplica]);
+
   const nome = useSalvarCategoria(idQueReenviarNaoDuplica, depois);
+
   return (
     <CampoDoNome
       aoEnviar={nome.salvar}
@@ -223,6 +237,7 @@ const focarSeVoltou =
 function ApagarEmUso({ categoria }: { categoria: CategoriaNaLista }) {
   const id = useId();
   const motivo = categoriaEmUso(categoria.cursos.length);
+
   return (
     <Tooltip>
       <TooltipTrigger
@@ -248,6 +263,7 @@ function ApagarEmUso({ categoria }: { categoria: CategoriaNaLista }) {
 }
 
 const SELO_DE_USO = cn(SELO, "bg-popover text-foreground tabular-nums");
+
 const SELO_LIVRE = cn(
   SELO,
   "text-muted-foreground ring-muted-foreground bg-transparent ring-1 ring-inset"
@@ -269,25 +285,31 @@ function LinhaDaCategoria({
   const { fechar, pedir } = linhaAberta;
   const chaveDoNome = `renomear:${c.id}`;
   const chaveDoApagar = `apagar:${c.id}`;
+
   const sair = useCallback(() => {
     voltou.current = true;
     fechar(chaveDoNome);
   }, [fechar, chaveDoNome]);
+
   const depoisDeSalvar = useCallback(() => {
     aoSalvar(c.id);
     sair();
   }, [aoSalvar, c.id, sair]);
+
   const nome = useSalvarCategoria(c.id, depoisDeSalvar);
   const { limpar, salvar: salvarNome } = nome;
   const { executar: executarRemocao } = remocao;
+
   const abrir = useCallback(() => {
     limpar();
     pedir(chaveDoNome);
   }, [limpar, pedir, chaveDoNome]);
+
   const renomear = useCallback(
     (novo: string) => (novo === c.nome ? sair() : salvarNome(novo)),
     [c.nome, sair, salvarNome]
   );
+
   const apagar = useCallback(
     () =>
       executarRemocao(
@@ -311,11 +333,13 @@ function LinhaDaCategoria({
   );
 
   let estado: EstadoDaLinha = "lendo";
+
   if (linhaAberta.chave === chaveDoNome || nome.pendente) {
     estado = "renomeando";
   } else if (linhaAberta.chave === chaveDoApagar || remocao.pendente) {
     estado = "confirmando";
   }
+
   const cursos = c.cursos.length;
 
   return (
@@ -450,12 +474,15 @@ export function Categorias({
   categorias: readonly CategoriaNaLista[];
 }) {
   const [chave, pedir] = useState<string | null>(null);
+
   const fechar = useCallback(
     (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
     []
   );
+
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
   const [recente, setRecente] = useState<CategoriaId | null>(null);
+
   return (
     <div className="grid gap-8">
       <div className={cn(CARTAO, "px-5 py-4")}>

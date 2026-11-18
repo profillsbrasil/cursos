@@ -14,7 +14,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "material.entrada.tsx");
@@ -84,14 +84,18 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da seção não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 const PALAVRA = /[\s"'`{}]+/;
+
 const css = await cssDoApp(
   ["material-de-apoio.tsx", "partes.tsx"]
     .map((f) => readFileSync(join(AQUI, f), "utf8"))
@@ -145,6 +149,7 @@ async function arrastar(de: { x: number; y: number }, distancia: number) {
     y: de.y,
   });
   const passos = 20;
+
   for (let i = 1; i <= passos; i += 1) {
     // oxlint-disable no-await-in-loop -- cada passo do ponteiro precisa chegar antes do seguinte, um quadro depois.
     await enviar("Input.dispatchMouseEvent", {
@@ -155,6 +160,7 @@ async function arrastar(de: { x: number; y: number }, distancia: number) {
     await sleep(16);
     // oxlint-enable no-await-in-loop
   }
+
   await enviar("Input.dispatchMouseEvent", {
     ...ponto,
     clickCount: 1,

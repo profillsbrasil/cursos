@@ -12,16 +12,19 @@ import {
 export default defineRailway(() => {
   const Postgres = postgres("Postgres", { region: "iad" });
   Postgres.networking = { privateNetworkEndpoint: "postgres" };
+
   const postgresVolume = volume("postgres-volume", {
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
     allowOnlineResize: true,
     region: "iad",
     sizeMB: 500,
   });
+
   const capas = bucket("capas", { region: "iad" });
   // O material de apoio dos cursos. Privado como o das capas; o app serve cada
   // arquivo pela rota /material/[id], só a quem pode ver o curso.
   const materiais = bucket("materiais", { region: "iad" });
+
   const web = service("web", {
     build: {
       buildCommand: "bun run --cwd apps/web build",

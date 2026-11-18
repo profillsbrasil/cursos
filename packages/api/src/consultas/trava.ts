@@ -38,7 +38,8 @@ export function comTrava<T>(
 ): Promise<T> {
   return db.transaction(async (tx) => {
     await travarTambem(tx, chave);
-    return fn(tx);
+
+    return await fn(tx);
   });
 }
 
@@ -60,6 +61,7 @@ export async function travarAluno(
   userId: string
 ): Promise<AlunoTravado> {
   await travarTambem(tx, `ponto:${userId}`);
+
   return { tx, userId } as AlunoTravado;
 }
 
@@ -73,5 +75,5 @@ export function comAlunoTravado<T>(
   userId: string,
   fn: (aluno: AlunoTravado) => Promise<T>
 ): Promise<T> {
-  return db.transaction(async (tx) => fn(await travarAluno(tx, userId)));
+  return db.transaction(async (tx) => await fn(await travarAluno(tx, userId)));
 }

@@ -51,6 +51,7 @@ const resumo = (c: Conquistas) => ({
 
 describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
   let statements = 0;
+
   const db = createDb(
     { DATABASE_URL: URL_TESTE ?? "" },
     {
@@ -61,6 +62,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       },
     }
   );
+
   const cursos: string[] = [];
   const sufixo = hex();
 
@@ -84,14 +86,18 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         titulo: `${nome} ${sufixo}`,
       })
       .returning({ id: curso.id, titulo: curso.titulo });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 1, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     const criadas = await db
       .insert(aula)
       .values(
@@ -103,6 +109,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         }))
       )
       .returning({ id: aula.id });
+
     return { aulas: criadas.map((a) => a.id), id: c.id, titulo: c.titulo };
   }
 
@@ -135,6 +142,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       revogadaPor: "user_admin",
       userId: ALUNA,
     });
+
     const [troca] = await db
       .insert(liberacao)
       .values({
@@ -144,6 +152,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         userId: ALUNA,
       })
       .returning({ id: liberacao.id });
+
     await db.insert(aulaAssistida).values(
       [
         [auto.aulas[1], "2026-08-18T20:00:00Z"],
@@ -216,6 +225,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     const depois = await criarCurso("depois", 2, { precoTroca: 200 });
     const terceiro = await criarCurso("terceiro", 1, { precoTroca: 100 });
     const quando = (iso: string) => new Date(iso);
+
     const trocar = async (cursoId: string, iso: string) => {
       const [l] = await db
         .insert(liberacao)
@@ -227,6 +237,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
           userId: TROCADORA,
         })
         .returning({ id: liberacao.id });
+
       await db.insert(pontoLancamento).values({
         criadoEm: quando(iso),
         liberacaoId: l?.id,
@@ -235,6 +246,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         userId: TROCADORA,
       });
     };
+
     await trocar(depois.id, "2026-09-20T15:00:00Z");
     await trocar(vista.id, "2026-10-05T15:00:00Z");
     await trocar(terceiro.id, "2026-10-10T15:00:00Z");
@@ -244,6 +256,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       [depois.aulas[0], "2026-09-21T14:00:00Z", 300],
       [depois.aulas[1], "2026-09-22T14:00:00Z", 280],
     ];
+
     await db.insert(aulaAssistida).values(
       aulas.map(([aulaId, iso]) => ({
         assistidaEm: quando(iso),
@@ -291,6 +304,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         userId: TROCADORA,
       },
     ]);
+
     const [concessao] = await db
       .insert(concessaoDePontos)
       .values({
@@ -300,6 +314,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         userId: TROCADORA,
       })
       .returning({ id: concessaoDePontos.id });
+
     await db.insert(pontoLancamento).values([
       {
         criadoEm: quando("2026-10-06T14:00:00Z"),
@@ -348,9 +363,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
 
   test("a aluna: medalhas pelos fatos do banco, em 8 statements", async () => {
     statements = 0;
+
     const c = resumo(
       await carregarConquistas(db, alunoDeTeste(ALUNA), SEXTA_15H)
     );
+
     expect(statements).toBe(8);
     expect(c.marcos).toMatchObject({
       aulas_10: { estado: "por_ganhar", feitas: 4 },
@@ -377,6 +394,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         contextoDeTeste({ db, userId: NOVO })
       ).aluno.conquistas()
     );
+
     expect(c.marcos.primeira_aula).toEqual({
       estado: "por_ganhar",
       pct: 0,
@@ -430,6 +448,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     const erro = await createCaller(contextoDeTeste({ db, userId: null }))
       .aluno.conquistas()
       .catch((e: unknown) => e);
+
     expect(erro).toBeInstanceOf(TRPCError);
     expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
   });

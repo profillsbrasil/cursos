@@ -45,6 +45,7 @@ function Atalho() {
     () => atalhoDe(navigator),
     () => ATALHO_NO_SERVIDOR
   );
+
   return <span className={DICA_SECUNDARIA}>{atalho}</span>;
 }
 
@@ -58,6 +59,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
   const { alternar, fecharNoCelular } = useAlternarNavegacao();
   const { noCelular, recolhida } = useModoDaCasca();
   const acao = recolhida ? "Abrir" : "Recolher";
+
   return (
     <>
       {/* O selo da área ocupa o vão à direita de CURSOS, na segunda linha do lockup:
@@ -145,6 +147,7 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
  */
 export function TopoDoCelular({ selo }: { selo?: string }) {
   const { alternar } = useAlternarNavegacao();
+
   return (
     <div
       className="border-border bg-background sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 md:hidden"

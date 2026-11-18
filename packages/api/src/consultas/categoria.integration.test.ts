@@ -30,9 +30,11 @@ const resultado = (p: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+
   const admin = createCaller(
     contextoDeTeste({ db, papel: "admin", userId: "user_admin" })
   ).admin.categorias;
+
   const categorias: CategoriaId[] = [];
   const cursos: CursoId[] = [];
 
@@ -45,6 +47,7 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
   const novoId = () => {
     const id = randomUUID() as CategoriaId;
     categorias.push(id);
+
     return id;
   };
 
@@ -66,9 +69,11 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
         titulo,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id as CursoId);
   }
 

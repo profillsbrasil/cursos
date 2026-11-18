@@ -38,10 +38,12 @@ const hex = () => randomBytes(4).toString("hex");
 const S = hex();
 let alunos = 0;
 const ALUNOS: string[] = [];
+
 const novoAluno = () => {
   alunos += 1;
   const a = `user_teste${S}x${alunos}`;
   ALUNOS.push(a);
+
   return a;
 };
 
@@ -58,6 +60,7 @@ const emSerie = <T, R>(itens: readonly T[], f: (x: T) => Promise<R>) =>
 // O pg avisa uma vez por processo quando duas queries dividem um client; a
 // transação do registro não pode disparar isso (no pg 9 vira erro).
 const avisosDoPg: string[] = [];
+
 process.on("warning", (w) => {
   if (w.message.includes("already executing a query")) {
     avisosDoPg.push(w.message);
@@ -69,6 +72,7 @@ const codigo = (e: unknown) =>
 
 describe.skipIf(URL_TESTE === null)("registro do player", () => {
   let statements = 0;
+
   const db = createDb(
     { DATABASE_URL: URL_TESTE ?? "" },
     {
@@ -79,6 +83,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       },
     }
   );
+
   // O registrar das corridas roda neste db: esperas() conta só as conexões dele.
   const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE) });
   const cursos: string[] = [];
@@ -88,6 +93,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     o: { comVideo?: boolean; status?: StatusDoCurso } = {}
   ) {
     const slug = `teste-${hex()}`;
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -102,14 +108,18 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         titulo: `Curso ${slug}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     const [m] = await db
       .insert(modulo)
       .values({ cursoId: c.id, numero: 0, titulo: "Módulo" })
       .returning({ id: modulo.id });
+
     const aulas = await db
       .insert(aula)
       .values(
@@ -124,6 +134,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         }))
       )
       .returning({ id: aula.id });
+
     return { aulas: aulas.map((a) => a.id as AulaId), id: c.id, slug };
   }
 
@@ -139,6 +150,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const aluno = novoAluno();
     const c = await criarCurso(n);
     await liberarCurso(aluno, c.id);
+
     return { aluno, c };
   }
 
@@ -148,6 +160,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   const contar = async <T>(f: () => Promise<T>) => {
     statements = 0;
     const r = await f();
+
     return { n: statements, r };
   };
 
@@ -159,10 +172,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       { posicaoSeg: (i + 1) * 180, trechos: [t(i * 180, (i + 1) * 180)] },
       em(base + i * 90)
     );
+
   const assistir540 = async (aluno: string, aulaId: AulaId, base: number) => {
     await terco(aluno, aulaId, base, 0);
     await terco(aluno, aulaId, base, 1);
-    return terco(aluno, aulaId, base, 2);
+
+    return await terco(aluno, aulaId, base, 2);
   };
 
   afterAll(async () => {
@@ -185,18 +200,21 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   test("sem login, abrir e registrar lançam UNAUTHORIZED", async () => {
     const anonimo = comoAluno(null);
     const id = "00000000-0000-4000-8000-000000000000";
+
     const erros = await Promise.all([
       anonimo.aula.abrir({ aulaId: id, slug: "comercial" }).catch(codigo),
       anonimo.aula
         .registrar({ aulaId: id, posicaoSeg: 0, trechos: [] })
         .catch(codigo),
     ]);
+
     expect(erros).toEqual(["UNAUTHORIZED", "UNAUTHORIZED"]);
   });
 
   test("NOT_FOUND sem liberação, com curso em breve e depois de revogar", async () => {
     const aluno = novoAluno();
     const caller = comoAluno(aluno);
+
     const tentar = (aulaId: string) =>
       caller.aula
         .registrar({ aulaId, posicaoSeg: 10, trechos: [t(0, 10)] })
@@ -229,9 +247,11 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const aluno = novoAluno();
     const c = await criarCurso(1, { comVideo: false });
     await liberarCurso(aluno, c.id);
+
     const erro = await comoAluno(aluno)
       .aula.registrar({ aulaId: c.aulas[0] ?? "", posicaoSeg: 5, trechos: [] })
       .catch(codigo);
+
     expect(erro).toBe("PRECONDITION_FAILED");
   });
 
@@ -239,6 +259,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
     const passos = Array.from({ length: 36 }, (_, i) => (i + 1) * 15);
+
     const respostas = await emSerie(passos, (s) =>
       registrar(
         db,
@@ -248,6 +269,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         em(s)
       )
     );
+
     const conquistas = respostas.filter((r) => r.conquista);
     expect(conquistas.map((r) => r.conquista)).toEqual([
       { bonusSequencia: null, pontos: 10, sequenciaDias: 1 },
@@ -265,6 +287,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       { posicaoSeg: 540, trechos: [t(525, 540)] },
       em(541)
     );
+
     expect(deNovo.conquista).toBeNull();
     expect(deNovo.cobertura.vistosSeg).toBe(540);
 
@@ -275,11 +298,14 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       { posicaoSeg: 600, trechos: [t(540, 600)] },
       em(700)
     );
+
     expect(rever.conquista).toBeNull();
+
     const fatos = await db
       .select()
       .from(aulaAssistida)
       .where(eq(aulaAssistida.userId, aluno));
+
     const pontos = await db
       .select({
         motivo: pontoLancamento.motivo,
@@ -287,6 +313,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       })
       .from(pontoLancamento)
       .where(eq(pontoLancamento.userId, aluno));
+
     expect(fatos).toHaveLength(1);
     expect(fatos[0]?.dia).toBe("2026-10-07");
     expect(pontos).toEqual([{ motivo: "aula_assistida", pontos: 10 }]);
@@ -294,6 +321,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   test("600 s de cara não vira assistida: a cota leva 180", async () => {
     const { aluno, c } = await cursoLiberado();
+
     const r = await registrar(
       db,
       alunoDeTeste(aluno),
@@ -301,6 +329,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       { posicaoSeg: 600, trechos: [t(0, 600)] },
       QUARTA_15H
     );
+
     expect(r).toMatchObject({
       assistida: false,
       conquista: null,
@@ -313,6 +342,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
     const pedido = { posicaoSeg: 100, trechos: [t(0, 100)] };
+
     const [um, dois] = await Promise.all([
       registrar(db, alunoDeTeste(aluno), aulaId, pedido, QUARTA_15H),
       registrar(
@@ -323,28 +353,35 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         QUARTA_15H
       ),
     ]);
+
     expect([um?.cobertura.vistosSeg, dois?.cobertura.vistosSeg].sort()).toEqual(
       [100, 150]
     );
+
     const [cota] = await db
       .select({ segundos: cotaVideo.segundos })
       .from(cotaVideo)
       .where(eq(cotaVideo.userId, aluno));
+
     expect(cota?.segundos).toBe(30);
+
     const [posicao] = await db
       .select({ trechos: posicaoAula.trechosVistos })
       .from(posicaoAula)
       .where(eq(posicaoAula.userId, aluno));
+
     expect(posicao?.trechos).toEqual([t(0, 150)]);
   });
 
   describe("espera pela cota do aluno", () => {
     const naCorrida = (userId: string) =>
       createCaller(contextoDeTeste({ db: dbDaCorrida, userId }));
+
     const recusa = (e: unknown) =>
       e instanceof ErroParaAPessoa
         ? e.code
         : `não é ErroParaAPessoa: ${codigo(e)}`;
+
     const PARADO_NA_COTA = ['insert into "cota_video"'];
 
     async function alunoComCota() {
@@ -356,30 +393,46 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         posicaoSeg: 10,
         trechos: [t(0, 10)],
       });
+
       const enviar = (s: number) =>
         caller.aula
           .registrar({ aulaId, posicaoSeg: s, trechos: [t(s - 10, s)] })
           .then(() => "passou", recusa);
+
       return { aluno, enviar };
     }
 
     test("com a cota presa além da espera, recusa TOO_MANY_REQUESTS sem esperar a trava soltar", async () => {
       const { aluno, enviar } = await alunoComCota();
-      const PRESA_MS = ESPERA_PELA_COTA_MS + 3000;
       const soltar = await seguraACota(db, aluno);
-      const solta = esperar(PRESA_MS).then(soltar);
+      let soltou = false;
+
+      const reserva = setTimeout(() => {
+        soltou = true;
+        void soltar();
+      }, ESPERA_PELA_COTA_MS + 1500);
+
       const inicio = performance.now();
+
       const [resposta, paradas] = await Promise.all([
-        enviar(20).then((r) => ({ ms: performance.now() - inicio, r })),
+        enviar(20).then((r) => ({
+          antesDeSoltar: !soltou,
+          ms: performance.now() - inicio,
+          r,
+        })),
         esperas(dbDaCorrida, 1, PARADO_NA_COTA),
       ]);
-      await solta;
+
+      clearTimeout(reserva);
+      await soltar();
+
       const [posicao] = await db
         .select({ seg: posicaoAula.posicaoSeg })
         .from(posicaoAula)
         .where(eq(posicaoAula.userId, aluno));
+
       expect({
-        antesDeSoltar: resposta.ms < PRESA_MS - 1000,
+        antesDeSoltar: resposta.antesDeSoltar,
         depoisDaEspera: resposta.ms >= ESPERA_PELA_COTA_MS - 50,
         paradas,
         posicao,
@@ -391,7 +444,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         posicao: { seg: 10 },
         resposta: "TOO_MANY_REQUESTS",
       });
-    }, 15_000);
+    });
 
     test("dois registrar ao mesmo tempo passam os dois", async () => {
       const { enviar } = await alunoComCota();
@@ -404,18 +457,21 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     test("o envio que espera outro em voo por metade da espera passa", async () => {
       const { aluno, enviar } = await alunoComCota();
       const soltar = await seguraACota(db, aluno);
+
       const [resposta] = await Promise.all([
         enviar(20),
         esperas(dbDaCorrida, 1, PARADO_NA_COTA)
           .then(() => esperar(ESPERA_PELA_COTA_MS / 2))
           .then(soltar),
       ]);
+
       expect(resposta).toBe("passou");
-    }, 15_000);
+    });
   });
 
   test("seis dias úteis antes e a aula numa quarta lançam o bônus uma vez", async () => {
     const { aluno, c } = await cursoLiberado(8);
+
     const dias = [
       "2026-09-29",
       "2026-09-30",
@@ -424,6 +480,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       "2026-10-05",
       "2026-10-06",
     ];
+
     await db.insert(aulaAssistida).values(
       dias.map((dia, i) => ({
         assistidaEm: new Date(`${dia}T15:00:00Z`),
@@ -443,6 +500,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       pontos: 10,
       sequenciaDias: 7,
     });
+
     const bonus = await db
       .select({ diaMarco: pontoLancamento.diaMarco })
       .from(pontoLancamento)
@@ -452,11 +510,13 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
           eq(pontoLancamento.motivo, "sequencia_7_dias")
         )
       );
+
     expect(bonus).toEqual([{ diaMarco: "2026-10-07" }]);
   });
 
   test("a conquista mostra só os lançamentos que entraram", async () => {
     const { aluno, c } = await cursoLiberado(7);
+
     const dias = [
       "2026-09-29",
       "2026-09-30",
@@ -465,6 +525,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       "2026-10-05",
       "2026-10-06",
     ];
+
     await db.insert(aulaAssistida).values(
       dias.map((dia, i) => ({
         assistidaEm: new Date(`${dia}T15:00:00Z`),
@@ -503,20 +564,24 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db.$client.query(
       `create trigger ${nome} before insert on ponto_lancamento for each row execute function ${nome}()`
     );
+
     try {
       const erro = await terco(aluno, aulaId, 0, 2).then(
         () => null,
         (e: unknown) => String(e)
       );
+
       expect(erro).toContain("Failed query");
     } finally {
       await db.$client.query(`drop trigger ${nome} on ponto_lancamento`);
       await db.$client.query(`drop function ${nome}()`);
     }
+
     const fatos = await db
       .select()
       .from(aulaAssistida)
       .where(eq(aulaAssistida.userId, aluno));
+
     const [posicao] = await db
       .select({
         seg: posicaoAula.posicaoSeg,
@@ -524,10 +589,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       })
       .from(posicaoAula)
       .where(eq(posicaoAula.userId, aluno));
+
     const [cota] = await db
       .select({ segundos: cotaVideo.segundos })
       .from(cotaVideo)
       .where(eq(cotaVideo.userId, aluno));
+
     expect(fatos).toEqual([]);
     expect(posicao).toEqual({ seg: 360, trechos: [t(0, 360)] });
     expect(cota?.segundos).toBe(0);
@@ -542,12 +609,14 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       { posicaoSeg: 42, trechos: [t(0, 42)] },
       QUARTA_15H
     );
+
     const vm = await carregarAula(
       db,
       alunoDeTeste(aluno),
       c.slug,
       c.aulas[1] ?? ""
     );
+
     expect(vm).toMatchObject({
       anterior: { id: c.aulas[0] },
       aula: {
@@ -600,10 +669,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       "nao-existe",
       "Fora do Formato",
     ];
+
     const abre = await emSerie(
       slugs,
       async (slug) => (await caller.curso.pagina({ slug })) !== null
     );
+
     expect(abre).toEqual([false, false, true, false, false, false]);
 
     const pagina = await caller.curso.pagina({ slug: liberado.slug });
@@ -643,9 +714,11 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
   test("contagem de statements: abrir 7, envio comum 9 e com conquista 18, mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;
+
     const abrir = await contar(() =>
       carregarAula(db, alunoDeTeste(aluno), c.slug, aulaId)
     );
+
     const comum = await contar(() => terco(aluno, aulaId, 0, 0));
     await terco(aluno, aulaId, 0, 1);
     const comConquista = await contar(() => terco(aluno, aulaId, 0, 2));

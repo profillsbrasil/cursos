@@ -47,17 +47,22 @@ describe("documentoDoCurso", () => {
 
   test("devolve módulos por número, níveis por ordem e ids em minúscula, como o banco", () => {
     const d = documento();
+
     const doEditor = editar(d, (x) => {
       x.modulos.reverse();
       x.niveis.reverse();
+
       for (const m of x.modulos) {
         m.id = m.id.toUpperCase() as ModuloId;
+
         for (const a of m.aulas) {
           a.id = a.id.toUpperCase() as AulaId;
         }
       }
+
       return { ...x, id: x.id.toUpperCase() as CursoId };
     });
+
     expect(documentoDoCurso.parse(doEditor)).toEqual(d);
   });
 
@@ -66,22 +71,29 @@ describe("documentoDoCurso", () => {
       x.modulos[1]?.aulas.push(
         aulaDeExemplo(A1.toUpperCase() as AulaId, "Cópia")
       );
+
       return x;
     });
+
     expect(erros(d)).toEqual([`Aula ${A1} aparece duas vezes.`]);
   });
 
   test("recusa número de módulo, id e ordem de nível repetidos", () => {
     const d = documento();
+
     const ruim = editar(d, (x) => {
       const [m1, m2] = x.modulos;
+
       if (m1 && m2) {
         m2.numero = m1.numero;
         m2.aulas.push(aulaDeExemplo(A1, "Cópia"));
       }
+
       x.niveis.push({ nome: "Outro", ordem: 1 });
+
       return x;
     });
+
     expect(erros(ruim)).toEqual([
       `Aula ${A1} aparece duas vezes.`,
       "Dois módulos com o número 0.",
@@ -96,8 +108,10 @@ describe("documentoDoCurso", () => {
         aulaDeExemplo(A1, "Cópia 2"),
         aulaDeExemplo(uuidDeExemplo(99) as AulaId, "Única")
       );
+
       return x;
     });
+
     expect(erros(d)).toEqual([`Aula ${A1} aparece duas vezes.`]);
   });
 
@@ -106,6 +120,7 @@ describe("documentoDoCurso", () => {
       ...x,
       niveis: x.niveis.slice(0, 1),
     }));
+
     expect(erros(d)).toEqual(["O nível 2 não existe."]);
   });
 
@@ -117,11 +132,14 @@ describe("documentoDoCurso", () => {
   test("descrições e tópicos são aparados, e a descrição vazia passa", () => {
     const d = editar(documento(), (x) => {
       const aula = x.modulos[0]?.aulas[0];
+
       if (aula) {
         aula.descricao = "  Como ligar a máquina.  ";
       }
+
       return { ...x, descricao: "   ", topicos: ["  Ligar a máquina  "] };
     });
+
     const lido = documentoDoCurso.parse(d);
     expect([
       lido.descricao,
@@ -133,15 +151,18 @@ describe("documentoDoCurso", () => {
   test("aceita 10 tópicos de 120 caracteres e descrições de 2000", () => {
     const d = editar(documento(), (x) => {
       const aula = x.modulos[0]?.aulas[0];
+
       if (aula) {
         aula.descricao = "a".repeat(2000);
       }
+
       return {
         ...x,
         descricao: "b".repeat(2000),
         topicos: Array.from({ length: 10 }, () => "c".repeat(120)),
       };
     });
+
     expect(documentoDoCurso.safeParse(d).success).toBe(true);
   });
 
@@ -150,6 +171,7 @@ describe("documentoDoCurso", () => {
       documentoDoCurso
         .safeParse(editar(documento(), mudar))
         .error?.issues.map((i) => i.path.join(".")) ?? [];
+
     expect([
       caminhos((x) => ({
         ...x,
@@ -160,9 +182,11 @@ describe("documentoDoCurso", () => {
       caminhos((x) => ({ ...x, descricao: "b".repeat(2001) })),
       caminhos((x) => {
         const aula = x.modulos[1]?.aulas[0];
+
         if (aula) {
           aula.descricao = "a".repeat(2001);
         }
+
         return x;
       }),
     ]).toEqual([
@@ -187,6 +211,7 @@ describe("documentoDoCurso", () => {
       ...documento(),
       categoriaId: EDICAO.CATEGORIA.toUpperCase(),
     });
+
     expect(lido.categoriaId).toBe(EDICAO.CATEGORIA);
   });
 });
@@ -197,6 +222,7 @@ describe("formulário do curso", () => {
     const capa = new Blob([new Uint8Array([1, 2, 3])], { type: "image/png" });
     const lido = lerFormularioDoCurso(formularioDoCurso(d, capa));
     expect(lido.tipo).toBe("lido");
+
     if (lido.tipo === "lido") {
       expect(lido.documento).toEqual(d);
       expect(lido.capa?.size).toBe(3);
@@ -214,11 +240,14 @@ describe("formulário do curso", () => {
   test("documento inválido sai com uma frase fixa, sem o texto do zod", () => {
     const d = editar(documento(), (x) => {
       const a = x.modulos[1]?.aulas[0];
+
       if (a) {
         a.titulo = "";
       }
+
       return x;
     });
+
     expect(lerFormularioDoCurso(formularioDoCurso(d, null))).toEqual({
       mensagem: "Documento inválido.",
       tipo: "invalido",
@@ -235,22 +264,27 @@ describe("formulário do curso", () => {
 
 describe("questionário da aula", () => {
   const { P1, P1A, P1B } = EDICAO;
+
   const comPergunta = (
     mudar: (p: ReturnType<typeof perguntaDeExemplo>) => void = () => undefined
   ) =>
     editar(documento(), (x) => {
       const a1 = x.modulos[0]?.aulas[0];
+
       if (a1) {
         const p = perguntaDeExemplo(P1, [P1A, P1B]);
         mudar(p);
         a1.perguntas = [p];
       }
+
       return x;
     });
+
   const issues = (d: unknown) =>
     documentoDoCurso
       .safeParse(d)
       .error?.issues.map((i) => [i.path.join("."), i.message]) ?? [];
+
   const alternativa = (n: number) => ({
     certa: false,
     id: uuidDeExemplo(60 + n) as AlternativaId,
@@ -266,7 +300,9 @@ describe("questionário da aula", () => {
     const d = comPergunta((p) => {
       p.alternativas.push(alternativa(1), alternativa(2), alternativa(3));
     });
+
     const a1 = d.modulos[0]?.aulas[0];
+
     if (a1) {
       a1.perguntas = Array.from({ length: 20 }, (_, i) => ({
         ...perguntaDeExemplo(uuidDeExemplo(100 + i) as PerguntaId, [
@@ -275,22 +311,27 @@ describe("questionário da aula", () => {
         ]),
       }));
     }
+
     expect(documentoDoCurso.safeParse(d).success).toBe(true);
   });
 
   test("recusa 1 alternativa, 6 alternativas, nenhuma certa e duas certas", () => {
     const base = "modulos.0.aulas.0.perguntas.0.alternativas";
     expect([
-      issues(comPergunta((p) => p.alternativas.shift())),
       issues(
-        comPergunta((p) =>
+        comPergunta((p) => {
+          p.alternativas.shift();
+        })
+      ),
+      issues(
+        comPergunta((p) => {
           p.alternativas.push(
             alternativa(1),
             alternativa(2),
             alternativa(3),
             alternativa(4)
-          )
-        )
+          );
+        })
       ).map(([caminho]) => caminho),
       issues(
         comPergunta((p) => {
@@ -318,6 +359,7 @@ describe("questionário da aula", () => {
     const caminhos = (
       mudar: (p: ReturnType<typeof perguntaDeExemplo>) => void
     ) => issues(comPergunta(mudar)).map(([caminho]) => caminho);
+
     expect([
       caminhos((p) => {
         p.enunciado = "  ";
@@ -346,6 +388,7 @@ describe("questionário da aula", () => {
   test("a 21ª pergunta é recusada na lista", () => {
     const d = comPergunta();
     const a1 = d.modulos[0]?.aulas[0];
+
     if (a1) {
       a1.perguntas = Array.from({ length: 21 }, (_, i) =>
         perguntaDeExemplo(uuidDeExemplo(100 + i) as PerguntaId, [
@@ -354,6 +397,7 @@ describe("questionário da aula", () => {
         ])
       );
     }
+
     expect(issues(d).map(([caminho]) => caminho)).toEqual([
       "modulos.0.aulas.0.perguntas",
     ]);
@@ -362,6 +406,7 @@ describe("questionário da aula", () => {
   test("pergunta ou alternativa repetida em outra aula é recusada, também em outra caixa", () => {
     const d = comPergunta();
     const a3 = d.modulos[1]?.aulas[0];
+
     if (a3) {
       a3.perguntas = [
         perguntaDeExemplo(P1.toUpperCase() as PerguntaId, [
@@ -370,6 +415,7 @@ describe("questionário da aula", () => {
         ]),
       ];
     }
+
     expect(issues(d).map(([, mensagem]) => mensagem)).toEqual([
       `Pergunta ${P1} aparece duas vezes.`,
       `Alternativa ${P1B} aparece duas vezes.`,

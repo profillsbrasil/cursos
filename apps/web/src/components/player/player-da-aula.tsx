@@ -34,12 +34,16 @@ export function PlayerDaAula({
     inicioSeg,
     video,
   });
+
   const { comandar } = p;
+
   const rever = useCallback(() => {
     comandar({ seg: 0, tipo: "buscar" });
     comandar({ tipo: "alternar" });
   }, [comandar]);
+
   const terminou = p.estado.reproducao.tipo === "terminou";
+
   return (
     <div className="grid min-w-0 gap-4">
       <CabecalhoDaAula dados={dados} />

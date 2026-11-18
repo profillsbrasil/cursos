@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { CampoDeCapa } from "./campo-de-capa";
 import { EsqueletoDoEditor, EsqueletoDoTopoDaPessoa } from "./esqueletos";
 import { FotoDaPessoa } from "./foto-da-pessoa";
@@ -24,19 +24,23 @@ import { TopicosDoCurso } from "./topicos-do-curso";
 
 // Fora do App Router o useRouter lança; a categoria da Capa e descrição cria pelo useAcao.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({ refresh: () => undefined }),
 }));
+
 const { CapaEDescricao } = await import("./capa-e-descricao");
 
 const nada = () => undefined;
+
 const CAPA = {
   alt: "Capa",
   altura: 604,
   largura: 900,
   url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 604'/%3E",
 };
+
 const COLUNA_DE_PUBLICACAO = 300 + 32;
 
 const pronto = renderToStaticMarkup(
@@ -49,7 +53,9 @@ const pronto = renderToStaticMarkup(
     slug="curso-de-filmagem"
   />
 );
+
 const esqueleto = renderToStaticMarkup(<EsqueletoDoEditor />);
+
 // Cinco tópicos, como o curso de exemplo do dev.
 const topicos = renderToStaticMarkup(
   <TopicosDoCurso
@@ -57,21 +63,27 @@ const topicos = renderToStaticMarkup(
     topicos={["Planejar", "Gravar", "Iluminar", "Captar o som", "Editar"]}
   />
 );
+
 const foto = renderToStaticMarkup(
   <FotoDaPessoa foto={null} nome="Ana Admin" size="lg" />
 );
+
 const topo = renderToStaticMarkup(<EsqueletoDoTopoDaPessoa />);
+
 const LIBERACOES = {
   resumo: "Marque pessoas para liberar um curso, ou abra uma para ver o acesso",
   titulo: "Liberações",
 };
+
 const cabecalho = renderToStaticMarkup(<CabecalhoDaPagina {...LIBERACOES} />);
+
 const cabecalhoQueCarrega = renderToStaticMarkup(
   <EsqueletoDoCabecalho {...LIBERACOES} />
 );
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   [
     pronto,
@@ -103,7 +115,8 @@ async function alturas(formulario: number) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronto" style="width:${formulario}px">${pronto}</div><div id="topicos" style="width:${formulario}px">${topicos}</div><div id="esqueleto" style="width:${larguraDoEsqueleto(formulario)}px">${esqueleto}</div></body></html>`
     )}); document.close();`
   );
-  return avaliar<{
+
+  return await avaliar<{
     esqueleto: number;
     esqueletoDosTopicos: number;
     pronto: number;
@@ -139,6 +152,7 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
         `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="foto">${foto}</div><div id="topo">${topo}</div></body></html>`
       )}); document.close();`
     );
+
     const lados = await avaliar<{ foto: number; topo: number }>(
       enviar,
       `({
@@ -146,6 +160,7 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
         topo: document.querySelector("#topo .rounded-full.shrink-0").getBoundingClientRect().width,
       })`
     );
+
     expect(lados.foto).toBe(56);
     expect(lados.topo).toBe(lados.foto);
   });
@@ -159,10 +174,12 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
           `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><div id="pronto" style="width:${largura}px">${cabecalho}</div><div id="esqueleto" style="width:${largura}px">${cabecalhoQueCarrega}</div></body></html>`
         )}); document.close();`
       );
+
       const lados = await avaliar<number[]>(
         enviar,
         `["#pronto", "#esqueleto"].map((id) => document.querySelector(id).firstElementChild.getBoundingClientRect().height)`
       );
+
       expect(lados[1]).toBe(lados[0]);
     });
   }

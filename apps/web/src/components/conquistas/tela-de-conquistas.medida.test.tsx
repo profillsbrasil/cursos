@@ -15,7 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ALUNA, NOVO } from "./exemplo-de-teste";
 import { pontoNaTrilha } from "./geometria";
 import { TelaDeConquistas } from "./tela-de-conquistas";
@@ -41,6 +41,7 @@ const TELAS = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(TELAS).flatMap(({ html }) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -207,14 +208,17 @@ const rolaDeLado = () =>
   );
 
 const FOTOS = process.env.FOTOS_DAS_CONQUISTAS;
+
 async function foto(nome: string) {
   if (!FOTOS) {
     return;
   }
+
   const altura = await avaliar<number>(
     enviar,
     "document.documentElement.scrollHeight"
   );
+
   const largura = await avaliar<number>(enviar, "window.innerWidth");
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -222,9 +226,11 @@ async function foto(nome: string) {
     mobile: false,
     width: largura,
   });
+
   const { data } = (await enviar("Page.captureScreenshot", {
     format: "png",
   })) as { data: string };
+
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
 
@@ -241,8 +247,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         await abrir(largura, html);
         const t = await trilha();
         const p = pontoNaTrilha(feitas, [10, 50, 100]);
+
         const ponto =
           t.trilho.esquerda + (p.porcento / 100) * t.trilho.largura - p.recuoPx;
+
         expect(centro(t.ponto)).toBeCloseTo(ponto, 0);
         expect(meio(t.ponto)).toBeGreaterThanOrEqual(t.trilho.topo);
         expect(meio(t.ponto)).toBeLessThanOrEqual(t.trilho.baixo);
@@ -256,22 +264,21 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         expect(t.haste.direita).toBeLessThanOrEqual(t.voce.direita);
         expect(t.voce.esquerda).toBeGreaterThanOrEqual(t.cartao.esquerda);
         expect(t.voce.direita).toBeLessThanOrEqual(t.cartao.direita);
+
         if (feitas === 0) {
           expect(t.voce.esquerda).toBeLessThan(t.trilho.esquerda);
           expect(t.voce.esquerda).toBeGreaterThan(t.trilho.esquerda - 10);
         } else {
           expect(centro(t.voce)).toBeCloseTo(ponto, 0);
         }
+
         expect(t.preenchido.direita).toBeCloseTo(ponto, 0);
         expect(t.medalhas.map((m) => [m.largura, m.altura])).toEqual([
           [56, 56],
           [56, 56],
           [56, 56],
         ]);
-        expect(centro(t.medalhas[2] as Caixa)).toBeCloseTo(
-          t.trilho.direita - 28,
-          0
-        );
+        expect(centro(t.medalhas[2])).toBeCloseTo(t.trilho.direita - 28, 0);
       });
 
       test(`${largura} px, ${nome}: a faixa dos sete dias é baixa, e sábado e domingo aparecem entre sexta e segunda`, async () => {
@@ -279,9 +286,11 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         const s = await semana();
         expect(s.circulos).toHaveLength(7);
         const lado = largura === 1280 ? 36 : 32;
+
         for (const c of s.circulos) {
           expect([c.largura, c.altura]).toEqual([lado, lado]);
         }
+
         if (largura === 1280) {
           expect(s.lista.topo).toBeLessThan(s.texto.baixo);
           expect(s.faixa.altura).toBeLessThan(120);
@@ -289,25 +298,29 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
           expect(s.lista.topo).toBeGreaterThanOrEqual(s.texto.baixo);
           expect(s.faixa.altura).toBeLessThan(220);
         }
+
         expect(s.lista.direita).toBeLessThanOrEqual(s.faixa.direita);
         const sextas = nome === "aluna" ? [3] : [0, 5];
         expect(s.fins).toHaveLength(sextas.length);
+
         for (const [i, sexta] of sextas.entries()) {
-          const fim = s.fins[i] as Caixa;
+          const fim = s.fins[i];
           expect(fim.esquerda).toBeGreaterThanOrEqual(
-            (s.circulos[sexta] as Caixa).direita
+            s.circulos[sexta].direita
           );
           expect(fim.direita).toBeLessThanOrEqual(
-            (s.circulos[sexta + 1] as Caixa).esquerda
+            s.circulos[sexta + 1].esquerda
           );
         }
       });
 
       test(`${largura} px, ${nome}: as metas das três medalhas ficam na mesma altura, com ou sem legenda`, async () => {
         await abrir(largura, html);
+
         const metas = await medir<number[]>(
           `return [...document.querySelectorAll("[data-trilha] ol > li > span:last-child")].map((s) => caixa(s).topo);`
         );
+
         expect(metas).toHaveLength(3);
         expect(new Set(metas).size).toBe(1);
       });
@@ -316,6 +329,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         await abrir(largura, html);
         const fins = await fimsDeSemana();
         expect(fins.length).toBeGreaterThan(0);
+
         for (const f of fins) {
           expect(f.writingMode).toBe("horizontal-tb");
           expect([f.rotate, f.transform]).toEqual(["none", "none"]);
@@ -328,6 +342,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
         await abrir(largura, html);
         const cs = await cartoes();
         expect(cs.length).toBeGreaterThan(0);
+
         for (const c of cs) {
           expect(c.cabe).toBe(true);
           expect(c.cartao.direita).toBeLessThanOrEqual(c.grade.direita + 0.5);
@@ -338,6 +353,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
           expect([c.lacre.largura, c.lacre.altura]).toEqual([56, 56]);
           expect(c.lacre.direita).toBeCloseTo(c.cartao.direita - 18, 0);
         }
+
         expect(await rolaDeLado()).toBe(false);
         await foto(`conquistas-${nome}-${largura}`);
       });
@@ -348,13 +364,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
     await abrir(1280, TELAS.aluna.html);
     const { cartoes: g, ganhas, medalhas } = await gradeMedida();
     expect(g).toHaveLength(6);
-    const [destaque, segundo, terceiro, quarto, quinto] = g as Caixa[];
+    const [destaque, segundo, terceiro, quarto, quinto] = g;
     expect(segundo?.topo).toBe(destaque?.topo);
     expect(destaque?.largura).toBeCloseTo((segundo?.largura ?? 0) * 2 + 14, 0);
+
     for (const c of [terceiro, quarto, quinto]) {
       expect(c?.topo).toBe(terceiro?.topo);
       expect(c?.largura).toBeCloseTo(segundo?.largura ?? 0, 0);
     }
+
     expect(terceiro?.topo).toBeGreaterThan(destaque?.baixo ?? 0);
     expect(terceiro?.esquerda).toBe(destaque?.esquerda);
     expect(medalhas.map((m) => m.largura)).toEqual([56, 40, 40, 40, 40, 40]);
@@ -379,7 +397,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
   test("700 px: a grade em duas colunas, a primeira na linha toda", async () => {
     await abrir(700, TELAS.aluna.html);
     const { cartoes: g } = await gradeMedida();
-    const [destaque, segundo, terceiro] = g as Caixa[];
+    const [destaque, segundo, terceiro] = g;
     expect(segundo?.topo).toBeGreaterThan(destaque?.baixo ?? 0);
     expect(terceiro?.topo).toBe(segundo?.topo);
     expect(destaque?.largura).toBeCloseTo((segundo?.largura ?? 0) * 2 + 14, 0);
@@ -391,11 +409,13 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
     const { cartoes: g } = await gradeMedida();
     expect(new Set(g.map((c) => c.esquerda)).size).toBe(1);
     expect(new Set(g.map((c) => Math.round(c.largura))).size).toBe(1);
+
     for (const [i, c] of g.entries()) {
       if (i > 0) {
         expect(c.topo).toBeGreaterThan(g[i - 1]?.baixo ?? 0);
       }
     }
+
     const cs = await cartoes();
     expect(new Set(cs.map((c) => c.cartao.esquerda)).size).toBe(1);
     expect(cs[0]?.cartao.largura).toBe(cs[0]?.grade.largura);

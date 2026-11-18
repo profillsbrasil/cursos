@@ -33,8 +33,10 @@ export function antesDePublicar(
   const aulas = rascunho.modulos.flatMap((m) => m.aulas);
   const comVideo = aulas.filter((a) => videoDoTexto(a.video) !== null).length;
   const semQuestionario = aulas.filter((a) => a.perguntas.length === 0).length;
+
   const temPreco =
     rascunho.precoTroca !== null && "valor" in lerPreco(rascunho.precoTroca);
+
   return [
     { cumprido: temCapa, detalhe: null, nome: "Capa" },
     {
@@ -77,10 +79,12 @@ export function resumoDoCurso(
   rascunho: Pick<RascunhoDoCurso, "modulos">
 ): string {
   const aulas = rascunho.modulos.reduce((s, m) => s + m.aulas.length, 0);
+
   const duracao = rascunho.modulos.reduce(
     (s, m) => s + segundosDas(m.aulas),
     0
   );
+
   return [
     plural(rascunho.modulos.length, "módulo", "módulos"),
     plural(aulas, "aula", "aulas"),
@@ -122,6 +126,7 @@ export function secoesDoEditor(
       nome: "Módulos e aulas",
     },
   ];
+
   return novo
     ? secoes
     : [...secoes, { contagem: null, id: "apagar", nome: "Apagar" }];

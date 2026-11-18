@@ -7,6 +7,7 @@ import { LOCKUP, PRODUTO } from "@/lib/marca";
 type Props = ComponentProps<typeof ClerkProvider>;
 
 const BRILHO = "0 6px 18px rgb(255 204 1 / 0.28)";
+
 const TRANSICAO =
   "color 150ms var(--ease-forte), border-color 150ms var(--ease-forte), background-color 150ms var(--ease-forte), box-shadow 150ms var(--ease-forte)";
 

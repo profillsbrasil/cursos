@@ -56,6 +56,7 @@ function Pendente({
 }) {
   const { feitas, total } = pagina.aulas;
   const { aprovados, total: questionarios } = pagina.questionarios;
+
   return (
     <div className={GRADE_DO_CERTIFICADO}>
       {/* O lugar da folha fica marcado com a silhueta dela (a faixa do topo e a
@@ -122,15 +123,18 @@ export function TelaDoCertificado({
   if (pagina.tipo === "falta") {
     return <Pendente pagina={pagina} />;
   }
+
   const { categoria, certificado, slug } = pagina;
   const endereco = enderecoDaConferencia(origem, certificado.codigo);
   const comONome = comNome(certificado);
+
   const fatos = [
     ["Curso", certificado.tituloDoCurso],
     ["Concluído em", diaCurto(diaEmSaoPaulo(certificado.emitidoEm), hoje)],
     ["Carga horária", cargaEmHoras(certificado.horas)],
     ["Código", certificado.codigo],
   ] as const;
+
   return (
     <div className={GRADE_DO_CERTIFICADO}>
       {comONome ? (

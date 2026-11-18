@@ -10,6 +10,7 @@ import {
 } from "next/dist/client/components/http-access-fallback/http-access-fallback";
 
 const nada = () => Promise.resolve(null);
+
 plugin({
   name: "server-api-sem-nada",
   setup(construtor) {
@@ -40,11 +41,13 @@ async function titulo(gerar: () => Promise<{ title?: unknown }>) {
     ) {
       return "notFound()";
     }
+
     return String(erro);
   }
 }
 
 const pessoa = () => Promise.resolve({ userId: "user_nao_existe" });
+
 console.log(
   JSON.stringify({
     acesso: await titulo(() => doAcesso.generateMetadata({ params: pessoa() })),

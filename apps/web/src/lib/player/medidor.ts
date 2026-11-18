@@ -27,6 +27,7 @@ const abrir = (a: Amostra): Medidor => ({
 
 const trechoAte = (inicioSeg: number, fimSeg: number): Trecho[] => {
   const t = quantizar(inicioSeg, fimSeg);
+
   return t ? [t] : [];
 };
 
@@ -34,18 +35,22 @@ export function amostrar(m: Medidor, a: Amostra): Medida {
   if (!m.aberto) {
     return { medidor: abrir(a), trechos: [] };
   }
+
   const { inicioSeg, ultima } = m.aberto;
   const esperado = ((a.relogioMs - ultima.relogioMs) / 1000) * a.taxa;
   const andou = a.videoSeg - ultima.videoSeg;
+
   const salto =
     andou < -RECUO_TOLERADO_SEG ||
     andou > esperado + Math.max(FOLGA_MIN_SEG, esperado * FOLGA_PROPORCIONAL);
+
   if (salto) {
     return {
       medidor: abrir(a),
       trechos: trechoAte(inicioSeg, ultima.videoSeg),
     };
   }
+
   return { medidor: { aberto: { inicioSeg, ultima: a } }, trechos: [] };
 }
 
@@ -60,8 +65,10 @@ export function cortar(m: Medidor): Medida {
   if (!m.aberto) {
     return { medidor: m, trechos: [] };
   }
+
   const { inicioSeg, ultima } = m.aberto;
   const corte = Math.max(inicioSeg, Math.floor(ultima.videoSeg));
+
   return {
     medidor: { aberto: { inicioSeg: corte, ultima } },
     trechos: trechoAte(inicioSeg, ultima.videoSeg),

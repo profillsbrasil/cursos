@@ -16,13 +16,16 @@ export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
   if (i.code === "too_small" && i.origin === "string") {
     return "Preencha este campo.";
   }
+
   if (i.code === "too_big" && i.origin === "string") {
     return `Use até ${fmtNum(Number(i.maximum))} caracteres.`;
   }
+
   // O curso novo começa com o id vazio, que o z.uuid() recusa.
   if (i.code === "invalid_format" && i.path.at(-1) === "categoriaId") {
     return "Escolha a categoria.";
   }
+
   return null;
 }
 
@@ -32,13 +35,16 @@ export const fraseDeReserva = (caminho: readonly PropertyKey[]) =>
 export function semRepetir([primeiro, ...resto]: Problemas): Problemas {
   const chave = (p: Problema) => p.campo ?? `frase:${p.mensagem}`;
   const vistos = new Set([chave(primeiro)]);
+
   return [
     primeiro,
     ...resto.filter((p) => {
       if (vistos.has(chave(p))) {
         return false;
       }
+
       vistos.add(chave(p));
+
       return true;
     }),
   ];

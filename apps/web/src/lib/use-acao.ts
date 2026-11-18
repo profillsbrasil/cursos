@@ -36,11 +36,14 @@ export async function rodarAcao<T>(
 ): Promise<void> {
   try {
     const r = await fazer();
+
     const sucesso =
       typeof opcoes.sucesso === "function" ? opcoes.sucesso(r) : opcoes.sucesso;
+
     if (sucesso) {
       efeitos.toast.success(sucesso);
     }
+
     opcoes.depois?.(r);
   } catch (e) {
     // Erro de rede chega sem data: o servidor não respondeu.
@@ -48,13 +51,16 @@ export async function rodarAcao<T>(
       isTRPCClientError<AppRouter>(e) && e.data
         ? { ...e.data, mensagem: e.message }
         : null;
+
     const mensagem = recusa?.paraAPessoa ? recusa.mensagem : null;
     efeitos.toast.error(mensagem ?? opcoes.erro ?? ERRO_GENERICO);
     opcoes.aoRecusar?.(recusa?.motivo ?? null, mensagem);
+
     if (recusa === null) {
       return;
     }
   }
+
   efeitos.atualizar();
 }
 
@@ -70,6 +76,7 @@ export interface Acao {
 export function useAcao(): Acao {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
+
   return {
     executar: (fazer, opcoes = {}) =>
       iniciar(() =>

@@ -11,7 +11,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "selecao.entrada.tsx");
@@ -79,14 +79,18 @@ async function empacotar() {
     format: "iife",
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(`o pacote da tela não saiu: ${pacote.logs.join("\n")}`);
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 const PALAVRA = /[\s"'`{}]+/;
+
 const css = await cssDoApp(
   [
     TELA,
@@ -147,6 +151,7 @@ async function teclar(tecla: keyof typeof CODIGO_DA_TECLA) {
     key: tecla,
     windowsVirtualKeyCode: CODIGO_DA_TECLA[tecla],
   };
+
   await enviar("Input.dispatchKeyEvent", {
     ...evento,
     text: tecla === "Enter" ? "\r" : undefined,
@@ -157,11 +162,14 @@ async function teclar(tecla: keyof typeof CODIGO_DA_TECLA) {
 
 const LISTA = '[role="listbox"]';
 const POPUP = `document.querySelector('${LISTA}')?.closest("[data-open]")`;
+
 // No primeiro quadro o Base UI monta o popup com data-starting-style e
 // `transition: none` inline: a lista só está aberta quando ele sai dessa fase.
 const listaAberta = `${POPUP}?.hasAttribute("data-starting-style") === false`;
+
 const fechada = (id: string) =>
   `document.getElementById("${id}").getAttribute("aria-expanded") === "false"`;
+
 const opcoesVisiveis = `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`;
 
 describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
@@ -179,6 +187,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await avaliar(enviar, `document.getElementById("status").click()`);
     await esperar(listaAberta);
     await transicoesTerminadas();
+
     const medida = await avaliar<{
       abaixo: boolean;
       fundo: string;
@@ -203,6 +212,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
         };
       })()`
     );
+
     expect(medida.fundo).toBe(medida.token);
     expect(medida).toMatchObject({
       abaixo: true,
@@ -255,7 +265,8 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       await avaliar(enviar, `document.getElementById("status").click()`);
       await esperar(listaAberta);
       await transicoesTerminadas();
-      return avaliar<string[]>(
+
+      return await avaliar<string[]>(
         enviar,
         `(() => {
           const estilo = getComputedStyle(${POPUP});
@@ -263,6 +274,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
         })()`
       );
     };
+
     expect(await transicao()).toEqual([
       "opacity, transform",
       "0.15s",
@@ -302,6 +314,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
 
   test("o clique do mouse no Para quem põe o foco na busca", async () => {
     await abrirTela();
+
     const { x, y } = await avaliar<{ x: number; y: number }>(
       enviar,
       `(() => {
@@ -309,6 +322,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       })()`
     );
+
     const clique = { button: "left", clickCount: 1, x, y };
     await enviar("Input.dispatchMouseEvent", {
       ...clique,

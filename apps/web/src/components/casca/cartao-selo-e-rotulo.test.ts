@@ -4,11 +4,11 @@ import { join } from "node:path";
 
 import { Glob } from "bun";
 
-import { ROTULO } from "./casca/campos";
-import { CARTAO } from "./casca/cartoes";
-import { SELO } from "./casca/selos";
+import { ROTULO } from "./campos";
+import { CARTAO } from "./cartoes";
+import { SELO } from "./selos";
 
-const SRC = join(import.meta.dir, "..");
+const SRC = join(import.meta.dir, "../..");
 const FUNDO_DO_CARTAO = /\sbg-card[\s/"]/;
 const DEFINE_ROTULO = /export const ROTULO\b/;
 
@@ -55,6 +55,7 @@ describe("o cartão, o selo e o rótulo de campo moram num lugar só", () => {
     ]) {
       expect(SELO.split(" ")).toContain(classe);
     }
+
     expect(SELO).toContain("[&>svg]:size-3!");
   });
 

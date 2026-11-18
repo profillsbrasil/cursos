@@ -46,14 +46,17 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     await db.delete(liberacao).where(inArray(liberacao.userId, ids));
     await db.delete(perfilDaPessoa).where(inArray(perfilDaPessoa.userId, ids));
     await db.delete(convite).where(eq(convite.convidadoPor, ADMIN));
+
     if (cursos.length > 0) {
       await db.delete(curso).where(inArray(curso.id, cursos));
     }
+
     await db.$client.end();
   });
 
   async function cursoDeTeste(): Promise<CursoId> {
     const s = hex();
+
     const [c] = await db
       .insert(curso)
       .values({
@@ -68,10 +71,13 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
         titulo: `Curso ${s}`,
       })
       .returning({ id: curso.id });
+
     if (!c) {
       throw new Error("curso não criado");
     }
+
     cursos.push(c.id);
+
     return c.id as CursoId;
   }
 
@@ -79,6 +85,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
   function pessoa(dominio = `cliente${S}.example`) {
     const userId = `user_chegada${S}${ids.length}`;
     ids.push(userId);
+
     return { email: `p${ids.length}.${hex()}@${dominio}` as Email, userId };
   }
 
@@ -99,10 +106,12 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       },
       agora
     );
+
     const [linha] = await db
       .select({ id: convite.id })
       .from(convite)
       .where(eq(convite.email, email));
+
     return linha?.id as ConviteId;
   }
 
@@ -138,9 +147,11 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       ],
       userId: p.userId,
     });
+
     let falhas = o.falhasDoPapel ?? 0;
     let gravaEFalha = o.gravaEFalha ?? 0;
     const papeisGravados: Papel[] = [];
+
     const pessoas = {
       ...base.pessoas,
       definirPapel: async (userId: string, papel: Papel) => {
@@ -148,14 +159,17 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
           falhas -= 1;
           throw new Error("o login não gravou o papel");
         }
+
         papeisGravados.push(papel);
         await base.pessoas.definirPapel(userId, papel);
+
         if (gravaEFalha > 0) {
           gravaEFalha -= 1;
           throw new Error("o login gravou o papel e não respondeu");
         }
       },
     };
+
     return {
       /** Um pedido novo da pessoa: outra Sessao, como outra página. */
       entrar: () =>
@@ -177,6 +191,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       .select()
       .from(perfilDaPessoa)
       .where(eq(perfilDaPessoa.userId, userId));
+
     return linha;
   };
 
@@ -205,20 +220,24 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
 
   const conviteDe = async (id: ConviteId) => {
     const [linha] = await db.select().from(convite).where(eq(convite.id, id));
+
     if (!linha) {
       throw new Error(`convite ${id} sumiu`);
     }
+
     return linha;
   };
 
   test("quem chega com convite ganha o perfil, o bônus, os cursos e o papel do convite", async () => {
     const p = pessoa();
     const [a, b] = [await cursoDeTeste(), await cursoDeTeste()];
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       cursoIds: [a, b],
       perfil: "funcionario",
     });
+
     const eu = login(p);
     await eu.entrar();
 
@@ -257,11 +276,13 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
   test("dois primeiros acessos juntos aplicam o convite uma vez", async () => {
     const p = pessoa();
     const cursoId = await cursoDeTeste();
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       cursoIds: [cursoId],
       perfil: "funcionario",
     });
+
     const eu = login(p);
     await Promise.all([eu.entrar(), eu.entrar()]);
 
@@ -269,6 +290,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       .select()
       .from(perfilDaPessoa)
       .where(eq(perfilDaPessoa.userId, p.userId));
+
     expect(linhas.map((l) => l.perfil)).toEqual(["funcionario"]);
     expect(await bonusDe(p.userId)).toEqual([BONUS_DE_FUNCIONARIO]);
     expect((await liberacoesDe(p.userId)).map((l) => l.cursoId)).toEqual([
@@ -281,11 +303,13 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
   test("convite cancelado cai na regra do e-mail, e o papel de admin nunca é gravado", async () => {
     const p = pessoa("profills.com");
     const cursoId = await cursoDeTeste();
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       cursoIds: [cursoId],
       perfil: "cliente",
     });
+
     await cancelarConvite(db, convitesDeTeste(), ADMIN, id, new Date());
     const eu = login(p);
     await eu.entrar();
@@ -304,11 +328,13 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
   test("convite vencido cai na regra do e-mail e continua na lista do admin", async () => {
     const p = pessoa();
     const cursoId = await cursoDeTeste();
+
     const id = await convidarComo(
       p.email,
       { comoAdmin: true, cursoIds: [cursoId], perfil: "funcionario" },
       new Date(Date.now() - 31 * DIA)
     );
+
     const eu = login(p);
     await eu.entrar();
 
@@ -324,10 +350,12 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
 
   test("e-mail não verificado não aplica o convite", async () => {
     const p = pessoa();
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       perfil: "funcionario",
     });
+
     const eu = login(p, { emailVerificado: false });
     await eu.entrar();
 
@@ -341,12 +369,15 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
 
   test("o login que falha ao gravar o papel deixa o papel por aplicar, e o pedido seguinte aplica", async () => {
     const p = pessoa();
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       perfil: "cliente",
     });
+
     const eu = login(p, { falhasDoPapel: 1 });
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
+
     try {
       await eu.entrar();
     } finally {
@@ -374,23 +405,28 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
    */
   async function voltarDepoisDoPainel(depoisMs: number) {
     const p = pessoa();
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       perfil: "cliente",
     });
+
     const eu = login(p, { gravaEFalha: 1 });
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
+
     try {
       await eu.entrar();
     } finally {
       aviso.mockRestore();
     }
+
     const aceito = await conviteDe(id);
     expect(aceito.papelAplicadoEm).toBeNull();
     expect(eu.papeisGravados).toEqual(["admin"]);
     await eu.mudarNoPainelDoClerk("aluno");
     const aceitoEm = aceito.aceitoEm?.getTime() ?? 0;
     await chegar(db, p.userId, eu.pessoas, new Date(aceitoEm + depoisMs));
+
     return { eu, id };
   }
 
@@ -410,17 +446,21 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
 
   test("mudar o papel na ficha encerra o papel por aplicar do convite", async () => {
     const p = pessoa();
+
     const id = await convidarComo(p.email, {
       comoAdmin: true,
       perfil: "cliente",
     });
+
     const eu = login(p, { falhasDoPapel: 1 });
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
+
     try {
       await eu.entrar();
     } finally {
       aviso.mockRestore();
     }
+
     await createCaller({
       ...contextoDeTeste({ db, papel: "admin", userId: ADMIN }),
       pessoas: eu.pessoas,
@@ -448,7 +488,8 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     const p = pessoa();
     const id = await convidarComo(p.email, { perfil: "cliente" });
     const eu = login(p);
-    const aviso = spyOn(console, "warn").mockImplementation(() => undefined);
+    const aviso = spyOn(console, "warn");
+
     try {
       await createCaller({
         ...contextoDeTeste({ db, userId: p.userId }),
@@ -460,6 +501,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     } finally {
       aviso.mockRestore();
     }
+
     expect(await perfilDe(p.userId)).toBeUndefined();
     expect((await conviteDe(id)).aceitoEm).toBeNull();
 

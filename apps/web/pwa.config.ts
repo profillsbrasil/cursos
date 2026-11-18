@@ -5,6 +5,7 @@ export function withPwa(config: NextConfig): NextConfig {
   if (config.output === "export") {
     return config;
   }
+
   return {
     ...config,
     async headers() {

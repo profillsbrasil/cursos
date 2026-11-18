@@ -34,11 +34,14 @@ export function BarraDeTrechos({
     (e: PointerEvent<HTMLDivElement>) => {
       const caixa = e.currentTarget.getBoundingClientRect();
       const fracao = (e.clientX - caixa.left) / caixa.width;
+
       return Math.min(1, Math.max(0, fracao)) * duracaoSeg;
     },
     [duracaoSeg]
   );
+
   const cancelar = useCallback(() => setArraste(null), []);
+
   const comecar = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -46,6 +49,7 @@ export function BarraDeTrechos({
     },
     [segDoPonteiro]
   );
+
   const mover = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
       if (arraste !== null) {
@@ -54,6 +58,7 @@ export function BarraDeTrechos({
     },
     [arraste, segDoPonteiro]
   );
+
   const soltar = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
       if (arraste !== null) {

@@ -57,6 +57,7 @@ function ItemDaNav({
   render: ReactElement;
 }) {
   const { recolhida } = useModoDaCasca();
+
   return (
     <Tooltip disabled={!recolhida}>
       <TooltipTrigger className={cn(ITEM, POR_ESTADO[estado])} render={render}>
@@ -80,6 +81,7 @@ export function NavPrincipal({
   const reduzir = useReducedMotion() ?? false;
   const movimento = movimentoDaPilula(ativo?.indice ?? null, reduzir);
   const { fecharNoCelular } = useAlternarNavegacao();
+
   return (
     <nav aria-label={rotulo} style={GEOMETRIA_DA_LISTA}>
       <SidebarMenu className="relative gap-(--vao-do-item)">
@@ -121,8 +123,10 @@ export function NavPrincipal({
               </SidebarMenuItem>
             );
           }
+
           const ariaCurrent =
             ativo?.indice === indice ? ativo.ariaCurrent : undefined;
+
           return (
             <SidebarMenuItem key={item.nome}>
               <ItemDaNav

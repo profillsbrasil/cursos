@@ -6,6 +6,7 @@ import {
 import { FRASES_DO_NOME } from "./nome";
 
 const CANCELADA = "Você não confirmou quem é, então nada mudou.";
+
 const MUITAS_TENTATIVAS =
   "Muitas tentativas seguidas. Espere um minuto e tente de novo.";
 
@@ -46,10 +47,19 @@ function fraseDoNomeRecusado(longMessage = "") {
   if (longMessage.includes("HTML")) {
     return FRASES_DO_NOME.sinais;
   }
+
   if (longMessage.includes("URL")) {
     return FRASES_DO_NOME.site;
   }
+
   return FRASES_DO_NOME.recusado;
+}
+
+/** O tipo do Clerk deixa o meta do erro como any. */
+function campoDoErro(erro: { meta?: { paramName?: unknown } } | undefined) {
+  const campo = erro?.meta?.paramName;
+
+  return typeof campo === "string" ? campo : "";
 }
 
 /** A frase em pt-BR de um erro do Clerk, ou a genérica. */
@@ -57,23 +67,30 @@ export function fraseDoErro(e: unknown): string {
   if (isReverificationCancelledError(e)) {
     return CANCELADA;
   }
+
   if (!isClerkAPIResponseError(e)) {
     return FRASE_GENERICA;
   }
+
   const [erro] = e.errors;
   const codigo = erro?.code ?? "";
+
   if (
     codigo === "form_param_value_invalid" &&
-    CAMPOS_DO_NOME.has(erro?.meta?.paramName ?? "")
+    CAMPOS_DO_NOME.has(campoDoErro(erro))
   ) {
     return fraseDoNomeRecusado(erro?.longMessage);
   }
+
   const frase = FRASES_DO_CLERK[codigo];
+
   if (frase) {
     return frase;
   }
+
   if (e.status === 429) {
     return MUITAS_TENTATIVAS;
   }
+
   return FRASE_GENERICA;
 }

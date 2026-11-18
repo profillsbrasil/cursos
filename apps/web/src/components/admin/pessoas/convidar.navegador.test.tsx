@@ -7,7 +7,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../../chromium-de-teste";
+} from "../../chromium.test-utils";
 import {
   AJUDANTES_DO_CONVIDAR,
   empacotarConvidar,
@@ -37,6 +37,7 @@ interface BotaoDeEnviar {
 const botaoDeEnviar = () => avaliar<BotaoDeEnviar>(enviar, "window.enviar()");
 const fichas = () => avaliar<string[]>(enviar, "window.fichas()");
 const aberto = () => avaliar<boolean>(enviar, "Boolean(window.dialogo())");
+
 const focado = () =>
   avaliar<string>(
     enviar,
@@ -53,12 +54,14 @@ const TECLAS = {
 /** Uma tecla de verdade, pelo CDP; `shift` aperta junto o Shift. */
 async function tecla(nome: keyof typeof TECLAS, shift = false) {
   const { codigo, texto } = TECLAS[nome];
+
   const base = {
     code: nome,
     key: nome,
     modifiers: shift ? 8 : 0,
     windowsVirtualKeyCode: codigo,
   };
+
   await enviar("Input.dispatchKeyEvent", {
     ...base,
     text: texto,
@@ -186,9 +189,11 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     `);
     expect(await aberto()).toBe(true);
     expect(await fichas()).toEqual(["bia@x.com", "caio@x.com"]);
+
     const corpo = await rodar<string>(
       `return dialogo().textContent.replace(/\\s+/g, " ");`
     );
+
     expect(corpo).toContain("bia@x.com Já tem conta. Mude na ficha dela.");
     expect(corpo).toContain(
       "caio@x.com Já tem convite pendente. Reenvie ou cancele em Convidados."
@@ -212,11 +217,13 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
 
   test("a região de status, sempre na tela, diz quantos e-mails há e por que o envio não sai", async () => {
     await abrir();
+
     const status = () =>
       avaliar<{ mesma: boolean; texto: string }>(
         enviar,
         `({ mesma: window.regiao === dialogo().querySelector('[role="status"]'), texto: window.regiao.textContent })`
       );
+
     expect(
       await avaliar<boolean>(
         enviar,

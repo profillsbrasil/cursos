@@ -45,6 +45,7 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
       if (!l.aula) {
         throw referenciaAusente(l);
       }
+
       return `Aula assistida: ${l.aula.titulo}`;
     case "bonus_funcionario":
       return "Bônus de funcionário";
@@ -52,16 +53,19 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
       if (!l.concessao) {
         throw referenciaAusente(l);
       }
+
       return `${rotuloDaConcessao(l.pontos)}: ${l.concessao.motivo}`;
     case "curso_concluido":
       if (!l.curso) {
         throw referenciaAusente(l);
       }
+
       return `Curso concluído: ${l.curso.titulo}`;
     case "questionario":
       if (!l.tentativa) {
         throw referenciaAusente(l);
       }
+
       return `Questionário: ${l.tentativa.aula.titulo}`;
     case "sequencia_7_dias":
       return "7 dias úteis seguidos";
@@ -69,6 +73,7 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
       if (!l.liberacao?.curso) {
         throw referenciaAusente(l);
       }
+
       return `Troca: ${l.liberacao.curso.titulo}`;
     default:
       return l.motivo satisfies never;

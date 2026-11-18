@@ -19,7 +19,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import { ReciboDaConferencia, SemCertificado } from "./conferencia";
 import { enderecoDaConferencia, folhaDo } from "./folha";
 import { FolhaNaTela } from "./folha-na-tela";
@@ -27,6 +27,7 @@ import { NOMES_DA_FOLHA } from "./nomes-de-teste";
 import { TelaDoCertificado } from "./tela-do-certificado";
 
 const HOJE = "2026-10-16" as DiaISO;
+
 const ANA: CertificadoEmitido = {
   codigo: "7K3M-Q9TD",
   emitidoEm: "2026-10-14T15:00:00Z",
@@ -34,12 +35,14 @@ const ANA: CertificadoEmitido = {
   nome: "Ana Souza",
   tituloDoCurso: "Fábrica e montagem",
 };
+
 const LONGO: CertificadoEmitido = {
   ...ANA,
   nome: "Maria Aparecida dos Santos Albuquerque Figueiredo",
   tituloDoCurso:
     "Operação, ajuste, limpeza e manutenção preventiva da envasadora volumétrica pneumática de pistão para produtos pastosos e líquidos",
 };
+
 const emitido = (certificado: CertificadoEmitido): PaginaDoCertificado => ({
   categoria: "Produção e montagem",
   certificado,
@@ -81,6 +84,7 @@ const TELAS = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(TELAS).flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -112,6 +116,7 @@ const DO_ALUNO = {
   390: "padding:20px 16px 48px",
   1280: `margin-left:${LARGURAS_DA_SIDEBAR["--sidebar-width"]};padding:32px 48px 64px`,
 };
+
 const DA_CONFERENCIA = "";
 
 async function abrir(largura: 390 | 1280, corpo: string, estilo: string) {
@@ -277,6 +282,7 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
     "folha de 1123 px em Geist, %s: o nome entre a faixa e o pé, dentro das margens, inteiro ou cortado com reticências",
     async (_, nome) => {
       await abrir(1280, folhaCom(nome), "");
+
       const carregou = await avaliar<boolean>(
         enviar,
         `(async () => {
@@ -288,17 +294,21 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
           return document.fonts.check("700 16px Geist");
         })()`
       );
+
       expect(carregou).toBe(true);
       const m = await medir<DoNome>(DO_NOME);
       expect(m.abre.topo).toBeGreaterThan(m.faixa.pe);
       expect(m.ultimo.pe).toBeLessThanOrEqual(m.pe.topo);
       expect(m.linhas.length).toBeGreaterThan(0);
+
       for (const linha of m.linhas) {
         expect(linha.topo).toBeGreaterThanOrEqual(m.abre.pe);
         expect(linha.esquerda).toBeGreaterThanOrEqual(m.centro.esquerda);
         expect(linha.direita).toBeLessThanOrEqual(m.centro.direita);
       }
+
       const lido = m.texto.replaceAll("\u00AD", "");
+
       if (lido !== nome) {
         expect(lido.endsWith("…")).toBe(true);
         expect(nome.startsWith(lido.slice(0, -1))).toBe(true);
@@ -308,9 +318,11 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
 
   test("390 px: o recibo da conferência ocupa a largura, sem rolagem de lado", async () => {
     await abrir(390, TELAS.recibo, DA_CONFERENCIA);
+
     const m = await medir<{ recibo: Caixa; rolagem: number }>(
       `return { recibo: caixa(document.querySelector("section")), rolagem: document.documentElement.scrollWidth - document.documentElement.clientWidth };`
     );
+
     expect(m.recibo.esquerda).toBe(16);
     expect(m.recibo.largura).toBeGreaterThan(340);
     expect(m.rolagem).toBe(0);
@@ -330,11 +342,14 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
     "%p px: a divisória de cada fato vai de uma borda à outra do cartão",
     async (largura, corpo, estilo, seletor) => {
       await abrir(largura, corpo, estilo);
+
       const m = await medir<{ cartao: Caixa; linhas: Caixa[] }>(
         `const cartao = document.querySelector(${JSON.stringify(seletor)});
         return { cartao: caixa(cartao), linhas: [...cartao.querySelectorAll("dl > div")].map(caixa) };`
       );
+
       expect(m.linhas.length).toBe(4);
+
       for (const l of m.linhas) {
         expect([l.esquerda, l.direita]).toEqual([
           m.cartao.esquerda,
@@ -346,18 +361,22 @@ describe.skipIf(!existsSync(CHROMIUM))("as telas do certificado", () => {
 
   test("1280 px: o recibo fica estreito, em 440 px, no meio", async () => {
     await abrir(1280, TELAS.recibo, DA_CONFERENCIA);
+
     const m = await medir<{ recibo: Caixa }>(
       `return { recibo: caixa(document.querySelector("section")) };`
     );
+
     expect(m.recibo.largura).toBe(440);
     expect(m.recibo.esquerda).toBe((1280 - 440) / 2);
   });
 
   test("390 px: o campo e o Conferir dividem a linha, sem rolagem de lado", async () => {
     await abrir(390, TELAS.naoAchou, DA_CONFERENCIA);
+
     const m = await medir<{ botao: Caixa; campo: Caixa; rolagem: number }>(
       `return { botao: caixa(document.querySelector("form button")), campo: caixa(document.querySelector("form input")), rolagem: document.documentElement.scrollWidth - document.documentElement.clientWidth };`
     );
+
     expect(m.botao.topo).toBe(m.campo.topo);
     expect(m.campo.largura).toBeGreaterThan(150);
     expect(m.rolagem).toBe(0);

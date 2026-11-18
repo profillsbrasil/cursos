@@ -32,8 +32,10 @@ const REVOGADA = `user_teste${S}revogada`;
 const NADA = `user_teste${S}nada`;
 const DIRETO = `user_teste${S}direto`;
 const ALUNOS = [ESTUDA, NUNCA, REVOGADA, NADA, DIRETO];
+
 /** Fora da busca: só o curso e, com níveis. */
 const ONDE = `user_teste${S}onde`;
+
 const pessoas: Pessoa[] = ALUNOS.map((userId) => ({
   email: `${userId}@exemplo.com`,
   foto: null,
@@ -55,12 +57,16 @@ const NA_PALAVRA_DO_ADMIN: Record<
 
 describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
+
   const admin = createCaller(
     contextoDeTeste({ db, papel: "admin", pessoas, userId: "user_admin" })
   );
+
   const painelDe = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId })).meusCursos.painel();
+
   const cursos: string[] = [];
+
   /** Aulas por curso, em ordem: a, b, c (em produção) e d. */
   const aulas: Record<"a" | "b" | "c" | "d", string[]> = {
     a: [],
@@ -72,6 +78,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   beforeAll(async () => {
     const chaves = ["a", "b", "c", "d"] as const;
     const categoriaId = await categoriaDeTeste(db);
+
     const novos = await db
       .insert(curso)
       .values(
@@ -89,13 +96,16 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         }))
       )
       .returning({ id: curso.id });
+
     cursos.push(...novos.map((novo) => novo.id));
+
     const modulos = await db
       .insert(modulo)
       .values(
         cursos.map((cursoId) => ({ cursoId, numero: 1, titulo: "Módulo" }))
       )
       .returning({ cursoId: modulo.cursoId, id: modulo.id });
+
     const criadas = await db
       .insert(aula)
       .values(
@@ -113,6 +123,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         moduloId: aula.moduloId,
         posicao: aula.posicao,
       });
+
     for (const [i, chave] of chaves.entries()) {
       const m = modulos.find((x) => x.cursoId === cursos[i]);
       aulas[chave] = criadas
@@ -120,7 +131,9 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         .sort((x, y) => x.posicao - y.posicao)
         .map((x) => x.id);
     }
+
     const [a = "", b = "", c = "", d = ""] = cursos;
+
     const libera = (userId: string, cursoId: string, revogada = false) => ({
       cursoId,
       liberadaEm: new Date("2026-10-01T15:00:00Z"),
@@ -134,6 +147,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           }
         : {}),
     });
+
     await db
       .insert(liberacao)
       .values([
@@ -187,11 +201,13 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         titulo: `Curso ${S} e`,
       })
       .returning({ id: curso.id });
+
     const cursoE = e?.id ?? "";
     cursos.push(cursoE);
     await db
       .insert(nivel)
       .values({ cursoId: cursoE, nome: "Básico", ordem: 1 });
+
     const modulosE = await db
       .insert(modulo)
       .values(
@@ -203,8 +219,10 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         }))
       )
       .returning({ id: modulo.id, numero: modulo.numero });
+
     const doModulo = (numero: number) =>
       modulosE.find((m) => m.numero === numero)?.id ?? "";
+
     const aulasE = await db
       .insert(aula)
       .values(
@@ -219,10 +237,12 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         moduloId: aula.moduloId,
         posicao: aula.posicao,
       });
+
     const aulaE = (numero: number, posicao: number) =>
       aulasE.find(
         (x) => x.moduloId === doModulo(numero) && x.posicao === posicao
       )?.id ?? "";
+
     await db.insert(liberacao).values(libera(ONDE, cursoE));
     await db.insert(aulaAssistida).values({
       assistidaEm: new Date("2026-10-08T15:00:00Z"),
@@ -256,6 +276,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       await linhasDaBusca(db, ALUNOS),
       "2026-10-14" as DiaISO
     );
+
     expect(busca.pessoas.map((p) => [p.userId, p.situacao])).toEqual([
       [
         ESTUDA,
@@ -291,10 +312,12 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         },
       ],
     ]);
+
     // A mesma conta pelo painel do aluno: cursos fora de em_breve, e os concluídos.
     const paineis = await Promise.all(
       busca.pessoas.map((p) => painelDe(p.userId))
     );
+
     const pelaBusca = busca.pessoas.map((p) =>
       p.situacao.tipo === "sem_liberacao"
         ? { concluidos: 0, cursos: 0 }
@@ -303,16 +326,19 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
             cursos: p.situacao.numeros.cursos,
           }
     );
+
     const pelosPaineis = paineis.map((painel) => {
       const contaveis = painel.cursos.filter(
         (c) => c.estado.tipo !== "em_breve"
       );
+
       return {
         concluidos: contaveis.filter((c) => c.estado.tipo === "concluido")
           .length,
         cursos: contaveis.length,
       };
     });
+
     expect(pelaBusca).toEqual(pelosPaineis);
   });
 
@@ -345,27 +371,33 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           admin.admin.liberacoes.acesso({ userId }),
           painelDe(userId),
         ]);
+
         // Os títulos levam o sufixo do teste, então identificam o curso.
         const doAdmin = (acesso?.liberacoes ?? []).map((l) => ({
           ...l.acompanhamento,
           titulo: l.curso.titulo,
         }));
+
         const vistos: unknown[] = doAdmin.map((c) => [
           c.titulo,
           c.situacao.tipo,
           c.progresso,
         ]);
+
         const esperados: unknown[] = doAdmin.map((c) => {
           const p = painel.cursos.find((x) => x.titulo === c.titulo);
+
           return [
             c.titulo,
             p ? NA_PALAVRA_DO_ADMIN[p.estado.tipo] : "fora do painel",
             p?.progresso ?? null,
           ];
         });
+
         return { esperados, userId, vistos };
       })
     );
+
     for (const { esperados, userId, vistos } of comparacoes) {
       expect([userId, vistos.length > 0]).toEqual([userId, true]);
       expect([userId, vistos]).toEqual([userId, esperados]);
@@ -374,9 +406,11 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
 
   test("a revogada mostra o estudo que ficou", async () => {
     const estuda = await admin.admin.liberacoes.acesso({ userId: ESTUDA });
+
     const doD = estuda?.liberacoes.find(
       (l) => l.curso.titulo === `Curso ${S} d`
     );
+
     expect(doD?.acompanhamento.situacao).toEqual({
       onde: { aula: 1, modulo: 1 },
       tipo: "estudando",
@@ -403,13 +437,17 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           admin.admin.liberacoes.acesso({ userId }),
           painelDe(userId),
         ]);
+
         const r = painel.retomada;
+
         if (r?.tipo !== "continuar") {
           return { esperado: "retomada continuar", userId, visto: r?.tipo };
         }
+
         const doAdmin = acesso?.liberacoes.find(
           (l) => l.curso.titulo === r.curso.titulo
         )?.acompanhamento;
+
         return {
           esperado: { aula: r.aula.numeroNoModulo, modulo: r.modulo.numero },
           userId,
@@ -420,6 +458,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         };
       })
     );
+
     for (const { esperado, userId, visto } of comparacoes) {
       expect([userId, visto]).toEqual([userId, esperado]);
     }

@@ -22,10 +22,12 @@ export function cotaDisponivel(cota: Cota | null, agora: Date): number {
   if (!cota) {
     return COTA_VIDEO.tetoSeg;
   }
+
   const passouSeg = Math.max(
     0,
     (agora.getTime() - cota.atualizadaEm.getTime()) / 1000
   );
+
   return Math.min(
     COTA_VIDEO.tetoSeg,
     cota.segundos + passouSeg * COTA_VIDEO.velocidadeMaxima
@@ -65,6 +67,7 @@ export function aplicarRegistro(
   let disponivel = cotaDisponivel(cota, agora);
   let acumulado = salvo.trechos;
   let recusadosSeg = 0;
+
   for (const t of pedido.trechos) {
     const novos = subtrair(canonizar([t], salvo.duracaoSeg), acumulado);
     const levar = primeiros(novos, disponivel);
@@ -73,6 +76,7 @@ export function aplicarRegistro(
     recusadosSeg += segundos(novos) - levados;
     disponivel -= levados;
   }
+
   return {
     cota: {
       atualizadaEm:
@@ -117,14 +121,17 @@ export function lancamentosDaAssistida(
   diasAntes: ReadonlySet<DiaISO>
 ): EfeitosDaAssistida {
   const sequenciaDias = sequenciaDiasUteis(new Set(diasAntes).add(dia), dia);
+
   const lancamentos: LancamentoNovo[] = [
     { aulaId, motivo: "aula_assistida", pontos: PONTOS.aula_assistida },
   ];
+
   const fechouBloco =
     !diasAntes.has(dia) &&
     ehDiaUtil(dia) &&
     sequenciaDias > 0 &&
     sequenciaDias % META_SEQUENCIA === 0;
+
   if (fechouBloco) {
     lancamentos.push({
       diaMarco: dia,
@@ -132,6 +139,7 @@ export function lancamentosDaAssistida(
       pontos: PONTOS.sequencia_7_dias,
     });
   }
+
   return { lancamentos, sequenciaDias };
 }
 
@@ -147,6 +155,7 @@ export function conquistaDe(
 ): Conquista {
   const pontosDe = (motivo: LancamentoNovo["motivo"]) =>
     gravados.find((l) => l.motivo === motivo)?.pontos ?? null;
+
   return {
     bonusSequencia: pontosDe("sequencia_7_dias"),
     pontos: pontosDe("aula_assistida") ?? 0,

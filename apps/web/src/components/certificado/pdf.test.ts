@@ -17,7 +17,9 @@ const ANA = {
   nome: "Ana Souza",
   tituloDoCurso: "Fábrica e montagem",
 };
+
 const ORIGEM = "https://cursos.exemplo.com.br";
+
 const LONGO = {
   ...ANA,
   nome: "Maria Aparecida dos Santos Albuquerque Figueiredo",
@@ -52,9 +54,11 @@ const ZBAR = existsSync("/usr/bin/zbarimg");
 
 function emDisco<T>(pdf: Buffer, ler: (arquivo: string) => T): T {
   const pasta = mkdtempSync(join(tmpdir(), "certificado-"));
+
   try {
     const arquivo = join(pasta, "certificado.pdf");
     writeFileSync(arquivo, pdf);
+
     return ler(arquivo);
   } finally {
     rmSync(pasta, { force: true, recursive: true });
@@ -75,6 +79,7 @@ interface Palavra {
 }
 
 const PAGINA_LIDA = /<page\b/g;
+
 const PALAVRA =
   /<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)<\/word>/g;
 
@@ -86,6 +91,7 @@ const palavrasDoPdf = (pdf: Buffer) =>
       arquivo,
       "-",
     ]).stdout.toString();
+
     const palavras: Palavra[] = [...xml.matchAll(PALAVRA)].map(
       ([, x0, y0, x1, y1, texto = ""]) => ({
         direita: Number(x1),
@@ -95,17 +101,20 @@ const palavrasDoPdf = (pdf: Buffer) =>
         topo: Number(y0),
       })
     );
+
     return { paginas: xml.match(PAGINA_LIDA)?.length ?? 0, palavras };
   });
 
 const emPt = (px: number) => (px * 841.89) / FOLHA_EM_PX.largura;
 const { centro, confere, pe } = FOLHA_EM_PX;
+
 const DA_FOLHA = {
   direita: emPt(FOLHA_EM_PX.largura - centro.lado),
   esquerda: emPt(centro.lado),
   faixa: emPt(FOLHA_EM_PX.faixa.altura),
   pe: emPt(FOLHA_EM_PX.altura - pe.baixo - pe.acima - confere.qr),
 };
+
 const SEM_ESPACO = /\s+/g;
 const HIFEN = /-/g;
 
@@ -116,6 +125,7 @@ describe.skipIf(!POPPLER)("o nome de qualquer tamanho no PDF", () => {
       const { paginas, palavras } = palavrasDoPdf(
         await pdfDe({ ...LONGO, nome })
       );
+
       expect(paginas).toBe(1);
       const abre = palavras.findIndex((p) => p.texto === "Certificamos");
       const fecha = palavras.findIndex((p) => p.texto === "concluiu");
@@ -124,19 +134,24 @@ describe.skipIf(!POPPLER)("o nome de qualquer tamanho no PDF", () => {
       const ultima = palavras.find((p) => p.texto === "2026.");
       expect(certificamos?.topo).toBeGreaterThan(DA_FOLHA.faixa + 1);
       expect(doNome.length).toBeGreaterThan(0);
+
       for (const p of doNome) {
         expect(p.topo).toBeGreaterThanOrEqual(certificamos?.pe ?? 0);
         expect(p.esquerda).toBeGreaterThanOrEqual(DA_FOLHA.esquerda - 0.5);
         expect(p.direita).toBeLessThanOrEqual(DA_FOLHA.direita + 0.5);
       }
+
       expect(ultima?.pe ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(
         DA_FOLHA.pe
       );
+
       const lido = doNome
         .map((p) => p.texto)
         .join("")
         .replace(HIFEN, "");
+
       const inteiro = nome.replace(SEM_ESPACO, "");
+
       if (lido !== inteiro) {
         expect(lido.endsWith("…")).toBe(true);
         expect(inteiro.startsWith(lido.slice(0, -1))).toBe(true);
@@ -148,6 +163,7 @@ describe.skipIf(!POPPLER)("o nome de qualquer tamanho no PDF", () => {
 describe.skipIf(!POPPLER)("o PDF lido pelo poppler", () => {
   test("traz nome, curso, carga horária, data, código e o endereço da conferência", async () => {
     const texto = textoDoPdf(await pdfDe(ANA));
+
     for (const trecho of [
       "Certificado de conclusão",
       "Ana Souza",
@@ -177,10 +193,12 @@ describe.skipIf(!POPPLER)("o PDF lido pelo poppler", () => {
         arquivo,
         arquivo,
       ]);
+
       return spawnSync(["zbarimg", "-q", "--raw", `${arquivo}.png`])
         .stdout.toString()
         .trim();
     });
+
     expect(lido).toBe("https://cursos.exemplo.com.br/certificado/7K3M-Q9TD");
   });
 });

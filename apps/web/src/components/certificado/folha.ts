@@ -22,6 +22,7 @@ export function enderecoDaConferencia(
   codigo: string
 ): EnderecoDaConferencia {
   const url = new URL(caminhoDaConferencia(codigo), origem);
+
   return { exibido: `${url.host}${url.pathname}`, url: url.href };
 }
 
@@ -31,12 +32,15 @@ export function origemDoPedido(cabecalhos: Headers): string {
   const host =
     primeiro(cabecalhos.get("x-forwarded-host")) ??
     primeiro(cabecalhos.get("host"));
+
   if (!host) {
     throw new Error("O pedido chegou sem Host.");
   }
+
   const protocolo =
     primeiro(cabecalhos.get("x-forwarded-proto")) ??
     (host.startsWith("localhost") ? "http" : "https");
+
   return `${protocolo}://${host}`;
 }
 
@@ -50,11 +54,13 @@ export const cargaEmHoras = (horas: number) => plural(horas, "hora", "horas");
 
 function qrDe(texto: string) {
   const { data, size } = encode(texto, { border: 0, ecc: "M" });
+
   const caminho = data
     .flatMap((linha, y) =>
       linha.flatMap((escuro, x) => (escuro ? [`M${x} ${y}h1v1h-1z`] : []))
     )
     .join("");
+
   return { caminho, lado: size };
 }
 
@@ -69,10 +75,12 @@ export function folhaDo(
   endereco: EnderecoDaConferencia
 ): FolhaDoCertificado {
   const cursoEmTamanho = tamanhoPara(c.tituloDoCurso, FOLHA_EM_PX.curso);
+
   const escrito = nomeNaFolha(c.nome, {
     tamanho: cursoEmTamanho,
     texto: c.tituloDoCurso,
   });
+
   return {
     ...DE_TODA_FOLHA,
     carga: cargaEmHoras(c.horas),
@@ -95,6 +103,7 @@ export function folhaDo(
  */
 export function folhaDeExemplo(origem: string): FolhaDoCertificado {
   const url = new URL("/certificado", origem);
+
   return {
     ...DE_TODA_FOLHA,
     carga: "X horas",

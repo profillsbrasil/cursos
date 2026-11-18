@@ -7,9 +7,10 @@ export default function PwaRegistration() {
     if (!("serviceWorker" in navigator)) {
       return;
     }
+
     navigator.serviceWorker
       .register("/sw.js", { scope: "/", updateViaCache: "none" })
-      .catch((error) =>
+      .catch((error: unknown) =>
         console.error("Service worker registration failed:", error)
       );
   }, []);

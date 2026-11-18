@@ -14,10 +14,11 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
-} from "../chromium-de-teste";
+} from "../chromium.test-utils";
 import type { Continuar } from "./continuar";
 
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   usePathname: () => "/meus-cursos",
@@ -64,6 +65,7 @@ const CARTOES = {
 
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
+
 const css = await cssDoApp(
   Object.values(CARTOES).flatMap((html) =>
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -91,7 +93,8 @@ async function medir(corpo: string) {
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`
     )}); document.close();`
   );
-  return avaliar<Medida>(
+
+  return await avaliar<Medida>(
     enviar,
     `(() => {
       const cartao = document.querySelector("[data-sidebar=content], [data-slot=sidebar-inner]").querySelector("a, [aria-hidden=true].grid");

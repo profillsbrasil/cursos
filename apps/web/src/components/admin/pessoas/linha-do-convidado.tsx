@@ -41,6 +41,7 @@ function LinhaDoConvidado({
   const { fechar } = linhaAberta;
   const chave = `cancelar:${c.id}`;
   const nuncaSaiu = c.estado.tipo === "nao_enviado";
+
   const reenviar = useCallback(
     () =>
       reenvio.executar(
@@ -53,6 +54,7 @@ function LinhaDoConvidado({
       ),
     [reenvio, c.id, c.email, nuncaSaiu]
   );
+
   const cancelar = useCallback(
     () =>
       cancelamento.executar(
@@ -64,7 +66,9 @@ function LinhaDoConvidado({
       ),
     [cancelamento, c.id, c.email, chave, fechar]
   );
+
   const ocupada = reenvio.pendente || cancelamento.pendente;
+
   return (
     <li className="grid items-center gap-y-2 px-3.5 py-3 @min-[52rem]:grid-cols-[minmax(0,1fr)_9.5rem_5.5rem_minmax(0,10rem)_7.5rem_auto] @min-[52rem]:gap-x-4 @min-[52rem]:px-5 @min-[52rem]:py-3.5">
       <span className="grid min-w-0 gap-0.5">
@@ -139,11 +143,14 @@ export function LinhasDosConvidados({
   hoje: string;
 }) {
   const [chave, pedir] = useState<string | null>(null);
+
   const fechar = useCallback(
     (minha: string) => pedir((atual) => (atual === minha ? null : atual)),
     []
   );
+
   const linhaAberta: LinhaAberta = { chave, fechar, pedir };
+
   return (
     <ul className="divide-border @container divide-y">
       {convidados.map((c) => (

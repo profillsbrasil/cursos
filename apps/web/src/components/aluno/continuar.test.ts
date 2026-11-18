@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { Retomada } from "@cursos/api/dominio/painel";
-import type { AulaId, Capa } from "@cursos/api/dominio/tipos";
+import type { AulaId } from "@cursos/api/dominio/tipos";
 
 import { hrefDaRetomada } from "@/lib/rotas";
 
@@ -12,15 +12,18 @@ const capa = {
   altura: 720,
   largura: 1280,
   url: "https://x/c.png",
-} as Capa;
+};
+
 const curso = { capa, slug: "comercial", titulo: "Comercial" };
 const modulo = { numero: 4, titulo: "Pilar Urgência" };
+
 const aula = {
   duracaoSeg: 900,
   id: "11111111-1111-4111-8111-111111111111" as AulaId,
   numeroNoModulo: 4,
   titulo: "Gatilhos",
 };
+
 const NA_AULA = "/cursos/comercial/aulas/11111111-1111-4111-8111-111111111111";
 
 const continuar = (faltaSeg: number): Retomada => ({
@@ -31,7 +34,9 @@ const continuar = (faltaSeg: number): Retomada => ({
   proximoNivel: null,
   tipo: "continuar",
 });
+
 const comecar: Retomada = { aula, curso, modulo, tipo: "comecar" };
+
 const questionario = (ultima: { acertos: number; total: number } | null) =>
   ({
     aula,
@@ -41,6 +46,7 @@ const questionario = (ultima: { acertos: number; total: number } | null) =>
     tipo: "questionario",
     ultima,
   }) satisfies Retomada;
+
 const NO_QUESTIONARIO = `${NA_AULA}#questionario`;
 
 describe("continuarDe", () => {
@@ -136,9 +142,11 @@ describe("hrefDaRetomada", () => {
 describe("estaAqui", () => {
   test("no destino do cartão, e só nele", () => {
     const c = continuarDe(continuar(420));
+
     if (!c) {
       throw new Error("cartão esperado");
     }
+
     expect(estaAqui(c, NA_AULA)).toBe(true);
     expect(estaAqui(c, "/meus-cursos")).toBe(false);
   });

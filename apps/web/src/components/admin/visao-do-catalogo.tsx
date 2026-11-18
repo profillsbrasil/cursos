@@ -46,6 +46,7 @@ function tamanho(curso: CursoNaVisao) {
  */
 function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
   const apagada = curso.status === "em_producao" && curso.aulas === 0;
+
   return (
     <article className="group relative grid min-w-0 content-start gap-3">
       <div className="bg-sidebar ring-border group-has-hover:ring-ceu relative aspect-[900/604] overflow-hidden rounded-[14px] ring-1 transition-shadow duration-200">
@@ -157,7 +158,9 @@ function resumo(cursos: Visao["cursos"]) {
   if (cursos.length === 0) {
     return "Nenhum curso ainda";
   }
+
   const publicados = cursos.filter((c) => c.status === "publicado").length;
+
   return [
     plural(cursos.length, "curso", "cursos"),
     plural(publicados, "publicado", "publicados"),

@@ -82,6 +82,7 @@ export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
     .leftJoin(aula, eq(aula.moduloId, modulo.id))
     .groupBy(curso.id, categoria.id)
     .orderBy(curso.titulo, curso.id);
+
   return {
     cursos: cursos.map((c) => ({
       aulas: c.aulas,

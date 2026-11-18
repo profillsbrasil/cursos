@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
+
 mock.module("next/navigation", () => ({
   ...navegacao,
   useRouter: () => ({
@@ -16,8 +17,10 @@ mock.module("next/navigation", () => ({
 const { ConcessaoDePontos } = await import("./concessao-de-pontos");
 
 const TAG = /<[^>]+>/g;
+
 const texto = (html: string) =>
   html.replace(TAG, " ").replace(/\s+/g, " ").trim();
+
 const BOTAO = /<button[^>]*type="submit"[^>]*>.*?<\/button>/;
 const RADIO = /<input[^>]*type="radio"[^>]*>/g;
 const DESCRITO_POR = /aria-describedby="([^"]+)"/;
@@ -26,6 +29,7 @@ const MOTIVO_COM_TETO = /<input[^>]*maxLength="200"[^>]*name="motivo"/;
 const tela = renderToStaticMarkup(
   <ConcessaoDePontos nome="Carla Souza" saldo={3130} userId="user_1" />
 );
+
 const botao = BOTAO.exec(tela)?.[0] ?? "";
 
 describe("concessão de pontos, ao abrir", () => {
@@ -50,9 +54,11 @@ describe("concessão de pontos, ao abrir", () => {
     expect(botao).toContain("data-disabled");
     expect(botao).not.toContain(" disabled=");
     const alvo = DESCRITO_POR.exec(botao)?.[1];
+
     const razao = alvo
       ? new RegExp(`<[^>]*id="${alvo}"[^>]*>(.*?)</`).exec(tela)?.[1]
       : undefined;
+
     expect(razao).toBe("Escolha um dos valores ou Outro valor.");
   });
 

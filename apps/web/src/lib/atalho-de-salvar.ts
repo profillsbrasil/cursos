@@ -26,12 +26,16 @@ export function useAtalhoDeSalvar(
       if (!ehAtalhoDeSalvar(e)) {
         return;
       }
+
       e.preventDefault();
+
       if (podeSalvar && !e.repeat) {
         formulario.current?.requestSubmit();
       }
     };
+
     window.addEventListener("keydown", aoTeclar);
+
     return () => window.removeEventListener("keydown", aoTeclar);
   }, [formulario, podeSalvar]);
 }

@@ -132,6 +132,7 @@ describe("fraseDoCurso", () => {
       tipo: "estudando",
       ultimoEstudo: dia("2026-09-21"),
     });
+
     expect([
       fraseDoCurso(a, HOJE),
       seloDoCurso(a.situacao.tipo).rotulo,
@@ -152,6 +153,7 @@ describe("fraseDoCurso", () => {
       2,
       2
     );
+
     expect(fraseDoCurso(a, HOJE)).toEqual({
       quando: "último estudo em 30 de set.",
       texto: "Viu as 2 aulas. 1 de 2 questionários aprovados",
@@ -181,6 +183,7 @@ describe("as datas do item da liberação", () => {
     em: dia("2026-09-17"),
     tipo: "concluido",
   });
+
   const item = (
     liberadaEm: string,
     acao: LiberacaoNaTela["acao"] = { tipo: "revogar" },

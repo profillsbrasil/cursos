@@ -18,13 +18,17 @@ function jsonCanonico(valor: unknown): string {
   if (Array.isArray(valor)) {
     return `[${valor.map((v) => (v === undefined ? "null" : jsonCanonico(v))).join(",")}]`;
   }
+
   if (valor !== null && typeof valor === "object") {
     const objeto = valor as Record<string, unknown>;
+
     const pares = Object.keys(objeto)
       .sort()
       .filter((k) => objeto[k] !== undefined)
       .map((k) => `${JSON.stringify(k)}:${jsonCanonico(objeto[k])}`);
+
     return `{${pares.join(",")}}`;
   }
+
   return JSON.stringify(valor);
 }

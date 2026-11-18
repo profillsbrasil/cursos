@@ -24,7 +24,7 @@ import Link from "next/link";
 import {
   type ChangeEvent,
   type ClipboardEvent,
-  type FormEvent,
+  type SubmitEvent,
   type KeyboardEvent,
   useCallback,
   useId,
@@ -111,6 +111,7 @@ function FichaDoEmail({
   tirar: (texto: string) => void;
 }) {
   const aoTirar = useCallback(() => tirar(ficha.texto), [tirar, ficha.texto]);
+
   return (
     <li className={cn(FICHA, ficha.email === null && FICHA_RUIM)}>
       <span className="truncate">{ficha.texto}</span>
@@ -150,6 +151,7 @@ function CampoDeEmails({
   const aoEscrever = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const { value } = e.currentTarget;
+
       if (SEPARADOR.test(value)) {
         mudar(fichasCom(fichas, value), "");
       } else {
@@ -158,14 +160,18 @@ function CampoDeEmails({
     },
     [fichas, mudar]
   );
+
   const aoTeclar = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter" && texto.trim() !== "") {
         e.preventDefault();
         mudar(fichasCom(fichas, texto), "");
+
         return;
       }
+
       const ultima = fichas.at(-1);
+
       if (e.key === "Backspace" && texto === "" && ultima) {
         e.preventDefault();
         mudar(fichas.slice(0, -1), ultima.texto);
@@ -173,11 +179,13 @@ function CampoDeEmails({
     },
     [fichas, mudar, texto]
   );
+
   // O input de uma linha apaga a quebra de linha do que se cola: a lista colada
   // de uma planilha chegaria ao onChange com os e-mails grudados.
   const aoColar = useCallback(
     (e: ClipboardEvent<HTMLInputElement>) => {
       const colado = e.clipboardData.getData("text");
+
       if (SEPARADOR.test(colado)) {
         e.preventDefault();
         mudar(fichasCom(fichas, `${texto}${colado}`), "");
@@ -185,12 +193,15 @@ function CampoDeEmails({
     },
     [fichas, mudar, texto]
   );
+
   const aoSair = useCallback(() => {
     if (texto.trim() !== "") {
       mudar(fichasCom(fichas, texto), "");
     }
   }, [fichas, mudar, texto]);
+
   const campo = useRef<HTMLInputElement>(null);
+
   // O botão Tirar some com a ficha; sem isto, o foco do teclado cairia no corpo do diálogo.
   const tirar = useCallback(
     (qual: string) => {
@@ -202,7 +213,9 @@ function CampoDeEmails({
     },
     [fichas, mudar, texto]
   );
+
   const temRuim = fichas.some((f) => f.email === null);
+
   return (
     <div className={CAMPO_DE_FICHAS} data-campo>
       {fichas.length > 0 ? (
@@ -273,10 +286,12 @@ function CursoDaChegada({
   marcar: (id: CursoId, sim: boolean) => void;
 }) {
   const id = useId();
+
   const aoMarcar = useCallback(
     (sim: boolean) => marcar(curso.id, sim),
     [marcar, curso.id]
   );
+
   return (
     <li className="flex items-center gap-3 px-3.5 py-2.5">
       <Checkbox
@@ -319,28 +334,35 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
     (aberto: boolean, detalhes: DialogPrimitive.Root.ChangeEventDetails) => {
       if (pendente || (temRascunho && detalhes.reason === "escape-key")) {
         detalhes.cancel();
+
         return;
       }
+
       setFase({ tipo: aberto ? "editando" : "fechado" });
+
       if (!aberto) {
         setRascunho(VAZIO);
       }
     },
     [pendente, temRascunho]
   );
+
   const mudarFichas = useCallback(
     (fichas: readonly Ficha[], texto: string) =>
       setRascunho((r) => ({ ...r, fichas, texto })),
     []
   );
+
   const escolherPerfil = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const perfil = e.currentTarget.value as Perfil;
     setRascunho((r) => ({ ...r, perfil }));
   }, []);
+
   const mudarAdmin = useCallback(
     (comoAdmin: boolean) => setRascunho((r) => ({ ...r, comoAdmin })),
     []
   );
+
   const marcarCurso = useCallback(
     (cursoId: CursoId, sim: boolean) =>
       setRascunho((r) => ({
@@ -353,12 +375,14 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
   );
 
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
+
       // O Enter no campo com texto fecha a ficha; o clique no botão chega aqui com o blur já feito.
       if (envio.tipo !== "pronto" || rascunho.texto.trim() !== "") {
         return;
       }
+
       const { emails } = envio;
       executar(
         () =>
@@ -371,11 +395,14 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
         {
           depois: (r) => {
             const ficaram = r.convites.filter((c) => c.tipo !== "enviado");
+
             if (ficaram.length === 0) {
               setRascunho(VAZIO);
               setFase({ tipo: "fechado" });
+
               return;
             }
+
             setRascunho((antes) => ({
               ...antes,
               fichas: ficaram.map((c) => ({ email: c.email, texto: c.email })),
@@ -391,10 +418,12 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
   );
 
   const naTela = new Set(rascunho.fichas.map((f) => f.email));
+
   const sobras =
     fase.tipo === "com_sobras"
       ? fase.sobras.filter((s) => naTela.has(s.email))
       : [];
+
   return (
     <Dialog
       disablePointerDismissal={temRascunho}

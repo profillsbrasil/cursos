@@ -7,6 +7,7 @@ import { capaNoCampo, type EstadoDaCapa } from "./campo-de-capa";
 describe("capaNoCampo: quando o campo da capa zera", () => {
   const foto = new File(["a"], "capa.jpg", { type: "image/jpeg" });
   const outra = new File(["b"], "outra.png", { type: "image/png" });
+
   const com = (arquivo: File): EstadoDaCapa => ({
     erro: null,
     escolhida: {
@@ -15,6 +16,7 @@ describe("capaNoCampo: quando o campo da capa zera", () => {
       url: "blob:x",
     },
   });
+
   const ZERADO: EstadoDaCapa = { erro: null, escolhida: null };
 
   test("o salvar que enviou a capa devolve o arquivo do editor a null, e o campo zera", () => {
@@ -41,6 +43,7 @@ describe("o editor do curso monta o campo da capa pela geração", () => {
       join(import.meta.dir, "editor-do-curso.tsx"),
       "utf8"
     );
+
     const campos = [...editor.matchAll(CAMPO_DE_CAPA)];
     expect(campos).toHaveLength(1);
     expect(campos[0]?.[0]).toContain("key={geracao}");

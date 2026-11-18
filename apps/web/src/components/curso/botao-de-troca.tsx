@@ -36,6 +36,7 @@ export function BotaoDeTroca({
 }) {
   const { executar, pendente } = useAcao();
   const { preco } = troca;
+
   const trocar = useCallback(
     () =>
       executar(
@@ -44,6 +45,7 @@ export function BotaoDeTroca({
       ),
     [cursoId, executar, preco]
   );
+
   if (troca.tipo === "faltam") {
     return (
       <Button
@@ -57,6 +59,7 @@ export function BotaoDeTroca({
       </Button>
     );
   }
+
   return (
     <Button
       aria-busy={pendente}

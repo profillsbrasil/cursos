@@ -42,6 +42,7 @@ function OpcaoDoStatus({
   status: StatusDoCurso;
 }) {
   const escolher = useCallback(() => aoMudar(status), [aoMudar, status]);
+
   return (
     <button
       aria-pressed={marcado}
@@ -63,6 +64,7 @@ function SeletorDoStatus({
   status: StatusDoCurso;
 }) {
   const id = useId();
+
   return (
     <fieldset
       aria-describedby={`${id}-descricao`}
@@ -93,6 +95,7 @@ function SeletorDoStatus({
 
 function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
   const id = useId();
+
   return (
     <section aria-labelledby={id} className={CARTAO_DA_COLUNA}>
       <h2 className="text-titulo text-base font-semibold" id={id}>
@@ -141,35 +144,45 @@ function useSecaoAtual(ids: readonly string[]): string | null {
   useEffect(() => {
     const ordem = chave.split(" ");
     const secoes = new Map<Element, string>();
+
     for (const id of ordem) {
       const secao = document.getElementById(id)?.closest("section");
+
       if (secao) {
         secoes.set(secao, id);
       }
     }
+
     const visiveis = new Set<string>();
+
     const observador = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) {
           const id = secoes.get(e.target);
+
           if (id && e.isIntersecting) {
             visiveis.add(id);
           } else if (id) {
             visiveis.delete(id);
           }
         }
+
         const primeira = ordem.find((id) => visiveis.has(id));
+
         if (primeira) {
           setAtual(primeira);
         }
       },
       { rootMargin: "0px 0px -66% 0px" }
     );
+
     for (const secao of secoes.keys()) {
       observador.observe(secao);
     }
+
     return () => observador.disconnect();
   }, [chave]);
+
   return atual;
 }
 
@@ -181,6 +194,7 @@ function IndiceDasSecoes({
   secoes: readonly SecaoDoIndice[];
 }) {
   const atual = useSecaoAtual(secoes.map((s) => s.id));
+
   return (
     <nav
       aria-label="Seções do editor"
@@ -222,6 +236,7 @@ function Descartar({
     linha.fechar(chave);
     descartar();
   }, [chave, descartar, linha]);
+
   return (
     <ConfirmacaoNaLinha
       botao={{ rotulo: "Descartar" }}
@@ -270,11 +285,13 @@ export function ColunaDePublicacao({
 }) {
   const largo = "@max-[960px]:hidden";
   const [aberta, setAberta] = useState<string | null>(null);
+
   const linha: LinhaAberta = {
     chave: aberta,
     fechar: (chave) => setAberta((a) => (a === chave ? null : a)),
     pedir: setAberta,
   };
+
   return (
     <aside
       aria-label="Publicação do curso"

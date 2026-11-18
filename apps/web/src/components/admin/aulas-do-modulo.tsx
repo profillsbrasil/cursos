@@ -72,6 +72,7 @@ function AulaAssistida({
   nome: string;
 }) {
   const frase = `Assistida por ${plural(alunos, "aluno", "alunos")}. Não se apaga, mas dá para trocar o vídeo e o título.`;
+
   return (
     <Tooltip>
       <TooltipTrigger
@@ -111,6 +112,7 @@ function ItemDaAula({
 }) {
   const erros = errosNaAula(aula, marcados);
   const ir = useCallback(() => escolher(aula.id), [aula.id, escolher]);
+
   return (
     <li>
       <button
@@ -206,35 +208,43 @@ function PainelDaAula({
   const { id } = aula;
   const nome = nomeFalado(posicao, aula.titulo);
   const outros = modulos.filter((m) => m.id !== modulo.id);
+
   const editarAula = useCallback(
     (mudanca: Extract<Mudanca, { tipo: "aula_editada" }>["mudanca"]) =>
       despachar({ id, mudanca, tipo: "aula_editada" }),
     [despachar, id]
   );
+
   const mudarTitulo = useCallback(
     (titulo: string) => editarAula({ titulo }),
     [editarAula]
   );
+
   const mudarDuracao = useCallback(
     (duracao: string) => editarAula({ duracao }),
     [editarAula]
   );
+
   const mudarVideo = useCallback(
     (video: string) => editarAula({ video }),
     [editarAula]
   );
+
   const mudarDescricao = useCallback(
     (descricao: string) => editarAula({ descricao }),
     [editarAula]
   );
+
   const subir = useCallback(() => {
     despachar({ direcao: "acima", id, tipo: "aula_movida" });
     focarNoBotao(`aula-${id}`, "acima", posicao - 1 === 1);
   }, [despachar, id, posicao]);
+
   const descer = useCallback(() => {
     despachar({ direcao: "abaixo", id, tipo: "aula_movida" });
     focarNoBotao(`aula-${id}`, "abaixo", posicao + 1 === total);
   }, [despachar, id, posicao, total]);
+
   const moverPara = useCallback(
     (moduloId: string) => {
       despachar({
@@ -246,8 +256,10 @@ function PainelDaAula({
     },
     [despachar, id]
   );
+
   const remover = useCallback(() => {
     const vizinho = vizinhoQueFica(modulo.aulas, posicao - 1);
+
     if (vizinho) {
       despachar({
         aulaId: vizinho.id,
@@ -255,6 +267,7 @@ function PainelDaAula({
         tipo: "aula_escolhida",
       });
     }
+
     despachar({ id, tipo: "aula_removida" });
     focarDepois(
       vizinho ? ALVO_DA_AULA.remover(vizinho.id) : ALVO_DA_AULA.nova(modulo.id)
@@ -388,19 +401,23 @@ export function AulasDoModulo({
   modulos: readonly ModuloDoRascunho[];
 }) {
   const escolhida = aulaEscolhida(modulo, escolhas);
+
   const nome = modulo.titulo.trim()
     ? `Aulas do módulo ${modulo.numero} (${modulo.titulo.trim()})`
     : `Aulas do módulo ${modulo.numero}`;
+
   const escolher = useCallback(
     (aulaId: AulaId) =>
       despachar({ aulaId, moduloId: modulo.id, tipo: "aula_escolhida" }),
     [modulo.id, despachar]
   );
+
   const adicionar = useCallback(() => {
     const aula = novoId<AulaId>();
     despachar({ id: aula, moduloId: modulo.id, tipo: "aula_nova" });
     focarDepois(ID.aula(aula, "titulo"));
   }, [despachar, modulo.id]);
+
   return (
     <div className="border-border grid border-t @2xl:grid-cols-[272px_minmax(0,1fr)]">
       <div className="border-border @max-2xl:border-b @2xl:border-r">

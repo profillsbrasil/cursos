@@ -27,30 +27,38 @@ interface Base {
 async function montarBase(c: Client): Promise<Base> {
   const s = sufixo();
   const aluno = `user_teste${s}`;
+
   const categoria = await c.query<{ id: string }>(
     "insert into categoria (nome) values ($1) returning id",
     [`Categoria ${s}`]
   );
+
   const categoriaId = categoria.rows[0]?.id ?? "";
+
   const curso = await c.query<{ id: string }>(
     `insert into curso (slug, codigo, titulo, categoria_id, capa_url, capa_alt, capa_largura, capa_altura, status)
      values ($1, $1, 'Curso teste', $2, '/capas/x.jpg', 'Capa de teste', 1280, 720, 'publicado') returning id`,
     [`teste-${s}`, categoriaId]
   );
+
   const cursoId = curso.rows[0]?.id ?? "";
   await c.query(
     "insert into nivel (curso_id, ordem, nome) values ($1, 1, 'Nível teste')",
     [cursoId]
   );
+
   const modulo = await c.query<{ id: string }>(
     "insert into modulo (curso_id, numero, titulo, nivel_ordem) values ($1, 0, 'Módulo teste', 1) returning id",
     [cursoId]
   );
+
   const moduloId = modulo.rows[0]?.id ?? "";
+
   const aula = await c.query<{ id: string }>(
     "insert into aula (modulo_id, posicao, titulo, duracao_seg) values ($1, 1, 'Aula teste', 600) returning id",
     [moduloId]
   );
+
   return {
     aluno,
     aulaId: aula.rows[0]?.id ?? "",
@@ -91,6 +99,7 @@ async function liberarParaTroca(c: Client, aluno: string, cursoId: string) {
     "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $1, 'troca') returning id",
     [aluno, cursoId]
   );
+
   return r.rows[0]?.id ?? "";
 }
 
@@ -115,6 +124,7 @@ async function conceder(
     "insert into concessao_de_pontos (user_id, pontos, motivo, concedida_por) values ($1, $2, $3, 'user_admin') returning id",
     [aluno, pontos, motivo]
   );
+
   return r.rows[0]?.id ?? "";
 }
 
@@ -176,6 +186,7 @@ const CASOS: Caso[] = [
           "insert into liberacao_do_perfil (perfil, curso_id, liberada_por) values ('cliente', $1, 'user_admin')",
           [b.cursoId]
         );
+
       await liberarAoPerfil();
       await liberarAoPerfil();
     },
@@ -233,6 +244,7 @@ const CASOS: Caso[] = [
          values ($1, $1, 'Outro', $2, '/capas/x.jpg', 'Capa', 1280, 720) returning id`,
         [`teste-${sufixo()}`, b.categoriaId]
       );
+
       await c.query(
         "insert into nivel (curso_id, ordem, nome) values ($1, 2, 'Nível do outro')",
         [outro.rows[0]?.id]
@@ -280,11 +292,13 @@ const CASOS: Caso[] = [
     nome: "mesma aula pontuada duas vezes",
     violar: async (c, b) => {
       await assistir(c, b);
+
       const pontuar = () =>
         c.query(
           "insert into ponto_lancamento (user_id, motivo, pontos, aula_id) values ($1, 'aula_assistida', 10, $2)",
           [b.aluno, b.aulaId]
         );
+
       await pontuar();
       await pontuar();
     },
@@ -351,7 +365,7 @@ const CASOS: Caso[] = [
     constraint: "ponto_lancamento_sinal",
     nome: "troca positiva",
     violar: async (c, b) =>
-      pagarTroca(
+      await pagarTroca(
         c,
         b.aluno,
         await liberarParaTroca(c, b.aluno, b.cursoId),
@@ -422,7 +436,7 @@ const CASOS: Caso[] = [
     constraint: "ponto_lancamento_sinal",
     nome: "lançamento de concessão com zero pontos",
     violar: async (c, b) =>
-      lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 0),
+      await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 0),
   },
   {
     apagar:
@@ -745,7 +759,13 @@ const CASOS: Caso[] = [
     constraint: "alternativa_texto_formato",
     nome: "alternativa com 201 caracteres",
     violar: async (c, b) =>
-      alternar(c, await perguntar(c, b.aulaId, 1), 1, true, "a".repeat(201)),
+      await alternar(
+        c,
+        await perguntar(c, b.aulaId, 1),
+        1,
+        true,
+        "a".repeat(201)
+      ),
   },
   {
     apagar:
@@ -753,7 +773,7 @@ const CASOS: Caso[] = [
     constraint: "alternativa_posicao_positiva",
     nome: "alternativa na posição 0",
     violar: async (c, b) =>
-      alternar(c, await perguntar(c, b.aulaId, 1), 0, true),
+      await alternar(c, await perguntar(c, b.aulaId, 1), 0, true),
   },
   {
     apagar:
@@ -817,11 +837,13 @@ const CASOS: Caso[] = [
     nome: "mesma tentativa pontuada duas vezes",
     violar: async (c, b) => {
       const id = await tentar(c, b.aluno, b.aulaId, {});
+
       const pontuar = () =>
         c.query(
           "insert into ponto_lancamento (user_id, motivo, pontos, tentativa_id) values ($1, 'questionario', 5, $2)",
           [b.aluno, id]
         );
+
       await pontuar();
       await pontuar();
     },
@@ -924,8 +946,10 @@ function convidar(c: Client, mudar: Record<string, string | boolean> = {}) {
     perfil: "publico",
     ...mudar,
   };
+
   const colunas = Object.keys(linha);
-  return c.query(
+
+  return c.query<{ id: string }>(
     `insert into convite (${colunas.join(", ")})
      values (${colunas.map((_, i) => `$${i + 1}`).join(", ")}) returning id`,
     Object.values(linha)
@@ -942,6 +966,7 @@ async function perguntar(
     "insert into pergunta (aula_id, posicao, enunciado) values ($1, $2, $3) returning id",
     [aulaId, posicao, enunciado]
   );
+
   return r.rows[0]?.id ?? "";
 }
 
@@ -975,6 +1000,7 @@ async function tentar(
       o.aprovada ?? false,
     ]
   );
+
   return r.rows[0]?.id ?? "";
 }
 
@@ -997,6 +1023,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   // Roda o corpo numa transação que sempre volta atrás.
   async function emTransacao<T>(corpo: () => Promise<T>): Promise<T> {
     await c.query("begin");
+
     try {
       return await corpo();
     } finally {
@@ -1008,16 +1035,20 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
     test(`recusa ${caso.nome} (${caso.constraint})`, async () => {
       const erro = await emTransacao(async () => {
         const b = await montarBase(c);
+
         if (SEM_RESTRICAO) {
           await c.query(caso.apagar);
         }
+
         try {
           await caso.violar(c, b);
+
           return null;
         } catch (e) {
           return e;
         }
       });
+
       expect(constraintDoErro(erro)).toBe(caso.constraint);
     });
   }
@@ -1033,14 +1064,17 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         "update aula set descricao = repeat('c', 2000) where id = $1",
         [b.aulaId]
       );
+
       const r = await c.query<{ aula: number; curso: number; topicos: number }>(
         `select char_length(c.descricao) as curso, cardinality(c.topicos) as topicos,
                 char_length(a.descricao) as aula
            from curso c join aula a on a.id = $2 where c.id = $1`,
         [b.cursoId, b.aulaId]
       );
+
       return r.rows[0];
     });
+
     expect(lido).toEqual({ aula: 2000, curso: 2000, topicos: 10 });
   });
 
@@ -1053,10 +1087,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [b.aluno]
       );
       await liberar(c, b);
+
       const n = await c.query<{ n: number }>(
         "select count(*)::int as n from liberacao where user_id = $1",
         [b.aluno]
       );
+
       expect(n.rows[0]?.n).toBe(2);
     });
   });
@@ -1068,10 +1104,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $1, 'admin')",
         [b.aluno, b.cursoId]
       );
+
       const r = await c.query(
         "update liberacao set revogada_em = now(), revogada_por = $1 where user_id = $1",
         [b.aluno]
       );
+
       expect(r.rowCount).toBe(1);
     });
   });
@@ -1084,10 +1122,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         "insert into ponto_lancamento (user_id, motivo, pontos, curso_id) values ($1, 'curso_concluido', 100, $2)",
         [b.aluno, b.cursoId]
       );
+
       const n = await c.query<{ n: number }>(
         "select count(*)::int as n from ponto_lancamento where user_id = $1",
         [b.aluno]
       );
+
       expect(n.rows[0]?.n).toBe(1);
     });
   });
@@ -1104,10 +1144,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         await liberarParaTroca(c, b.aluno, b.cursoId),
         -200
       );
+
       const r = await c.query<{ saldo: number }>(
         "select sum(pontos)::int as saldo from ponto_lancamento where user_id = $1",
         [b.aluno]
       );
+
       expect(r.rows[0]?.saldo).toBe(-200);
     });
   });
@@ -1117,10 +1159,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
       const b = await montarBase(c);
       await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 3000);
       await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, -500), -500);
+
       const r = await c.query<{ saldo: number }>(
         "select sum(pontos)::int as saldo from ponto_lancamento where user_id = $1",
         [b.aluno]
       );
+
       expect(r.rows[0]?.saldo).toBe(2500);
     });
   });
@@ -1134,10 +1178,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         "insert into ponto_lancamento (user_id, motivo, pontos, dia_marco) values ($1, 'sequencia_7_dias', 30, '2026-10-07'), ($1, 'sequencia_7_dias', 30, '2026-10-08')",
         [b.aluno]
       );
+
       const r = await c.query<{ saldo: number }>(
         "select sum(pontos)::int as saldo from ponto_lancamento where user_id = $1",
         [b.aluno]
       );
+
       expect(r.rows[0]?.saldo).toBe(5060);
     });
   });
@@ -1153,10 +1199,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         "update aula set video_provedor = 'youtube', video_id = 'aqz-KE-bpKQ' where id = $1",
         [b.aulaId]
       );
+
       const r = await c.query<{ t: string }>(
         "select trechos_vistos::text as t from posicao_aula where user_id = $1",
         [b.aluno]
       );
+
       expect(r.rows[0]?.t).toBe("{}");
     });
   });
@@ -1164,10 +1212,12 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   test("a coluna dia guarda o dia civil de São Paulo", async () => {
     await emTransacao(async () => {
       const b = await montarBase(c);
+
       const r = await c.query<{ dia: string }>(
         "insert into aula_assistida (user_id, aula_id, assistida_em) values ($1, $2, '2026-10-07T02:00:00Z') returning dia::text",
         [b.aluno, b.aulaId]
       );
+
       expect(r.rows[0]?.dia).toBe("2026-10-06");
     });
   });
@@ -1183,12 +1233,15 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
       });
       await convidar(c, { aceito_em: AGORA, aceito_por: b.aluno, email });
       await convidar(c, { email });
+
       const r = await c.query(
         "select 1 from convite where email = $1 and aceito_em is null and cancelado_em is null",
         [email]
       );
+
       return r.rowCount;
     });
+
     expect(vivos).toBe(1);
   });
 
@@ -1202,13 +1255,16 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
         [conviteId, b.cursoId]
       );
       await c.query("delete from curso where id = $1", [b.cursoId]);
+
       const r = await c.query<{ convites: number; cursos: number }>(
         `select (select count(*)::int from convite where id = $1) as convites,
                 (select count(*)::int from convite_curso where convite_id = $1) as cursos`,
         [conviteId]
       );
+
       return r.rows[0];
     });
+
     expect(lido).toEqual({ convites: 1, cursos: 0 });
   });
 });

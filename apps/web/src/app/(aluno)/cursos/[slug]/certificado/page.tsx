@@ -14,9 +14,11 @@ interface Props {
 
 const paginaDaUrl = async (params: Props["params"]) => {
   const pagina = await carregarPaginaDoCertificado((await params).slug);
+
   if (!pagina) {
     notFound();
   }
+
   return pagina;
 };
 
@@ -24,15 +26,18 @@ const paginaDaUrl = async (params: Props["params"]) => {
 // do curso.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pagina = await paginaDaUrl(params);
+
   const curso =
     pagina.tipo === "emitido"
       ? pagina.certificado.tituloDoCurso
       : pagina.curso.titulo;
+
   return { title: `Certificado · ${curso}` };
 }
 
 export default async function Certificado({ params }: Props) {
   const pagina = await paginaDaUrl(params);
+
   return (
     <>
       <CabecalhoDaPagina

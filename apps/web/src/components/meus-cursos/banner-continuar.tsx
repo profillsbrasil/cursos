@@ -94,8 +94,10 @@ export function BannerContinuar({ retomada }: { retomada: Retomada | null }) {
       </section>
     );
   }
+
   const onde = retomada.curso.titulo;
   const acao = acaoDaRetomada(retomada);
+
   return (
     <section
       aria-labelledby="banner-titulo"

@@ -12,16 +12,20 @@ interface Props {
 // O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pagina = await carregarPaginaDoCurso((await params).slug);
+
   if (!pagina) {
     notFound();
   }
+
   return { title: pagina.titulo };
 }
 
 export default async function Curso({ params }: Props) {
   const pagina = await carregarPaginaDoCurso((await params).slug);
+
   if (!pagina) {
     notFound();
   }
+
   return <TelaDoCurso hoje={diaLocal(new Date())} pagina={pagina} />;
 }

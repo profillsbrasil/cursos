@@ -229,6 +229,7 @@ describe("montarConquistas", () => {
         `2026-10-${String(1 + i).padStart(2, "0")}T14:00:00Z`
       )
     );
+
     const c = montarConquistas({ ...NADA, assistidas: dez }, SEXTA);
     expect(marco(c, "aulas", 10)).toEqual({
       dia: "2026-10-10" as DiaISO,
@@ -338,6 +339,7 @@ describe("a sequência por ganhar", () => {
         curso: "Curso",
       },
     ];
+
     expect(
       marco(
         montarConquistas({ ...NADA, assistidas: comSexta }, SABADO),
@@ -376,6 +378,7 @@ const tentativas = (
   o: Partial<TentativasDaAula> & { primeira: [number, number, string] }
 ): TentativasDaAula => {
   const [acertos, total, iso] = o.primeira;
+
   return {
     aprovada: o.aprovada ?? false,
     aprovadaEm: o.aprovadaEm ?? null,
@@ -394,6 +397,7 @@ describe("as medalhas novas ganhas", () => {
   const VISTA = cursoLinha("vista", { aulas: [5] });
   const DEPOIS = cursoLinha("depois", { aulas: [2] });
   const TERCEIRO = cursoLinha("terceiro", { aulas: [3] });
+
   const c = montarConquistas(
     {
       ...NADA,
@@ -512,6 +516,7 @@ describe("as medalhas novas por ganhar", () => {
   const TROCADO = cursoLinha("trocado", { aulas: [10] });
   const INTEIRO = cursoLinha("inteiro", { aulas: [3], perguntas: 1 });
   const AMOSTRA = cursoLinha("amostra", { aulas: [4] });
+
   const c = montarConquistas(
     {
       ...NADA,
@@ -613,6 +618,7 @@ test("a porcentagem por ganhar arredonda para baixo e não chega a 100", () => {
 
 test("Troca até o fim com as aulas todas e o questionário por aprovar fica em 99%", () => {
   const CHEIO = cursoLinha("cheio", { aulas: [2], perguntas: 1 });
+
   const c = montarConquistas(
     {
       ...NADA,
@@ -625,6 +631,7 @@ test("Troca até o fim com as aulas todas e o questionário por aprovar fica em 
     },
     SEXTA
   );
+
   expect(marco(c, "troca_ate_o_fim")).toEqual({
     estado: "por_ganhar",
     maisAdiantado: { curso: "Curso cheio", feitas: 2, total: 2 },

@@ -66,6 +66,7 @@ export const pontoLancamento = tabela(
     // Quantos fatos o lançamento referencia. O check e o índice do bônus leem a
     // mesma lista: coluna de referência nova entra aqui, nos dois de uma vez.
     const fatos = sql`num_nonnulls(${t.aulaId}, ${t.concessaoId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}, ${t.tentativaId})`;
+
     return [
       // ::text porque as migrações concessao_de_pontos e bonus_de_funcionario fazem
       // ALTER TYPE ... ADD VALUE, e o Postgres recusa o valor novo do enum na mesma

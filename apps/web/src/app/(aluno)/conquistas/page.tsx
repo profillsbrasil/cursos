@@ -7,5 +7,6 @@ export const metadata: Metadata = { title: "Conquistas" };
 
 export default async function PaginaDeConquistas() {
   const conquistas = await carregarConquistas();
+
   return <TelaDeConquistas conquistas={conquistas} />;
 }

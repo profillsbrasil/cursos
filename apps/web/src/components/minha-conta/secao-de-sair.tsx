@@ -27,6 +27,7 @@ function ExcluirConta({
   user: Usuario;
 }) {
   const { executar, pendente } = useAcaoDaConta();
+
   const excluir = useCallback(
     () =>
       executar(() => user.delete(), {
@@ -35,6 +36,7 @@ function ExcluirConta({
       }),
     [executar, user]
   );
+
   return (
     <AlertDialog>
       <AlertDialogTrigger className={PERIGO}>
@@ -93,9 +95,16 @@ export function SecaoDeSair({
 }) {
   const { signOut } = useClerk();
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
+
   return (
     <div className={cn(ACOES, "justify-between")}>
-      <button className={CONTORNO_PEQUENO} onClick={sair} type="button">
+      <button
+        className={CONTORNO_PEQUENO}
+        onClick={() => {
+          void sair();
+        }}
+        type="button"
+      >
         <LogOut aria-hidden="true" className="size-4" />
         Sair da conta
       </button>

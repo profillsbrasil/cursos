@@ -10,7 +10,7 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
-} from "../../chromium-de-teste";
+} from "../../chromium.test-utils";
 
 const ENTRADA = join(import.meta.dir, "linha-do-convidado.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-convidado-falso.js");
@@ -94,11 +94,14 @@ async function empacotar() {
     ],
     target: "browser",
   });
+
   const [saida] = pacote.outputs;
+
   if (!(pacote.success && saida)) {
     throw new Error(pacote.logs.join("\n"));
   }
-  return saida.text();
+
+  return await saida.text();
 }
 
 const AJUDANTES = `
@@ -126,6 +129,7 @@ async function abrir() {
 
 const clicar = (nome: string) =>
   avaliar(enviar, `window.clicar(${JSON.stringify(nome)})`);
+
 const chamadas = () => avaliar<unknown[]>(enviar, "window.chamadas");
 const toasts = () => avaliar<string[]>(enviar, "window.toasts");
 const nomes = () => avaliar<string[]>(enviar, "window.nomes()");

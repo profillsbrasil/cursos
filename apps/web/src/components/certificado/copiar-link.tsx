@@ -16,10 +16,13 @@ export function CopiarLink({ url }: { url: string }) {
       toast.error(`Não deu para copiar. O link é ${url}`);
     }
   }, [url]);
+
   return (
     <button
       className={cn(BOTAO_CONTORNO, "w-full")}
-      onClick={copiar}
+      onClick={() => {
+        void copiar();
+      }}
       type="button"
     >
       <Link2 aria-hidden="true" />

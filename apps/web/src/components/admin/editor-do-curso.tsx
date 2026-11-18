@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
   type Dispatch,
-  type FormEvent,
+  type SubmitEvent,
   useCallback,
   useId,
   useRef,
@@ -70,6 +70,7 @@ function Publicacao({
   rascunho: RascunhoDoCurso;
 }) {
   const id = useId();
+
   const ligarTroca = useCallback(
     (ligado: boolean) =>
       despachar({
@@ -78,11 +79,13 @@ function Publicacao({
       }),
     [despachar]
   );
+
   const mudarPreco = useCallback(
     (precoTroca: string) =>
       despachar({ mudanca: { precoTroca }, tipo: "campos" }),
     [despachar]
   );
+
   return (
     <div className="grid gap-5 p-5 md:grid-cols-2">
       <div className="grid gap-3">
@@ -135,15 +138,18 @@ function LinhaDoNivel({
   const { ordem } = nivel;
   const id = ID.nivel(ordem);
   const { aria, mensagem } = useErroDoCampo(id);
+
   const renomear = useCallback(
     (e: ChangeEvent<HTMLInputElement>) =>
       despachar({ nome: e.target.value, ordem, tipo: "nivel_renomeado" }),
     [despachar, ordem]
   );
+
   const remover = useCallback(
     () => despachar({ ordem, tipo: "nivel_removido" }),
     [despachar, ordem]
   );
+
   return (
     <li>
       <Field className="gap-1.5" data-invalid={mensagem ? true : undefined}>
@@ -184,10 +190,12 @@ function Niveis({
   niveis: RascunhoDoCurso["niveis"];
 }) {
   const proxima = proximaOrdem(niveis);
+
   const adicionar = useCallback(() => {
     despachar({ ordem: proxima, tipo: "nivel_novo" });
     focarDepois(ID.nivel(proxima));
   }, [despachar, proxima]);
+
   return (
     <div className="grid gap-4 p-5">
       {niveis.length === 0 ? (
@@ -219,6 +227,7 @@ function motivosDoUso(uso: EdicaoDoCurso["uso"]): string[] {
   const aulas = Object.values(uso.assistidasPorAula).filter(
     (n) => n > 0
   ).length;
+
   return [
     uso.liberacoes > 0
       ? `já foi liberado ${plural(uso.liberacoes, "vez", "vezes")}`
@@ -242,6 +251,7 @@ function ApagarCurso({
   const router = useRouter();
   const { executar, pendente } = useAcao();
   const { id, titulo } = edicao.documento;
+
   const apagar = useCallback(
     () =>
       executar(() => trpcClient.admin.catalogo.apagarCurso.mutate({ id }), {
@@ -250,6 +260,7 @@ function ApagarCurso({
       }),
     [executar, id, router, titulo]
   );
+
   if (!edicao.podeApagar) {
     return (
       <p className="text-muted-foreground p-5">
@@ -258,6 +269,7 @@ function ApagarCurso({
       </p>
     );
   }
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 p-5">
       <p className="text-muted-foreground max-w-[60ch] text-sm">
@@ -296,15 +308,19 @@ export function EditorDoCurso({
 }) {
   const { descartar, despachar, estado, pendente, salvar, tela, titulo } =
     useRascunhoDoEditor(edicao.documento);
+
   const { daGeracao, geracao, rascunho } = estado;
+
   const escolherCapa = useCallback(
     (arquivo: File | null) => despachar({ arquivo, tipo: "capa_escolhida" }),
     [despachar]
   );
+
   const saiuDoCampo = useCallback(
     (id: string) => despachar({ id, tipo: "saiu_do_campo" }),
     [despachar]
   );
+
   const linhaAberta: LinhaAberta = {
     chave: daGeracao.linha,
     fechar: (chave) => despachar({ chave, tipo: "linha_fechada" }),
@@ -315,18 +331,21 @@ export function EditorDoCurso({
     (novo: string) => despachar({ mudanca: { titulo: novo }, tipo: "campos" }),
     [despachar]
   );
+
   const enviar = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       salvar();
     },
     [salvar]
   );
+
   const mudarStatus = useCallback(
     (status: StatusDoCurso) =>
       despachar({ mudanca: { status }, tipo: "campos" }),
     [despachar]
   );
+
   const estadoDoSalvar: EstadoDoSalvar = {
     novo: tela.novo,
     pendente,
@@ -335,6 +354,7 @@ export function EditorDoCurso({
     sujo: tela.sujo,
     versaoMudou: tela.versaoMudou,
   };
+
   const formulario = useRef<HTMLFormElement>(null);
   useAtalhoDeSalvar(formulario, !nadaASalvar(estadoDoSalvar));
 

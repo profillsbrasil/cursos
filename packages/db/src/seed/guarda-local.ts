@@ -22,6 +22,7 @@ export function garantirBancoLocal(
   porta: string | null = PORTA_LOCAL
 ): { host: string; porta: string } {
   let destino: URL;
+
   try {
     destino = new URL(url);
   } catch (erro) {
@@ -30,36 +31,45 @@ export function garantirBancoLocal(
       { cause: erro }
     );
   }
+
   // O pg (pg-connection-string) deixa ?host= e &port= da query valerem no lugar dos do URL.
   const sobrescritos = PARAMS_DE_DESTINO.filter((p) =>
     destino.searchParams.has(p)
   );
+
   if (sobrescritos.length > 0) {
     throw new BancoNaoLocalError(
       `Recusado: a URL troca o destino pela query (${sobrescritos.join(", ")}). Veja a seção Banco do CLAUDE.md da raiz.`
     );
   }
+
   const host = destino.hostname;
   const portaUrl = destino.port || "5432";
+
   if (!HOSTS_LOCAIS.has(host)) {
     throw new BancoNaoLocalError(
       `Recusado: ${host}:${portaUrl} não é o Postgres local. Veja a seção Banco do CLAUDE.md da raiz.`
     );
   }
+
   if (porta !== null && portaUrl !== porta) {
     throw new BancoNaoLocalError(
       `Recusado: a porta ${portaUrl} não é a do Postgres local (${porta}). Veja a seção Banco do CLAUDE.md da raiz.`
     );
   }
+
   return { host, porta: portaUrl };
 }
 
 /** URL do banco de teste, ou null quando TEST_DATABASE_URL não está definida. Lança se não for local. */
 export function urlDeTeste(): string | null {
   const url = process.env.TEST_DATABASE_URL;
+
   if (!url) {
     return null;
   }
+
   garantirBancoLocal(url, null);
+
   return url;
 }
