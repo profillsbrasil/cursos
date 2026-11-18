@@ -29,12 +29,12 @@ function FimDaAmostra({
   const troca = trocaDaAmostra(amostra);
   const idDaRazao = `convite-da-troca-${amostra.cursoId}`;
   return (
-    <div className="grid min-h-full w-full place-items-center bg-sidebar p-6 text-center">
+    <div className="bg-sidebar grid min-h-full w-full place-items-center p-6 text-center">
       <div className="grid max-w-[460px] justify-items-center gap-2.5">
-        <h2 className="text-balance font-bold text-[22px] text-titulo tracking-[-0.01em]">
+        <h2 className="text-titulo text-[22px] font-bold tracking-[-0.01em] text-balance">
           {convite.titulo}
         </h2>
-        <p className="text-pretty text-muted-foreground" id={idDaRazao}>
+        <p className="text-muted-foreground text-pretty" id={idDaRazao}>
           {convite.detalhe}
         </p>
         <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -74,16 +74,16 @@ export function FimDoVideo({
         ?.duracaoSeg
     : undefined;
   return (
-    <div className="grid min-h-full w-full place-items-center bg-sidebar p-6 text-center">
+    <div className="bg-sidebar grid min-h-full w-full place-items-center p-6 text-center">
       <div className="grid max-w-[420px] justify-items-center gap-2.5">
-        <span className="grid size-[52px] place-items-center rounded-full bg-ceu text-sobre-cor">
+        <span className="bg-ceu text-sobre-cor grid size-[52px] place-items-center rounded-full">
           <Check aria-hidden="true" className="size-[26px]" strokeWidth={2.5} />
         </span>
-        <h2 className="mt-1 font-bold text-[22px] text-titulo tracking-[-0.01em]">
+        <h2 className="text-titulo mt-1 text-[22px] font-bold tracking-[-0.01em]">
           {assistida ? "Aula assistida" : "Fim do vídeo"}
         </h2>
         {conquista ? (
-          <span className="font-mono font-semibold text-base text-sol tabular-nums">
+          <span className="text-sol font-mono text-base font-semibold tabular-nums">
             +{conquista.pontos} pts
           </span>
         ) : null}

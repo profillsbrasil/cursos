@@ -7,5 +7,5 @@ import { cn } from "@cursos/ui/lib/utils";
  */
 export const SELO = cn(
   badgeVariants({ variant: "secondary" }),
-  "h-6 gap-1.5 rounded-full px-2.5 font-semibold text-xs transition-colors"
+  "h-6 gap-1.5 rounded-full px-2.5 text-xs font-semibold transition-colors"
 );

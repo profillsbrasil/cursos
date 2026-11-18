@@ -20,8 +20,8 @@ export function EsqueletoDaMinhaConta() {
       <CabecalhoDaMinhaConta />
       <div aria-busy="true" className="@container grid gap-[18px]">
         <span className="sr-only">Carregando sua conta</span>
-        <Skeleton className={`${PULSO} @min-[48rem]:h-[330px] h-[420px]`} />
-        <div className="grid @min-[48rem]:grid-cols-2 items-start gap-[18px]">
+        <Skeleton className={`${PULSO} h-[420px] @min-[48rem]:h-[330px]`} />
+        <div className="grid items-start gap-[18px] @min-[48rem]:grid-cols-2">
           <Skeleton className={`${PULSO} h-[250px]`} />
           <Skeleton className={`${PULSO} h-[180px]`} />
         </div>

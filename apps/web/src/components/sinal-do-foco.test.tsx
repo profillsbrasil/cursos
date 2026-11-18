@@ -338,7 +338,7 @@ const pedeDaConta = renderToStaticMarkup(
 const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;
 
 interface Elemento {
-  atributos: Record<string, string>;
+  atributos: Partial<Record<string, string>>;
   classes: string[];
   /** O texto que vem logo depois da tag, até a próxima tag. */
   texto: string;
@@ -413,13 +413,40 @@ function regrasDoCss(texto: string): Regra[] {
 
 const regras = regrasDoCss(css.slice(css.indexOf("@layer utilities")));
 
-/** As regras da classe: `hover:bg-x` é escrita `.hover\:bg-x` no começo do seletor. */
+/** O que o `:is(` do começo do seletor envolve, até o `)` que o fecha. */
+function dentroDoIs(seletor: string) {
+  if (!seletor.startsWith(":is(")) {
+    return null;
+  }
+  let fundo = 0;
+  for (let i = 3; i < seletor.length; i += 1) {
+    const c = seletor[i];
+    if (c === "\\") {
+      i += 1;
+    } else if (c === "(") {
+      fundo += 1;
+    } else if (c === ")") {
+      fundo -= 1;
+      if (fundo === 0) {
+        return seletor.slice(4, i);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * As regras da classe: `hover:bg-x` é escrita `.hover\:bg-x` no começo do seletor,
+ * e `group-hover:x` fecha o `:is(<grupo> .group-hover\:x)` que abre o seletor
+ * desde o Tailwind 4.3.4, seguido ou não de `:not(:disabled)` ou de um filho.
+ */
 function regrasDe(classe: string) {
   const escapada = `.${classe.replace(/[^\w-]/g, (c) => `\\${c}`)}`;
   return regras.filter(
     (r) =>
-      r.seletor.startsWith(escapada) &&
-      !CONTINUA_A_CLASSE.test(r.seletor.slice(escapada.length))
+      (r.seletor.startsWith(escapada) &&
+        !CONTINUA_A_CLASSE.test(r.seletor.slice(escapada.length))) ||
+      (dentroDoIs(r.seletor)?.endsWith(` ${escapada}`) ?? false)
   );
 }
 const CONTINUA_A_CLASSE = /^(?:\\.|[\w-])/;

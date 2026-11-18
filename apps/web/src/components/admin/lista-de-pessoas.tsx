@@ -50,11 +50,11 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   return (
     <li
       className={cn(
-        "grid @min-[35rem]:grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_auto_1rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)_1rem] items-center @min-[35rem]:gap-x-4 gap-x-3 gap-y-1.5 @min-[35rem]:px-5 px-3.5 @min-[35rem]:py-3.5 py-3 transition-colors",
+        "grid grid-cols-[1.25rem_2.25rem_minmax(0,1fr)_1rem] items-center gap-x-3 gap-y-1.5 px-3.5 py-3 transition-colors @min-[35rem]:grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_auto_1rem] @min-[35rem]:gap-x-4 @min-[35rem]:px-5 @min-[35rem]:py-3.5",
         marcada ? "bg-sol/6" : "hover:bg-muted/40"
       )}
     >
-      <span className="@min-[35rem]:row-span-1 row-span-2 grid place-items-center">
+      <span className="row-span-2 grid place-items-center @min-[35rem]:row-span-1">
         {temOCurso ? null : (
           <Checkbox
             aria-label={`Marcar ${p.nome}`}
@@ -65,18 +65,18 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
         )}
       </span>
       <FotoDaPessoa
-        className="@min-[35rem]:row-span-1 row-span-2 @min-[35rem]:size-10 size-9 self-start @min-[35rem]:self-center"
+        className="row-span-2 size-9 self-start @min-[35rem]:row-span-1 @min-[35rem]:size-10 @min-[35rem]:self-center"
         foto={p.foto}
         nome={p.nome}
       />
       <span className="grid min-w-0 gap-0.5">
         <Link
-          className="max-w-full justify-self-start truncate font-medium text-base text-foreground underline-offset-4 transition-colors hover:text-titulo hover:underline"
+          className="text-foreground hover:text-titulo max-w-full justify-self-start truncate text-base font-medium underline-offset-4 transition-colors hover:underline"
           href={href}
         >
           {p.nome}
         </Link>
-        <span className="truncate text-muted-foreground">
+        <span className="text-muted-foreground truncate">
           {p.email ?? p.userId}
         </span>
         {frase === null ? null : (
@@ -86,17 +86,17 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
         )}
       </span>
       <SeloDeSituacao
-        className="@min-[35rem]:col-start-4 col-start-3 @min-[35rem]:row-start-1 row-start-2 justify-self-start"
+        className="col-start-3 row-start-2 justify-self-start @min-[35rem]:col-start-4 @min-[35rem]:row-start-1"
         selo={temOCurso ? JA_TEM : seloDaPessoa(p.situacao)}
       />
       <Link
         aria-label={`Abrir ${p.nome}`}
-        className="group/seta toque @min-[35rem]:col-start-5 col-start-4 @min-[35rem]:row-span-1 row-span-2 row-start-1 -m-1.5 grid size-7 place-items-center rounded-full"
+        className="group/seta toque col-start-4 row-span-2 row-start-1 -m-1.5 grid size-7 place-items-center rounded-full @min-[35rem]:col-start-5 @min-[35rem]:row-span-1"
         href={href}
       >
         <ChevronRight
           aria-hidden="true"
-          className="size-4 text-muted-foreground transition-[color,translate] group-hover/seta:translate-x-0.5 group-hover/seta:text-ceu motion-reduce:transition-colors"
+          className="text-muted-foreground group-hover/seta:text-ceu size-4 transition-[color,translate] group-hover/seta:translate-x-0.5 motion-reduce:transition-colors"
         />
       </Link>
     </li>
@@ -128,12 +128,12 @@ export function ListaDePessoas({
             : null}
         </Vazio>
       ) : (
-        <ul className="@container divide-y divide-border">
+        <ul className="divide-border @container divide-y">
           {pessoas.map((p) => (
             <LinhaDaPessoa hoje={hoje} key={p.userId} p={p} />
           ))}
           {cortada ? (
-            <li className="px-5 py-3.5 text-muted-foreground text-sm">
+            <li className="text-muted-foreground px-5 py-3.5 text-sm">
               {termo
                 ? `Mostrando as ${fmtNum(pessoas.length)} primeiras. Refine a busca com o nome completo ou o e-mail para achar quem falta.`
                 : `Mostrando as ${fmtNum(pessoas.length)} com atividade mais recente. Busque pelo nome ou pelo e-mail para achar outra pessoa.`}

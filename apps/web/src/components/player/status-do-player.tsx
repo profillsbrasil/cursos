@@ -27,13 +27,13 @@ export function StatusDoPlayer({
 }) {
   const aviso = conquista !== null && avisoAparente;
   return (
-    <div className="@max-[18.5rem]/barra:static relative flex min-w-0 flex-1 items-center justify-end self-stretch">
+    <div className="relative flex min-w-0 flex-1 items-center justify-end self-stretch @max-[18.5rem]/barra:static">
       <Tooltip>
         <TooltipTrigger
           render={
             <span
               className={cn(
-                "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-1.5 py-1 text-[13px] text-muted-foreground transition-[background-color,opacity,visibility] duration-150 ease-forte hover:bg-accent",
+                "text-muted-foreground ease-forte hover:bg-accent inline-flex shrink-0 items-center gap-2 rounded-lg px-1.5 py-1 text-[13px] whitespace-nowrap transition-[background-color,opacity,visibility] duration-150",
                 aviso && "invisible opacity-0"
               )}
               // biome-ignore lint/a11y/noNoninteractiveTabindex: a dica que explica a faixa abre pelo foco de teclado.
@@ -41,9 +41,9 @@ export function StatusDoPlayer({
             />
           }
         >
-          <i aria-hidden="true" className="size-2.5 rounded-[3px] bg-sol" />
+          <i aria-hidden="true" className="bg-sol size-2.5 rounded-[3px]" />
           <span>
-            <b className="font-semibold text-foreground tabular-nums">{pct}%</b>{" "}
+            <b className="text-foreground font-semibold tabular-nums">{pct}%</b>{" "}
             visto
             <span className="sr-only"> dos trechos desta aula</span>
           </span>
@@ -61,13 +61,13 @@ export function StatusDoPlayer({
           <p
             className={cn(
               ENTRADA,
-              "line-clamp-2 @max-[18.5rem]/barra:w-full @max-[18.5rem]/barra:bg-background px-1.5 text-right text-[13px] text-titulo leading-[1.3]",
+              "@max-[18.5rem]/barra:bg-background text-titulo line-clamp-2 px-1.5 text-right text-[13px] leading-[1.3] @max-[18.5rem]/barra:w-full",
               aviso
                 ? "opacity-100"
                 : "invisible translate-y-2 opacity-0 motion-reduce:translate-y-0"
             )}
           >
-            <b className="mr-2 font-mono font-semibold text-base text-sol tabular-nums leading-none">
+            <b className="text-sol mr-2 font-mono text-base leading-none font-semibold tabular-nums">
               +{conquista.pontos} pts
             </b>
             <span>

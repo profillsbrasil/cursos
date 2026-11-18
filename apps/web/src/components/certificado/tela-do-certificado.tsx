@@ -39,9 +39,9 @@ function ItemQueFalta({
   return (
     <li className="flex items-center gap-2.5">
       {cumprido ? (
-        <Check aria-hidden="true" className="size-4 text-ceu" />
+        <Check aria-hidden="true" className="text-ceu size-4" />
       ) : (
-        <Icone aria-hidden="true" className="size-4 text-canela" />
+        <Icone aria-hidden="true" className="text-canela size-4" />
       )}
       {children}
     </li>
@@ -61,24 +61,24 @@ function Pendente({
           linha do pé), para a página não ser um cartão num canto. */}
       <div
         aria-hidden="true"
-        className="relative grid aspect-[1123/794] place-items-center overflow-hidden rounded-[6px] border-[1.5px] border-muted-foreground/40 border-dashed p-6 text-center text-muted-foreground"
+        className="border-muted-foreground/40 text-muted-foreground relative grid aspect-[1123/794] place-items-center overflow-hidden rounded-[6px] border-[1.5px] border-dashed p-6 text-center"
       >
-        <span className="absolute inset-x-0 top-0 h-[14%] bg-sidebar/70" />
-        <span className="absolute inset-x-[6%] bottom-[16%] h-px bg-border" />
+        <span className="bg-sidebar/70 absolute inset-x-0 top-0 h-[14%]" />
+        <span className="bg-border absolute inset-x-[6%] bottom-[16%] h-px" />
         <p>A folha do certificado aparece aqui.</p>
       </div>
       <section
         aria-labelledby="certificado-pendente"
         className={cn(CARTAO, "grid justify-items-start gap-4 p-7")}
       >
-        <span className="grid size-12 place-items-center rounded-full bg-popover text-ceu">
+        <span className="bg-popover text-ceu grid size-12 place-items-center rounded-full">
           <Award aria-hidden="true" className="size-[22px]" />
         </span>
         <div>
           <h2 className={TITULO_DO_CARTAO} id="certificado-pendente">
             O certificado sai quando você concluir o curso
           </h2>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Assista a todas as aulas e passe em todos os questionários.
           </p>
         </div>
@@ -139,17 +139,17 @@ export function TelaDoCertificado({
           aria-labelledby="falta-o-nome"
           className={cn(CARTAO, "grid justify-items-start gap-4 p-7")}
         >
-          <span className="grid size-12 place-items-center rounded-full bg-popover text-ceu">
+          <span className="bg-popover text-ceu grid size-12 place-items-center rounded-full">
             <UserRound aria-hidden="true" className="size-[22px]" />
           </span>
           <h2 className={TITULO_DO_CARTAO} id="falta-o-nome">
             Falta o seu nome na conta
           </h2>
-          <p className="max-w-[60ch] text-pretty text-muted-foreground">
+          <p className="text-muted-foreground max-w-[60ch] text-pretty">
             O certificado leva o nome da sua conta, e ela ainda não tem um.
             Ponha o nome em{" "}
             <Link
-              className={cn(LINK_NO_TEXTO, "font-medium text-foreground")}
+              className={cn(LINK_NO_TEXTO, "text-foreground font-medium")}
               href={MINHA_CONTA}
             >
               Minha conta
@@ -164,7 +164,7 @@ export function TelaDoCertificado({
       >
         <div className="px-(--pad)">
           <h2 className={TITULO_DO_CARTAO}>{certificado.tituloDoCurso}</h2>
-          <p className="mt-0.5 text-muted-foreground">{categoria}</p>
+          <p className="text-muted-foreground mt-0.5">{categoria}</p>
         </div>
         <Fatos fatos={fatos} />
         {comONome ? (
@@ -180,7 +180,7 @@ export function TelaDoCertificado({
             <CopiarLink url={endereco.url} />
           </div>
         ) : null}
-        <p className="text-pretty px-(--pad) text-[13px] text-muted-foreground">
+        <p className="text-muted-foreground px-(--pad) text-[13px] text-pretty">
           Quem tiver o link ou o código confere o certificado sem entrar na
           plataforma.
         </p>

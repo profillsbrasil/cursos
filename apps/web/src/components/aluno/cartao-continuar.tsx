@@ -21,7 +21,7 @@ import { type Continuar, estaAqui } from "./continuar";
 // group-data vence as classes do cartão pela especificidade. O elemento não tem
 // transição: a troca de modo (Ctrl+B inclusive) muda a cor na hora.
 const CARTAO = cn(
-  "relative isolate grid gap-2 rounded-[14px] bg-sidebar-accent p-3 text-sidebar-foreground",
+  "bg-sidebar-accent text-sidebar-foreground relative isolate grid gap-2 rounded-[14px] p-3",
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
 );
 
@@ -39,7 +39,7 @@ const RECOLHIDO_AQUI = "group-data-[collapsible=icon]:text-sol";
 // e a troca de modo, que só troca a cor da camada, não anima.
 const COM_LINK = cn(
   "group/continuar",
-  "before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:bg-muted before:opacity-0",
+  "before:bg-muted before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:opacity-0",
   "before:transition-opacity before:duration-150 hover:before:opacity-100",
   "group-data-[collapsible=icon]:before:bg-sol-hover group-data-[collapsible=icon]:before:shadow-brilho"
 );
@@ -53,8 +53,8 @@ const LINHA =
 // Recolhida ele é contents, sem caixa: o fundo e a sombra não pintam, quem acende
 // é o próprio cartão, e o ícone herda a cor dele.
 const REDONDO = cn(
-  "grid size-8 shrink-0 place-items-center rounded-full bg-sol text-sobre-cor group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:text-inherit [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:[&_svg]:size-4",
-  "transition-[background-color,box-shadow] duration-150 ease-forte group-hover/continuar:bg-sol-hover group-hover/continuar:shadow-brilho"
+  "bg-sol text-sobre-cor grid size-8 shrink-0 place-items-center rounded-full group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:text-inherit [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:[&_svg]:size-4",
+  "ease-forte group-hover/continuar:bg-sol-hover group-hover/continuar:shadow-brilho transition-[background-color,box-shadow] duration-150"
 );
 
 function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
@@ -82,7 +82,7 @@ function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
           <Icone tipo={tipo} />
         </span>
         <span className="grid min-w-0 leading-tight group-data-[collapsible=icon]:sr-only">
-          <b className="truncate font-semibold text-[13px] text-titulo">
+          <b className="text-titulo truncate text-[13px] font-semibold">
             {titulo}
           </b>
           <span className="text-muted-foreground text-xs">{chamada}</span>
@@ -91,10 +91,10 @@ function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
       {pct === null ? null : (
         <span
           aria-hidden="true"
-          className="h-1 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset group-data-[collapsible=icon]:hidden"
+          className="bg-trilho ring-muted-foreground h-1 overflow-hidden rounded-full ring-1 ring-inset group-data-[collapsible=icon]:hidden"
         >
           <span
-            className="block h-full rounded-full bg-sol"
+            className="bg-sol block h-full rounded-full"
             style={{ width: `${pct}%` }}
           />
         </span>
@@ -154,7 +154,7 @@ function Esqueleto() {
   return (
     <div
       aria-hidden="true"
-      className="grid animate-pulse gap-2 rounded-[14px] bg-sidebar-accent p-3 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
+      className="bg-sidebar-accent grid animate-pulse gap-2 rounded-[14px] p-3 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
     >
       <span className="invisible contents group-data-[collapsible=icon]:hidden">
         <ConteudoDoCartao

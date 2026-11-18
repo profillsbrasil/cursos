@@ -92,7 +92,7 @@ function Pips({ cheios, total }: { cheios: number; total: number }) {
       {Array.from({ length: total }, (_, i) => (
         <i
           className={cn(
-            "size-3 rounded-full ring-[1.5px] ring-muted-foreground ring-inset",
+            "ring-muted-foreground size-3 rounded-full ring-[1.5px] ring-inset",
             i < cheios && "bg-muted-foreground"
           )}
           // biome-ignore lint/suspicious/noArrayIndexKey: os marcadores são iguais e nunca se reordenam.
@@ -133,7 +133,7 @@ function AlternativaParaMarcar({
     <label
       className={cn(
         ALTERNATIVA,
-        "group/alt cursor-pointer border-border text-foreground transition-colors duration-150 hover:border-ceu",
+        "group/alt border-border text-foreground hover:border-ceu cursor-pointer transition-colors duration-150",
         marcada && "border-sol bg-sol/8 text-titulo"
       )}
     >
@@ -151,7 +151,7 @@ function AlternativaParaMarcar({
           LETRA,
           marcada
             ? "bg-sol text-sobre-cor"
-            : "text-foreground ring-[1.5px] ring-muted-foreground ring-inset group-hover/alt:text-titulo group-hover/alt:ring-ceu"
+            : "text-foreground ring-muted-foreground group-hover/alt:text-titulo group-hover/alt:ring-ceu ring-[1.5px] ring-inset"
         )}
       >
         {letraDa(indice)}
@@ -228,7 +228,7 @@ function AlternativaCorrigida({
       {etiqueta ? (
         <span
           className={cn(
-            "whitespace-nowrap font-semibold text-xs",
+            "text-xs font-semibold whitespace-nowrap",
             veredito === "errada" ? "text-canela" : "text-ceu"
           )}
         >
@@ -259,8 +259,8 @@ function Pergunta({
   return (
     <div className={cn("border-border border-t py-[22px]", LADO)}>
       <fieldset className="m-0 grid min-w-0 gap-3 border-0 p-0">
-        <legend className="mb-3 flex gap-2.5 text-pretty p-0 font-semibold text-base text-titulo leading-[1.45]">
-          <span className="shrink-0 font-medium text-muted-foreground tabular-nums">
+        <legend className="text-titulo mb-3 flex gap-2.5 p-0 text-base leading-[1.45] font-semibold text-pretty">
+          <span className="text-muted-foreground shrink-0 font-medium tabular-nums">
             {numero}.
           </span>
           <span>{pergunta.enunciado}</span>
@@ -268,7 +268,7 @@ function Pergunta({
         {resposta ? (
           <p
             className={cn(
-              "inline-flex items-center gap-1.5 font-semibold text-[13px]",
+              "inline-flex items-center gap-1.5 text-[13px] font-semibold",
               resposta.certa ? "text-ceu" : "text-canela"
             )}
           >
@@ -354,7 +354,7 @@ export function Resultado({
     >
       <span
         className={cn(
-          "grid size-10 place-items-center rounded-full text-sobre-cor",
+          "text-sobre-cor grid size-10 place-items-center rounded-full",
           aprovada ? "bg-ceu" : "bg-canela"
         )}
       >
@@ -365,21 +365,21 @@ export function Resultado({
         )}
       </span>
       <h2
-        className="font-bold text-titulo text-xl leading-[1.3] tracking-[-0.02em]"
+        className="text-titulo text-xl leading-[1.3] font-bold tracking-[-0.02em]"
         id={`${id}-titulo`}
       >
         {titulo}
       </h2>
       <span
         className={cn(
-          "whitespace-nowrap font-mono font-semibold text-base tabular-nums max-sm:col-start-2",
+          "font-mono text-base font-semibold whitespace-nowrap tabular-nums max-sm:col-start-2",
           pontos > 0 ? "text-sol" : "text-muted-foreground"
         )}
       >
         {ganhoDe(pontos)}
       </span>
       <p
-        className="col-start-2 col-end-[-1] text-pretty text-foreground max-sm:col-start-1"
+        className="text-foreground col-start-2 col-end-[-1] text-pretty max-sm:col-start-1"
         id={`${id}-texto`}
       >
         {texto}
@@ -454,17 +454,17 @@ function Cabecalho({
     >
       <h2
         aria-describedby={`${id}-regra`}
-        className="font-bold text-2xl text-titulo leading-[1.33] tracking-tight"
+        className="text-titulo text-2xl leading-[1.33] font-bold tracking-tight"
         ref={titulo}
         tabIndex={-1}
       >
         Questionário
       </h2>
-      <p className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground tabular-nums">
+      <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] tabular-nums">
         <Pips cheios={paraPassar} total={total} />
         <span id={`${id}-regra`}>
           {plural(total, "pergunta", "perguntas")} · {PREFIXO_DA_REGRA}
-          <b className="font-semibold text-foreground">
+          <b className="text-foreground font-semibold">
             {paraPassar} de {total}
           </b>
         </span>
@@ -583,20 +583,20 @@ export function QuestionarioDaAula({
       {fase.tipo === "respondendo" ? (
         <div
           className={cn(
-            "flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-border border-t pt-4 pb-5",
+            "border-border flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-t pt-4 pb-5",
             LADO
           )}
         >
           {fase.falhou ? (
             <p
-              className="inline-flex items-center gap-1.5 text-[13px] text-destructive"
+              className="text-destructive inline-flex items-center gap-1.5 text-[13px]"
               role="alert"
             >
               <CircleAlert aria-hidden="true" className="size-[15px]" />
               {ENVIO_FALHOU}
             </p>
           ) : (
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-muted-foreground text-[13px]">
               {textoDoEnvio(respondidas, total)}
             </p>
           )}
@@ -605,7 +605,7 @@ export function QuestionarioDaAula({
             aria-disabled={completo ? undefined : true}
             className={cn(
               BOTAO,
-              "aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:bg-sol aria-disabled:hover:shadow-none"
+              "aria-disabled:hover:bg-sol aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:shadow-none"
             )}
             onClick={enviar}
             type="button"

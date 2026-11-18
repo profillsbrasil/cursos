@@ -215,6 +215,19 @@ describe.skipIf(!existsSync(CHROMIUM))(
       expect(await deslocadas()).toEqual([]);
     });
 
+    test("o primeiro Tab entra no título do primeiro material, não na linha", async () => {
+      await abrirTela(pacote);
+      const tecla = { code: "Tab", key: "Tab", windowsVirtualKeyCode: 9 };
+      await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
+      await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
+      expect(
+        await avaliar<string>(
+          enviar,
+          `document.activeElement.tagName + " " + document.activeElement.value`
+        )
+      ).toBe("INPUT Material 1");
+    });
+
     test("arrastar pelo campo de título seleciona o texto e não move a linha", async () => {
       await abrirTela(pacote);
       const altura = await alturaDaLinha();

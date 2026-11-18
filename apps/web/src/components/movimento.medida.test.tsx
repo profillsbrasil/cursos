@@ -40,13 +40,13 @@ const corpo = renderToStaticMarkup(
   <>
     <span className="transition-colors" id="cor" />
     <div
-      className="data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 duration-100 data-open:animate-in"
+      className="data-open:fade-in-0 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-open:animate-in duration-100"
       data-open=""
       data-side="bottom"
       id="menu"
     />
     <div
-      className="transition duration-200 ease-in-out data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-starting-style:opacity-0"
+      className="transition duration-200 ease-in-out data-starting-style:opacity-0 data-[side=left]:data-starting-style:translate-x-[-2.5rem]"
       data-mobile="true"
       data-side="left"
       data-slot="sidebar"

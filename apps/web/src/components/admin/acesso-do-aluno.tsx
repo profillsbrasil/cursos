@@ -89,7 +89,7 @@ function AcaoDaLiberacao({
     case "pelo_perfil":
       return (
         <Link
-          className="toque font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+          className="toque text-ceu hover:text-titulo text-[13px] font-semibold transition-colors"
           href="/admin/liberacoes/perfis"
         >
           Pelo perfil {SOBRE_O_PERFIL[acao.perfil].nome}
@@ -102,7 +102,7 @@ function AcaoDaLiberacao({
         <ConfirmacaoNaLinha
           botao={{ nome: `Confirmar: revogar ${titulo}`, rotulo: "Revogar" }}
           chave={`revogar:${l.id}`}
-          className="flex flex-wrap items-center @xl:justify-end gap-2"
+          className="flex flex-wrap items-center gap-2 @xl:justify-end"
           confirmar={revogar}
           enviando={pendente}
           gatilho={{ nome: `Revogar ${titulo}`, rotulo: "Revogar" }}
@@ -117,7 +117,7 @@ function AcaoDaLiberacao({
 
 function Rodape({ hoje, l }: { hoje: string; l: LiberacaoNaTela }) {
   return (
-    <p className="mt-1.5 text-muted-foreground text-xs tabular-nums">
+    <p className="text-muted-foreground mt-1.5 text-xs tabular-nums">
       {dataDaLiberacao(l, hoje)}
     </p>
   );
@@ -140,12 +140,12 @@ function ItemDaLiberacao({
   const revogada = l.acao.tipo === "revogada";
   const frase = fraseDoCurso(a, hoje);
   return (
-    <li className="grid @xl:grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 @xl:px-5 px-4 py-4">
+    <li className="grid gap-x-4 gap-y-3 px-4 py-4 @xl:grid-cols-[minmax(0,1fr)_auto] @xl:px-5">
       <div className="grid min-w-0 content-start gap-1">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
           <h3
             className={cn(
-              "font-semibold text-base",
+              "text-base font-semibold",
               revogada ? "text-muted-foreground" : "text-titulo"
             )}
           >
@@ -200,20 +200,20 @@ function Liberacoes({
       {ativas.length === 0 ? (
         <Vazio>Nenhuma liberação ativa.</Vazio>
       ) : (
-        <ul className="divide-y divide-border">{ativas.map(item)}</ul>
+        <ul className="divide-border divide-y">{ativas.map(item)}</ul>
       )}
       {revogadas.length === 0 ? null : (
         // As revogadas ficam recolhidas no fim. Sob o cursor e com o foco, o
         // summary ganha o fundo branco a 8% e o texto em titulo, como o módulo do player.
         <details className="group/revogadas border-border border-t">
-          <summary className="flex cursor-pointer list-none items-center gap-2 @xl:px-5 px-4 py-3.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-white/8 hover:text-titulo [&::-webkit-details-marker]:hidden">
+          <summary className="text-muted-foreground hover:text-titulo flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-white/8 @xl:px-5 [&::-webkit-details-marker]:hidden">
             <ChevronRight
               aria-hidden="true"
               className="size-4 transition-transform duration-200 group-open/revogadas:rotate-90 motion-reduce:transition-none"
             />
             {plural(revogadas.length, "revogada", "revogadas")}
           </summary>
-          <ul className="divide-y divide-border border-border border-t">
+          <ul className="divide-border border-border divide-y border-t">
             {revogadas.map(item)}
           </ul>
         </details>
@@ -294,9 +294,9 @@ function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
   // selo quebra linha. Mais estreita, a linha quebra como texto: um selo longo
   // não cabe ao lado do botão.
   return (
-    <li className="flex @lg:grid @lg:grid-cols-[minmax(0,1fr)_auto] flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5">
+    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5 @lg:grid @lg:grid-cols-[minmax(0,1fr)_auto]">
       <span className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
-        <span className="font-medium text-foreground">{titulo}</span>
+        <span className="text-foreground font-medium">{titulo}</span>
         {c.emProducao ? (
           <SeloDeSituacao selo={seloDoCurso("em_producao")} />
         ) : null}
@@ -330,15 +330,15 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
       <header className="mb-7 flex items-center gap-4">
         <FotoDaPessoa foto={pessoa?.foto ?? null} nome={nome} size="lg" />
         <div className="grid min-w-0 gap-1">
-          <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight [overflow-wrap:anywhere]">
+          <h1 className="text-titulo text-3xl font-bold tracking-tight text-balance [overflow-wrap:anywhere]">
             {nome}
           </h1>
-          <p className="truncate text-muted-foreground">
+          <p className="text-muted-foreground truncate">
             {pessoa?.email ?? userId}
           </p>
           {pessoa ? (
             <Link
-              className="justify-self-start font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+              className="text-ceu hover:text-titulo justify-self-start text-[13px] font-semibold transition-colors"
               href={`/admin/pessoas/${userId}` as Route}
             >
               Perfil e papel
@@ -350,7 +350,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
         <p className={cn(AVISO, "mb-9 px-4 py-3.5")}>
           <TriangleAlert
             aria-hidden="true"
-            className="mt-0.5 size-4 shrink-0 text-sol"
+            className="text-sol mt-0.5 size-4 shrink-0"
           />
           Esta pessoa não existe mais no login da plataforma. Dá para revogar o
           que ela tinha, mas não para liberar nada novo.
@@ -377,7 +377,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
             {acesso.cursos.length === 0 ? (
               <Vazio>Nenhum curso no catálogo.</Vazio>
             ) : (
-              <ul className="@container divide-y divide-border">
+              <ul className="divide-border @container divide-y">
                 {acesso.cursos.map((c) => (
                   <LinhaDoCurso c={c} key={c.curso.id} para={para} />
                 ))}

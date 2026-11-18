@@ -118,7 +118,7 @@ function Medalha({
         TAMANHO[tamanho].disco,
         ganha
           ? cn(DISCO[cor], "text-sobre-cor")
-          : "border-[1.5px] border-muted-foreground border-dashed bg-popover text-muted-foreground",
+          : "border-muted-foreground bg-popover text-muted-foreground border-[1.5px] border-dashed",
         className
       )}
       data-medalha={ganha ? "ganha" : "por_ganhar"}
@@ -148,13 +148,13 @@ function Trilho({
     <span
       aria-hidden="true"
       className={cn(
-        "block overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset",
+        "bg-trilho ring-muted-foreground block overflow-hidden rounded-full ring-1 ring-inset",
         className
       )}
       data-trilho
     >
       <span
-        className="block h-full rounded-full bg-sol"
+        className="bg-sol block h-full rounded-full"
         style={{ width: largura }}
       />
     </span>
@@ -185,9 +185,9 @@ function TrilhaDeAulas({
       data-trilha
     >
       <div className="grid gap-1.5">
-        <h3 className="text-balance font-bold text-[clamp(24px,2.6vw,32px)] text-titulo leading-[1.15] tracking-tight">
+        <h3 className="text-titulo text-[clamp(24px,2.6vw,32px)] leading-[1.15] font-bold tracking-tight text-balance">
           {verso}
-          <span className="block text-sol">{segundoVerso}</span>
+          <span className="text-sol block">{segundoVerso}</span>
         </h3>
         <p className={DICA}>
           Cada aula assistida até o fim conta para as três medalhas.
@@ -197,7 +197,7 @@ function TrilhaDeAulas({
       <div className="relative pt-11">
         <b
           className={cn(
-            "absolute top-0 z-[1] inline-flex h-[26px] items-center whitespace-nowrap rounded-full bg-sol px-2.5 font-bold text-sobre-cor text-xs tabular-nums",
+            "bg-sol text-sobre-cor absolute top-0 z-[1] inline-flex h-[26px] items-center rounded-full px-2.5 text-xs font-bold whitespace-nowrap tabular-nums",
             naPontaEsquerda(p) ? "-translate-x-[7px]" : "-translate-x-1/2"
           )}
           data-voce
@@ -211,13 +211,13 @@ function TrilhaDeAulas({
         />
         <span
           aria-hidden="true"
-          className="absolute top-[26px] h-[46px] w-0.5 -translate-x-1/2 bg-sol"
+          className="bg-sol absolute top-[26px] h-[46px] w-0.5 -translate-x-1/2"
           data-haste
           style={{ left: ponto }}
         />
         <span
           aria-hidden="true"
-          className="absolute top-[65px] size-3.5 -translate-x-1/2 rounded-full bg-sol shadow-[0_0_0_3px_var(--card)]"
+          className="bg-sol absolute top-[65px] size-3.5 -translate-x-1/2 rounded-full shadow-[0_0_0_3px_var(--card)]"
           data-ponto
           style={{ left: ponto }}
         />
@@ -234,10 +234,10 @@ function TrilhaDeAulas({
                   ganha={d.medalha.estado === "ganha"}
                   tamanho={56}
                 />
-                <span className="pl-2.5 font-semibold text-titulo tabular-nums">
+                <span className="text-titulo pl-2.5 font-semibold tabular-nums">
                   {fmtNum(d.meta)} aulas
                   {legenda ? (
-                    <small className="block font-normal text-muted-foreground text-xs">
+                    <small className="text-muted-foreground block text-xs font-normal">
                       {legenda}
                     </small>
                   ) : null}
@@ -254,7 +254,7 @@ function TrilhaDeAulas({
 /** Uma faixa baixa: o título e a frase à esquerda, o que mostra o estado à direita. */
 const FAIXA = cn(
   CARTAO,
-  "flex flex-wrap items-center gap-x-8 gap-y-4 @min-[521px]:px-6 px-4 py-5"
+  "flex flex-wrap items-center gap-x-8 gap-y-4 px-4 py-5 @min-[521px]:px-6"
 );
 
 function TextoDaFaixa({ frase }: { frase: string }) {
@@ -314,7 +314,7 @@ function SeteDiasSeguidos({
             {d.depoisDoFimDeSemana ? (
               <li
                 aria-hidden="true"
-                className="grid @min-[421px]:h-9 h-8 content-center self-end text-center text-muted-foreground text-xs leading-[15px]"
+                className="text-muted-foreground grid h-8 content-center self-end text-center text-xs leading-[15px] @min-[421px]:h-9"
                 data-fim-de-semana
               >
                 {SIGLAS_DO_FIM_DE_SEMANA.map((sigla) => (
@@ -324,7 +324,7 @@ function SeteDiasSeguidos({
             ) : null}
             <li
               className={cn(
-                "grid justify-items-center gap-1.5 font-semibold text-muted-foreground text-xs",
+                "text-muted-foreground grid justify-items-center gap-1.5 text-xs font-semibold",
                 d.estado === "hoje" && "text-titulo"
               )}
             >
@@ -332,7 +332,7 @@ function SeteDiasSeguidos({
               <span
                 aria-label={rotuloDoDia(d, hoje)}
                 className={cn(
-                  "grid @min-[421px]:size-9 size-8 place-items-center rounded-full tabular-nums",
+                  "grid size-8 place-items-center rounded-full tabular-nums @min-[421px]:size-9",
                   CIRCULO[d.estado]
                 )}
                 data-dia={d.estado}
@@ -383,7 +383,7 @@ function CartaoDasGanhas({
             <li className="flex items-center gap-2.5" key={l.tipo}>
               <Medalha figura={l.tipo} ganha tamanho={40} />
               <span className="grid">
-                <span className="font-semibold text-[13px] text-titulo leading-[18px]">
+                <span className="text-titulo text-[13px] leading-[18px] font-semibold">
                   {l.nome}
                 </span>
                 <span className="text-muted-foreground text-xs tabular-nums">
@@ -432,7 +432,7 @@ function CartaoPorGanhar({
           aria-hidden="true"
           className={cn(
             "font-bold tabular-nums",
-            destaque ? "text-[28px] text-sol leading-8" : "text-titulo"
+            destaque ? "text-sol text-[28px] leading-8" : "text-titulo"
           )}
           data-pct
         >
@@ -486,7 +486,7 @@ function Lacre({ certificado: c }: { certificado: CertificadoNaTela }) {
       aria-hidden="true"
       className={cn(
         LACRE,
-        "grid size-14 place-items-center rounded-full border-[1.5px] border-muted-foreground bg-card font-bold text-sm text-titulo tabular-nums"
+        "border-muted-foreground bg-card text-titulo grid size-14 place-items-center rounded-full border-[1.5px] text-sm font-bold tabular-nums"
       )}
       data-medalha="andamento"
     >
@@ -510,7 +510,7 @@ function CartaoDoCertificado({
       <Link
         className={cn(
           CARTAO,
-          "group relative grid grid-rows-[auto_0_1fr] transition-shadow duration-200 ease-forte hover:ring-ceu"
+          "group ease-forte hover:ring-ceu relative grid grid-rows-[auto_0_1fr] transition-shadow duration-200"
         )}
         href={
           c.estado === "ganha"
@@ -518,11 +518,11 @@ function CartaoDoCertificado({
             : caminhoDoCurso(c.curso.slug)
         }
       >
-        <span className="relative block aspect-[3/2] overflow-hidden rounded-t-[20px] border-border border-b bg-sidebar">
+        <span className="border-border bg-sidebar relative block aspect-[3/2] overflow-hidden rounded-t-[20px] border-b">
           <Image
             alt=""
             className={cn(
-              "object-cover transition-transform duration-200 ease-forte group-hover:scale-[1.03] motion-reduce:transition-none",
+              "ease-forte object-cover transition-transform duration-200 group-hover:scale-[1.03] motion-reduce:transition-none",
               apagada && "brightness-70 grayscale-60"
             )}
             fill
@@ -539,12 +539,12 @@ function CartaoDoCertificado({
           </h3>
           {c.estado === "ganha" ? (
             <>
-              <span className="text-[13px] text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground text-[13px] tabular-nums">
                 {emitidoEm(c, hoje)}
                 <br />
                 Código {c.codigo}
               </span>
-              <span className="inline-flex items-center gap-1 justify-self-start font-semibold text-[13px] text-titulo underline decoration-muted-foreground underline-offset-4 transition-colors group-hover:decoration-titulo">
+              <span className="text-titulo decoration-muted-foreground group-hover:decoration-titulo inline-flex items-center gap-1 justify-self-start text-[13px] font-semibold underline underline-offset-4 transition-colors">
                 Ver certificado
                 <ArrowRight
                   aria-hidden="true"
@@ -558,7 +558,7 @@ function CartaoDoCertificado({
               <span className="text-muted-foreground text-xs">
                 {c.categoria}
               </span>
-              <span className="mr-[-66px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 text-muted-foreground text-xs tabular-nums">
+              <span className="text-muted-foreground mr-[-66px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 text-xs tabular-nums">
                 <Trilho
                   className="h-1"
                   largura={`${porcentagem(c.feitas, c.total)}%`}
@@ -584,7 +584,7 @@ function GradeDeCertificados({
   return (
     <ol
       className={cn(
-        "grid @min-[600px]:grid-cols-[repeat(var(--colunas),minmax(0,1fr))] grid-cols-1 gap-3.5",
+        "grid grid-cols-1 gap-3.5 @min-[600px]:grid-cols-[repeat(var(--colunas),minmax(0,1fr))]",
         certificados.length === 1 && "@min-[600px]:max-w-[360px]"
       )}
       style={{ "--colunas": colunas } as CSSProperties}
@@ -646,7 +646,7 @@ export function TelaDeConquistas({ conquistas }: { conquistas: Conquistas }) {
           {certificados.length > 0 ? (
             <GradeDeCertificados certificados={certificados} hoje={hoje} />
           ) : (
-            <p className={cn(CARTAO, "px-6 py-5 text-muted-foreground")}>
+            <p className={cn(CARTAO, "text-muted-foreground px-6 py-5")}>
               O certificado de cada curso liberado para você aparece aqui.
             </p>
           )}

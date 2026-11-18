@@ -25,7 +25,7 @@ export function FotoDaPessoa({
       {foto ? (
         <AvatarImage alt="" src={fotoNoLado(foto, size === "lg" ? 56 : 40)} />
       ) : null}
-      <AvatarFallback className="bg-ceu/14 font-semibold text-ceu">
+      <AvatarFallback className="bg-ceu/14 text-ceu font-semibold">
         {iniciais(nome)}
       </AvatarFallback>
     </Avatar>

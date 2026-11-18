@@ -14,14 +14,14 @@ export function ComoGanhar({
 }) {
   return (
     <div
-      className="relative -mx-(--pad) mt-6 border-border border-t px-(--pad) pt-5"
+      className="border-border relative -mx-(--pad) mt-6 border-t px-(--pad) pt-5"
       hidden={!aberta}
       id={id}
     >
       <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-x-8 gap-y-1">
         {regras.map((r) => (
           <li
-            className="flex items-baseline justify-between gap-4 border-border border-b border-dashed py-2.5"
+            className="border-border flex items-baseline justify-between gap-4 border-b border-dashed py-2.5"
             key={r.rotulo}
           >
             <span>
@@ -29,7 +29,7 @@ export function ComoGanhar({
               {r.emBreve ? (
                 <>
                   {" "}
-                  <span className="ml-1 whitespace-nowrap font-normal text-muted-foreground text-xs">
+                  <span className="text-muted-foreground ml-1 text-xs font-normal whitespace-nowrap">
                     Em breve
                   </span>
                 </>
@@ -37,7 +37,7 @@ export function ComoGanhar({
             </span>
             <b
               className={cn(
-                "whitespace-nowrap font-bold tabular-nums",
+                "font-bold whitespace-nowrap tabular-nums",
                 r.emBreve ? "text-muted-foreground" : "text-sol"
               )}
             >
@@ -46,7 +46,7 @@ export function ComoGanhar({
           </li>
         ))}
       </ul>
-      <p className="mt-3.5 text-muted-foreground">
+      <p className="text-muted-foreground mt-3.5">
         Rever aula não pontua de novo, e o questionário pontua só na primeira
         tentativa. Sábado e domingo nunca quebram a sequência.
       </p>

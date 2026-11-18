@@ -70,7 +70,7 @@ export function CartaoDoCurso({
       className={cn(CARTAO, "@container overflow-hidden", className)}
     >
       <div className="grid @lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-        <div className="relative aspect-[900/604] @lg:self-start bg-sidebar">
+        <div className="bg-sidebar relative aspect-[900/604] @lg:self-start">
           <Image
             alt={pagina.capa.alt}
             className="object-cover"
@@ -83,7 +83,7 @@ export function CartaoDoCurso({
         <div className="grid content-start gap-3.5 p-5">
           <p className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <SeloEstado estado={pagina.estado} />
-            <span className="font-semibold text-foreground">
+            <span className="text-foreground font-semibold">
               {progresso.pct}%
             </span>
           </p>
@@ -92,16 +92,16 @@ export function CartaoDoCurso({
             rotulo={`Progresso no curso ${pagina.titulo}`}
           />
           <p className="text-muted-foreground">{linha}</p>
-          <div className="-mx-5 my-0.5 h-px bg-border" />
+          <div className="bg-border -mx-5 my-0.5 h-px" />
           <div className="grid gap-0.5">
-            <span className="text-[13px] text-muted-foreground">
+            <span className="text-muted-foreground text-[13px]">
               {situacao.rotulo}
             </span>
-            <strong className="font-semibold text-base text-titulo leading-normal">
+            <strong className="text-titulo text-base leading-normal font-semibold">
               {situacao.titulo}
             </strong>
             {situacao.ultimaTentativa ? (
-              <span className="font-semibold text-[13px] text-canela">
+              <span className="text-canela text-[13px] font-semibold">
                 {situacao.ultimaTentativa}
               </span>
             ) : null}
@@ -120,7 +120,7 @@ export function CartaoDoCurso({
             {botao.texto}
           </Link>
           {inclui.length > 0 ? (
-            <ul className="grid gap-2 text-[13px] text-muted-foreground">
+            <ul className="text-muted-foreground grid gap-2 text-[13px]">
               {inclui.map(({ href, icone, texto }) => {
                 const Icone = ICONE[icone];
                 return (
@@ -146,7 +146,7 @@ export function CartaoDoCurso({
           ) : null}
           {pagina.materiais.length > 0 ? (
             <>
-              <div className="-mx-5 my-0.5 h-px bg-border" />
+              <div className="bg-border -mx-5 my-0.5 h-px" />
               <MaterialDoCurso materiais={pagina.materiais} />
             </>
           ) : null}

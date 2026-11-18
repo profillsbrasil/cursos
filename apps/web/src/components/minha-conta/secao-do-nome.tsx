@@ -68,12 +68,12 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
         {user.hasImage ? (
           <AvatarImage alt="" src={fotoNoLado(user.imageUrl, 80)} />
         ) : null}
-        <AvatarFallback className="bg-canela font-bold text-[26px] text-sobre-cor">
+        <AvatarFallback className="bg-canela text-sobre-cor text-[26px] font-bold">
           {iniciais(nome || "?")}
         </AvatarFallback>
       </Avatar>
       <div className="grid min-w-0 gap-0.5">
-        <h2 className="wrap-anywhere font-bold text-2xl text-titulo leading-tight tracking-[-0.025em]">
+        <h2 className="text-titulo text-2xl leading-tight font-bold tracking-[-0.025em] wrap-anywhere">
           {nome || "Seu nome"}
         </h2>
         <p className={DETALHE_DA_LINHA}>
@@ -217,9 +217,9 @@ export function SecaoDoNome({
     >
       {/* O Salvar mora no pé, preso embaixo: a coluna acompanha a altura da folha ao lado. */}
       <form className="grid grid-rows-[1fr_auto]" onSubmit={salvar}>
-        <div className="@container grid content-start gap-[18px] @min-[48rem]:p-[26px] p-[22px]">
+        <div className="@container grid content-start gap-[18px] p-[22px] @min-[48rem]:p-[26px]">
           <Foto nome={salvo} user={user} />
-          <div className="grid @min-[24rem]:grid-cols-2 gap-3">
+          <div className="grid gap-3 @min-[24rem]:grid-cols-2">
             <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-nome`}>
               <span className={ROTULO}>Nome</span>
               <Input
@@ -258,7 +258,7 @@ export function SecaoDoNome({
           {certificados > 0 ? (
             <p className={DETALHE_DA_LINHA}>
               {certificados === 1 ? "O " : "Os "}
-              <b className="font-semibold text-foreground">
+              <b className="text-foreground font-semibold">
                 {plural(certificados, "certificado", "certificados")}
               </b>{" "}
               que você já tem {certificados === 1 ? "passa" : "passam"} a sair
@@ -277,13 +277,13 @@ export function SecaoDoNome({
           </div>
         </div>
       </form>
-      <div className="grid content-center justify-items-center gap-3.5 border-border border-t @min-[48rem]:border-t-0 @min-[48rem]:border-l bg-sidebar @min-[48rem]:p-7 p-5">
+      <div className="border-border bg-sidebar grid content-center justify-items-center gap-3.5 border-t p-5 @min-[48rem]:border-t-0 @min-[48rem]:border-l @min-[48rem]:p-7">
         <FolhaNaTela
           // O nome salvo antes do limite pode ter palavra maior que a linha: ela quebra na folha.
-          className="wrap-anywhere w-full max-w-[440px] -rotate-[1.2deg] shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
+          className="w-full max-w-[440px] -rotate-[1.2deg] wrap-anywhere shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
           folha={folhaComONome(folha.folha, completo || "Seu nome aqui")}
         />
-        <p className="text-center text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-center text-xs">
           {legendaDaFolha(folha.exemplo, mudou)}
         </p>
       </div>

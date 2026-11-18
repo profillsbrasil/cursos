@@ -23,7 +23,7 @@ export default async function LayoutDaConferencia({
     <PaginaPublica
       direita={
         <Link
-          className="toque inline-flex items-center gap-1.5 rounded-md px-0.5 py-1 font-semibold text-[13px] text-ceu transition-colors duration-150 hover:text-titulo"
+          className="toque text-ceu hover:text-titulo inline-flex items-center gap-1.5 rounded-md px-0.5 py-1 text-[13px] font-semibold transition-colors duration-150"
           href="/meus-cursos"
         >
           {userId ? "Meus cursos" : "Entrar"}

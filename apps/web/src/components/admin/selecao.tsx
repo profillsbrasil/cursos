@@ -69,13 +69,13 @@ function ConteudoDaOpcao({ opcao }: { opcao: OpcaoDaSelecao }) {
         <span className="truncate">
           {opcao.rotulo}
           {opcao.contagem ? (
-            <span className="ml-1.5 font-normal text-muted-foreground text-xs tabular-nums">
+            <span className="text-muted-foreground ml-1.5 text-xs font-normal tabular-nums">
               {opcao.contagem}
             </span>
           ) : null}
         </span>
         {opcao.descricao ? (
-          <span className="font-normal text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs font-normal">
             {opcao.descricao}
           </span>
         ) : null}
@@ -321,11 +321,11 @@ export function SelecaoComBusca({
               <Search aria-hidden="true" />
               <Combobox.Input
                 aria-label={rotuloDaBusca}
-                className="h-full min-w-0 flex-1 bg-transparent text-[13px] text-titulo placeholder:text-muted-foreground"
+                className="text-titulo placeholder:text-muted-foreground h-full min-w-0 flex-1 bg-transparent text-[13px]"
                 placeholder={placeholderDaBusca}
               />
             </div>
-            <Combobox.Empty className="px-4 py-3 text-[13px] text-muted-foreground empty:hidden">
+            <Combobox.Empty className="text-muted-foreground px-4 py-3 text-[13px] empty:hidden">
               {semResultado}
             </Combobox.Empty>
             <Combobox.List className="overflow-y-auto p-1.5 empty:hidden">

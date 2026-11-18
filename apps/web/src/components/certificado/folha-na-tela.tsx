@@ -34,7 +34,7 @@ export function FolhaNaTela({
     <figure
       aria-label={`Prévia da folha do certificado de ${folha.nome}`}
       className={cn(
-        "@container relative aspect-[1123/794] overflow-hidden rounded-[6px] ring-1 ring-border",
+        "ring-border @container relative aspect-[1123/794] overflow-hidden rounded-[6px] ring-1",
         className
       )}
     >
@@ -83,7 +83,7 @@ export function FolhaNaTela({
             Certificamos que
           </p>
           <p
-            className="text-balance font-bold"
+            className="font-bold text-balance"
             style={{
               fontSize: pxDaFolha(folha.nomeEmTamanho),
               letterSpacing: `${nome.espacamento}em`,
@@ -113,7 +113,7 @@ export function FolhaNaTela({
             concluiu o curso
           </p>
           <p
-            className="text-balance font-bold"
+            className="font-bold text-balance"
             style={{
               fontSize: pxDaFolha(folha.cursoEmTamanho),
               letterSpacing: `${FOLHA_EM_PX.curso.espacamento}em`,

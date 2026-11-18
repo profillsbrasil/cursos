@@ -69,7 +69,7 @@
    A regra que anima mora dentro do media: com movimento reduzido ela não existe, e
    a largura muda na hora mesmo com data-animando. */
 [data-slot="sidebar-wrapper"]
-:is([data-slot="sidebar-gap"], [data-slot="sidebar-container"]) {
+  :is([data-slot="sidebar-gap"], [data-slot="sidebar-container"]) {
   transition-duration: 0s;
 }
 

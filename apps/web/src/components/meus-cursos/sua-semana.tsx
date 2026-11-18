@@ -54,19 +54,19 @@ export function SuaSemana({
       aria-labelledby="semana-titulo"
       className={cn(
         CARTAO,
-        "grid max-w-3xl content-start gap-3.5 p-(--pad) text-card-foreground [--pad:20px]"
+        "text-card-foreground grid max-w-3xl content-start gap-3.5 p-(--pad) [--pad:20px]"
       )}
     >
       <div className="flex items-center justify-between gap-2.5">
         <h2
-          className="font-bold text-lg text-titulo leading-[1.3] tracking-tight"
+          className="text-titulo text-lg leading-[1.3] font-bold tracking-tight"
           id="semana-titulo"
         >
           Sua semana
         </h2>
         {/* Zero não é conquista: sem sequência, a pílula some e a chamada vem abaixo dos dias. */}
         {semSequencia ? null : (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-canela px-3 py-1 font-semibold text-[13px] text-sobre-cor tabular-nums">
+          <span className="bg-canela text-sobre-cor inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-semibold tabular-nums">
             <Flame aria-hidden="true" className="size-[15px]" />
             {plural(resumo.sequenciaDias, "dia seguido", "dias seguidos")}
           </span>
@@ -76,7 +76,7 @@ export function SuaSemana({
         {resumo.dias.map((d) => (
           <li
             className={cn(
-              "grid justify-items-center gap-1.5 font-semibold text-muted-foreground text-xs",
+              "text-muted-foreground grid justify-items-center gap-1.5 text-xs font-semibold",
               ehHoje(d.status) && "text-titulo"
             )}
             key={d.dia}
@@ -104,44 +104,44 @@ export function SuaSemana({
         ))}
       </ul>
       {chamarParaHoje ? (
-        <p className="flex items-center gap-2 font-medium text-foreground">
+        <p className="text-foreground flex items-center gap-2 font-medium">
           <Play
             aria-hidden="true"
-            className="size-[15px] flex-none fill-current text-ceu"
+            className="text-ceu size-[15px] flex-none fill-current"
           />
           Assista a uma aula hoje para começar
         </p>
       ) : null}
-      <p className="-mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
+      <p className="text-muted-foreground -mt-1 flex items-center gap-2 text-[13px]">
         <i
           aria-hidden="true"
-          className="size-3.5 flex-none rounded-full border-[1.5px] border-muted-foreground border-dashed"
+          className="border-muted-foreground size-3.5 flex-none rounded-full border-[1.5px] border-dashed"
         />
         {FIM_DE_SEMANA_NAO_QUEBRA}
       </p>
-      <p className="-mx-(--pad) flex items-center gap-2.5 border-border border-t px-(--pad) pt-3.5">
-        <Star aria-hidden="true" className="size-5 text-sol" />
+      <p className="border-border -mx-(--pad) flex items-center gap-2.5 border-t px-(--pad) pt-3.5">
+        <Star aria-hidden="true" className="text-sol size-5" />
         <span>
           {faltam(resumo.faltamParaBonus)}{" "}
           {plural(resumo.faltamParaBonus, "dia", "dias")} para{" "}
-          <b className="font-semibold text-sol">+{fmtPts(resumo.bonus)}</b>
+          <b className="text-sol font-semibold">+{fmtPts(resumo.bonus)}</b>
         </span>
       </p>
       <dl className="-mx-(--pad) grid">
-        <div className="flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5">
+        <div className="border-border flex items-baseline justify-between gap-3 border-t px-(--pad) py-2.5">
           <dt className="text-muted-foreground">Pontos na semana</dt>
-          <dd className="font-bold text-lg text-titulo tabular-nums leading-[1.3]">
+          <dd className="text-titulo text-lg leading-[1.3] font-bold tabular-nums">
             {fmtPts(resumo.pontosSemana)}
           </dd>
         </div>
         <div
           className={cn(
-            "flex items-baseline justify-between gap-3 border-border border-t px-(--pad) py-2.5",
+            "border-border flex items-baseline justify-between gap-3 border-t px-(--pad) py-2.5",
             temCursoTrocavelNaVitrine && "border-b"
           )}
         >
           <dt className="text-muted-foreground">Seu saldo</dt>
-          <dd className="font-bold text-lg text-sol tabular-nums leading-[1.3]">
+          <dd className="text-sol text-lg leading-[1.3] font-bold tabular-nums">
             {fmtPts(resumo.saldo)}
           </dd>
         </div>

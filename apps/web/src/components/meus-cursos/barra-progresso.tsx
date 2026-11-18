@@ -18,13 +18,13 @@ export function BarraProgresso({
       aria-valuemin={0}
       aria-valuenow={pct}
       className={cn(
-        "h-2 overflow-hidden rounded-full bg-trilho ring-1 ring-muted-foreground ring-inset",
+        "bg-trilho ring-muted-foreground h-2 overflow-hidden rounded-full ring-1 ring-inset",
         className
       )}
       role="progressbar"
     >
       <div
-        className="h-full rounded-full bg-sol"
+        className="bg-sol h-full rounded-full"
         style={{ width: `${pct}%` }}
       />
     </div>

@@ -49,7 +49,7 @@ function SeloDoQuestionario({ aula }: { aula: AulaDaPagina }) {
   return (
     <span
       className={cn(
-        "col-start-2 mt-1.5 inline-flex h-[22px] w-fit items-center gap-1.5 rounded-full px-2 font-semibold text-xs",
+        "col-start-2 mt-1.5 inline-flex h-[22px] w-fit items-center gap-1.5 rounded-full px-2 text-xs font-semibold",
         SELO_DO_QUESTIONARIO[selo.tipo]
       )}
     >
@@ -69,7 +69,7 @@ function NumeroDoModulo({
   return (
     <span
       className={cn(
-        "grid size-7 place-items-center rounded-full font-semibold text-[13px] tabular-nums",
+        "grid size-7 place-items-center rounded-full text-[13px] font-semibold tabular-nums",
         COR_DA_MARCA[marca]
       )}
     >
@@ -96,7 +96,7 @@ function MarcaDaAula({
 }) {
   if (aula.assistida) {
     return (
-      <span className="mt-px grid size-[22px] place-items-center rounded-full bg-ceu text-sobre-cor">
+      <span className="bg-ceu text-sobre-cor mt-px grid size-[22px] place-items-center rounded-full">
         <Check aria-hidden="true" className="size-3" strokeWidth={3} />
         <span className="sr-only">Assistida.</span>
       </span>
@@ -105,10 +105,10 @@ function MarcaDaAula({
   return (
     <span
       className={cn(
-        "mt-px grid size-[22px] place-items-center rounded-full font-semibold text-[11px] tabular-nums ring-inset",
+        "mt-px grid size-[22px] place-items-center rounded-full text-[11px] font-semibold tabular-nums ring-inset",
         atual
-          ? "text-sol ring-2 ring-sol"
-          : "text-muted-foreground ring-[1.5px] ring-muted-foreground"
+          ? "text-sol ring-sol ring-2"
+          : "text-muted-foreground ring-muted-foreground ring-[1.5px]"
       )}
     >
       {numero}
@@ -119,18 +119,18 @@ function MarcaDaAula({
 /** Na amostra, a aula fechada: o cadeado no lugar do número, sem link. */
 function AulaFechada({ aula }: { aula: AulaDaPagina }) {
   return (
-    <li className="relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-border border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px] [[data-atual]+&]:border-t-transparent">
-      <span className="mt-px grid size-[22px] place-items-center text-muted-foreground">
+    <li className="border-border relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px] [[data-atual]+&]:border-t-transparent">
+      <span className="text-muted-foreground mt-px grid size-[22px] place-items-center">
         <Lock aria-hidden="true" className="size-4" />
         <span className="sr-only">Fechada.</span>
       </span>
-      <p className="font-semibold text-muted-foreground">{aula.titulo}</p>
-      <span className="flex flex-wrap items-center justify-end gap-2.5 whitespace-nowrap pt-px text-[13px] text-muted-foreground tabular-nums">
+      <p className="text-muted-foreground font-semibold">{aula.titulo}</p>
+      <span className="text-muted-foreground flex flex-wrap items-center justify-end gap-2.5 pt-px text-[13px] whitespace-nowrap tabular-nums">
         Troque para assistir
         <span>{fmtMin(aula.duracaoSeg)}</span>
       </span>
       {aula.descricao ? (
-        <p className="col-start-2 col-end-4 line-clamp-2 whitespace-pre-line text-pretty text-muted-foreground sm:col-end-3">
+        <p className="text-muted-foreground col-start-2 col-end-4 line-clamp-2 text-pretty whitespace-pre-line sm:col-end-3">
           {aula.descricao}
         </p>
       ) : null}
@@ -162,8 +162,8 @@ function Livro({
         return (
           <li
             className={cn(
-              "relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-border border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px]",
-              aqui && "border-t-transparent bg-sol/8",
+              "border-border relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px]",
+              aqui && "bg-sol/8 border-t-transparent",
               "[[data-atual]+&]:border-t-transparent"
             )}
             data-atual={aqui ? "" : undefined}
@@ -184,21 +184,21 @@ function Livro({
                 {a.titulo}
               </Link>
             </p>
-            <span className="flex flex-wrap items-center justify-end gap-2.5 whitespace-nowrap pt-px text-[13px] text-muted-foreground tabular-nums">
+            <span className="text-muted-foreground flex flex-wrap items-center justify-end gap-2.5 pt-px text-[13px] whitespace-nowrap tabular-nums">
               {aqui && parou ? (
-                <span className="inline-flex h-[22px] items-center rounded-full bg-sol/14 px-2 font-semibold text-sol text-xs">
+                <span className="bg-sol/14 text-sol inline-flex h-[22px] items-center rounded-full px-2 text-xs font-semibold">
                   {parou}
                 </span>
               ) : null}
               {amostra === a.id ? (
-                <span className="inline-flex h-[22px] items-center rounded-full bg-sol px-2 font-semibold text-sobre-cor text-xs">
+                <span className="bg-sol text-sobre-cor inline-flex h-[22px] items-center rounded-full px-2 text-xs font-semibold">
                   Amostra
                 </span>
               ) : null}
               {fmtMin(a.duracaoSeg)}
             </span>
             {a.descricao ? (
-              <p className="col-start-2 col-end-4 line-clamp-2 whitespace-pre-line text-pretty text-muted-foreground sm:col-end-3">
+              <p className="text-muted-foreground col-start-2 col-end-4 line-clamp-2 text-pretty whitespace-pre-line sm:col-end-3">
                 {a.descricao}
               </p>
             ) : null}
@@ -246,23 +246,23 @@ function ModuloDaSanfona({
     >
       <summary className="group/modulo grid cursor-pointer list-none grid-cols-[28px_minmax(0,1fr)_18px] items-center gap-x-3.5 gap-y-1 px-5 py-3.5 transition-colors hover:bg-white/8 sm:grid-cols-[28px_minmax(0,1fr)_auto_18px] [&::-webkit-details-marker]:hidden">
         <NumeroDoModulo marca={marcaDoModulo(modulo, atual)} numero={numero} />
-        <span className="font-semibold text-foreground group-hover/modulo:text-titulo">
+        <span className="text-foreground group-hover/modulo:text-titulo font-semibold">
           Módulo {numero} · {modulo.titulo}
-          <small className="mt-px block font-normal text-muted-foreground text-xs">
+          <small className="text-muted-foreground mt-px block text-xs font-normal">
             {sob}
           </small>
         </span>
         {direita ? (
-          <span className="text-[13px] text-muted-foreground tabular-nums max-sm:col-start-2 max-sm:row-start-2 sm:text-right">
+          <span className="text-muted-foreground text-[13px] tabular-nums max-sm:col-start-2 max-sm:row-start-2 sm:text-right">
             {questionarios ? (
-              <b className="mr-3 font-semibold text-canela">{questionarios}</b>
+              <b className="text-canela mr-3 font-semibold">{questionarios}</b>
             ) : null}
             {direita}
           </span>
         ) : null}
         <ChevronDown
           aria-hidden="true"
-          className="size-[18px] text-muted-foreground transition-transform duration-200 ease-forte group-open:rotate-180 motion-reduce:transition-none max-sm:col-start-3 max-sm:row-start-1 sm:col-start-4"
+          className="text-muted-foreground ease-forte size-[18px] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none max-sm:col-start-3 max-sm:row-start-1 sm:col-start-4"
         />
       </summary>
       <div className="border-border border-t">
@@ -314,7 +314,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
     <section aria-labelledby="conteudo-do-curso">
       <div className="mb-3.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
-          className="font-bold text-2xl text-titulo leading-[1.33] tracking-tight"
+          className="text-titulo text-2xl leading-[1.33] font-bold tracking-tight"
           id="conteudo-do-curso"
         >
           Conteúdo do curso
@@ -323,7 +323,7 @@ export function ConteudoDoCurso({ pagina }: { pagina: PaginaDoCurso }) {
           {plural(modulos.length, "módulo", "módulos")} ·{" "}
           {plural(aulas, "aula", "aulas")} ·{" "}
           <button
-            className="toque cursor-pointer rounded-md font-semibold text-ceu transition-colors hover:text-titulo"
+            className="toque text-ceu hover:text-titulo cursor-pointer rounded-md font-semibold transition-colors"
             onClick={alternarTodos}
             type="button"
           >

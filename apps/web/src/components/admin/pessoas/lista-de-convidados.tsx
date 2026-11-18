@@ -32,7 +32,7 @@ export function ListaDeConvidados({
         <>
           <LinhasDosConvidados convidados={convidados} hoje={hoje} />
           {cortada ? (
-            <p className="border-border border-t px-5 py-3.5 text-muted-foreground">
+            <p className="border-border text-muted-foreground border-t px-5 py-3.5">
               Mostrando os {fmtNum(convidados.length)} mais recentes. Busque
               pelo e-mail para achar quem falta.
             </p>

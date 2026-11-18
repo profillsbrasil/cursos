@@ -41,16 +41,16 @@ function ExcluirConta({
         <Trash2 aria-hidden="true" className="size-4" />
         Excluir conta
       </AlertDialogTrigger>
-      <AlertDialogContent className="gap-4 rounded-[22px] p-6 shadow-black/45 shadow-xl ring-border data-[size=default]:max-w-[min(28rem,calc(100%-2rem))] data-[size=default]:sm:max-w-md">
-        <AlertDialogTitle className="font-semibold text-lg text-titulo">
+      <AlertDialogContent className="ring-border gap-4 rounded-[22px] p-6 shadow-xl shadow-black/45 data-[size=default]:max-w-[min(28rem,calc(100%-2rem))] data-[size=default]:sm:max-w-md">
+        <AlertDialogTitle className="text-titulo text-lg font-semibold">
           Excluir sua conta?
         </AlertDialogTitle>
         <AlertDialogDescription
-          className="grid gap-2 text-pretty text-[13px] text-foreground md:text-pretty"
+          className="text-foreground grid gap-2 text-[13px] text-pretty md:text-pretty"
           render={<div />}
         >
           <p>A conta some de vez, e não dá para desfazer. Você perde:</p>
-          <ul className="grid list-disc gap-1 pl-5 text-muted-foreground">
+          <ul className="text-muted-foreground grid list-disc gap-1 pl-5">
             <li>as liberações dos cursos, inclusive as trocadas por pontos;</li>
             <li>
               os pontos, a sequência e as medalhas{certificados > 0 ? ";" : "."}

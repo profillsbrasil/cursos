@@ -33,21 +33,21 @@ export function TelaDoCurso({
   return (
     <div className={GRADE_DO_CURSO}>
       <header className="grid min-w-0 gap-3.5">
-        <h1 className="text-balance font-bold text-3xl text-titulo leading-[1.2] tracking-tight">
+        <h1 className="text-titulo text-3xl leading-[1.2] font-bold tracking-tight text-balance">
           {pagina.titulo}
         </h1>
         {lead ? (
-          <TextoQueAbre className="text-pretty text-base text-foreground leading-[1.55]">
+          <TextoQueAbre className="text-foreground text-base leading-[1.55] text-pretty">
             {lead}
           </TextoQueAbre>
         ) : null}
-        <p className="overflow-hidden text-muted-foreground tabular-nums">
+        <p className="text-muted-foreground overflow-hidden tabular-nums">
           <span className="-ml-7 flex flex-wrap items-center gap-y-2">
             <span className={cn(SEPARADO, "inline-flex items-center gap-3")}>
               <span
                 className={cn(
                   SELO,
-                  "bg-transparent font-medium text-foreground ring-1 ring-muted-foreground ring-inset"
+                  "text-foreground ring-muted-foreground bg-transparent font-medium ring-1 ring-inset"
                 )}
               >
                 <Tag aria-hidden="true" className="text-muted-foreground" />
@@ -83,7 +83,7 @@ export function TelaDoCurso({
             className={cn(CARTAO, "px-[26px] py-6")}
           >
             <h2
-              className="mb-[18px] font-semibold text-lg text-titulo leading-[1.3]"
+              className="text-titulo mb-[18px] text-lg leading-[1.3] font-semibold"
               id="o-que-voce-vai-aprender"
             >
               O que você vai aprender
@@ -96,7 +96,7 @@ export function TelaDoCurso({
                 >
                   <Check
                     aria-hidden="true"
-                    className="mt-px size-[18px] text-ceu"
+                    className="text-ceu mt-px size-[18px]"
                     strokeWidth={2.5}
                   />
                   <span>{t}</span>
@@ -109,7 +109,7 @@ export function TelaDoCurso({
         {sobre.length > 0 ? (
           <section aria-labelledby="sobre-o-curso">
             <h2
-              className="mb-3.5 font-bold text-2xl text-titulo leading-[1.33] tracking-tight"
+              className="text-titulo mb-3.5 text-2xl leading-[1.33] font-bold tracking-tight"
               id="sobre-o-curso"
             >
               Sobre o curso

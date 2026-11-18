@@ -141,6 +141,8 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-color: #61656a transparent;
+    scrollbar-width: thin;
   }
   body {
     @apply font-sans bg-background text-foreground;
@@ -151,9 +153,5 @@
   ::selection {
     color: var(--sobre-cor);
     background: var(--ceu);
-  }
-  * {
-    scrollbar-color: #61656a transparent;
-    scrollbar-width: thin;
   }
 }

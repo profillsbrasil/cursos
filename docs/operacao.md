@@ -11,6 +11,7 @@ O CDN da Railway está ligado no `web` (`cdn` no `railway.ts`), com os padrões:
 ## Env (varlock)
 
 - `packages/db/.env.schema` importa `NODE_ENV` e `DATABASE_*` do app.
+- O `overrides` do `package.json` da raiz troca o `@next/env` do Next pela `@varlock/nextjs-integration`, na mesma versão da dependência do `web`: suba as duas juntas.
 - `@defaultSensitive=true` marca toda variável como segredo. O caso que derrubou o request foi o `CLERK_PUBLISHABLE_KEY` sem `@public`.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` e `S3_SECRET_ACCESS_KEY` apontam o bucket das capas e são opcionais. Sem uma delas, o envio de capa do admin recusa com "não configurado" e o resto funciona. O bucket é privado: a capa sai pela rota `/capa/[chave]` do app. Na Railway elas são referências ao bucket (`${{capas.ENDPOINT}}` e as outras), menos `S3_REGION`, que vale `auto`. Endpoint, região e nome do bucket levam `@sensitive=false`: a palavra `auto` aparece em todo JS, e o varlock derrubava o build acusando vazamento.
 - `S3_MATERIAIS_BUCKET`, `S3_MATERIAIS_ACCESS_KEY_ID` e `S3_MATERIAIS_SECRET_ACCESS_KEY` apontam o bucket do material de apoio e são opcionais; o endpoint e a região são os de `S3_ENDPOINT` e `S3_REGION`, que a Railway dá iguais a todo bucket. Sem uma delas, o envio de material recusa com "não configurado" e o resto funciona. O bucket é privado: o arquivo sai pela rota `/material/[id]`, só para o admin e para quem a página do curso abre. Na Railway elas são referências ao bucket `materiais` (`${{materiais.BUCKET}}` e as outras), postas no painel; o IaC só as preserva.
@@ -40,7 +41,7 @@ O CDN da Railway está ligado no `web` (`cdn` no `railway.ts`), com os padrões:
 
 ## Deploy
 
-O serviço `web` da Railway builda com `bun run --cwd apps/web build` (sem turbo: os pacotes do workspace são TS e o modo estrito do turbo esconderia variáveis do build) e sobe com `bun run --cwd apps/web start`. O healthcheck é `/entrar`. Na troca de versão, a antiga atende junto com a nova por 15 s (`overlapSeconds`) e tem 15 s para fechar os pedidos em voo (`drainingSeconds`). O `web` só tem o domínio `cursos.profills.com`: o `*.up.railway.app` foi removido. `railway up --service web --ci` sobe o diretório atual sem passar pelo GitHub; `railway logs --service web` lê o log.
+O serviço `web` da Railway builda com `bun run --cwd apps/web build` (sem turbo: os pacotes do workspace são TS e o modo estrito do turbo esconderia variáveis do build) e sobe com `bun run --cwd apps/web start`. O `next start` chama o CLI do varlock no boot e resolve o `.env.schema` com as variáveis do serviço, por isso o `varlock` fica nas `dependencies` do `web`. O `@varlock/nextjs-integration` 1.2.3 gravava no build uma cópia do env nos arquivos do servidor, que só valia sem o env do boot; o 2.0 só grava a cópia com `freezeIntoBundle: true` ou num build da Vercel, Netlify, Cloudflare Workers, AWS Amplify ou OpenNext, e o build da Railway sai sem ela. O healthcheck é `/entrar`. Na troca de versão, a antiga atende junto com a nova por 15 s (`overlapSeconds`) e tem 15 s para fechar os pedidos em voo (`drainingSeconds`). O `web` só tem o domínio `cursos.profills.com`: o `*.up.railway.app` foi removido. `railway up --service web --ci` sobe o diretório atual sem passar pelo GitHub; `railway logs --service web` lê o log.
 
 ## Clerk
 

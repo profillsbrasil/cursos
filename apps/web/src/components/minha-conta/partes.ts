@@ -32,7 +32,7 @@ export const LINHA =
 /** A linha que é um botão inteiro, como "Mais 4 acessos antigos". */
 export const LINHA_BOTAO = cn(
   LINHA,
-  "w-full cursor-pointer list-none justify-between font-semibold text-[13px] text-ceu transition-colors duration-150 ease-forte hover:bg-white/4 hover:text-titulo [&::-webkit-details-marker]:hidden"
+  "text-ceu ease-forte hover:text-titulo w-full cursor-pointer list-none justify-between text-[13px] font-semibold transition-colors duration-150 hover:bg-white/4 [&::-webkit-details-marker]:hidden"
 );
 
 export const TEXTO_DA_LINHA = "grid min-w-0 flex-1 gap-0.5";

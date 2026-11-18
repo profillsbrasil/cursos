@@ -15,7 +15,7 @@ export function Extrato({
 }) {
   if (itens.length === 0) {
     return (
-      <p className={cn(CARTAO, "px-5 py-4 text-muted-foreground")}>
+      <p className={cn(CARTAO, "text-muted-foreground px-5 py-4")}>
         Nenhum ponto ainda. Cada aula assistida até o fim vale pontos.
       </p>
     );
@@ -27,7 +27,7 @@ export function Extrato({
         return (
           <li
             className={cn(
-              "grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3.5 px-5 py-3.5 [&+&]:border-border [&+&]:border-t",
+              "[&+&]:border-border grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3.5 px-5 py-3.5 [&+&]:border-t",
               "max-[520px]:grid-cols-[minmax(0,1fr)_auto] max-[520px]:gap-x-3 max-[520px]:gap-y-0.5 max-[520px]:px-4 max-[520px]:py-3",
               novo && "bg-ceu/8"
             )}
@@ -35,7 +35,7 @@ export function Extrato({
           >
             <span
               className={cn(
-                "whitespace-nowrap text-[13px] max-[520px]:col-span-full",
+                "text-[13px] whitespace-nowrap max-[520px]:col-span-full",
                 novo ? "text-foreground" : "text-muted-foreground"
               )}
             >
@@ -44,7 +44,7 @@ export function Extrato({
             <span>{item.texto}</span>
             <span
               className={cn(
-                "whitespace-nowrap font-bold tabular-nums",
+                "font-bold whitespace-nowrap tabular-nums",
                 item.pontos < 0 ? "text-foreground" : "text-sol"
               )}
             >

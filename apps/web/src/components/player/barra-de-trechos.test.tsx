@@ -5,8 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { BarraDeTrechos } from "./barra-de-trechos";
 
 const AMARELO =
-  /class="absolute inset-y-0 bg-sol" style="left:([\d.]+)%;width:([\d.]+)%"/g;
-const POLEGAR = /rounded-full bg-titulo[^"]*" style="left:([\d.]+)%"/;
+  /class="bg-sol absolute inset-y-0" style="left:([\d.]+)%;width:([\d.]+)%"/g;
+const POLEGAR = /class="bg-titulo [^"]*" style="left:([\d.]+)%"/;
 
 const nada = () => undefined;
 

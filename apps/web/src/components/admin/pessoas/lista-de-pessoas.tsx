@@ -35,19 +35,19 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
   return (
     <li>
       <Link
-        className="grid @min-[52rem]:grid-cols-[2.5rem_minmax(0,1fr)_9.5rem_5.5rem_6rem_7.5rem_1rem] grid-cols-[2.25rem_minmax(0,1fr)_auto_1rem] items-center @min-[52rem]:gap-x-4 gap-x-3 gap-y-1.5 @min-[52rem]:px-5 px-3.5 @min-[52rem]:py-3.5 py-3 transition-colors hover:bg-muted/40"
+        className="hover:bg-muted/40 grid grid-cols-[2.25rem_minmax(0,1fr)_auto_1rem] items-center gap-x-3 gap-y-1.5 px-3.5 py-3 transition-colors @min-[52rem]:grid-cols-[2.5rem_minmax(0,1fr)_9.5rem_5.5rem_6rem_7.5rem_1rem] @min-[52rem]:gap-x-4 @min-[52rem]:px-5 @min-[52rem]:py-3.5"
         href={fichaDaPessoa(p.userId)}
       >
         <FotoDaPessoa
-          className="@min-[52rem]:size-10 size-9 self-start @min-[52rem]:self-center"
+          className="size-9 self-start @min-[52rem]:size-10 @min-[52rem]:self-center"
           foto={p.foto}
           nome={p.nome}
         />
         <span className="grid min-w-0 gap-0.5">
-          <span className="truncate font-medium text-base text-foreground">
+          <span className="text-foreground truncate text-base font-medium">
             {p.nome}
           </span>
-          <span className="truncate text-muted-foreground">
+          <span className="text-muted-foreground truncate">
             {p.email ?? p.userId}
           </span>
           {p.perfil.doCadastro ? (
@@ -55,7 +55,7 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
               Perfil do cadastro, fora dos filtros
             </span>
           ) : null}
-          <span className="mt-1.5 flex @min-[52rem]:hidden flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <span className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 @min-[52rem]:hidden">
             <SeloDeSituacao selo={selo} />
             {p.papel === "admin" ? (
               <SeloDeSituacao selo={SELO_DE_ADMIN} />
@@ -67,10 +67,10 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
             </span>
           </span>
         </span>
-        <span className="@min-[52rem]:block hidden">
+        <span className="hidden @min-[52rem]:block">
           <SeloDeSituacao selo={selo} />
         </span>
-        <span className="@min-[52rem]:block hidden">
+        <span className="hidden @min-[52rem]:block">
           {p.papel === "admin" ? (
             <SeloDeSituacao selo={SELO_DE_ADMIN} />
           ) : (
@@ -79,20 +79,20 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
         </span>
         <span
           className={cn(
-            "self-start @min-[52rem]:self-center whitespace-nowrap text-right leading-6",
+            "self-start text-right leading-6 whitespace-nowrap @min-[52rem]:self-center",
             p.saldo === 0
-              ? "font-medium text-muted-foreground"
-              : "font-bold text-sol"
+              ? "text-muted-foreground font-medium"
+              : "text-sol font-bold"
           )}
         >
           {fmtPts(p.saldo)}
         </span>
-        <span className="@min-[52rem]:block hidden text-muted-foreground tabular-nums">
+        <span className="text-muted-foreground hidden tabular-nums @min-[52rem]:block">
           {acesso ?? "Nunca"}
         </span>
         <ChevronRight
           aria-hidden="true"
-          className="size-4 text-muted-foreground"
+          className="text-muted-foreground size-4"
         />
       </Link>
     </li>
@@ -131,12 +131,12 @@ export function ListaDePessoasDoAdmin({
             : "Ninguém entrou na plataforma ainda."}
         </Vazio>
       ) : (
-        <ul className="@container divide-y divide-border">
+        <ul className="divide-border @container divide-y">
           {pessoas.map((p) => (
             <LinhaDaPessoa hoje={hoje} key={p.userId} p={p} />
           ))}
           {cortada ? (
-            <li className="px-5 py-3.5 text-muted-foreground text-sm">
+            <li className="text-muted-foreground px-5 py-3.5 text-sm">
               Mostrando as {fmtNum(pessoas.length)} primeiras. Busque pelo nome
               ou pelo e-mail para achar quem falta.
             </li>

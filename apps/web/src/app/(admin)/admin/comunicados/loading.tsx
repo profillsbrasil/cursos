@@ -15,7 +15,7 @@ export default function Carregando() {
       />
       <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
         <Skeleton className={`${PULSO} h-[420px] rounded-[20px]`} />
-        <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
+        <div className="ring-border grid gap-px overflow-hidden rounded-[20px] ring-1">
           {["a", "b", "c", "d"].map((linha) => (
             <Skeleton
               className={`${PULSO} h-[112px] rounded-none`}

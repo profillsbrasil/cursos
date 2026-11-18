@@ -50,7 +50,7 @@ function Dado({
   return (
     <div className={LINHA_DA_CONTA}>
       <dt className="text-muted-foreground">{rotulo}</dt>
-      <dd className="m-0 min-w-0 break-words text-foreground">{children}</dd>
+      <dd className="text-foreground m-0 min-w-0 break-words">{children}</dd>
     </div>
   );
 }
@@ -89,7 +89,7 @@ function PontosDaPessoa({
         </p>
       </div>
       <ConcessaoDePontos nome={nome} saldo={pontos.saldo} userId={userId} />
-      <h3 className="border-border border-t px-[22px] pt-3.5 pb-2.5 font-semibold text-[13px] text-muted-foreground">
+      <h3 className="border-border text-muted-foreground border-t px-[22px] pt-3.5 pb-2.5 text-[13px] font-semibold">
         Concessões feitas
       </h3>
       {pontos.concessoes.length === 0 ? (
@@ -108,7 +108,7 @@ function PontosDaPessoa({
               </span>
               <span
                 className={cn(
-                  "shrink-0 whitespace-nowrap font-bold",
+                  "shrink-0 font-bold whitespace-nowrap",
                   c.pontos < 0 ? "text-foreground" : "text-sol"
                 )}
               >
@@ -136,10 +136,10 @@ export function FichaDaPessoaDoAdmin({
       <header className="mb-7 flex items-center gap-4">
         <FotoDaPessoa foto={conta.foto} nome={conta.nome} size="lg" />
         <div className="grid min-w-0 gap-1">
-          <h1 className="text-balance font-bold text-3xl text-titulo tracking-tight [overflow-wrap:anywhere]">
+          <h1 className="text-titulo text-3xl font-bold tracking-tight text-balance [overflow-wrap:anywhere]">
             {conta.nome}
           </h1>
-          <p className="truncate text-muted-foreground">
+          <p className="text-muted-foreground truncate">
             {conta.email ?? conta.userId}
           </p>
         </div>
@@ -209,7 +209,7 @@ export function FichaDaPessoaDoAdmin({
           </dl>
           <div className={PE_DO_CARTAO}>
             <Link
-              className="toque justify-self-start font-semibold text-[13px] text-ceu transition-colors hover:text-titulo"
+              className="toque text-ceu hover:text-titulo justify-self-start text-[13px] font-semibold transition-colors"
               href={`/admin/liberacoes/${conta.userId}` as Route}
             >
               Ver as liberações e o estudo

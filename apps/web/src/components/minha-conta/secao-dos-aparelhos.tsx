@@ -78,9 +78,9 @@ function Esqueleto() {
   return (
     <div aria-busy="true" className="grid gap-3 px-[22px] pb-[22px]">
       <span className="sr-only">Carregando os aparelhos</span>
-      <span className="h-[34px] animate-pulse rounded-[10px] bg-muted" />
-      <span className="h-[34px] animate-pulse rounded-[10px] bg-muted" />
-      <span className="h-[34px] animate-pulse rounded-[10px] bg-muted" />
+      <span className="bg-muted h-[34px] animate-pulse rounded-[10px]" />
+      <span className="bg-muted h-[34px] animate-pulse rounded-[10px]" />
+      <span className="bg-muted h-[34px] animate-pulse rounded-[10px]" />
     </div>
   );
 }
@@ -140,7 +140,7 @@ function ListaDosAparelhos({
             Mais {plural(antigos.length, "acesso antigo", "acessos antigos")}
             <ChevronDown
               aria-hidden="true"
-              className="size-4 shrink-0 transition-transform duration-200 ease-forte group-open:rotate-180 motion-reduce:transition-none"
+              className="ease-forte size-4 shrink-0 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
             />
           </summary>
           <ul className="grid">

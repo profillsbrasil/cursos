@@ -51,7 +51,7 @@ export function EsqueletoDoCartao({
   linhas: number;
 }) {
   return (
-    <div className="grid gap-px overflow-hidden rounded-[20px] ring-1 ring-border">
+    <div className="ring-border grid gap-px overflow-hidden rounded-[20px] ring-1">
       {LINHAS.slice(0, linhas).map((linha) => (
         <Skeleton className={cn(PULSO, altura, "rounded-none")} key={linha} />
       ))}
@@ -116,17 +116,17 @@ export function EsqueletoDoEditor() {
     <div aria-busy="true" className="@container">
       <span className="sr-only">Carregando o curso</span>
       <Skeleton className={cn(PULSO, "mb-5 h-10 w-28 rounded-full")} />
-      <div className="grid @min-[960px]:grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
+      <div className="grid items-start gap-8 @min-[960px]:grid-cols-[minmax(0,1fr)_300px]">
         <div className="grid gap-10">
           <div className="grid gap-7">
             <Skeleton className={cn(PULSO, "h-9 w-72 max-w-full rounded-lg")} />
             <Skeleton className={cn(PULSO, "@container rounded-[20px]")}>
-              <div className="grid @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)] gap-7 p-6">
+              <div className="grid gap-7 p-6 @3xl:grid-cols-[clamp(280px,28cqw,440px)_minmax(0,1fr)]">
                 <div className="grid content-start">
                   <div className="aspect-[3/2]" />
-                  <div className="@3xl:h-[68px] @md:h-[50px] h-[68px]" />
+                  <div className="h-[68px] @md:h-[50px] @3xl:h-[68px]" />
                 </div>
-                <div className="@md:h-[364px] h-[384px]" />
+                <div className="h-[384px] @md:h-[364px]" />
               </div>
             </Skeleton>
           </div>
@@ -134,7 +134,7 @@ export function EsqueletoDoEditor() {
             <Skeleton className={cn(PULSO, "h-8 w-40 rounded-lg")} />
             <Skeleton className={cn(PULSO, "rounded-[20px]")}>
               <div className="@container grid gap-4 p-5">
-                <div className="grid @3xl:grid-cols-2 gap-x-7 gap-y-2.5">
+                <div className="grid gap-x-7 gap-y-2.5 @3xl:grid-cols-2">
                   {LINHAS.slice(0, 5).map((linha) => (
                     <div className="h-11" key={linha} />
                   ))}
@@ -145,7 +145,7 @@ export function EsqueletoDoEditor() {
           </div>
           <EsqueletoDaSecao altura="h-[144px]" linhas={1} />
         </div>
-        <div className="grid @max-[960px]:hidden gap-3.5">
+        <div className="grid gap-3.5 @max-[960px]:hidden">
           <Skeleton className={cn(PULSO, "h-[232px] rounded-[20px]")} />
           <Skeleton className={cn(PULSO, "h-[266px] rounded-[20px]")} />
           <Skeleton className={cn(PULSO, "h-[294px] rounded-[20px]")} />

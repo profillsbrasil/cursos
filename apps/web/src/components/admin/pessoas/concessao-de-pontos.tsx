@@ -53,7 +53,7 @@ const SO_ALGARISMOS = /^\d+$/;
 // acende com o foco do input pela variante hover: do globals.css.
 const OPCAO_DO_SENTIDO = cn(
   OPCAO_DA_TRILHA,
-  "has-disabled:cursor-not-allowed has-checked:bg-titulo has-checked:text-sobre-cor has-checked:hover:bg-foreground has-checked:hover:text-sobre-cor"
+  "has-checked:bg-titulo has-checked:text-sobre-cor has-checked:hover:bg-foreground has-checked:hover:text-sobre-cor has-disabled:cursor-not-allowed"
 );
 
 // O data-campo do label dá a borda Céu do index.css sob o cursor e com o foco.
@@ -327,7 +327,7 @@ export function ConcessaoDePontos({
   }
   return (
     <form
-      className="grid gap-4 border-border border-t px-[22px] py-4"
+      className="border-border grid gap-4 border-t px-[22px] py-4"
       noValidate
       onSubmit={enviar}
     >
@@ -336,7 +336,7 @@ export function ConcessaoDePontos({
         <div
           className={cn(
             TRILHA,
-            "grid w-full max-w-80 grid-cols-2 bg-background ring-muted-foreground"
+            "bg-background ring-muted-foreground grid w-full max-w-80 grid-cols-2"
           )}
         >
           {SENTIDOS.map((s) => (

@@ -116,7 +116,7 @@ function ItemDaAula({
       <button
         aria-current={selecionada ? "true" : undefined}
         className={cn(
-          "grid w-full grid-cols-[22px_minmax(0,1fr)_16px] items-start gap-2.5 border-border border-t py-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-white/8",
+          "border-border grid w-full grid-cols-[22px_minmax(0,1fr)_16px] items-start gap-2.5 border-t py-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-white/8",
           selecionada && "bg-sol/8"
         )}
         id={ALVO_DA_AULA.item(aula.id)}
@@ -126,7 +126,7 @@ function ItemDaAula({
         <span
           aria-hidden="true"
           className={cn(
-            "pt-px text-right font-semibold text-[13px] text-muted-foreground tabular-nums",
+            "text-muted-foreground pt-px text-right text-[13px] font-semibold tabular-nums",
             selecionada && "text-sol"
           )}
         >
@@ -135,27 +135,27 @@ function ItemDaAula({
         <span className="min-w-0">
           <span
             className={cn(
-              "line-clamp-2 text-pretty font-semibold text-[13px] text-foreground leading-[1.35]",
+              "text-foreground line-clamp-2 text-[13px] leading-[1.35] font-semibold text-pretty",
               selecionada && "text-titulo"
             )}
           >
             <span className="sr-only">Aula {posicao}: </span>
             {aula.titulo.trim() || (
-              <span className="font-normal text-muted-foreground">
+              <span className="text-muted-foreground font-normal">
                 Sem título
               </span>
             )}
           </span>
           <span
             className={cn(
-              "mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-muted-foreground text-xs tabular-nums",
+              "text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs tabular-nums",
               selecionada && "text-foreground"
             )}
           >
             {aula.duracao.trim() ? <span>{aula.duracao}</span> : null}
             <ResumoDoQuiz aula={aula} />
             {erros > 0 ? (
-              <span className="font-semibold text-destructive">
+              <span className="text-destructive font-semibold">
                 {camposParaCorrigir(erros)}
               </span>
             ) : null}
@@ -163,7 +163,7 @@ function ItemDaAula({
         </span>
         {assistida ? (
           <>
-            <Users aria-hidden="true" className="mt-0.5 size-[15px] text-ceu" />
+            <Users aria-hidden="true" className="text-ceu mt-0.5 size-[15px]" />
             <span className="sr-only">assistida por alunos</span>
           </>
         ) : (
@@ -267,12 +267,12 @@ function PainelDaAula({
       className="@container/painel grid min-w-0 content-start gap-4 px-5 pt-5 pb-6"
     >
       <div className="flex min-h-9 items-center justify-between gap-2">
-        <h3 className="flex flex-wrap items-baseline gap-x-2 font-semibold text-base text-titulo">
+        <h3 className="text-titulo flex flex-wrap items-baseline gap-x-2 text-base font-semibold">
           <span className="whitespace-nowrap">
             Aula {posicao} de {total}
           </span>
           {assistida > 0 ? (
-            <small className="font-normal text-[13px] text-muted-foreground">
+            <small className="text-muted-foreground text-[13px] font-normal">
               · assistida por alunos
             </small>
           ) : null}
@@ -313,7 +313,7 @@ function PainelDaAula({
       <CampoDeTexto
         aoMudar={mudarTitulo}
         campoClasse="gap-1.5"
-        className="py-[7px] font-semibold text-lg text-titulo md:text-lg"
+        className="text-titulo py-[7px] text-lg font-semibold md:text-lg"
         id={ID.aula(id, "titulo")}
         maxLength={CARACTERES.tituloDaAula}
         placeholder="Título da aula"
@@ -360,7 +360,7 @@ function PainelDaAula({
           valor=""
         />
       ) : null}
-      <div aria-hidden="true" className="-mx-5 mt-2.5 mb-1.5 h-px bg-border" />
+      <div aria-hidden="true" className="bg-border -mx-5 mt-2.5 mb-1.5 h-px" />
       <QuestionarioDaAula
         aula={aula}
         despachar={despachar}
@@ -402,10 +402,10 @@ export function AulasDoModulo({
     focarDepois(ID.aula(aula, "titulo"));
   }, [despachar, modulo.id]);
   return (
-    <div className="grid @2xl:grid-cols-[272px_minmax(0,1fr)] border-border border-t">
-      <div className="border-border @2xl:border-r @max-2xl:border-b">
+    <div className="border-border grid border-t @2xl:grid-cols-[272px_minmax(0,1fr)]">
+      <div className="border-border @max-2xl:border-b @2xl:border-r">
         {modulo.aulas.length === 0 ? (
-          <p className="px-4 py-4 text-muted-foreground text-sm">
+          <p className="text-muted-foreground px-4 py-4 text-sm">
             Nenhuma aula neste módulo.
           </p>
         ) : (

@@ -21,7 +21,7 @@ export function TelaNaoEncontrada({
 }) {
   return (
     <div className={cn(CARTAO, "grid justify-items-start gap-3 p-8")}>
-      <h1 className="font-bold text-2xl text-titulo tracking-tight">
+      <h1 className="text-titulo text-2xl font-bold tracking-tight">
         {titulo}
       </h1>
       <p className="text-muted-foreground">{texto}</p>

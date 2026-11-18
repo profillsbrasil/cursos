@@ -47,11 +47,11 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
   const apagada = curso.status === "em_producao" && curso.aulas === 0;
   return (
     <article className="group relative grid min-w-0 content-start gap-3">
-      <div className="relative aspect-[900/604] overflow-hidden rounded-[14px] bg-sidebar ring-1 ring-border transition-shadow duration-200 group-has-hover:ring-ceu">
+      <div className="bg-sidebar ring-border group-has-hover:ring-ceu relative aspect-[900/604] overflow-hidden rounded-[14px] ring-1 transition-shadow duration-200">
         <Image
           alt=""
           className={cn(
-            "object-cover transition-transform duration-200 ease-forte group-has-hover:scale-[1.03] motion-reduce:transition-none",
+            "ease-forte object-cover transition-transform duration-200 group-has-hover:scale-[1.03] motion-reduce:transition-none",
             apagada && "brightness-70 grayscale-60"
           )}
           fill
@@ -71,7 +71,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
             className={cn(
               SELO,
               SOBRE_A_CAPA,
-              "right-2.5 bottom-2.5 text-foreground tabular-nums"
+              "text-foreground right-2.5 bottom-2.5 tabular-nums"
             )}
           >
             <Star aria-hidden="true" className="text-sol" />
@@ -80,7 +80,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
         )}
       </div>
       <div className="min-w-0">
-        <h2 className="font-semibold text-lg text-titulo leading-[1.3]">
+        <h2 className="text-titulo text-lg leading-[1.3] font-semibold">
           <Link
             className="after:absolute after:inset-0 after:rounded-[14px]"
             href={`/admin/catalogo/cursos/${curso.id}` as Route}
@@ -88,11 +88,11 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
             {curso.titulo}
           </Link>
         </h2>
-        <p className="break-words text-[13px] text-muted-foreground">
+        <p className="text-muted-foreground text-[13px] break-words">
           {curso.categoria} · {curso.codigo}
         </p>
       </div>
-      <p className="flex flex-wrap gap-x-3.5 gap-y-1 text-[13px] text-muted-foreground tabular-nums">
+      <p className="text-muted-foreground flex flex-wrap gap-x-3.5 gap-y-1 text-[13px] tabular-nums">
         {curso.modulos > 0 && (
           <span className="inline-flex items-center gap-1.5">
             <Layers aria-hidden="true" className="size-3.5" />
@@ -108,14 +108,14 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
 function AtalhoNovoCurso() {
   return (
     <Link
-      className="grid aspect-[900/604] min-w-0 place-content-center justify-items-center gap-2.5 rounded-[14px] border-[1.5px] border-trilho border-dashed p-4 text-center text-foreground transition-colors hover:border-ceu hover:bg-white/8"
+      className="border-trilho text-foreground hover:border-ceu grid aspect-[900/604] min-w-0 place-content-center justify-items-center gap-2.5 rounded-[14px] border-[1.5px] border-dashed p-4 text-center transition-colors hover:bg-white/8"
       href={NOVO_CURSO}
     >
-      <span className="grid size-11 place-items-center rounded-full bg-sol text-sobre-cor">
+      <span className="bg-sol text-sobre-cor grid size-11 place-items-center rounded-full">
         <Plus aria-hidden="true" className="size-5" />
       </span>
-      <span className="font-semibold text-base text-titulo">Novo curso</span>
-      <span className="max-w-[26ch] text-muted-foreground text-xs">
+      <span className="text-titulo text-base font-semibold">Novo curso</span>
+      <span className="text-muted-foreground max-w-[26ch] text-xs">
         Começa em produção: o aluno vê na lista, sem abrir aula
       </span>
     </Link>
@@ -131,16 +131,16 @@ function CatalogoVazio() {
         "grid max-w-[640px] justify-items-start gap-3.5 px-[clamp(22px,3.4vw,36px)] py-[clamp(28px,5vw,56px)]"
       )}
     >
-      <span className="grid size-12 place-items-center rounded-full bg-popover text-ceu">
+      <span className="bg-popover text-ceu grid size-12 place-items-center rounded-full">
         <Library aria-hidden="true" className="size-[22px]" />
       </span>
       <h2
-        className="font-bold text-lg text-titulo leading-[1.3]"
+        className="text-titulo text-lg leading-[1.3] font-bold"
         id="catalogo-vazio"
       >
         Nenhum curso no catálogo
       </h2>
-      <p className="max-w-[52ch] text-muted-foreground">
+      <p className="text-muted-foreground max-w-[52ch]">
         Crie o primeiro curso. Ele nasce em produção: o aluno vê na lista e só
         abre aula quando você publicar.
       </p>

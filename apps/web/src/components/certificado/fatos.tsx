@@ -15,11 +15,11 @@ export function Fatos({
     <dl className={cn("grid tabular-nums", className)}>
       {fatos.map(([rotulo, valor]) => (
         <div
-          className="flex justify-between gap-4 border-border border-t px-(--pad) py-2.5"
+          className="border-border flex justify-between gap-4 border-t px-(--pad) py-2.5"
           key={rotulo}
         >
           <dt className="text-muted-foreground">{rotulo}</dt>
-          <dd className="text-right font-semibold text-foreground">{valor}</dd>
+          <dd className="text-foreground text-right font-semibold">{valor}</dd>
         </div>
       ))}
     </dl>

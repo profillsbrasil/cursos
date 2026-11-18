@@ -106,7 +106,7 @@ function NivelDoModulo({
   const { aria, mensagem } = useErroDoCampo(id);
   return (
     <Field
-      className="@2xl:col-span-1 @sm:col-span-2 gap-1.5"
+      className="gap-1.5 @sm:col-span-2 @2xl:col-span-1"
       data-invalid={mensagem ? true : undefined}
     >
       <FieldLabel className={ROTULO} htmlFor={id}>
@@ -179,16 +179,16 @@ function CabecaDoBloco({
         <span
           aria-hidden="true"
           className={cn(
-            "grid size-7 place-items-center rounded-full font-semibold text-xs tabular-nums",
+            "grid size-7 place-items-center rounded-full text-xs font-semibold tabular-nums",
             NUMERO[bloco.tipo]
           )}
         >
           {numeroNaTela(modulo)}
         </span>
-        <span className="min-w-0 text-pretty font-semibold text-base text-foreground group-hover/bloco:text-titulo md:truncate">
+        <span className="text-foreground group-hover/bloco:text-titulo min-w-0 text-base font-semibold text-pretty md:truncate">
           <span className="sr-only">Módulo {modulo.numero}: </span>
           {titulo || (
-            <span className="font-normal text-muted-foreground">
+            <span className="text-muted-foreground font-normal">
               Sem título
             </span>
           )}
@@ -196,11 +196,11 @@ function CabecaDoBloco({
         <ChevronDown
           aria-hidden="true"
           className={cn(
-            "size-4 text-muted-foreground group-hover/bloco:text-titulo",
+            "text-muted-foreground group-hover/bloco:text-titulo size-4",
             aberto && "rotate-180"
           )}
         />
-        <span className="col-start-2 col-end-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-muted-foreground text-xs tabular-nums">
+        <span className="text-muted-foreground col-start-2 col-end-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs tabular-nums">
           <span>{resumo}</span>
           {assistidas > 0 ? (
             <span className={cn(SELO, "text-muted-foreground")}>
@@ -209,7 +209,7 @@ function CabecaDoBloco({
             </span>
           ) : null}
           {bloco.tipo === "com_erro" ? (
-            <span className="inline-flex items-center gap-1.5 font-semibold text-destructive">
+            <span className="text-destructive inline-flex items-center gap-1.5 font-semibold">
               <CircleAlert aria-hidden="true" className="size-3.5" />
               {camposParaCorrigir(bloco.campos)}
             </span>
@@ -312,7 +312,7 @@ export function BlocoDoModulo({
         // A largura do bloco, e não a da janela, decide a grade: em 768 px com a
         // sidebar aberta, o nível de 16rem na mesma linha deixava o título com 42 px.
         <div className="@container" id={ALVO.conteudo(id)}>
-          <div className="grid @2xl:grid-cols-[6rem_minmax(0,1fr)_16rem] @sm:grid-cols-[6rem_minmax(0,1fr)] @sm:items-start gap-3 bg-muted/30 px-5 pt-1 pb-4">
+          <div className="bg-muted/30 grid gap-3 px-5 pt-1 pb-4 @sm:grid-cols-[6rem_minmax(0,1fr)] @sm:items-start @2xl:grid-cols-[6rem_minmax(0,1fr)_16rem]">
             <CampoLido
               aoMudar={mudarNumero}
               aoSair={ordenar}
@@ -454,7 +454,7 @@ function LinkDoIndice({
       <TooltipTrigger
         className={cn(
           // relative: o sr-only é absolute e, sem isto, escapa da fila que rola e alarga a página.
-          "relative grid h-9 min-w-9 place-items-center rounded-full px-2.5 font-semibold text-[13px] tabular-nums transition-colors duration-150",
+          "relative grid h-9 min-w-9 place-items-center rounded-full px-2.5 text-[13px] font-semibold tabular-nums transition-colors duration-150",
           NUMERO[bloco.tipo],
           NUMERO_SOB_O_CURSOR[bloco.tipo]
         )}
@@ -510,19 +510,19 @@ function IndiceDosModulos({
       aria-label="Índice dos módulos"
       className={cn(
         CARTAO,
-        "sticky top-[calc(var(--topo-da-casca,0px)+--spacing(3))] z-10 flex items-center gap-3 bg-card/95 py-2 pr-2 pl-4 backdrop-blur-sm"
+        "bg-card/95 sticky top-[calc(var(--topo-da-casca,0px)+--spacing(3))] z-10 flex items-center gap-3 py-2 pr-2 pl-4 backdrop-blur-sm"
       )}
       ref={reservarOTopo}
     >
       <span
         aria-hidden="true"
-        className="shrink-0 text-muted-foreground text-xs"
+        className="text-muted-foreground shrink-0 text-xs"
       >
         Ir para
       </span>
       <ol
         // O pr-11 do celular passa da faixa de 2,5rem da máscara: no fim da rolagem, o último número sai inteiro.
-        className="flex min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] max-md:pr-11 md:flex-wrap max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)]"
+        className="flex min-w-0 [scrollbar-width:none] gap-1 overflow-x-auto max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)] max-md:pr-11 md:flex-wrap"
         // biome-ignore lint/a11y/noRedundantRoles: o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"
       >
@@ -591,7 +591,7 @@ export function ModulosDoCurso({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
-          className="font-bold text-2xl text-titulo tracking-tight"
+          className="text-titulo text-2xl font-bold tracking-tight"
           id="modulos"
           tabIndex={-1}
         >

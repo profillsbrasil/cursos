@@ -8,23 +8,23 @@
       "packages/*"
     ],
     "catalog": {
-      "zod": "^4.5.4",
+      "zod": "^4.6.7",
       "typescript": "^7.0.2",
-      "@types/node": "^26.4.1",
-      "varlock": "1.21.1",
-      "lucide-react": "^1.41.0",
+      "@types/node": "^26.6.6",
+      "varlock": "1.25.0",
+      "lucide-react": "^1.75.0",
       "next-themes": "^0.4.6",
-      "react": "^19.2.8",
-      "react-dom": "^19.2.8",
+      "react": "^19.3.1",
+      "react-dom": "^19.3.1",
       "sonner": "^2.0.8",
-      "@trpc/server": "^11.18.0",
-      "@trpc/client": "^11.18.0",
-      "@clerk/backend": "^3.17.1",
-      "@tailwindcss/postcss": "^4.3.3",
-      "@types/react": "^19.2.18",
-      "@types/react-dom": "^19.2.7",
-      "tailwindcss": "^4.3.3",
-      "recharts": "3.10.1"
+      "@trpc/server": "^11.29.4",
+      "@trpc/client": "^11.29.4",
+      "@clerk/backend": "^3.30.0",
+      "@tailwindcss/postcss": "^4.3.5",
+      "@types/react": "^19.3.0",
+      "@types/react-dom": "^19.3.0",
+      "tailwindcss": "^4.3.5",
+      "recharts": "3.11.0"
     }
   },
   "scripts": {
@@ -48,20 +48,20 @@
     "virada-dos-pontos": "bun run --cwd packages/api virada-dos-pontos"
   },
   "overrides": {
-    "@next/env": "npm:@varlock/nextjs-integration@1.2.2"
+    "@next/env": "npm:@varlock/nextjs-integration@2.0.1"
   },
   "dependencies": {
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.8",
     "@cursos/config": "workspace:*",
     "@types/node": "catalog:",
-    "railway": "^3.16.0",
-    "turbo": "^2.10.12",
+    "railway": "^3.17.0",
+    "turbo": "^2.11.13",
     "typescript": "catalog:",
-    "ultracite": "7.12.4",
+    "ultracite": "8.3.0",
     "varlock": "catalog:"
   },
-  "packageManager": "bun@1.4.2"
+  "packageManager": "bun@1.4.4"
 }

@@ -96,7 +96,7 @@ const TIRAR_FICHA =
 // O rádio fica por baixo do label, como no sentido da concessão de pontos.
 const OPCAO_DE_PERFIL = cn(
   OPCAO_DA_TRILHA,
-  "has-disabled:cursor-not-allowed has-checked:bg-titulo has-checked:text-sobre-cor has-checked:hover:bg-foreground has-checked:hover:text-sobre-cor"
+  "has-checked:bg-titulo has-checked:text-sobre-cor has-checked:hover:bg-foreground has-checked:hover:text-sobre-cor has-disabled:cursor-not-allowed"
 );
 
 const DICA = "text-[13px] text-muted-foreground";
@@ -222,7 +222,7 @@ function CampoDeEmails({
         aria-invalid={temRuim ? true : undefined}
         autoCapitalize="none"
         autoComplete="off"
-        className="h-7 min-w-32 flex-1 bg-transparent px-1.5 text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed"
+        className="text-foreground placeholder:text-muted-foreground h-7 min-w-32 flex-1 bg-transparent px-1.5 disabled:cursor-not-allowed"
         disabled={desligado}
         id={id}
         inputMode="email"
@@ -245,7 +245,7 @@ function SobrasDoEnvio({ sobras }: { sobras: readonly ResultadoDoConvite[] }) {
     <ul className={cn(DICA, "grid gap-1.5")}>
       {sobras.map((s) => (
         <li key={s.email}>
-          <span className="font-semibold text-foreground">{s.email}</span>{" "}
+          <span className="text-foreground font-semibold">{s.email}</span>{" "}
           {fraseDoResultado(s)}
           {s.tipo === "ja_tem_conta" ? (
             <>
@@ -406,7 +406,7 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
         Convidar
       </DialogTrigger>
       <DialogContent
-        className="max-h-[calc(100dvh-2rem)] max-w-[min(34rem,calc(100%-2rem))] gap-0 overflow-hidden rounded-[22px] p-0 text-sm leading-5 shadow-black/45 shadow-xl ring-border sm:max-w-[34rem]"
+        className="ring-border max-h-[calc(100dvh-2rem)] max-w-[min(34rem,calc(100%-2rem))] gap-0 overflow-hidden rounded-[22px] p-0 text-sm leading-5 shadow-xl shadow-black/45 sm:max-w-[34rem]"
         showCloseButton={false}
       >
         <form
@@ -415,7 +415,7 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
           onSubmit={enviar}
         >
           <header className="grid gap-1 px-6 pt-6 pb-4">
-            <DialogTitle className="font-semibold text-lg text-titulo">
+            <DialogTitle className="text-titulo text-lg font-semibold">
               Convidar por e-mail
             </DialogTitle>
             <DialogDescription className={DICA}>
@@ -504,7 +504,7 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
               {cursos.length === 0 ? (
                 <p className={DICA}>Nenhum curso no catálogo ainda.</p>
               ) : (
-                <ul className="max-h-52 divide-y divide-border overflow-y-auto rounded-[14px] ring-1 ring-border ring-inset">
+                <ul className="divide-border ring-border max-h-52 divide-y overflow-y-auto rounded-[14px] ring-1 ring-inset">
                   {cursos.map((c) => (
                     <CursoDaChegada
                       curso={c}
@@ -518,7 +518,7 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
               )}
             </fieldset>
           </div>
-          <footer className="flex flex-col-reverse gap-2 border-border border-t px-6 py-4 sm:flex-row sm:justify-end">
+          <footer className="border-border flex flex-col-reverse gap-2 border-t px-6 py-4 sm:flex-row sm:justify-end">
             <DialogClose
               disabled={pendente}
               render={<Button className={BOTAO_CONTORNO} type="button" />}
