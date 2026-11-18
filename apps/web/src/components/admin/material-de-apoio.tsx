@@ -220,6 +220,9 @@ function LinhaDoMaterial({
       dragMomentum={false}
       dragTransition={movimento.assentar}
       onDragEnd={aoSoltar}
+      // O Motion 14 põe a linha no Tab para reordenar pelo teclado; aqui o
+      // teclado reordena pelas setas da linha, e a linha fica fora do Tab.
+      tabIndex={undefined}
       transition={movimento.transition}
       value={id}
     >
@@ -304,6 +307,7 @@ function LinhaDoEnvio({
     <Reorder.Item
       className={LINHA}
       dragListener={false}
+      tabIndex={undefined}
       transition={movimento.transition}
       value={id}
     >

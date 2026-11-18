@@ -1,9 +1,9 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, uuidDeExemplo } from "@cursos/api/dominio/exemplo";
 import type { MaterialId, Versao } from "@cursos/api/dominio/tipos";
-
-import { resumoDoMaterial } from "./material-de-apoio";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { ID } from "./rascunho-do-curso";
 import {
   type AcaoDoEditor,
@@ -16,6 +16,17 @@ import {
   rascunhoDoEditorEm,
   telaDo,
 } from "./rascunho-do-editor";
+
+// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
+const navegacao = await import("next/navigation");
+mock.module("next/navigation", () => ({
+  ...navegacao,
+  useRouter: () => ({ refresh: () => undefined }),
+}));
+
+const { MaterialDeApoio, resumoDoMaterial } = await import(
+  "./material-de-apoio"
+);
 
 const idDe = (n: number) => uuidDeExemplo(900 + n) as MaterialId;
 
@@ -192,6 +203,21 @@ describe("material de apoio no rascunho", () => {
       { motivo: "Tipo", tipo: "recusado" },
       { motivo: RECUSA_DO_LIMITE, tipo: "recusado" },
     ]);
+  });
+});
+
+describe("linhas da seção", () => {
+  test("nem a linha do material nem a do envio entram na ordem do Tab", () => {
+    const estado = aplicar(salvo([material(1), material(2)]), {
+      envios: [enviando(3)],
+      tipo: "materiais_escolhidos",
+    });
+    const html = renderToStaticMarkup(
+      createElement(MaterialDeApoio, { despachar: () => undefined, estado })
+    );
+    const abertura = html.match(/<li[^>]*>/g) ?? [];
+    expect(abertura).toHaveLength(3);
+    expect(abertura.filter((l) => l.includes("tabindex"))).toEqual([]);
   });
 });
 
