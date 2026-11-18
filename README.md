@@ -41,7 +41,7 @@ O seed de exemplo roda dentro de `packages/db` com `bun run db:seed -- --aluno <
 | `bun run build` | Builda todos os pacotes |
 | `bun run test` | Roda os testes; os de integração pedem `TEST_DATABASE_URL` no banco local |
 | `bun run check-types` | Confere os tipos de todos os pacotes |
-| `bun run check` e `fix` | Lint e formato pelo Ultracite (Biome) |
+| `bun run check` e `fix` | Lint e formato pelo Ultracite (Oxlint e oxfmt) |
 | `bun run env:generate` | Regenera os `env.ts` depois de mudar um `.env.schema` |
 | `bun run db:start` e `db:stop` | Sobe e derruba o Postgres local (o `db:stop` apaga os dados) |
 | `bun run db:generate` | Gera a migração SQL a partir do schema (`drizzle-kit generate`) |

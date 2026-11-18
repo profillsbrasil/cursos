@@ -13,6 +13,10 @@ O `no-restricted-imports` do `oxlint.config.ts` cerca o banco em `apps/web`: só
 - O oxfmt não formata Markdown (`**/*.md`). O preset Biome da Ultracite já deixava o Markdown de fora; 76 dos 91 arquivos `.md` que o oxfmt mudaria são skills de terceiros travadas por hash no `skills-lock.json`, e o turbo e o `next dev` reescrevem blocos do `AGENTS.md`.
 - O oxfmt não formata SVG. O `docs/marca/cubo.ts` gravava os SVG da marca e chamava o Biome para formatá-los; agora só grava.
 
+## O que saiu sem substituto
+
+O Oxlint não linta CSS. O preset Biome da Ultracite ligava 26 regras de CSS, 22 delas vindas do Stylelint pela tabela de fontes do Biome, e o `useBaseline`, que o `biome.jsonc` desligava. Elas saíram sem substituto, então `apps/web/src/index.css` e `packages/ui/src/styles/globals.css` só passam pelo formato do oxfmt e pelos testes de CSS do repo (`foco.test.ts`, `movimento.test.ts` e afins). As regras eram: `useGenericFontNames`, `noInvalidDirectionInLinearGradient`, `noInvalidGridAreas`, `noInvalidPositionAtImportRule`, `noMissingVarFunction`, `noUnknownFunction`, `noUnknownMediaFeatureName`, `noUnknownProperty`, `noUnknownPseudoClass`, `noUnknownPseudoElement`, `noUnknownTypeSelector`, `noUnknownUnit`, `noUnmatchableAnbSelector`, `level`, `noDescendingSpecificity`, `noValueAtRule`, `noDuplicateAtImportRules`, `noDuplicateCustomProperties`, `noDuplicateFontNames`, `noDuplicateProperties`, `noDuplicateSelectors`, `noDuplicateSelectorsKeyframeBlock`, `noEmptyBlock`, `noImportantInKeyframe`, `noShorthandPropertyOverrides`, `noUnknownAtRules`.
+
 ## Supressões
 
 A supressão é `// oxlint-disable-next-line <regra> -- <motivo>`, ou `{/* ... */}` em JSX. O `no-await-in-loop` acusa cada `await` do laço, e o `biome-ignore` cobria o laço inteiro; onde o laço tem mais de um `await`, o par `// oxlint-disable no-await-in-loop -- <motivo>` e `// oxlint-enable no-await-in-loop` cobre o mesmo trecho. Na troca do Biome, cada `biome-ignore` virou a supressão da regra do Oxlint que acusa ali; os 4 onde a regra do Oxlint não acusa saíram (`edicao-do-curso.ts`, `questionario-da-aula.tsx`, `topicos-do-curso.tsx` e `material-de-apoio.tsx`).
