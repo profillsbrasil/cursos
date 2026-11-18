@@ -1,99 +1,710 @@
 {
-  "version": "8",
+  "type": "base",
+  "version": "9",
   "dialect": "postgres",
   "id": "8e747f81-3d68-46fe-9594-2d92bd5eb91e",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
-  "ddl": [
+  "footprints": [
     {
-      "values": ["em_producao", "publicado"],
-      "name": "curso_status",
-      "entityType": "enums",
-      "schema": "public"
+      "statementType": "create_enum",
+      "statementTarget": ["enum", "public", "curso_status"],
+      "writes": [
+        "s|enum|public.curso_status",
+        "n|enum|public.curso_status",
+        "e|enum|public.curso_status",
+        "n|type|public.curso_status"
+      ],
+      "reads": ["n|sch|public"]
     },
     {
+      "statementType": "create_enum",
+      "statementTarget": ["enum", "public", "motivo_ponto"],
+      "writes": [
+        "s|enum|public.motivo_ponto",
+        "n|enum|public.motivo_ponto",
+        "e|enum|public.motivo_ponto",
+        "n|type|public.motivo_ponto"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "liberacao"],
+      "writes": [
+        "s|tbl|public.liberacao",
+        "n|tbl|public.liberacao",
+        "e|tbl|public.liberacao",
+        "n|rel|public.liberacao",
+        "n|type|public.liberacao",
+        "n|rel|public.liberacao_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "aula"],
+      "writes": [
+        "s|tbl|public.aula",
+        "n|tbl|public.aula",
+        "e|tbl|public.aula",
+        "n|rel|public.aula",
+        "n|type|public.aula",
+        "n|rel|public.aula_pkey",
+        "n|rel|public.aula_posicao_unica"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "curso"],
+      "writes": [
+        "s|tbl|public.curso",
+        "n|tbl|public.curso",
+        "e|tbl|public.curso",
+        "n|rel|public.curso",
+        "n|type|public.curso",
+        "n|rel|public.curso_pkey",
+        "n|rel|public.curso_codigo_key",
+        "n|rel|public.curso_slug_key"
+      ],
+      "reads": ["n|sch|public", "n|enum|public.curso_status"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "modulo"],
+      "writes": [
+        "s|tbl|public.modulo",
+        "n|tbl|public.modulo",
+        "e|tbl|public.modulo",
+        "n|rel|public.modulo",
+        "n|type|public.modulo",
+        "n|rel|public.modulo_pkey",
+        "n|rel|public.modulo_numero_unico"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "nivel"],
+      "writes": [
+        "s|tbl|public.nivel",
+        "n|tbl|public.nivel",
+        "e|tbl|public.nivel",
+        "n|rel|public.nivel",
+        "n|type|public.nivel",
+        "n|rel|public.nivel_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "trilha"],
+      "writes": [
+        "s|tbl|public.trilha",
+        "n|tbl|public.trilha",
+        "e|tbl|public.trilha",
+        "n|rel|public.trilha",
+        "n|type|public.trilha",
+        "n|rel|public.trilha_pkey",
+        "n|rel|public.trilha_slug_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "trilha_curso"],
+      "writes": [
+        "s|tbl|public.trilha_curso",
+        "n|tbl|public.trilha_curso",
+        "e|tbl|public.trilha_curso",
+        "n|rel|public.trilha_curso",
+        "n|type|public.trilha_curso",
+        "n|rel|public.trilha_curso_pkey",
+        "n|rel|public.trilha_curso_posicao_unica"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "comunicado"],
+      "writes": [
+        "s|tbl|public.comunicado",
+        "n|tbl|public.comunicado",
+        "e|tbl|public.comunicado",
+        "n|rel|public.comunicado",
+        "n|type|public.comunicado",
+        "n|rel|public.comunicado_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "aula_assistida"],
+      "writes": [
+        "s|tbl|public.aula_assistida",
+        "n|tbl|public.aula_assistida",
+        "e|tbl|public.aula_assistida",
+        "n|rel|public.aula_assistida",
+        "n|type|public.aula_assistida",
+        "n|rel|public.aula_assistida_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "certificado"],
+      "writes": [
+        "s|tbl|public.certificado",
+        "n|tbl|public.certificado",
+        "e|tbl|public.certificado",
+        "n|rel|public.certificado",
+        "n|type|public.certificado",
+        "n|rel|public.certificado_pkey",
+        "n|rel|public.certificado_um_por_curso",
+        "n|rel|public.certificado_codigo_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "posicao_aula"],
+      "writes": [
+        "s|tbl|public.posicao_aula",
+        "n|tbl|public.posicao_aula",
+        "e|tbl|public.posicao_aula",
+        "n|rel|public.posicao_aula",
+        "n|type|public.posicao_aula",
+        "n|rel|public.posicao_aula_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "ponto_lancamento"],
+      "writes": [
+        "s|tbl|public.ponto_lancamento",
+        "n|tbl|public.ponto_lancamento",
+        "e|tbl|public.ponto_lancamento",
+        "n|rel|public.ponto_lancamento",
+        "n|type|public.ponto_lancamento",
+        "n|rel|public.ponto_lancamento_pkey",
+        "n|rel|public.ponto_aula_uma_vez",
+        "n|rel|public.ponto_curso_uma_vez",
+        "n|rel|public.ponto_trilha_uma_vez",
+        "n|rel|public.ponto_sequencia_uma_vez"
+      ],
+      "reads": ["n|sch|public", "n|enum|public.motivo_ponto"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "liberacao",
+        "liberacao_trilha_ativa_unica"
+      ],
+      "writes": [
+        "s|idx|public.liberacao_trilha_ativa_unica",
+        "n|idx|public.liberacao_trilha_ativa_unica",
+        "e|idx|public.liberacao_trilha_ativa_unica",
+        "n|rel|public.liberacao_trilha_ativa_unica"
+      ],
+      "reads": [
+        "n|tbl|public.liberacao",
+        "n|sch|public",
+        "n|col|public.liberacao.user_id",
+        "n|col|public.liberacao.trilha_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "liberacao",
+        "liberacao_curso_ativa_unica"
+      ],
+      "writes": [
+        "s|idx|public.liberacao_curso_ativa_unica",
+        "n|idx|public.liberacao_curso_ativa_unica",
+        "e|idx|public.liberacao_curso_ativa_unica",
+        "n|rel|public.liberacao_curso_ativa_unica"
+      ],
+      "reads": [
+        "n|tbl|public.liberacao",
+        "n|sch|public",
+        "n|col|public.liberacao.user_id",
+        "n|col|public.liberacao.curso_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "liberacao",
+        "liberacao_ativa_por_pessoa"
+      ],
+      "writes": [
+        "s|idx|public.liberacao_ativa_por_pessoa",
+        "n|idx|public.liberacao_ativa_por_pessoa",
+        "e|idx|public.liberacao_ativa_por_pessoa",
+        "n|rel|public.liberacao_ativa_por_pessoa"
+      ],
+      "reads": [
+        "n|tbl|public.liberacao",
+        "n|sch|public",
+        "n|col|public.liberacao.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "comunicado",
+        "comunicado_recentes"
+      ],
+      "writes": [
+        "s|idx|public.comunicado_recentes",
+        "n|idx|public.comunicado_recentes",
+        "e|idx|public.comunicado_recentes",
+        "n|rel|public.comunicado_recentes"
+      ],
+      "reads": [
+        "n|tbl|public.comunicado",
+        "n|sch|public",
+        "n|col|public.comunicado.publicado_em"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "aula_assistida",
+        "aula_assistida_por_dia"
+      ],
+      "writes": [
+        "s|idx|public.aula_assistida_por_dia",
+        "n|idx|public.aula_assistida_por_dia",
+        "e|idx|public.aula_assistida_por_dia",
+        "n|rel|public.aula_assistida_por_dia"
+      ],
+      "reads": [
+        "n|tbl|public.aula_assistida",
+        "n|sch|public",
+        "n|col|public.aula_assistida.user_id",
+        "n|col|public.aula_assistida.dia"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "ponto_lancamento",
+        "ponto_lancamento_por_data"
+      ],
+      "writes": [
+        "s|idx|public.ponto_lancamento_por_data",
+        "n|idx|public.ponto_lancamento_por_data",
+        "e|idx|public.ponto_lancamento_por_data",
+        "n|rel|public.ponto_lancamento_por_data"
+      ],
+      "reads": [
+        "n|tbl|public.ponto_lancamento",
+        "n|sch|public",
+        "n|col|public.ponto_lancamento.user_id",
+        "n|col|public.ponto_lancamento.criado_em"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "liberacao"],
+      "writes": [
+        "s|fk|public.liberacao.liberacao_curso_id_curso_id_fkey",
+        "n|fk|public.liberacao.liberacao_curso_id_curso_id_fkey",
+        "e|fk|public.liberacao.liberacao_curso_id_curso_id_fkey",
+        "n|con|public.liberacao.liberacao_curso_id_curso_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.liberacao",
+        "n|sch|public",
+        "n|tbl|public.curso",
+        "n|sch|public",
+        "n|col|public.liberacao.curso_id",
+        "n|col|public.curso.id",
+        "e|uniqueness|public.curso.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "liberacao"],
+      "writes": [
+        "s|fk|public.liberacao.liberacao_trilha_id_trilha_id_fkey",
+        "n|fk|public.liberacao.liberacao_trilha_id_trilha_id_fkey",
+        "e|fk|public.liberacao.liberacao_trilha_id_trilha_id_fkey",
+        "n|con|public.liberacao.liberacao_trilha_id_trilha_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.liberacao",
+        "n|sch|public",
+        "n|tbl|public.trilha",
+        "n|sch|public",
+        "n|col|public.liberacao.trilha_id",
+        "n|col|public.trilha.id",
+        "e|uniqueness|public.trilha.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "aula"],
+      "writes": [
+        "s|fk|public.aula.aula_modulo_id_modulo_id_fkey",
+        "n|fk|public.aula.aula_modulo_id_modulo_id_fkey",
+        "e|fk|public.aula.aula_modulo_id_modulo_id_fkey",
+        "n|con|public.aula.aula_modulo_id_modulo_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.aula",
+        "n|sch|public",
+        "n|tbl|public.modulo",
+        "n|sch|public",
+        "n|col|public.aula.modulo_id",
+        "n|col|public.modulo.id",
+        "e|uniqueness|public.modulo.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "modulo"],
+      "writes": [
+        "s|fk|public.modulo.modulo_curso_id_curso_id_fkey",
+        "n|fk|public.modulo.modulo_curso_id_curso_id_fkey",
+        "e|fk|public.modulo.modulo_curso_id_curso_id_fkey",
+        "n|con|public.modulo.modulo_curso_id_curso_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.modulo",
+        "n|sch|public",
+        "n|tbl|public.curso",
+        "n|sch|public",
+        "n|col|public.modulo.curso_id",
+        "n|col|public.curso.id",
+        "e|uniqueness|public.curso.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "modulo"],
+      "writes": [
+        "s|fk|public.modulo.modulo_nivel_do_mesmo_curso",
+        "n|fk|public.modulo.modulo_nivel_do_mesmo_curso",
+        "e|fk|public.modulo.modulo_nivel_do_mesmo_curso",
+        "n|con|public.modulo.modulo_nivel_do_mesmo_curso"
+      ],
+      "reads": [
+        "n|tbl|public.modulo",
+        "n|sch|public",
+        "n|tbl|public.nivel",
+        "n|sch|public",
+        "n|col|public.modulo.curso_id",
+        "n|col|public.modulo.nivel_ordem",
+        "n|col|public.nivel.curso_id",
+        "n|col|public.nivel.ordem",
+        "e|uniqueness|public.nivel.curso_id.ordem"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "nivel"],
+      "writes": [
+        "s|fk|public.nivel.nivel_curso_id_curso_id_fkey",
+        "n|fk|public.nivel.nivel_curso_id_curso_id_fkey",
+        "e|fk|public.nivel.nivel_curso_id_curso_id_fkey",
+        "n|con|public.nivel.nivel_curso_id_curso_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.nivel",
+        "n|sch|public",
+        "n|tbl|public.curso",
+        "n|sch|public",
+        "n|col|public.nivel.curso_id",
+        "n|col|public.curso.id",
+        "e|uniqueness|public.curso.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "trilha_curso"],
+      "writes": [
+        "s|fk|public.trilha_curso.trilha_curso_curso_id_curso_id_fkey",
+        "n|fk|public.trilha_curso.trilha_curso_curso_id_curso_id_fkey",
+        "e|fk|public.trilha_curso.trilha_curso_curso_id_curso_id_fkey",
+        "n|con|public.trilha_curso.trilha_curso_curso_id_curso_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.trilha_curso",
+        "n|sch|public",
+        "n|tbl|public.curso",
+        "n|sch|public",
+        "n|col|public.trilha_curso.curso_id",
+        "n|col|public.curso.id",
+        "e|uniqueness|public.curso.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "trilha_curso"],
+      "writes": [
+        "s|fk|public.trilha_curso.trilha_curso_trilha_id_trilha_id_fkey",
+        "n|fk|public.trilha_curso.trilha_curso_trilha_id_trilha_id_fkey",
+        "e|fk|public.trilha_curso.trilha_curso_trilha_id_trilha_id_fkey",
+        "n|con|public.trilha_curso.trilha_curso_trilha_id_trilha_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.trilha_curso",
+        "n|sch|public",
+        "n|tbl|public.trilha",
+        "n|sch|public",
+        "n|col|public.trilha_curso.trilha_id",
+        "n|col|public.trilha.id",
+        "e|uniqueness|public.trilha.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "comunicado"],
+      "writes": [
+        "s|fk|public.comunicado.comunicado_curso_id_curso_id_fkey",
+        "n|fk|public.comunicado.comunicado_curso_id_curso_id_fkey",
+        "e|fk|public.comunicado.comunicado_curso_id_curso_id_fkey",
+        "n|con|public.comunicado.comunicado_curso_id_curso_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.comunicado",
+        "n|sch|public",
+        "n|tbl|public.curso",
+        "n|sch|public",
+        "n|col|public.comunicado.curso_id",
+        "n|col|public.curso.id",
+        "e|uniqueness|public.curso.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "aula_assistida"],
+      "writes": [
+        "s|fk|public.aula_assistida.aula_assistida_aula_id_aula_id_fkey",
+        "n|fk|public.aula_assistida.aula_assistida_aula_id_aula_id_fkey",
+        "e|fk|public.aula_assistida.aula_assistida_aula_id_aula_id_fkey",
+        "n|con|public.aula_assistida.aula_assistida_aula_id_aula_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.aula_assistida",
+        "n|sch|public",
+        "n|tbl|public.aula",
+        "n|sch|public",
+        "n|col|public.aula_assistida.aula_id",
+        "n|col|public.aula.id",
+        "e|uniqueness|public.aula.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "certificado"],
+      "writes": [
+        "s|fk|public.certificado.certificado_curso_id_curso_id_fkey",
+        "n|fk|public.certificado.certificado_curso_id_curso_id_fkey",
+        "e|fk|public.certificado.certificado_curso_id_curso_id_fkey",
+        "n|con|public.certificado.certificado_curso_id_curso_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.certificado",
+        "n|sch|public",
+        "n|tbl|public.curso",
+        "n|sch|public",
+        "n|col|public.certificado.curso_id",
+        "n|col|public.curso.id",
+        "e|uniqueness|public.curso.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "posicao_aula"],
+      "writes": [
+        "s|fk|public.posicao_aula.posicao_aula_aula_id_aula_id_fkey",
+        "n|fk|public.posicao_aula.posicao_aula_aula_id_aula_id_fkey",
+        "e|fk|public.posicao_aula.posicao_aula_aula_id_aula_id_fkey",
+        "n|con|public.posicao_aula.posicao_aula_aula_id_aula_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.posicao_aula",
+        "n|sch|public",
+        "n|tbl|public.aula",
+        "n|sch|public",
+        "n|col|public.posicao_aula.aula_id",
+        "n|col|public.aula.id",
+        "e|uniqueness|public.aula.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "ponto_lancamento"],
+      "writes": [
+        "s|fk|public.ponto_lancamento.ponto_lancamento_trilha_id_trilha_id_fkey",
+        "n|fk|public.ponto_lancamento.ponto_lancamento_trilha_id_trilha_id_fkey",
+        "e|fk|public.ponto_lancamento.ponto_lancamento_trilha_id_trilha_id_fkey",
+        "n|con|public.ponto_lancamento.ponto_lancamento_trilha_id_trilha_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ponto_lancamento",
+        "n|sch|public",
+        "n|tbl|public.trilha",
+        "n|sch|public",
+        "n|col|public.ponto_lancamento.trilha_id",
+        "n|col|public.trilha.id",
+        "e|uniqueness|public.trilha.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "ponto_lancamento"],
+      "writes": [
+        "s|fk|public.ponto_lancamento.ponto_aula_assistida_fk",
+        "n|fk|public.ponto_lancamento.ponto_aula_assistida_fk",
+        "e|fk|public.ponto_lancamento.ponto_aula_assistida_fk",
+        "n|con|public.ponto_lancamento.ponto_aula_assistida_fk"
+      ],
+      "reads": [
+        "n|tbl|public.ponto_lancamento",
+        "n|sch|public",
+        "n|tbl|public.aula_assistida",
+        "n|sch|public",
+        "n|col|public.ponto_lancamento.user_id",
+        "n|col|public.ponto_lancamento.aula_id",
+        "n|col|public.aula_assistida.user_id",
+        "n|col|public.aula_assistida.aula_id",
+        "e|uniqueness|public.aula_assistida.aula_id.user_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "ponto_lancamento"],
+      "writes": [
+        "s|fk|public.ponto_lancamento.ponto_certificado_fk",
+        "n|fk|public.ponto_lancamento.ponto_certificado_fk",
+        "e|fk|public.ponto_lancamento.ponto_certificado_fk",
+        "n|con|public.ponto_lancamento.ponto_certificado_fk"
+      ],
+      "reads": [
+        "n|tbl|public.ponto_lancamento",
+        "n|sch|public",
+        "n|tbl|public.certificado",
+        "n|sch|public",
+        "n|col|public.ponto_lancamento.user_id",
+        "n|col|public.ponto_lancamento.curso_id",
+        "n|col|public.certificado.user_id",
+        "n|col|public.certificado.curso_id",
+        "e|uniqueness|public.certificado.curso_id.user_id"
+      ]
+    }
+  ],
+  "ddl": [
+    {
+      "schema": "public",
+      "name": "liberacao",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "aula",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "curso",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "modulo",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "nivel",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "trilha",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "trilha_curso",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "comunicado",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "aula_assistida",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "certificado",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "posicao_aula",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "ponto_lancamento",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "curso_status",
+      "values": ["em_producao", "publicado"],
+      "entityType": "enums"
+    },
+    {
+      "schema": "public",
+      "name": "motivo_ponto",
       "values": [
         "aula_assistida",
         "curso_concluido",
         "trilha_concluida",
         "sequencia_7_dias"
       ],
-      "name": "motivo_ponto",
-      "entityType": "enums",
-      "schema": "public"
+      "entityType": "enums"
     },
     {
-      "isRlsEnabled": false,
-      "name": "liberacao",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "aula",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "curso",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "modulo",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "nivel",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "trilha",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "trilha_curso",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "comunicado",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "aula_assistida",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "certificado",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "posicao_aula",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "ponto_lancamento",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -101,12 +712,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -114,12 +725,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberada_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -127,12 +738,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "liberada_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberada_por",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -140,12 +751,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "liberada_por",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "revogada_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -153,12 +764,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "revogada_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "revogada_por",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -166,12 +777,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "revogada_por",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "trilha_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -179,12 +790,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "trilha_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "user_id",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -192,12 +803,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "aula",
+      "name": "duracao_seg",
       "type": "integer",
       "typeSchema": null,
       "notNull": true,
@@ -205,12 +816,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "duracao_seg",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "aula",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -218,12 +829,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "aula",
+      "name": "modulo_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -231,12 +842,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "modulo_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "aula",
+      "name": "posicao",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -244,25 +855,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "posicao",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula"
+      "entityType": "columns"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "aula",
       "name": "titulo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -270,12 +868,12 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "curso",
       "name": "capa_alt",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -283,12 +881,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "capa_url",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "capa_url",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "curso",
+      "name": "codigo",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -296,12 +907,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "codigo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "criado_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -309,12 +920,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "criado_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "destaque",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -322,12 +933,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "destaque",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -335,12 +946,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "slug",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -348,12 +959,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "slug",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "status",
       "type": "curso_status",
       "typeSchema": "public",
       "notNull": true,
@@ -361,25 +972,12 @@
       "default": "'em_producao'",
       "generated": null,
       "identity": null,
-      "name": "status",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "curso",
       "name": "tema",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -387,12 +985,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "titulo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "titulo",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "modulo",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -400,12 +1011,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "modulo",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -413,25 +1024,25 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "columns"
     },
     {
-      "type": "smallint",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "modulo",
       "name": "nivel_ordem",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "modulo"
+      "type": "smallint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "modulo",
+      "name": "numero",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -439,12 +1050,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "numero",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "modulo",
+      "name": "titulo",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -452,12 +1063,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "titulo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "nivel",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -465,12 +1076,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "nivel"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "nivel",
+      "name": "nome",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -478,12 +1089,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "nome",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "nivel"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "nivel",
+      "name": "ordem",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -491,12 +1102,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ordem",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "nivel"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "trilha",
+      "name": "criada_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -504,12 +1115,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "criada_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "trilha",
+      "name": "descricao",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -517,12 +1128,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "descricao",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "trilha",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -530,25 +1141,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha"
+      "entityType": "columns"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "trilha",
       "name": "slug",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -556,12 +1154,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "titulo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "trilha",
+      "name": "titulo",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "trilha_curso",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -569,12 +1180,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha_curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "trilha_curso",
+      "name": "posicao",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -582,12 +1193,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "posicao",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha_curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "trilha_curso",
+      "name": "trilha_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -595,12 +1206,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "trilha_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "trilha_curso"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "comunicado",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -608,12 +1219,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "comunicado"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "comunicado",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -621,64 +1232,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "comunicado"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "comunicado",
       "name": "publicado_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "comunicado"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "publicado_por",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "comunicado"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "texto",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "comunicado"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "titulo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "comunicado"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -686,12 +1245,64 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "assistida_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula_assistida"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "comunicado",
+      "name": "publicado_por",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comunicado",
+      "name": "texto",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comunicado",
+      "name": "titulo",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "aula_assistida",
+      "name": "assistida_em",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "aula_assistida",
+      "name": "aula_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -699,12 +1310,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "aula_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula_assistida"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "aula_assistida",
+      "name": "dia",
       "type": "date",
       "typeSchema": null,
       "notNull": true,
@@ -715,25 +1326,12 @@
         "type": "stored"
       },
       "identity": null,
-      "name": "dia",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula_assistida"
+      "entityType": "columns"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "aula_assistida",
       "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "aula_assistida"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -741,12 +1339,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "codigo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "codigo",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "certificado",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -754,12 +1365,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "emitido_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -767,12 +1378,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "emitido_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -780,12 +1391,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "user_id",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -793,12 +1404,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "posicao_aula",
+      "name": "atualizada_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -806,12 +1417,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "atualizada_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "posicao_aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "posicao_aula",
+      "name": "aula_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -819,12 +1430,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "aula_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "posicao_aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "posicao_aula",
+      "name": "posicao_seg",
       "type": "integer",
       "typeSchema": null,
       "notNull": true,
@@ -832,12 +1443,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "posicao_seg",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "posicao_aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "posicao_aula",
+      "name": "user_id",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -845,12 +1456,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "posicao_aula"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "aula_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -858,12 +1469,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "aula_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "criado_em",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -871,12 +1482,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "criado_em",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "curso_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -884,12 +1495,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "curso_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "dia_marco",
       "type": "date",
       "typeSchema": null,
       "notNull": false,
@@ -897,12 +1508,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "dia_marco",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -910,12 +1521,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "motivo",
       "type": "motivo_ponto",
       "typeSchema": "public",
       "notNull": true,
@@ -923,12 +1534,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "motivo",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "pontos",
       "type": "integer",
       "typeSchema": null,
       "notNull": true,
@@ -936,12 +1547,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "pontos",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "trilha_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -949,12 +1560,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "trilha_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "user_id",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -962,12 +1573,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberacao_trilha_ativa_unica",
       "nameExplicit": true,
       "columns": [
         {
@@ -990,12 +1601,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "liberacao_trilha_ativa_unica",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberacao_curso_ativa_unica",
       "nameExplicit": true,
       "columns": [
         {
@@ -1018,12 +1629,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "liberacao_curso_ativa_unica",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberacao_ativa_por_pessoa",
       "nameExplicit": true,
       "columns": [
         {
@@ -1039,12 +1650,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "liberacao_ativa_por_pessoa",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "comunicado",
+      "name": "comunicado_recentes",
       "nameExplicit": true,
       "columns": [
         {
@@ -1060,12 +1671,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "comunicado_recentes",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "comunicado"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "aula_assistida",
+      "name": "aula_assistida_por_dia",
       "nameExplicit": true,
       "columns": [
         {
@@ -1088,12 +1699,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "aula_assistida_por_dia",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "aula_assistida"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_lancamento_por_data",
       "nameExplicit": true,
       "columns": [
         {
@@ -1116,12 +1727,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "ponto_lancamento_por_data",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberacao_curso_id_curso_id_fkey",
       "nameExplicit": false,
       "columns": ["curso_id"],
       "schemaTo": "public",
@@ -1129,12 +1740,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "liberacao_curso_id_curso_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "liberacao",
+      "name": "liberacao_trilha_id_trilha_id_fkey",
       "nameExplicit": false,
       "columns": ["trilha_id"],
       "schemaTo": "public",
@@ -1142,12 +1753,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "liberacao_trilha_id_trilha_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "liberacao"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "aula",
+      "name": "aula_modulo_id_modulo_id_fkey",
       "nameExplicit": false,
       "columns": ["modulo_id"],
       "schemaTo": "public",
@@ -1155,12 +1766,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "aula_modulo_id_modulo_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "aula"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "modulo",
+      "name": "modulo_curso_id_curso_id_fkey",
       "nameExplicit": false,
       "columns": ["curso_id"],
       "schemaTo": "public",
@@ -1168,12 +1779,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "modulo_curso_id_curso_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "modulo",
+      "name": "modulo_nivel_do_mesmo_curso",
       "nameExplicit": true,
       "columns": ["curso_id", "nivel_ordem"],
       "schemaTo": "public",
@@ -1181,64 +1792,64 @@
       "columnsTo": ["curso_id", "ordem"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "modulo_nivel_do_mesmo_curso",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "fks"
     },
     {
-      "nameExplicit": false,
-      "columns": ["curso_id"],
-      "schemaTo": "public",
-      "tableTo": "curso",
-      "columnsTo": ["id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "schema": "public",
+      "table": "nivel",
       "name": "nivel_curso_id_curso_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "nivel"
-    },
-    {
       "nameExplicit": false,
       "columns": ["curso_id"],
       "schemaTo": "public",
       "tableTo": "curso",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "trilha_curso",
       "name": "trilha_curso_curso_id_curso_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "trilha_curso"
-    },
-    {
       "nameExplicit": false,
-      "columns": ["trilha_id"],
+      "columns": ["curso_id"],
       "schemaTo": "public",
-      "tableTo": "trilha",
+      "tableTo": "curso",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "RESTRICT",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "trilha_curso",
       "name": "trilha_curso_trilha_id_trilha_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "trilha_curso"
-    },
-    {
       "nameExplicit": false,
-      "columns": ["curso_id"],
+      "columns": ["trilha_id"],
       "schemaTo": "public",
-      "tableTo": "curso",
+      "tableTo": "trilha",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "comunicado",
       "name": "comunicado_curso_id_curso_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "comunicado"
+      "nameExplicit": false,
+      "columns": ["curso_id"],
+      "schemaTo": "public",
+      "tableTo": "curso",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "aula_assistida",
+      "name": "aula_assistida_aula_id_aula_id_fkey",
       "nameExplicit": false,
       "columns": ["aula_id"],
       "schemaTo": "public",
@@ -1246,12 +1857,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "aula_assistida_aula_id_aula_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "aula_assistida"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "certificado_curso_id_curso_id_fkey",
       "nameExplicit": false,
       "columns": ["curso_id"],
       "schemaTo": "public",
@@ -1259,12 +1870,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "certificado_curso_id_curso_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "posicao_aula",
+      "name": "posicao_aula_aula_id_aula_id_fkey",
       "nameExplicit": false,
       "columns": ["aula_id"],
       "schemaTo": "public",
@@ -1272,12 +1883,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "posicao_aula_aula_id_aula_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "posicao_aula"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_lancamento_trilha_id_trilha_id_fkey",
       "nameExplicit": false,
       "columns": ["trilha_id"],
       "schemaTo": "public",
@@ -1285,12 +1896,12 @@
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "ponto_lancamento_trilha_id_trilha_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_aula_assistida_fk",
       "nameExplicit": true,
       "columns": ["user_id", "aula_id"],
       "schemaTo": "public",
@@ -1298,12 +1909,12 @@
       "columnsTo": ["user_id", "aula_id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "ponto_aula_assistida_fk",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_certificado_fk",
       "nameExplicit": true,
       "columns": ["user_id", "curso_id"],
       "schemaTo": "public",
@@ -1311,313 +1922,309 @@
       "columnsTo": ["user_id", "curso_id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
-      "name": "ponto_certificado_fk",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "nivel",
+      "name": "nivel_pkey",
       "columns": ["curso_id", "ordem"],
       "nameExplicit": false,
-      "name": "nivel_pkey",
-      "entityType": "pks",
-      "schema": "public",
-      "table": "nivel"
+      "entityType": "pks"
     },
     {
-      "columns": ["user_id", "aula_id"],
-      "nameExplicit": false,
+      "schema": "public",
+      "table": "aula_assistida",
       "name": "aula_assistida_pkey",
-      "entityType": "pks",
-      "schema": "public",
-      "table": "aula_assistida"
-    },
-    {
       "columns": ["user_id", "aula_id"],
       "nameExplicit": false,
-      "name": "posicao_aula_pkey",
-      "entityType": "pks",
-      "schema": "public",
-      "table": "posicao_aula"
+      "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "schema": "public",
+      "table": "posicao_aula",
+      "name": "posicao_aula_pkey",
+      "columns": ["user_id", "aula_id"],
       "nameExplicit": false,
-      "name": "liberacao_pkey",
+      "entityType": "pks"
+    },
+    {
       "schema": "public",
       "table": "liberacao",
+      "name": "liberacao_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "aula_pkey",
       "schema": "public",
       "table": "aula",
+      "name": "aula_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "curso_pkey",
       "schema": "public",
       "table": "curso",
+      "name": "curso_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "modulo_pkey",
       "schema": "public",
       "table": "modulo",
+      "name": "modulo_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "trilha_pkey",
       "schema": "public",
       "table": "trilha",
+      "name": "trilha_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["curso_id"],
-      "nameExplicit": false,
-      "name": "trilha_curso_pkey",
       "schema": "public",
       "table": "trilha_curso",
+      "name": "trilha_curso_pkey",
+      "columns": ["curso_id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "comunicado_pkey",
       "schema": "public",
       "table": "comunicado",
+      "name": "comunicado_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "certificado_pkey",
       "schema": "public",
       "table": "certificado",
-      "entityType": "pks"
-    },
-    {
+      "name": "certificado_pkey",
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "ponto_lancamento_pkey",
-      "schema": "public",
-      "table": "ponto_lancamento",
       "entityType": "pks"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_lancamento_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "aula",
+      "name": "aula_posicao_unica",
       "nameExplicit": true,
       "columns": ["modulo_id", "posicao"],
       "nullsNotDistinct": false,
-      "name": "aula_posicao_unica",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "aula"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "modulo",
+      "name": "modulo_numero_unico",
       "nameExplicit": true,
       "columns": ["curso_id", "numero"],
       "nullsNotDistinct": false,
-      "name": "modulo_numero_unico",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "modulo"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "trilha_curso",
+      "name": "trilha_curso_posicao_unica",
       "nameExplicit": true,
       "columns": ["trilha_id", "posicao"],
       "nullsNotDistinct": false,
-      "name": "trilha_curso_posicao_unica",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "trilha_curso"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "certificado_um_por_curso",
       "nameExplicit": true,
       "columns": ["user_id", "curso_id"],
       "nullsNotDistinct": false,
-      "name": "certificado_um_por_curso",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "certificado"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_aula_uma_vez",
       "nameExplicit": true,
       "columns": ["user_id", "aula_id"],
       "nullsNotDistinct": false,
-      "name": "ponto_aula_uma_vez",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_curso_uma_vez",
       "nameExplicit": true,
       "columns": ["user_id", "curso_id"],
       "nullsNotDistinct": false,
-      "name": "ponto_curso_uma_vez",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_trilha_uma_vez",
       "nameExplicit": true,
       "columns": ["user_id", "trilha_id"],
       "nullsNotDistinct": false,
-      "name": "ponto_trilha_uma_vez",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "ponto_lancamento",
+      "name": "ponto_sequencia_uma_vez",
       "nameExplicit": true,
       "columns": ["user_id", "dia_marco"],
       "nullsNotDistinct": false,
-      "name": "ponto_sequencia_uma_vez",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "curso",
+      "name": "curso_codigo_key",
       "nameExplicit": false,
       "columns": ["codigo"],
       "nullsNotDistinct": false,
-      "name": "curso_codigo_key",
-      "schema": "public",
-      "table": "curso",
       "entityType": "uniques"
     },
     {
-      "nameExplicit": false,
-      "columns": ["slug"],
-      "nullsNotDistinct": false,
+      "schema": "public",
+      "table": "curso",
       "name": "curso_slug_key",
-      "schema": "public",
-      "table": "curso",
-      "entityType": "uniques"
-    },
-    {
       "nameExplicit": false,
       "columns": ["slug"],
       "nullsNotDistinct": false,
-      "name": "trilha_slug_key",
+      "entityType": "uniques"
+    },
+    {
       "schema": "public",
       "table": "trilha",
+      "name": "trilha_slug_key",
+      "nameExplicit": false,
+      "columns": ["slug"],
+      "nullsNotDistinct": false,
       "entityType": "uniques"
     },
     {
+      "schema": "public",
+      "table": "certificado",
+      "name": "certificado_codigo_key",
       "nameExplicit": false,
       "columns": ["codigo"],
       "nullsNotDistinct": false,
-      "name": "certificado_codigo_key",
-      "schema": "public",
-      "table": "certificado",
       "entityType": "uniques"
     },
     {
-      "value": "\"user_id\" ~ '^user_[A-Za-z0-9]+$'",
+      "schema": "public",
+      "table": "liberacao",
       "name": "liberacao_user_id_clerk",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "liberacao"
+      "value": "\"user_id\" ~ '^user_[A-Za-z0-9]+$'",
+      "entityType": "checks"
     },
     {
-      "value": "num_nonnulls(\"trilha_id\", \"curso_id\") = 1",
+      "schema": "public",
+      "table": "liberacao",
       "name": "liberacao_alvo_unico",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "liberacao"
+      "value": "num_nonnulls(\"trilha_id\", \"curso_id\") = 1",
+      "entityType": "checks"
     },
     {
-      "value": "(\"revogada_em\" is null) = (\"revogada_por\" is null)\n          and (\"revogada_em\" is null or \"revogada_em\" >= \"liberada_em\")",
+      "schema": "public",
+      "table": "liberacao",
       "name": "liberacao_revogacao_coerente",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "liberacao"
+      "value": "(\"revogada_em\" is null) = (\"revogada_por\" is null)\n          and (\"revogada_em\" is null or \"revogada_em\" >= \"liberada_em\")",
+      "entityType": "checks"
     },
     {
-      "value": "\"posicao\" >= 1",
+      "schema": "public",
+      "table": "aula",
       "name": "aula_posicao_positiva",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "aula"
-    },
-    {
-      "value": "\"duracao_seg\" > 0",
-      "name": "aula_duracao_positiva",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "aula"
-    },
-    {
-      "value": "\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'",
-      "name": "curso_slug_formato",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "curso"
-    },
-    {
-      "value": "length(trim(\"capa_alt\")) > 0",
-      "name": "curso_capa_alt_preenchido",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "curso"
-    },
-    {
-      "value": "\"numero\" >= 0",
-      "name": "modulo_numero_nao_negativo",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "modulo"
-    },
-    {
-      "value": "\"ordem\" >= 1",
-      "name": "nivel_ordem_positiva",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "nivel"
-    },
-    {
-      "value": "\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'",
-      "name": "trilha_slug_formato",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "trilha"
-    },
-    {
       "value": "\"posicao\" >= 1",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "aula",
+      "name": "aula_duracao_positiva",
+      "value": "\"duracao_seg\" > 0",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "curso",
+      "name": "curso_slug_formato",
+      "value": "\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "curso",
+      "name": "curso_capa_alt_preenchido",
+      "value": "length(trim(\"capa_alt\")) > 0",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "modulo",
+      "name": "modulo_numero_nao_negativo",
+      "value": "\"numero\" >= 0",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "nivel",
+      "name": "nivel_ordem_positiva",
+      "value": "\"ordem\" >= 1",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "trilha",
+      "name": "trilha_slug_formato",
+      "value": "\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "trilha_curso",
       "name": "trilha_curso_posicao_positiva",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "trilha_curso"
+      "value": "\"posicao\" >= 1",
+      "entityType": "checks"
     },
     {
-      "value": "\"posicao_seg\" >= 0",
+      "schema": "public",
+      "table": "posicao_aula",
       "name": "posicao_aula_nao_negativa",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "posicao_aula"
+      "value": "\"posicao_seg\" >= 0",
+      "entityType": "checks"
     },
     {
-      "value": "num_nonnulls(\"aula_id\", \"curso_id\", \"trilha_id\", \"dia_marco\") = 1\n          and case \"motivo\"\n            when 'aula_assistida' then \"aula_id\" is not null\n            when 'curso_concluido' then \"curso_id\" is not null\n            when 'trilha_concluida' then \"trilha_id\" is not null\n            when 'sequencia_7_dias' then \"dia_marco\" is not null\n          end",
+      "schema": "public",
+      "table": "ponto_lancamento",
       "name": "ponto_lancamento_referencia",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "ponto_lancamento"
+      "value": "num_nonnulls(\"aula_id\", \"curso_id\", \"trilha_id\", \"dia_marco\") = 1\n          and case \"motivo\"\n            when 'aula_assistida' then \"aula_id\" is not null\n            when 'curso_concluido' then \"curso_id\" is not null\n            when 'trilha_concluida' then \"trilha_id\" is not null\n            when 'sequencia_7_dias' then \"dia_marco\" is not null\n          end",
+      "entityType": "checks"
     },
     {
-      "value": "\"pontos\" > 0",
-      "name": "ponto_lancamento_positivo",
-      "entityType": "checks",
       "schema": "public",
-      "table": "ponto_lancamento"
+      "table": "ponto_lancamento",
+      "name": "ponto_lancamento_positivo",
+      "value": "\"pontos\" > 0",
+      "entityType": "checks"
     }
-  ],
-  "renames": []
+  ]
 }
