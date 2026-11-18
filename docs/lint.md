@@ -40,19 +40,19 @@ Contagem do `oxlint -f json .` com os presets `core`, `react` e `next`, depois d
 | Regra | Ocorrências | Decisão | Motivo |
 | --- | --- | --- | --- |
 | `eslint(func-style)` | 1.065 | (b) desligada | O preset pede expressão (`const f = () =>`), e o repo declara com `function`. |
-| `import(consistent-type-specifier-style)` | 476 | (b) desligada | O fix muda semântica: com `verbatimModuleSyntax`, `import { type A } from "x"` ainda carrega o módulo, e o `import type` que o fix escreve não carrega (4 imports só de tipo estão na forma inline). |
+| `import(consistent-type-specifier-style)` | 476 | (b) desligada | Estilo: nenhum import do repo tem só especificadores `type` na forma inline, então o fix não muda que módulo carrega; a regra só pede `import type` separado onde o repo mistura valor e tipo no mesmo import. |
 | `eslint(require-unicode-regexp)` | 411 | (b) desligada | O biome.jsonc já desligava (`useUnicodeRegex`): a flag `u` muda o que `.`, `\w` com `i` e as classes negadas casam, e recusa escapes que hoje valem. |
 | `unicorn(switch-case-braces)` | 228 | (b) desligada | Estilo: o repo escreve `case` sem chave em 236 lugares e com chave em 21. |
 | `eslint(prefer-named-capture-group)` | 178 | (b) desligada | O biome.jsonc já desligava (`useNamedCaptureGroup`): nomear os grupos não muda o que as regex fazem. |
 | `unicorn(no-await-expression-member)` | 164 | (b) desligada | Estilo: `(await x).y` é a forma do repo, e a regra não tem autofix. |
 | `unicorn(consistent-function-scoping)` | 115 | (b) desligada | Estilo: o repo mantém o ajudante perto de quem o usa; mover de escopo é refatoração sem defeito apontado. |
-| `unicorn(no-useless-undefined)` | 97 | (b) desligada | O fix muda semântica: tira o `undefined` do argumento, o que muda o `arguments.length` e quebra o tipo de parâmetro obrigatório `T | undefined`. |
+| `unicorn(no-useless-undefined)` | 97 | (b) desligada | Estilo: todas as ocorrências são `() => undefined`, em dublês de teste e callbacks vazios; nenhuma passa `undefined` como argumento. |
 | `unicorn(prefer-string-replace-all)` | 85 | (b) desligada | Estilo: o repo usa `.replace(/.../g)` em 48 lugares e `.replaceAll` em 17. |
 | `unicorn(catch-error-name)` | 67 | (b) desligada | Estilo: a regra pede `error`, e o repo nomeia em português (`erro`). |
 | `unicorn(import-style)` | 58 | (b) desligada | Estilo: a regra pede import default de `node:path` e afins, e o repo importa por nome. |
 | `unicorn(text-encoding-identifier-case)` | 56 | (b) desligada | Estilo: a regra pede `"utf-8"`, e o repo escreve `"utf8"` nos 49 lugares; o Node aceita os dois. |
 | `eslint(no-use-before-define)` | 54 | (b) desligada | Estilo: o repo põe o componente exportado em cima e os ajudantes `function` embaixo; o uso antes da declaração de `let` e `const` o `tsc` já recusa. |
-| `unicorn(no-array-sort)` | 51 | (b) desligada | O fix muda semântica: `toSorted` não muda o array original e pede ES2023 no navegador. |
+| `unicorn(no-array-sort)` | 51 | (b) desligada | Estilo: os casos ordenam um array novo (`.map(...).sort()`, `[...x].sort()`, literal), que ninguém mais lê; o único sobre array existente é `iguais.sort()` em `catalogo.integration.test.ts:166`, no último uso dele. |
 | `promise(prefer-catch)` | 41 | (b) desligada | O fix muda semântica: em `.then(ok, falha)`, a `falha` não pega o erro lançado pelo `ok`, e o `.catch` pegaria. |
 | `unicorn(no-array-reduce)` | 21 | (b) desligada | Estilo: os `reduce` encadeiam promessas em série nos testes de navegador. |
 | `import(no-cycle)` | 20 | (b) desligada | O biome.jsonc já desligava (`noImportCycles`): o ciclo é `index.ts` -> `consultas/*` -> `index.ts` pelo `ErroParaAPessoa`. |
@@ -75,7 +75,7 @@ Contagem do `oxlint -f json .` com os presets `core`, `react` e `next`, depois d
 | `react(memo-dependencies)` | 4 | (c) à mão | Os mesmos 4 `useCallback` do `react-hooks(exhaustive-deps)`; a correção de lá zera esta. |
 | `react-hooks(exhaustive-deps)` | 4 | (c) à mão | Dependência faltando: o `useCallback` chama `edicao.executar` sem `edicao` nas deps. A correção desestrutura `executar`, como `categorias.tsx` já fazia com `limpar`; `executar` é arrow function e não usa `this`. |
 | `eslint(complexity)` | 3 | (b) desligada | Estilo: os 3 casos são o redutor do editor e um teste de medida; partir as funções é refatoração sem defeito apontado. |
-| `unicorn(no-array-reverse)` | 3 | (b) desligada | O fix muda semântica: `toReversed` não muda o array original e pede ES2023. |
+| `unicorn(no-array-reverse)` | 3 | (b) desligada | Estilo: os 3 casos invertem um array novo (`splice(0).reverse()` e `Object.entries(d).reverse()`), que ninguém mais lê. |
 | `unicorn(no-new-array)` | 3 | (b) desligada | Estilo: os 3 casos são de teste e usam `new Array(n)` só pelo tamanho. |
 | `react(preserve-manual-memoization)` | 3 | (b) desligada | Diagnóstico de otimização do React Compiler, não defeito: o build compila igual com e sem a regra. |
 | `eslint(require-await)` | 3 | (b) desligada | Estilo: os 3 casos são dublês de teste que precisam devolver Promise. |
