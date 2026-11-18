@@ -18,7 +18,7 @@ import { versaoDe } from "./versao";
 export function versaoDoCurso(
   documento: DocumentoDoCurso,
   capaUrl: string | null
-): Versao {
+) {
   const { versao: _, ...conteudo } = documento;
 
   return versaoDe({ ...conteudo, capaUrl });
@@ -61,7 +61,7 @@ export type Plano =
 
 export type PlanoDeGravacao = Extract<Plano, { tipo: "criar" | "atualizar" }>;
 
-const recusa = (r: RecusaDaEdicao): Plano => ({ recusa: r, tipo: "recusa" });
+const recusa = (r: RecusaDaEdicao) => ({ recusa: r, tipo: "recusa" });
 
 const idsDosModulos = (d: DocumentoDoCurso) => d.modulos.map((m) => m.id);
 const aulasDe = (d: DocumentoDoCurso) => d.modulos.flatMap((m) => m.aulas);
@@ -93,7 +93,7 @@ export function planejarCurso(
   atual: EdicaoDoCurso | null,
   desejado: DocumentoDoCurso,
   capaRecebida: ImagemDaCapa | null
-): Plano {
+) {
   if (atual === null) {
     if (desejado.versao !== null) {
       return recusa({ tipo: "sumiu" });

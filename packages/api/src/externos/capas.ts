@@ -53,7 +53,7 @@ export type CapaLida =
 const recusa = (r: RecusaDaCapa) => ({ recusa: r, tipo: "recusa" }) as const;
 
 /** Formato e medida pelo conteúdo, não pelo content-type que o navegador manda. */
-export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
+export function lerCapa(bytes: Uint8Array<ArrayBuffer>) {
   let medida: ReturnType<typeof imageSize>;
 
   try {
@@ -150,7 +150,7 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
       });
     },
     /** ListObjectsV2, página a página, até o fim do bucket. */
-    async listar(): Promise<ObjetoDoBucket[]> {
+    async listar() {
       const objetos: ObjetoDoBucket[] = [];
       let continuacao: string | undefined;
 
@@ -193,17 +193,14 @@ const ENTIDADES: Record<string, string> = {
 const ENTIDADE = /&(amp|apos|gt|lt|quot);/g;
 const CONTEUDO = /<Contents>([\s\S]*?)<\/Contents>/g;
 
-function campo(xml: string, nome: string): string | undefined {
+function campo(xml: string, nome: string) {
   const achado = new RegExp(`<${nome}>([^<]*)</${nome}>`).exec(xml)?.[1];
 
   return achado?.replace(ENTIDADE, (e) => ENTIDADES[e] ?? e);
 }
 
 /** O XML de uma página do ListObjectsV2: os objetos e o token da próxima, se houver. */
-export function lerPaginaDaListagem(xml: string): {
-  continuacao: string | undefined;
-  objetos: ObjetoDoBucket[];
-} {
+export function lerPaginaDaListagem(xml: string) {
   const objetos = [...xml.matchAll(CONTEUDO)].map(([, item = ""]) => {
     const chave = campo(item, "Key");
     const modificadoEm = new Date(campo(item, "LastModified") ?? "");
@@ -232,7 +229,7 @@ export function lerPaginaDaListagem(xml: string): {
 export function capasNoBucket(
   cfg: BucketDeCapas,
   enviar: typeof fetch = fetch
-): Capas {
+) {
   const bucket = bucketAssinado(cfg, enviar);
 
   return {

@@ -50,10 +50,7 @@ export type AuthDoClerk = Pick<SessionAuthObject, "sessionClaims" | "userId">;
  * Clerk manda null, e qualquer valor diferente de "admin" vale aluno: um erro de
  * configuração tira poder, nunca dá.
  */
-export function contextoDe(
-  clerk: AuthDoClerk | null,
-  servicos: Servicos
-): Context {
+export function contextoDe(clerk: AuthDoClerk | null, servicos: Servicos) {
   const userId = clerk?.userId;
 
   if (!userId) {

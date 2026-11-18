@@ -31,10 +31,7 @@ interface CursoParaConcluir extends CursoComAulas {
 }
 
 /** Um statement: o curso com os módulos, as aulas e as perguntas contadas. null sem o curso. */
-async function cursoParaConcluir(
-  tx: Transacao,
-  cursoId: CursoId
-): Promise<CursoParaConcluir | null> {
+async function cursoParaConcluir(tx: Transacao, cursoId: CursoId) {
   const linhas = await tx
     .select({
       aulaId: aula.id,
@@ -120,7 +117,7 @@ async function gravarCertificado(
   aluno: AlunoTravado,
   alvo: CursoParaConcluir,
   agora: Date
-): Promise<string> {
+) {
   for (let i = 0; i < SORTEIOS; i += 1) {
     const codigo = gerarCodigo();
 
@@ -157,7 +154,7 @@ export async function concluirCurso(
   aluno: AlunoTravado,
   cursoId: CursoId,
   agora: Date
-): Promise<Conclusao | null> {
+) {
   const alvo = await cursoParaConcluir(aluno.tx, cursoId);
 
   if (!(alvo && (await temAcessoAtivo(aluno, cursoId)))) {
@@ -198,7 +195,7 @@ export async function concluirParaQuemCompletou(
   tx: Transacao,
   cursoId: CursoId,
   agora: Date
-): Promise<void> {
+) {
   const { rows } = await tx.execute<{ user_id: string }>(sql`
     with aulas as (
       select ${aula.id} as id from ${aula}

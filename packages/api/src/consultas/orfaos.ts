@@ -5,7 +5,7 @@ import { curso, material } from "@cursos/db/schema/index";
 import type { ChavesEmUso } from "../dominio/orfaos";
 import type { Executor } from "./comum";
 
-export async function chavesEmUso(exec: Executor): Promise<ChavesEmUso> {
+export async function chavesEmUso(exec: Executor) {
   const [capas, materiais] = await Promise.all([
     exec.select({ url: curso.capaUrl }).from(curso),
     exec.select({ chave: material.chave }).from(material),

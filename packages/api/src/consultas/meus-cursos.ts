@@ -60,7 +60,7 @@ export function linhasDosQuestionarios(
   exec: Executor,
   userId: string,
   aulas?: readonly AulaId[]
-): Promise<LinhaDoQuestionario[]> {
+) {
   const t = questionarioTentativa;
 
   return exec
@@ -138,10 +138,7 @@ function consultasDoHistorico(
  * Statements 2 a 5 do painel, em paralelo: o histórico de estudo da pessoa.
  * O painel do aluno e a tela de acesso do admin leem o mesmo.
  */
-export async function linhasDoHistorico(
-  db: Database,
-  userId: string
-): Promise<LinhasHistorico> {
+export async function linhasDoHistorico(db: Database, userId: string) {
   const [assistidas, posicoes, certificados, questionarios] = await Promise.all(
     consultasDoHistorico(db, userId)
   );
@@ -157,7 +154,7 @@ export async function linhasDoHistorico(
 export async function linhasDoHistoricoNoCurso(
   aluno: AlunoTravado,
   noCurso: SoNoCurso
-): Promise<LinhasHistorico> {
+) {
   const [assistidas, posicoes, certificados, questionarios] =
     consultasDoHistorico(aluno.tx, aluno.userId, noCurso);
 
@@ -175,10 +172,7 @@ export async function linhasDoHistoricoNoCurso(
  * e a lista sai nessa ordem: a data e, no empate, o id da liberação. O curso sem
  * liberação própria ativa é a amostra, com o preço de troca.
  */
-export async function linhasDosCursosQueOAlunoVe(
-  exec: Executor,
-  aluno: Aluno
-): Promise<LinhasPainel["liberacoes"]> {
+export async function linhasDosCursosQueOAlunoVe(exec: Executor, aluno: Aluno) {
   const DA_LIBERACAO = { id: true, liberadaEm: true } as const;
 
   const cursos = await exec.query.curso.findMany({
@@ -265,11 +259,7 @@ export async function linhasDoResumo(
   return { dias, pontos };
 }
 
-export async function carregarPainel(
-  db: Database,
-  aluno: Aluno,
-  agora: Date
-): Promise<PainelMeusCursos> {
+export async function carregarPainel(db: Database, aluno: Aluno, agora: Date) {
   return montarPainel(await linhasDoPainel(db, aluno), diaLocal(agora));
 }
 
@@ -277,7 +267,7 @@ export async function carregarResumo(
   db: Database,
   userId: string,
   agora: Date
-): Promise<ResumoAluno> {
+) {
   const hoje = diaLocal(agora);
 
   return montarResumo(

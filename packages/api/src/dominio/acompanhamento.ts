@@ -94,9 +94,9 @@ export interface BuscaDeAlunos {
 
 // ---------- o estudo da pessoa ----------
 
-const diaDe = (iso: string): DiaISO => diaLocal(new Date(iso));
+const diaDe = (iso: string) => diaLocal(new Date(iso));
 
-const maisRecente = (dias: readonly (DiaISO | null)[]): DiaISO | null =>
+const maisRecente = (dias: readonly (DiaISO | null)[]) =>
   dias.reduce<DiaISO | null>(
     (max, dia) => (dia !== null && (max === null || dia > max) ? dia : max),
     null
@@ -106,7 +106,7 @@ const maisRecente = (dias: readonly (DiaISO | null)[]): DiaISO | null =>
  * Último estudo no curso: o dia mais recente, em São Paulo, de aula assistida,
  * de posição acima de 0 s ou do certificado. null: a pessoa nunca estudou o curso.
  */
-export function ultimoEstudo(curso: CursoComAulas, e: Estudo): DiaISO | null {
+export function ultimoEstudo(curso: CursoComAulas, e: Estudo) {
   let ultimo = e.historico.certificados.get(curso.id)?.emitidoEm ?? "";
 
   for (const modulo of curso.modulos) {
@@ -123,7 +123,7 @@ export function ultimoEstudo(curso: CursoComAulas, e: Estudo): DiaISO | null {
 }
 
 /** Curso em andamento ou com questionário pendente sempre tem estudo: a leitura do curso só chega lá com aula tocada. */
-function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
+function estudou(curso: CursoComAulas, e: Estudo) {
   const dia = ultimoEstudo(curso, e);
 
   if (!dia) {
@@ -137,7 +137,7 @@ function situacaoNoCurso(
   curso: CursoComAulas,
   { aulaDaVez, estado }: CursoDoAluno,
   e: Estudo
-): SituacaoNoCurso {
+) {
   switch (estado.tipo) {
     case "em_breve":
       return { tipo: "em_producao" };
@@ -174,10 +174,7 @@ function situacaoNoCurso(
 // ---------- o acompanhamento de uma liberação ----------
 
 /** O curso pela mesma leitura de Meus cursos. */
-export function acompanharCurso(
-  curso: CursoComAulas,
-  e: Estudo
-): Acompanhamento {
+export function acompanharCurso(curso: CursoComAulas, e: Estudo) {
   const leitura = lerCursoDoAluno(curso, e);
 
   return {
@@ -225,7 +222,7 @@ export interface LinhasDaBusca {
 type CatalogoDaBusca = (id: string) => CursoComAulas;
 
 /** O curso de cada id, como a leitura do curso pede. A virada lê o mesmo catálogo. */
-export function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
+export function catalogoDo(linhas: LinhasDaBusca) {
   const cursos = new Map(
     linhas.cursos.map((c) => [
       c.id,
@@ -259,10 +256,7 @@ export function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
 const maisAntiga = (datas: readonly Date[]) =>
   datas.reduce((min, d) => (d < min ? d : min));
 
-export function situacaoDaPessoa(
-  p: LinhasDaPessoa,
-  curso: CatalogoDaBusca
-): SituacaoDaPessoa {
+export function situacaoDaPessoa(p: LinhasDaPessoa, curso: CatalogoDaBusca) {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
 
   if (ativas.length === 0) {
@@ -313,7 +307,7 @@ export function montarBusca(
   resultado: ResultadoDaBusca,
   linhas: LinhasDaBusca,
   hoje: DiaISO
-): BuscaDeAlunos {
+) {
   const curso = catalogoDo(linhas);
   const porPessoa = new Map(linhas.pessoas.map((p) => [p.userId, p]));
 

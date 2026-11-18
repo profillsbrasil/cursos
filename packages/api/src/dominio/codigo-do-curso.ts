@@ -30,7 +30,7 @@ const SEM_PALAVRA = "CUR";
  * ligação. Com duas palavras ou mais, as iniciais das quatro primeiras; com uma,
  * as três primeiras letras ("Comercial" vira "COM").
  */
-export function siglaDaCategoria(nome: string): string {
+export function siglaDaCategoria(nome: string) {
   const palavras = nome
     .normalize("NFD")
     .replace(MARCAS, "")
@@ -60,10 +60,7 @@ const codigoDe = (sigla: string, n: number) =>
   `${sigla}-${String(n).padStart(3, "0")}`;
 
 /** O menor número livre da sigla, a partir de 001, entre os códigos ocupados. */
-export function codigoLivre(
-  sigla: string,
-  ocupados: ReadonlySet<string>
-): string {
+export function codigoLivre(sigla: string, ocupados: ReadonlySet<string>) {
   let n = 1;
 
   while (ocupados.has(codigoDe(sigla, n))) {

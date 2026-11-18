@@ -146,7 +146,7 @@ const AGORA = new Date("2026-11-11T15:00:00Z");
 const ANTES = new Date("2026-11-10T15:00:00Z");
 const DEPOIS = new Date("2026-12-10T15:00:00Z");
 
-const linha = (mudar: Partial<LinhaDoConvite> = {}): LinhaDoConvite => ({
+const linha = (mudar: Partial<LinhaDoConvite> = {}) => ({
   aceitoEm: null,
   aceitoPor: null,
   canceladoEm: null,
@@ -246,10 +246,7 @@ describe("estadoDoConvite", () => {
 const CONTAGEM = { cliente: 2, funcionario: 3, publico: 9 };
 
 describe("montarPainelDeConvites", () => {
-  const convidado = (
-    email: string,
-    mudar: Partial<LinhaDoConvite> = {}
-  ): LinhaDoConvidado => ({
+  const convidado = (email: string, mudar: Partial<LinhaDoConvite> = {}) => ({
     ...linha(mudar),
     convidadoEm: ANTES,
     cursos: [{ id: "c1" as CursoId, titulo: "Envase" }],

@@ -35,7 +35,7 @@ function bucketDe(
   nome: string | undefined,
   idDaChave: string | undefined,
   segredo: string | undefined
-): BucketDeCapas | null {
+) {
   if (!(S3_ENDPOINT && S3_REGION && nome && idDaChave && segredo)) {
     return null;
   }

@@ -14,10 +14,7 @@ import { aplicarPapelDoConvite, reivindicarConvite } from "./convite";
 import { liberarNoAlunoTravado } from "./liberacao";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
-async function lerPerfil(
-  exec: Executor,
-  userId: string
-): Promise<Perfil | null> {
+async function lerPerfil(exec: Executor, userId: string) {
   const linha = await exec.query.perfilDaPessoa.findFirst({
     columns: { perfil: true },
     where: { userId },
@@ -38,7 +35,7 @@ async function darBonusDeFuncionario(
   tx: Transacao,
   userId: string,
   agora?: Date
-): Promise<boolean> {
+) {
   const [novo] = await tx
     .insert(pontoLancamento)
     .values({
@@ -57,10 +54,7 @@ async function darBonusDeFuncionario(
  * O bônus de quem já era Funcionário antes do bônus existir, pela virada
  * (scripts/virada-dos-pontos.ts), com o aluno travado. Devolve se nasceu.
  */
-export function darBonusDaVirada(
-  aluno: AlunoTravado,
-  agora: Date
-): Promise<boolean> {
+export function darBonusDaVirada(aluno: AlunoTravado, agora: Date) {
   return darBonusDeFuncionario(aluno.tx, aluno.userId, agora);
 }
 
@@ -78,11 +72,7 @@ interface Chegada {
  * statement de todo pedido do aluno: o exists é uma sonda no índice
  * convite_aceito_por_unico.
  */
-async function lerChegada(
-  db: Database,
-  userId: string,
-  agora: Date
-): Promise<Chegada | null> {
+async function lerChegada(db: Database, userId: string, agora: Date) {
   const {
     rows: [linha],
   } = await db.execute<{
@@ -108,7 +98,7 @@ async function liberarOsCursosDoConvite(
   aluno: AlunoTravado,
   convite: ConviteAceito,
   agora: Date
-): Promise<void> {
+) {
   for (const cursoId of convite.cursoIds) {
     // oxlint-disable-next-line no-await-in-loop -- a transação tem um client só.
     await liberarNoAlunoTravado(aluno, convite.convidadoPor, cursoId, agora);
@@ -121,7 +111,7 @@ async function tentarOPapelDoConvite(
   pessoas: Pick<Pessoas, "definirPapel">,
   userId: string,
   agora: Date
-): Promise<void> {
+) {
   try {
     await aplicarPapelDoConvite(db, pessoas, userId, agora);
   } catch (erro) {
@@ -149,7 +139,7 @@ export async function perfilDe(
   userId: string,
   pessoas: Pick<Pessoas, "conta" | "definirPapel">,
   agora: Date
-): Promise<Perfil> {
+) {
   const lido = await lerChegada(db, userId, agora);
 
   if (lido) {
@@ -226,7 +216,7 @@ export function definirPerfil(
   userId: string,
   perfil: Perfil,
   agora: Date
-): Promise<{ bonus: boolean }> {
+) {
   return comAlunoTravado(db, userId, async (aluno) => {
     // Depois da trava, num statement próprio: lê o que a outra mudança comitou.
     const antes = await aluno.tx.query.perfilDaPessoa.findFirst({
@@ -251,10 +241,7 @@ export function definirPerfil(
 }
 
 /** As linhas de perfil desses userIds; quem ainda não entrou no app não tem. */
-export function linhasDosPerfis(
-  db: Database,
-  userIds: readonly string[]
-): Promise<LinhaDoPerfil[]> {
+export function linhasDosPerfis(db: Database, userIds: readonly string[]) {
   if (userIds.length === 0) {
     return Promise.resolve([]);
   }
@@ -269,7 +256,7 @@ export async function quemTemOPerfil(
   db: Database,
   perfil: Perfil,
   limite: number
-): Promise<string[]> {
+) {
   const linhas = await db.query.perfilDaPessoa.findMany({
     columns: { userId: true },
     limit: limite,
@@ -280,9 +267,7 @@ export async function quemTemOPerfil(
   return linhas.map((l) => l.userId);
 }
 
-export async function contagemPorPerfil(
-  db: Database
-): Promise<ContagemPorPerfil> {
+export async function contagemPorPerfil(db: Database) {
   const linhas = await db
     .select({ n: count(), perfil: perfilDaPessoa.perfil })
     .from(perfilDaPessoa)

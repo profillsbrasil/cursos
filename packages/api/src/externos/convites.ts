@@ -35,7 +35,7 @@ const ESPERA_SEM_RETRY_AFTER_SEG = 3600;
 export function convitesDoClerk(
   clerk: ClerkClient,
   opcoes: { criarConta: string }
-): Convites {
+) {
   return {
     async enviar(email, agora) {
       try {

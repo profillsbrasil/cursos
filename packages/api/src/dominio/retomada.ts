@@ -47,7 +47,7 @@ const ultimaAtividade = (
 function maisRecente(
   cursos: readonly CursoNaTela[],
   atividade: ReadonlyMap<AulaId, string>
-): CursoNaTela | null {
+) {
   return cursos.reduce<CursoNaTela | null>(
     (max, x) =>
       !max ||
@@ -60,7 +60,7 @@ function maisRecente(
 }
 
 /** A aula da vez, com o que o banner mostra dela; o curso que abre aula sempre tem uma. */
-function aulaDaVez(x: CursoNaTela): { aula: AulaCatalogo; vez: AulaDaVez } {
+function aulaDaVez(x: CursoNaTela) {
   const vez = x.leitura.aulaDaVez;
   const aula = vez && aulasDe(x.curso).find((a) => a.id === vez.id);
 
@@ -78,7 +78,7 @@ const aulaRef = (aula: AulaCatalogo, vez: AulaDaVez) => ({
   titulo: aula.titulo,
 });
 
-function continuar(x: CursoNaTela, h: Historico): Retomada {
+function continuar(x: CursoNaTela, h: Historico) {
   const { aula, vez } = aulaDaVez(x);
 
   return {
@@ -98,7 +98,7 @@ function continuar(x: CursoNaTela, h: Historico): Retomada {
 export function retomada({
   cursos,
   estudo: { atividade, historico: h },
-}: EntradaRetomada): Retomada | null {
+}: EntradaRetomada) {
   const emAndamento = maisRecente(
     cursos.filter(ehEstado("em_andamento")),
     atividade

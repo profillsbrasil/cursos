@@ -47,10 +47,7 @@ const SEM_PESSOAS: LinhasDaBusca = { cursos: [], pessoas: [] };
  * em ordem. O SQL só lê: estado, progresso e "abre" são decididos
  * em dominio/acompanhamento.ts pelas regras do painel.
  */
-export async function linhasDaBusca(
-  db: Executor,
-  userIds: readonly string[]
-): Promise<LinhasDaBusca> {
+export async function linhasDaBusca(db: Executor, userIds: readonly string[]) {
   if (userIds.length === 0) {
     return SEM_PESSOAS;
   }

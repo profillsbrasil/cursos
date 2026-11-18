@@ -130,7 +130,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     enunciado: string,
     textos: string[],
     certa: number
-  ): PerguntaDoDocumento => ({
+  ) => ({
     alternativas: textos.map((texto, i) => ({
       certa: i === certa,
       id: randomUUID() as AlternativaId,
@@ -144,7 +144,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     numero: number,
     titulo: string,
     aulas: ModuloDoDocumento["aulas"] = []
-  ): ModuloDoDocumento => ({
+  ) => ({
     aulas,
     id: randomUUID() as ModuloId,
     nivelOrdem: null,
@@ -157,9 +157,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     categoriaId = await categoriaDeTeste(db);
   });
 
-  function documentoNovo(
-    modulosDoCurso: ModuloDoDocumento[] = []
-  ): DocumentoDoCurso {
+  function documentoNovo(modulosDoCurso: ModuloDoDocumento[] = []) {
     const id = randomUUID() as CursoId;
     cursos.push(id);
 
@@ -179,7 +177,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   }
 
   /** Curso salvo pelo admin com dois módulos (0: A1, A2, A3; 1: B1) e um nível. */
-  async function cursoSalvo(): Promise<EdicaoDoCurso> {
+  async function cursoSalvo() {
     const a = novoModulo(0, "Módulo A", [
       novaAula("A1"),
       novaAula("A2"),
@@ -197,7 +195,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     return await abrir(documento.id);
   }
 
-  async function abrir(id: CursoId): Promise<EdicaoDoCurso> {
+  async function abrir(id: CursoId) {
     const edicao = await admin.admin.catalogo.abrirCurso({ id });
 
     if (!edicao) {
@@ -1127,7 +1125,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   });
 
   /** O DELETE do curso fica parado na linha da aula que o aluno travou ao inserir. */
-  async function esperarAlguemEsperandoTrava(tentativas = 100): Promise<void> {
+  async function esperarAlguemEsperandoTrava(tentativas = 100) {
     const { rows } = await db.$client.query<{ n: number }>(
       "select count(*)::int as n from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock'"
     );

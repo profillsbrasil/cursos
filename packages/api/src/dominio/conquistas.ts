@@ -199,15 +199,13 @@ const ganha = (quando: Date) => ({
   estado: "ganha" as const,
 });
 
-const oMaisAntigo = <T extends { criadoEm: Date }>(
-  xs: readonly T[]
-): T | undefined =>
+const oMaisAntigo = <T extends { criadoEm: Date }>(xs: readonly T[]) =>
   xs.reduce<T | undefined>(
     (min, x) => (!min || x.criadoEm < min.criadoEm ? x : min),
     undefined
   );
 
-const primeiraData = (datas: readonly (Date | null)[]): Date | undefined =>
+const primeiraData = (datas: readonly (Date | null)[]) =>
   datas.reduce<Date | undefined>(
     (min, d) => (d && (!min || d < min) ? d : min),
     undefined
@@ -222,13 +220,7 @@ interface Troca {
   cursoId: string;
 }
 
-function certificados(
-  linhas: LinhasDasConquistas,
-  painel: PainelMeusCursos
-): {
-  emitidos: Ganho<CertificadoNaTela>[];
-  porGanhar: Extract<CertificadoNaTela, { estado: "por_ganhar" }>[];
-} {
+function certificados(linhas: LinhasDasConquistas, painel: PainelMeusCursos) {
   const emitidos = [...linhas.certificados]
     .sort((a, b) => a.emitidoEm.getTime() - b.emitidoEm.getTime())
     .map((c) => ({
@@ -263,15 +255,12 @@ const ABREM_AULA: ReadonlySet<TipoEstado> = new Set([
 ]);
 
 /** Os cursos inteiros que ainda abrem aula: os do certificado por ganhar. */
-const cursosQueAbremAula = (painel: PainelMeusCursos): CursoVM[] =>
+const cursosQueAbremAula = (painel: PainelMeusCursos) =>
   painel.cursos.filter(
     (c) => c.amostra === null && ABREM_AULA.has(c.estado.tipo)
   );
 
-const metaDeAulas = (
-  assistidas: readonly Assistida[],
-  meta: MetaDeAulas
-): Marco => {
+const metaDeAulas = (assistidas: readonly Assistida[], meta: MetaDeAulas) => {
   const aDaMeta = assistidas[meta - 1];
 
   return {
@@ -287,7 +276,7 @@ function sequencia(
   lancamentos: readonly Lancamento[],
   assistidas: readonly Assistida[],
   hoje: DiaISO
-): Marco {
+) {
   const vezes = lancamentos.filter((l) => l.motivo === "sequencia_7_dias");
   const aPrimeira = oMaisAntigo(vezes);
 
@@ -312,7 +301,7 @@ function sequencia(
 }
 
 /** As trocas em ordem de data; a troca sem o curso da liberação é erro do banco. */
-function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
+function trocasDe(lancamentos: readonly Lancamento[]) {
   return lancamentos
     .values()
     .filter((l) => l.motivo === "troca")
@@ -332,7 +321,7 @@ function contagem<T extends "tres_trocas" | "tres_cursos">(
   tipo: T,
   datas: readonly Date[],
   total: number
-): Extract<MedalhaDaGrade, { tipo: T }> {
+) {
   const ordenadas = [...datas].sort((a, b) => a.getTime() - b.getTime());
   const aDaMeta = ordenadas[total - 1];
 
@@ -349,10 +338,7 @@ function contagem<T extends "tres_trocas" | "tres_cursos">(
   } as Extract<MedalhaDaGrade, { tipo: T }>;
 }
 
-function primeiraAula(
-  assistidas: readonly Assistida[],
-  r: Retomada | null
-): MedalhaDaGrade {
+function primeiraAula(assistidas: readonly Assistida[], r: Retomada | null) {
   const [a] = assistidas;
 
   return {
@@ -373,7 +359,7 @@ function primeiraAula(
 function primeiraTroca(
   trocas: readonly Troca[],
   vitrine: readonly CursoDaTroca[]
-): MedalhaDaGrade {
+) {
   const [aPrimeira] = trocas;
 
   if (aPrimeira) {
@@ -400,7 +386,7 @@ function primeiraTroca(
 /** O curso de maior porcentagem; no empate, o de menos itens por fazer. */
 function oMaisAdiantado<T extends { feitas: number; total: number }>(
   xs: readonly T[]
-): T | null {
+) {
   return xs.reduce<T | null>((melhor, x) => {
     if (!melhor) {
       return x;
@@ -443,7 +429,7 @@ function itensDosCursos(linhas: LinhasDasConquistas, painel: PainelMeusCursos) {
 
 type ItensDoCurso = ReturnType<typeof itensDosCursos>[number];
 
-const cursoPerto = (c: ItensDoCurso): CursoPerto => ({
+const cursoPerto = (c: ItensDoCurso) => ({
   curso: c.curso,
   feitas: c.aulas.feitas,
   total: c.aulas.total,
@@ -452,7 +438,7 @@ const cursoPerto = (c: ItensDoCurso): CursoPerto => ({
 function primeiroCurso(
   emitidos: readonly Ganho<CertificadoNaTela>[],
   itens: readonly ItensDoCurso[]
-): MedalhaDaGrade {
+) {
   const [oPrimeiro] = emitidos;
 
   if (oPrimeiro) {
@@ -482,7 +468,7 @@ function amostraETroca(
   linhas: LinhasDasConquistas,
   trocas: readonly Troca[],
   painel: PainelMeusCursos
-): MedalhaDaGrade {
+) {
   const amostraDe = new Map(
     linhas.liberacoes.map(({ curso }) => [
       curso.id,
@@ -525,7 +511,7 @@ function trocaAteOFim(
   linhas: LinhasDasConquistas,
   trocas: readonly Troca[],
   itens: readonly ItensDoCurso[]
-): MedalhaDaGrade {
+) {
   const trocadoEm = new Map(trocas.map((t) => [t.cursoId, t.criadoEm]));
 
   const fechadas = linhas.certificados.flatMap((c) => {
@@ -560,9 +546,7 @@ function trocaAteOFim(
   };
 }
 
-function primeiroQuestionario(
-  questionarios: readonly TentativasDaAula[]
-): MedalhaDaGrade {
+function primeiroQuestionario(questionarios: readonly TentativasDaAula[]) {
   const quando = primeiraData(questionarios.map((q) => q.aprovadaEm));
 
   return {
@@ -572,7 +556,7 @@ function primeiroQuestionario(
 }
 
 /** A tentativa número 1 com todas certas; por ganhar, o melhor acerto de primeira. */
-function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
+function notaCheia(questionarios: readonly TentativasDaAula[]) {
   const primeiras = questionarios.flatMap((q) =>
     q.primeiraAcertos !== null &&
     q.primeiraTotal !== null &&
@@ -621,9 +605,7 @@ function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
 }
 
 /** A soma das entradas de estudo; ganha no dia em que a soma chega à meta. */
-function milPontos(
-  estudoPorDia: LinhasDasConquistas["estudoPorDia"]
-): MedalhaDaGrade {
+function milPontos(estudoPorDia: LinhasDasConquistas["estudoPorDia"]) {
   const dias = [...estudoPorDia].sort((a, b) => a.dia.localeCompare(b.dia));
   let soma = 0;
 
@@ -649,10 +631,7 @@ function milPontos(
   };
 }
 
-export function montarConquistas(
-  linhas: LinhasDasConquistas,
-  hoje: DiaISO
-): Conquistas {
+export function montarConquistas(linhas: LinhasDasConquistas, hoje: DiaISO) {
   const painel = montarPainel(
     {
       assistidas: linhas.assistidas,

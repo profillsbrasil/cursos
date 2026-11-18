@@ -16,9 +16,9 @@ import { canonizar, SEM_TRECHOS, segundos, type Trecho } from "./trechos";
 const AULA = "aula-1" as AulaId;
 const T0 = new Date("2026-10-07T18:00:00Z");
 const em = (s: number) => new Date(T0.getTime() + s * 1000);
-const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
+const t = (inicio: number, fim: number) => ({ fim, inicio });
 
-const novo = (duracaoSeg = 600): EstudoSalvo => ({
+const novo = (duracaoSeg = 600) => ({
   assistida: false,
   duracaoSeg,
   trechos: SEM_TRECHOS,

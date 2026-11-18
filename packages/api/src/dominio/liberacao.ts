@@ -45,7 +45,7 @@ export type AcaoNaLiberacao =
 export function acaoNaLiberacao(l: {
   origem: OrigemDaLiberacao;
   revogadaEm: Date | null;
-}): AcaoNaLiberacao {
+}) {
   if (l.revogadaEm) {
     return { em: l.revogadaEm, tipo: "revogada" };
   }
@@ -111,7 +111,7 @@ const ordemNaTela = (a: LinhaDaLiberacao, b: LinhaDaLiberacao) =>
   (b.revogadaEm?.getTime() ?? 0) - (a.revogadaEm?.getTime() ?? 0) ||
   b.liberadaEm.getTime() - a.liberadaEm.getTime();
 
-function acaoNaTela(l: LinhaDaLiberacao): AcaoNaTela {
+function acaoNaTela(l: LinhaDaLiberacao) {
   if (l.origem === "perfil") {
     return { perfil: l.perfil, tipo: "pelo_perfil" };
   }
@@ -133,7 +133,7 @@ export function montarAcesso(
   pessoa: Pessoa | null,
   linhas: LinhasDoAcesso,
   hoje: DiaISO
-): AcessoDoAluno | null {
+) {
   if (!pessoa && linhas.liberacoes.length === 0) {
     return null;
   }

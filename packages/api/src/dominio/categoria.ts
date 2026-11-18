@@ -13,5 +13,5 @@ export interface CategoriaNaLista {
 export const CATEGORIA_SUMIU =
   "A categoria escolhida não existe mais. Escolha outra e salve de novo.";
 
-export const categoriaEmUso = (cursos: number): string =>
+export const categoriaEmUso = (cursos: number) =>
   `Esta categoria está em ${cursos} ${cursos === 1 ? "curso" : "cursos"}. Troque a categoria ${cursos === 1 ? "dele" : "deles"} antes de apagar.`;

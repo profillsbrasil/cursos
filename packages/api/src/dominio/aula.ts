@@ -70,10 +70,7 @@ export interface CursoAberto {
 }
 
 /** null: o curso inteiro. undefined: a amostra que não existe, sem aula. */
-function amostraDe(
-  linha: CursoComAcessoLinha,
-  curso: CursoCatalogo
-): Amostra | null | undefined {
+function amostraDe(linha: CursoComAcessoLinha, curso: CursoCatalogo) {
   if (linha.liberacoes.length > 0) {
     return null;
   }
@@ -88,7 +85,7 @@ function amostraDe(
  * do curso, própria ou do perfil, com o curso em_breve ou, na amostra, sem a
  * aula de amostra. O curso inteiro abre também sem aula.
  */
-export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
+export function montarCursoVisto(linhas: LinhasCurso) {
   const linha = linhas.curso;
 
   if (
@@ -131,14 +128,14 @@ export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
  * Só o curso inteiro: a porta do questionário, do material de apoio e da página
  * do certificado. A amostra não abre nenhum deles.
  */
-export function montarCursoAberto(linhas: LinhasCurso): CursoAberto | null {
+export function montarCursoAberto(linhas: LinhasCurso) {
   const visto = montarCursoVisto(linhas);
 
   return visto && visto.amostra === null ? visto : null;
 }
 
 /** Se a aula toca: toda aula do curso inteiro, só a aula de amostra na amostra. */
-export const abreAAula = (c: CursoAberto, aulaId: string): boolean =>
+export const abreAAula = (c: CursoAberto, aulaId: string) =>
   c.amostra === null || c.amostra.aulaId === aulaId;
 
 export interface AulaNaColuna {
@@ -212,19 +209,16 @@ interface AulaNoCurso {
   modulo: ModuloCatalogo;
 }
 
-const aulasEmOrdem = (c: CursoCatalogo): AulaNoCurso[] =>
+const aulasEmOrdem = (c: CursoCatalogo) =>
   c.modulos.flatMap((modulo) => modulo.aulas.map((aula) => ({ aula, modulo })));
 
-export const aulaPorId = (c: CursoAberto, id: string): AulaCatalogo | null =>
+export const aulaPorId = (c: CursoAberto, id: string) =>
   aulasEmOrdem(c.curso).find((x) => x.aula.id === id)?.aula ?? null;
 
-const vizinha = (x: AulaNoCurso | undefined): VizinhaDaAula | null =>
+const vizinha = (x: AulaNoCurso | undefined) =>
   x ? { id: x.aula.id, titulo: x.aula.titulo } : null;
 
-export function estudoDaAula(
-  c: CursoAberto,
-  aula: AulaCatalogo
-): AulaNoPlayer["estudo"] {
+export function estudoDaAula(c: CursoAberto, aula: AulaCatalogo) {
   return {
     assistida: c.historico.assistidas.has(aula.id),
     posicaoSeg: c.historico.posicoes.get(aula.id)?.posicaoSeg ?? 0,
@@ -238,7 +232,7 @@ export function montarAulaNoPlayer(
   aula: AulaCatalogo,
   questionario: LinhasDoQuestionario,
   saldo: number
-): AulaNoPlayer {
+) {
   const ordem = aulasEmOrdem(c.curso);
   const i = ordem.findIndex((x) => x.aula.id === aula.id);
   const modulo = ordem[i]?.modulo;
@@ -305,7 +299,7 @@ export function montarAulaNoPlayer(
 export function inicioDaAula(
   estudo: { assistida: boolean; posicaoSeg: number },
   duracaoSeg: number
-): number {
+) {
   if (
     estudo.assistida ||
     estudo.posicaoSeg >= duracaoSeg - MARGEM_REINICIO_SEG

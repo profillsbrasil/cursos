@@ -27,7 +27,7 @@ export async function linhasDosCursos(
   exec: Executor,
   aluno: Aluno,
   filtro: { cursoId: CursoId } | "vitrine"
-): Promise<CursoDaTroca[]> {
+) {
   const ativas = filtroLiberacaoAtiva(aluno.userId);
 
   const linhas = await exec.query.curso.findMany({
@@ -69,7 +69,7 @@ export async function carregarPainelDeTroca(
   db: Database,
   aluno: Aluno,
   agora: Date
-): Promise<PainelDeTroca> {
+) {
   const { userId } = aluno;
   const hoje = diaLocal(agora);
 
@@ -90,7 +90,7 @@ export async function carregarPainelDeTroca(
 export async function carregarTemCursoTrocavelNaVitrine(
   exec: Executor,
   aluno: Aluno
-): Promise<boolean> {
+) {
   return temCursoTrocavelNaVitrine(
     await linhasDosCursos(exec, aluno, "vitrine")
   );
@@ -100,7 +100,7 @@ export interface ResultadoDaTroca {
   lancamentoId: string;
 }
 
-function erroDaRecusa(r: RecusaDaTroca): ErroParaAPessoa {
+function erroDaRecusa(r: RecusaDaTroca) {
   switch (r.tipo) {
     case "indisponivel":
       return new ErroParaAPessoa({
@@ -127,7 +127,7 @@ function erroDaRecusa(r: RecusaDaTroca): ErroParaAPessoa {
   }
 }
 
-const violou = (e: unknown, constraint: string): boolean => {
+const violou = (e: unknown, constraint: string) => {
   const causa = e instanceof DrizzleQueryError ? e.cause : undefined;
 
   return (
@@ -144,7 +144,7 @@ async function gravarTroca(
   cursoId: CursoId,
   preco: number,
   agora: Date
-): Promise<{ lancamentoId: string }> {
+) {
   const liberacaoId = await inserirLiberacao(
     aluno,
     { cursoId, origem: "troca" },
@@ -187,7 +187,7 @@ export function trocarNaVirada(
   cursoId: CursoId,
   preco: number,
   agora: Date
-): Promise<ResultadoDaTroca> {
+) {
   return gravarTroca(aluno, cursoId, preco, agora);
 }
 
@@ -197,7 +197,7 @@ export function trocar(
   cursoId: CursoId,
   precoVisto: number,
   agora: Date
-): Promise<ResultadoDaTroca> {
+) {
   const segunda = segundaDaSemana(diaLocal(agora));
 
   return comSaldoTravado(db, userId, segunda, async (aluno, saldo) => {

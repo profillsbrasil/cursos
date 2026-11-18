@@ -22,10 +22,7 @@ export interface PerfilNaTela {
   perfil: Perfil;
 }
 
-export const perfilNaTela = (
-  conta: Conta,
-  linha: LinhaDoPerfil | undefined
-): PerfilNaTela =>
+export const perfilNaTela = (conta: Conta, linha: LinhaDoPerfil | undefined) =>
   linha
     ? { doCadastro: false, perfil: linha.perfil }
     : { doCadastro: true, perfil: perfilDoCadastro(conta) };
@@ -59,7 +56,7 @@ export function montarListaDePessoas(
   saldos: readonly SaldoDaPessoa[],
   contagem: ContagemPorPerfil,
   filtro: Perfil | null
-): ListaDePessoas {
+) {
   const porId = new Map(linhas.map((l) => [l.userId, l]));
   const saldoPorId = new Map(saldos.map((s) => [s.userId, s.saldo]));
 
@@ -102,7 +99,7 @@ export function montarFicha(
   quemMudou: Pessoa | null,
   adminId: string,
   pontos: PontosNaFicha
-): FichaDaPessoa {
+) {
   return {
     conta,
     mudanca: linha?.definidoPor

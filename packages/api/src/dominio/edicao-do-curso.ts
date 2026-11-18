@@ -47,7 +47,7 @@ const video = z
     id: z.string().regex(new RegExp(ID_DO_YOUTUBE)),
     provedor: z.literal("youtube"),
   })
-  .transform((v): VideoDaAula => ({
+  .transform((v) => ({
     id: v.id as VideoId,
     provedor: v.provedor,
   }));
@@ -116,7 +116,7 @@ const nivel = z.object({
   ordem: z.int().min(1).max(LIMITES.niveis),
 });
 
-function repetidos<T>(valores: readonly T[]): T[] {
+function repetidos<T>(valores: readonly T[]) {
   const vistos = new Set<T>();
   const repetido = new Set<T>();
 
@@ -234,7 +234,7 @@ const CAMPO = { capa: "capa", documento: "documento" } as const;
 export function formularioDoCurso(
   documento: DocumentoDoCurso,
   capa: Blob | null
-): FormData {
+) {
   const fd = new FormData();
   fd.set(CAMPO.documento, JSON.stringify(documento));
 
@@ -254,7 +254,7 @@ export type FormularioLido =
  * O editor valida com o mesmo schema antes de enviar, então documento inválido
  * aqui é defeito ou envio forjado, e a frase não detalha.
  */
-export function lerFormularioDoCurso(fd: FormData): FormularioLido {
+export function lerFormularioDoCurso(fd: FormData) {
   const json = fd.get(CAMPO.documento);
 
   if (typeof json !== "string") {
@@ -320,7 +320,7 @@ const SEM_USO: UsoDoCurso = {
 };
 
 /** Única regra de "dá para apagar o curso". A tela e apagarCurso usam esta. */
-export const podeApagarCurso = (u: UsoDoCurso): boolean =>
+export const podeApagarCurso = (u: UsoDoCurso) =>
   u.certificados === 0 &&
   u.liberacoes === 0 &&
   Object.values(u.assistidasPorAula).every((n) => n === 0) &&
@@ -334,7 +334,7 @@ const SEM_CATEGORIA = "" as CategoriaId;
  * mudar enquanto o rascunho vive: a trava curso:<id> e o reenvio sem duplicar
  * dependem dele.
  */
-export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
+export function edicaoDeCursoNovo(id: CursoId) {
   return {
     capa: null,
     codigo: null,

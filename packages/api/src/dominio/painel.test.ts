@@ -15,7 +15,7 @@ const em = (iso: string) => new Date(iso);
 const montar = (l: LinhasPainel, hoje: DiaISO = HOJE_DO_EXEMPLO) =>
   montarPainel(l, hoje);
 
-const linhas = (o: Partial<LinhasPainel>): LinhasPainel => ({
+const linhas = (o: Partial<LinhasPainel>) => ({
   ...SEM_LIBERACAO,
   ...o,
 });

@@ -31,7 +31,7 @@ export const ESPERA_DO_REENVIO_SEG = 60;
 export const PRAZO_DO_PAPEL_MS = 3_600_000;
 
 /** O aceite mais antigo cujo papel ainda se retoma em `agora`. */
-export const aceitoDesde = (agora: Date): Date =>
+export const aceitoDesde = (agora: Date) =>
   new Date(agora.getTime() - PRAZO_DO_PAPEL_MS);
 
 const TAMANHO_MAXIMO = 254;
@@ -46,7 +46,7 @@ const FORMATO =
 const SEPARADOR = /[\s,;]+/;
 
 /** null quando o texto não é um e-mail. Mais estreita que o check do banco. */
-export function lerEmail(texto: string): Email | null {
+export function lerEmail(texto: string) {
   const aparado = texto.trim();
 
   return aparado.length <= TAMANHO_MAXIMO && FORMATO.test(aparado)
@@ -67,7 +67,7 @@ const COM_NOME = /^(?:"[^"]*"|[^"@<>])*<([^<>]*)>$/;
  * de linha, sem repetir. O trecho `Nome <ana@x.com>`, que o Outlook e o Gmail
  * copiam, é um e-mail só. `ruins` são os pedaços que não são e-mail, como vieram.
  */
-export function lerEmails(texto: string): { emails: Email[]; ruins: string[] } {
+export function lerEmails(texto: string) {
   const emails = new Set<Email>();
   const ruins = new Set<string>();
 
@@ -106,7 +106,7 @@ const HORA = new Intl.DateTimeFormat("pt-BR", {
 });
 
 /** A hora de São Paulo como a frase do limite a escreve: "15h40". */
-export const horaDeSaoPaulo = (instante: Date): string =>
+export const horaDeSaoPaulo = (instante: Date) =>
   HORA.format(instante).replace(":", "h");
 
 /** O que a pessoa recebe na chegada. */
@@ -146,9 +146,7 @@ export type EstadoVivo = Extract<
   { tipo: "nao_enviado" | "pendente" | "expirado" }
 >;
 
-function papelDoAceito(
-  linha: LinhaDoConvite
-): "nao_pediu" | "aplicado" | "por_aplicar" {
+function papelDoAceito(linha: LinhaDoConvite) {
   if (!linha.comoAdmin) {
     return "nao_pediu";
   }
@@ -160,10 +158,7 @@ function papelDoAceito(
  * A única leitura do estado. Ordem: cancelado, aceito, expirado (expiraEm <= agora),
  * não enviado, pendente. A tela, o reenviar e o cancelar leem daqui.
  */
-export function estadoDoConvite(
-  linha: LinhaDoConvite,
-  agora: Date
-): EstadoDoConvite {
+export function estadoDoConvite(linha: LinhaDoConvite, agora: Date) {
   if (linha.canceladoEm && linha.canceladoPor) {
     return {
       em: linha.canceladoEm,
@@ -262,7 +257,7 @@ export interface LinhasDosConvites {
   total: number;
 }
 
-function estadoNaTela(estado: EstadoVivo): ConvidadoNaTela["estado"] {
+function estadoNaTela(estado: EstadoVivo) {
   switch (estado.tipo) {
     case "nao_enviado":
       return { tipo: "nao_enviado" };
@@ -283,7 +278,7 @@ export function montarPainelDeConvites(
   linhas: LinhasDosConvites,
   contagem: ContagemPorPerfil,
   agora: Date
-): PainelDeConvites {
+) {
   const convidados: ConvidadoNaTela[] = [];
 
   for (const linha of linhas.convidados) {

@@ -26,7 +26,7 @@ export function concederPontos(
   admin: AdminId,
   pedido: { motivo: string; pontos: number; userId: string },
   agora: Date
-): Promise<ResultadoDaConcessao> {
+) {
   const segunda = segundaDaSemana(diaLocal(agora));
 
   return comSaldoTravado(db, pedido.userId, segunda, async (aluno, saldo) => {
@@ -67,10 +67,7 @@ export function concederPontos(
 }
 
 /** As concessões da pessoa, da mais recente para a mais antiga. */
-export function linhasDasConcessoes(
-  exec: Executor,
-  userId: string
-): Promise<LinhaDaConcessao[]> {
+export function linhasDasConcessoes(exec: Executor, userId: string) {
   return exec.query.concessaoDePontos.findMany({
     columns: {
       concedidaEm: true,

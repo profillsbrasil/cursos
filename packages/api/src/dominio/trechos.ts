@@ -15,7 +15,7 @@ declare const canonico: unique symbol;
  */
 export type Trechos = readonly Trecho[] & { readonly [canonico]: true };
 
-function comoTrechos(t: readonly Trecho[]): Trechos {
+function comoTrechos(t: readonly Trecho[]) {
   return t as Trechos;
 }
 
@@ -26,10 +26,7 @@ export interface Cobertura {
   vistosSeg: number;
 }
 
-export function canonizar(
-  lista: readonly Trecho[],
-  duracaoSeg: number
-): Trechos {
+export function canonizar(lista: readonly Trecho[], duracaoSeg: number) {
   const cortados = lista
     .values()
     .map((t) => ({
@@ -61,11 +58,11 @@ export function canonizar(
 const fimDe = (t: Trechos) => t.at(-1)?.fim ?? 0;
 
 /** Idempotente e comutativa: a ordem dos envios não importa. */
-export const unir = (a: Trechos, b: Trechos): Trechos =>
+export const unir = (a: Trechos, b: Trechos) =>
   canonizar([...a, ...b], Math.max(fimDe(a), fimDe(b)));
 
 /** O que está em `a` e não em `b`: os segundos novos de um envio. */
-export function subtrair(a: Trechos, b: Trechos): Trechos {
+export function subtrair(a: Trechos, b: Trechos) {
   const saida: Trecho[] = [];
 
   for (const t of a) {
@@ -95,11 +92,11 @@ export function subtrair(a: Trechos, b: Trechos): Trechos {
   return comoTrechos(saida);
 }
 
-export const segundos = (t: readonly Trecho[]): number =>
+export const segundos = (t: readonly Trecho[]) =>
   t.reduce((s, x) => s + (x.fim - x.inicio), 0);
 
 /** Os primeiros `seg` segundos de `t`, na ordem dos trechos. */
-export function primeiros(t: Trechos, seg: number): Trechos {
+export function primeiros(t: Trechos, seg: number) {
   const saida: Trecho[] = [];
   let resta = Math.max(0, Math.floor(seg));
 
@@ -116,10 +113,10 @@ export function primeiros(t: Trechos, seg: number): Trechos {
   return comoTrechos(saida);
 }
 
-export const atingiuMeta = (vistosSeg: number, duracaoSeg: number): boolean =>
+export const atingiuMeta = (vistosSeg: number, duracaoSeg: number) =>
   vistosSeg * 100 >= duracaoSeg * PCT_AULA_ASSISTIDA;
 
-export function cobertura(t: Trechos, duracaoSeg: number): Cobertura {
+export function cobertura(t: Trechos, duracaoSeg: number) {
   const vistosSeg = segundos(t);
 
   return {
@@ -133,7 +130,7 @@ export function cobertura(t: Trechos, duracaoSeg: number): Cobertura {
  * Cortes sucessivos no mesmo ponto c dão [a, floor(c)) e [floor(c), b), então
  * reprodução contínua não deixa buraco entre envios.
  */
-export function quantizar(inicioSeg: number, fimSeg: number): Trecho | null {
+export function quantizar(inicioSeg: number, fimSeg: number) {
   const inicio = Math.floor(inicioSeg);
   const fim = Math.floor(fimSeg);
 

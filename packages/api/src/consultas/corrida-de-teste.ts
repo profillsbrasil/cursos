@@ -9,7 +9,7 @@ import { type SQL, sql } from "drizzle-orm";
  * conta só as conexões com o mesmo nome: as do db que o teste criou com ela.
  * Sem banco de teste devolve vazio: o Bun roda o corpo do describe pulado.
  */
-export function urlDaCorrida(url: string | null): string {
+export function urlDaCorrida(url: string | null) {
   if (!url) {
     return "";
   }
@@ -27,7 +27,7 @@ export function urlDaCorrida(url: string | null): string {
  * Segura um SHARE lock em liberacao numa transação à parte: todo INSERT, UPDATE
  * e DELETE nela espera até soltar().
  */
-export function seguraATabela(db: Database): Promise<() => Promise<void>> {
+export function seguraATabela(db: Database) {
   return seguraNumaTransacao(db, sql`lock table liberacao in share mode`);
 }
 
@@ -35,20 +35,14 @@ export function seguraATabela(db: Database): Promise<() => Promise<void>> {
  * Trava a linha do aluno em cota_video numa transação à parte, como faz um
  * registrar em voo: outro registrar do mesmo aluno espera até soltar().
  */
-export function seguraACota(
-  db: Database,
-  userId: string
-): Promise<() => Promise<void>> {
+export function seguraACota(db: Database, userId: string) {
   return seguraNumaTransacao(
     db,
     sql`select 1 from cota_video where user_id = ${userId} for update`
   );
 }
 
-async function seguraNumaTransacao(
-  db: Database,
-  trava: SQL
-): Promise<() => Promise<void>> {
+async function seguraNumaTransacao(db: Database, trava: SQL) {
   let soltar: () => void = () => undefined;
 
   const portao = new Promise<void>((r) => {
@@ -87,7 +81,7 @@ export async function esperas(
   n: number,
   comecos: readonly string[],
   tentativas = 150
-): Promise<string[]> {
+) {
   const { rows } = await db.execute<{ e: string; q: string }>(sql`
     select wait_event as e, query as q from pg_stat_activity
     where datname = current_database() and wait_event_type = 'Lock'

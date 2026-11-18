@@ -12,7 +12,7 @@ const NOME = "Categoria dos testes";
  * Os testes de integração que plantam curso apontam para esta categoria. Ela fica
  * no banco local entre as execuções, e criar de novo em paralelo não duplica.
  */
-export async function categoriaDeTeste(db: Database): Promise<CategoriaId> {
+export async function categoriaDeTeste(db: Database) {
   await db
     .insert(categoria)
     .values({ nome: NOME })

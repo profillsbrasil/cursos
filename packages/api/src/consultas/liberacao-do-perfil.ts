@@ -19,11 +19,7 @@ const cursoSumiu = (cause?: unknown) =>
     message: "Este curso não existe mais.",
   });
 
-async function ativa(
-  db: Database,
-  perfil: Perfil,
-  cursoId: CursoId
-): Promise<LiberacaoDoPerfilId | null> {
+async function ativa(db: Database, perfil: Perfil, cursoId: CursoId) {
   const linha = await db.query.liberacaoDoPerfil.findFirst({
     columns: { id: true },
     where: { cursoId, perfil, revogadaEm: { isNull: true } },
@@ -43,7 +39,7 @@ export async function liberarParaPerfil(
   perfil: Perfil,
   cursoId: CursoId,
   agora: Date
-): Promise<{ id: LiberacaoDoPerfilId; nova: boolean }> {
+) {
   const existente = await ativa(db, perfil, cursoId);
 
   if (existente) {
@@ -89,7 +85,7 @@ export async function revogarDoPerfil(
   admin: AdminId,
   id: LiberacaoDoPerfilId,
   agora: Date
-): Promise<{ revogada: boolean }> {
+) {
   const linhas = await db
     .update(liberacaoDoPerfil)
     .set({
@@ -106,7 +102,7 @@ export async function revogarDoPerfil(
 }
 
 /** A aba Por perfil: todo curso, com as liberações ativas de cada perfil, num statement. */
-export function linhasDaGrade(db: Database): Promise<LinhaDaGrade[]> {
+export function linhasDaGrade(db: Database) {
   return db.query.curso.findMany({
     columns: { ...COLUNAS_DA_CAPA, id: true, status: true, titulo: true },
     orderBy: { titulo: "asc" },

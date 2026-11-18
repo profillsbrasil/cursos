@@ -49,7 +49,7 @@ const OLE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
 const comeca = (bytes: Uint8Array, prefixo: readonly number[]) =>
   bytes.length >= prefixo.length && prefixo.every((b, i) => bytes[i] === b);
 
-function imagemDoTipo(bytes: Uint8Array, tipo: TipoDoMaterial): boolean {
+function imagemDoTipo(bytes: Uint8Array, tipo: TipoDoMaterial) {
   try {
     return imageSize(bytes).type === tipo;
   } catch {
@@ -58,7 +58,7 @@ function imagemDoTipo(bytes: Uint8Array, tipo: TipoDoMaterial): boolean {
 }
 
 /** Os bytes confirmam a família que a extensão promete. */
-function confirmaOTipo(bytes: Uint8Array, tipo: TipoDoMaterial): boolean {
+function confirmaOTipo(bytes: Uint8Array, tipo: TipoDoMaterial) {
   switch (TIPOS_DE_MATERIAL[tipo].assinatura) {
     case "pdf":
       return comeca(bytes, PDF);
@@ -86,10 +86,7 @@ const recusa = (r: RecusaDoMaterial) =>
   ({ recusa: r, tipo: "recusa" }) as const;
 
 /** O tipo vem da extensão do nome e os bytes o confirmam; o content-type do navegador não conta. */
-export function lerMaterial(
-  nome: string,
-  bytes: Uint8Array<ArrayBuffer>
-): MaterialLido {
+export function lerMaterial(nome: string, bytes: Uint8Array<ArrayBuffer>) {
   const antes = recusaAntesDeLer(nome, bytes.length);
 
   if (antes) {
@@ -125,7 +122,7 @@ export function lerMaterial(
 export function materiaisNoBucket(
   cfg: BucketDeMateriais,
   enviar: typeof fetch = fetch
-): Materiais {
+) {
   const bucket = bucketAssinado(cfg, enviar);
 
   const falha = async (etapa: string, resposta: Response) => {

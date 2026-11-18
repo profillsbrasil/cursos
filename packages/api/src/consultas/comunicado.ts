@@ -35,10 +35,7 @@ export const DO_MAIS_NOVO = [
   desc(comunicado.id),
 ] as const;
 
-export async function linhasDosComunicadosDoAluno(
-  db: Database,
-  aluno: Aluno
-): Promise<LinhaDoComunicadoDoAluno[]> {
+export async function linhasDosComunicadosDoAluno(db: Database, aluno: Aluno) {
   const linhas = await db
     .select({
       curso: {
@@ -63,9 +60,7 @@ export async function linhasDosComunicadosDoAluno(
   return linhas.map((l) => ({ ...l, id: l.id as ComunicadoId }));
 }
 
-export async function linhasDosComunicados(
-  db: Database
-): Promise<LinhasDosComunicados> {
+export async function linhasDosComunicados(db: Database) {
   const [comunicados, cursos] = await Promise.all([
     db
       .select({
@@ -122,7 +117,7 @@ export function salvarComunicado(
   admin: AdminId,
   c: ComunicadoEditado,
   agora: Date
-): Promise<{ id: ComunicadoId; novo: boolean }> {
+) {
   return db.transaction(async (tx) => {
     if (c.cursoId) {
       const [alvo] = await tx
@@ -165,10 +160,7 @@ export function salvarComunicado(
 }
 
 /** Apagar o que já não existe devolve { apagado: false }. */
-export async function apagarComunicado(
-  db: Database,
-  id: ComunicadoId
-): Promise<{ apagado: boolean }> {
+export async function apagarComunicado(db: Database, id: ComunicadoId) {
   const apagados = await db
     .delete(comunicado)
     .where(eq(comunicado.id, id))

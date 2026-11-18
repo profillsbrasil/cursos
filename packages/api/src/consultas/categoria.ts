@@ -14,9 +14,7 @@ import { ErroParaAPessoa } from "../index";
 const PT_BR = new Intl.Collator("pt-BR");
 
 /** Por nome, com os títulos dos cursos de cada uma, os dois em ordem pt-BR. Um statement. */
-export async function listarCategorias(
-  db: Database
-): Promise<CategoriaNaLista[]> {
+export async function listarCategorias(db: Database) {
   const linhas = await db
     .select({
       cursos: sql<
@@ -45,7 +43,7 @@ export async function listarCategorias(
 export async function salvarCategoria(
   db: Database,
   c: { id: CategoriaId; nome: string }
-): Promise<{ id: CategoriaId; novo: boolean }> {
+) {
   const [linha] = await db
     .insert(categoria)
     .values(c)
@@ -61,10 +59,7 @@ export async function salvarCategoria(
 }
 
 /** Apagar o que já não existe devolve { apagado: false }. */
-export function apagarCategoria(
-  db: Database,
-  id: CategoriaId
-): Promise<{ apagado: boolean }> {
+export function apagarCategoria(db: Database, id: CategoriaId) {
   return db.transaction(async (tx) => {
     const [alvo] = await tx
       .select({ id: categoria.id })

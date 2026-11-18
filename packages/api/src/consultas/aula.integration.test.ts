@@ -49,7 +49,7 @@ const novoAluno = () => {
 
 const QUARTA_15H = new Date("2026-10-07T18:00:00Z");
 const em = (s: number) => new Date(QUARTA_15H.getTime() + s * 1000);
-const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
+const t = (inicio: number, fim: number) => ({ fim, inicio });
 
 const emSerie = <T, R>(itens: readonly T[], f: (x: T) => Promise<R>) =>
   itens.reduce<Promise<R[]>>(

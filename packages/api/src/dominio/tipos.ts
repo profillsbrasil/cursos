@@ -135,7 +135,7 @@ export interface LinhaDaCapa {
   capaUrl: string;
 }
 
-export const capaDe = (linha: LinhaDaCapa): Capa => ({
+export const capaDe = (linha: LinhaDaCapa) => ({
   alt: linha.capaAlt,
   altura: linha.capaAltura,
   largura: linha.capaLargura,

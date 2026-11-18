@@ -34,10 +34,7 @@ import { type Conclusao, concluirCurso } from "./certificado";
 import type { Executor } from "./comum";
 import { type AlunoTravado, comAlunoTravado } from "./trava";
 
-export async function perguntasDaAula(
-  exec: Executor,
-  aulaId: AulaId
-): Promise<PerguntaComGabarito[]> {
+export async function perguntasDaAula(exec: Executor, aulaId: AulaId) {
   const perguntas = await exec.query.pergunta.findMany({
     columns: { enunciado: true, id: true },
     orderBy: { posicao: "asc" },
@@ -73,7 +70,7 @@ export function tentativasDaAula(
   exec: Executor,
   userId: string,
   aulaId: AulaId
-): Promise<TentativaGravada[]> {
+) {
   return exec.query.questionarioTentativa.findMany({
     columns: {
       acertos: true,
@@ -96,7 +93,7 @@ export async function linhasDoQuestionario(
   exec: Executor,
   userId: string,
   aulaId: AulaId
-): Promise<LinhasDoQuestionario> {
+) {
   const perguntas = await perguntasDaAula(exec, aulaId);
   const tentativas = await tentativasDaAula(exec, userId, aulaId);
 
@@ -241,7 +238,7 @@ async function resultadoGravado(
   envio: EnvioDoQuestionario,
   perguntas: readonly PerguntaComGabarito[],
   tentativas: readonly TentativaGravada[]
-): Promise<ResultadoDoQuestionario | null> {
+) {
   const [primeira] = tentativas;
   const ultima = tentativas.at(-1);
 
@@ -284,7 +281,7 @@ export function responder(
   { perfil, userId }: Aluno,
   envio: EnvioDoQuestionario,
   agora: Date
-): Promise<RespostaAoEnvio> {
+) {
   return comAlunoTravado(db, userId, async (aluno) => {
     const { cursoId, perguntas, tentativas } = await abrirQuestionario(
       aluno,

@@ -23,7 +23,7 @@ export interface OpcoesDaVirada {
 async function funcionarios(
   db: Database,
   entre: readonly string[] | undefined
-): Promise<string[]> {
+) {
   if (entre?.length === 0) {
     return [];
   }
@@ -40,11 +40,7 @@ async function funcionarios(
 }
 
 /** O que planejarVirada pede de uma pessoa, em série, como toda leitura numa transação. */
-async function planoDe(
-  exec: Executor,
-  userId: string,
-  agora: Date
-): Promise<PlanoDaVirada> {
+async function planoDe(exec: Executor, userId: string, agora: Date) {
   const perfil = await exec.query.perfilDaPessoa.findFirst({
     columns: { perfil: true },
     where: { userId },
@@ -99,7 +95,7 @@ export function virarPessoa(
   db: Database,
   userId: string,
   { agora, gravar }: Pick<OpcoesDaVirada, "agora" | "gravar">
-): Promise<PlanoDaVirada> {
+) {
   if (!gravar) {
     return db.transaction((tx) => planoDe(tx, userId, agora), {
       accessMode: "read only",
@@ -120,10 +116,7 @@ export function virarPessoa(
 }
 
 /** Todo Funcionário (ou os de `entre`), uma pessoa por vez. */
-export async function rodarVirada(
-  db: Database,
-  opcoes: OpcoesDaVirada
-): Promise<PlanoDaVirada[]> {
+export async function rodarVirada(db: Database, opcoes: OpcoesDaVirada) {
   const planos: PlanoDaVirada[] = [];
 
   for (const userId of await funcionarios(db, opcoes.entre)) {

@@ -54,7 +54,7 @@ export async function linhasDoCurso(
   aluno: Aluno,
   chave: ChaveCurso,
   { serial }: { serial: boolean }
-): Promise<LinhasCurso> {
+) {
   const { userId } = aluno;
 
   const consultas = [
@@ -122,7 +122,7 @@ export async function carregarAula(
   aluno: Aluno,
   slug: string,
   aulaId: string
-): Promise<AulaNoPlayer | null> {
+) {
   const [linhas, questionario] = await Promise.all([
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
     linhasDoQuestionario(db, aluno.userId, aulaId as AulaId),
@@ -151,7 +151,7 @@ export async function carregarPaginaDoCurso(
   db: Database,
   aluno: Aluno,
   slug: string
-): Promise<PaginaDoCurso | null> {
+) {
   const [linhas, materiais] = await Promise.all([
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
     materiaisDaPagina(db, slug),
@@ -204,7 +204,7 @@ export async function lancarAulasAssistidas(
   aluno: AlunoTravado,
   cursoId: CursoId,
   agora: Date
-): Promise<void> {
+) {
   await aluno.tx.execute(sql`
     insert into ${pontoLancamento} (user_id, motivo, aula_id, pontos, criado_em)
     select aa.user_id, 'aula_assistida', aa.aula_id, ${PONTOS.aula_assistida}, ${agora}
@@ -228,7 +228,7 @@ export function registrar(
   aulaId: AulaId,
   pedido: Pedido,
   agora: Date
-): Promise<Registro> {
+) {
   const { userId } = aluno;
 
   return db.transaction(async (tx) => {

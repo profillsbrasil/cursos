@@ -18,10 +18,7 @@ import { linhasDoCurso } from "./aula";
 
 type Onde = { codigo: CodigoDoCertificado } | { slug: string; userId: string };
 
-export async function linhaDoCertificado(
-  db: Database,
-  onde: Onde
-): Promise<LinhaDoCertificado | null> {
+export async function linhaDoCertificado(db: Database, onde: Onde) {
   const [linha] = await db
     .select({
       categoria: categoria.nome,
@@ -48,7 +45,7 @@ export async function carregarPaginaDoCertificado(
   { db, pessoas }: Servicos,
   aluno: Aluno,
   slug: string
-): Promise<PaginaDoCertificado | null> {
+) {
   const { userId } = aluno;
   const linha = await linhaDoCertificado(db, { slug, userId });
 
@@ -66,7 +63,7 @@ export async function carregarPaginaDoCertificado(
 export async function conferir(
   { db, pessoas }: Servicos,
   codigo: CodigoDoCertificado
-): Promise<CertificadoEmitido | null> {
+) {
   const linha = await linhaDoCertificado(db, { codigo });
 
   return linha && certificadoEmitido(linha, await pessoas.porId(linha.userId));

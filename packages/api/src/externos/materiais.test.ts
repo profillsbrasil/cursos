@@ -18,7 +18,7 @@ const ZIP = bytesDe(0x50, 0x4b, 0x03, 0x04);
 const OLE = bytesDe(0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1);
 
 /** Só o cabeçalho de um PNG: assinatura e IHDR, que é o que o image-size lê. */
-function cabecalhoPng(): Uint8Array<ArrayBuffer> {
+function cabecalhoPng() {
   const b = new Uint8Array(33);
   const v = new DataView(b.buffer);
   b.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);

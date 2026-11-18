@@ -59,7 +59,7 @@ export const COM_CONTEUDO = {
  * os módulos, as aulas e a soma dos vídeos. O id desempata títulos iguais, para
  * a ordem não mudar entre um carregamento e outro.
  */
-export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
+export async function visaoDoCatalogo(db: Database) {
   const cursos = await db
     .select({
       aulas: sql<number>`count(${aula.id})::int`,

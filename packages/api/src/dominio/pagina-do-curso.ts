@@ -104,7 +104,7 @@ export interface PaginaDoCurso {
  * Na amostra, a ação é a aula de amostra: começar, ou continuar onde a pessoa
  * parou nela. A aula da vez do curso inteiro pode estar fechada.
  */
-function acaoDaAmostra(c: CursoAberto, aulaId: AulaId): AcaoDaPagina {
+function acaoDaAmostra(c: CursoAberto, aulaId: AulaId) {
   const { curso, historico } = c;
 
   const modulo = curso.modulos.find((m) =>
@@ -128,7 +128,7 @@ function acaoDaAmostra(c: CursoAberto, aulaId: AulaId): AcaoDaPagina {
     : { aulaId, href, onde, tipo: "comecar" };
 }
 
-function acaoDe(c: CursoAberto): AcaoDaPagina {
+function acaoDe(c: CursoAberto) {
   if (c.amostra) {
     return acaoDaAmostra(c, c.amostra.aulaId);
   }
@@ -194,7 +194,7 @@ export function montarPaginaDoCurso(
   c: CursoAberto,
   materiais: readonly MaterialDaPagina[],
   saldo: number
-): PaginaDoCurso {
+) {
   const { curso } = c;
   const { assistidas, questionarios } = c.historico;
   const nivelPorOrdem = new Map(curso.niveis.map((n) => [n.ordem, n]));

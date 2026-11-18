@@ -10,7 +10,7 @@ import type { AulaId, CursoId } from "./tipos";
 const em = (iso: string) => new Date(iso);
 
 /** Dois módulos (1: duas aulas, 2: uma), com descrição, tópicos e a descrição da 1.ª aula. */
-function linha(): CursoLinha {
+function linha() {
   const base = cursoLinha("envase", { aulas: [2, 1], primeiroNumero: 1 });
   const [m1, m2] = base.modulos;
 

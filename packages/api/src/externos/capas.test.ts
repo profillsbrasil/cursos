@@ -18,10 +18,7 @@ const ler = async (nome: string) =>
   new Uint8Array(await readFile(join(PASTA, nome)));
 
 /** Só o cabeçalho de um PNG: assinatura e IHDR, que é o que a medida lê. */
-function cabecalhoPng(
-  largura: number,
-  altura: number
-): Uint8Array<ArrayBuffer> {
+function cabecalhoPng(largura: number, altura: number) {
   const b = new Uint8Array(33);
   const v = new DataView(b.buffer);
   b.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);

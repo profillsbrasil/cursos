@@ -52,7 +52,7 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
  * id e o valor. A liberação do perfil não conta: ela dá a amostra, e o curso
  * continua à venda (ver docs/adr/0004-amostra-pelo-perfil.md).
  */
-function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
+function acessoDe(linha: LinhaDoCursoDaTroca) {
   const [ativa] = linha.liberacoes;
 
   if (ativa?.origem === "troca") {
@@ -72,7 +72,7 @@ function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
   return ativa ? { tipo: "liberado" } : { tipo: "nenhum" };
 }
 
-export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca): CursoDaTroca {
+export function paraCursoDaTroca(linha: LinhaDoCursoDaTroca) {
   const aulas = linha.modulos.flatMap((m) => m.aulas);
 
   return {
@@ -95,7 +95,7 @@ export type Situacao =
   | { tipo: "trocado"; lancamentoId: string; pago: number }
   | { tipo: "a_venda"; preco: number; faltam: number };
 
-export function situacao(c: CursoDaTroca, saldo: number): Situacao {
+export function situacao(c: CursoDaTroca, saldo: number) {
   switch (c.acesso.tipo) {
     case "trocado":
       return { ...c.acesso, tipo: "trocado" };
@@ -121,9 +121,8 @@ export function situacao(c: CursoDaTroca, saldo: number): Situacao {
  * fato que acende o saldo de Trocar pontos e mostra o botão de Sua semana. O
  * saldo só muda o `faltam` da situação, então o zero não muda a resposta.
  */
-export const temCursoTrocavelNaVitrine = (
-  cursos: readonly CursoDaTroca[]
-): boolean => cursos.some((c) => situacao(c, 0).tipo === "a_venda");
+export const temCursoTrocavelNaVitrine = (cursos: readonly CursoDaTroca[]) =>
+  cursos.some((c) => situacao(c, 0).tipo === "a_venda");
 
 type CursoNoCartao = Pick<
   CursoDaTroca,
@@ -142,7 +141,7 @@ export type CartaoDeTroca =
     }
   | { tipo: "trocado"; curso: CursoNoCartao; pago: number };
 
-const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
+const noCartao = (c: CursoDaTroca) => ({
   aulas: c.aulas,
   capa: c.capa,
   categoria: c.categoria,
@@ -152,7 +151,7 @@ const noCartao = (c: CursoDaTroca): CursoNoCartao => ({
   titulo: c.titulo,
 });
 
-export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
+export function cartao(c: CursoDaTroca, saldo: number) {
   const s = situacao(c, saldo);
 
   switch (s.tipo) {
@@ -177,7 +176,7 @@ export function cartao(c: CursoDaTroca, saldo: number): CartaoDeTroca | null {
   }
 }
 
-const precoParaOrdenar = (c: CartaoDeTroca): number =>
+const precoParaOrdenar = (c: CartaoDeTroca) =>
   c.tipo === "trocado" ? c.pago : c.preco;
 
 export interface PainelDeTroca {
@@ -197,10 +196,7 @@ export interface LinhasDaTroca {
   pontos: { saldo: number; entradasDaSemana: number };
 }
 
-export function montarPainelDeTroca(
-  linhas: LinhasDaTroca,
-  hoje: DiaISO
-): PainelDeTroca {
+export function montarPainelDeTroca(linhas: LinhasDaTroca, hoje: DiaISO) {
   const { saldo, entradasDaSemana } = linhas.pontos;
 
   const cartoes = linhas.cursos
@@ -240,13 +236,13 @@ export type Decisao =
   | { tipo: "ja_trocado"; lancamentoId: string }
   | { tipo: "recusa"; recusa: RecusaDaTroca };
 
-const recusa = (r: RecusaDaTroca): Decisao => ({ recusa: r, tipo: "recusa" });
+const recusa = (r: RecusaDaTroca) => ({ recusa: r, tipo: "recusa" });
 
 export function decidirTroca(
   c: CursoDaTroca | null,
   saldo: number,
   precoVisto: number
-): Decisao {
+) {
   if (!c) {
     return recusa({ tipo: "indisponivel" });
   }

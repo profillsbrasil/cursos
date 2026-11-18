@@ -39,7 +39,7 @@ const SEGUNDOS_POR_HORA = 3600;
 export const cargaHoraria = (segundos: number) =>
   Math.ceil(segundos / SEGUNDOS_POR_HORA);
 
-export function nomeNoCertificado(p: Pessoa | null): string | null {
+export function nomeNoCertificado(p: Pessoa | null) {
   if (!p || p.nome === p.userId || p.nome === p.email) {
     return null;
   }
@@ -50,7 +50,7 @@ export function nomeNoCertificado(p: Pessoa | null): string | null {
 export const certificadoEmitido = (
   l: LinhaDoCertificado,
   pessoa: Pessoa | null
-): CertificadoEmitido => ({
+) => ({
   codigo: l.codigo,
   emitidoEm: l.emitidoEm.toISOString(),
   horas: cargaHoraria(l.segundosDeVideo),
@@ -61,14 +61,14 @@ export const certificadoEmitido = (
 export const paginaEmitida = (
   l: LinhaDoCertificado,
   pessoa: Pessoa | null
-): PaginaDoCertificado => ({
+) => ({
   categoria: l.categoria,
   certificado: certificadoEmitido(l, pessoa),
   slug: l.slug,
   tipo: "emitido",
 });
 
-export function paginaQueFalta(c: CursoAberto): PaginaDoCertificado {
+export function paginaQueFalta(c: CursoAberto) {
   const { progresso, questionarios } = c.leitura;
 
   return {

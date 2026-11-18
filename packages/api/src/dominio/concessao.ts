@@ -10,7 +10,7 @@ export const TETO_DA_CONCESSAO = 100_000;
 export const MOTIVO_DA_CONCESSAO_MAX = 200;
 
 /** O texto do extrato do aluno: entrada e saída têm rótulos diferentes. */
-export const rotuloDaConcessao = (pontos: number): string =>
+export const rotuloDaConcessao = (pontos: number) =>
   pontos > 0 ? "Pontos do admin" : "Ajuste do admin";
 
 const INTEIRO = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
@@ -19,10 +19,7 @@ const INTEIRO = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
  * A frase da retirada maior que o saldo, ou null quando a concessão cabe. Dar
  * pontos sempre cabe; tirar nunca deixa o saldo negativo.
  */
-export function recusaDaConcessao(
-  saldo: number,
-  pontos: number
-): string | null {
+export function recusaDaConcessao(saldo: number, pontos: number) {
   if (saldo + pontos >= 0) {
     return null;
   }
@@ -55,7 +52,7 @@ export interface ConcessaoNaFicha {
 export function montarConcessoes(
   linhas: readonly LinhaDaConcessao[],
   autores: readonly (Pessoa | null)[]
-): ConcessaoNaFicha[] {
+) {
   const nomes = new Map(
     autores.flatMap((p) => (p ? [[p.userId, p.nome] as const] : []))
   );

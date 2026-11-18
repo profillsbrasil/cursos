@@ -49,7 +49,7 @@ function naCadeia<T>(erro: unknown, ler: (no: NoDaCadeia) => T | null) {
   return null;
 }
 
-export function violacaoDe(erro: unknown): Violacao | null {
+export function violacaoDe(erro: unknown) {
   return naCadeia(erro, ({ code, constraint }) =>
     typeof code === "string" &&
     CODIGOS.has(code) &&
@@ -212,7 +212,7 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
  * ErroParaAPessoa. Qualquer outro erro devolve null e sobe como está
  * (INTERNAL_SERVER_ERROR, texto genérico na tela).
  */
-export function mensagemDoBanco(erro: unknown): MensagemDoBanco | null {
+export function mensagemDoBanco(erro: unknown) {
   if (esperaVencida(erro)) {
     return ESPERA_ESGOTADA;
   }

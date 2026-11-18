@@ -146,7 +146,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
     await db.$client.end();
   });
 
-  function documentoNovo(materiais: MaterialDoDocumento[]): DocumentoDoCurso {
+  function documentoNovo(materiais: MaterialDoDocumento[]) {
     const id = randomUUID() as CursoId;
     cursos.push(id);
 

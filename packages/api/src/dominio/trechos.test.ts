@@ -13,7 +13,7 @@ import {
   unir,
 } from "./trechos";
 
-const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
+const t = (inicio: number, fim: number) => ({ fim, inicio });
 const c = (...lista: Trecho[]) => canonizar(lista, 600);
 
 describe("canonizar", () => {

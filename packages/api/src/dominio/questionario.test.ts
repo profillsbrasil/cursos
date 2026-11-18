@@ -91,7 +91,7 @@ describe("pontos e resultado da tentativa", () => {
     numero: number,
     alternativas: number[],
     aprovada: boolean
-  ): TentativaGravada => ({
+  ) => ({
     acertos: alternativas.filter((a) => a % 2 === 0).length,
     aprovada,
     numero,

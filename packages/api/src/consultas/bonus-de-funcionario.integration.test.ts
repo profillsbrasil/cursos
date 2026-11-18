@@ -19,7 +19,7 @@ const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 const ADMIN = `user_admin${S}`;
 
-const conta = (userId: string, email: string): Conta => ({
+const conta = (userId: string, email: string) => ({
   criadaEm: new Date("2026-10-01T12:00:00Z"),
   email,
   emailVerificado: true,

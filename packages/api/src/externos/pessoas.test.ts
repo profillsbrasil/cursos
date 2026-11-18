@@ -5,7 +5,7 @@ import type { ClerkClient, User } from "@clerk/backend";
 import type { Email } from "../dominio/convite";
 import { paraPessoa, pessoasDoClerk } from "./pessoas";
 
-function usuario(parcial: Partial<User>): User {
+function usuario(parcial: Partial<User>) {
   return {
     createdAt: 0,
     externalAccounts: [],

@@ -81,10 +81,7 @@ async function gravarConvites(
   emails: readonly Email[],
   oQueDa: OQueOConviteDa,
   agora: Date
-): Promise<{
-  gravados: { email: Email; id: ConviteId }[];
-  jaConvidados: { email: Email; enviado: boolean }[];
-}> {
+) {
   if (emails.length === 0) {
     return { gravados: [], jaConvidados: [] };
   }
@@ -165,7 +162,7 @@ async function marcarEnviado(
   id: ConviteId,
   clerkConviteId: string,
   agora: Date
-): Promise<boolean> {
+) {
   const linhas = await db
     .update(convite)
     .set({ clerkConviteId, enviadoEm: agora, expiraEm: validade(agora) })
@@ -185,7 +182,7 @@ async function enviarUm(
   convites: Convites,
   gravado: { email: Email; id: ConviteId },
   agora: Date
-): Promise<Envio> {
+) {
   try {
     const r = await convites.enviar(gravado.email, agora);
 
@@ -219,7 +216,7 @@ export async function convidar(
   admin: AdminId,
   pedido: OQueOConviteDa & { emails: readonly Email[] },
   agora: Date
-): Promise<ResultadoDoEnvio> {
+) {
   const emails = [...new Set(pedido.emails)];
   let comConta: ReadonlyMap<Email, string>;
 
@@ -267,7 +264,7 @@ export async function convidar(
   };
 }
 
-function resultadoDoEnvio(email: Email, envio: Envio): ResultadoDoConvite {
+function resultadoDoEnvio(email: Email, envio: Envio) {
   switch (envio.tipo) {
     case "enviado":
       return { email, tipo: "enviado" };
@@ -305,7 +302,7 @@ const naoExiste = () =>
 function recusaDoFim(
   estado: Extract<EstadoDoConvite, { tipo: "aceito" | "cancelado" }>,
   aceito: string
-): ErroParaAPessoa {
+) {
   return new ErroParaAPessoa({
     code: "PRECONDITION_FAILED",
     message: estado.tipo === "aceito" ? aceito : "Este convite foi cancelado.",
@@ -335,7 +332,7 @@ export async function reenviarConvite(
   convites: Convites,
   id: ConviteId,
   agora: Date
-): Promise<{ enviadoEm: Date }> {
+) {
   const lido = await lerEstado(db, id, agora);
 
   if (!lido) {
@@ -402,7 +399,7 @@ export async function cancelarConvite(
   admin: AdminId,
   id: ConviteId,
   agora: Date
-): Promise<{ cancelado: boolean }> {
+) {
   const [cancelada] = await db
     .update(convite)
     .set({ canceladoEm: agora, canceladoPor: admin })
@@ -441,10 +438,7 @@ export async function cancelarConvite(
  * A leitura da tela, em 3 statements paralelos: os vivos que casam o termo (trecho
  * do e-mail), do mais novo ao mais antigo, o total dos vivos e os cursos do diálogo.
  */
-export async function linhasDosConvites(
-  db: Database,
-  termo: string
-): Promise<LinhasDosConvites> {
+export async function linhasDosConvites(db: Database, termo: string) {
   const trecho = termo.toLowerCase().replace(ESCAPE_DO_LIKE, "\\$&");
 
   const [convidados, total, cursos] = await Promise.all([
@@ -501,7 +495,7 @@ export async function reivindicarConvite(
   aluno: AlunoTravado,
   email: Email,
   agora: Date
-): Promise<ConviteAceito | null> {
+) {
   const [aceito] = await aluno.tx
     .update(convite)
     .set({ aceitoEm: agora, aceitoPor: aluno.userId })
@@ -551,7 +545,7 @@ export function aplicarPapelDoConvite(
   pessoas: Pick<Pessoas, "definirPapel">,
   userId: string,
   agora: Date
-): Promise<void> {
+) {
   return comTrava(db, "papel", async (tx) => {
     const [pendente] = await tx
       .select({ id: convite.id })
@@ -580,7 +574,7 @@ export async function encerrarPapelDoConvite(
   tx: Transacao,
   userId: string,
   agora: Date
-): Promise<void> {
+) {
   await tx
     .update(convite)
     .set({ papelAplicadoEm: agora })

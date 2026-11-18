@@ -32,7 +32,7 @@ const S = hex();
 const AGORA = new Date("2026-10-20T13:00:00Z");
 const ADMIN = "user_admin" as AdminId;
 
-const conta = (email: string | null, emailVerificado = true): Conta => ({
+const conta = (email: string | null, emailVerificado = true) => ({
   criadaEm: AGORA,
   email,
   emailVerificado,
@@ -239,7 +239,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const cursos: string[] = [];
 
-  async function cursoDeTeste(): Promise<CursoId> {
+  async function cursoDeTeste() {
     const s = hex();
 
     const [c] = await db

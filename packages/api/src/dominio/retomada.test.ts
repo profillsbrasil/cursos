@@ -15,7 +15,7 @@ const entrada = (
       ([aula, p]) => [aula, p.atualizadaEm] as const
     )
   )
-): EntradaRetomada => {
+) => {
   const estudo: Estudo = { atividade, historico: h };
 
   return {

@@ -45,7 +45,7 @@ export interface PlanoDaVirada {
   userId: string;
 }
 
-const NADA = (userId: string): PlanoDaVirada => ({
+const NADA = (userId: string) => ({
   bonus: 0,
   pulados: [],
   trocas: [],
@@ -84,7 +84,7 @@ function estudadosSoPeloPerfil(p: PessoaNaVirada) {
  * O plano de uma pessoa. Cliente e Público aberto não mudam. O saldo com o
  * bônus paga as trocas do curso mais barato ao mais caro; o que não cabe pula.
  */
-export function planejarVirada(p: PessoaNaVirada): PlanoDaVirada {
+export function planejarVirada(p: PessoaNaVirada) {
   if (p.perfil !== "funcionario") {
     return NADA(p.userId);
   }
@@ -129,7 +129,7 @@ export function planejarVirada(p: PessoaNaVirada): PlanoDaVirada {
 }
 
 /** Nada a gravar: sem bônus e sem troca. Os pulados seguem no relatório. */
-export const nadaAFazer = (plano: PlanoDaVirada): boolean =>
+export const nadaAFazer = (plano: PlanoDaVirada) =>
   plano.bonus === 0 && plano.trocas.length === 0;
 
 export interface TotaisDaVirada {
@@ -142,9 +142,7 @@ export interface TotaisDaVirada {
   trocas: number;
 }
 
-export function totaisDaVirada(
-  planos: readonly PlanoDaVirada[]
-): TotaisDaVirada {
+export function totaisDaVirada(planos: readonly PlanoDaVirada[]) {
   const trocas = planos.flatMap((p) => p.trocas);
 
   return {
@@ -161,7 +159,7 @@ export function totaisDaVirada(
  * Banco sem nenhuma linha de perfil é o que um DATABASE_URL vazio ou de outro
  * ambiente produz: a gravação recusa em vez de rodar no banco errado.
  */
-export function recusaDaGravacao(linhasDePerfil: number): string | null {
+export function recusaDaGravacao(linhasDePerfil: number) {
   return linhasDePerfil === 0
     ? "O banco não tem nenhuma linha em perfil_da_pessoa. Confira o DATABASE_URL antes de gravar."
     : null;

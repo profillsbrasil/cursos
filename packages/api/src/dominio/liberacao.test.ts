@@ -35,7 +35,7 @@ const SEM_HISTORICO: LinhasHistorico = {
 function linha(
   id: CursoId,
   parcial: Partial<LinhaDaPessoa> & { titulo?: string } = {}
-): LinhaDaPessoa {
+) {
   const { titulo = id, ...resto } = parcial;
 
   return {
@@ -68,7 +68,7 @@ describe("acaoNaLiberacao", () => {
   });
 });
 
-const doPerfil = (id: CursoId, titulo: string): LinhaDaLiberacao => ({
+const doPerfil = (id: CursoId, titulo: string) => ({
   curso: { ...cursoCat(id, { aulas: [1] }), titulo },
   id: `lp-${id}` as LiberacaoDoPerfilId,
   liberadaEm: new Date("2026-10-02T12:00:00Z"),

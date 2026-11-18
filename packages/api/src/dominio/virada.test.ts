@@ -30,7 +30,7 @@ const cursoDaBusca = (id: string, mudar: Partial<CursoDaBusca> = {}) => ({
   ...mudar,
 });
 
-const doPerfil = (cursoId: string): LiberacaoDaBusca => ({
+const doPerfil = (cursoId: string) => ({
   cursoId,
   liberadaEm: AGORA,
   origem: "perfil",
@@ -44,12 +44,12 @@ const SEM_ESTUDO: LinhasHistorico = {
   questionarios: [],
 };
 
-const assistiu = (...aulas: string[]): LinhasHistorico => ({
+const assistiu = (...aulas: string[]) => ({
   ...SEM_ESTUDO,
   assistidas: aulas.map((aulaId) => ({ assistidaEm: AGORA, aulaId })),
 });
 
-function pessoa(mudar: Partial<PessoaNaVirada> = {}): PessoaNaVirada {
+function pessoa(mudar: Partial<PessoaNaVirada> = {}) {
   return {
     cursos: [cursoDaBusca("c1")],
     liberacoes: [doPerfil("c1")],

@@ -37,7 +37,7 @@ const S = hex();
 const AGORA = new Date("2026-10-07T18:00:00Z");
 const ADMIN = "user_admin" as AdminId;
 
-const pessoa = (userId: string): Pessoa => ({
+const pessoa = (userId: string) => ({
   email: null,
   foto: null,
   nome: "Aluno",
@@ -435,7 +435,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
   });
 
   describe("admin.liberacoes.liberarVarios", () => {
-    const nomeado = (userId: string, nome: string): Pessoa => ({
+    const nomeado = (userId: string, nome: string) => ({
       email: `${nome.toLowerCase()}@exemplo.com`,
       foto: null,
       nome,

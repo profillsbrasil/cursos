@@ -15,10 +15,7 @@ import { linhasDoCurso } from "./aula";
 import type { Executor } from "./comum";
 
 /** Em ordem de posição. */
-export async function materiaisDaPagina(
-  exec: Executor,
-  slug: string
-): Promise<MaterialDaPagina[]> {
+export async function materiaisDaPagina(exec: Executor, slug: string) {
   const linhas = await exec
     .select({
       bytes: material.bytes,
@@ -55,7 +52,7 @@ export async function materialParaBaixar(
   db: Database,
   quem: { admin: boolean; aluno: Aluno },
   id: MaterialId
-): Promise<MaterialParaBaixar | null> {
+) {
   const [achado] = await db
     .select({
       chave: material.chave,

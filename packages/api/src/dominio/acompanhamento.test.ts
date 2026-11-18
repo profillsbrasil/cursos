@@ -13,7 +13,7 @@ import type { CursoId, DiaISO } from "./tipos";
 const em = (iso: string) => new Date(iso);
 
 /** Linhas do histórico com datas literais; o que não vem fica vazio. */
-const linhas = (o: Partial<LinhasHistorico>): LinhasHistorico => ({
+const linhas = (o: Partial<LinhasHistorico>) => ({
   assistidas: [],
   certificados: [],
   posicoes: [],

@@ -25,15 +25,11 @@ export const podeAbrir = (e: EstadoCurso): e is EstadoQueAbre =>
  */
 export const aulaDeAmostra = (c: {
   modulos: readonly { aulas: readonly { id: AulaId }[] }[];
-}): AulaId | null => c.modulos.flatMap((m) => m.aulas)[0]?.id ?? null;
+}) => c.modulos.flatMap((m) => m.aulas)[0]?.id ?? null;
 
-export const numeroDaAula = (indiceNoModulo: number): number =>
-  indiceNoModulo + 1;
+export const numeroDaAula = (indiceNoModulo: number) => indiceNoModulo + 1;
 
-export function niveis(
-  curso: CursoCatalogo,
-  assistidas: ReadonlySet<AulaId>
-): { faixas: FaixaNivel[]; proximo: FaixaNivel | null } {
+export function niveis(curso: CursoCatalogo, assistidas: ReadonlySet<AulaId>) {
   const faixas = curso.niveis.map((n) => {
     const aulas = curso.modulos
       .filter((m) => m.nivelOrdem === n.ordem)

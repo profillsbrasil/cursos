@@ -36,10 +36,10 @@ export interface ItemDoExtrato {
   texto: string;
 }
 
-const referenciaAusente = (l: LinhaDoExtrato): Error =>
+const referenciaAusente = (l: LinhaDoExtrato) =>
   new Error(`Lançamento ${l.id} (${l.motivo}) sem o fato que ele referencia.`);
 
-function textoDoExtrato(l: LinhaDoExtrato): string {
+function textoDoExtrato(l: LinhaDoExtrato) {
   switch (l.motivo) {
     case "aula_assistida":
       if (!l.aula) {
@@ -80,7 +80,7 @@ function textoDoExtrato(l: LinhaDoExtrato): string {
   }
 }
 
-export const itemDoExtrato = (linha: LinhaDoExtrato): ItemDoExtrato => ({
+export const itemDoExtrato = (linha: LinhaDoExtrato) => ({
   dia: diaLocal(linha.criadoEm),
   id: linha.id,
   pontos: linha.pontos,
@@ -109,7 +109,7 @@ export interface RegraDeGanho {
   rotulo: string;
 }
 
-export const comoGanhar = (): readonly RegraDeGanho[] =>
+export const comoGanhar = () =>
   ORDEM.map((regra) => ({
     emBreve: !pontuaHoje(regra),
     pontos: PONTOS[regra],

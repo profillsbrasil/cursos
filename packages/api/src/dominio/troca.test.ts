@@ -21,7 +21,7 @@ const TROCADO: Acesso = {
   tipo: "trocado",
 };
 
-const curso = (mudar: Partial<CursoDaTroca> = {}): CursoDaTroca => ({
+const curso = (mudar: Partial<CursoDaTroca> = {}) => ({
   acesso: { tipo: "nenhum" },
   aulas: 4,
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/bpf.jpg" },
@@ -147,9 +147,7 @@ describe("decidirTroca", () => {
   });
 });
 
-const linha = (
-  mudar: Partial<LinhaDoCursoDaTroca> = {}
-): LinhaDoCursoDaTroca => ({
+const linha = (mudar: Partial<LinhaDoCursoDaTroca> = {}) => ({
   capaAlt: "Capa",
   capaAltura: 720,
   capaLargura: 1280,

@@ -169,10 +169,7 @@ export type LugarDoComunicado = "topo" | "fim";
 export const DIAS_NO_TOPO = 14;
 
 /** Os dias contam no fuso de São Paulo: o dia da publicação é o dia 0. */
-export const lugarDoComunicado = (
-  publicadoEm: Date,
-  hoje: DiaISO
-): LugarDoComunicado =>
+export const lugarDoComunicado = (publicadoEm: Date, hoje: DiaISO) =>
   diasCorridos(diaLocal(publicadoEm), hoje) < DIAS_NO_TOPO ? "topo" : "fim";
 
 export interface ComunicadoVM {
@@ -208,7 +205,7 @@ export interface ResumoAluno {
 // ---------- montagem ----------
 
 /** Borda: marca os ids das linhas do banco. */
-export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
+export function paraCatalogo(linha: CursoLinha) {
   return {
     capa: capaDe(linha),
     categoria: linha.categoria.nome,
@@ -252,7 +249,7 @@ function cursoVM(
   c: CursoCatalogo,
   leitura: CursoDoAluno,
   amostra: AmostraNoPainel | null
-): CursoVM {
+) {
   const aulas = c.modulos.flatMap((m) => m.aulas);
 
   return {
@@ -273,10 +270,7 @@ function cursoVM(
 }
 
 /** `hoje` é o dia em São Paulo, e só serve ao comunicado: o lugar e o ano da data. */
-export function montarPainel(
-  linhas: LinhasPainel,
-  hoje: DiaISO
-): PainelMeusCursos {
+export function montarPainel(linhas: LinhasPainel, hoje: DiaISO) {
   const estudo = estudoDe(linhas);
 
   // O sort é estável, então o empate fica na ordem da liberação. A amostra vem
@@ -328,7 +322,7 @@ export function montarPainel(
   };
 }
 
-export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
+export function montarResumo(linhas: LinhasResumo, hoje: DiaISO) {
   const dias = new Set(linhas.dias.map((d) => d.dia as DiaISO));
   const sequenciaDias = sequenciaDiasUteis(dias, hoje);
 

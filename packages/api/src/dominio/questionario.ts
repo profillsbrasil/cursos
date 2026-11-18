@@ -61,7 +61,7 @@ export type Correcao =
 export function corrigir(
   perguntas: readonly PerguntaComGabarito[],
   respostas: readonly RespostaEnviada[]
-): Correcao {
+) {
   const marcadas = new Map(
     respostas.map((r) => [r.perguntaId, r.alternativaId])
   );
@@ -102,7 +102,7 @@ export function corrigir(
 }
 
 /** Só a primeira tentativa vale pontos, aprovada ou não. */
-export const pontosDaTentativa = (numero: number, acertos: number): number =>
+export const pontosDaTentativa = (numero: number, acertos: number) =>
   numero === 1 ? acertos * PONTOS.questionario : 0;
 
 export interface ResultadoDoQuestionario {
@@ -138,7 +138,7 @@ export interface TentativaGravada {
   total: number;
 }
 
-const semGabarito = (p: PerguntaComGabarito): PerguntaDaAula => ({
+const semGabarito = (p: PerguntaComGabarito) => ({
   alternativas: p.alternativas,
   enunciado: p.enunciado,
   id: p.id,
@@ -154,7 +154,7 @@ export function resultadoDaTentativa(
   perguntas: readonly PerguntaComGabarito[],
   tentativa: TentativaGravada,
   primeira: Pick<TentativaGravada, "acertos">
-): ResultadoDoQuestionario {
+) {
   const respostaDe = new Map(tentativa.respostas.map((r) => [r.perguntaId, r]));
 
   return {
@@ -186,7 +186,7 @@ export function resultadoDaTentativa(
 export function montarQuestionarioDaAula(
   perguntas: readonly PerguntaComGabarito[],
   tentativas: readonly TentativaGravada[]
-): QuestionarioDaAula | null {
+) {
   if (perguntas.length === 0) {
     return null;
   }
@@ -216,7 +216,7 @@ export const SEM_QUESTIONARIO: MarcaDoQuestionario = { tipo: "sem" };
 export function marcaDoQuestionario(
   perguntas: number,
   estudo: EstudoDoQuestionario | undefined
-): MarcaDoQuestionario {
+) {
   if (perguntas === 0) {
     return { tipo: "sem" };
   }

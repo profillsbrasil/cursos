@@ -60,7 +60,7 @@ const doAluno = (
   id: string,
   publicadoEm: string,
   curso: LinhaDoComunicadoDoAluno["curso"] = null
-): LinhaDoComunicadoDoAluno => ({
+) => ({
   curso,
   id: id as ComunicadoId,
   publicadoEm: new Date(publicadoEm),

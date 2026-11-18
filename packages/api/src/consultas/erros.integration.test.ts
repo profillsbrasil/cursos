@@ -42,7 +42,7 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
    * Restrições das tabelas do admin, mais as FKs de outras tabelas que apontam
    * para elas (disparam quando o admin apaga), mais os unique index parciais.
    */
-  async function restricoesNoBanco(): Promise<Set<string>> {
+  async function restricoesNoBanco() {
     const tabelas = sql.join(
       TABELAS_DO_ADMIN.map((t) => sql`${t}`),
       sql`, `

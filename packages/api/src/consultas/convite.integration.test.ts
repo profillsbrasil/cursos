@@ -44,7 +44,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const cursos: string[] = [];
 
-  async function cursoDeTeste(titulo: string): Promise<CursoId> {
+  async function cursoDeTeste(titulo: string) {
     const s = hex();
 
     const [c] = await db
@@ -357,9 +357,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   test("dar o papel de admin pelo convite pede que quem convida ainda seja admin no login", async () => {
     const ana = email("ana");
 
-    const eu = (
-      papel: "admin" | "aluno"
-    ): Pessoa & { papel: typeof papel } => ({
+    const eu = (papel: "admin" | "aluno") => ({
       email: "dono@profills.com",
       foto: null,
       nome: "Dono",

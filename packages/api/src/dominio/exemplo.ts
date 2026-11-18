@@ -50,7 +50,7 @@ export const EDICAO = {
   P1B: uuidDeExemplo(52) as AlternativaId,
 } as const;
 
-export const aulaDeExemplo = (id: AulaId, titulo: string): AulaDoDocumento => ({
+export const aulaDeExemplo = (id: AulaId, titulo: string) => ({
   descricao: "",
   duracaoSeg: 300,
   id,
@@ -63,7 +63,7 @@ export const perguntaDeExemplo = (
   id: PerguntaId,
   alternativas: readonly [AlternativaId, AlternativaId],
   enunciado = "Qual é a pergunta?"
-): PerguntaDoDocumento => ({
+) => ({
   alternativas: [
     { certa: false, id: alternativas[0], texto: "Errada" },
     { certa: true, id: alternativas[1], texto: "Certa" },
@@ -73,9 +73,7 @@ export const perguntaDeExemplo = (
 });
 
 /** Dois módulos (0: A1, A2; 1: A3), dois níveis, na forma canônica do schema. */
-export function documentoDeExemplo(
-  versao: Versao | null = null
-): DocumentoDoCurso {
+export function documentoDeExemplo(versao: Versao | null = null) {
   return {
     categoriaId: EDICAO.CATEGORIA,
     descricao: "",
@@ -129,7 +127,7 @@ interface OpcoesCurso {
   status?: StatusDoCurso;
 }
 
-export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
+export function cursoLinha(chave: string, o: OpcoesCurso) {
   const primeiro = o.primeiroNumero ?? 0;
 
   return {
@@ -165,7 +163,7 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
 }
 
 /** CursoCatalogo direto, sem passar por paraCatalogo. */
-export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
+export function cursoCat(chave: string, o: OpcoesCurso) {
   const l = cursoLinha(chave, o);
 
   return {
@@ -198,14 +196,14 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
 export const questionario = (
   aprovada: boolean,
   ultima = aprovada ? { acertos: 3, total: 3 } : { acertos: 1, total: 3 }
-): EstudoDoQuestionario => ({ aprovada, tentativas: 1, ultima });
+) => ({ aprovada, tentativas: 1, ultima });
 
 export function historico(o: {
   assistidas?: string[];
   certificados?: string[];
   posicoes?: [string, number, string?][];
   questionarios?: [string, EstudoDoQuestionario][];
-}): Historico {
+}) {
   return {
     assistidas: new Set((o.assistidas ?? []) as AulaId[]),
     certificados: new Map(
@@ -232,7 +230,7 @@ export const aulasDe = (l: CursoLinha) =>
 
 // ---------- o caso do protótipo, com os dados do seed (proto-v2/data.js) ----------
 
-function linhaDoSeed(chave: string): CursoLinha {
+function linhaDoSeed(chave: string) {
   const c = CURSOS.find((x) => x.chave === chave);
 
   if (!c) {
@@ -273,7 +271,7 @@ function linhaDoSeed(chave: string): CursoLinha {
 
 const em = (iso: string) => new Date(iso);
 
-export function exemploDoPrototipo(): LinhasPainel {
+export function exemploDoPrototipo() {
   const liberacoes = LIBERADOS_A.map((chave, i) => ({
     amostra: null,
     curso: linhaDoSeed(chave),

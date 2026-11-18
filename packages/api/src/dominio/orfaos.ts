@@ -36,7 +36,7 @@ export interface Orfao extends ObjetoDoBucket {
   idadeEmDias: number;
 }
 
-function chavesReferenciadas(emUso: ChavesEmUso): Set<string> {
+function chavesReferenciadas(emUso: ChavesEmUso) {
   const chaves = new Set(emUso.chavesDeMaterial);
 
   for (const url of emUso.capaUrls) {
@@ -53,7 +53,7 @@ export function orfaosDoBucket(
   emUso: ChavesEmUso,
   objetos: readonly ObjetoDoBucket[],
   agora: Date
-): Orfao[] {
+) {
   const referenciadas = chavesReferenciadas(emUso);
 
   return objetos
@@ -73,7 +73,7 @@ export function orfaosDoBucket(
  * Isso é o que um DATABASE_URL vazio ou de outro ambiente produz, então o
  * apagar recusa em vez de esvaziar o bucket.
  */
-export function recusaDoApagar(emUso: ChavesEmUso): string | null {
+export function recusaDoApagar(emUso: ChavesEmUso) {
   return chavesReferenciadas(emUso).size === 0
     ? "O banco não usa nenhuma chave dos buckets. Confira o DATABASE_URL antes de apagar."
     : null;

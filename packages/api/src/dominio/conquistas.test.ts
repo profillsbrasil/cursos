@@ -42,7 +42,7 @@ const capa = (curso: typeof AUTO) => ({
   titulo: curso.titulo,
 });
 
-const vitrine = (preco: number, titulo: string): CursoDaTroca => ({
+const vitrine = (preco: number, titulo: string) => ({
   acesso: { tipo: "nenhum" },
   aulas: 3,
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
@@ -376,7 +376,7 @@ const trocado = (curso: typeof AUTO, iso: string) => ({
 const tentativas = (
   aulaId: string,
   o: Partial<TentativasDaAula> & { primeira: [number, number, string] }
-): TentativasDaAula => {
+) => {
   const [acertos, total, iso] = o.primeira;
 
   return {

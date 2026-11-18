@@ -18,7 +18,7 @@ const SEM_LETRA = "curso";
  * "Profills School Comercial" vira "profills-school-comercial": minúsculas, sem
  * acento, hífen no lugar de espaço e pontuação. Sempre casa com SLUG, de formatos.ts.
  */
-export function slugDoTitulo(titulo: string): string {
+export function slugDoTitulo(titulo: string) {
   const base = titulo
     .normalize("NFD")
     .replace(DIACRITICOS, "")
@@ -31,7 +31,7 @@ export function slugDoTitulo(titulo: string): string {
 }
 
 /** A base se está livre; senão a base com o menor sufixo livre, a partir de -2. */
-export function slugLivre(base: string, ocupados: ReadonlySet<string>): string {
+export function slugLivre(base: string, ocupados: ReadonlySet<string>) {
   if (!ocupados.has(base)) {
     return base;
   }
@@ -50,5 +50,5 @@ export function slugLivre(base: string, ocupados: ReadonlySet<string>): string {
  * base pode virar ("x", "x-2") tem a mesma raiz que a própria base, e a base
  * "x-2" também: dois cursos novos que disputam o mesmo endereço se serializam.
  */
-export const raizDoSlug = (base: string): string =>
+export const raizDoSlug = (base: string) =>
   base.replace(SUFIXOS_NUMERICOS, "") || base;

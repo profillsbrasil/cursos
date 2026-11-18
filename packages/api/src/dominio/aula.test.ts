@@ -26,7 +26,7 @@ const LIBERADA = [{ id: "lib" }];
 function comAcesso(
   linha: CursoLinha,
   a: { liberado: boolean; peloPerfil?: boolean }
-): CursoComAcessoLinha {
+) {
   return {
     ...linha,
     liberacoes: a.liberado ? LIBERADA : [],
@@ -38,7 +38,7 @@ function comAcesso(
 const linhas = (
   curso: CursoComAcessoLinha | null,
   o: Partial<Omit<LinhasCurso, "curso">> = {}
-): LinhasCurso => ({
+) => ({
   assistidas: o.assistidas ?? [],
   certificados: o.certificados ?? [],
   curso,

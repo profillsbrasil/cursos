@@ -22,17 +22,14 @@ export interface ImagemDaCapa {
   url: string;
 }
 
-export function recusaDoTamanho(bytes: number): RecusaDaCapa | null {
+export function recusaDoTamanho(bytes: number) {
   return bytes > LIMITE_DA_CAPA.bytes
     ? { limiteMb: LIMITE_DA_CAPA.bytes / 1024 / 1024, tipo: "pesada" }
     : null;
 }
 
 /** A medida já com a orientação EXIF aplicada. */
-export function recusaDaMedida(
-  largura: number,
-  altura: number
-): RecusaDaCapa | null {
+export function recusaDaMedida(largura: number, altura: number) {
   if (altura < 1) {
     return { tipo: "formato" };
   }

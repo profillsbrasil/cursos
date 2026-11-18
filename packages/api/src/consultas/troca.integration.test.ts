@@ -111,7 +111,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
         sql`${pontoLancamento.userId} = ${userId} and ${pontoLancamento.motivo} = 'troca'`
       );
 
-  async function esperarInsertBloqueado(tentativas: number): Promise<void> {
+  async function esperarInsertBloqueado(tentativas: number) {
     const { rows } = await db.execute<{ n: number }>(sql`
       select count(*)::int as n from pg_stat_activity
       where wait_event_type = 'Lock' and query like 'insert into "liberacao"%'`);

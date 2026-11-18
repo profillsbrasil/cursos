@@ -146,7 +146,7 @@ export const adminRouter = router({
      */
     enviarMaterial: adminProcedure
       .input(z.instanceof(FormData))
-      .mutation(async ({ ctx, input }): Promise<MaterialEnviado> => {
+      .mutation(async ({ ctx, input }) => {
         const arquivo = arquivoDoFormulario(input);
 
         if (!arquivo) {

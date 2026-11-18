@@ -40,12 +40,11 @@ const NOMES = [
   "Domingo",
 ] as const;
 
-export const diaLocal = (agora: Date): DiaISO =>
-  formatador.format(agora) as DiaISO;
+export const diaLocal = (agora: Date) => formatador.format(agora) as DiaISO;
 
 const meioDia = (dia: DiaISO) => new Date(`${dia}T12:00:00Z`);
 
-export function somarDias(dia: DiaISO, n: number): DiaISO {
+export function somarDias(dia: DiaISO, n: number) {
   const d = meioDia(dia);
   d.setUTCDate(d.getUTCDate() + n);
 
@@ -55,24 +54,23 @@ export function somarDias(dia: DiaISO, n: number): DiaISO {
 const MS_POR_DIA = 86_400_000;
 
 /** Dias corridos de `de` até `ate`: de 01/10 a 15/10 são 14. */
-export const diasCorridos = (de: DiaISO, ate: DiaISO): number =>
+export const diasCorridos = (de: DiaISO, ate: DiaISO) =>
   Math.round((meioDia(ate).getTime() - meioDia(de).getTime()) / MS_POR_DIA);
 
 /** 0 = domingo. */
 const diaDaSemana = (dia: DiaISO) => meioDia(dia).getUTCDay();
 
-export const siglaDoDia = (dia: DiaISO): string =>
-  SIGLAS[diaDaSemana(dia)] ?? "";
+export const siglaDoDia = (dia: DiaISO) => SIGLAS[diaDaSemana(dia)] ?? "";
 
 export const SIGLAS_DO_FIM_DE_SEMANA = [SIGLAS[6], SIGLAS[0]] as const;
 
-export const ehDiaUtil = (dia: DiaISO): boolean => {
+export const ehDiaUtil = (dia: DiaISO) => {
   const d = diaDaSemana(dia);
 
   return d !== 0 && d !== 6;
 };
 
-export function diaUtilAnterior(dia: DiaISO): DiaISO {
+export function diaUtilAnterior(dia: DiaISO) {
   let d = somarDias(dia, -1);
 
   while (!ehDiaUtil(d)) {
@@ -83,10 +81,7 @@ export function diaUtilAnterior(dia: DiaISO): DiaISO {
 }
 
 // Hoje sem estudo ainda não quebra: a contagem começa no dia útil anterior.
-export function sequenciaDiasUteis(
-  dias: ReadonlySet<DiaISO>,
-  hoje: DiaISO
-): number {
+export function sequenciaDiasUteis(dias: ReadonlySet<DiaISO>, hoje: DiaISO) {
   let cursor = ehDiaUtil(hoje) && dias.has(hoje) ? hoje : diaUtilAnterior(hoje);
   let n = 0;
 
@@ -98,19 +93,15 @@ export function sequenciaDiasUteis(
   return n;
 }
 
-export const segundaDaSemana = (hoje: DiaISO): DiaISO =>
+export const segundaDaSemana = (hoje: DiaISO) =>
   somarDias(hoje, -((diaDaSemana(hoje) + 6) % 7));
 
 export const faltamParaBonus = (
   sequencia: number,
   meta: number = META_SEQUENCIA
-): number => meta - (sequencia % meta);
+) => meta - (sequencia % meta);
 
-function statusDoDia(
-  dia: DiaISO,
-  hoje: DiaISO,
-  dias: ReadonlySet<DiaISO>
-): StatusDia {
+function statusDoDia(dia: DiaISO, hoje: DiaISO, dias: ReadonlySet<DiaISO>) {
   if (!ehDiaUtil(dia)) {
     return "fim_de_semana";
   }
@@ -126,7 +117,7 @@ function statusDoDia(
   return dias.has(dia) ? "estudou" : "nao_estudou";
 }
 
-export function semana(dias: ReadonlySet<DiaISO>, hoje: DiaISO): DiaDaSemana[] {
+export function semana(dias: ReadonlySet<DiaISO>, hoje: DiaISO) {
   const segunda = segundaDaSemana(hoje);
 
   return NOMES.map((nome, i) => {

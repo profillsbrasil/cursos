@@ -71,7 +71,7 @@ const SINONIMOS: Readonly<Record<string, TipoDoMaterial>> = { jpeg: "jpg" };
 const EXTENSAO = /\.([A-Za-z0-9]+)$/;
 
 /** O tipo pela extensão do nome, sem diferença de caixa; null fora da lista. */
-export function tipoDoNome(nome: string): TipoDoMaterial | null {
+export function tipoDoNome(nome: string) {
   const ext = EXTENSAO.exec(nome.trim())?.[1]?.toLowerCase();
 
   if (ext === undefined) {
@@ -117,7 +117,7 @@ const UM_DECIMAL = new Intl.NumberFormat("pt-BR", {
 const INTEIRO = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 
 /** "86 KB", "1,2 MB", "61,6 MB". */
-export function tamanhoDoArquivo(bytes: number): string {
+export function tamanhoDoArquivo(bytes: number) {
   if (bytes < MEGA) {
     return `${INTEIRO.format(Math.max(1, Math.round(bytes / 1024)))} KB`;
   }
@@ -132,7 +132,7 @@ const TIPOS_PARA_LER =
 export const TIPOS_E_LIMITE = `${TIPOS_PARA_LER}, até ${LIMITE_DO_MATERIAL.bytes / MEGA} MB cada`;
 
 /** A frase da recusa, escrita para quem não sabe o que é assinatura de arquivo. */
-export function mensagemDoMaterial(r: RecusaDoMaterial): string {
+export function mensagemDoMaterial(r: RecusaDoMaterial) {
   switch (r.tipo) {
     case "formato":
       return `Este tipo de arquivo não entra. Use ${TIPOS_PARA_LER}.`;
@@ -152,10 +152,7 @@ export function mensagemDoMaterial(r: RecusaDoMaterial): string {
 }
 
 /** O que se confere antes de ler os bytes: o tipo pelo nome e o tamanho. */
-export function recusaAntesDeLer(
-  nome: string,
-  bytes: number
-): RecusaDoMaterial | null {
+export function recusaAntesDeLer(nome: string, bytes: number) {
   if (tipoDoNome(nome) === null) {
     return { tipo: "formato" };
   }
@@ -168,7 +165,7 @@ export function recusaAntesDeLer(
 }
 
 /** O nome guardado: aparado e, acima do teto, cortado antes da extensão. */
-export function nomeGuardado(nome: string): string {
+export function nomeGuardado(nome: string) {
   const aparado = nome.trim();
 
   if (aparado.length <= LIMITE_DO_MATERIAL.nomeDoArquivo) {
@@ -187,7 +184,7 @@ const SEPARADORES = /[-_]+/g;
 const ESPACOS = /\s+/g;
 
 /** "checklist-setup_ev400.pdf" vira "checklist setup ev400". */
-export function tituloSugerido(nome: string): string {
+export function tituloSugerido(nome: string) {
   const semExtensao = nome.trim().replace(EXTENSAO, "");
 
   const titulo = semExtensao
@@ -225,14 +222,14 @@ export interface MaterialDaPagina {
 /** Nome do campo do FormData de admin.catalogo.enviarMaterial. */
 const CAMPO_DO_ARQUIVO = "arquivo";
 
-export function formularioDoMaterial(arquivo: File): FormData {
+export function formularioDoMaterial(arquivo: File) {
   const fd = new FormData();
   fd.set(CAMPO_DO_ARQUIVO, arquivo);
 
   return fd;
 }
 
-export function arquivoDoFormulario(fd: FormData): File | null {
+export function arquivoDoFormulario(fd: FormData) {
   const arquivo = fd.get(CAMPO_DO_ARQUIVO);
 
   return arquivo instanceof File ? arquivo : null;

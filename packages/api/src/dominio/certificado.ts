@@ -17,7 +17,7 @@ const TETO_SEM_VIES =
   Math.floor(256 / ALFABETO_DO_CODIGO.length) * ALFABETO_DO_CODIGO.length;
 
 /** Um código novo, sorteado. A colisão com o unique é de quem grava. */
-export function gerarCodigo(): CodigoDoCertificado {
+export function gerarCodigo() {
   const indices: number[] = [];
 
   while (indices.length < SIMBOLOS) {
@@ -43,7 +43,7 @@ export type CodigoDoCertificado = string & {
 const SEPARADORES = /[\s\-\u2010-\u2015]/g;
 
 /** O que a pessoa digitou, no formato do banco: sem caixa, espaços nem hífen. null quando não é um código. */
-export function codigoDigitado(texto: string): CodigoDoCertificado | null {
+export function codigoDigitado(texto: string) {
   const limpo = texto.toUpperCase().replaceAll(SEPARADORES, "");
   const codigo = `${limpo.slice(0, SIMBOLOS / 2)}-${limpo.slice(SIMBOLOS / 2)}`;
 

@@ -2,10 +2,7 @@ import { ID_DO_YOUTUBE } from "@cursos/db/schema/formatos";
 
 import type { VideoDaAula, VideoId, VideoProvedor } from "./tipos";
 
-export function videoDaAula(
-  provedor: VideoProvedor | null,
-  id: string | null
-): VideoDaAula | null {
+export function videoDaAula(provedor: VideoProvedor | null, id: string | null) {
   if (provedor === null || id === null) {
     return null;
   }
@@ -25,7 +22,7 @@ const HOSTS_DO_YOUTUBE = new Set(["youtube.com", "m.youtube.com"]);
 const CAMINHO_COM_ID = /^\/(?:embed|shorts|live)\/([^/]+)/;
 const WWW = /^www\./;
 
-function idDoLink(url: URL): string | null {
+function idDoLink(url: URL) {
   const host = url.hostname.replace(WWW, "");
 
   if (host === "youtu.be") {
@@ -57,7 +54,7 @@ export const linkCurtoDoVideo = (video: VideoDaAula) => `youtu.be/${video.id}`;
  * o check aula_video_formato aceite. Roda no editor para mostrar o erro no campo;
  * o zod do documento confere o id de novo no servidor.
  */
-export function videoDoTexto(texto: string): VideoDaAula | null {
+export function videoDoTexto(texto: string) {
   const s = texto.trim();
 
   if (ID.test(s)) {

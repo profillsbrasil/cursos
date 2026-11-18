@@ -4,7 +4,7 @@ import { comoGanhar, itemDoExtrato, type LinhaDoExtrato } from "./pontos";
 import { PONTOS } from "./regras";
 import type { DiaISO } from "./tipos";
 
-const linha = (mudar: Partial<LinhaDoExtrato>): LinhaDoExtrato => ({
+const linha = (mudar: Partial<LinhaDoExtrato>) => ({
   aula: null,
   concessao: null,
   criadoEm: new Date("2026-10-07T18:00:00Z"),

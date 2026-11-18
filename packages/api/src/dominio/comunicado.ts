@@ -52,9 +52,7 @@ export interface ComunicadosDoAdmin {
   cursos: readonly CursoDoComunicado[];
 }
 
-function nomesDosAutores(
-  autores: readonly (Pessoa | null)[]
-): ReadonlyMap<string, string> {
+function nomesDosAutores(autores: readonly (Pessoa | null)[]) {
   return new Map(
     autores.flatMap((p) =>
       p && p.nome !== p.userId ? [[p.userId, p.nome] as const] : []
@@ -65,7 +63,7 @@ function nomesDosAutores(
 export function montarComunicados(
   linhas: LinhasDosComunicados,
   autores: readonly (Pessoa | null)[]
-): ComunicadosDoAdmin {
+) {
   const nomes = nomesDosAutores(autores);
 
   return {
@@ -122,10 +120,10 @@ export type ComunicadosDoAluno =
 export function montarComunicadosDoAluno(
   linhas: readonly LinhaDoComunicadoDoAluno[],
   autores: readonly (Pessoa | null)[]
-): ComunicadosDoAluno {
+) {
   const nomes = nomesDosAutores(autores);
 
-  const [destaque, ...resto] = linhas.map((c): ComunicadoDoAluno => ({
+  const [destaque, ...resto] = linhas.map((c) => ({
     alvo: c.curso
       ? {
           capa: capaDe(c.curso),

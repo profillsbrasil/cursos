@@ -33,12 +33,10 @@ export interface OpcoesDeTeste {
  * LIMITE. A Conta sem os campos da ficha sai com o e-mail verificado, criada no
  * dia 0, sem jeito de entrar, como aluno e sem acesso. definirPapel grava aqui.
  */
-export function pessoasDeTeste(
-  lista: readonly (Pessoa & Partial<Conta>)[]
-): Pessoas {
+export function pessoasDeTeste(lista: readonly (Pessoa & Partial<Conta>)[]) {
   const papeis = new Map<string, Papel>();
 
-  const paraConta = (p: Pessoa & Partial<Conta>): Conta => ({
+  const paraConta = (p: Pessoa & Partial<Conta>) => ({
     criadaEm: p.criadaEm ?? new Date(0),
     email: p.email,
     emailVerificado: p.emailVerificado ?? true,
@@ -111,10 +109,7 @@ export function pessoasDeTeste(
  */
 export function convitesDeTeste(
   falhas?: ReadonlyMap<string, "erro" | "limite">
-): Convites & {
-  enviados: { clerkConviteId: string; email: string }[];
-  revogados: string[];
-} {
+) {
   const enviados: { clerkConviteId: string; email: string }[] = [];
   const revogados: string[] = [];
 
@@ -149,13 +144,13 @@ export function convitesDeTeste(
 }
 
 /** O aluno que as consultas recebem do alunoProcedure. Sem perfil, Público aberto. */
-export const alunoDeTeste = (
-  userId: string,
-  perfil: Perfil = "publico"
-): Aluno => ({ perfil, userId });
+export const alunoDeTeste = (userId: string, perfil: Perfil = "publico") => ({
+  perfil,
+  userId,
+});
 
 /** Context dos testes. Quando Servicos ganha um campo, só este arquivo muda nos testes. */
-export function contextoDeTeste(o: OpcoesDeTeste): Context {
+export function contextoDeTeste(o: OpcoesDeTeste) {
   return {
     auth: o.userId ? sessaoDe(o.papel ?? "aluno", o.userId) : null,
     capas: o.capas ?? capasDesligadas,

@@ -54,7 +54,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     await db.$client.end();
   });
 
-  async function cursoDeTeste(): Promise<CursoId> {
+  async function cursoDeTeste() {
     const s = hex();
 
     const [c] = await db
@@ -93,7 +93,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     email: Email,
     oQueDa: { comoAdmin?: boolean; cursoIds?: CursoId[]; perfil: Perfil },
     agora = new Date()
-  ): Promise<ConviteId> {
+  ) {
     await convidar(
       db,
       { convites: convitesDeTeste(), pessoas: semConta },

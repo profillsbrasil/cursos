@@ -27,7 +27,7 @@ export async function linhasDoSaldo(
   exec: Executor,
   userId: string,
   segunda: DiaISO
-): Promise<{ saldo: number; entradasDaSemana: number }> {
+) {
   const [linha] = await exec
     .select({
       entradasDaSemana: sql<number>`coalesce(sum(${pontoLancamento.pontos}) filter (
@@ -51,10 +51,7 @@ export async function linhasDoSaldo(
  * os lançamentos positivos fora de FORA_DOS_PONTOS_DA_SEMANA, os mesmos que os
  * pontos da semana contam.
  */
-export function estudoPorDia(
-  exec: Executor,
-  userId: string
-): Promise<{ dia: string; pontos: number }[]> {
+export function estudoPorDia(exec: Executor, userId: string) {
   // O fuso entra como literal: com parâmetro, o select e o group by teriam $1 e
   // $2, e o Postgres não os reconhece como a mesma expressão.
   const dia = sql<string>`to_char(${pontoLancamento.criadoEm} at time zone ${sql.raw(`'${FUSO}'`)}, 'YYYY-MM-DD')`;
@@ -73,7 +70,7 @@ export function estudoPorDia(
 }
 
 /** Só o saldo, para a troca da amostra na página do curso e no player. */
-export async function saldoDe(exec: Executor, userId: string): Promise<number> {
+export async function saldoDe(exec: Executor, userId: string) {
   const [linha] = await exec
     .select({
       saldo: sql<number>`coalesce(sum(${pontoLancamento.pontos}), 0)::int`,
@@ -88,10 +85,7 @@ export async function saldoDe(exec: Executor, userId: string): Promise<number> {
  * O saldo de cada userId numa consulta só, para a lista de Pessoas do admin.
  * Quem não tem lançamento não vem na resposta: o saldo dele é 0.
  */
-export function saldosDe(
-  exec: Executor,
-  userIds: readonly string[]
-): Promise<SaldoDaPessoa[]> {
+export function saldosDe(exec: Executor, userIds: readonly string[]) {
   if (userIds.length === 0) {
     return Promise.resolve([]);
   }
@@ -110,7 +104,7 @@ export function linhasDoExtrato(
   exec: Executor,
   userId: string,
   limite: number
-): Promise<LinhaDoExtrato[]> {
+) {
   return exec.query.pontoLancamento.findMany({
     columns: { criadoEm: true, id: true, motivo: true, pontos: true },
     limit: limite,
@@ -144,7 +138,7 @@ export function comSaldoTravado<T>(
   userId: string,
   segunda: DiaISO,
   fn: (aluno: AlunoTravado, saldo: number) => Promise<T>
-): Promise<T> {
+) {
   return comAlunoTravado(db, userId, async (aluno) => {
     const { saldo } = await linhasDoSaldo(aluno.tx, aluno.userId, segunda);
 

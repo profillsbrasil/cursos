@@ -8,13 +8,13 @@ import type { Versao } from "./tipos";
  * nível (arrays mantêm a ordem), depois sha256. Só o servidor calcula: o editor
  * devolve a string que recebeu.
  */
-export function versaoDe(conteudo: unknown): Versao {
+export function versaoDe(conteudo: unknown) {
   return createHash("sha256")
     .update(jsonCanonico(conteudo))
     .digest("base64url") as Versao;
 }
 
-function jsonCanonico(valor: unknown): string {
+function jsonCanonico(valor: unknown) {
   if (Array.isArray(valor)) {
     return `[${valor.map((v) => (v === undefined ? "null" : jsonCanonico(v))).join(",")}]`;
   }

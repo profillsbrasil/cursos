@@ -18,7 +18,7 @@ export interface Cota {
   segundos: number;
 }
 
-export function cotaDisponivel(cota: Cota | null, agora: Date): number {
+export function cotaDisponivel(cota: Cota | null, agora: Date) {
   if (!cota) {
     return COTA_VIDEO.tetoSeg;
   }
@@ -63,7 +63,7 @@ export function aplicarRegistro(
   cota: Cota | null,
   pedido: Pedido,
   agora: Date
-): Aplicacao {
+) {
   let disponivel = cotaDisponivel(cota, agora);
   let acumulado = salvo.trechos;
   let recusadosSeg = 0;
@@ -107,7 +107,7 @@ const MOTIVOS_GRAVADOS: Record<
   sequencia_7_dias: true,
 };
 
-export const pontuaHoje = (motivo: keyof typeof PONTOS): boolean =>
+export const pontuaHoje = (motivo: keyof typeof PONTOS) =>
   Object.hasOwn(MOTIVOS_GRAVADOS, motivo);
 
 export interface EfeitosDaAssistida {
@@ -119,7 +119,7 @@ export function lancamentosDaAssistida(
   aulaId: AulaId,
   dia: DiaISO,
   diasAntes: ReadonlySet<DiaISO>
-): EfeitosDaAssistida {
+) {
   const sequenciaDias = sequenciaDiasUteis(new Set(diasAntes).add(dia), dia);
 
   const lancamentos: LancamentoNovo[] = [
@@ -152,7 +152,7 @@ export interface Conquista {
 export function conquistaDe(
   gravados: readonly { motivo: string; pontos: number }[],
   sequenciaDias: number
-): Conquista {
+) {
   const pontosDe = (motivo: LancamentoNovo["motivo"]) =>
     gravados.find((l) => l.motivo === motivo)?.pontos ?? null;
 

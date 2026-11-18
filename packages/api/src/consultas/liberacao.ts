@@ -41,7 +41,7 @@ export async function inserirLiberacao(
   aluno: AlunoTravado,
   nova: NovaLiberacao,
   agora: Date
-): Promise<LiberacaoId> {
+) {
   const [linha] = await aluno.tx
     .insert(liberacao)
     .values({
@@ -70,12 +70,12 @@ export async function abrirOCursoInteiro(
   aluno: AlunoTravado,
   cursoId: CursoId,
   agora: Date
-): Promise<void> {
+) {
   await lancarAulasAssistidas(aluno, cursoId, agora);
   await concluirCurso(aluno, cursoId, agora);
 }
 
-async function cursoExiste(exec: Executor, id: CursoId): Promise<boolean> {
+async function cursoExiste(exec: Executor, id: CursoId) {
   const c = await exec.query.curso.findFirst({
     columns: { id: true },
     where: { id },
@@ -91,11 +91,7 @@ interface LiberacaoAtiva {
 }
 
 /** A liberação ativa do curso, de qualquer origem. O índice liberacao_curso_ativa_unica garante uma no máximo. */
-async function ativaDoCurso(
-  exec: Executor,
-  userId: string,
-  cursoId: CursoId
-): Promise<LiberacaoAtiva | null> {
+async function ativaDoCurso(exec: Executor, userId: string, cursoId: CursoId) {
   const l = await exec.query.liberacao.findFirst({
     columns: { id: true, liberadaEm: true, origem: true },
     where: { ...filtroLiberacaoAtiva(userId), cursoId },
@@ -132,7 +128,7 @@ export async function liberarNoAlunoTravado(
   admin: AdminId,
   cursoId: CursoId,
   agora: Date
-): Promise<(LiberacaoAtiva & { nova: boolean }) | null> {
+) {
   // Em série: a transação tem um client só (consultas/aula.ts).
   if (!(await cursoExiste(aluno.tx, cursoId))) {
     return null;
@@ -167,7 +163,7 @@ export async function liberar(
   pessoa: Pessoa,
   cursoId: CursoId,
   agora: Date
-): Promise<LiberacaoAtiva & { nova: boolean }> {
+) {
   try {
     return await comAlunoTravado(db, pessoa.userId, async (aluno) => {
       const liberada = await liberarNoAlunoTravado(
@@ -196,7 +192,7 @@ export async function liberar(
 
 const NAO_LIBEROU = "Não deu para liberar agora. Nada mudou para esta pessoa.";
 
-function falhaNoLog(erro: unknown, userId: string): LiberacaoNaPessoa {
+function falhaNoLog(erro: unknown, userId: string) {
   if (erro instanceof ErroParaAPessoa) {
     return { mensagem: erro.message, tipo: "nao_liberou" };
   }
@@ -222,7 +218,7 @@ async function liberarNaPessoa(
   procura: PessoaNoClerk,
   cursoId: CursoId,
   agora: Date
-): Promise<LiberacaoNaPessoa> {
+) {
   if ("erro" in procura) {
     return falhaNoLog(procura.erro, procura.userId);
   }
@@ -253,7 +249,7 @@ export async function liberarVarios(
   userIds: readonly string[],
   cursoId: CursoId,
   agora: Date
-): Promise<ResultadoDoLote> {
+) {
   if (!(await cursoExiste(db, cursoId))) {
     throw cursoSumiu();
   }
@@ -261,8 +257,8 @@ export async function liberarVarios(
   const procuras = await Promise.all(
     [...new Set(userIds)].map((userId) =>
       porId(userId).then(
-        (pessoa): PessoaNoClerk => ({ pessoa, userId }),
-        (erro: unknown): PessoaNoClerk => ({ erro, userId })
+        (pessoa) => ({ pessoa, userId }),
+        (erro: unknown) => ({ erro, userId })
       )
     )
   );
@@ -291,7 +287,7 @@ export async function revogar(
   admin: AdminId,
   liberacaoId: LiberacaoId,
   agora: Date
-): Promise<{ revogada: boolean }> {
+) {
   const dono = await db.query.liberacao.findFirst({
     columns: { userId: true },
     where: { id: liberacaoId },
@@ -349,10 +345,7 @@ export async function revogar(
  * liberações ativas do perfil dela, o histórico de estudo (os statements 2 a 5
  * do painel) e o catálogo.
  */
-export async function linhasDoAcesso(
-  db: Database,
-  userId: string
-): Promise<LinhasDoAcesso> {
+export async function linhasDoAcesso(db: Database, userId: string) {
   const [liberacoes, perfil, historico, catalogo] = await Promise.all([
     db.query.liberacao.findMany({
       columns: {

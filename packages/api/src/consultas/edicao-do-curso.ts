@@ -74,10 +74,7 @@ const LINHAS_POR_LOTE = 1000;
  * statements em série, porque dentro da transação eles dividem um client. null
  * quando o id não existe.
  */
-export async function abrirCurso(
-  exec: Executor,
-  id: CursoId
-): Promise<EdicaoDoCurso | null> {
+export async function abrirCurso(exec: Executor, id: CursoId) {
   const linha = await exec.query.curso.findFirst({
     columns: {
       ...COLUNAS_DA_CAPA,
@@ -239,7 +236,7 @@ export interface CursoSalvo {
   versao: Versao;
 }
 
-function erroDaEdicao(r: RecusaDaEdicao, cause?: unknown): ErroParaAPessoa {
+function erroDaEdicao(r: RecusaDaEdicao, cause?: unknown) {
   switch (r.tipo) {
     case "versao_mudou":
       return new ErroParaAPessoa({
@@ -281,14 +278,14 @@ function erroDaEdicao(r: RecusaDaEdicao, cause?: unknown): ErroParaAPessoa {
 }
 
 /** Todas saem como PRECONDITION_FAILED, um dos códigos cuja mensagem a tela mostra. */
-function erroDaCapa(r: RecusaDaCapa): ErroParaAPessoa {
+function erroDaCapa(r: RecusaDaCapa) {
   return new ErroParaAPessoa({
     code: "PRECONDITION_FAILED",
     message: mensagemDaCapa(r),
   });
 }
 
-function mensagemDaCapa(r: RecusaDaCapa): string {
+function mensagemDaCapa(r: RecusaDaCapa) {
   switch (r.tipo) {
     case "desligado":
       return "O envio de capa não está configurado neste ambiente.";
@@ -310,7 +307,7 @@ function mensagemDaCapa(r: RecusaDaCapa): string {
 }
 
 /** Recusa do envio de material; sai como PRECONDITION_FAILED, que a tela mostra. */
-export function erroDoMaterial(r: RecusaDoMaterial): ErroParaAPessoa {
+export function erroDoMaterial(r: RecusaDoMaterial) {
   return new ErroParaAPessoa({
     code: "PRECONDITION_FAILED",
     message: mensagemDoMaterial(r),
@@ -417,7 +414,7 @@ async function identidadeDoCursoNovo(
   tx: Transacao,
   titulo: string,
   nomeDaCategoria: string
-): Promise<IdentidadeDoCursoNovo> {
+) {
   const slug = await slugParaCursoNovo(tx, titulo);
   const codigo = await codigoParaCursoNovo(tx, nomeDaCategoria);
 
@@ -439,7 +436,7 @@ export async function salvarCurso(
   s: Pick<Servicos, "capas" | "db" | "materiais">,
   formulario: FormData,
   agora = new Date()
-): Promise<CursoSalvo> {
+) {
   const lido = lerFormularioDoCurso(formulario);
 
   if (lido.tipo === "invalido") {
@@ -550,7 +547,7 @@ const umDe = (coluna: AnyPgColumn, ids: readonly string[]) =>
 const deslocado = (tabela: PgTable, coluna: AnyPgColumn, filtro: SQL) =>
   sql`${coluna} + (select greatest(max(${coluna}), ${TETO_FINAL}) + 1 from ${tabela} where ${filtro})`;
 
-function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
+function lotes<T>(lista: readonly T[], tamanho: number) {
   return Array.from({ length: Math.ceil(lista.length / tamanho) }, (_, i) =>
     lista.slice(i * tamanho, (i + 1) * tamanho)
   );
@@ -919,10 +916,7 @@ async function gravarQuestionario(
  * admin.catalogo.apagarCurso. Níveis, módulos, aulas e comunicados do curso caem
  * em cascade. Id que não existe: { apagado: false }, sem erro.
  */
-export async function apagarCurso(
-  db: Database,
-  id: CursoId
-): Promise<{ apagado: boolean }> {
+export async function apagarCurso(db: Database, id: CursoId) {
   try {
     return await comTrava(db, `curso:${id}`, async (tx) => {
       const atual = await abrirCurso(tx, id);

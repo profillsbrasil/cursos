@@ -65,7 +65,7 @@ export interface CursoDoAluno {
 const aulasDe = (c: CursoComAulas) => c.modulos.flatMap((m) => m.aulas);
 
 // floor: 199 de 200 mostra 99%, nunca 100% com aula faltando
-const fracao = (feitas: number, total: number): Progresso => ({
+const fracao = (feitas: number, total: number) => ({
   feitas,
   pct: total === 0 ? 0 : Math.floor((feitas * 100) / total),
   total,
@@ -104,7 +104,7 @@ function estadoDoCurso(
   h: Historico,
   pendentes: readonly AulaId[],
   questionarios: Progresso
-): EstadoCurso {
+) {
   const cert = h.certificados.get(curso.id);
 
   if (cert) {
@@ -153,7 +153,7 @@ function aulaDaVezId(
   curso: CursoComAulas,
   estado: EstadoCurso,
   { atividade, historico: h }: Estudo
-): AulaId | null {
+) {
   switch (estado.tipo) {
     case "em_breve":
     case "concluido":
@@ -183,7 +183,7 @@ function aulaDaVezId(
   }
 }
 
-function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId): OndeNoCurso {
+function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId) {
   for (const modulo of curso.modulos) {
     const i = modulo.aulas.findIndex((a) => a.id === aulaId);
 
@@ -198,10 +198,7 @@ function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId): OndeNoCurso {
   throw new Error(`Aula ${aulaId} fora do curso ${curso.titulo}`);
 }
 
-export function lerCursoDoAluno(
-  curso: CursoComAulas,
-  estudo: Estudo
-): CursoDoAluno {
+export function lerCursoDoAluno(curso: CursoComAulas, estudo: Estudo) {
   const h = estudo.historico;
   const aulas = aulasDe(curso);
   const q = questionariosPendentes(curso, h);

@@ -36,7 +36,7 @@ export interface LinhaDaGrade extends LinhaDaCapa {
 export function montarGrade(
   linhas: readonly LinhaDaGrade[],
   contagem: ContagemPorPerfil
-): GradeDosPerfis {
+) {
   return {
     contagem,
     cursos: linhas.map((c) => ({

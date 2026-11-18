@@ -41,10 +41,7 @@ const CURSO_DO_CERTIFICADO = {
  * aprovação e a nota da tentativa número 1, para Primeiro questionário e Nota
  * cheia.
  */
-function linhasDasTentativas(
-  exec: Executor,
-  userId: string
-): Promise<LinhasDasConquistas["questionarios"]> {
+function linhasDasTentativas(exec: Executor, userId: string) {
   const t = questionarioTentativa;
   const daPrimeira = sql`filter (where ${t.numero} = 1)`;
 
@@ -64,10 +61,7 @@ function linhasDasTentativas(
 }
 
 /** Oito statements em paralelo, como o painel de Meus cursos. */
-export async function linhasDasConquistas(
-  db: Database,
-  aluno: Aluno
-): Promise<LinhasDasConquistas> {
+export async function linhasDasConquistas(db: Database, aluno: Aluno) {
   const { userId } = aluno;
 
   const [
@@ -163,7 +157,7 @@ export async function carregarConquistas(
   db: Database,
   aluno: Aluno,
   agora: Date
-): Promise<Conquistas> {
+) {
   return montarConquistas(
     await linhasDasConquistas(db, aluno),
     diaLocal(agora)

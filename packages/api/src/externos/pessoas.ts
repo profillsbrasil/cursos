@@ -36,7 +36,7 @@ const OAUTH = /^oauth_/;
 /** O Clerk aceita até 100 userIds num filtro. */
 export const TETO_DO_FILTRO = 100;
 
-export function paraPessoa(u: User): Pessoa {
+export function paraPessoa(u: User) {
   const email = u.primaryEmailAddress?.emailAddress ?? null;
 
   return {
@@ -47,7 +47,7 @@ export function paraPessoa(u: User): Pessoa {
   };
 }
 
-function paraConta(u: User): Conta {
+function paraConta(u: User) {
   const google = u.externalAccounts.some(
     (c) => c.provider.replace(OAUTH, "") === "google"
   );
@@ -65,7 +65,7 @@ function paraConta(u: User): Conta {
   };
 }
 
-export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
+export function pessoasDoClerk(clerk: ClerkClient) {
   return {
     async buscar(termo, entre) {
       if (entre?.length === 0) {
@@ -138,10 +138,7 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
 
 // A lista filtrada por userId devolve vazio para quem não existe; getUser
 // lançaria 404 e pediria tradução de erro.
-async function umUsuario(
-  clerk: ClerkClient,
-  userId: string
-): Promise<User | null> {
+async function umUsuario(clerk: ClerkClient, userId: string) {
   const r = await clerk.users.getUserList({ limit: 1, userId: [userId] });
 
   return r.data[0] ?? null;

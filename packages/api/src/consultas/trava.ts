@@ -35,7 +35,7 @@ export function comTrava<T>(
   db: Database,
   chave: ChaveDeTrava,
   fn: (tx: Transacao) => Promise<T>
-): Promise<T> {
+) {
   return db.transaction(async (tx) => {
     await travarTambem(tx, chave);
 
@@ -56,10 +56,7 @@ export interface AlunoTravado {
 }
 
 /** A trava do aluno numa transação que já está aberta (o registrar, a edição do admin). */
-export async function travarAluno(
-  tx: Transacao,
-  userId: string
-): Promise<AlunoTravado> {
+export async function travarAluno(tx: Transacao, userId: string) {
   await travarTambem(tx, `ponto:${userId}`);
 
   return { tx, userId } as AlunoTravado;
@@ -74,6 +71,6 @@ export function comAlunoTravado<T>(
   db: Database,
   userId: string,
   fn: (aluno: AlunoTravado) => Promise<T>
-): Promise<T> {
+) {
   return db.transaction(async (tx) => await fn(await travarAluno(tx, userId)));
 }
