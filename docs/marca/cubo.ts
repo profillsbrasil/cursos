@@ -122,11 +122,11 @@ function quadrado(lado: number, titulo: string) {
 // No lockup, o cubo ocupa a altura toda à esquerda, e o texto já desenhado fica.
 // O texto é todo path que começa depois de x 150.
 function lockup(atual: string) {
-  const texto = [
-    ...atual.matchAll(/<path\b[^>]*?\bd="M(\d+(?:\.\d+)?)[\s\S]*?\/>/g),
-  ]
+  const texto = atual
+    .matchAll(/<path\b[^>]*?\bd="M(\d+(?:\.\d+)?)[\s\S]*?\/>/g)
     .filter((m) => Number(m[1]) > 150)
-    .map((m) => `  ${m[0]}`);
+    .map((m) => `  ${m[0]}`)
+    .toArray();
 
   if (texto.length !== 2) {
     throw new Error(

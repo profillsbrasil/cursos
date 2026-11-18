@@ -16,10 +16,10 @@ interface Pedido {
 }
 
 const original = {
-  Clerk: Reflect.get(globalThis, "Clerk"),
+  Clerk: "Clerk" in globalThis ? globalThis.Clerk : undefined,
   fetch: globalThis.fetch,
   temWindow: "window" in globalThis,
-  window: Reflect.get(globalThis, "window"),
+  window: "window" in globalThis ? globalThis.window : undefined,
 };
 
 let pedidos: Pedido[] = [];

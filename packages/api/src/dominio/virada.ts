@@ -73,7 +73,11 @@ function estudadosSoPeloPerfil(p: PessoaNaVirada) {
   const curso = catalogoDo({ cursos: p.cursos, pessoas: [] });
   const e = estudoDe(p);
 
-  return [...doPerfil].map(curso).filter((c) => ultimoEstudo(c, e) !== null);
+  return doPerfil
+    .values()
+    .map(curso)
+    .filter((c) => ultimoEstudo(c, e) !== null)
+    .toArray();
 }
 
 /**

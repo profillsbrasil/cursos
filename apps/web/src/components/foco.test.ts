@@ -56,9 +56,11 @@ describe("o foco não desenha contorno nem anel", () => {
     for (const [nome, caminho] of Object.entries(CSS)) {
       const css = semComentarios(readFileSync(caminho, "utf8"));
 
-      const contornos = [...css.matchAll(DECLARACAO_DE_CONTORNO)]
+      const contornos = css
+        .matchAll(DECLARACAO_DE_CONTORNO)
         .map((m) => `${nome}: ${m[1]}: ${(m[2] ?? "").trim()}`)
-        .filter((d) => !d.endsWith("outline: none"));
+        .filter((d) => !d.endsWith("outline: none"))
+        .toArray();
 
       expect(contornos).toEqual([]);
       expect(css).not.toContain("forced-colors");

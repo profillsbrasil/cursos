@@ -106,7 +106,7 @@ describe("só o editor do curso carrega o Zod no cliente", () => {
   test("nenhum módulo use client fora do editor chega ao zod", () => {
     const doEditor = grafo(join(SRC, "components/admin/editor-do-curso.tsx"));
 
-    const fora = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)]
+    const fora = Iterator.from(new Glob("**/*.{ts,tsx}").scanSync(SRC))
       .map((arquivo) => join(SRC, arquivo))
       .filter((arquivo) => !doEditor.has(arquivo))
       .filter((arquivo) =>
@@ -116,7 +116,8 @@ describe("só o editor do curso carrega o Zod no cliente", () => {
       .filter((caminho) => caminho !== null)
       .map((caminho) =>
         caminho.map((arquivo) => relative(SRC, arquivo)).join(" > ")
-      );
+      )
+      .toArray();
 
     expect(fora).toEqual([]);
   });

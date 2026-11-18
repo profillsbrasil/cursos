@@ -15,7 +15,11 @@ declare const canonico: unique symbol;
  */
 export type Trechos = readonly Trecho[] & { readonly [canonico]: true };
 
-export const SEM_TRECHOS = [] as unknown as Trechos;
+function comoTrechos(t: readonly Trecho[]): Trechos {
+  return t as Trechos;
+}
+
+export const SEM_TRECHOS = comoTrechos([]);
 
 export interface Cobertura {
   pct: number;
@@ -27,11 +31,13 @@ export function canonizar(
   duracaoSeg: number
 ): Trechos {
   const cortados = lista
+    .values()
     .map((t) => ({
       fim: Math.min(Math.floor(t.fim), duracaoSeg),
       inicio: Math.max(Math.floor(t.inicio), 0),
     }))
     .filter((t) => t.fim > t.inicio)
+    .toArray()
     .sort((a, b) => a.inicio - b.inicio);
 
   const saida: Trecho[] = [];
@@ -49,7 +55,7 @@ export function canonizar(
     }
   }
 
-  return saida as readonly Trecho[] as Trechos;
+  return comoTrechos(saida);
 }
 
 const fimDe = (t: Trechos) => t.at(-1)?.fim ?? 0;
@@ -86,7 +92,7 @@ export function subtrair(a: Trechos, b: Trechos): Trechos {
     }
   }
 
-  return saida as readonly Trecho[] as Trechos;
+  return comoTrechos(saida);
 }
 
 export const segundos = (t: readonly Trecho[]): number =>
@@ -107,7 +113,7 @@ export function primeiros(t: Trechos, seg: number): Trechos {
     resta -= leva;
   }
 
-  return saida as readonly Trecho[] as Trechos;
+  return comoTrechos(saida);
 }
 
 export const atingiuMeta = (vistosSeg: number, duracaoSeg: number): boolean =>

@@ -391,13 +391,15 @@ async function semearNoBanco(db: Database, alunoA: string) {
       ).map((r) => r.id)
     );
 
-    const fatos = [...quando.entries()]
+    const fatos = quando
+      .entries()
       .filter(([aulaId]) => existentes.has(aulaId))
       .map(([aulaId, assistidaEm]) => ({
         assistidaEm,
         aulaId,
         userId: alunoA,
-      }));
+      }))
+      .toArray();
 
     if (fatos.length > 0) {
       await tx.insert(aulaAssistida).values(fatos);

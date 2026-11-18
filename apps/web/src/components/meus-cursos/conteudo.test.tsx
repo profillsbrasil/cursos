@@ -279,9 +279,11 @@ describe("a capa sob o cursor", () => {
   test("a imagem cresce em 200 ms com a curva ease-forte, sem transição com movimento reduzido", () => {
     const html = render(montar(exemploDoPrototipo()));
 
-    const abertas = [...html.matchAll(CLASSES_DA_IMAGEM)]
+    const abertas = html
+      .matchAll(CLASSES_DA_IMAGEM)
       .map((m) => m[1].split(" "))
-      .filter((c) => c.includes("group-hover:scale-[1.03]"));
+      .filter((c) => c.includes("group-hover:scale-[1.03]"))
+      .toArray();
 
     expect(abertas.length).toBeGreaterThan(0);
 

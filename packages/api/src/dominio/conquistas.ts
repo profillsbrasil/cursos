@@ -314,6 +314,7 @@ function sequencia(
 /** As trocas em ordem de data; a troca sem o curso da liberação é erro do banco. */
 function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
   return lancamentos
+    .values()
     .filter((l) => l.motivo === "troca")
     .map((l) => {
       if (l.cursoId === null) {
@@ -322,6 +323,7 @@ function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
 
       return { criadoEm: l.criadoEm, cursoId: l.cursoId };
     })
+    .toArray()
     .sort((a, b) => a.criadoEm.getTime() - b.criadoEm.getTime());
 }
 
@@ -539,7 +541,11 @@ function trocaAteOFim(
   }
 
   const adiantado = oMaisAdiantado(
-    itens.filter((c) => trocadoEm.has(c.cursoId)).map(cursoPerto)
+    itens
+      .values()
+      .filter((c) => trocadoEm.has(c.cursoId))
+      .map(cursoPerto)
+      .toArray()
   );
 
   return {
@@ -583,7 +589,11 @@ function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
   );
 
   const quando = primeiraData(
-    primeiras.filter((p) => p.feitas === p.total).map((p) => p.em)
+    primeiras
+      .values()
+      .filter((p) => p.feitas === p.total)
+      .map((p) => p.em)
+      .toArray()
   );
 
   if (quando) {

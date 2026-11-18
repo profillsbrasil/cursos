@@ -57,12 +57,14 @@ export function orfaosDoBucket(
   const referenciadas = chavesReferenciadas(emUso);
 
   return objetos
+    .values()
     .filter((o) => CHAVE_DO_APP.test(o.chave) && !referenciadas.has(o.chave))
     .map((o) => ({
       ...o,
       idadeEmDias: (agora.getTime() - o.modificadoEm.getTime()) / DIA_MS,
     }))
     .filter((o) => o.idadeEmDias > DIAS_ATE_COLETAR)
+    .toArray()
     .sort((a, b) => b.idadeEmDias - a.idadeEmDias);
 }
 

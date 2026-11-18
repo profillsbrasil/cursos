@@ -409,8 +409,10 @@ const ehSaidaDoOxlint = (
 ): valor is { diagnostics: DiagnosticoDoOxlint[]; number_of_files: number } =>
   typeof valor === "object" &&
   valor !== null &&
-  Array.isArray(Reflect.get(valor, "diagnostics")) &&
-  typeof Reflect.get(valor, "number_of_files") === "number";
+  "diagnostics" in valor &&
+  Array.isArray(valor.diagnostics) &&
+  "number_of_files" in valor &&
+  typeof valor.number_of_files === "number";
 
 const errosDoTsrs = async (copia: string) => {
   const { saida } = await rodar(
