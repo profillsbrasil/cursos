@@ -54,8 +54,6 @@ const alvoDoHook = (arquivo: unknown) => {
   return absoluto;
 };
 
-// Num worktree dentro do projeto, o oxlint.config.ts e o oxfmt.config.ts dele
-// valem para os arquivos dele, e o node_modules dele tem as versões da branch.
 const raizDoArquivo = (arquivo: string) => {
   const git = spawnSync(
     "git",
