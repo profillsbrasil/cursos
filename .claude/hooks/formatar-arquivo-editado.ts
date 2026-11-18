@@ -85,7 +85,7 @@ if (alvo) {
     alvo,
   ]);
   const oxlint = EXTENSOES_DO_OXLINT.has(extname(alvo))
-    ? rodar(base, "oxlint", ["--fix", alvo])
+    ? rodar(base, "oxlint", ["--fix", "--no-error-on-unmatched-pattern", alvo])
     : null;
   const falhas = [oxfmt, oxlint].filter(
     (processo) => processo !== null && processo.status !== 0

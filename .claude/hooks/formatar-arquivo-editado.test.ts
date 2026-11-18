@@ -146,6 +146,27 @@ test(
   TIMEOUT_TESTE_MS
 );
 
+for (const ignorado of [
+  "packages/ui/src/components/kbd.tsx",
+  "apps/web/public/sw.js",
+]) {
+  test(
+    `arquivo que o oxlint.config.ts ignora não volta erro: ${ignorado}`,
+    () => {
+      const alvo = join(raiz, ignorado);
+      const antes = conteudo(alvo);
+
+      const resultado = rodarHook(alvo);
+
+      expect(resultado.codigo).toBe(0);
+      expect(resultado.saida).not.toContain("deixaram erros");
+      expect(resultado.saida).not.toContain("No files found to lint");
+      expect(conteudo(alvo)).toBe(antes);
+    },
+    TIMEOUT_TESTE_MS
+  );
+}
+
 test(
   "arquivo ignorado pelo git não é tocado pelo oxfmt",
   () => {
