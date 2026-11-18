@@ -1,10 +1,9 @@
 import { varlockNextConfigPlugin } from "@varlock/nextjs-integration/plugin";
-
-const withVarlock = varlockNextConfigPlugin();
-
 import type { NextConfig } from "next";
 
 import { withPwa } from "./pwa.config";
+
+const withVarlock = varlockNextConfigPlugin();
 
 const nextConfig: NextConfig = {
   experimental: {
