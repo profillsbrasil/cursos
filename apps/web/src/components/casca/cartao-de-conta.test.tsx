@@ -19,17 +19,19 @@ const menu = await import("@cursos/ui/components/dropdown-menu");
 const EmLinha = ({ children }: { children?: ReactNode }) => (
   <div data-teste="menu">{children}</div>
 );
+const ItemEmLinha = ({
+  children,
+  render,
+}: {
+  children?: ReactNode;
+  render?: ReactElement;
+}) => (render ? cloneElement(render, {}, children) : <div>{children}</div>);
+const Separador = () => <hr />;
 mock.module("@cursos/ui/components/dropdown-menu", () => ({
   ...menu,
   DropdownMenuContent: EmLinha,
-  DropdownMenuItem: ({
-    children,
-    render,
-  }: {
-    children?: ReactNode;
-    render?: ReactElement;
-  }) => (render ? cloneElement(render, {}, children) : <div>{children}</div>),
-  DropdownMenuSeparator: () => <hr />,
+  DropdownMenuItem: ItemEmLinha,
+  DropdownMenuSeparator: Separador,
 }));
 
 const { CartaoDeConta } = await import("./cartao-de-conta");
