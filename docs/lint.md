@@ -195,6 +195,22 @@ O `--type-check` checa os arquivos que o Oxlint linta, não os que os tsconfig l
 - Os templates de `.claude/skills/clerk-nextjs-patterns/templates/` trazem o próprio `tsconfig.json`, mais próximo que o de `.claude`, e a skill é travada por hash no `skills-lock.json`. Eles saem do Oxlint pelo `ignorePatterns` (`.claude/skills/*/templates/**`). Perde-se o lint sintático de 3 arquivos de terceiro que o repo não pode editar.
 - O TS2353 de `.railway/railway.ts:64` fica sem decisão: corrigir muda o que o `railway config apply` aplica, e isso é do dono.
 
+### Custo do check de tipos
+
+Medido em 18 de novembro de 2026, por `systemd-run --user --same-dir --wait --pipe -p MemoryMax=4G -p MemorySwapMax=4G`, 5 rodadas alternadas (antes, depois e `check-types` a cada volta), no mesmo código. "Antes" é o `oxlint.config.ts` do commit `215b96e`, sem `typeCheck`. Parede é o "Service runtime", CPU é o "CPU time consumed" e memória é o "Memory peak" do cgroup. O load average ficou entre 9,4 e 11,1 em 16 núcleos, com outras sessões rodando.
+
+| Comando | Parede, mediana (faixa) | CPU, mediana | Pico de memória, mediana (faixa) | Saída |
+| --- | --- | --- | --- | --- |
+| `bun run check`, antes | 1,51 s (1,49 a 1,80) | 10,4 s | 724 MB (711 a 764) | exit 0 nas 5 |
+| `bun run check`, depois | 1,76 s (1,47 a 3,46) | 12,4 s | 820 MB (812 a 841) | exit 0 nas 5 |
+| `bun run check-types -- --force` | 2,67 s (2,46 a 3,12) | 16,8 s | 996 MB (967 a 1.007) | exit 0 nas 5 |
+| `oxlint --fix` do hook em `admin/categorias.tsx`, antes | 367 ms (334 a 386) | 1,16 s | 302 MB | exit 0 nas 5 |
+| `oxlint --fix` do hook em `admin/categorias.tsx`, depois | 625 ms (571 a 2.074) | 1,98 s | 447 MB | exit 0 nas 5 |
+
+- No `bun run check`, a diferença de parede é inconclusiva: as faixas se cruzam, e uma série anterior, com o mesmo arranjo, deu 1,54 s antes e 1,55 s depois. A CPU (+1,9 s) e a memória (+95 MB) sobem nas duas séries. Inferido, sem perfil: o type-aware já monta o programa do tsrs, e o check só acrescenta os diagnósticos do compilador.
+- No hook, o check de tipos soma cerca de 260 ms por arquivo editado, porque o tsrs monta o programa do arquivo a cada edição.
+- O CI roda os dois em série. Enquanto o `tsc` ficar, o `check` custa ao CI só a diferença acima; tirar o `check-types` economizaria a linha dele.
+
 ### Prova de equivalência
 
 `apps/web/src/equivalencia-dos-tipos.arnes.ts` copia o repo (os arquivos do git, o `apps/web/.next/types` e os `env.ts` gerados) para `~/.cache/cursos` (ou `$XDG_CACHE_HOME/cursos`), roda `bun install --frozen-lockfile --ignore-scripts` na cópia e, para cada categoria, planta um erro, roda o `tsc --noEmit` dos 4 pacotes e o `oxlint -f json` da raiz, compara o conjunto de "arquivo e código TS" dos dois e desfaz o plantio. Do Oxlint, contam só os `typescript(TSxxxx)` com severidade de erro, os que derrubam o `bun run check`. A cópia fica fora de `node_modules` porque o Oxlint não linta nada sob um caminho com `node_modules` ("No files found to lint"); o arnês falha se o Oxlint lintar 0 arquivos.
