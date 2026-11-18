@@ -38,6 +38,9 @@ interface Categoria {
   esperado: Resultado;
   nome: string;
   plantios: Plantio[];
+  /** Os códigos TS que cada lado devolve, em ordem. */
+  tsc: string[];
+  tsrs: string[];
 }
 
 const ATRIBUICAO_ERRADA = '\nexport const erroPlantado: number = "texto";\n';
@@ -45,6 +48,8 @@ const ATRIBUICAO_ERRADA = '\nexport const erroPlantado: number = "texto";\n';
 const CATEGORIAS: Categoria[] = [
   {
     nome: "atribuição errada em apps/web (TS2322)",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -56,6 +61,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "atribuição errada em packages/api (TS2322)",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -67,6 +74,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "href de rota inexistente (typedRoutes)",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -79,11 +88,15 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "RouteContext sem apps/web/.next/types",
+    tsc: ["TS2304"],
+    tsrs: ["TS2304"],
     esperado: "os dois",
     plantios: [{ tipo: "tirar", arquivo: "apps/web/.next/types" }],
   },
   {
     nome: "import de módulo inexistente (TS2307)",
+    tsc: ["TS2307"],
+    tsrs: ["TS2307"],
     esperado: "os dois",
     plantios: [
       {
@@ -95,6 +108,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "propriedade inexistente (TS2339)",
+    tsc: ["TS2339"],
+    tsrs: ["TS2339"],
     esperado: "os dois",
     plantios: [
       {
@@ -107,6 +122,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "argumento errado numa procedure do tRPC chamada pelo web",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -119,6 +136,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "erro num arquivo de teste",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -129,9 +148,16 @@ const CATEGORIAS: Categoria[] = [
     ],
   },
   {
-    nome: "erro dentro de um .d.ts (skipLibCheck)",
-    esperado: "nenhum",
+    nome: "erro dentro de um .d.ts (skipLibCheck), com sentinela num .ts",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
+    esperado: "os dois",
     plantios: [
+      {
+        tipo: "acrescentar",
+        arquivo: "apps/web/src/lib/formulario.ts",
+        texto: ATRIBUICAO_ERRADA,
+      },
       {
         tipo: "criar",
         arquivo: "apps/web/src/plantado.d.ts",
@@ -142,6 +168,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "declaração global de um .d.ts usada por um .ts",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -158,6 +186,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "erro global sem arquivo (TS2318, noLib)",
+    tsc: ["TS2318", "TS5053"],
+    tsrs: ["TS17004", "TS2339", "TS2812", "TS6142"],
     esperado: "os dois, com diferença",
     plantios: [
       {
@@ -169,8 +199,10 @@ const CATEGORIAS: Categoria[] = [
     ],
   },
   {
-    nome: "erro de declaração (TS4094, declaration)",
-    esperado: "só o tsc",
+    nome: "erro de declaração (TS4094, declaration), com sentinela",
+    tsc: ["TS2322", "TS4094"],
+    tsrs: ["TS2322"],
+    esperado: "os dois, com diferença",
     plantios: [
       {
         tipo: "trocar",
@@ -181,13 +213,14 @@ const CATEGORIAS: Categoria[] = [
       {
         tipo: "criar",
         arquivo: "packages/ui/src/plantado.ts",
-        texto:
-          "export const Plantada = class {\n  private segredo = 1;\n  ler() {\n    return this.segredo;\n  }\n};\n",
+        texto: `export const Plantada = class {\n  private segredo = 1;\n  ler() {\n    return this.segredo;\n  }\n};\n${ATRIBUICAO_ERRADA}`,
       },
     ],
   },
   {
     nome: "noUncheckedIndexedAccess de packages/api",
+    tsc: ["TS2322"],
+    tsrs: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -200,6 +233,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "noUnusedLocals de packages/api (TS6133)",
+    tsc: ["TS6133"],
+    tsrs: ["TS6133"],
     esperado: "os dois",
     plantios: [
       {
@@ -211,6 +246,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "export de packages/api renomeado, visto pelo web",
+    tsc: ["TS2305"],
+    tsrs: ["TS2305"],
     esperado: "os dois",
     plantios: [
       {
@@ -317,15 +354,25 @@ const plantar = async (copia: string, plantios: Plantio[]) => {
 const LINHA_DO_TSC = /^(?:(.+?)\(\d+,\d+\): )?error (TS\d+):/u;
 const CODIGO_DO_OXLINT = /^typescript\((TS\d+)\)$/u;
 
+// O tsc 7 sai com 1 quando acha erro de tipo com --noEmit, e com 0 sem erro.
+const SAIDA_DO_TSC_COM_ERRO = 1;
+
 const errosDoTsc = async (copia: string) => {
   const saidas = await Promise.all(
     PACOTES.map(async (pacote) => {
       const pasta = join(copia, pacote);
-      const { saida } = await rodar(
-        [join(copia, "node_modules/.bin/tsc"), "--noEmit", "--pretty", "false"],
+      const { codigo, saida } = await rodar(
+        [
+          join(copia, "node_modules/.bin/tsc"),
+          "--noEmit",
+          "--pretty",
+          "false",
+          "--listFiles",
+        ],
         pasta
       );
-      return saida.split("\n").flatMap((linha) => {
+      const linhas = saida.split("\n");
+      const erros = linhas.flatMap((linha) => {
         const achado = LINHA_DO_TSC.exec(linha);
         if (!achado?.[2]) {
           return [];
@@ -335,9 +382,20 @@ const errosDoTsc = async (copia: string) => {
           : GLOBAL;
         return [`${arquivo} ${achado[2]}`];
       });
+      const esperado = erros.length > 0 ? SAIDA_DO_TSC_COM_ERRO : 0;
+      if (codigo !== esperado) {
+        throw new Error(
+          `O tsc de ${pacote} saiu com ${codigo}, e ${erros.length} erros pediam ${esperado}:\n${saida.slice(-2000)}`
+        );
+      }
+      const arquivos = linhas.filter((linha) => linha.startsWith(copia)).length;
+      return { arquivos, erros };
     })
   );
-  return new Set(saidas.flat());
+  return {
+    arquivos: saidas.reduce((soma, saida) => soma + saida.arquivos, 0),
+    erros: new Set(saidas.flatMap((saida) => saida.erros)),
+  };
 };
 
 interface DiagnosticoDoOxlint {
@@ -363,21 +421,35 @@ const errosDoTsrs = async (copia: string) => {
   if (!ehSaidaDoOxlint(lido)) {
     throw new Error(`O oxlint não devolveu JSON:\n${saida}`);
   }
-  if (lido.number_of_files === 0) {
-    throw new Error("O oxlint não lintou nenhum arquivo da cópia.");
-  }
-  return new Set(
-    lido.diagnostics.flatMap((diagnostico) => {
-      const codigo = CODIGO_DO_OXLINT.exec(diagnostico.code)?.[1];
-      if (!codigo || diagnostico.severity !== "error") {
-        return [];
-      }
-      const arquivo = diagnostico.filename
-        ? relative(copia, resolve(copia, diagnostico.filename))
-        : GLOBAL;
-      return [`${arquivo} ${codigo}`];
-    })
-  );
+  return {
+    arquivos: lido.number_of_files,
+    erros: new Set(
+      lido.diagnostics.flatMap((diagnostico) => {
+        const codigo = CODIGO_DO_OXLINT.exec(diagnostico.code)?.[1];
+        if (!codigo || diagnostico.severity !== "error") {
+          return [];
+        }
+        const arquivo = diagnostico.filename
+          ? relative(copia, resolve(copia, diagnostico.filename))
+          : GLOBAL;
+        return [`${arquivo} ${codigo}`];
+      })
+    ),
+  };
+};
+
+const codigos = (erros: Set<string>) =>
+  [...new Set([...erros].map((erro) => erro.split(" ")[1]))].sort();
+
+const rodarOsDois = async (copia: string) => {
+  const [tsc, tsrs] = await Promise.all([
+    errosDoTsc(copia),
+    errosDoTsrs(copia),
+  ]);
+  // Prova de que os dois lados rodaram: um lado parado não lê arquivo nenhum.
+  expect(tsc.arquivos).toBeGreaterThan(0);
+  expect(tsrs.arquivos).toBeGreaterThan(0);
+  return { tsc: tsc.erros, tsrs: tsrs.erros };
 };
 
 const comparar = (tsc: Set<string>, tsrs: Set<string>): Resultado => {
@@ -399,8 +471,7 @@ const resumir = (erros: Set<string>) => {
   if (erros.size <= 3) {
     return [...erros].map((erro) => `\`${erro}\``).join("<br>");
   }
-  const codigos = [...new Set([...erros].map((erro) => erro.split(" ")[1]))];
-  return `${erros.size} erros (${codigos.join(", ")})`;
+  return `${erros.size} erros (${codigos(erros).join(", ")})`;
 };
 
 interface Linha {
@@ -436,10 +507,23 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
   });
 
   test("o código sem plantio não tem erro de tipo nos dois", async () => {
-    const [tsc, tsrs] = await Promise.all([
-      errosDoTsc(copia),
-      errosDoTsrs(copia),
+    // Sentinela: os dois lados acusam um erro plantado antes de a cópia limpa
+    // valer como prova. Com um lado parado, o "0 erros" não prova nada.
+    const desfazer = await plantar(copia, [
+      {
+        tipo: "acrescentar",
+        arquivo: "apps/web/src/lib/formulario.ts",
+        texto: ATRIBUICAO_ERRADA,
+      },
     ]);
+    try {
+      const sentinela = await rodarOsDois(copia);
+      expect(codigos(sentinela.tsc)).toEqual(["TS2322"]);
+      expect(codigos(sentinela.tsrs)).toEqual(["TS2322"]);
+    } finally {
+      await desfazer();
+    }
+    const { tsc, tsrs } = await rodarOsDois(copia);
     expect([...tsc]).toEqual([]);
     expect([...tsrs]).toEqual([]);
   }, 120_000);
@@ -449,13 +533,12 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
     async (categoria) => {
       const desfazer = await plantar(copia, categoria.plantios);
       try {
-        const [tsc, tsrs] = await Promise.all([
-          errosDoTsc(copia),
-          errosDoTsrs(copia),
-        ]);
+        const { tsc, tsrs } = await rodarOsDois(copia);
         const resultado = comparar(tsc, tsrs);
         linhas.push({ nome: categoria.nome, resultado, tsc, tsrs });
         expect(resultado).toBe(categoria.esperado);
+        expect(codigos(tsc)).toEqual(categoria.tsc);
+        expect(codigos(tsrs)).toEqual(categoria.tsrs);
       } finally {
         await desfazer();
       }
