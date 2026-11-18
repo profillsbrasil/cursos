@@ -190,7 +190,7 @@ Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no
 
 ### landmines
 
-`@interfere/landmines` 0.1.0, exato. Ficam para PRs seguintes o `landmines-style/no-comments` e o `landmines-types/no-explicit-return-types`, que este config não registra. O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
+`@interfere/landmines` 0.1.0, exato. Fica para um PR seguinte o `landmines-style/no-comments`, que este config não registra. O `landmines-types/no-explicit-return-types` fica desligado por decisão do dono em 18 de novembro de 2026: das 676 anotações de retorno, 257 saem sem mudar o tipo, 305 só mantêm o tipo exportado trocando o `return` por uma variável tipada (`const retorno: T = ...; return retorno;`, em 445 lugares) e 49 ficariam anotadas por exceção. A branch `chore/sem-tipo-de-retorno` guarda o codemod aplicado. O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
 
 | Regra | Ocorrências | Decisão | Motivo |
 | --- | --- | --- | --- |
