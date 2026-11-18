@@ -1,10 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
+
 import CarregandoLiberacoes from "@/app/(admin)/admin/liberacoes/loading";
 import CarregandoPerfis from "@/app/(admin)/admin/liberacoes/perfis/loading";
 import CarregandoPessoas from "@/app/(admin)/admin/pessoas/loading";
+
 import {
   abrirChromium,
   avaliar,
@@ -13,7 +16,6 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium-de-teste";
-
 import { abasDasLiberacoes } from "./abas-das-liberacoes";
 import { BarraDaLista, contagemDePessoas } from "./barra-da-lista";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";

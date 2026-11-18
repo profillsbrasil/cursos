@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, mock, test } from "bun:test";
+
 import { Sidebar, SidebarProvider } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -17,9 +18,8 @@ afterAll(() => {
   caminhoAtual = "/meus-cursos";
 });
 
-const { ProvedorDaCasca, useAlternarNavegacao, useModoDaCasca } = await import(
-  "./provedor-da-casca"
-);
+const { ProvedorDaCasca, useAlternarNavegacao, useModoDaCasca } =
+  await import("./provedor-da-casca");
 
 function UsaAlternar() {
   useAlternarNavegacao();

@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
+
 import type { Database } from "@cursos/db";
 import { type SQL, sql } from "drizzle-orm";
 

@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 

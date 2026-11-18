@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";

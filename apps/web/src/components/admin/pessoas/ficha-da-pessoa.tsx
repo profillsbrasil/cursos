@@ -27,6 +27,7 @@ import {
   fmtPtsComSinal,
   quando,
 } from "@/lib/formato";
+
 import { FotoDaPessoa } from "../foto-da-pessoa";
 import { VoltaParaALista } from "../volta-para-a-lista";
 import { AcessoDaPessoa } from "./acesso-da-pessoa";

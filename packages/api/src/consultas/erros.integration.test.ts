@@ -3,6 +3,7 @@
 // deixa este teste vermelho.
 
 import { afterAll, describe, expect, test } from "bun:test";
+
 import { createDb } from "@cursos/db";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { sql } from "drizzle-orm";

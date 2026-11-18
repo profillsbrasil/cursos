@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import type { EdicaoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";

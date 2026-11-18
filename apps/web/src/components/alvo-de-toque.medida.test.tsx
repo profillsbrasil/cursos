@@ -5,6 +5,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { Checkbox } from "@cursos/ui/components/checkbox";
 import { renderToStaticMarkup } from "react-dom/server";

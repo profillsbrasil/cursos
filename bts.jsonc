@@ -12,7 +12,7 @@
   "createdAt": "2026-10-06T14:19:58.487Z",
   "reproducibleCommand": "bun create better-t-stack@latest . --frontend next --backend self --runtime none --database postgres --orm drizzle --api trpc --auth clerk --payments none --addons mcp pwa skills turborepo ultracite --examples none --db-setup supabase --manual-db --web-deploy vercel --server-deploy none --no-git --package-manager bun --install",
   "dbSetupOptions": {
-    "mode": "manual"
+    "mode": "manual",
   },
   "database": "postgres",
   "orm": "drizzle",
@@ -27,5 +27,5 @@
   "dbSetup": "none",
   "api": "trpc",
   "webDeploy": "none",
-  "serverDeploy": "none"
+  "serverDeploy": "none",
 }

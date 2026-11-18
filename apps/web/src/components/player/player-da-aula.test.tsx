@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";

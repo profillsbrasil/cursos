@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
+
 import { createDb } from "@cursos/db";
 import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";

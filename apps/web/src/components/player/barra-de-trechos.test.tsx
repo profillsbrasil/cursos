@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Trecho } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 

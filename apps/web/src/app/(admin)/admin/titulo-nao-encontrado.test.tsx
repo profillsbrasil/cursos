@@ -5,6 +5,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
+
 import { spawnSync } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
 

@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type {
   CertificadoEmitido,
   PaginaDoCertificado,
@@ -12,9 +13,8 @@ mock.module("@/server/api", () => ({
   conferirCertificado: () => Promise.resolve(doCodigo),
 }));
 
-const doAluno = await import(
-  "@/app/(aluno)/cursos/[slug]/certificado/pdf/route"
-);
+const doAluno =
+  await import("@/app/(aluno)/cursos/[slug]/certificado/pdf/route");
 const daConferencia = await import("@/app/certificado/[codigo]/pdf/route");
 
 const DA_ANA: CertificadoEmitido = {

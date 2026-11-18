@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";

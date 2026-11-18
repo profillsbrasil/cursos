@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import { Sidebar } from "@cursos/ui/components/sidebar";
 import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";

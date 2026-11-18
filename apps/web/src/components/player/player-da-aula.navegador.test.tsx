@@ -7,6 +7,7 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
@@ -197,9 +198,8 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));
 const { PlayerDaAula } = await import("./player-da-aula");
-const { default: CarregandoAula } = await import(
-  "../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading"
-);
+const { default: CarregandoAula } =
+  await import("../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading");
 const ESQUELETO = renderToStaticMarkup(<CarregandoAula />);
 const { FimDoVideo } = await import("./fim-do-video");
 

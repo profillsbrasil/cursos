@@ -41,7 +41,7 @@ export function diasDaSequencia({
   for (let d = fim; semana.length < dias; d = diaUtilAnterior(d)) {
     semana.unshift({ dia: d, estado: "feito" });
   }
-  for (let d = proximoDiaUtil(fim); semana.length < meta; ) {
+  for (let d = proximoDiaUtil(fim); semana.length < meta;) {
     semana.push({ dia: d, estado: d === hoje ? "hoje" : "por_vir" });
     d = proximoDiaUtil(d);
   }

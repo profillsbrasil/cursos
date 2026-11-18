@@ -23,6 +23,7 @@ import {
 import { CARTAO } from "@/components/casca/cartoes";
 import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { SeloEstado } from "@/components/meus-cursos/selo-estado";
+
 import { MaterialDoCurso } from "./material-do-curso";
 import {
   type CartaoDoCurso as Cartao,

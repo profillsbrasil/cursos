@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { ComunicadoNaTela } from "@cursos/api/dominio/comunicado";
 import type { ComunicadoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";

@@ -16,6 +16,7 @@ import { BOTAO, BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
+
 import { Carregando } from "./confirmacao-na-linha";
 import { SecaoSobABarra } from "./partes";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";

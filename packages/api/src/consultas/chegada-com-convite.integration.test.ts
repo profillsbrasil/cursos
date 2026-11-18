@@ -3,6 +3,7 @@
 
 import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   convite,

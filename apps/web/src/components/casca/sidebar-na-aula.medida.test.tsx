@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import { build, serve } from "bun";
 import { renderToString } from "react-dom/server";

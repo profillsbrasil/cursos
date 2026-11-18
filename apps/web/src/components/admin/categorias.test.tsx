@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";

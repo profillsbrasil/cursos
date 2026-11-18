@@ -17,6 +17,7 @@ import { BOTAO, LINK_NO_TEXTO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { diaCurto, diaEmSaoPaulo, plural } from "@/lib/formato";
 import { caminhoDoCertificado, caminhoDoCurso, MINHA_CONTA } from "@/lib/rotas";
+
 import { CopiarLink } from "./copiar-link";
 import { Fatos } from "./fatos";
 import { cargaEmHoras, comNome, enderecoDaConferencia, folhaDo } from "./folha";

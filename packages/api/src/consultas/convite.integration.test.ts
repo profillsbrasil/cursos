@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import { convite, conviteCurso, curso } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";

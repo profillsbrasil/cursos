@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import {
   documentoDeExemplo,
   EDICAO,
@@ -9,6 +10,7 @@ import {
 import type { AlternativaId, PerguntaId } from "@cursos/api/dominio/tipos";
 import { Switch } from "@cursos/ui/components/switch";
 import { renderToStaticMarkup } from "react-dom/server";
+
 import { ALAVANCA } from "../casca/campos";
 import {
   abrirChromium,

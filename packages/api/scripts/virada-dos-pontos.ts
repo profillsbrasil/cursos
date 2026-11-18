@@ -8,6 +8,7 @@
 // src/consultas/virada.ts.
 
 import { parseArgs } from "node:util";
+
 import { createClerkClient } from "@clerk/backend";
 import { createDb } from "@cursos/db";
 

@@ -6,6 +6,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { Button } from "@cursos/ui/components/button";
 import { Switch } from "@cursos/ui/components/switch";
 import { renderToStaticMarkup } from "react-dom/server";

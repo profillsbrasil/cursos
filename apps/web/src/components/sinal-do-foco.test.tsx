@@ -8,6 +8,7 @@
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import type {
@@ -26,7 +27,6 @@ import { PREFERENCIAS_PADRAO } from "@/lib/player/preferencias";
 import { estadoInicial } from "@/lib/player/sessao";
 
 import type { Continuar } from "./aluno/continuar";
-
 import {
   abrirChromium,
   CHROMIUM,

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
 import type { CursoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";

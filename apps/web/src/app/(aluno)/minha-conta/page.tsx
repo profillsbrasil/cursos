@@ -41,12 +41,10 @@ export default async function PaginaDaMinhaConta() {
   return (
     <TelaDaMinhaConta
       certificados={ganhos.length}
-      folha={
-        await folhaDaConta(
-          ganhos.at(-1)?.curso.slug,
-          origemDoPedido(cabecalhos)
-        )
-      }
+      folha={await folhaDaConta(
+        ganhos.at(-1)?.curso.slug,
+        origemDoPedido(cabecalhos)
+      )}
     />
   );
 }

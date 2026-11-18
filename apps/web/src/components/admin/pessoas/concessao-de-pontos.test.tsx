@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.

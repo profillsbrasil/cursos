@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Motivo } from "@cursos/api";
 import {
   type DocumentoDoCurso,
@@ -18,6 +19,7 @@ import type {
   PerguntaId,
   Versao,
 } from "@cursos/api/dominio/tipos";
+
 import { errosPorCampo } from "./problemas";
 import {
   ID,

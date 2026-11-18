@@ -3,6 +3,7 @@
 // desligado com o saldo curto.
 
 import { describe, expect, mock, test } from "bun:test";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
 import type { CursoVM } from "@cursos/api/dominio/painel";

@@ -1,9 +1,11 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, uuidDeExemplo } from "@cursos/api/dominio/exemplo";
 import type { MaterialId, Versao } from "@cursos/api/dominio/tipos";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+
 import { ID } from "./rascunho-do-curso";
 import {
   type AcaoDoEditor,
@@ -24,9 +26,8 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));
 
-const { MaterialDeApoio, resumoDoMaterial } = await import(
-  "./material-de-apoio"
-);
+const { MaterialDeApoio, resumoDoMaterial } =
+  await import("./material-de-apoio");
 
 const idDe = (n: number) => uuidDeExemplo(900 + n) as MaterialId;
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { PessoaComSituacao } from "@cursos/api/dominio/acompanhamento";
 import type { ResultadoDoLote } from "@cursos/api/dominio/liberacao";
 import type { CursoId, DiaISO, Pessoa } from "@cursos/api/dominio/tipos";
@@ -46,9 +47,10 @@ describe("a seleção", () => {
   });
 
   test("o X tira uma, e Desmarcar todas tira as outras", () => {
-    const tres = [ANA, CAMILA, LUANA].map(
-      (p): EventoDoLote => ({ pessoa: p, tipo: "marcar" })
-    );
+    const tres = [ANA, CAMILA, LUANA].map((p): EventoDoLote => ({
+      pessoa: p,
+      tipo: "marcar",
+    }));
     const semCamila = rodar(...tres, {
       tipo: "desmarcar",
       userId: CAMILA.userId,
@@ -77,13 +79,10 @@ describe("o Liberar", () => {
   });
 
   test("passa de 50 marcadas e diz quantas sobram", () => {
-    const marcar = Array.from(
-      { length: 53 },
-      (_, i): EventoDoLote => ({
-        pessoa: pessoa(`user_p${i}`, `Pessoa ${i}`),
-        tipo: "marcar",
-      })
-    );
+    const marcar = Array.from({ length: 53 }, (_, i): EventoDoLote => ({
+      pessoa: pessoa(`user_p${i}`, `Pessoa ${i}`),
+      tipo: "marcar",
+    }));
     const e = rodar(...marcar, { curso: COMERCIAL, tipo: "escolher" });
     expect(prontoParaLiberar(e)).toEqual({ sobram: 3, tipo: "passou_do_teto" });
   });

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
 import type { Versao, VideoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";

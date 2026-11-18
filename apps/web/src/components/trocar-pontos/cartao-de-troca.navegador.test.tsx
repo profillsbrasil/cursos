@@ -3,6 +3,7 @@
 
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToString } from "react-dom/server";
 

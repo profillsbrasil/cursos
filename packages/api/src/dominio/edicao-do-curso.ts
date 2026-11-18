@@ -45,9 +45,10 @@ const video = z
     id: z.string().regex(new RegExp(ID_DO_YOUTUBE)),
     provedor: z.literal("youtube"),
   })
-  .transform(
-    (v): VideoDaAula => ({ id: v.id as VideoId, provedor: v.provedor })
-  );
+  .transform((v): VideoDaAula => ({
+    id: v.id as VideoId,
+    provedor: v.provedor,
+  }));
 
 const alternativa = z.object({
   certa: z.boolean(),

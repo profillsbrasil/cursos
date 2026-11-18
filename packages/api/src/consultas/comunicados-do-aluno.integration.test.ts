@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { createDb } from "@cursos/db";
 import {
   comunicado,

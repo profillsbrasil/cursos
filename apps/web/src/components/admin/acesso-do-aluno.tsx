@@ -18,6 +18,7 @@ import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
+
 import {
   BarraDeAulas,
   dataDaLiberacao,

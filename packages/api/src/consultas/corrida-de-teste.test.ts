@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { urlDaCorrida } from "./corrida-de-teste";
 
 const NOME_DA_CORRIDA = /^corrida-[0-9a-f]{8}$/;

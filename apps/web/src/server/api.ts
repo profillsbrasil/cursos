@@ -1,5 +1,4 @@
 import "server-only";
-
 import { auth } from "@clerk/nextjs/server";
 import { contextoDe, ehAdmin } from "@cursos/api/context";
 import { TIPOS_DE_MATERIAL } from "@cursos/api/dominio/material";

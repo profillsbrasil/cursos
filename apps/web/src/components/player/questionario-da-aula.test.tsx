@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import type { QuestionarioDaAula as Questionario } from "@cursos/api/dominio/questionario";
 import type { AulaId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -24,9 +25,8 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));
 
-const { QuestionarioDaAula, Resultado } = await import(
-  "./questionario-da-aula"
-);
+const { QuestionarioDaAula, Resultado } =
+  await import("./questionario-da-aula");
 
 const AULA = "00000000-0000-4000-8000-00000000aaaa" as AulaId;
 const PROXIMA = {

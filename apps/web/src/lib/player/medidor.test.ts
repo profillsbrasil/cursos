@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { canonizar, type Trecho } from "@cursos/api/dominio/trechos";
 
 import {

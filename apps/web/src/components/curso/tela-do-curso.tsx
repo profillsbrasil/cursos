@@ -6,6 +6,7 @@ import { Check, Tag } from "lucide-react";
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
 import { TextoQueAbre } from "@/components/casca/texto-que-abre";
+
 import { CartaoDoCurso } from "./cartao-do-curso";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { paragrafos, resumoDoCurso } from "./textos";

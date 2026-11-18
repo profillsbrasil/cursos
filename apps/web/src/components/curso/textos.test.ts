@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { ModuloDaPagina } from "@cursos/api/dominio/pagina-do-curso";
 import type { Route } from "next";
 

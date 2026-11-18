@@ -12,6 +12,7 @@ import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { sizesDaCapa } from "@/components/meus-cursos/capa-curso";
 import { Secao } from "@/components/meus-cursos/secao";
+
 import { CartaoDeTroca } from "./cartao-de-troca";
 import { Extrato } from "./extrato";
 

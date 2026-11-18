@@ -30,6 +30,7 @@ import {
   vizinhoQueFica,
 } from "@/lib/editor";
 import { fmtHoras, plural } from "@/lib/formato";
+
 import { AulasDoModulo } from "./aulas-do-modulo";
 import { CampoDeTexto, CampoLido } from "./campo-lido";
 import { ConfirmacaoNaLinha, type LinhaAberta } from "./confirmacao-na-linha";

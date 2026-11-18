@@ -123,24 +123,22 @@ export function montarComunicadosDoAluno(
   autores: readonly (Pessoa | null)[]
 ): ComunicadosDoAluno {
   const nomes = nomesDosAutores(autores);
-  const [destaque, ...resto] = linhas.map(
-    (c): ComunicadoDoAluno => ({
-      alvo: c.curso
-        ? {
-            capa: capaDe(c.curso),
-            href: caminhoDoCurso(c.curso.slug),
-            tipo: "curso",
-            titulo: c.curso.titulo,
-          }
-        : { tipo: "geral" },
-      dia: diaLocal(c.publicadoEm),
-      id: c.id,
-      publicadoEm: c.publicadoEm.toISOString(),
-      publicadoPor: nomes.get(c.publicadoPor) ?? null,
-      texto: c.texto,
-      titulo: c.titulo,
-    })
-  );
+  const [destaque, ...resto] = linhas.map((c): ComunicadoDoAluno => ({
+    alvo: c.curso
+      ? {
+          capa: capaDe(c.curso),
+          href: caminhoDoCurso(c.curso.slug),
+          tipo: "curso",
+          titulo: c.curso.titulo,
+        }
+      : { tipo: "geral" },
+    dia: diaLocal(c.publicadoEm),
+    id: c.id,
+    publicadoEm: c.publicadoEm.toISOString(),
+    publicadoPor: nomes.get(c.publicadoPor) ?? null,
+    texto: c.texto,
+    titulo: c.titulo,
+  }));
   if (!destaque) {
     return { tipo: "vazio" };
   }

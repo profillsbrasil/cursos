@@ -1,7 +1,6 @@
 {
   "name": "cursos",
   "private": true,
-  "type": "module",
   "workspaces": {
     "packages": [
       "apps/*",
@@ -27,6 +26,7 @@
       "recharts": "3.11.0"
     }
   },
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "check": "ultracite check",
@@ -47,9 +47,6 @@
     "test": "turbo run test",
     "virada-dos-pontos": "bun run --cwd packages/api virada-dos-pontos"
   },
-  "overrides": {
-    "@next/env": "npm:@varlock/nextjs-integration@2.0.1"
-  },
   "dependencies": {
     "zod": "catalog:"
   },
@@ -63,6 +60,9 @@
     "typescript": "catalog:",
     "ultracite": "8.3.0",
     "varlock": "catalog:"
+  },
+  "overrides": {
+    "@next/env": "npm:@varlock/nextjs-integration@2.0.1"
   },
   "packageManager": "bun@1.4.4"
 }

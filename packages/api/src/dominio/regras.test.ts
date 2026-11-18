@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { PONTOS_AULA, PONTOS_CURSO } from "@cursos/db/seed/dados";
 
 import { PONTOS } from "./regras";

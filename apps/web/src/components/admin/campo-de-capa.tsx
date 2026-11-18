@@ -24,8 +24,8 @@ import {
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { fmtNum } from "@/lib/formato";
-import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 
+import { ErroDoCampo, useErroDoCampo } from "./erros-do-editor";
 import { ID } from "./rascunho-do-curso";
 
 const TIPOS = ["image/jpeg", "image/png", "image/webp"];

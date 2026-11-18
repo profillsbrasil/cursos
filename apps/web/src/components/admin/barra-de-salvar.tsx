@@ -5,6 +5,7 @@ import { useId } from "react";
 import { BOTAO, CONTORNO_DESLIGADO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { plural } from "@/lib/formato";
+
 import { AvisoDeVersaoMudou } from "./aviso-de-versao-mudou";
 import { Carregando } from "./confirmacao-na-linha";
 import type { Problema } from "./problemas";

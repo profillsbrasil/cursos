@@ -1,6 +1,7 @@
 import type { Database } from "@cursos/db";
 import { pontoLancamento } from "@cursos/db/schema/index";
 import { DrizzleQueryError } from "drizzle-orm";
+
 import type { Aluno } from "../dominio/perfil";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { CursoId } from "../dominio/tipos";

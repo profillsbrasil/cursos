@@ -35,6 +35,7 @@ import { BarraProgresso } from "@/components/meus-cursos/barra-progresso";
 import { Secao } from "@/components/meus-cursos/secao";
 import { diaCurto, fmtNum, plural } from "@/lib/formato";
 import { caminhoDoCertificado, caminhoDoCurso } from "@/lib/rotas";
+
 import { diasDaSequencia } from "./dias-da-sequencia";
 import {
   colunasDosCertificados,

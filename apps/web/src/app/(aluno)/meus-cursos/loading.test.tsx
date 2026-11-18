@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { GRADE_CAPAS } from "@/components/meus-cursos/capa-curso";

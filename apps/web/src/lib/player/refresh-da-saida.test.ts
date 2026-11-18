@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Conquista, Pedido } from "@cursos/api/dominio/registro";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 

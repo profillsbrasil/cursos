@@ -24,6 +24,7 @@ import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
 import { fotoNoLado } from "@/lib/foto-do-clerk";
+
 import { type CampoDoNome, LIMITE_DO_NOME, problemaDoNome } from "./nome";
 import {
   ACAO_NA_LINHA,

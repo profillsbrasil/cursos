@@ -7,6 +7,7 @@ import {
   posicaoAula,
 } from "@cursos/db/schema/index";
 import { eq, sql } from "drizzle-orm";
+
 import {
   type AulaNoPlayer,
   abreAAula,

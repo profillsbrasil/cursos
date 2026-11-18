@@ -6,6 +6,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
+
 import { Client } from "pg";
 
 import { urlDeTeste } from "../seed/guarda-local";

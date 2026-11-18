@@ -14,6 +14,7 @@ import { type SyntheticEvent, useCallback, useState } from "react";
 import { CARTAO } from "@/components/casca/cartoes";
 import { fmtMin, plural } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
+
 import {
   abertosDeSaida,
   aulaAtual,

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { comoGanhar } from "@cursos/api/dominio/pontos";
 import { renderToStaticMarkup } from "react-dom/server";
 

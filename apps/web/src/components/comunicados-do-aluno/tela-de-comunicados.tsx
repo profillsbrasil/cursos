@@ -19,6 +19,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import { paragrafos } from "@/components/curso/textos";
 import { Secao } from "@/components/meus-cursos/secao";
 import { fmtData } from "@/lib/formato";
+
 import {
   contagemDoMes,
   diaNaLinha,

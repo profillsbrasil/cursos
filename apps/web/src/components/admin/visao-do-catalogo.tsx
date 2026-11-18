@@ -13,6 +13,7 @@ import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
 import { fmtHoras, fmtPts, plural } from "@/lib/formato";
+
 import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { GradeDoCatalogo } from "./filtro-do-catalogo";
 

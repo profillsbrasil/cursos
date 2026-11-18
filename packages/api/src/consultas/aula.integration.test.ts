@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
+
 import { createDb } from "@cursos/db";
 import {
   aula,
@@ -17,6 +18,7 @@ import {
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNull } from "drizzle-orm";
+
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import type { AulaId, StatusDoCurso } from "../dominio/tipos";
 import type { Trecho } from "../dominio/trechos";

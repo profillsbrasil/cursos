@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { AulaId } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";

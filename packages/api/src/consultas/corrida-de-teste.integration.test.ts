@@ -2,6 +2,7 @@
 // no mesmo banco, parado num lock com o mesmo começo de SQL, não entra na conta.
 
 import { afterAll, describe, expect, test } from "bun:test";
+
 import { createDb } from "@cursos/db";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 

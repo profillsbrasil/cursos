@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
 import { renderToStaticMarkup } from "react-dom/server";
+
 import {
   CabecalhoDaPagina,
   EsqueletoDoCabecalho,

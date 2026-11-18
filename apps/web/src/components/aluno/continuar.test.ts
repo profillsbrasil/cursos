@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Retomada } from "@cursos/api/dominio/painel";
 import type { AulaId, Capa } from "@cursos/api/dominio/tipos";
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { ClerkAPIResponseError, ClerkRuntimeError } from "@clerk/nextjs/errors";
 
 import { FRASE_GENERICA, fraseDoErro } from "./erros";

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { ComunicadosDoAluno } from "@cursos/api/dominio/comunicado";
 import { renderToStaticMarkup } from "react-dom/server";
 

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 
 import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
+
 import { type Aparelho, aparelhosDe } from "./aparelhos";
 import { fraseDoErro } from "./erros";
 import {

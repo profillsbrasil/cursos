@@ -2,6 +2,7 @@
 // navegação, o link e o toast falsos. Só os testes importam este módulo.
 
 import { join } from "node:path";
+
 import { build } from "bun";
 
 const ENTRADA = join(import.meta.dir, "convidar.entrada.tsx");

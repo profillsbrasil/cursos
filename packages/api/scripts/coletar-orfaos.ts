@@ -4,6 +4,7 @@
 // A regra mora em src/dominio/orfaos.ts.
 
 import { parseArgs } from "node:util";
+
 import { createDb } from "@cursos/db";
 
 import { chavesEmUso } from "../src/consultas/orfaos";

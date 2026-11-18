@@ -4,6 +4,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import { renderToStaticMarkup } from "react-dom/server";
 

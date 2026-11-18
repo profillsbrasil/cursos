@@ -4,6 +4,7 @@
 // é uma capa aceitável mora em dominio/capa.ts.
 
 import { createHash } from "node:crypto";
+
 import { AwsClient } from "aws4fetch";
 import { imageSize } from "image-size";
 

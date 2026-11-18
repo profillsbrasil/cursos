@@ -7,6 +7,7 @@
 
 import { createHash } from "node:crypto";
 import { parseArgs } from "node:util";
+
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { createDb, type Database } from "../index";

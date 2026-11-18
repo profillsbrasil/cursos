@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import {
   exemploDoPrototipo,
   HOJE_DO_EXEMPLO,

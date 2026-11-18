@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { CursoId, DiaISO } from "./tipos";
 import {
   type Acesso,

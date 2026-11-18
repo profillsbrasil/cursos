@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { Acompanhamento } from "@cursos/api/dominio/acompanhamento";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
 import type { CursoId, DiaISO, LiberacaoId } from "@cursos/api/dominio/tipos";

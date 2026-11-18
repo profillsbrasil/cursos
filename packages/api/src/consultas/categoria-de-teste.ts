@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+
 import type { Database } from "@cursos/db";
 import { categoria } from "@cursos/db/schema/index";
 import { eq } from "drizzle-orm";

@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+
 import { renderToStaticMarkup } from "react-dom/server";
 
 const GOOGLE = {
@@ -40,9 +41,8 @@ mock.module("@clerk/nextjs", () => ({
 }));
 
 const { TelaDaMinhaConta } = await import("./tela-da-minha-conta");
-const { folhaDeExemplo, folhaDo, enderecoDaConferencia } = await import(
-  "@/components/certificado/folha"
-);
+const { folhaDeExemplo, folhaDo, enderecoDaConferencia } =
+  await import("@/components/certificado/folha");
 
 /** A barra colorida da prévia antiga: um traço absoluto na esquerda ou uma borda esquerda grossa ou colorida. */
 const BARRA_LATERAL =

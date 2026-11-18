@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { ClerkClient, User } from "@clerk/backend";
 
 import type { Email } from "../dominio/convite";

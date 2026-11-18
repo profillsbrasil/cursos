@@ -20,6 +20,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, plural } from "@/lib/formato";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
+
 import { type Selo, SeloDeSituacao } from "./acompanhamento";
 import { Carregando } from "./confirmacao-na-linha";
 import { FotoDaPessoa } from "./foto-da-pessoa";

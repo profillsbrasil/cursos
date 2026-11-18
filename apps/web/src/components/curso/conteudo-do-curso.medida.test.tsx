@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
+
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
 import { renderToStaticMarkup } from "react-dom/server";
 

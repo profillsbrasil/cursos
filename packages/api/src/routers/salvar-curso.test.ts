@@ -3,6 +3,7 @@
 // quebrado é recusado pelo leitor do formulário antes de qualquer consulta.
 
 import { describe, expect, test } from "bun:test";
+
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { contextoDeTeste } from "../contexto-de-teste";

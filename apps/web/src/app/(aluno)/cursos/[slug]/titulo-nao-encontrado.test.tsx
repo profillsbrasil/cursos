@@ -4,6 +4,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
+
 import { spawnSync } from "bun";
 import type { Metadata } from "next";
 import { renderToStaticMarkup } from "react-dom/server";

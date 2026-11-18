@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { MedalhaDaGrade } from "@cursos/api/dominio/conquistas";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 

@@ -8,6 +8,7 @@ import { useCallback, useState } from "react";
 import { BOTAO_CONTORNO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { fmtNum, fmtPts } from "@/lib/formato";
+
 import { ComoGanhar } from "./como-ganhar";
 
 export function SaldoDeTroca({

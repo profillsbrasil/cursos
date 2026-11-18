@@ -1,6 +1,7 @@
 import type { Database } from "@cursos/db";
 import { liberacao } from "@cursos/db/schema/index";
 import { and, eq, isNull, sql } from "drizzle-orm";
+
 import {
   acaoNaLiberacao,
   type LiberacaoNaPessoa,

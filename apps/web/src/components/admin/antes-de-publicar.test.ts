@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { documentoDeExemplo } from "@cursos/api/dominio/exemplo";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 
