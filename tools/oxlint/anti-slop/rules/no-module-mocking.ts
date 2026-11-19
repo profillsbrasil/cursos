@@ -17,6 +17,18 @@ const importedMockers: readonly {
   { source: "bun:test", name: "mock", methods: bunModuleMockMethods },
 ];
 
+/**
+ * What an expression holds, as far as module mocking goes: a test framework
+ * module (`import * as`, `await import`, `require`), a mocker from it (`vi`,
+ * `jest`, bun's `mock`) or a module mocking method of that mocker.
+ */
+type Held =
+  | { kind: "module"; source: string }
+  | { kind: "mocker"; methods: ReadonlySet<string> }
+  | { kind: "moduleMock" };
+
+const maxDepth = 16;
+
 function importedName(node: ESTree.Node): string | null {
   if (node.type !== "ImportSpecifier") return null;
   return node.imported.type === "Identifier" ? node.imported.name : node.imported.value;
@@ -34,120 +46,112 @@ function propertyName(node: ESTree.Node, computed: boolean): string | null {
   return node.type === "Literal" && typeof node.value === "string" ? node.value : null;
 }
 
-function dynamicImportSource(expression: ESTree.Node): string | null {
-  let node = expression;
-  if (node.type === "ParenthesizedExpression") node = node.expression;
-  if (node.type === "AwaitExpression") node = node.argument;
-  if (node.type !== "ImportExpression") return null;
-  return node.source.type === "Literal" && typeof node.source.value === "string"
-    ? node.source.value
-    : null;
-}
-
-function namespaceSource(
-  sourceCode: SourceCode,
-  expression: ESTree.MemberExpression["object"],
-): string | null {
-  const direct = dynamicImportSource(expression);
-  if (direct !== null) return direct;
-  if (expression.type !== "Identifier") return null;
-  const variable = resolveVariable(sourceCode, expression);
-  for (const definition of variable?.defs ?? []) {
-    if (
-      definition.type === "ImportBinding" &&
-      definition.node.type === "ImportNamespaceSpecifier" &&
-      definition.parent?.type === "ImportDeclaration"
-    ) {
-      return definition.parent.source.value;
-    }
-    if (
-      definition.type === "Variable" &&
-      definition.node.type === "VariableDeclarator" &&
-      definition.node.id.type === "Identifier" &&
-      definition.node.init !== null
-    ) {
-      const source = dynamicImportSource(definition.node.init);
-      if (source !== null) return source;
-    }
-  }
-  return null;
-}
-
-function destructuredImport(
-  definition: ESTree.Node,
-  name: string,
-): { source: string; exported: string | null } | null {
-  if (definition.type !== "VariableDeclarator" || definition.id.type !== "ObjectPattern") {
-    return null;
-  }
-  if (definition.init === null) return null;
-  const source = dynamicImportSource(definition.init);
-  if (source === null) return null;
-  for (const property of definition.id.properties) {
-    if (property.type !== "Property") continue;
-    const value = property.value.type === "AssignmentPattern" ? property.value.left : property.value;
-    if (value.type === "Identifier" && value.name === name) {
-      return { exported: propertyName(property.key, property.computed), source };
-    }
-  }
-  return null;
-}
-
 function isGlobalMocker(name: string): boolean {
   return name === "vi" || name === "jest";
 }
 
-function mockMethodsOf(
-  sourceCode: SourceCode,
-  expression: ESTree.Expression,
-): ReadonlySet<string> | null {
-  if (expression.type === "MemberExpression") {
-    const source = namespaceSource(sourceCode, expression.object);
-    return source === null
-      ? null
-      : mockerMethods(source, propertyName(expression.property, expression.computed));
+function member(held: Held | null, name: string | null): Held | null {
+  if (held === null || name === null) return null;
+  if (held.kind === "module") {
+    const methods = mockerMethods(held.source, name);
+    return methods === null ? null : { kind: "mocker", methods };
   }
-  if (expression.type !== "Identifier") return null;
-  if (isGlobalMocker(expression.name) && sourceCode.isGlobalReference(expression)) {
-    return moduleMockMethods;
-  }
+  if (held.kind === "mocker" && held.methods.has(name)) return { kind: "moduleMock" };
+  return null;
+}
 
-  const variable = resolveVariable(sourceCode, expression);
-  if (variable === null || variable.defs.length === 0) {
-    return isGlobalMocker(expression.name) ? moduleMockMethods : null;
-  }
-  for (const definition of variable.defs) {
-    if (definition.type === "Variable") {
-      const destructured = destructuredImport(definition.node, expression.name);
-      const methods =
-        destructured === null ? null : mockerMethods(destructured.source, destructured.exported);
-      if (methods !== null) return methods;
-      continue;
-    }
-    if (definition.type !== "ImportBinding" || definition.parent?.type !== "ImportDeclaration") {
-      continue;
-    }
-    const source = definition.parent.source.value;
-    const name = importedName(definition.node);
-    const methods = mockerMethods(source, name);
-    if (methods !== null) return methods;
+function literalSource(node: ESTree.Node | undefined): string | null {
+  return node !== undefined && node.type === "Literal" && typeof node.value === "string"
+    ? node.value
+    : null;
+}
+
+/** The keys from the pattern root down to the binding called `name`, as in `{ mock: { module: trocar } }`. */
+function pathTo(pattern: ESTree.Node, name: string): (string | null)[] | null {
+  if (pattern.type === "Identifier") return pattern.name === name ? [] : null;
+  if (pattern.type === "AssignmentPattern") return pathTo(pattern.left, name);
+  if (pattern.type !== "ObjectPattern") return null;
+  for (const property of pattern.properties) {
+    if (property.type !== "Property") continue;
+    const rest = pathTo(property.value, name);
+    if (rest !== null) return [propertyName(property.key, property.computed), ...rest];
   }
   return null;
 }
 
-function moduleMockCall(sourceCode: SourceCode, callee: ESTree.Expression): boolean {
-  if (!("property" in callee) || !("object" in callee) || !("computed" in callee)) return false;
-  const methods = mockMethodsOf(sourceCode, callee.object);
-  if (methods === null) return false;
-  const property = callee.property;
-  const method = callee.computed
-    ? property.type === "Literal" && typeof property.value === "string"
-      ? property.value
-      : null
-    : property.type === "Identifier"
-      ? property.name
-      : null;
-  return method !== null && methods.has(method);
+function heldByVariable(
+  sourceCode: SourceCode,
+  identifier: ESTree.IdentifierReference,
+  depth: number,
+): Held | null {
+  if (isGlobalMocker(identifier.name) && sourceCode.isGlobalReference(identifier)) {
+    return { kind: "mocker", methods: moduleMockMethods };
+  }
+  const variable = resolveVariable(sourceCode, identifier);
+  if (variable === null || variable.defs.length === 0) {
+    return isGlobalMocker(identifier.name) ? { kind: "mocker", methods: moduleMockMethods } : null;
+  }
+  for (const definition of variable.defs) {
+    if (definition.type === "ImportBinding" && definition.parent?.type === "ImportDeclaration") {
+      const source = definition.parent.source.value;
+      if (definition.node.type === "ImportNamespaceSpecifier") return { kind: "module", source };
+      const methods = mockerMethods(source, importedName(definition.node));
+      if (methods !== null) return { kind: "mocker", methods };
+      continue;
+    }
+    if (
+      definition.type !== "Variable" ||
+      definition.node.type !== "VariableDeclarator" ||
+      definition.node.init === null
+    ) {
+      continue;
+    }
+    const path = pathTo(definition.node.id, identifier.name);
+    if (path === null) continue;
+    let held = heldBy(sourceCode, definition.node.init, depth + 1);
+    for (const key of path) held = member(held, key);
+    if (held !== null) return held;
+  }
+  return null;
+}
+
+function declared(sourceCode: SourceCode, identifier: ESTree.IdentifierReference): boolean {
+  return (resolveVariable(sourceCode, identifier)?.defs.length ?? 0) > 0;
+}
+
+function heldBy(
+  sourceCode: SourceCode,
+  expression: ESTree.Expression,
+  depth: number,
+): Held | null {
+  if (depth > maxDepth) return null;
+  switch (expression.type) {
+    case "ParenthesizedExpression":
+      return heldBy(sourceCode, expression.expression, depth + 1);
+    case "AwaitExpression":
+      return heldBy(sourceCode, expression.argument, depth + 1);
+    case "ImportExpression": {
+      const source = literalSource(expression.source);
+      return source === null ? null : { kind: "module", source };
+    }
+    case "CallExpression": {
+      const callee = expression.callee;
+      if (callee.type !== "Identifier" || callee.name !== "require") return null;
+      if (declared(sourceCode, callee)) return null;
+      const source = literalSource(expression.arguments[0]);
+      return source === null ? null : { kind: "module", source };
+    }
+    case "MemberExpression":
+      if (expression.object.type === "Super") return null;
+      return member(
+        heldBy(sourceCode, expression.object, depth + 1),
+        propertyName(expression.property, expression.computed),
+      );
+    case "Identifier":
+      return heldByVariable(sourceCode, expression, depth);
+    default:
+      return null;
+  }
 }
 
 /** Ban test framework module mocking in favor of real dependency seams. */
@@ -167,7 +171,7 @@ export const noModuleMockingRule = defineRule({
     return {
       CallExpression(node) {
         if (node.callee.type === "Super" || node.callee.type === "V8IntrinsicExpression") return;
-        if (moduleMockCall(context.sourceCode, node.callee)) {
+        if (heldBy(context.sourceCode, node.callee, 0)?.kind === "moduleMock") {
           context.report({ node, messageId: "moduleMock" });
         }
       },
