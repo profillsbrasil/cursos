@@ -296,7 +296,7 @@ A mudança local é o `no-module-mocking`, que só conhecia o `vi` do Vitest e o
 | `@clerk/nextjs` | O componente de fora lê o hook e entrega a uma vista exportada o que ela usa, com o tipo estreito: um `Pick` do usuário do Clerk. Onde a vista ainda chama um hook do Clerk que não lê o usuário (o `useReverification` do `useAcaoDaConta`, o `useSession` e o `useClerk`), o teste monta o `ClerkProvider` real dentro do `ComRoteador`, com uma chave pública de exemplo, e no SSR ele responde sem rede. | `MenuDaConta` (`casca/cartao-de-conta.tsx`), `BotoesDeSair` (`minha-conta/secao-de-sair.tsx`), `ConteudoDaMinhaConta` (`minha-conta/tela-da-minha-conta.tsx`) |
 | `@cursos/ui/components/dropdown-menu` | O teste sobe ao Chromium e abre o menu pelo clique. | `casca/cartao-de-conta.navegador.test.tsx` |
 | `next/headers` | A `Casca` lê o cookie e monta a `MolduraDaCasca`, que recebe `aberta`. | `sinal-do-foco.test.tsx` |
-| `@/server/api` | `certificadoDaPagina` e `respostaDoPdf`, o corpo da rota sem a leitura. | `certificado/resposta-do-pdf.test.ts` |
+| `@/server/api` | `rotaDoPdfDoAluno` e `rotaDoPdfDaConferencia`, de `certificado/resposta-do-pdf.ts`, montam o `GET` com o carregador por parâmetro. Cada `route.ts` exporta o `GET` montado com o de `@/server/api`, e o teste chama o `GET` montado com um carregador que guarda o slug e o código que recebe. | `certificado/resposta-do-pdf.test.ts` |
 | `fetch` global | `clienteTrpc(buscar)` em `utils/trpc.ts`; o `trpcClient` do app é o `clienteTrpc()`, que chama o `fetch` global na hora do pedido. | `utils/trpc.test.ts` |
 | `requestAnimationFrame` e `document` | O caso do `focarOPrimeiro` roda no Chromium, com o DOM e o quadro de verdade. | `lib/editor.navegador.test.ts` |
 
