@@ -1,17 +1,24 @@
 import { describe, expect, spyOn, test } from "bun:test";
 
-import type { ClerkClient } from "@clerk/backend";
 import { ClerkAPIResponseError } from "@clerk/backend/errors";
 
 import { email } from "../dominio/marcas";
-import { convitesDoClerk } from "./convites";
+import { type ClerkDosConvites, convitesDoClerk } from "./convites";
 
 const AGORA = new Date("2026-11-11T15:00:00Z");
 const ANA = email("ana@exemplo.com");
 const CRIAR_CONTA = "https://cursos.exemplo.com/criar-conta";
 
-const clerkQue = (invitations: Record<string, unknown>) =>
-  ({ invitations }) as unknown as ClerkClient;
+const NENHUM_CONVITE: ClerkDosConvites["invitations"] = {
+  createInvitation: () =>
+    Promise.reject(new Error("o teste não esperava criar convite")),
+  revokeInvitation: () =>
+    Promise.reject(new Error("o teste não esperava revogar convite")),
+};
+
+const clerkQue = (
+  invitations: Partial<ClerkDosConvites["invitations"]>
+): ClerkDosConvites => ({ invitations: { ...NENHUM_CONVITE, ...invitations } });
 
 const recusa = (status: number, retryAfter?: number) =>
   new ClerkAPIResponseError("recusa do Clerk", {

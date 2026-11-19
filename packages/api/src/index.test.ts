@@ -8,7 +8,7 @@ import { Glob } from "bun";
 import { z } from "zod";
 
 import { ESPERA_ESGOTADA } from "./consultas/erros";
-import { contextoDeTeste } from "./contexto-de-teste";
+import { bancoSemServidor, contextoDeTeste } from "./contexto-de-teste";
 import {
   adminProcedure,
   ErroParaAPessoa,
@@ -75,7 +75,11 @@ const CORPO_DO_ERRO = z.object({
 async function corpoDoErroNoHttpDepoisDoErrorFormatter(caminho: string) {
   const resposta = await fetchRequestHandler({
     createContext: () =>
-      contextoDeTeste({ db: {} as never, papel: "admin", userId: "user_x" }),
+      contextoDeTeste({
+        db: bancoSemServidor(),
+        papel: "admin",
+        userId: "user_x",
+      }),
     endpoint: "/api/trpc",
     onError: () => undefined,
     req: new Request(`http://localhost/api/trpc/${caminho}`),

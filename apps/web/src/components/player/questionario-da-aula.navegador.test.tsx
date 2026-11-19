@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
+import { aulaId } from "@cursos/api/dominio/marcas";
 import { build } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -163,7 +164,7 @@ const ESTADOS = [
 const htmlDe = (q: (typeof ESTADOS)[number]) =>
   renderToStaticMarkup(
     <QuestionarioDaAula
-      aulaId={"00000000-0000-4000-8000-00000000aaaa" as never}
+      aulaId={aulaId("00000000-0000-4000-8000-00000000aaaa")}
       proxima={null}
       questionario={q}
       slug="comercial"

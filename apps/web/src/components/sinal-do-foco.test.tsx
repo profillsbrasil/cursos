@@ -330,10 +330,7 @@ const perfilDaPessoa = renderToStaticMarkup(
 );
 
 const pedeDaConta = renderToStaticMarkup(
-  <SecaoDeSair
-    certificados={0}
-    user={{} as Parameters<typeof SecaoDeSair>[0]["user"]}
-  />
+  <SecaoDeSair certificados={0} user={{ delete: () => Promise.resolve() }} />
 );
 
 const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;

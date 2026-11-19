@@ -1,4 +1,4 @@
-import type { ClerkClient, User } from "@clerk/backend";
+import type { EmailAddress, ExternalAccount, User } from "@clerk/backend";
 
 import type { Papel } from "../context";
 import { type Email, lerEmail } from "../dominio/convite";
@@ -26,6 +26,50 @@ export interface Pessoas {
   porId: (userId: string) => Promise<Pessoa | null>;
 }
 
+/** O que as pessoas leem de um usuário do Clerk. O User do SDK satisfaz. */
+export interface UsuarioDoClerk extends Pick<
+  User,
+  | "createdAt"
+  | "fullName"
+  | "hasImage"
+  | "id"
+  | "imageUrl"
+  | "lastActiveAt"
+  | "passwordEnabled"
+  | "publicMetadata"
+  | "username"
+> {
+  readonly emailAddresses: readonly Pick<EmailAddress, "emailAddress">[];
+  readonly externalAccounts: readonly Pick<ExternalAccount, "provider">[];
+  readonly primaryEmailAddress: {
+    readonly emailAddress: string;
+    readonly verification?: { readonly status: string } | null;
+  } | null;
+}
+
+/** Os filtros da lista de usuários que as pessoas pedem ao Clerk. */
+export interface FiltroDeUsuarios {
+  readonly emailAddress?: string[];
+  readonly limit: number;
+  readonly offset?: number;
+  readonly orderBy?: "-last_active_at";
+  readonly query?: string;
+  readonly userId?: string[];
+}
+
+/** O que as pessoas usam do Clerk: a lista de usuários e o Public metadata. O ClerkClient satisfaz. */
+export interface ClerkDasPessoas {
+  readonly users: {
+    getUserList: (
+      filtro: FiltroDeUsuarios
+    ) => Promise<{ data: readonly UsuarioDoClerk[]; totalCount: number }>;
+    updateUserMetadata: (
+      userId: string,
+      metadata: { publicMetadata: { papel: "admin" | null } }
+    ) => Promise<unknown>;
+  };
+}
+
 export const LIMITE = 20;
 
 const PREFIXO_OAUTH_DA_BACKEND_API = /^oauth_/;
@@ -33,7 +77,7 @@ const PREFIXO_OAUTH_DA_BACKEND_API = /^oauth_/;
 /** O Clerk aceita até 100 userIds num filtro. */
 export const TETO_DO_FILTRO = 100;
 
-export function paraPessoa(u: User): Pessoa {
+export function paraPessoa(u: UsuarioDoClerk): Pessoa {
   const email = u.primaryEmailAddress?.emailAddress ?? null;
 
   return {
@@ -44,7 +88,7 @@ export function paraPessoa(u: User): Pessoa {
   };
 }
 
-function paraConta(u: User): Conta {
+function paraConta(u: UsuarioDoClerk): Conta {
   const google = u.externalAccounts.some(
     (c) => c.provider.replace(PREFIXO_OAUTH_DA_BACKEND_API, "") === "google"
   );
@@ -62,7 +106,7 @@ function paraConta(u: User): Conta {
   };
 }
 
-export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
+export function pessoasDoClerk(clerk: ClerkDasPessoas): Pessoas {
   return {
     async buscar(termo, entre) {
       if (entre?.length === 0) {
@@ -132,9 +176,9 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
 }
 
 async function umUsuario(
-  clerk: ClerkClient,
+  clerk: ClerkDasPessoas,
   userId: string
-): Promise<User | null> {
+): Promise<UsuarioDoClerk | null> {
   const r = await clerk.users.getUserList({ limit: 1, userId: [userId] });
 
   return r.data[0] ?? null;

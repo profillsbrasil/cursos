@@ -116,18 +116,19 @@ describe("focarOPrimeiro", () => {
     const focados: string[] = [];
     const naPagina = new Map<string, { focus: () => void }>();
 
-    const global = globalThis as unknown as {
-      document: unknown;
-      requestAnimationFrame: unknown;
-    };
-
     const antes = {
-      document: global.document,
-      requestAnimationFrame: global.requestAnimationFrame,
+      document: globalThis.document,
+      requestAnimationFrame: globalThis.requestAnimationFrame,
     };
 
-    global.requestAnimationFrame = (f: FrameRequestCallback) => quadros.push(f);
-    global.document = { getElementById: (id: string) => naPagina.get(id) };
+    Reflect.set(
+      globalThis,
+      "requestAnimationFrame",
+      (f: FrameRequestCallback) => quadros.push(f)
+    );
+    Reflect.set(globalThis, "document", {
+      getElementById: (id: string) => naPagina.get(id),
+    });
 
     try {
       focarOPrimeiro(["aula-duracao"]);
@@ -144,8 +145,12 @@ describe("focarOPrimeiro", () => {
 
       expect(focados).toEqual(["aula-duracao"]);
     } finally {
-      global.document = antes.document;
-      global.requestAnimationFrame = antes.requestAnimationFrame;
+      Reflect.set(globalThis, "document", antes.document);
+      Reflect.set(
+        globalThis,
+        "requestAnimationFrame",
+        antes.requestAnimationFrame
+      );
     }
   });
 });

@@ -9,6 +9,7 @@ import {
   bucketAssinado,
   capasDesligadas,
   capasNoBucket,
+  type Enviar,
   lerCapa,
   lerPaginaDaListagem,
 } from "./capas";
@@ -120,18 +121,28 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
+class BlobQueContaAsLeituras extends Blob {
+  lidos = 0;
+
+  override arrayBuffer() {
+    this.lidos += 1;
+
+    return super.arrayBuffer();
+  }
+}
+
 function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];
 
-  const enviar = ((url: Request | string, init?: RequestInit) => {
+  const enviar: Enviar = (url, init) => {
     pedidos.push(url instanceof Request ? url : new Request(url, init));
     tamanhos.push(
       init?.body instanceof Uint8Array ? init.body.byteLength : null
     );
 
     return Promise.resolve(resposta());
-  }) as unknown as typeof fetch;
+  };
 
   return { enviar, pedidos, tamanhos };
 }
@@ -191,22 +202,15 @@ describe("capasNoBucket", () => {
   });
 
   test("arquivo acima do teto é recusado sem ler os bytes", async () => {
-    let lidos = 0;
-
-    const pesado = {
-      arrayBuffer: () => {
-        lidos += 1;
-
-        return Promise.resolve(new ArrayBuffer(0));
-      },
-      size: LIMITE_DA_CAPA.bytes + 1,
-    } as unknown as Blob;
+    const pesado = new BlobQueContaAsLeituras([
+      new Uint8Array(LIMITE_DA_CAPA.bytes + 1),
+    ]);
 
     expect(await capasNoBucket(BUCKET, fetch).receber(pesado)).toEqual({
       recusa: { limiteMb: 4, tipo: "pesada" },
       tipo: "recusa",
     });
-    expect(lidos).toBe(0);
+    expect(pesado.lidos).toBe(0);
   });
 
   test("abrir lê a capa com GET assinado e devolve null quando ela não existe", async () => {

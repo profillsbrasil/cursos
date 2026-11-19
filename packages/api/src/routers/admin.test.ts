@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { TRPCError } from "@trpc/server";
+import { callTRPCProcedure, TRPCError } from "@trpc/server";
 
-import { type AuthDoClerk, contextoDe } from "../context";
+import { type AuthDoClerk, type Context, contextoDe } from "../context";
 import {
+  bancoSemServidor,
   contextoDeTeste,
   convitesDeTeste,
   pessoasDeTeste,
@@ -12,7 +13,7 @@ import { capasDesligadas } from "../externos/capas";
 import { materiaisDesligados } from "../externos/materiais";
 import { appRouter, createCaller } from "./index";
 
-const db = {} as never;
+const db = bancoSemServidor();
 
 const servicos = {
   capas: capasDesligadas,
@@ -22,8 +23,10 @@ const servicos = {
   pessoas: pessoasDeTeste([]),
 };
 
-const sessao = (claims: Record<string, unknown>, userId = "user_x") =>
-  ({ sessionClaims: claims, userId }) as unknown as AuthDoClerk;
+const sessao = (
+  claims: Record<string, unknown>,
+  userId = "user_x"
+): AuthDoClerk => ({ sessionClaims: claims, userId });
 
 describe("contextoDe lê o papel do claim", () => {
   test("claim papel admin vira admin", () => {
@@ -54,18 +57,22 @@ const PROCEDIMENTOS_DO_ADMIN = Object.keys(appRouter._def.procedures).filter(
   (caminho) => caminho.startsWith("admin.")
 );
 
-function chamarSemEntradaPoisAPortaRodaAntesDaValidacao(
-  caller: ReturnType<typeof createCaller>,
+async function chamarSemEntradaPoisAPortaRodaAntesDaValidacao(
+  ctx: Context,
   caminho: string
 ) {
-  const alvo = caminho
-    .split(".")
-    .reduce<unknown>(
-      (no, chave) => (no as Record<string, unknown>)[chave],
-      caller
-    );
+  const resposta: unknown = await callTRPCProcedure({
+    allowMethodOverride: true,
+    batchIndex: 0,
+    ctx,
+    getRawInput: () => Promise.resolve(undefined),
+    path: caminho,
+    router: appRouter,
+    signal: undefined,
+    type: "query",
+  });
 
-  return (alvo as (entrada?: unknown) => Promise<unknown>)();
+  return resposta;
 }
 
 describe("admin.liberacoes.acesso com userId fora do formato", () => {
@@ -90,7 +97,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
   });
 
   test("sem sessão, todos respondem UNAUTHORIZED", async () => {
-    const anonimo = createCaller(contextoDeTeste({ db, userId: null }));
+    const anonimo = contextoDeTeste({ db, userId: null });
 
     const codigos = await Promise.all(
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
@@ -105,7 +112,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
   });
 
   test("com aluno, todos respondem FORBIDDEN", async () => {
-    const aluno = createCaller(contextoDeTeste({ db, userId: "user_x" }));
+    const aluno = contextoDeTeste({ db, userId: "user_x" });
 
     const codigos = await Promise.all(
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>

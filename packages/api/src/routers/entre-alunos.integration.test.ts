@@ -19,7 +19,7 @@ import {
   questionarioTentativa,
 } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
-import { TRPCError } from "@trpc/server";
+import { callTRPCProcedure, TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import {
@@ -30,7 +30,7 @@ import { contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
 import { diaISO, tentativaId, videoId } from "../dominio/marcas";
 import type { AlternativaId, CursoId, PerguntaId } from "../dominio/tipos";
-import { createCaller } from "./index";
+import { appRouter, createCaller } from "./index";
 
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
@@ -326,19 +326,31 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     });
 
     test("procedimento sem entrada ignora o userId de Bruno posto no pedido: Ana vê o saldo dela", async () => {
-      const ana = como(ANA);
+      const comUserIdDeBruno = async (caminho: string) => {
+        const resposta: unknown = await callTRPCProcedure({
+          batchIndex: 0,
+          ctx: contextoDeTeste({ db, userId: ANA }),
+          getRawInput: () => Promise.resolve({ userId: BRUNO }),
+          path: caminho,
+          router: appRouter,
+          signal: undefined,
+          type: "query",
+        });
 
-      const comUserId = <T>(f: () => Promise<T>) =>
-        (f as unknown as (entrada: unknown) => Promise<T>)({ userId: BRUNO });
+        return resposta;
+      };
 
       expect((await como(BRUNO).aluno.resumo()).saldo).toBe(310);
-      const resumo = await comUserId(ana.aluno.resumo);
-      const troca = await comUserId(ana.troca.painel);
-      const painel = await comUserId(ana.meusCursos.painel);
-      expect(resumo.saldo).toBe(0);
-      expect(troca.saldo).toBe(0);
-      expect(troca.extrato).toEqual([]);
-      expect(painel.cursos.map((c) => c.slug)).toEqual([comum.slug]);
+      expect(await comUserIdDeBruno("aluno.resumo")).toMatchObject({
+        saldo: 0,
+      });
+      expect(await comUserIdDeBruno("troca.painel")).toMatchObject({
+        extrato: [],
+        saldo: 0,
+      });
+      expect(await comUserIdDeBruno("meusCursos.painel")).toMatchObject({
+        cursos: [{ slug: comum.slug }],
+      });
     });
 
     test("trocar não alcança o saldo de Bruno: sem saldo próprio, Ana é recusada e nada muda para ele", async () => {

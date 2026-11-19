@@ -3,10 +3,10 @@ import { describe, expect, test } from "bun:test";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { z } from "zod";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { bancoSemServidor, contextoDeTeste } from "../contexto-de-teste";
 import { appRouter } from "./index";
 
-const db = {} as never;
+const db = bancoSemServidor();
 
 function enviar(corpo: FormData) {
   return fetchRequestHandler({
