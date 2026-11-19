@@ -54,9 +54,9 @@ export async function linhasDoSaldo(
 export function estudoPorDia(
   exec: Executor,
   userId: string
-): Promise<{ dia: string; pontos: number }[]> {
+): Promise<{ dia: DiaISO; pontos: number }[]> {
   // WARNING: o fuso entra como literal; com parâmetro, o select e o group by teriam $1 e $2, e o Postgres não os vê como a mesma expressão.
-  const dia = sql<string>`to_char(${pontoLancamento.criadoEm} at time zone ${sql.raw(`'${FUSO}'`)}, 'YYYY-MM-DD')`;
+  const dia = sql<DiaISO>`to_char(${pontoLancamento.criadoEm} at time zone ${sql.raw(`'${FUSO}'`)}, 'YYYY-MM-DD')`;
 
   return exec
     .select({ dia, pontos: sql<number>`sum(${pontoLancamento.pontos})::int` })

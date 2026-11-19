@@ -47,7 +47,10 @@ const SEM_ESTUDO: LinhasHistorico = {
 
 const assistiu = (...aulas: string[]): LinhasHistorico => ({
   ...SEM_ESTUDO,
-  assistidas: aulas.map((aula) => ({ assistidaEm: AGORA, aulaId: aula })),
+  assistidas: aulas.map((aula) => ({
+    assistidaEm: AGORA,
+    aulaId: aulaId(aula),
+  })),
 });
 
 function pessoa(mudar: Partial<PessoaNaVirada> = {}): PessoaNaVirada {
@@ -77,7 +80,9 @@ describe("planejarVirada", () => {
   test("a posição acima de 0 s conta como estudo; a de 0 s, não", () => {
     const posicao = (posicaoSeg: number) =>
       pessoa({
-        posicoes: [{ atualizadaEm: AGORA, aulaId: "c1-a2", posicaoSeg }],
+        posicoes: [
+          { atualizadaEm: AGORA, aulaId: aulaId("c1-a2"), posicaoSeg },
+        ],
       });
 
     expect(planejarVirada(posicao(30)).trocas).toHaveLength(1);

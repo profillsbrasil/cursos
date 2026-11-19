@@ -26,8 +26,8 @@ export interface GradeDosPerfis {
 }
 
 export interface LinhaDaGrade extends LinhaDaCapa {
-  id: string;
-  liberacoesDoPerfil: readonly { id: string; perfil: Perfil }[];
+  id: CursoId;
+  liberacoesDoPerfil: readonly { id: LiberacaoDoPerfilId; perfil: Perfil }[];
   modulos: readonly { aulas: readonly unknown[] }[];
   status: StatusDoCurso;
   titulo: string;
@@ -42,12 +42,11 @@ export function montarGrade(
     cursos: linhas.map((c) => ({
       aulas: c.modulos.reduce((n, m) => n + m.aulas.length, 0),
       capa: capaDe(c),
-      id: c.id as CursoId,
+      id: c.id,
       liberacoes: Object.fromEntries(
         PERFIS.map((p) => [
           p,
-          (c.liberacoesDoPerfil.find((l) => l.perfil === p)?.id ??
-            null) as LiberacaoDoPerfilId | null,
+          c.liberacoesDoPerfil.find((l) => l.perfil === p)?.id ?? null,
         ])
       ) as Record<Perfil, LiberacaoDoPerfilId | null>,
       status: c.status,

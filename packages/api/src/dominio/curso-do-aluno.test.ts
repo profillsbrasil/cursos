@@ -17,7 +17,7 @@ const todas = (chave: string, aulas: number[]) =>
   );
 
 const aula = (chave: string, modulo: number, posicao: number) =>
-  idAula(chave, modulo, posicao) as AulaId;
+  idAula(chave, modulo, posicao);
 
 describe("os cinco estados do curso, de uma leitura só", () => {
   const c: CursoComAulas = {

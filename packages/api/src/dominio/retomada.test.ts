@@ -128,7 +128,7 @@ describe("retomada", () => {
   test("curso com todas as aulas assistidas leva ao questionário pendente, com a nota da última tentativa", () => {
     const novo = cursoCat("novo", { aulas: [2] });
     const comQuiz = cursoCat("c", { aulas: [4], perguntas: 3 });
-    const pendente = idAula("c", 0, 3) as AulaId;
+    const pendente = idAula("c", 0, 3);
 
     const h = historico({
       assistidas: [1, 2, 3, 4].map((p) => idAula("c", 0, p)),
@@ -183,8 +183,8 @@ describe("retomada pela atividade mais recente (item 24)", () => {
   });
 
   const atividade = new Map([
-    [idAula("a", 0, 2) as AulaId, "2026-09-10T12:00:00.000Z"],
-    [idAula("b", 0, 1) as AulaId, "2026-10-07T15:00:00.000Z"],
+    [idAula("a", 0, 2), "2026-09-10T12:00:00.000Z"],
+    [idAula("b", 0, 1), "2026-10-07T15:00:00.000Z"],
   ]);
 
   test("curso B com aula assistida hoje vence curso A com posição de semanas atrás", () => {
@@ -199,8 +199,8 @@ describe("retomada pela atividade mais recente (item 24)", () => {
     const r = retomada(entrada([a, b], h, atividade));
     const daEntrada = lerCursoDoAluno(b, { atividade, historico: h });
     expect(r?.tipo).toBe("continuar");
-    expect(r?.aula.id).toBe(idAula("b", 0, 2) as AulaId);
-    expect(daEntrada.aulaDaVez?.id).toBe(idAula("b", 0, 2) as AulaId);
+    expect(r?.aula.id).toBe(idAula("b", 0, 2));
+    expect(daEntrada.aulaDaVez?.id).toBe(idAula("b", 0, 2));
   });
 });
 
@@ -216,7 +216,7 @@ describe("aula N do módulo no banner", () => {
     })),
   };
 
-  const segunda = idAula("d", 0, 2) as AulaId;
+  const segunda = idAula("d", 0, 2);
 
   test("continuar numera pelo índice no módulo, como a coluna e o player", () => {
     const h = historico({ posicoes: [[segunda, 60]] });

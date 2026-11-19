@@ -30,12 +30,12 @@ export interface CursoLinha extends LinhaDaCapa {
   categoria: { nome: string };
   codigo: string;
   descricao: string;
-  id: string;
+  id: CursoId;
   modulos: {
     aulas: {
       descricao: string;
       duracaoSeg: number;
-      id: string;
+      id: AulaId;
       perguntas: number;
       posicao: number;
       titulo: string;
@@ -54,8 +54,12 @@ export interface CursoLinha extends LinhaDaCapa {
 }
 
 export interface LinhasPainel {
-  assistidas: readonly { assistidaEm: Date; aulaId: string }[];
-  certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
+  assistidas: readonly { assistidaEm: Date; aulaId: AulaId }[];
+  certificados: readonly {
+    codigo: string;
+    cursoId: CursoId;
+    emitidoEm: Date;
+  }[];
   comunicados: readonly {
     cursoId: string | null;
     id: string;
@@ -74,14 +78,14 @@ export interface LinhasPainel {
   }[];
   posicoes: readonly {
     atualizadaEm: Date;
-    aulaId: string;
+    aulaId: AulaId;
     posicaoSeg: number;
   }[];
   questionarios: readonly LinhaDoQuestionario[];
 }
 
 export interface LinhasResumo {
-  dias: readonly { dia: string }[];
+  dias: readonly { dia: DiaISO }[];
   pontos: { saldo: number; entradasDaSemana: number };
 }
 
@@ -201,19 +205,18 @@ export interface ResumoAluno {
   sequenciaDias: number;
 }
 
-/** Borda: marca os ids das linhas do banco. */
 export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
     capa: capaDe(linha),
     categoria: linha.categoria.nome,
     codigo: linha.codigo,
     descricao: linha.descricao,
-    id: linha.id as CursoId,
+    id: linha.id,
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
-        id: a.id as AulaId,
+        id: a.id,
         perguntas: a.perguntas,
         posicao: a.posicao,
         titulo: a.titulo,
@@ -319,7 +322,7 @@ export function montarPainel(
 }
 
 export function montarResumo(linhas: LinhasResumo, hoje: DiaISO): ResumoAluno {
-  const dias = new Set(linhas.dias.map((d) => d.dia as DiaISO));
+  const dias = new Set(linhas.dias.map((d) => d.dia));
   const sequenciaDias = sequenciaDiasUteis(dias, hoje);
 
   return {

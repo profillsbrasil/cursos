@@ -8,6 +8,7 @@ import {
   type TentativasDaAula,
 } from "./conquistas";
 import { cursoLinha, idAula } from "./exemplo";
+import { aulaId, cursoId, diaISO } from "./marcas";
 import type { CursoId, DiaISO } from "./tipos";
 import type { CursoDaTroca } from "./troca";
 
@@ -93,7 +94,7 @@ const ALUNA: LinhasDasConquistas = {
   lancamentos: [
     {
       criadoEm: new Date("2026-10-13T15:00:00Z"),
-      cursoId: "bpf",
+      cursoId: cursoId("bpf"),
       motivo: "troca",
     },
     {
@@ -316,7 +317,7 @@ describe("a sequência por ganhar", () => {
   const tresDias = ["2026-10-13", "2026-10-14", "2026-10-15"].map((dia) => ({
     assistidaEm: new Date(`${dia}T14:00:00Z`),
     aula: "Aula",
-    aulaId: `aula-${dia}`,
+    aulaId: aulaId(`aula-${dia}`),
     curso: "Curso",
   }));
 
@@ -335,7 +336,7 @@ describe("a sequência por ganhar", () => {
       {
         assistidaEm: new Date("2026-10-16T14:00:00Z"),
         aula: "Aula",
-        aulaId: "sexta",
+        aulaId: aulaId("sexta"),
         curso: "Curso",
       },
     ];
@@ -361,9 +362,9 @@ test("a troca sem o curso é um erro do banco, não uma medalha vazia", () => {
   ).toThrow("Lançamento de troca sem o curso da liberação.");
 });
 
-const troca = (cursoId: string, iso: string) => ({
+const troca = (curso: string, iso: string) => ({
   criadoEm: new Date(iso),
-  cursoId,
+  cursoId: cursoId(curso),
   motivo: "troca" as const,
 });
 
@@ -374,7 +375,7 @@ const trocado = (curso: typeof AUTO, iso: string) => ({
 });
 
 const tentativas = (
-  aulaId: string,
+  aula: string,
   o: Partial<TentativasDaAula> & { primeira: [number, number, string] }
 ): TentativasDaAula => {
   const [acertos, total, iso] = o.primeira;
@@ -382,7 +383,7 @@ const tentativas = (
   return {
     aprovada: o.aprovada ?? false,
     aprovadaEm: o.aprovadaEm ?? null,
-    aulaId,
+    aulaId: aulaId(aula),
     primeiraAcertos: acertos,
     primeiraEm: new Date(iso),
     primeiraTotal: total,
@@ -430,9 +431,9 @@ describe("as medalhas novas ganhas", () => {
         },
       ],
       estudoPorDia: [
-        { dia: "2026-10-03", pontos: 600 },
-        { dia: "2026-10-01", pontos: 300 },
-        { dia: "2026-10-02", pontos: 100 },
+        { dia: diaISO("2026-10-03"), pontos: 600 },
+        { dia: diaISO("2026-10-01"), pontos: 300 },
+        { dia: diaISO("2026-10-02"), pontos: 100 },
       ],
       lancamentos: [
         troca(TERCEIRO.id, "2026-10-10T15:00:00Z"),
@@ -529,8 +530,8 @@ describe("as medalhas novas por ganhar", () => {
         assistida(AMOSTRA, 1, "2026-10-06T14:00:00Z"),
       ],
       estudoPorDia: [
-        { dia: "2026-10-01", pontos: 500 },
-        { dia: "2026-10-02", pontos: 496 },
+        { dia: diaISO("2026-10-01"), pontos: 500 },
+        { dia: diaISO("2026-10-02"), pontos: 496 },
       ],
       lancamentos: [troca(TROCADO.id, "2026-09-30T15:00:00Z")],
       liberacoes: [

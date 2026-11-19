@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { type LinhasCurso, montarCursoAberto, montarCursoVisto } from "./aula";
 import { cursoLinha, idAula } from "./exemplo";
+import { cursoId, diaISO } from "./marcas";
 import { montarPaginaDoCurso } from "./pagina-do-curso";
 import type { CursoLinha } from "./painel";
 import type { MarcaDoQuestionario } from "./questionario";
@@ -34,9 +35,9 @@ function linha(): CursoLinha {
   };
 }
 
-const A1 = idAula("envase", 1, 1) as AulaId;
-const A2 = idAula("envase", 1, 2) as AulaId;
-const B1 = idAula("envase", 2, 1) as AulaId;
+const A1 = idAula("envase", 1, 1);
+const A2 = idAula("envase", 1, 2);
+const B1 = idAula("envase", 2, 1);
 
 const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
   const aberto = montarCursoAberto({
@@ -57,10 +58,10 @@ const pagina = (o: Partial<Omit<LinhasCurso, "curso">> = {}) => {
 
 const SEM: MarcaDoQuestionario = { tipo: "sem" };
 
-const assistida = (aulaId: string) => ({
+const assistida = (aulaId: AulaId) => ({
   assistidaEm: em("2026-10-06T15:00:00Z"),
   aulaId,
-  dia: "2026-10-06",
+  dia: diaISO("2026-10-06"),
 });
 
 describe("montarPaginaDoCurso", () => {
@@ -219,7 +220,7 @@ describe("montarPaginaDoCurso", () => {
       })),
     };
 
-    const tentativa = (aulaId: string, aprovada: boolean, acertos: number) => ({
+    const tentativa = (aulaId: AulaId, aprovada: boolean, acertos: number) => ({
       aprovada,
       aulaId,
       tentativas: 1,
@@ -268,7 +269,7 @@ describe("montarPaginaDoCurso", () => {
       certificados: [
         {
           codigo: "CERT-1",
-          cursoId: "envase",
+          cursoId: cursoId("envase"),
           emitidoEm: em("2026-10-08T12:00:00Z"),
         },
       ],
@@ -293,7 +294,7 @@ describe("montarPaginaDoCurso", () => {
       certificados: [
         {
           codigo: "CERT-1",
-          cursoId: "envase",
+          cursoId: cursoId("envase"),
           emitidoEm: em("2026-10-08T12:00:00Z"),
         },
       ],

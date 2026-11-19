@@ -7,8 +7,9 @@ import {
   idAula,
   SEM_LIBERACAO,
 } from "./exemplo";
+import { cursoId } from "./marcas";
 import { type LinhasPainel, montarPainel } from "./painel";
-import type { AulaId, DiaISO } from "./tipos";
+import type { DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 
@@ -43,7 +44,7 @@ describe("montarPainel com o caso do protótipo", () => {
       aula: {
         duracaoSeg: 634,
         faltaSeg: 412,
-        id: idAula("comercial", 8, 4) as AulaId,
+        id: idAula("comercial", 8, 4),
         numeroNoModulo: 4,
         posicaoSeg: 222,
         titulo: "Cronograma reverso",
@@ -108,7 +109,11 @@ describe("montarPainel com regras de liberação", () => {
           { assistidaEm: quando, aulaId: idAula("em-andamento", 0, 1) },
         ],
         certificados: [
-          { codigo: "CERT-1", cursoId: "concluido", emitidoEm: quando },
+          {
+            codigo: "CERT-1",
+            cursoId: cursoId("concluido"),
+            emitidoEm: quando,
+          },
         ],
         liberacoes: liberados.map((curso) => ({
           amostra: null,
@@ -277,10 +282,7 @@ describe("montarPainel com regras de liberação", () => {
 
     expect(painel.cursos.map((c) => [c.slug, c.amostra])).toEqual([
       ["inteiro", null],
-      [
-        "amostra",
-        { aulaId: idAula("amostra", 0, 1) as AulaId, preco: 300, vista: true },
-      ],
+      ["amostra", { aulaId: idAula("amostra", 0, 1), preco: 300, vista: true }],
     ]);
     expect(painel.retomada?.curso.slug).toBe("inteiro");
   });

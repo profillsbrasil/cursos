@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { cursoId } from "./marcas";
 import type { CursoId, DiaISO } from "./tipos";
 import {
   type Acesso,
@@ -155,7 +156,7 @@ const linha = (
   capaLargura: 1280,
   capaUrl: "/capas/bpf.jpg",
   categoria: { nome: "Processo de envase" },
-  id: "c-1",
+  id: cursoId("c-1"),
   liberacoes: [],
   modulos: [
     { aulas: [{ duracaoSeg: 600 }, { duracaoSeg: 300 }] },

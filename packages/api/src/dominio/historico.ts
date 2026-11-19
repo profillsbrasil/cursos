@@ -3,7 +3,7 @@ import type { AulaId, CursoId, Historico } from "./tipos";
 /** As tentativas de uma aula, somadas pelo banco: uma linha por aula tentada. */
 export interface LinhaDoQuestionario {
   aprovada: boolean;
-  aulaId: string;
+  aulaId: AulaId;
   tentativas: number;
   ultimaEm: Date;
   ultimosAcertos: number;
@@ -11,11 +11,15 @@ export interface LinhaDoQuestionario {
 }
 
 export interface LinhasHistorico {
-  assistidas: readonly { assistidaEm: Date; aulaId: string }[];
-  certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
+  assistidas: readonly { assistidaEm: Date; aulaId: AulaId }[];
+  certificados: readonly {
+    codigo: string;
+    cursoId: CursoId;
+    emitidoEm: Date;
+  }[];
   posicoes: readonly {
     atualizadaEm: Date;
-    aulaId: string;
+    aulaId: AulaId;
     posicaoSeg: number;
   }[];
   questionarios: readonly LinhaDoQuestionario[];
@@ -26,16 +30,16 @@ const posicaoComecada = (p: { posicaoSeg: number }): boolean =>
 
 function historicoDe(l: LinhasHistorico): Historico {
   return {
-    assistidas: new Set(l.assistidas.map((a) => a.aulaId as AulaId)),
+    assistidas: new Set(l.assistidas.map((a) => a.aulaId)),
     certificados: new Map(
       l.certificados.map((c) => [
-        c.cursoId as CursoId,
+        c.cursoId,
         { codigo: c.codigo, emitidoEm: c.emitidoEm.toISOString() },
       ])
     ),
     posicoes: new Map(
       l.posicoes.filter(posicaoComecada).map((p) => [
-        p.aulaId as AulaId,
+        p.aulaId,
         {
           atualizadaEm: p.atualizadaEm.toISOString(),
           posicaoSeg: p.posicaoSeg,
@@ -44,7 +48,7 @@ function historicoDe(l: LinhasHistorico): Historico {
     ),
     questionarios: new Map(
       l.questionarios.map((q) => [
-        q.aulaId as AulaId,
+        q.aulaId,
         {
           aprovada: q.aprovada,
           tentativas: q.tentativas,
@@ -58,12 +62,12 @@ function historicoDe(l: LinhasHistorico): Historico {
 function atividadeDe(l: LinhasHistorico): Map<AulaId, string> {
   const atividade = new Map<AulaId, string>();
 
-  const anotar = (aulaId: string, quando: Date) => {
+  const anotar = (aulaId: AulaId, quando: Date) => {
     const iso = quando.toISOString();
-    const atual = atividade.get(aulaId as AulaId);
+    const atual = atividade.get(aulaId);
 
     if (!atual || iso > atual) {
-      atividade.set(aulaId as AulaId, iso);
+      atividade.set(aulaId, iso);
     }
   };
 

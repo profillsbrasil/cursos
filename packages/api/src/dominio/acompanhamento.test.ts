@@ -23,12 +23,12 @@ const linhas = (o: Partial<LinhasHistorico>): LinhasHistorico => ({
 
 const assistida = (aula: string, iso: string) => ({
   assistidaEm: em(iso),
-  aulaId: aula,
+  aulaId: aulaId(aula),
 });
 
 const certificado = (curso: string, iso: string) => ({
   codigo: `CERT-${curso}`,
-  cursoId: curso,
+  cursoId: cursoId(curso),
   emitidoEm: em(iso),
 });
 

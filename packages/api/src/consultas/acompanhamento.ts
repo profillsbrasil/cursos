@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 
 import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
-import type { CursoId, OrigemDoAcesso } from "../dominio/tipos";
+import type { AulaId, CursoId, OrigemDoAcesso } from "../dominio/tipos";
 import type { Executor } from "./comum";
 
 const arrayDeTexto = (itens: readonly string[]) =>
@@ -10,18 +10,18 @@ const arrayDeTexto = (itens: readonly string[]) =>
 type Ms = number;
 
 interface PessoaEmJson {
-  assistidas: { assistidaEm: Ms; aulaId: string }[];
-  certificados: { codigo: string; cursoId: string; emitidoEm: Ms }[];
+  assistidas: { assistidaEm: Ms; aulaId: AulaId }[];
+  certificados: { codigo: string; cursoId: CursoId; emitidoEm: Ms }[];
   liberacoes: {
     cursoId: CursoId;
     liberadaEm: Ms;
     origem: OrigemDoAcesso;
     revogadaEm: Ms | null;
   }[];
-  posicoes: { atualizadaEm: Ms; aulaId: string; posicaoSeg: number }[];
+  posicoes: { atualizadaEm: Ms; aulaId: AulaId; posicaoSeg: number }[];
   questionarios: {
     aprovada: boolean;
-    aulaId: string;
+    aulaId: AulaId;
     tentativas: number;
     ultimaEm: Ms;
     ultimosAcertos: number;
