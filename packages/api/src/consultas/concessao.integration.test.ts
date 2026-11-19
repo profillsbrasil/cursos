@@ -62,6 +62,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
       email: null,
       foto: null,
       nome: `Pessoa ${userId}`,
+      nomeProprio: `Pessoa ${userId}`,
       userId,
     }));
 
@@ -72,7 +73,13 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
         papel: "admin",
         pessoas: [
           ...pessoas(),
-          { email: null, foto: null, nome: "Admin", userId: ADMIN },
+          {
+            email: null,
+            foto: null,
+            nome: "Admin",
+            nomeProprio: "Admin",
+            userId: ADMIN,
+          },
         ],
         userId: ADMIN,
       })

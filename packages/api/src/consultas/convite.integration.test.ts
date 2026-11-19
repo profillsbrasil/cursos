@@ -159,7 +159,13 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       db,
       papel: "admin",
       pessoas: [
-        { email: diana, foto: null, nome: "Diana", userId: "user_diana" },
+        {
+          email: diana,
+          foto: null,
+          nome: "Diana",
+          nomeProprio: "Diana",
+          userId: "user_diana",
+        },
       ],
       userId: ADMIN,
     });
@@ -182,7 +188,9 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       contextoDeTeste({
         db,
         papel: "admin",
-        pessoas: [{ email: bia, foto: null, nome: "Bia", userId }],
+        pessoas: [
+          { email: bia, foto: null, nome: "Bia", nomeProprio: "Bia", userId },
+        ],
         userId: ADMIN,
       })
     );
@@ -362,6 +370,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       email: "dono@profills.com",
       foto: null,
       nome: "Dono",
+      nomeProprio: "Dono",
       papel,
       userId: ADMIN,
     });

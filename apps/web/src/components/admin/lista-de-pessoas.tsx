@@ -37,16 +37,19 @@ function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaComSituacao }) {
   const temOCurso = jaTem(p, curso);
   const frase = temOCurso ?? fraseDaPessoa(p.situacao, hoje);
   const href = `/admin/liberacoes/${p.userId}` as const;
-  const { email, foto, nome, userId } = p;
+  const { email, foto, nome, nomeProprio, userId } = p;
 
   const marcar = useCallback(
     (sim: boolean) =>
       despachar(
         sim
-          ? { pessoa: { email, foto, nome, userId }, tipo: "marcar" }
+          ? {
+              pessoa: { email, foto, nome, nomeProprio, userId },
+              tipo: "marcar",
+            }
           : { tipo: "desmarcar", userId }
       ),
-    [despachar, email, foto, nome, userId]
+    [despachar, email, foto, nome, nomeProprio, userId]
   );
 
   return (

@@ -23,6 +23,7 @@ const pessoa = (userId: string, nome: string): Pessoa => ({
   email: `${userId}@exemplo.com`,
   foto: null,
   nome,
+  nomeProprio: nome,
   userId,
 });
 

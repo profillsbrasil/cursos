@@ -39,6 +39,7 @@ const conta = (email: string | null, emailVerificado = true): Conta => ({
   foto: null,
   jeitosDeEntrar: [],
   nome: "Pessoa",
+  nomeProprio: "Pessoa",
   papel: "aluno",
   ultimoAcesso: null,
   userId: "user_x",
@@ -132,7 +133,15 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
 
     const base = contextoDeTeste({
       db,
-      pessoas: [{ email: "x@exemplo.com", foto: null, nome: "X", userId }],
+      pessoas: [
+        {
+          email: "x@exemplo.com",
+          foto: null,
+          nome: "X",
+          nomeProprio: "X",
+          userId,
+        },
+      ],
       userId,
     });
 

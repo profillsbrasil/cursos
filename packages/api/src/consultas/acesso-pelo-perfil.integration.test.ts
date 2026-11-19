@@ -58,7 +58,9 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     createCaller(
       contextoDeTeste({
         db,
-        pessoas: [{ email, foto: null, nome: "Pessoa", userId }],
+        pessoas: [
+          { email, foto: null, nome: "Pessoa", nomeProprio: "Pessoa", userId },
+        ],
         userId,
       })
     );
@@ -263,7 +265,13 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await liberar(
       db,
       ADMIN,
-      { email: null, foto: null, nome: "Pessoa", userId: cliente.userId },
+      {
+        email: null,
+        foto: null,
+        nome: "Pessoa",
+        nomeProprio: "Pessoa",
+        userId: cliente.userId,
+      },
       c.id,
       AGORA
     );
