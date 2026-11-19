@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { type CSSProperties, Fragment } from "react";
+import { Fragment } from "react";
 
 import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
@@ -595,7 +595,7 @@ function GradeDeCertificados({
         "grid grid-cols-1 gap-3.5 @min-[600px]:grid-cols-[repeat(var(--colunas),minmax(0,1fr))]",
         certificados.length === 1 && "@min-[600px]:max-w-[360px]"
       )}
-      style={{ "--colunas": colunas } as CSSProperties}
+      style={{ "--colunas": colunas }}
     >
       {certificados.map((c) => (
         <CartaoDoCertificado

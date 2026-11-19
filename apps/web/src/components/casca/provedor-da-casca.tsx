@@ -3,7 +3,6 @@
 import { SidebarProvider, useSidebar } from "@cursos/ui/components/sidebar";
 import { usePathname } from "next/navigation";
 import {
-  type CSSProperties,
   createContext,
   type ReactNode,
   use,
@@ -79,7 +78,7 @@ export function ProvedorDaCasca({
       data-animando={animacao === null ? undefined : ""}
       onOpenChange={aoAlternar}
       open={estaAberta(abertura)}
-      style={LARGURAS_DA_SIDEBAR as CSSProperties}
+      style={LARGURAS_DA_SIDEBAR}
     >
       <FecharGavetaAoNavegar />
       <Animar value={animar}>{children}</Animar>

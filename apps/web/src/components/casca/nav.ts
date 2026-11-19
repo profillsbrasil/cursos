@@ -61,7 +61,7 @@ const LADO_DO_QUADRADO_RECOLHIDO = 40;
 export const LARGURAS_DA_SIDEBAR = {
   "--sidebar-width": "15.5rem",
   "--sidebar-width-icon": `${RECUO + LADO_DO_QUADRADO_RECOLHIDO + RECUO}px`,
-};
+} satisfies CSSProperties;
 
 const ALTURA_DO_ITEM = LADO_DO_QUADRADO_RECOLHIDO;
 const VAO_DO_ITEM = 4;
@@ -71,7 +71,7 @@ const PASSO = ALTURA_DO_ITEM + VAO_DO_ITEM;
 export const GEOMETRIA_DA_LISTA = {
   "--altura-do-item": `${ALTURA_DO_ITEM}px`,
   "--vao-do-item": `${VAO_DO_ITEM}px`,
-} as CSSProperties;
+} satisfies CSSProperties;
 
 export const CURVA_FORTE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 const DESLIZE_S = 0.18;

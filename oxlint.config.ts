@@ -149,6 +149,12 @@ export default defineConfig({
       },
     },
     {
+      files: ["apps/web/src/variaveis-css.d.ts"],
+      rules: {
+        "typescript/consistent-indexed-object-style": "off",
+      },
+    },
+    {
       files: ["apps/web/src/components/entrada/clerk.ts"],
       rules: {
         "typescript/no-unsafe-assignment": "off",
