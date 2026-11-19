@@ -284,6 +284,12 @@ export interface UsoDoCurso {
   tentativasPorAula: Readonly<Record<string, number>>;
 }
 
+/** O documento que o editor abre: o do curso salvo, ou o do curso novo, ainda sem categoria. */
+export type DocumentoDaEdicao = Omit<DocumentoDoCurso, "categoriaId"> & {
+  /** null só no curso novo, até a pessoa escolher a categoria. */
+  categoriaId: CategoriaId | null;
+};
+
 export interface EdicaoDoCurso {
   /** null só no curso novo, antes do primeiro salvamento. */
   capa: Capa | null;
@@ -302,6 +308,11 @@ export interface EdicaoDoCurso {
   uso: UsoDoCurso;
 }
 
+/** O que o editor abre: a edição do curso salvo, ou a do curso novo, cujo documento ainda não tem categoria. */
+export type EdicaoNoEditor = Omit<EdicaoDoCurso, "documento"> & {
+  documento: DocumentoDaEdicao;
+};
+
 const SEM_USO: UsoDoCurso = {
   assistidasPorAula: {},
   certificados: 0,
@@ -316,19 +327,17 @@ export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   Object.values(u.assistidasPorAula).every((n) => n === 0) &&
   Object.values(u.tentativasPorAula).every((n) => n === 0);
 
-const SEM_CATEGORIA = "" as CategoriaId;
-
 /**
  * O rascunho de um curso que ainda não existe. O id vem de quem chama e não pode
  * mudar enquanto o rascunho vive: a trava curso:<id> e o reenvio sem duplicar
  * dependem dele.
  */
-export function edicaoDeCursoNovo(id: CursoId): EdicaoDoCurso {
+export function edicaoDeCursoNovo(id: CursoId): EdicaoNoEditor {
   return {
     capa: null,
     codigo: null,
     documento: {
-      categoriaId: SEM_CATEGORIA,
+      categoriaId: null,
       descricao: "",
       id,
       materiais: [],

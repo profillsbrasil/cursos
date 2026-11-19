@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
 import { documentoDeExemplo } from "@cursos/api/dominio/exemplo";
-import type { CategoriaId } from "@cursos/api/dominio/tipos";
 
 import {
   antesDePublicar,
@@ -21,7 +20,7 @@ describe("Antes de publicar", () => {
   test("lê capa, título, categoria e descrição do rascunho", () => {
     const vazio = {
       ...rascunho,
-      categoriaId: "" as CategoriaId,
+      categoriaId: null,
       descricao: "  ",
     };
 

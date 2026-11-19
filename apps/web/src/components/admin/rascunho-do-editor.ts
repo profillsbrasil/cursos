@@ -1,5 +1,6 @@
 import type { Motivo } from "@cursos/api";
 import type {
+  DocumentoDaEdicao,
   DocumentoDoCurso,
   MaterialDoDocumento,
 } from "@cursos/api/dominio/edicao-do-curso";
@@ -700,7 +701,7 @@ const INICIO_DA_GERACAO: DaGeracao = {
  */
 export interface RascunhoDoEditor {
   abertos: Abertos;
-  apoio: Apoio<DocumentoDoCurso>;
+  apoio: Apoio<DocumentoDaEdicao>;
   daGeracao: DaGeracao;
   escolhas: Escolhas;
   /** Os campos que disputam o foco depois do render; o primeiro na página leva. */
@@ -710,7 +711,9 @@ export interface RascunhoDoEditor {
   rascunho: RascunhoDoCurso;
 }
 
-export function rascunhoDoEditorEm(pagina: DocumentoDoCurso): RascunhoDoEditor {
+export function rascunhoDoEditorEm(
+  pagina: DocumentoDaEdicao
+): RascunhoDoEditor {
   const rascunho = rascunhoDoCurso(pagina);
 
   return {
@@ -751,7 +754,7 @@ export type AcaoDoAdmin =
   | { tipo: "descartado" };
 
 export type RespostaDoServidor =
-  | { tipo: "pagina"; pagina: DocumentoDoCurso }
+  | { tipo: "pagina"; pagina: DocumentoDaEdicao }
   | { tipo: "material_recebido"; material: MaterialDoDocumento }
   | { tipo: "material_recusado"; id: MaterialId; motivo: string }
   | { tipo: "salvo"; envio: Envio; versao: Versao }
@@ -839,7 +842,7 @@ const naGeracao = (
 
 const recomecado = (
   e: RascunhoDoEditor,
-  apoio: Apoio<DocumentoDoCurso>
+  apoio: Apoio<DocumentoDaEdicao>
 ): RascunhoDoEditor => ({
   ...e,
   apoio,

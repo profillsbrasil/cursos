@@ -1,7 +1,10 @@
 "use client";
 
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
-import type { EdicaoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
+import type {
+  EdicaoDoCurso,
+  EdicaoNoEditor,
+} from "@cursos/api/dominio/edicao-do-curso";
 import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
 import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
@@ -244,7 +247,7 @@ function ApagarCurso({
   edicao,
   linhaAberta,
 }: {
-  edicao: EdicaoDoCurso;
+  edicao: EdicaoNoEditor;
   linhaAberta: LinhaAberta;
 }) {
   const router = useRouter();
@@ -303,7 +306,7 @@ export function EditorDoCurso({
 }: {
   /** admin.categorias.lista, por nome. */
   categorias: readonly CategoriaNaLista[];
-  edicao: EdicaoDoCurso;
+  edicao: EdicaoNoEditor;
 }) {
   const { descartar, despachar, estado, pendente, salvar, tela, titulo } =
     useRascunhoDoEditor(edicao.documento);

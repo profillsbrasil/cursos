@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  type DocumentoDoCurso,
+  type DocumentoDaEdicao,
   formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ function useTituloComFoco<T extends HTMLElement>() {
 }
 
 /** Liga o rascunho do editor à página, ao servidor e ao foco do DOM. */
-export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
+export function useRascunhoDoEditor(pagina: DocumentoDaEdicao) {
   const router = useRouter();
   const { executar, pendente } = useAcao();
 

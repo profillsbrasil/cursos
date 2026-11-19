@@ -1,5 +1,6 @@
 import {
   type AulaDoDocumento,
+  type DocumentoDaEdicao,
   type DocumentoDoCurso,
   DURACAO_MAXIMA_SEG,
   documentoDoCurso,
@@ -59,7 +60,7 @@ export interface ModuloDoRascunho {
 
 /** A versão não muda no editor e fica no Apoio. */
 export type RascunhoDoCurso = Omit<
-  DocumentoDoCurso,
+  DocumentoDaEdicao,
   "modulos" | "precoTroca" | "versao"
 > & {
   modulos: ModuloDoRascunho[];
@@ -69,7 +70,7 @@ export type RascunhoDoCurso = Omit<
 const linkDoVideo = (v: AulaDoDocumento["video"]) =>
   v ? linkCurtoDoVideo(v) : "";
 
-export function rascunhoDoCurso(d: DocumentoDoCurso): RascunhoDoCurso {
+export function rascunhoDoCurso(d: DocumentoDaEdicao): RascunhoDoCurso {
   return {
     categoriaId: d.categoriaId,
     descricao: d.descricao,
@@ -398,6 +399,7 @@ export function lerRascunho(
 
   const documento = {
     ...r,
+    categoriaId: r.categoriaId ?? "",
     modulos: r.modulos.map((m, i) => ({
       aulas: m.aulas.map((a) => ({
         descricao: a.descricao,

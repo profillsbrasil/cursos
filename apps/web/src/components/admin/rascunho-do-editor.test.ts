@@ -22,7 +22,6 @@ import {
 import type {
   AlternativaId,
   AulaId,
-  CategoriaId,
   PerguntaId,
   Versao,
 } from "@cursos/api/dominio/tipos";
@@ -420,7 +419,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
 
   test("curso sem categoria marca o select da categoria", () => {
     const r = mudar(exemplo(), {
-      mudanca: { categoriaId: "" as CategoriaId },
+      mudanca: { categoriaId: null },
       tipo: "campos",
     });
 

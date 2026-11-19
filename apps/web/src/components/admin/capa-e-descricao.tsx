@@ -234,7 +234,7 @@ export function CapaEDescricao({
             <CampoDaCategoria
               categorias={categorias}
               mudar={mudarCategoria}
-              valor={rascunho.categoriaId}
+              valor={rascunho.categoriaId ?? ""}
             />
             <AreaDeTexto
               ajuda="Linha em branco separa parágrafos."

@@ -3,6 +3,7 @@ import { describe, expect, mock, test } from "bun:test";
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import {
   type EdicaoDoCurso,
+  type EdicaoNoEditor,
   edicaoDeCursoNovo,
 } from "@cursos/api/dominio/edicao-do-curso";
 import {
@@ -66,7 +67,7 @@ const salvo: EdicaoDoCurso = {
   },
 };
 
-const render = (edicao: EdicaoDoCurso) =>
+const render = (edicao: EdicaoNoEditor) =>
   renderToStaticMarkup(
     <EditorDoCurso categorias={CATEGORIAS} edicao={edicao} />
   );

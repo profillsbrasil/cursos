@@ -40,8 +40,7 @@ export function antesDePublicar(
   return [
     { cumprido: temCapa, detalhe: null, nome: "Capa" },
     {
-      cumprido:
-        rascunho.titulo.trim() !== "" && rascunho.categoriaId.length > 0,
+      cumprido: rascunho.titulo.trim() !== "" && rascunho.categoriaId !== null,
       detalhe: null,
       nome: "Título e categoria",
     },
