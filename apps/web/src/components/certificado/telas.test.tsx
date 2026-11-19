@@ -5,10 +5,12 @@ import type {
   PaginaDoCertificado,
 } from "@cursos/api/dominio/pagina-do-certificado";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ReciboDaConferencia, SemCertificado } from "./conferencia";
 import { enderecoDaConferencia, origemDoPedido } from "./folha";
+import { FormularioDoNome } from "./nome-que-falta";
 import { TelaDoCertificado } from "./tela-do-certificado";
 
 const HOJE = "2026-10-16" as DiaISO;
@@ -34,12 +36,21 @@ const texto = (html: string) =>
     .replace(/&#x27;/g, "'")
     .replace(/\s+/g, " ");
 
-const tela = (pagina: PaginaDoCertificado) =>
+const PEDIR_O_NOME_NO_SERVIDOR = (
+  <FormularioDoNome
+    acao={{ executar: () => undefined, pendente: false }}
+    depois={() => undefined}
+    user={null}
+  />
+);
+
+const tela = (pagina: PaginaDoCertificado, pedirONome: ReactNode = null) =>
   renderToStaticMarkup(
     <TelaDoCertificado
       hoje={HOJE}
       origem="https://cursos.exemplo.com.br"
       pagina={pagina}
+      pedirONome={pedirONome}
     />
   );
 
@@ -57,8 +68,9 @@ const PENDENTE: PaginaDoCertificado = {
 
 describe("a página do aluno", () => {
   test("com o certificado, mostra a folha, os dados e o PDF da sessão", () => {
-    const html = tela(EMITIDO);
+    const html = tela(EMITIDO, PEDIR_O_NOME_NO_SERVIDOR);
     const lido = texto(html);
+    expect(html).not.toContain('name="nome"');
     expect(lido).toContain("Ana Souza");
     expect(lido).toContain("Concluído em 14 de out.");
     expect(lido).toContain("Carga horária 2 horas");
@@ -72,9 +84,19 @@ describe("a página do aluno", () => {
     expect(lido).toContain("Copiar link de conferência");
   });
 
-  test("sem nome na conta, não há folha nem PDF, e a página diz por quê", () => {
-    const html = tela({ ...EMITIDO, certificado: { ...ANA, nome: null } });
-    expect(texto(html)).toContain("Falta o seu nome na conta");
+  test("sem nome na conta, a página pede o nome nos campos, sem folha nem PDF", () => {
+    const html = tela(
+      { ...EMITIDO, certificado: { ...ANA, nome: null } },
+      PEDIR_O_NOME_NO_SERVIDOR
+    );
+
+    const lido = texto(html);
+    expect(lido).toContain("Falta o seu nome na conta");
+    expect(lido).toContain("Nome Sobrenome");
+    expect(html).toContain('name="nome"');
+    expect(html).toContain('name="sobrenome"');
+    expect(lido).toContain("Salvar nome");
+    expect(html).not.toContain('href="/minha-conta"');
     expect(html).not.toContain("<figure");
     expect(html).not.toContain("/certificado/pdf");
   });

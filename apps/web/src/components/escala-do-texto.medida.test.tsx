@@ -87,6 +87,7 @@ const PAGINA = renderToStaticMarkup(
         questionarios: { aprovados: 1, total: 3 },
         tipo: "falta",
       }}
+      pedirONome={null}
     />
     <ReciboDaConferencia
       certificado={{
