@@ -187,16 +187,21 @@ const CATEGORIAS: Categoria[] = [
     ],
   },
   {
-    nome: "erro global sem arquivo (TS2318, noLib)",
-    tsc: ["TS2318", "TS5053"],
-    tsrs: [],
-    esperado: "só o tsc",
+    nome: "erro global sem arquivo (TS2318, noLib), com sentinela",
+    tsc: ["TS2318", "TS2322", "TS5053"],
+    tsrs: ["TS2322", "tsconfig-error"],
+    esperado: "os dois, com diferença",
     plantios: [
       {
         tipo: "trocar",
         arquivo: "packages/ui/tsconfig.json",
         de: '"strictNullChecks": true',
         para: '"strictNullChecks": true,\n    "noLib": true',
+      },
+      {
+        tipo: "acrescentar",
+        arquivo: "apps/web/src/lib/formulario.ts",
+        texto: ATRIBUICAO_ERRADA,
       },
     ],
   },
@@ -375,7 +380,7 @@ const plantar = async (copia: string, plantios: Plantio[]) => {
 };
 
 const LINHA_DO_TSC = /^(?:(.+?)\(\d+,\d+\): )?error (TS\d+):/u;
-const CODIGO_DO_OXLINT = /^typescript\((TS\d+)\)$/u;
+const CODIGO_DO_OXLINT = /^typescript\((TS\d+|tsconfig-error)\)$/u;
 
 // O tsc 7 sai com 1 quando acha erro de tipo com --noEmit, e com 0 sem erro.
 const SAIDA_DO_TSC_COM_ERRO = 1;

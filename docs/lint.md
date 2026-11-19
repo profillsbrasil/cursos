@@ -322,7 +322,7 @@ cd apps/web
 systemd-run --user --same-dir --wait --pipe -p MemoryMax=4G -p MemorySwapMax=4G --setenv=PATH="$PATH" bun test ./src/equivalencia-dos-tipos.arnes.ts
 ```
 
-Cada categoria tem o resultado esperado na tabela `CATEGORIAS` do arnês. Um upgrade do Oxlint ou do tsrs que mude um resultado faz o teste falhar, e a tabela abaixo muda junto. Medido em 18 de novembro de 2026, com Oxlint 1.94.0, tsrs 0.25.0-ts7.1.0-beta e TypeScript 7.0.2: 16 pass em 2 rodadas seguidas, 52 s e 54 s de parede, 9 min de CPU e pico de 2,1 GB pelo `systemd-run`. A prova de que o arnês pega um lado parado: com `typeCheck: false` no `oxlint.config.ts`, 16 fail; com o comando do `tsc` trocado por `true`, 16 fail (arquivos checados 0).
+Cada categoria tem o resultado esperado na tabela `CATEGORIAS` do arnês. Um upgrade do Oxlint ou do tsrs que mude um resultado faz o teste falhar, e a tabela abaixo muda junto. Medido em 18 de novembro de 2026, com Oxlint 1.94.0, tsrs 0.25.0-ts7.1.0-beta e TypeScript 7.0.2: 16 pass em 2 rodadas seguidas, 52 s e 54 s de parede, 9 min de CPU e pico de 2,1 GB pelo `systemd-run`. A prova de que o arnês pega um lado parado: com `typeCheck: false` no `oxlint.config.ts`, 16 fail; com o comando do `tsc` trocado por `true`, 16 fail (arquivos checados 0). O tsrs acusa o tsconfig quebrado como `typescript(tsconfig-error)` mesmo com o `typeCheck: false`, então a categoria do `noLib` leva uma sentinela em `apps/web`: sem ela, essa categoria passava com o tsrs parado (medido em 19 de novembro de 2026: 1 pass e 15 fail).
 
 | Categoria | Plantio | `tsc` | tsrs | Resultado |
 | --- | --- | --- | --- | --- |
@@ -337,7 +337,7 @@ Cada categoria tem o resultado esperado na tabela `CATEGORIAS` do arnês. Um upg
 | Erro num arquivo de teste | atribuição errada em `lib/formato.test.ts` | TS2322 | TS2322 | os dois |
 | Erro dentro de um `.d.ts` | tipo inexistente num `.d.ts` novo, e a sentinela em `lib/formulario.ts` | só o TS2322 da sentinela | só o TS2322 da sentinela | os dois: o `skipLibCheck` dos tsconfig pula todo `.d.ts` |
 | Declaração global de um `.d.ts` usada por um `.ts` | `declare global { const PLANTADO: string }` lido como `number` | TS2322 no `.ts` | TS2322 no `.ts` | os dois |
-| Erro global, sem arquivo | `noLib` no tsconfig do `packages/ui` | TS2318 global e TS5053 no tsconfig | nenhum TSxxxx, só o `typescript(tsconfig-error)` no tsconfig | só o `tsc` |
+| Erro global, sem arquivo, com sentinela | `noLib` no tsconfig do `packages/ui` e um TS2322 em `apps/web/src/lib/formulario.ts` | TS2318 global, TS5053 no tsconfig e o TS2322 | o TS2322 e o `typescript(tsconfig-error)` no tsconfig | os dois, com diferença: só o `tsc` dá o TS2318 e o TS5053 |
 | Erro de declaração | `declaration` no tsconfig do `packages/ui` e classe exportada com membro `private` , e a sentinela no mesmo arquivo | TS4094 e o TS2322 da sentinela | só o TS2322 da sentinela | os dois, com diferença: só o `tsc` dá o TS4094 |
 | `noUncheckedIndexedAccess` (`api`, `db` e `ui`) | `const n: number = lista[0]` em `packages/api` | TS2322 | TS2322 | os dois |
 | `noUnusedLocals` (`api`, `db` e `ui`) | variável local sem uso em `packages/api` | TS6133 | TS6133 | os dois |
