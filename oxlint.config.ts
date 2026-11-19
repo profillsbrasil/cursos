@@ -149,6 +149,15 @@ export default defineConfig({
       },
     },
     {
+      files: [
+        "packages/api/src/consultas/trava.ts",
+        "packages/api/src/sessao.ts",
+      ],
+      rules: {
+        "typescript/no-unsafe-type-assertion": "off",
+      },
+    },
+    {
       files: ["apps/web/src/variaveis-css.d.ts"],
       rules: {
         "typescript/consistent-indexed-object-style": "off",
