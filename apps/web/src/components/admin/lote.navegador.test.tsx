@@ -11,7 +11,16 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "lote.entrada.tsx");
@@ -276,21 +285,24 @@ const buscar = (termo: string) =>
 const marcar = (nome: string) => clicar(`[aria-label="Marcar ${nome}"]`);
 
 const texto = (seletor: string) =>
-  avaliar<string>(
+  avaliarComo(
     enviar,
-    `document.querySelector(${JSON.stringify(seletor)})?.textContent ?? null`
+    `document.querySelector(${JSON.stringify(seletor)})?.textContent ?? null`,
+    ehTexto
   );
 
 const marcadas = () =>
-  avaliar<string[]>(
+  avaliarComo(
     enviar,
-    `[...document.querySelectorAll('aside li strong')].map((s) => s.textContent)`
+    `[...document.querySelectorAll('aside li strong')].map((s) => s.textContent)`,
+    ehLista(ehTexto)
   );
 
 const focado = () =>
-  avaliar<string>(
+  avaliarComo(
     enviar,
-    "document.activeElement?.id || document.activeElement?.getAttribute('aria-label') || document.activeElement?.tagName"
+    "document.activeElement?.id || document.activeElement?.getAttribute('aria-label') || document.activeElement?.tagName",
+    ehTexto
   );
 
 const FOTOS = process.env.FOTOS_DO_LOTE;
@@ -303,10 +315,10 @@ async function foto(nome: string) {
 
   await sleep(DEPOIS_DAS_TRANSICOES_MS);
 
-  const { data } = (await enviar("Page.captureScreenshot", {
+  const { data } = await enviar("Page.captureScreenshot", {
     captureBeyondViewport: true,
     format: "png",
-  })) as { data: string };
+  });
 
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
@@ -317,6 +329,13 @@ interface Caixa {
   largura: number;
   topo: number;
 }
+
+const ehCaixa: Predicado<Caixa> = ehObjeto({
+  direita: ehNumero,
+  esquerda: ehNumero,
+  largura: ehNumero,
+  topo: ehNumero,
+});
 
 const MEDIR = `(() => {
   const caixa = (el) => {
@@ -332,7 +351,11 @@ const MEDIR = `(() => {
 })()`;
 
 const medir = () =>
-  avaliar<{ coluna: Caixa; lista: Caixa; posicao: string }>(enviar, MEDIR);
+  avaliarComo(
+    enviar,
+    MEDIR,
+    ehObjeto({ coluna: ehCaixa, lista: ehCaixa, posicao: ehTexto })
+  );
 
 async function prontoParaLiberar() {
   await marcar("Ana Beatriz Lima");
@@ -380,12 +403,13 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
     await prontoParaLiberar();
     await foto("1280-pronto");
 
-    const carla = await avaliar<{ caixa: boolean; texto: string }>(
+    const carla = await avaliarComo(
       enviar,
       `(() => {
         const li = [...document.querySelectorAll("section li")].find((l) => l.textContent.includes("Carla Rocha"));
         return { caixa: li.querySelector('[role="checkbox"]') !== null, texto: li.textContent };
-      })()`
+      })()`,
+      ehObjeto({ caixa: ehBooleano, texto: ehTexto })
     );
 
     expect(carla.caixa).toBe(false);
@@ -402,7 +426,7 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
     await esperar(
       `document.querySelector("aside h2")?.textContent === "Liberado"`
     );
-    expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+    expect(await avaliar(enviar, "window.pedidos")).toEqual([
       {
         cursoId: COMERCIAL,
         userIds: ["user_ana", "user_roberto", "user_camila"],
@@ -413,9 +437,10 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
       "1 liberada agora, 1 já tinha, 1 não liberou"
     );
     expect(
-      await avaliar<string[]>(
+      await avaliarComo(
         enviar,
-        `[...document.querySelectorAll("aside li")].map((l) => l.innerText.replace(/\\s+/g, " ").trim())`
+        `[...document.querySelectorAll("aside li")].map((l) => l.innerText.replace(/\\s+/g, " ").trim())`,
+        ehLista(ehTexto)
       )
     ).toEqual([
       "CR Camila Rocha Não deu para liberar agora. Nada mudou para esta pessoa. Não liberou Tentar de novo",
@@ -424,7 +449,7 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
     ]);
     await foto("1280-erro");
     expect(
-      await avaliar<{ direita: number; esquerda: number }[]>(
+      await avaliarComo(
         enviar,
         `(() => {
           const coluna = document.querySelector("aside").getBoundingClientRect();
@@ -432,7 +457,8 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
             const r = l.getBoundingClientRect();
             return { direita: coluna.right - r.right, esquerda: r.left - coluna.left };
           });
-        })()`
+        })()`,
+        ehLista(ehObjeto({ direita: ehNumero, esquerda: ehNumero }))
       )
     ).toEqual(new Array(3).fill({ direita: 0, esquerda: 0 }));
 
@@ -452,12 +478,13 @@ describe.skipIf(!existsSync(CHROMIUM))("liberar para várias pessoas", () => {
     await abrirTela(1280);
 
     const liberar = () =>
-      avaliar<{ desligado: boolean; fundo: string }>(
+      avaliarComo(
         enviar,
         `(() => {
           const b = document.querySelector("aside > button");
           return { desligado: b.hasAttribute("data-disabled"), fundo: getComputedStyle(b).backgroundColor };
-        })()`
+        })()`,
+        ehObjeto({ desligado: ehBooleano, fundo: ehTexto })
       );
 
     await marcar("Ana Beatriz Lima");

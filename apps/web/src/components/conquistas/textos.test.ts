@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import type { MedalhaDaGrade } from "@cursos/api/dominio/conquistas";
+import type {
+  AulaNoCurso,
+  CursoPerto,
+  MedalhaDaGrade,
+} from "@cursos/api/dominio/conquistas";
+import { diaISO } from "@cursos/api/dominio/marcas";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
 
 import { ALUNA, NOVO } from "./exemplo-de-teste";
@@ -20,11 +25,13 @@ const frase = (m: MedalhaDaGrade) => {
 
 describe("o que falta em cada medalha por ganhar", () => {
   test("Primeira aula: começar, continuar ou só a regra", () => {
-    const aula = (proxima: object | null) =>
+    const aula = (
+      proxima: (AulaNoCurso & { tipo: "comecar" | "continuar" }) | null
+    ) =>
       frase({
         medalha: { estado: "por_ganhar", pct: 0, proxima },
         tipo: "primeira_aula",
-      } as MedalhaDaGrade)?.[0];
+      })?.[0];
 
     expect(aula({ aula: "Aula 1", curso: "Curso", tipo: "comecar" })).toBe(
       "Comece por Aula 1, em Curso."
@@ -106,11 +113,11 @@ describe("o que falta em cada medalha por ganhar", () => {
   });
 
   test("Troca até o fim: as aulas do trocado, os questionários, ou trocar um", () => {
-    const fim = (maisAdiantado: object | null) =>
+    const fim = (maisAdiantado: CursoPerto | null) =>
       frase({
         medalha: { estado: "por_ganhar", maisAdiantado, pct: 0 },
         tipo: "troca_ate_o_fim",
-      } as MedalhaDaGrade)?.[0];
+      })?.[0];
 
     expect(fim({ curso: "Filmagem", feitas: 4, total: 10 })).toBe(
       "4 de 10 aulas de Filmagem."
@@ -159,13 +166,16 @@ describe("a ordem da grade", () => {
   });
 
   test("ganhas: pela data, e o empate pelo nome", () => {
-    const ganha = (dia: string) => ({ dia: dia as DiaISO, estado: "ganha" });
+    const ganha = (dia: string): { dia: DiaISO; estado: "ganha" } => ({
+      dia: diaISO(dia),
+      estado: "ganha",
+    });
 
-    const medalhas = [
+    const medalhas: MedalhaDaGrade[] = [
       { medalha: ganha("2026-10-02"), tipo: "tres_cursos" },
       { medalha: ganha("2026-10-01"), tipo: "primeira_troca" },
       { medalha: ganha("2026-10-01"), tipo: "primeira_aula" },
-    ] as MedalhaDaGrade[];
+    ];
 
     expect(gradeDasMedalhas(medalhas).ganhas.map((l) => l.nome)).toEqual([
       "Primeira aula",

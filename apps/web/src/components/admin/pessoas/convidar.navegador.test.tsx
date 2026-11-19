@@ -7,7 +7,17 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehQualquer,
+  ehTexto,
+  type Predicado,
+} from "../../predicados.test-utils";
 import {
   AJUDANTES_DO_CONVIDAR,
   empacotarConvidar,
@@ -26,22 +36,35 @@ async function abrir() {
   await avaliar(enviar, "window.abrir()");
 }
 
-const rodar = <T,>(codigo: string) =>
-  avaliar<T>(enviar, `(async () => { ${codigo} })()`);
+const rodar = (codigo: string) =>
+  avaliar(enviar, `(async () => { ${codigo} })()`);
+
+const rodarComo = <T,>(codigo: string, eh: Predicado<T>) =>
+  avaliarComo(enviar, `(async () => { ${codigo} })()`, eh);
 
 interface BotaoDeEnviar {
   desligado: boolean;
   texto: string;
 }
 
-const botaoDeEnviar = () => avaliar<BotaoDeEnviar>(enviar, "window.enviar()");
-const fichas = () => avaliar<string[]>(enviar, "window.fichas()");
-const aberto = () => avaliar<boolean>(enviar, "Boolean(window.dialogo())");
+const ehBotaoDeEnviar: Predicado<BotaoDeEnviar> = ehObjeto({
+  desligado: ehBooleano,
+  texto: ehTexto,
+});
+
+const botaoDeEnviar = () =>
+  avaliarComo(enviar, "window.enviar()", ehBotaoDeEnviar);
+
+const fichas = () => avaliarComo(enviar, "window.fichas()", ehLista(ehTexto));
+
+const aberto = () =>
+  avaliarComo(enviar, "Boolean(window.dialogo())", ehBooleano);
 
 const focado = () =>
-  avaliar<string>(
+  avaliarComo(
     enviar,
-    `document.activeElement.getAttribute("aria-label") ?? document.activeElement.getAttribute("inputmode") ?? document.activeElement.tagName`
+    `document.activeElement.getAttribute("aria-label") ?? document.activeElement.getAttribute("inputmode") ?? document.activeElement.tagName`,
+    ehTexto
   );
 
 const TECLAS = {
@@ -85,13 +108,15 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
       texto: "Enviar convites",
     });
     expect(
-      await rodar<string>(
-        `return dialogo().querySelector('input[type="radio"]:checked').value;`
+      await rodarComo(
+        `return dialogo().querySelector('input[type="radio"]:checked').value;`,
+        ehTexto
       )
     ).toBe("publico");
     expect(
-      await rodar<string>(
-        `return dialogo().querySelector('[role="switch"]').getAttribute("aria-checked");`
+      await rodarComo(
+        `return dialogo().querySelector('[role="switch"]').getAttribute("aria-checked");`,
+        ehTexto
       )
     ).toBe("false");
   });
@@ -117,13 +142,16 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     expect(await fichas()).toEqual(["ana@x.com", "carla@exemplo"]);
     expect((await botaoDeEnviar()).desligado).toBe(true);
     expect(
-      await rodar<string>(
+      await rodarComo(
         `const campo = dialogo().querySelector('input[inputmode="email"]');
-         return document.getElementById(campo.getAttribute("aria-describedby")).textContent;`
+         return document.getElementById(campo.getAttribute("aria-describedby")).textContent;`,
+        ehTexto
       )
     ).toBe("carla@exemplo não é um e-mail. Corrija ou apague para enviar.");
     await rodar("await clicarEmEnviar();");
-    expect(await avaliar<number>(enviar, "window.chamadas.length")).toBe(0);
+    expect(await avaliarComo(enviar, "window.chamadas.length", ehNumero)).toBe(
+      0
+    );
 
     await rodar(
       `botaoCom(dialogo(), "Tirar carla@exemplo").click(); await esperar(0);`
@@ -141,12 +169,15 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     );
     await tecla("Enter");
     expect(await fichas()).toEqual(["ana@x.com"]);
-    expect(await avaliar<number>(enviar, "window.chamadas.length")).toBe(0);
+    expect(await avaliarComo(enviar, "window.chamadas.length", ehNumero)).toBe(
+      0
+    );
     await tecla("Backspace");
     expect(await fichas()).toEqual([]);
     expect(
-      await rodar<string>(
-        `return dialogo().querySelector('input[inputmode="email"]').value;`
+      await rodarComo(
+        `return dialogo().querySelector('input[inputmode="email"]').value;`,
+        ehTexto
       )
     ).toBe("ana@x.com");
   });
@@ -161,7 +192,9 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
       await esperar(0);
       await clicarEmEnviar();
     `);
-    expect(await avaliar<unknown[]>(enviar, "window.chamadas")).toEqual([
+    expect(
+      await avaliarComo(enviar, "window.chamadas", ehLista(ehQualquer))
+    ).toEqual([
       {
         comoAdmin: true,
         cursoIds: ["c2"],
@@ -170,9 +203,9 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
       },
     ]);
     expect(await aberto()).toBe(false);
-    expect(await avaliar<string[]>(enviar, "window.toasts")).toEqual([
-      "2 convites enviados",
-    ]);
+    expect(
+      await avaliarComo(enviar, "window.toasts", ehLista(ehTexto))
+    ).toEqual(["2 convites enviados"]);
   });
 
   test("o que não saiu fica no diálogo, cada ficha com a frase dela", async () => {
@@ -189,8 +222,9 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     expect(await aberto()).toBe(true);
     expect(await fichas()).toEqual(["bia@x.com", "caio@x.com"]);
 
-    const corpo = await rodar<string>(
-      `return dialogo().textContent.replace(/\\s+/g, " ");`
+    const corpo = await rodarComo(
+      `return dialogo().textContent.replace(/\\s+/g, " ");`,
+      ehTexto
     );
 
     expect(corpo).toContain("bia@x.com Já tem conta. Mude na ficha dela.");
@@ -198,19 +232,23 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
       "caio@x.com Já tem convite pendente. Reenvie ou cancele em Convidados."
     );
     expect(
-      await rodar<string>(
-        `return dialogo().querySelector('a[href^="/admin/pessoas/"]').getAttribute("href");`
+      await rodarComo(
+        `return dialogo().querySelector('a[href^="/admin/pessoas/"]').getAttribute("href");`,
+        ehTexto
       )
     ).toBe("/admin/pessoas/user_bia");
-    expect(await avaliar<string[]>(enviar, "window.toasts")).toEqual([
-      "1 convite enviado",
-    ]);
+    expect(
+      await avaliarComo(enviar, "window.toasts", ehLista(ehTexto))
+    ).toEqual(["1 convite enviado"]);
 
     await rodar(
       `botaoCom(dialogo(), "Tirar bia@x.com").click(); await esperar(0);`
     );
     expect(
-      await rodar<string>(`return dialogo().textContent.replace(/\\s+/g, " ");`)
+      await rodarComo(
+        `return dialogo().textContent.replace(/\\s+/g, " ");`,
+        ehTexto
+      )
     ).not.toContain("Já tem conta");
   });
 
@@ -218,15 +256,17 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     await abrir();
 
     const status = () =>
-      avaliar<{ mesma: boolean; texto: string }>(
+      avaliarComo(
         enviar,
-        `({ mesma: window.regiao === dialogo().querySelector('[role="status"]'), texto: window.regiao.textContent })`
+        `({ mesma: window.regiao === dialogo().querySelector('[role="status"]'), texto: window.regiao.textContent })`,
+        ehObjeto({ mesma: ehBooleano, texto: ehTexto })
       );
 
     expect(
-      await avaliar<boolean>(
+      await avaliarComo(
         enviar,
-        `(window.regiao = dialogo().querySelector('[role="status"]')) !== null`
+        `(window.regiao = dialogo().querySelector('[role="status"]')) !== null`,
+        ehBooleano
       )
     ).toBe(true);
     expect(await status()).toEqual({
@@ -254,9 +294,15 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
     await abrir();
     const regiao = `dialogo().querySelector('[aria-live="polite"]')`;
     expect(
-      await avaliar<boolean>(enviar, `(window.viva = ${regiao}) !== null`)
+      await avaliarComo(
+        enviar,
+        `(window.viva = ${regiao}) !== null`,
+        ehBooleano
+      )
     ).toBe(true);
-    expect(await avaliar<string>(enviar, "window.viva.textContent")).toBe("");
+    expect(await avaliarComo(enviar, "window.viva.textContent", ehTexto)).toBe(
+      ""
+    );
     await rodar(`
       window.resposta = () => ({ convites: [
         { email: "bia@x.com", tipo: "ja_convidado", enviado: false },
@@ -264,10 +310,10 @@ describe.skipIf(!existsSync(CHROMIUM))("convidar por e-mail no browser", () => {
       await escrever("bia@x.com ");
       await clicarEmEnviar();
     `);
-    expect(await avaliar<boolean>(enviar, `window.viva === ${regiao}`)).toBe(
-      true
-    );
-    expect(await avaliar<string>(enviar, "window.viva.textContent")).toBe(
+    expect(
+      await avaliarComo(enviar, `window.viva === ${regiao}`, ehBooleano)
+    ).toBe(true);
+    expect(await avaliarComo(enviar, "window.viva.textContent", ehTexto)).toBe(
       "bia@x.com Já tem convite, mas o e-mail não saiu. Envie em Convidados."
     );
   });

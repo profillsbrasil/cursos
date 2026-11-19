@@ -5,7 +5,8 @@ import {
   carregarTemCursoTrocavelNaVitrine,
   trocar,
 } from "../consultas/troca";
-import type { CursoId } from "../dominio/tipos";
+import { idDe } from "../dominio/esquemas-de-marca";
+import { ehCursoId } from "../dominio/marcas";
 import { alunoProcedure, router } from "../index";
 
 export const trocaRouter = router({
@@ -16,14 +17,10 @@ export const trocaRouter = router({
     carregarTemCursoTrocavelNaVitrine(ctx.db, ctx.aluno)
   ),
   trocar: alunoProcedure
-    .input(z.object({ cursoId: z.uuid(), precoVisto: z.int().positive() }))
+    .input(
+      z.object({ cursoId: idDe(ehCursoId), precoVisto: z.int().positive() })
+    )
     .mutation(({ ctx, input }) =>
-      trocar(
-        ctx.db,
-        ctx.aluno,
-        input.cursoId as CursoId,
-        input.precoVisto,
-        new Date()
-      )
+      trocar(ctx.db, ctx.aluno, input.cursoId, input.precoVisto, new Date())
     ),
 });

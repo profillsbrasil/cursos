@@ -12,6 +12,16 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type {
+  AlternativaId,
+  AulaId,
+  CategoriaId,
+  CursoId,
+  MaterialId,
+  ModuloId,
+  PerguntaId,
+  VideoId,
+} from "../marcas";
 import {
   cursoStatus,
   materialTipo,
@@ -25,7 +35,7 @@ export const categoria = tabela(
   "categoria",
   {
     criadaEm: momento(),
-    id: uuid().primaryKey().defaultRandom(),
+    id: uuid().primaryKey().defaultRandom().$type<CategoriaId>(),
     nome: text().notNull(),
   },
   (t) => [
@@ -46,11 +56,12 @@ export const curso = tabela(
     capaUrl: text().notNull(),
     categoriaId: uuid()
       .notNull()
-      .references(() => categoria.id, { onDelete: "restrict" }),
+      .references(() => categoria.id, { onDelete: "restrict" })
+      .$type<CategoriaId>(),
     codigo: text().notNull().unique(),
     criadoEm: momento(),
     descricao: text().notNull().default(""),
-    id: uuid().primaryKey().defaultRandom(),
+    id: uuid().primaryKey().defaultRandom().$type<CursoId>(),
     precoTroca: integer(),
     slug: text().notNull().unique(),
     status: cursoStatus().notNull().default("em_producao"),
@@ -81,7 +92,8 @@ export const nivel = tabela(
   {
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "cascade" }),
+      .references(() => curso.id, { onDelete: "cascade" })
+      .$type<CursoId>(),
     nome: text().notNull(),
     ordem: smallint().notNull(),
   },
@@ -96,8 +108,9 @@ export const modulo = tabela(
   {
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "cascade" }),
-    id: uuid().primaryKey().defaultRandom(),
+      .references(() => curso.id, { onDelete: "cascade" })
+      .$type<CursoId>(),
+    id: uuid().primaryKey().defaultRandom().$type<ModuloId>(),
     nivelOrdem: smallint(),
     numero: smallint().notNull(),
     titulo: text().notNull(),
@@ -118,13 +131,14 @@ export const aula = tabela(
   {
     descricao: text().notNull().default(""),
     duracaoSeg: integer().notNull(),
-    id: uuid().primaryKey().defaultRandom(),
+    id: uuid().primaryKey().defaultRandom().$type<AulaId>(),
     moduloId: uuid()
       .notNull()
-      .references(() => modulo.id, { onDelete: "cascade" }),
+      .references(() => modulo.id, { onDelete: "cascade" })
+      .$type<ModuloId>(),
     posicao: smallint().notNull(),
     titulo: text().notNull(),
-    videoId: text(),
+    videoId: text().$type<VideoId>(),
     videoProvedor: videoProvedor(),
   },
   (t) => [
@@ -151,9 +165,10 @@ export const pergunta = tabela(
   {
     aulaId: uuid()
       .notNull()
-      .references(() => aula.id, { onDelete: "cascade" }),
+      .references(() => aula.id, { onDelete: "cascade" })
+      .$type<AulaId>(),
     enunciado: text().notNull(),
-    id: uuid().primaryKey().defaultRandom(),
+    id: uuid().primaryKey().defaultRandom().$type<PerguntaId>(),
     posicao: smallint().notNull(),
   },
   (t) => [
@@ -170,10 +185,11 @@ export const alternativa = tabela(
   "alternativa",
   {
     certa: boolean().notNull().default(false),
-    id: uuid().primaryKey().defaultRandom(),
+    id: uuid().primaryKey().defaultRandom().$type<AlternativaId>(),
     perguntaId: uuid()
       .notNull()
-      .references(() => pergunta.id, { onDelete: "cascade" }),
+      .references(() => pergunta.id, { onDelete: "cascade" })
+      .$type<PerguntaId>(),
     posicao: smallint().notNull(),
     texto: text().notNull(),
   },
@@ -197,8 +213,9 @@ export const material = tabela(
     chave: text().notNull(),
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "cascade" }),
-    id: uuid().primaryKey().defaultRandom(),
+      .references(() => curso.id, { onDelete: "cascade" })
+      .$type<CursoId>(),
+    id: uuid().primaryKey().defaultRandom().$type<MaterialId>(),
     nomeDoArquivo: text().notNull(),
     posicao: smallint().notNull(),
     tipo: materialTipo().notNull(),

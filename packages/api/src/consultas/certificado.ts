@@ -81,7 +81,7 @@ async function cursoParaConcluir(
     modulos.set(l.moduloId, m);
 
     if (l.aulaId !== null) {
-      m.aulas.push({ id: l.aulaId as AulaId, perguntas: l.perguntas ?? 0 });
+      m.aulas.push({ id: l.aulaId, perguntas: l.perguntas ?? 0 });
     }
   }
 

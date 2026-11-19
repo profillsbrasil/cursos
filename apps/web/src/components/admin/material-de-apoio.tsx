@@ -2,6 +2,7 @@
 
 import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
 import { CARACTERES, LIMITES } from "@cursos/api/dominio/limites-do-curso";
+import { novoMaterialId } from "@cursos/api/dominio/marcas";
 import {
   formularioDoMaterial,
   mensagemDoMaterial,
@@ -48,7 +49,6 @@ import { SeloDoTipo } from "@/components/material-de-apoio/selo-do-tipo";
 import {
   type Direcao,
   focarDepois,
-  novoId,
   setaDepoisDeMover,
   vizinhoQueFica,
 } from "@/lib/editor";
@@ -354,7 +354,7 @@ function envioDe(arquivo: File): EnvioDeMaterial {
     estado: recusa
       ? { motivo: mensagemDoMaterial(recusa), tipo: "recusado" }
       : { tipo: "enviando" },
-    id: novoId<MaterialId>(),
+    id: novoMaterialId(),
     nomeDoArquivo: arquivo.name,
     tipo: tipoDoNome(arquivo.name),
   };

@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
 import type { ModuloDaPagina } from "@cursos/api/dominio/pagina-do-curso";
-import type { Route } from "next";
+
+import { rota } from "@/lib/rotas";
 
 import {
   AUTO_1,
@@ -24,8 +25,6 @@ import {
   seloDoQuestionario,
   tempoDaPosicao,
 } from "./textos";
-
-const rota = (caminho: string) => caminho as Route;
 
 describe("o cartão preso", () => {
   test("antes da primeira aula, sem níveis: começa pela aula 1 e diz que o curso não tem níveis", () => {

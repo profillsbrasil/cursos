@@ -5,9 +5,10 @@ import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Glob } from "bun";
+import { z } from "zod";
 
 import { ESPERA_ESGOTADA } from "./consultas/erros";
-import { contextoDeTeste } from "./contexto-de-teste";
+import { bancoSemServidor, contextoDeTeste } from "./contexto-de-teste";
 import {
   adminProcedure,
   ErroParaAPessoa,
@@ -60,22 +61,32 @@ const rotas = router({
   }),
 });
 
+const CORPO_DO_ERRO = z.object({
+  error: z.object({
+    data: z.object({
+      code: z.string(),
+      motivo: z.string().nullish(),
+      paraAPessoa: z.boolean().optional(),
+    }),
+    message: z.string(),
+  }),
+});
+
 async function corpoDoErroNoHttpDepoisDoErrorFormatter(caminho: string) {
   const resposta = await fetchRequestHandler({
     createContext: () =>
-      contextoDeTeste({ db: {} as never, papel: "admin", userId: "user_x" }),
+      contextoDeTeste({
+        db: bancoSemServidor(),
+        papel: "admin",
+        userId: "user_x",
+      }),
     endpoint: "/api/trpc",
     onError: () => undefined,
     req: new Request(`http://localhost/api/trpc/${caminho}`),
     router: rotas,
   });
 
-  const corpo = (await resposta.json()) as {
-    error: {
-      data: { code: string; motivo?: string | null; paraAPessoa?: boolean };
-      message: string;
-    };
-  };
+  const corpo = CORPO_DO_ERRO.parse(await resposta.json());
 
   return {
     code: corpo.error.data.code,

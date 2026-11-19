@@ -1,4 +1,4 @@
-import { caminhoDoCurso } from "./rotas";
+import { type CaminhoDoCurso, caminhoDoCurso } from "./rotas";
 import { diaLocal } from "./sequencia";
 import {
   type Capa,
@@ -92,7 +92,7 @@ export interface LinhaDoComunicadoDoAluno {
 
 export type AlvoDoComunicado =
   | { tipo: "geral" }
-  | { capa: Capa; href: string; tipo: "curso"; titulo: string };
+  | { capa: Capa; href: CaminhoDoCurso; tipo: "curso"; titulo: string };
 
 export interface ComunicadoDoAluno {
   alvo: AlvoDoComunicado;

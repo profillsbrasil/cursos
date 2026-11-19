@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import type { CursoDaBusca, LiberacaoDaBusca } from "./acompanhamento";
 import type { LinhasHistorico } from "./historico";
+import { aulaId, cursoId } from "./marcas";
 import { BONUS_DE_FUNCIONARIO } from "./regras";
-import type { CursoId } from "./tipos";
 import {
   type PessoaNaVirada,
   planejarVirada,
@@ -14,12 +14,12 @@ import {
 const AGORA = new Date("2026-10-27T12:00:00Z");
 
 const cursoDaBusca = (id: string, mudar: Partial<CursoDaBusca> = {}) => ({
-  id,
+  id: cursoId(id),
   modulos: [
     {
       aulas: [
-        { id: `${id}-a1`, perguntas: 0 },
-        { id: `${id}-a2`, perguntas: 0 },
+        { id: aulaId(`${id}-a1`), perguntas: 0 },
+        { id: aulaId(`${id}-a2`), perguntas: 0 },
       ],
       numero: 1,
       titulo: "Módulo",
@@ -30,8 +30,8 @@ const cursoDaBusca = (id: string, mudar: Partial<CursoDaBusca> = {}) => ({
   ...mudar,
 });
 
-const doPerfil = (cursoId: string): LiberacaoDaBusca => ({
-  cursoId,
+const doPerfil = (curso: string): LiberacaoDaBusca => ({
+  cursoId: cursoId(curso),
   liberadaEm: AGORA,
   origem: "perfil",
   revogadaEm: null,
@@ -46,7 +46,10 @@ const SEM_ESTUDO: LinhasHistorico = {
 
 const assistiu = (...aulas: string[]): LinhasHistorico => ({
   ...SEM_ESTUDO,
-  assistidas: aulas.map((aulaId) => ({ assistidaEm: AGORA, aulaId })),
+  assistidas: aulas.map((aula) => ({
+    assistidaEm: AGORA,
+    aulaId: aulaId(aula),
+  })),
 });
 
 function pessoa(mudar: Partial<PessoaNaVirada> = {}): PessoaNaVirada {
@@ -68,7 +71,7 @@ describe("planejarVirada", () => {
     expect(planejarVirada(pessoa(assistiu("c1-a1")))).toEqual({
       bonus: BONUS_DE_FUNCIONARIO,
       pulados: [],
-      trocas: [{ cursoId: "c1" as CursoId, preco: 800, titulo: "Curso c1" }],
+      trocas: [{ cursoId: cursoId("c1"), preco: 800, titulo: "Curso c1" }],
       userId: "user_a",
     });
   });
@@ -76,7 +79,9 @@ describe("planejarVirada", () => {
   test("a posição acima de 0 s conta como estudo; a de 0 s, não", () => {
     const posicao = (posicaoSeg: number) =>
       pessoa({
-        posicoes: [{ atualizadaEm: AGORA, aulaId: "c1-a2", posicaoSeg }],
+        posicoes: [
+          { atualizadaEm: AGORA, aulaId: aulaId("c1-a2"), posicaoSeg },
+        ],
       });
 
     expect(planejarVirada(posicao(30)).trocas).toHaveLength(1);
@@ -138,7 +143,7 @@ describe("planejarVirada", () => {
 
     expect(planejarVirada(p).pulados).toEqual([
       {
-        cursoId: "c1" as CursoId,
+        cursoId: cursoId("c1"),
         motivo: { tipo: "em_producao" },
         titulo: "Curso c1",
       },
@@ -160,12 +165,12 @@ describe("planejarVirada", () => {
 
     const plano = planejarVirada(p);
     expect(plano.trocas.map((t) => t.cursoId)).toEqual([
-      "c2" as CursoId,
-      "c3" as CursoId,
+      cursoId("c2"),
+      cursoId("c3"),
     ]);
     expect(plano.pulados).toEqual([
       {
-        cursoId: "c1" as CursoId,
+        cursoId: cursoId("c1"),
         motivo: { faltam: 1400, tipo: "saldo_curto" },
         titulo: "Curso c1",
       },

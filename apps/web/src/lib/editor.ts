@@ -71,8 +71,6 @@ export const focarOPrimeiro = (ids: readonly string[]) =>
     primeiroNaPagina(elementos)?.focus();
   });
 
-export const novoId = <T extends string>() => crypto.randomUUID() as T;
-
 interface ComVersao {
   versao: Versao | null;
 }

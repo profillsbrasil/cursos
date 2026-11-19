@@ -17,9 +17,11 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { montarBusca, type SituacaoNoCurso } from "../dominio/acompanhamento";
+import { diaISO } from "../dominio/marcas";
 import { diaLocal } from "../dominio/sequencia";
-import type { DiaISO, EstadoCurso, Pessoa } from "../dominio/tipos";
+import type { AulaId, CursoId, EstadoCurso, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { linhasDaBusca } from "./acompanhamento";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -64,9 +66,9 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   const painelDe = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId })).meusCursos.painel();
 
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
-  const aulas: Record<"a" | "b" | "c" | "d", string[]> = {
+  const aulas: Record<"a" | "b" | "c" | "d", AulaId[]> = {
     a: [],
     b: [],
     c: [],
@@ -130,9 +132,12 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         .map((x) => x.id);
     }
 
-    const [a = "", b = "", c = "", d = ""] = cursos;
+    const a = definido(cursos[0]);
+    const b = definido(cursos[1]);
+    const c = definido(cursos[2]);
+    const d = definido(cursos[3]);
 
-    const libera = (userId: string, cursoId: string, revogada = false) => ({
+    const libera = (userId: string, cursoId: CursoId, revogada = false) => ({
       cursoId,
       liberadaEm: new Date("2026-10-01T15:00:00Z"),
       liberadaPor: "user_admin",
@@ -162,7 +167,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       })),
       {
         assistidaEm: new Date("2026-10-06T15:00:00Z"),
-        aulaId: aulas.b[0] ?? "",
+        aulaId: definido(aulas.b[0]),
         userId: DIRETO,
       },
     ]);
@@ -175,7 +180,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     });
     await db.insert(posicaoAula).values({
       atualizadaEm: new Date("2026-10-13T01:00:00Z"),
-      aulaId: aulas.d[0] ?? "",
+      aulaId: definido(aulas.d[0]),
       posicaoSeg: 120,
       userId: ESTUDA,
     });
@@ -195,7 +200,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       })
       .returning({ id: curso.id });
 
-    const cursoE = e?.id ?? "";
+    const cursoE = definido(e?.id);
     cursos.push(cursoE);
     await db
       .insert(nivel)
@@ -214,7 +219,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       .returning({ id: modulo.id, numero: modulo.numero });
 
     const doModulo = (numero: number) =>
-      modulosE.find((m) => m.numero === numero)?.id ?? "";
+      definido(modulosE.find((m) => m.numero === numero)?.id);
 
     const aulasE = await db
       .insert(aula)
@@ -232,9 +237,11 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       });
 
     const aulaE = (numero: number, posicao: number) =>
-      aulasE.find(
-        (x) => x.moduloId === doModulo(numero) && x.posicao === posicao
-      )?.id ?? "";
+      definido(
+        aulasE.find(
+          (x) => x.moduloId === doModulo(numero) && x.posicao === posicao
+        )?.id
+      );
 
     await db.insert(liberacao).values(libera(ONDE, cursoE));
     await db.insert(aulaAssistida).values({
@@ -267,7 +274,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     const busca = montarBusca(
       { pessoas, total: pessoas.length },
       await linhasDaBusca(db, ALUNOS),
-      "2026-10-14" as DiaISO
+      diaISO("2026-10-14")
     );
 
     expect(busca.pessoas.map((p) => [p.userId, p.situacao])).toEqual([
@@ -276,13 +283,13 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           numeros: { concluidos: 1, cursos: 3, emProducao: 1 },
           tipo: "estudando",
-          ultimoEstudo: "2026-10-12" as DiaISO,
+          ultimoEstudo: diaISO("2026-10-12"),
         },
       ],
       [
         NUNCA,
         {
-          desde: "2026-10-01" as DiaISO,
+          desde: diaISO("2026-10-01"),
           numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
           tipo: "nunca_abriu",
         },
@@ -292,7 +299,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           revogadas: 1,
           tipo: "sem_liberacao",
-          ultimaRevogacao: "2026-10-02" as DiaISO,
+          ultimaRevogacao: diaISO("2026-10-02"),
         },
       ],
       [NADA, { revogadas: 0, tipo: "sem_liberacao", ultimaRevogacao: null }],
@@ -301,7 +308,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
           tipo: "estudando",
-          ultimoEstudo: "2026-10-06" as DiaISO,
+          ultimoEstudo: diaISO("2026-10-06"),
         },
       ],
     ]);
@@ -405,7 +412,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     expect(doD?.acompanhamento.situacao).toEqual({
       onde: { aula: 1, modulo: 1 },
       tipo: "estudando",
-      ultimoEstudo: "2026-10-12" as DiaISO,
+      ultimoEstudo: diaISO("2026-10-12"),
     });
     const revogada = await admin.admin.liberacoes.acesso({ userId: REVOGADA });
     expect(

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { ehVersao, marcar } from "@cursos/api/dominio/marcas";
 import type { Versao } from "@cursos/api/dominio/tipos";
 
 import {
@@ -115,18 +116,19 @@ describe("focarOPrimeiro", () => {
     const focados: string[] = [];
     const naPagina = new Map<string, { focus: () => void }>();
 
-    const global = globalThis as unknown as {
-      document: unknown;
-      requestAnimationFrame: unknown;
-    };
-
     const antes = {
-      document: global.document,
-      requestAnimationFrame: global.requestAnimationFrame,
+      document: globalThis.document,
+      requestAnimationFrame: globalThis.requestAnimationFrame,
     };
 
-    global.requestAnimationFrame = (f: FrameRequestCallback) => quadros.push(f);
-    global.document = { getElementById: (id: string) => naPagina.get(id) };
+    Reflect.set(
+      globalThis,
+      "requestAnimationFrame",
+      (f: FrameRequestCallback) => quadros.push(f)
+    );
+    Reflect.set(globalThis, "document", {
+      getElementById: (id: string) => naPagina.get(id),
+    });
 
     try {
       focarOPrimeiro(["aula-duracao"]);
@@ -143,8 +145,12 @@ describe("focarOPrimeiro", () => {
 
       expect(focados).toEqual(["aula-duracao"]);
     } finally {
-      global.document = antes.document;
-      global.requestAnimationFrame = antes.requestAnimationFrame;
+      Reflect.set(globalThis, "document", antes.document);
+      Reflect.set(
+        globalThis,
+        "requestAnimationFrame",
+        antes.requestAnimationFrame
+      );
     }
   });
 });
@@ -157,7 +163,7 @@ describe("sincronizarComAPagina", () => {
 
   const doc = (versao: string | null, titulo = "Curso"): Doc => ({
     titulo,
-    versao: versao as Versao | null,
+    versao: versao === null ? null : marcar(ehVersao, versao),
   });
 
   const sujo = { limpo: false };

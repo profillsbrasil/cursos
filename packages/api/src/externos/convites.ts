@@ -1,4 +1,3 @@
-import type { ClerkClient } from "@clerk/backend";
 import { isClerkAPIResponseError } from "@clerk/backend/errors";
 
 import { type Email, VALIDADE_EM_DIAS } from "../dominio/convite";
@@ -23,6 +22,20 @@ export interface Convites {
   revogar: (clerkConviteId: string) => Promise<void>;
 }
 
+/** O que o carteiro usa do Clerk: criar e revogar o convite. O ClerkClient satisfaz. */
+export interface ClerkDosConvites {
+  readonly invitations: {
+    createInvitation: (pedido: {
+      emailAddress: string;
+      expiresInDays: number;
+      ignoreExisting: boolean;
+      notify: boolean;
+      redirectUrl: string;
+    }) => Promise<{ id: string }>;
+    revokeInvitation: (clerkConviteId: string) => Promise<unknown>;
+  };
+}
+
 const LIMITE_DE_ENVIOS = 429;
 
 const ESPERA_SEM_RETRY_AFTER_SEG = 3600;
@@ -33,7 +46,7 @@ const ESPERA_SEM_RETRY_AFTER_SEG = 3600;
  * nunca os lê: o estado mora na tabela convite.
  */
 export function convitesDoClerk(
-  clerk: ClerkClient,
+  clerk: ClerkDosConvites,
   opcoes: { criarConta: string }
 ): Convites {
   return {

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  type Email,
   ehVivo,
   estadoDoConvite,
   type LinhaDoConvidado,
@@ -10,12 +9,12 @@ import {
   lerEmails,
   montarPainelDeConvites,
 } from "./convite";
-import type { ConviteId, CursoId } from "./tipos";
+import { conviteId, cursoId, ehEmail, marcar } from "./marcas";
 
 describe("lerEmail", () => {
   test("apara e põe em minúsculas", () => {
     expect(lerEmail("  Ana.Ribeiro@Exemplo.COM \n")).toBe(
-      "ana.ribeiro@exemplo.com" as Email
+      marcar(ehEmail, "ana.ribeiro@exemplo.com")
     );
   });
 
@@ -53,7 +52,7 @@ describe("lerEmail", () => {
   test("aceita os caracteres da parte local sem aspas", () => {
     const local = "a.b!c#d$e%f&g'h*i+j/k=l?m^n_o`p{q|r}s~t-u";
     expect(lerEmail(`${local}@sub-dominio.x.com`)).toBe(
-      `${local}@sub-dominio.x.com` as Email
+      marcar(ehEmail, `${local}@sub-dominio.x.com`)
     );
     expect(lerEmail("ana@x..com")).toBeNull();
     expect(lerEmail("ana@x_y.com")).toBeNull();
@@ -62,13 +61,19 @@ describe("lerEmail", () => {
   test("recusa o e-mail com caractere fora do ASCII", () => {
     expect(lerEmail("İlker@exemplo.com")).toBeNull();
     expect(lerEmail("joão@exemplo.com")).toBeNull();
-    expect(lerEmail("ana@exemplo.com.br ")).toBe("ana@exemplo.com.br" as Email);
+    expect(
+      lerEmail(`${String.fromCodePoint(0x21_2a)}ate@exemplo.com`)
+    ).toBeNull();
+    expect(lerEmail(`ana@${String.fromCodePoint(0x21_2a)}.com`)).toBeNull();
+    expect(lerEmail("ana@exemplo.com.br ")).toBe(
+      marcar(ehEmail, "ana@exemplo.com.br")
+    );
   });
 
   test("aceita até 254 caracteres e recusa 255", () => {
     const dominio = "@exemplo.com";
     const limite = `${"a".repeat(254 - dominio.length)}${dominio}`;
-    expect(lerEmail(limite)).toBe(limite as Email);
+    expect(lerEmail(limite)).toBe(marcar(ehEmail, limite));
     expect(lerEmail(`a${limite}`)).toBeNull();
   });
 });
@@ -84,20 +89,20 @@ describe("lerEmails", () => {
         "caio@x.com",
         "dani@x.com",
         "eva@x.com",
-      ] as Email[],
+      ].map((x) => marcar(ehEmail, x)),
       ruins: [],
     });
   });
 
   test("não repete o e-mail escrito com outra caixa", () => {
-    expect(lerEmails("ana@x.com Ana@X.com ana@x.com").emails).toEqual([
-      "ana@x.com",
-    ] as Email[]);
+    expect(lerEmails("ana@x.com Ana@X.com ana@x.com").emails).toEqual(
+      ["ana@x.com"].map((x) => marcar(ehEmail, x))
+    );
   });
 
   test("devolve à parte o pedaço que não é e-mail, como veio", () => {
     expect(lerEmails("ana@x.com, Carla@exemplo ;; ")).toEqual({
-      emails: ["ana@x.com"] as Email[],
+      emails: ["ana@x.com"].map((x) => marcar(ehEmail, x)),
       ruins: ["Carla@exemplo"],
     });
   });
@@ -106,21 +111,23 @@ describe("lerEmails", () => {
     expect(
       lerEmails(`Ana Lima <ana@x.com>, "Bruno" <bruno@x.com>; carla@x.com`)
     ).toEqual({
-      emails: ["ana@x.com", "bruno@x.com", "carla@x.com"] as Email[],
+      emails: ["ana@x.com", "bruno@x.com", "carla@x.com"].map((x) =>
+        marcar(ehEmail, x)
+      ),
       ruins: [],
     });
   });
 
   test("o nome entre aspas pode ter vírgula, e o que está entre < e > segue a regra do e-mail", () => {
     expect(lerEmails(`"Lima, Ana" <Ana@X.com>; Bia <bia@exemplo>`)).toEqual({
-      emails: ["ana@x.com"] as Email[],
+      emails: ["ana@x.com"].map((x) => marcar(ehEmail, x)),
       ruins: ["Bia <bia@exemplo>"],
     });
   });
 
   test("o < e o > fora do par Nome <e-mail> ficam à vista como pedaço ruim", () => {
     expect(lerEmails("a@x.com <b@x.com>")).toEqual({
-      emails: ["a@x.com"] as Email[],
+      emails: ["a@x.com"].map((x) => marcar(ehEmail, x)),
       ruins: ["<b@x.com>"],
     });
     expect(lerEmails("<<a@x.com>>")).toEqual({
@@ -132,7 +139,7 @@ describe("lerEmails", () => {
       ruins: ["Ana", "<ana@x.com"],
     });
     expect(lerEmails("ana@x.com Bia <bia@x.com>")).toEqual({
-      emails: ["ana@x.com"] as Email[],
+      emails: ["ana@x.com"].map((x) => marcar(ehEmail, x)),
       ruins: ["Bia", "<bia@x.com>"],
     });
   });
@@ -252,9 +259,9 @@ describe("montarPainelDeConvites", () => {
   ): LinhaDoConvidado => ({
     ...linha(mudar),
     convidadoEm: ANTES,
-    cursos: [{ id: "c1" as CursoId, titulo: "Envase" }],
-    email: email as Email,
-    id: `id-${email}` as ConviteId,
+    cursos: [{ id: cursoId("c1"), titulo: "Envase" }],
+    email: marcar(ehEmail, email),
+    id: conviteId(`id-${email}`),
     perfil: "cliente",
   });
 

@@ -14,23 +14,25 @@ import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import {
   type DocumentoDoCurso,
   formularioDoCurso,
   type MaterialDoDocumento,
 } from "../dominio/edicao-do-curso";
 import { CARACTERES, LIMITES } from "../dominio/limites-do-curso";
-import type {
-  AdminId,
-  AulaId,
-  CategoriaId,
-  CursoId,
-  MaterialId,
-  ModuloId,
-} from "../dominio/tipos";
+import {
+  ehAulaId,
+  ehCursoId,
+  ehMaterialId,
+  ehModuloId,
+  marcar,
+} from "../dominio/marcas";
+import type { CategoriaId, CursoId } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import type { Materiais } from "../externos/materiais";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste } from "./categoria-de-teste";
 import { violacaoDe } from "./erros";
 import { liberarParaPerfil } from "./liberacao-do-perfil";
@@ -67,7 +69,7 @@ function novoMaterial(n: number, tipo: "pdf" | "xlsx" = "pdf") {
   const m: MaterialDoDocumento = {
     bytes: 1000 + n,
     chave: chave(n, tipo),
-    id: randomUUID() as MaterialId,
+    id: marcar(ehMaterialId, randomUUID()),
     nomeDoArquivo: `arquivo-${n}.${tipo}`,
     tipo,
     titulo: `Material ${n}`,
@@ -140,7 +142,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
   });
 
   function documentoNovo(materiais: MaterialDoDocumento[]): DocumentoDoCurso {
-    const id = randomUUID() as CursoId;
+    const id = marcar(ehCursoId, randomUUID());
     cursos.push(id);
 
     return {
@@ -154,13 +156,13 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
             {
               descricao: "",
               duracaoSeg: 120,
-              id: randomUUID() as AulaId,
+              id: marcar(ehAulaId, randomUUID()),
               perguntas: [],
               titulo: "Aula 1",
               video: null,
             },
           ],
-          id: randomUUID() as ModuloId,
+          id: marcar(ehModuloId, randomUUID()),
           nivelOrdem: null,
           numero: 1,
           titulo: "Módulo 1",
@@ -282,7 +284,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
       db
         .update(material)
         .set(mudanca)
-        .where(eq(material.id, linha?.id ?? ""))
+        .where(eq(material.id, definido(linha?.id)))
         .then(
           () => "ok",
           (e: unknown) => violacaoDe(e)?.restricao ?? String(e)
@@ -359,7 +361,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
   test("quem vê o curso só pelo perfil (a amostra) não baixa o material, nem o de outro perfil", async () => {
     const m = novoMaterial(450);
     const criado = await salvar(documentoNovo([m]));
-    const ADMIN = "user_admin" as AdminId;
+    const ADMIN = adminIdDe(sessaoDe("admin", "user_admin"));
     await definirPerfil(db, ADMIN, CLIENTE, "cliente", new Date());
     await definirPerfil(db, ADMIN, SEM_LIBERACAO, "publico", new Date());
     await liberarParaPerfil(db, ADMIN, "cliente", criado.id, new Date());

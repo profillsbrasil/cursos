@@ -11,7 +11,18 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehQualquer,
+  ehRegistroDe,
+  ehTexto,
+  ouNulo,
+} from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "secao-do-nome.entrada.tsx");
 const CLERK = join(import.meta.dir, "clerk-falso.js");
@@ -128,9 +139,10 @@ async function abrir(inicial: { firstName: string; lastName: string }) {
 }
 
 async function estilizar() {
-  const classes = await avaliar<string[]>(
+  const classes = await avaliarComo(
     enviar,
-    `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`
+    `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`,
+    ehLista(ehTexto)
   );
 
   const css = await cssDoApp(classes);
@@ -157,9 +169,10 @@ const salvar = () =>
   );
 
 const textoDe = (seletor: string) =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`
+    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`,
+    ouNulo(ehTexto)
   );
 
 function esperar(condicao: string) {
@@ -217,7 +230,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
       "O nome não pode ter os sinais <, > e &."
     );
     expect(
-      await avaliar<Record<string, boolean>>(
+      await avaliarComo(
         enviar,
         `(() => {
         const campo = document.querySelector('input[name="nome"]');
@@ -228,17 +241,20 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
           campo: campo.getAttribute("aria-invalid") === "true" && campo.getAttribute("aria-describedby") === erro,
           sobrenome: document.querySelector('input[name="sobrenome"]').hasAttribute("aria-invalid"),
         };
-      })()`
+      })()`,
+        ehRegistroDe(ehBooleano)
       )
     ).toEqual({ botao: true, campo: true, sobrenome: false });
     await salvar();
-    expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
+    expect(await avaliarComo(enviar, "window.pedidos.length", ehNumero)).toBe(
+      0
+    );
   });
 
   test("o nome salvo de 256 letras sem espaço quebra dentro do cartão e da folha", async () => {
     await abrir({ firstName: "A".repeat(256), lastName: "Quebra" });
 
-    const m = await avaliar<Record<string, number>>(
+    const m = await avaliarComo(
       enviar,
       `(() => {
         const direita = (el) => Math.round(el.getBoundingClientRect().right);
@@ -252,7 +268,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
           titulo: direita(document.querySelector("h2")),
           tituloRolagem: document.querySelector("h2").scrollWidth - document.querySelector("h2").clientWidth,
         };
-      })()`
+      })()`,
+      ehRegistroDe(ehNumero)
     );
 
     expect(m.titulo).toBeLessThanOrEqual(m.coluna);
@@ -268,7 +285,9 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
       "Cada palavra do nome vai até 20 letras, para caber na linha do certificado."
     );
     await salvar();
-    expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
+    expect(await avaliarComo(enviar, "window.pedidos.length", ehNumero)).toBe(
+      0
+    );
   });
 
   test("o nome apagado: o Salvar fica apagado e diz por quê", async () => {
@@ -279,14 +298,15 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
       "Escreva o seu nome para salvar."
     );
     expect(
-      await avaliar<boolean>(
+      await avaliarComo(
         enviar,
         `(() => {
           const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
           const erro = document.querySelector('[data-slot="field-error"]').id;
           return botao.getAttribute("aria-disabled") === "true" && botao.getAttribute("aria-describedby") === erro &&
             document.querySelector('input[name="nome"]').getAttribute("aria-invalid") === "true";
-        })()`
+        })()`,
+        ehBooleano
       )
     ).toBe(true);
   });
@@ -295,7 +315,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
 
     const salvarNome = () =>
-      avaliar<{ desligado: boolean; fundo: string; motivo: string | null }>(
+      avaliarComo(
         enviar,
         `(() => {
           const botao = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Salvar nome");
@@ -306,7 +326,12 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
             fundo: getComputedStyle(botao).backgroundColor,
             motivo: motivo?.textContent ?? null,
           };
-        })()`
+        })()`,
+        ehObjeto({
+          desligado: ehBooleano,
+          fundo: ehTexto,
+          motivo: ouNulo(ehTexto),
+        })
       );
 
     await esperar(
@@ -340,9 +365,9 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     await digitar("nome", "Bia");
     await salvar();
     await esperar("window.pedidos.length > 0");
-    expect(await avaliar<unknown[]>(enviar, "window.pedidos")).toEqual([
-      { firstName: "Bia", lastName: "Souza" },
-    ]);
+    expect(
+      await avaliarComo(enviar, "window.pedidos", ehLista(ehQualquer))
+    ).toEqual([{ firstName: "Bia", lastName: "Souza" }]);
   });
 
   test("sem nome salvo e sem mudança, nada acusa erro", async () => {
@@ -353,14 +378,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
   test('o campo de arquivo da foto não aparece nem é anunciado ("No file chosen")', async () => {
     await abrir({ firstName: "Ana", lastName: "Souza" });
 
-    const { nodes } = (await enviar("Accessibility.getFullAXTree")) as {
-      nodes: {
-        ignored: boolean;
-        name?: { value: string };
-        role?: { value: string };
-        value?: { value: string };
-      }[];
-    };
+    const { nodes } = await enviar("Accessibility.getFullAXTree");
 
     const anunciados = nodes
       .filter((n) => !(n.ignored || TEXTO_SOLTO.has(n.role?.value ?? "")))
@@ -372,9 +390,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
       "button Trocar foto",
     ]);
 
-    const visivel = await avaliar<boolean>(
+    const visivel = await avaliarComo(
       enviar,
-      `(() => { const r = document.querySelector('input[type="file"]').getBoundingClientRect(); return r.width > 1 && r.height > 1; })()`
+      `(() => { const r = document.querySelector('input[type="file"]').getBoundingClientRect(); return r.width > 1 && r.height > 1; })()`,
+      ehBooleano
     );
 
     expect(visivel).toBe(false);
@@ -385,7 +404,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     await digitar("nome", "Bia");
     await salvar();
     await esperar('document.querySelector("h2").textContent === "Bia Souza"');
-    expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+    expect(await avaliar(enviar, "window.pedidos")).toEqual([
       { firstName: "Bia", lastName: "Souza" },
     ]);
     expect(await textoDe('[data-slot="avatar-fallback"]')).toBe("BS");

@@ -10,7 +10,9 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehBooleano, ehObjeto, ehTexto } from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "categorias-apagar.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-apagar-falso.js");
@@ -123,15 +125,15 @@ describe.skipIf(!existsSync(CHROMIUM))("apagar categoria no browser", () => {
 
   test("depois de apagar, o foco vai ao título da lista", async () => {
     await apagarALivre(await empacotar("aceita"));
-    expect(await avaliar<string>(enviar, "document.activeElement.id")).toBe(
-      "todas"
-    );
+    expect(
+      await avaliarComo(enviar, "document.activeElement.id", ehTexto)
+    ).toBe("todas");
   });
 
   test("depois da recusa, a linha volta com o nome e o Renomear, e o foco fica no nome", async () => {
     await apagarALivre(await empacotar("recusada"));
     expect(
-      await avaliar<{ foco: string; nome: boolean; renomear: boolean }>(
+      await avaliarComo(
         enviar,
         `(() => {
           const linha = document.querySelector("li");
@@ -140,7 +142,8 @@ describe.skipIf(!existsSync(CHROMIUM))("apagar categoria no browser", () => {
             nome: linha.querySelector("h3")?.textContent === ${JSON.stringify(LIVRE.nome)},
             renomear: Boolean(linha.querySelector('button[aria-label="Renomear ${LIVRE.nome}"]')),
           };
-        })()`
+        })()`,
+        ehObjeto({ foco: ehTexto, nome: ehBooleano, renomear: ehBooleano })
       )
     ).toEqual({ foco: LIVRE.nome, nome: true, renomear: true });
   });

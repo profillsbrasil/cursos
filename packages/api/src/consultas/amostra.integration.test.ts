@@ -23,9 +23,12 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
+import { diaISO, videoId } from "../dominio/marcas";
 import { PONTOS } from "../dominio/regras";
-import type { AdminId, AulaId, CursoId } from "../dominio/tipos";
+import type { AulaId, CursoId, ModuloId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { concluirParaQuemCompletou } from "./certificado";
 import { liberar } from "./liberacao";
@@ -35,7 +38,7 @@ import { definirPerfil } from "./perfil";
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
-const ADMIN = "user_admin" as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", "user_admin"));
 const AGORA = new Date("2026-10-20T15:00:00Z");
 const PRECO = 300;
 
@@ -45,7 +48,7 @@ const codigo = (e: unknown) =>
 describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function cliente(pontos = 0) {
     const userId = `user_amostra${S}x${alunos.length}`;
@@ -55,7 +58,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     if (pontos > 0) {
       await db.insert(pontoLancamento).values({
         criadoEm: AGORA,
-        diaMarco: "2026-10-01",
+        diaMarco: diaISO("2026-10-01"),
         motivo: "sequencia_7_dias",
         pontos,
         userId,
@@ -122,7 +125,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       .values({ cursoId: c.id, numero: 0, titulo: "Antes" })
       .returning({ id: modulo.id });
 
-    const novaAula = async (moduloId: string, posicao: number, n: number) => {
+    const novaAula = async (moduloId: ModuloId, posicao: number, n: number) => {
       const [a] = await db
         .insert(aula)
         .values({
@@ -130,18 +133,18 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           moduloId,
           posicao,
           titulo: `Aula ${n}`,
-          videoId: "aqz-KE-bpKQ",
+          videoId: videoId("aqz-KE-bpKQ"),
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
 
       if (o.perguntas === false) {
-        return { certa: "", id: (a?.id ?? "") as AulaId, pergunta: "" };
+        return { certa: "", id: definido(a?.id), pergunta: "" };
       }
 
       const [p] = await db
         .insert(pergunta)
-        .values({ aulaId: a?.id ?? "", enunciado: "Pergunta", posicao: 1 })
+        .values({ aulaId: definido(a?.id), enunciado: "Pergunta", posicao: 1 })
         .returning({ id: pergunta.id });
 
       const alts = await db
@@ -149,7 +152,7 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
         .values(
           [1, 2].map((k) => ({
             certa: k === 1,
-            perguntaId: p?.id ?? "",
+            perguntaId: definido(p?.id),
             posicao: k,
             texto: `Alternativa ${k}`,
           }))
@@ -158,18 +161,18 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
 
       return {
         certa: alts[0]?.id ?? "",
-        id: (a?.id ?? "") as AulaId,
-        pergunta: p?.id ?? "",
+        id: definido(a?.id),
+        pergunta: definido(p?.id),
       };
     };
 
     const aulas: Awaited<ReturnType<typeof novaAula>>[] = [
-      await novaAula(antes?.id ?? "", 1, 1),
+      await novaAula(definido(antes?.id), 1, 1),
     ];
 
     for (let i = 1; i < total; i += 1) {
       // oxlint-disable-next-line no-await-in-loop -- as aulas do teste entram em ordem.
-      aulas.push(await novaAula(depois?.id ?? "", i, i + 1));
+      aulas.push(await novaAula(definido(depois?.id), i, i + 1));
     }
 
     const [m] = await db
@@ -185,9 +188,9 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       })
       .returning({ id: material.id });
 
-    await liberarParaPerfil(db, ADMIN, "cliente", c.id as CursoId, AGORA);
+    await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
 
-    return { aulas, id: c.id as CursoId, material: m?.id ?? "", slug };
+    return { aulas, id: c.id, material: definido(m?.id), slug };
   }
 
   const assistir = (

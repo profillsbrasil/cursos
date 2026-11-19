@@ -1,6 +1,10 @@
 "use client";
 
 import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
+import {
+  moduloId as marcarModulo,
+  novoAulaId,
+} from "@cursos/api/dominio/marcas";
 import type { AulaId, ModuloId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import {
@@ -17,7 +21,6 @@ import { DICA } from "@/components/casca/estilo";
 import {
   type Direcao,
   focarDepois,
-  novoId,
   setaDepoisDeMover,
   vizinhoQueFica,
 } from "@/lib/editor";
@@ -249,7 +252,7 @@ function PainelDaAula({
     (moduloId: string) => {
       despachar({
         id,
-        moduloId: moduloId as ModuloId,
+        moduloId: marcarModulo(moduloId),
         tipo: "aula_para_modulo",
       });
       focarDepois(`aula-${id}-modulo`);
@@ -413,7 +416,7 @@ export function AulasDoModulo({
   );
 
   const adicionar = useCallback(() => {
-    const aula = novoId<AulaId>();
+    const aula = novoAulaId();
     despachar({ id: aula, moduloId: modulo.id, tipo: "aula_nova" });
     focarDepois(ID.aula(aula, "titulo"));
   }, [despachar, modulo.id]);

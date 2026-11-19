@@ -1,3 +1,4 @@
+import { diaISO } from "./marcas";
 import { META_SEQUENCIA } from "./regras";
 import type { DiaISO } from "./tipos";
 
@@ -48,7 +49,7 @@ const NOMES = [
 ] as const;
 
 export const diaLocal = (agora: Date): DiaISO =>
-  formatador.format(agora) as DiaISO;
+  diaISO(formatador.format(agora));
 
 const meioDia = (dia: DiaISO) => new Date(`${dia}T12:00:00Z`);
 
@@ -56,7 +57,7 @@ export function somarDias(dia: DiaISO, n: number): DiaISO {
   const d = meioDia(dia);
   d.setUTCDate(d.getUTCDate() + n);
 
-  return d.toISOString().slice(0, 10) as DiaISO;
+  return diaISO(d.toISOString().slice(0, 10));
 }
 
 const MS_POR_DIA = 86_400_000;

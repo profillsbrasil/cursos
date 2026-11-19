@@ -17,6 +17,7 @@ import {
   HOJE_DO_EXEMPLO,
   idAula,
 } from "./exemplo";
+import { diaISO, trechos } from "./marcas";
 import { type CursoLinha, montarPainel } from "./painel";
 import type { AulaId } from "./tipos";
 
@@ -48,10 +49,10 @@ const linhas = (
 
 const SEM_QUESTIONARIO = { perguntas: [], tentativas: [] };
 
-const assistida = (aulaId: string, dia = "2026-10-06") => ({
+const assistida = (aulaId: AulaId, dia = "2026-10-06") => ({
   assistidaEm: em(`${dia}T15:00:00Z`),
   aulaId,
-  dia,
+  dia: diaISO(dia),
 });
 
 describe("montarCursoAberto", () => {
@@ -69,7 +70,7 @@ describe("montarCursoAberto", () => {
     );
 
     expect(visto?.amostra).toEqual({
-      aulaId: idAula("a", 0, 1) as AulaId,
+      aulaId: idAula("a", 0, 1),
       preco: null,
     });
     expect(
@@ -128,7 +129,7 @@ describe("montarCursoAberto", () => {
       montarCursoAberto(linhas(comAcesso(a, { liberado: true })))?.leitura
         .estado
     ).toEqual({
-      primeiraAula: idAula("a", 0, 1) as AulaId,
+      primeiraAula: idAula("a", 0, 1),
       tipo: "nao_iniciado",
     });
   });
@@ -159,7 +160,7 @@ describe("montarCursoAberto", () => {
       const aberto = montarCursoAberto({
         assistidas: exemplo.assistidas.map((x) => ({
           ...x,
-          dia: "2026-09-01",
+          dia: diaISO("2026-09-01"),
         })),
         certificados: exemplo.certificados,
         curso: comAcesso(linha, { liberado: true }),
@@ -220,7 +221,7 @@ describe("montarAulaNoPlayer", () => {
     expect(vm(idAula("c", 0, 2)).estudo).toEqual({
       assistida: false,
       posicaoSeg: 300,
-      trechos: [{ fim: 320, inicio: 0 }] as never,
+      trechos: trechos([{ fim: 320, inicio: 0 }]),
     });
     expect(vm(idAula("c", 0, 1)).estudo.assistida).toBe(true);
   });

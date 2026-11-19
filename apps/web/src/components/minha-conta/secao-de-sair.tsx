@@ -24,7 +24,7 @@ function ExcluirConta({
   user,
 }: {
   certificados: number;
-  user: Usuario;
+  user: Pick<Usuario, "delete">;
 }) {
   const { executar, pendente } = useAcaoDaConta();
 
@@ -91,7 +91,7 @@ export function SecaoDeSair({
   user,
 }: {
   certificados: number;
-  user: Usuario;
+  user: Pick<Usuario, "delete">;
 }) {
   const { signOut } = useClerk();
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);

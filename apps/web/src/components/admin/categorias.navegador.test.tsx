@@ -10,7 +10,16 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehObjeto,
+  ehTexto,
+  ouNulo,
+  type Predicado,
+} from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "categorias.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-falso.js");
@@ -168,6 +177,12 @@ interface EstadoDoCampo {
   invalido: string | null;
 }
 
+const ehEstadoDoCampo: Predicado<EstadoDoCampo> = ehObjeto({
+  descricao: ehLista(ehTexto),
+  focado: ehBooleano,
+  invalido: ouNulo(ehTexto),
+});
+
 const estadoDoCampo = (seletor: string) => `(() => {
   const campo = document.querySelector(${JSON.stringify(seletor)});
   const descricao = (campo.getAttribute("aria-describedby") ?? "")
@@ -204,19 +219,23 @@ describe.skipIf(!existsSync(CHROMIUM))("nome repetido no browser", () => {
       `[...document.querySelectorAll("button")].find((b) => b.textContent === "Criar categoria").click()`
     );
     await esperar(`document.querySelector('${NOVA}[aria-invalid="true"]')`);
-    expect(await avaliar<EstadoDoCampo>(enviar, estadoDoCampo(NOVA))).toEqual({
+    expect(
+      await avaliarComo(enviar, estadoDoCampo(NOVA), ehEstadoDoCampo)
+    ).toEqual({
       descricao: [REPETIDO],
       focado: true,
       invalido: "true",
     });
-    expect(await avaliar<string[]>(enviar, "window.pedidos")).toEqual([
-      "Vendas e Negócios",
-    ]);
+    expect(
+      await avaliarComo(enviar, "window.pedidos", ehLista(ehTexto))
+    ).toEqual(["Vendas e Negócios"]);
   });
 
   test("mudar o nome tira a marca do campo", async () => {
     await enviar("Input.insertText", { text: "s" });
-    expect(await avaliar<EstadoDoCampo>(enviar, estadoDoCampo(NOVA))).toEqual({
+    expect(
+      await avaliarComo(enviar, estadoDoCampo(NOVA), ehEstadoDoCampo)
+    ).toEqual({
       descricao: [],
       focado: true,
       invalido: null,
@@ -229,12 +248,14 @@ describe.skipIf(!existsSync(CHROMIUM))("nome repetido no browser", () => {
     await teclar("Enter");
     await esperar(`document.querySelector('${NOVA}[aria-invalid="true"]')`);
     expect(
-      await avaliar<EstadoDoCampo>(enviar, estadoDoCampo(NOVA))
+      await avaliarComo(enviar, estadoDoCampo(NOVA), ehEstadoDoCampo)
     ).toMatchObject({
       descricao: ["Escreva o nome da categoria."],
       focado: true,
     });
-    expect(await avaliar<string[]>(enviar, "window.pedidos")).toEqual([]);
+    expect(
+      await avaliarComo(enviar, "window.pedidos", ehLista(ehTexto))
+    ).toEqual([]);
   });
 
   test("ao renomear, a frase do servidor fica embaixo do campo da linha", async () => {
@@ -245,9 +266,10 @@ describe.skipIf(!existsSync(CHROMIUM))("nome repetido no browser", () => {
     );
     await esperar(`document.activeElement?.matches('${RENOMEAR}')`);
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `document.querySelector('${RENOMEAR}').value`
+        `document.querySelector('${RENOMEAR}').value`,
+        ehTexto
       )
     ).toBe("Processo de envase");
     await escrever(RENOMEAR, "Vendas e negócios");
@@ -255,7 +277,7 @@ describe.skipIf(!existsSync(CHROMIUM))("nome repetido no browser", () => {
     await esperar(`document.querySelector('${RENOMEAR}[aria-invalid="true"]')`);
     await esperarAAcaoTerminar();
     expect(
-      await avaliar<EstadoDoCampo>(enviar, estadoDoCampo(RENOMEAR))
+      await avaliarComo(enviar, estadoDoCampo(RENOMEAR), ehEstadoDoCampo)
     ).toEqual({
       descricao: [REPETIDO],
       focado: true,
@@ -267,9 +289,10 @@ describe.skipIf(!existsSync(CHROMIUM))("nome repetido no browser", () => {
     await teclar("Escape");
     await esperar(`!document.querySelector('${RENOMEAR}')`);
     expect(
-      await avaliar<string[]>(
+      await avaliarComo(
         enviar,
-        "[document.activeElement.tagName, document.activeElement.textContent]"
+        "[document.activeElement.tagName, document.activeElement.textContent]",
+        ehLista(ehTexto)
       )
     ).toEqual(["H3", "Processo de envase"]);
   });
@@ -281,7 +304,7 @@ describe.skipIf(!existsSync(CHROMIUM))("nome repetido no browser", () => {
     );
     await esperar(`document.querySelector('${RENOMEAR}')`);
     expect(
-      await avaliar<EstadoDoCampo>(enviar, estadoDoCampo(RENOMEAR))
+      await avaliarComo(enviar, estadoDoCampo(RENOMEAR), ehEstadoDoCampo)
     ).toMatchObject({
       descricao: ["O nome novo vale na hora para 1 curso."],
     });

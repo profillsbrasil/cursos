@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { aulaId, diaISO } from "./marcas";
 import {
   aplicarRegistro,
   type Cota,
@@ -10,10 +11,10 @@ import {
 } from "./registro";
 import { COTA_VIDEO } from "./regras";
 import { diaUtilAnterior } from "./sequencia";
-import type { AulaId, DiaISO } from "./tipos";
+import type { DiaISO } from "./tipos";
 import { canonizar, SEM_TRECHOS, segundos, type Trecho } from "./trechos";
 
-const AULA = "aula-1" as AulaId;
+const AULA = aulaId("aula-1");
 const T0 = new Date("2026-10-07T18:00:00Z");
 const em = (s: number) => new Date(T0.getTime() + s * 1000);
 const t = (inicio: number, fim: number): Trecho => ({ fim, inicio });
@@ -175,7 +176,7 @@ describe("aplicarRegistro", () => {
 });
 
 describe("lancamentosDaAssistida", () => {
-  const d = (s: string) => s as DiaISO;
+  const d = (s: string) => diaISO(s);
 
   const uteisAntes = (dia: DiaISO, n: number) => {
     const dias = new Set<DiaISO>();

@@ -3,11 +3,14 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { definido } from "../definido.test-utils";
 import { LIMITE_DA_CAPA } from "../dominio/capa";
+import { ArquivoQueContaAsLeituras } from "./arquivo-que-conta-as-leituras.test-utils";
 import {
   bucketAssinado,
   capasDesligadas,
   capasNoBucket,
+  type Enviar,
   lerCapa,
   lerPaginaDaListagem,
 } from "./capas";
@@ -123,14 +126,14 @@ function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];
 
-  const enviar = ((url: Request | string, init?: RequestInit) => {
+  const enviar: Enviar = (url, init) => {
     pedidos.push(url instanceof Request ? url : new Request(url, init));
     tamanhos.push(
       init?.body instanceof Uint8Array ? init.body.byteLength : null
     );
 
     return Promise.resolve(resposta());
-  }) as unknown as typeof fetch;
+  };
 
   return { enviar, pedidos, tamanhos };
 }
@@ -190,22 +193,16 @@ describe("capasNoBucket", () => {
   });
 
   test("arquivo acima do teto é recusado sem ler os bytes", async () => {
-    let lidos = 0;
-
-    const pesado = {
-      arrayBuffer: () => {
-        lidos += 1;
-
-        return Promise.resolve(new ArrayBuffer(0));
-      },
-      size: LIMITE_DA_CAPA.bytes + 1,
-    } as unknown as Blob;
+    const pesado = new ArquivoQueContaAsLeituras(
+      [new Uint8Array(LIMITE_DA_CAPA.bytes + 1)],
+      "capa.jpg"
+    );
 
     expect(await capasNoBucket(BUCKET, fetch).receber(pesado)).toEqual({
       recusa: { limiteMb: 4, tipo: "pesada" },
       tipo: "recusa",
     });
-    expect(lidos).toBe(0);
+    expect(pesado.lidos).toBe(0);
   });
 
   test("abrir lê a capa com GET assinado e devolve null quando ela não existe", async () => {
@@ -329,9 +326,7 @@ describe("bucketAssinado", () => {
       new Response(null, { status: 404 }),
     ];
 
-    const { enviar, pedidos } = bucketFalso(
-      () => respostas.shift() as Response
-    );
+    const { enviar, pedidos } = bucketFalso(() => definido(respostas.shift()));
 
     const bucket = bucketAssinado(BUCKET, enviar);
 

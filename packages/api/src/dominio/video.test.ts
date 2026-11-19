@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { VideoId } from "./tipos";
+import { videoId } from "./marcas";
 import { videoDoTexto } from "./video";
 
 const ID = "aqz-KE-bpKQ";
@@ -21,7 +21,7 @@ describe("videoDoTexto", () => {
     `http://www.youtube.com/watch?feature=share&v=${ID}`,
   ])("aceita %s", (texto) => {
     expect(videoDoTexto(texto)).toEqual({
-      id: ID as VideoId,
+      id: videoId(ID),
       provedor: "youtube",
     });
   });

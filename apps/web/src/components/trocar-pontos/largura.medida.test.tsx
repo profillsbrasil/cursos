@@ -5,8 +5,8 @@ import {
   exemploDoPrototipo,
   HOJE_DO_EXEMPLO,
 } from "@cursos/api/dominio/exemplo";
+import { diaISO } from "@cursos/api/dominio/marcas";
 import { montarPainel, type ResumoAluno } from "@cursos/api/dominio/painel";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -21,7 +21,9 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehNumero } from "../predicados.test-utils";
 import { CursosParaTrocar } from "./cursos-para-trocar";
 
 const naCasca = (filhos: ReactNode) =>
@@ -38,7 +40,7 @@ const naCasca = (filhos: ReactNode) =>
     </ProvedorDaCasca>
   );
 
-const dia = (d: string) => d as DiaISO;
+const dia = (d: string) => diaISO(d);
 
 const TROCAR = naCasca(
   <div className="grid gap-10">
@@ -114,21 +116,24 @@ async function abrir(largura: number, corpo: string) {
 }
 
 const larguraDe = (seletor: string) =>
-  avaliar<number>(
+  avaliarComo(
     enviar,
-    `Math.round(document.querySelector(${JSON.stringify(seletor)}).getBoundingClientRect().width)`
+    `Math.round(document.querySelector(${JSON.stringify(seletor)}).getBoundingClientRect().width)`,
+    ehNumero
   );
 
 const larguraDoVazio = () =>
-  avaliar<number>(
+  avaliarComo(
     enviar,
-    `Math.round([...document.querySelectorAll("p")].find((p) => p.textContent.startsWith("Nenhum curso novo")).parentElement.getBoundingClientRect().width)`
+    `Math.round([...document.querySelectorAll("p")].find((p) => p.textContent.startsWith("Nenhum curso novo")).parentElement.getBoundingClientRect().width)`,
+    ehNumero
   );
 
 const areaUtil = () =>
-  avaliar<number>(
+  avaliarComo(
     enviar,
-    `Math.round(document.querySelector('[data-slot="sidebar-inset"] > div').clientWidth - 2 * parseFloat(getComputedStyle(document.querySelector('[data-slot="sidebar-inset"] > div')).paddingLeft))`
+    `Math.round(document.querySelector('[data-slot="sidebar-inset"] > div').clientWidth - 2 * parseFloat(getComputedStyle(document.querySelector('[data-slot="sidebar-inset"] > div')).paddingLeft))`,
+    ehNumero
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("largura de leitura", () => {

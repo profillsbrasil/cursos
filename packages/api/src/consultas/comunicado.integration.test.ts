@@ -7,6 +7,8 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
+import { comunicadoId } from "../dominio/marcas";
 import type { ComunicadoId, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
@@ -21,7 +23,7 @@ const ALUNO = `user_alunocom${S}`;
 describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const cursos: CursoId[] = [];
-  const comunicados: string[] = [];
+  const comunicados: ComunicadoId[] = [];
 
   const comoAdmin = (userId = DONO) =>
     createCaller(
@@ -42,7 +44,7 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
     ).admin.comunicados;
 
   function novoId() {
-    const id = crypto.randomUUID() as ComunicadoId;
+    const id = comunicadoId(crypto.randomUUID());
     comunicados.push(id);
 
     return id;
@@ -67,12 +69,12 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
       throw new Error("curso não criado");
     }
 
-    cursos.push(c.id as CursoId);
+    cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
-  const linhasDe = (id: string) =>
+  const linhasDe = (id: ComunicadoId) =>
     db.select().from(comunicado).where(eq(comunicado.id, id));
 
   afterAll(async () => {
@@ -123,7 +125,7 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
       {
         cursoId: alvo,
         id,
-        publicadoEm: antes?.publicadoEm as Date,
+        publicadoEm: definido(antes?.publicadoEm),
         publicadoPor: DONO,
         texto: "Depois.",
         titulo: "Depois",

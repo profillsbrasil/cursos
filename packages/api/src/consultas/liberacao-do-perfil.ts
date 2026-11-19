@@ -29,7 +29,7 @@ async function ativa(
     where: { cursoId, perfil, revogadaEm: { isNull: true } },
   });
 
-  return (linha?.id as LiberacaoDoPerfilId | undefined) ?? null;
+  return linha?.id ?? null;
 }
 
 /**
@@ -60,7 +60,7 @@ export async function liberarParaPerfil(
       throw new Error("O insert da liberação do perfil não devolveu a linha.");
     }
 
-    return { id: linha.id as LiberacaoDoPerfilId, nova: true };
+    return { id: linha.id, nova: true };
   } catch (erro) {
     const restricao = violacaoDe(erro)?.restricao;
 

@@ -3,7 +3,6 @@ import { comunicado, curso, liberacao } from "@cursos/db/schema/index";
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import type {
-  CursoDoComunicado,
   LinhaDoComunicadoDoAluno,
   LinhasDosComunicados,
 } from "../dominio/comunicado";
@@ -60,7 +59,7 @@ export async function linhasDosComunicadosDoAluno(
     .where(comunicadoVisivelPara(db, aluno))
     .orderBy(...DO_MAIS_NOVO);
 
-  return linhas.map((l) => ({ ...l, id: l.id as ComunicadoId }));
+  return linhas.map((l) => ({ ...l, id: l.id }));
 }
 
 export async function linhasDosComunicados(
@@ -90,15 +89,15 @@ export async function linhasDosComunicados(
     comunicados: comunicados.map((c) => ({
       curso:
         c.cursoId && c.cursoTitulo !== null
-          ? { id: c.cursoId as CursoId, titulo: c.cursoTitulo }
+          ? { id: c.cursoId, titulo: c.cursoTitulo }
           : null,
-      id: c.id as ComunicadoId,
+      id: c.id,
       publicadoEm: c.publicadoEm,
       publicadoPor: c.publicadoPor,
       texto: c.texto,
       titulo: c.titulo,
     })),
-    cursos: cursos as CursoDoComunicado[],
+    cursos,
   };
 }
 

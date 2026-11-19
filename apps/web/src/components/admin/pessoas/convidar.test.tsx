@@ -2,10 +2,15 @@ import { describe, expect, mock, test } from "bun:test";
 
 import type {
   ConvidadoNaTela,
-  Email,
   PainelDeConvites,
 } from "@cursos/api/dominio/convite";
-import type { ConviteId, CursoId, DiaISO } from "@cursos/api/dominio/tipos";
+import {
+  conviteId,
+  cursoId,
+  diaISO,
+  ehEmail,
+  marcar,
+} from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const navegacaoReal = await import("next/navigation");
@@ -30,22 +35,22 @@ const texto = (html: string) =>
 const BOTAO = /<button[^>]*>.*?<\/button>/g;
 const NOME = /aria-label="([^"]+)"/;
 
-const HOJE = "2026-11-11" as DiaISO;
+const HOJE = diaISO("2026-11-11");
 
 const convidado = (
   email: string,
   mudar: Partial<ConvidadoNaTela> = {}
 ): ConvidadoNaTela => ({
   comoAdmin: false,
-  convidadoEm: "2026-11-04" as DiaISO,
+  convidadoEm: diaISO("2026-11-04"),
   cursos: [],
-  email: email as Email,
+  email: marcar(ehEmail, email),
   estado: {
     enviadoEm: HOJE,
-    expiraEm: "2026-12-11" as DiaISO,
+    expiraEm: diaISO("2026-12-11"),
     tipo: "pendente",
   },
-  id: `id-${email}` as ConviteId,
+  id: conviteId(`id-${email}`),
   perfil: "cliente",
   ...mudar,
 });
@@ -74,14 +79,14 @@ describe("a opção Convidados", () => {
         convidado("ana@x.com", {
           comoAdmin: true,
           cursos: [
-            { id: "c1" as CursoId, titulo: "Envase" },
-            { id: "c2" as CursoId, titulo: "Rotulagem" },
+            { id: cursoId("c1"), titulo: "Envase" },
+            { id: cursoId("c2"), titulo: "Rotulagem" },
           ],
           perfil: "funcionario",
         }),
         convidado("bia@x.com", { estado: { tipo: "nao_enviado" } }),
         convidado("caio@x.com", {
-          estado: { em: "2026-11-10" as DiaISO, tipo: "expirado" },
+          estado: { em: diaISO("2026-11-10"), tipo: "expirado" },
         }),
       ])}
       termo=""

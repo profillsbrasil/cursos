@@ -11,7 +11,18 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  ehTupla,
+  opcional,
+  ouNulo,
+} from "../predicados.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "selecao.entrada.tsx");
@@ -184,14 +195,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await esperar(listaAberta);
     await transicoesTerminadas();
 
-    const medida = await avaliar<{
-      abaixo: boolean;
-      fundo: string;
-      largura: boolean;
-      opcoes: string[];
-      seta: string;
-      token: string;
-    }>(
+    const medida = await avaliarComo(
       enviar,
       `(() => {
         const gatilho = document.getElementById("status");
@@ -206,7 +210,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
           seta: getComputedStyle(gatilho.querySelector("svg")).rotate,
           token: getComputedStyle(document.getElementById("token")).backgroundColor,
         };
-      })()`
+      })()`,
+      ehObjeto({
+        abaixo: ehBooleano,
+        fundo: ehTexto,
+        largura: ehBooleano,
+        opcoes: ehLista(ehTexto),
+        seta: ehTexto,
+        token: ehTexto,
+      })
     );
 
     expect(medida.fundo).toBe(medida.token);
@@ -227,9 +239,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await esperar(fechada("vazia").replace("false", "true"));
     await transicoesTerminadas();
     expect(
-      await avaliar<string | undefined>(
+      await avaliarComo(
         enviar,
-        `document.querySelector('[data-slot="lista-da-selecao"]')?.textContent`
+        `document.querySelector('[data-slot="lista-da-selecao"]')?.textContent`,
+        opcional(ehTexto)
       )
     ).toBe("Nenhuma categoria ainda.");
     await teclar("Escape");
@@ -247,9 +260,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await esperar(fechada("status"));
     await transicoesTerminadas();
     expect(
-      await avaliar<string[]>(
+      await avaliarComo(
         enviar,
-        `[document.getElementById("status-escolhido").textContent, document.getElementById("status").textContent]`
+        `[document.getElementById("status-escolhido").textContent, document.getElementById("status").textContent]`,
+        ehLista(ehTexto)
       )
     ).toEqual(["publicado", "Publicado"]);
   });
@@ -261,12 +275,13 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
       await esperar(listaAberta);
       await transicoesTerminadas();
 
-      return await avaliar<string[]>(
+      return await avaliarComo(
         enviar,
         `(() => {
           const estilo = getComputedStyle(${POPUP});
           return [estilo.transitionProperty, estilo.transitionDuration, estilo.transitionTimingFunction];
-        })()`
+        })()`,
+        ehLista(ehTexto)
       );
     };
 
@@ -288,34 +303,39 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await esperar(
       `document.activeElement?.getAttribute("aria-label") === "Buscar curso"`
     );
-    expect(await avaliar<string[]>(enviar, opcoesVisiveis)).toEqual([
-      "Todos os alunos",
-      "Fábrica e montagem",
-      "Fundamentos do envase de líquidos",
-      "Portfólio: envasadoras e embaladoras",
-    ]);
+    expect(await avaliarComo(enviar, opcoesVisiveis, ehLista(ehTexto))).toEqual(
+      [
+        "Todos os alunos",
+        "Fábrica e montagem",
+        "Fundamentos do envase de líquidos",
+        "Portfólio: envasadoras e embaladoras",
+      ]
+    );
     await enviar("Input.insertText", { text: "envas" });
     await esperar(`${opcoesVisiveis}.length === 2`);
-    expect(await avaliar<string[]>(enviar, opcoesVisiveis)).toEqual([
-      "Fundamentos do envase de líquidos",
-      "Portfólio: envasadoras e embaladoras",
-    ]);
+    expect(await avaliarComo(enviar, opcoesVisiveis, ehLista(ehTexto))).toEqual(
+      [
+        "Fundamentos do envase de líquidos",
+        "Portfólio: envasadoras e embaladoras",
+      ]
+    );
     await enviar("Input.insertText", { text: "xyz" });
     await esperar(`${opcoesVisiveis}.length === 0`);
     expect(
-      await avaliar<string>(enviar, "document.body.textContent")
+      await avaliarComo(enviar, "document.body.textContent", ehTexto)
     ).toContain("Nenhum curso com esse nome.");
   });
 
   test("o clique do mouse no Para quem põe o foco na busca", async () => {
     await abrirTela();
 
-    const { x, y } = await avaliar<{ x: number; y: number }>(
+    const { x, y } = await avaliarComo(
       enviar,
       `(() => {
         const r = document.getElementById("para").getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-      })()`
+      })()`,
+      ehObjeto({ x: ehNumero, y: ehNumero })
     );
 
     const clique = { button: "left", clickCount: 1, x, y };
@@ -330,9 +350,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await esperar(listaAberta);
     await transicoesTerminadas();
     expect(
-      await avaliar<string | null>(
+      await avaliarComo(
         enviar,
-        `document.activeElement?.getAttribute("aria-label")`
+        `document.activeElement?.getAttribute("aria-label")`,
+        ouNulo(ehTexto)
       )
     ).toBe("Buscar curso");
     await teclar("Escape");
@@ -352,9 +373,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await teclar("Enter");
     await esperar(`!document.querySelector('[aria-label="Buscar curso"]')`);
     expect(
-      await avaliar<[string | null, string]>(
+      await avaliarComo(
         enviar,
-        `[new FormData(document.getElementById("formulario")).get("cursoId"), document.getElementById("para").textContent]`
+        `[new FormData(document.getElementById("formulario")).get("cursoId"), document.getElementById("para").textContent]`,
+        ehTupla(ouNulo(ehTexto), ehTexto)
       )
     ).toEqual(["c1", "Fábrica e montagem"]);
   });

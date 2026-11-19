@@ -2,10 +2,10 @@ import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import { Sidebar } from "@cursos/ui/components/sidebar";
-import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
+import { rota } from "@/lib/rotas";
 
 import {
   abrirChromium,
@@ -14,7 +14,9 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehNumero, ehObjeto, type Predicado } from "../predicados.test-utils";
 import type { Continuar } from "./continuar";
 
 const navegacao = await import("next/navigation");
@@ -30,7 +32,7 @@ const COMECAR: Continuar = {
   chamada: "Começar curso",
   chamadaAqui: "Assistindo agora",
   curso: "Fábrica",
-  href: "/cursos/fabrica/aulas/a1" as Route,
+  href: rota("/cursos/fabrica/aulas/a1"),
   pct: null,
   rotulo: "Começar curso: Filmagem da instalação, Fábrica",
   tipo: "comecar",
@@ -80,6 +82,12 @@ interface Medida {
   altura: number;
 }
 
+const ehMedida: Predicado<Medida> = ehObjeto({
+  abaixo: ehNumero,
+  acima: ehNumero,
+  altura: ehNumero,
+});
+
 async function medir(corpo: string) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -94,14 +102,15 @@ async function medir(corpo: string) {
     )}); document.close();`
   );
 
-  return await avaliar<Medida>(
+  return await avaliarComo(
     enviar,
     `(() => {
       const cartao = document.querySelector("[data-sidebar=content], [data-slot=sidebar-inner]").querySelector("a, [aria-hidden=true].grid");
       const miolo = cartao.querySelector("span > span").getBoundingClientRect();
       const c = cartao.getBoundingClientRect();
       return { altura: Math.round(c.height), acima: Math.round(miolo.top - c.top), abaixo: Math.round(c.bottom - miolo.bottom) };
-    })()`
+    })()`,
+    ehMedida
   );
 }
 

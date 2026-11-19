@@ -57,7 +57,7 @@ describe.skipIf(URL_TESTE === null)("visão do catálogo do admin", () => {
       throw new Error("curso não criado");
     }
 
-    const id = c.id as CursoId;
+    const { id } = c;
     cursos.push(id);
 
     return id;

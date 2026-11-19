@@ -5,11 +5,11 @@ import {
   montarComunicados,
   montarComunicadosDoAluno,
 } from "./comunicado";
-import type { ComunicadoId, DiaISO } from "./tipos";
+import { comunicadoId, diaISO } from "./marcas";
 
 const linha = (id: string, publicadoPor: string) => ({
   curso: null,
-  id: id as ComunicadoId,
+  id: comunicadoId(id),
   publicadoEm: new Date("2026-10-01T12:00:00Z"),
   publicadoPor,
   texto: "Texto",
@@ -68,7 +68,7 @@ const doAluno = (
   curso: LinhaDoComunicadoDoAluno["curso"] = null
 ): LinhaDoComunicadoDoAluno => ({
   curso,
-  id: id as ComunicadoId,
+  id: comunicadoId(id),
   publicadoEm: new Date(publicadoEm),
   publicadoPor: "user_marina",
   texto: "Texto",
@@ -115,8 +115,8 @@ describe("os comunicados do aluno", () => {
         tipo: "curso",
         titulo: "Profills School Comercial",
       },
-      dia: "2026-10-14" as DiaISO,
-      id: "c1" as ComunicadoId,
+      dia: diaISO("2026-10-14"),
+      id: comunicadoId("c1"),
       publicadoEm: "2026-10-14T13:00:00.000Z",
       publicadoPor: "Marina Duarte",
       texto: "Texto",

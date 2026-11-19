@@ -149,6 +149,22 @@ export default defineConfig({
       },
     },
     {
+      files: [
+        "apps/web/src/components/minha-conta/use-acao-da-conta.ts",
+        "packages/api/src/consultas/trava.ts",
+        "packages/api/src/sessao.ts",
+      ],
+      rules: {
+        "typescript/no-unsafe-type-assertion": "off",
+      },
+    },
+    {
+      files: ["apps/web/src/variaveis-css.d.ts"],
+      rules: {
+        "typescript/consistent-indexed-object-style": "off",
+      },
+    },
+    {
       files: ["apps/web/src/components/entrada/clerk.ts"],
       rules: {
         "typescript/no-unsafe-assignment": "off",
@@ -266,7 +282,7 @@ export default defineConfig({
     "typescript/no-misused-spread": "off",
     "typescript/no-unnecessary-type-arguments": "off",
     "typescript/no-unnecessary-type-parameters": "off",
-    "typescript/no-unsafe-type-assertion": "warn",
+    "typescript/no-unsafe-type-assertion": "error",
     "typescript/non-nullable-type-assertion-style": "off",
     "typescript/prefer-nullish-coalescing": "off",
     "typescript/prefer-regexp-exec": "off",

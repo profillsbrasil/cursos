@@ -6,6 +6,7 @@ import {
   HOJE_DO_EXEMPLO,
   SEM_LIBERACAO,
 } from "@cursos/api/dominio/exemplo";
+import { diaISO } from "@cursos/api/dominio/marcas";
 import {
   type LinhasPainel,
   montarPainel,
@@ -210,7 +211,7 @@ describe("o comunicado em Meus cursos", () => {
   });
 
   test("com menos de 14 dias, é uma faixa entre o banner e Sua semana", () => {
-    const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
+    const html = render(montar(exemploDoPrototipo(), diaISO("2026-10-15")));
     const p = onde(html);
     expect(p.banner).toBeGreaterThan(-1);
     expect(p.comunicado).toBeGreaterThan(p.banner);
@@ -228,13 +229,13 @@ describe("o comunicado em Meus cursos", () => {
   });
 
   test("na faixa, o título é um h2, para quem navega por títulos", () => {
-    const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
+    const html = render(montar(exemploDoPrototipo(), diaISO("2026-10-15")));
     const h2s = [...html.matchAll(H2)].map((m) => texto(m[1] ?? ""));
     expect(h2s).toContain(`Comunicado: ${TITULO}`);
   });
 
   test("com 14 dias ou mais, fica no fim, depois dos cursos", () => {
-    const html = render(montar(exemploDoPrototipo(), "2026-10-16" as DiaISO));
+    const html = render(montar(exemploDoPrototipo(), diaISO("2026-10-16")));
     const p = onde(html);
     expect(p.comunicado).toBeGreaterThan(p.cursos);
     expect(html.split(TITULO).length - 1).toBe(1);
@@ -245,7 +246,7 @@ describe("o comunicado em Meus cursos", () => {
     const html = renderToStaticMarkup(
       <FaixaComunicado
         comunicado={{
-          hoje: "2026-01-05" as DiaISO,
+          hoje: diaISO("2026-01-05"),
           id: "comunicado-da-virada",
           lugar: "topo",
           publicadoEm: "2025-12-29T02:00:00.000Z",

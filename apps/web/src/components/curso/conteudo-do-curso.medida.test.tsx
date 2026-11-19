@@ -11,7 +11,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { comercial } from "./exemplo-de-teste";
 
@@ -76,6 +84,22 @@ interface Linha {
   titulo: string;
 }
 
+const ehLinha: Predicado<Linha> = ehObjeto({
+  cartao: ehObjeto({ direita: ehNumero, esquerda: ehNumero }),
+  descricoes: ehLista(
+    ehObjeto({
+      altura: ehNumero,
+      direita: ehNumero,
+      entrelinha: ehNumero,
+      esquerda: ehNumero,
+    })
+  ),
+  duracao: ehObjeto({ direita: ehNumero, esquerda: ehNumero }),
+  inicioDoTitulo: ehNumero,
+  li: ehObjeto({ direita: ehNumero, esquerda: ehNumero }),
+  titulo: ehTexto,
+});
+
 const LINHAS = `(() => {
   const cartao = document.querySelector("details").parentElement.getBoundingClientRect();
   return [...document.querySelectorAll("details[open] li")].map((li) => {
@@ -108,7 +132,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
     for (const largura of [1280, 390]) {
       test(`${largura} px: cada linha da aula vai de borda a borda do cartão, e o título não repete o número`, async () => {
         await abrir(largura);
-        const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+        const linhas = await avaliarComo(enviar, LINHAS, ehLista(ehLinha));
 
         const aulas = PAGINA.modulos.find((m) =>
           m.aulas.some((a) => a.titulo === linhas[0]?.titulo)
@@ -125,7 +149,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
 
       test(`${largura} px: a descrição fica em duas linhas no máximo e mantém as quebras do admin`, async () => {
         await abrir(largura);
-        const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+        const linhas = await avaliarComo(enviar, LINHAS, ehLista(ehLinha));
         const [primeira, ...resto] = linhas;
         expect(primeira?.descricoes[0]?.altura).toBe(
           2 * (primeira?.descricoes[0]?.entrelinha ?? 0)
@@ -140,7 +164,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
 
     test("390 px: a descrição passa por baixo da duração e usa a largura da linha", async () => {
       await abrir(390);
-      const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+      const linhas = await avaliarComo(enviar, LINHAS, ehLista(ehLinha));
 
       for (const l of linhas) {
         expect(l.descricoes[0]?.esquerda).toBe(l.inicioDoTitulo);
@@ -150,7 +174,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
 
     test("1280 px: a descrição fica na coluna do título, antes da duração", async () => {
       await abrir(1280);
-      const linhas = await avaliar<Linha[]>(enviar, LINHAS);
+      const linhas = await avaliarComo(enviar, LINHAS, ehLista(ehLinha));
 
       for (const l of linhas) {
         expect(l.descricoes[0]?.esquerda).toBe(l.inicioDoTitulo);

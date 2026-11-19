@@ -1,6 +1,7 @@
 "use client";
 
 import type { VizinhaDaAula } from "@cursos/api/dominio/aula";
+import { novaTentativaId } from "@cursos/api/dominio/marcas";
 import type {
   PerguntaDaAula,
   QuestionarioDaAula as Questionario,
@@ -69,7 +70,7 @@ const novaTentativa = (focar: boolean): Fase => ({
   falhou: false,
   focar,
   marcadas: {},
-  tentativaId: crypto.randomUUID() as TentativaId,
+  tentativaId: novaTentativaId(),
   tipo: "respondendo",
 });
 

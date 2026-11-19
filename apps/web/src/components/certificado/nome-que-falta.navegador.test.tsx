@@ -11,7 +11,18 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehQualquer,
+  ehObjeto,
+  ehRegistroDe,
+  ehTexto,
+  ouNulo,
+} from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "nome-que-falta.entrada.tsx");
 const CLERK = join(import.meta.dir, "clerk-falso.js");
@@ -156,9 +167,10 @@ async function abrir(inteiro = false) {
   );
   await avaliar(enviar, pacote);
 
-  const classes = await avaliar<string[]>(
+  const classes = await avaliarComo(
     enviar,
-    `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`
+    `[...document.querySelectorAll("[class]")].flatMap((e) => [...e.classList])`,
+    ehLista(ehTexto)
   );
 
   const css = await cssDoApp(classes);
@@ -183,9 +195,10 @@ const BOTAO = `[...document.querySelectorAll("button")].find((b) => b.textConten
 const salvar = () => avaliar(enviar, `${BOTAO}.click()`);
 
 const textoDe = (seletor: string) =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`
+    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`,
+    ouNulo(ehTexto)
   );
 
 function esperar(condicao: string) {
@@ -226,13 +239,13 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await digitar("sobrenome", " Souza  ");
       await salvar();
       await esperar("window.depois > 0");
-      expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+      expect(await avaliar(enviar, "window.pedidos")).toEqual([
         { firstName: "Ana", lastName: "Souza" },
       ]);
-      expect(await avaliar<unknown>(enviar, "window.toasts")).toEqual([
+      expect(await avaliar(enviar, "window.toasts")).toEqual([
         ["ok", "Nome salvo."],
       ]);
-      expect(await avaliar<number>(enviar, "window.depois")).toBe(1);
+      expect(await avaliarComo(enviar, "window.depois", ehNumero)).toBe(1);
     });
 
     test("o NomeQueFalta salva no usuário do Clerk e pede um refresh do servidor", async () => {
@@ -241,10 +254,10 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await digitar("sobrenome", "Souza");
       await salvar();
       await esperar("window.refresh > 0");
-      expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+      expect(await avaliarComo(enviar, "window.pedidos", ehQualquer)).toEqual([
         { firstName: "Ana", lastName: "Souza" },
       ]);
-      expect(await avaliar<number>(enviar, "window.refresh")).toBe(1);
+      expect(await avaliarComo(enviar, "window.refresh", ehNumero)).toBe(1);
     });
 
     test("o Clerk recusa: o toast diz a regra e o depois não roda", async () => {
@@ -256,27 +269,30 @@ describe.skipIf(!existsSync(CHROMIUM))(
       );
       await salvar();
       await esperar("window.toasts.length > 0");
-      expect(await avaliar<unknown>(enviar, "window.toasts")).toEqual([
+      expect(await avaliar(enviar, "window.toasts")).toEqual([
         ["erro", "O nome não pode ter os sinais <, > e &."],
       ]);
-      expect(await avaliar<number>(enviar, "window.depois")).toBe(0);
+      expect(await avaliarComo(enviar, "window.depois", ehNumero)).toBe(0);
     });
 
     test("antes de digitar, nada acusa erro, e o Salvar fica parado e diz por quê", async () => {
       await abrir();
       expect(await textoDe('[data-slot="field-error"]')).toBeNull();
       expect(
-        await avaliar<{ desligado: boolean; motivo: string | null }>(
+        await avaliarComo(
           enviar,
           `(() => {
           const botao = ${BOTAO};
           const motivo = document.getElementById(botao.getAttribute("aria-describedby") ?? "");
           return { desligado: botao.getAttribute("aria-disabled") === "true", motivo: motivo?.textContent ?? null };
-        })()`
+        })()`,
+          ehObjeto({ desligado: ehBooleano, motivo: ouNulo(ehTexto) })
         )
       ).toEqual({ desligado: true, motivo: "Escreva o seu nome para salvar." });
       await salvar();
-      expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
+      expect(await avaliarComo(enviar, "window.pedidos.length", ehNumero)).toBe(
+        0
+      );
     });
 
     test("o nome com os sinais de HTML: o campo avisa a regra e não envia", async () => {
@@ -286,13 +302,15 @@ describe.skipIf(!existsSync(CHROMIUM))(
         "O nome não pode ter os sinais <, > e &."
       );
       await salvar();
-      expect(await avaliar<number>(enviar, "window.pedidos.length")).toBe(0);
+      expect(await avaliarComo(enviar, "window.pedidos.length", ehNumero)).toBe(
+        0
+      );
     });
 
     test("os campos cabem no cartão, sem rolar a página", async () => {
       await abrir();
 
-      const m = await avaliar<Record<string, number>>(
+      const m = await avaliarComo(
         enviar,
         `(() => {
         const cartao = document.querySelector('[aria-labelledby="falta-o-nome"]').getBoundingClientRect();
@@ -301,7 +319,8 @@ describe.skipIf(!existsSync(CHROMIUM))(
           direita: Math.max(...campos.map((c) => c.right)) - cartao.right,
           rolagem: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
-      })()`
+      })()`,
+        ehRegistroDe(ehNumero)
       );
 
       expect(m.direita).toBeLessThan(0);

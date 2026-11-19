@@ -13,7 +13,9 @@
 export const LIMITE_DO_NOME = 100;
 export const LIMITE_DA_PALAVRA = 20;
 
-export type CampoDoNome = "nome" | "sobrenome";
+const CAMPOS_DO_NOME = ["nome", "sobrenome"] as const;
+
+export type CampoDoNome = (typeof CAMPOS_DO_NOME)[number];
 
 export interface ProblemaDoNome {
   campos: CampoDoNome[];
@@ -40,7 +42,7 @@ function comProblema(
   campos: Record<CampoDoNome, string>,
   regra: (texto: string) => boolean
 ): CampoDoNome[] {
-  return (Object.keys(campos) as CampoDoNome[]).filter((c) => regra(campos[c]));
+  return CAMPOS_DO_NOME.filter((c) => regra(campos[c]));
 }
 
 /** O primeiro problema do nome digitado, com os campos onde ele está, ou `null`. */

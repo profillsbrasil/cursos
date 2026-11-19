@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import type { z } from "zod";
+
 import {
   type DocumentoDoCurso,
   documentoDoCurso,
@@ -15,18 +17,20 @@ import {
   perguntaDeExemplo,
   uuidDeExemplo,
 } from "./exemplo";
-import type {
-  AlternativaId,
-  AulaId,
-  CursoId,
-  ModuloId,
-  PerguntaId,
-  Versao,
-} from "./tipos";
+import {
+  alternativaId,
+  aulaId,
+  cursoId,
+  moduloId,
+  ehVersao,
+  marcar,
+  perguntaId,
+} from "./marcas";
+import { versaoDe } from "./versao";
 
 const { A1, CURSO } = EDICAO;
 
-const documento = () => documentoDeExemplo("v1" as Versao);
+const documento = () => documentoDeExemplo(marcar(ehVersao, "v1"));
 
 const editar = (
   doc: DocumentoDoCurso,
@@ -53,14 +57,14 @@ describe("documentoDoCurso", () => {
       x.niveis.reverse();
 
       for (const m of x.modulos) {
-        m.id = m.id.toUpperCase() as ModuloId;
+        m.id = moduloId(m.id.toUpperCase());
 
         for (const a of m.aulas) {
-          a.id = a.id.toUpperCase() as AulaId;
+          a.id = aulaId(a.id.toUpperCase());
         }
       }
 
-      return { ...x, id: x.id.toUpperCase() as CursoId };
+      return { ...x, id: cursoId(x.id.toUpperCase()) };
     });
 
     expect(documentoDoCurso.parse(doEditor)).toEqual(d);
@@ -69,7 +73,7 @@ describe("documentoDoCurso", () => {
   test("o mesmo id em caixas diferentes é repetido", () => {
     const d = editar(documento(), (x) => {
       x.modulos[1]?.aulas.push(
-        aulaDeExemplo(A1.toUpperCase() as AulaId, "Cópia")
+        aulaDeExemplo(aulaId(A1.toUpperCase()), "Cópia")
       );
 
       return x;
@@ -106,7 +110,7 @@ describe("documentoDoCurso", () => {
       x.modulos[1]?.aulas.push(
         aulaDeExemplo(A1, "Cópia 1"),
         aulaDeExemplo(A1, "Cópia 2"),
-        aulaDeExemplo(uuidDeExemplo(99) as AulaId, "Única")
+        aulaDeExemplo(aulaId(uuidDeExemplo(99)), "Única")
       );
 
       return x;
@@ -287,7 +291,7 @@ describe("questionário da aula", () => {
 
   const alternativa = (n: number) => ({
     certa: false,
-    id: uuidDeExemplo(60 + n) as AlternativaId,
+    id: alternativaId(uuidDeExemplo(60 + n)),
     texto: `Alternativa ${n}`,
   });
 
@@ -305,9 +309,9 @@ describe("questionário da aula", () => {
 
     if (a1) {
       a1.perguntas = Array.from({ length: 20 }, (_, i) => ({
-        ...perguntaDeExemplo(uuidDeExemplo(100 + i) as PerguntaId, [
-          uuidDeExemplo(200 + i) as AlternativaId,
-          uuidDeExemplo(300 + i) as AlternativaId,
+        ...perguntaDeExemplo(perguntaId(uuidDeExemplo(100 + i)), [
+          alternativaId(uuidDeExemplo(200 + i)),
+          alternativaId(uuidDeExemplo(300 + i)),
         ]),
       }));
     }
@@ -391,9 +395,9 @@ describe("questionário da aula", () => {
 
     if (a1) {
       a1.perguntas = Array.from({ length: 21 }, (_, i) =>
-        perguntaDeExemplo(uuidDeExemplo(100 + i) as PerguntaId, [
-          uuidDeExemplo(200 + i) as AlternativaId,
-          uuidDeExemplo(300 + i) as AlternativaId,
+        perguntaDeExemplo(perguntaId(uuidDeExemplo(100 + i)), [
+          alternativaId(uuidDeExemplo(200 + i)),
+          alternativaId(uuidDeExemplo(300 + i)),
         ])
       );
     }
@@ -409,8 +413,8 @@ describe("questionário da aula", () => {
 
     if (a3) {
       a3.perguntas = [
-        perguntaDeExemplo(P1.toUpperCase() as PerguntaId, [
-          uuidDeExemplo(70) as AlternativaId,
+        perguntaDeExemplo(perguntaId(P1.toUpperCase()), [
+          alternativaId(uuidDeExemplo(70)),
           P1B,
         ]),
       ];
@@ -420,5 +424,39 @@ describe("questionário da aula", () => {
       `Pergunta ${P1} aparece duas vezes.`,
       `Alternativa ${P1B} aparece duas vezes.`,
     ]);
+  });
+});
+
+describe("os campos marcados do documento", () => {
+  const issues = (d: z.input<typeof documentoDoCurso>) =>
+    documentoDoCurso
+      .safeParse(d)
+      .error?.issues.map((i) => [i.path.join("."), i.code]) ?? [];
+
+  test("id de vídeo fora do formato sai só com o issue do regex", () => {
+    for (const id of ["", "a b", "abc", " aqz-KE-bpKQ"]) {
+      const d: z.input<typeof documentoDoCurso> = documento();
+      const aula = d.modulos[0]?.aulas[0];
+
+      if (aula) {
+        aula.video = { id, provedor: "youtube" };
+      }
+
+      expect(issues(d)).toEqual([
+        ["modulos.0.aulas.0.video.id", "invalid_format"],
+      ]);
+    }
+  });
+
+  test("a versão que o servidor calcula passa igual, e o null também", () => {
+    for (const conteudo of [{}, { titulo: "Curso" }, [1, 2, 3], "x", null]) {
+      const versao = versaoDe(conteudo);
+
+      expect(documentoDoCurso.parse(documentoDeExemplo(versao)).versao).toBe(
+        versao
+      );
+    }
+
+    expect(documentoDoCurso.parse(documentoDeExemplo()).versao).toBeNull();
   });
 });

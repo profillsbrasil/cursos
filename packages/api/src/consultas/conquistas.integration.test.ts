@@ -20,7 +20,10 @@ import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import type { Conquistas } from "../dominio/conquistas";
+import { diaISO, novaTentativaId } from "../dominio/marcas";
+import type { AulaId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { carregarConquistas } from "./conquistas";
@@ -63,7 +66,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     }
   );
 
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
   const sufixo = hex();
 
   async function criarCurso(
@@ -103,7 +106,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       .values(
         Array.from({ length: aulas }, (_, i) => ({
           duracaoSeg: 600,
-          moduloId: m?.id ?? "",
+          moduloId: definido(m?.id),
           posicao: i + 1,
           titulo: `${nome} aula ${i + 1}`,
         }))
@@ -113,7 +116,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     return { aulas: criadas.map((a) => a.id), id: c.id, titulo: c.titulo };
   }
 
-  const liberar = (userId: string, cursoId: string) =>
+  const liberar = (userId: string, cursoId: CursoId) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
@@ -153,15 +156,17 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       })
       .returning({ id: liberacao.id });
 
+    const vistas: [AulaId | undefined, string][] = [
+      [auto.aulas[1], "2026-08-18T20:00:00Z"],
+      [auto.aulas[0], "2026-08-18T14:00:00Z"],
+      [comercial.aulas[0], "2026-09-03T14:00:00Z"],
+      [revogado.aulas[0], "2026-09-04T14:00:00Z"],
+    ];
+
     await db.insert(aulaAssistida).values(
-      [
-        [auto.aulas[1], "2026-08-18T20:00:00Z"],
-        [auto.aulas[0], "2026-08-18T14:00:00Z"],
-        [comercial.aulas[0], "2026-09-03T14:00:00Z"],
-        [revogado.aulas[0], "2026-09-04T14:00:00Z"],
-      ].map(([aulaId, iso]) => ({
+      vistas.map(([aulaId, iso]) => ({
         assistidaEm: new Date(iso ?? ""),
-        aulaId: aulaId ?? "",
+        aulaId: definido(aulaId),
         userId: ALUNA,
       }))
     );
@@ -184,14 +189,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await db.insert(pontoLancamento).values([
       {
         criadoEm: new Date("2026-09-25T15:00:00Z"),
-        diaMarco: "2026-09-25",
+        diaMarco: diaISO("2026-09-25"),
         motivo: "sequencia_7_dias",
         pontos: 30,
         userId: ALUNA,
       },
       {
         criadoEm: new Date("2026-10-09T15:00:00Z"),
-        diaMarco: "2026-10-09",
+        diaMarco: diaISO("2026-10-09"),
         motivo: "sequencia_7_dias",
         pontos: 30,
         userId: ALUNA,
@@ -207,7 +212,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
 
     await liberar(NOVO, fabrica.id);
     await db.insert(posicaoAula).values({
-      aulaId: fabrica.aulas[1] ?? "",
+      aulaId: definido(fabrica.aulas[1]),
       posicaoSeg: 0,
       userId: NOVO,
     });
@@ -221,7 +226,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     const terceiro = await criarCurso("terceiro", 1, { precoTroca: 100 });
     const quando = (iso: string) => new Date(iso);
 
-    const trocar = async (cursoId: string, iso: string) => {
+    const trocar = async (cursoId: CursoId, iso: string) => {
       const [l] = await db
         .insert(liberacao)
         .values({
@@ -246,7 +251,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await trocar(vista.id, "2026-10-05T15:00:00Z");
     await trocar(terceiro.id, "2026-10-10T15:00:00Z");
 
-    const aulas: [string | undefined, string, number][] = [
+    const aulas: [AulaId | undefined, string, number][] = [
       [vista.aulas[0], "2026-10-01T14:00:00Z", 400],
       [depois.aulas[0], "2026-09-21T14:00:00Z", 300],
       [depois.aulas[1], "2026-09-22T14:00:00Z", 280],
@@ -255,7 +260,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await db.insert(aulaAssistida).values(
       aulas.map(([aulaId, iso]) => ({
         assistidaEm: quando(iso),
-        aulaId: aulaId ?? "",
+        aulaId: definido(aulaId),
         userId: TROCADORA,
       }))
     );
@@ -276,12 +281,12 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       userId: TROCADORA,
     });
 
-    const [primeira, segunda] = [crypto.randomUUID(), crypto.randomUUID()];
+    const [primeira, segunda] = [novaTentativaId(), novaTentativaId()];
     await db.insert(questionarioTentativa).values([
       {
         acertos: 2,
         aprovada: false,
-        aulaId: vista.aulas[0] ?? "",
+        aulaId: definido(vista.aulas[0]),
         enviadaEm: quando("2026-10-06T14:00:00Z"),
         id: primeira,
         numero: 1,
@@ -291,7 +296,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       {
         acertos: 3,
         aprovada: true,
-        aulaId: vista.aulas[0] ?? "",
+        aulaId: definido(vista.aulas[0]),
         enviadaEm: quando("2026-10-07T14:00:00Z"),
         id: segunda,
         numero: 2,
@@ -444,6 +449,11 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
       .catch((e: unknown) => e);
 
     expect(erro).toBeInstanceOf(TRPCError);
-    expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
+
+    if (!(erro instanceof TRPCError)) {
+      throw new TypeError("A chamada sem login devia lançar um TRPCError.");
+    }
+
+    expect(erro.code).toBe("UNAUTHORIZED");
   });
 });

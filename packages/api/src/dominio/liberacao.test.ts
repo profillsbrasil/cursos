@@ -8,21 +8,15 @@ import {
   type LinhasDoAcesso,
   montarAcesso,
 } from "./liberacao";
-import type {
-  CursoId,
-  DiaISO,
-  LiberacaoDoPerfilId,
-  LiberacaoId,
-  OrigemDaLiberacao,
-  Pessoa,
-} from "./tipos";
+import { cursoId, diaISO, liberacaoDoPerfilId, liberacaoId } from "./marcas";
+import type { CursoId, OrigemDaLiberacao, Pessoa } from "./tipos";
 
 type LinhaDaPessoa = Extract<LinhaDaLiberacao, { origem: OrigemDaLiberacao }>;
 
-const C1 = "curso-1" as CursoId;
-const C2 = "curso-2" as CursoId;
-const C3 = "curso-3" as CursoId;
-const HOJE = "2026-10-14" as DiaISO;
+const C1 = cursoId("curso-1");
+const C2 = cursoId("curso-2");
+const C3 = cursoId("curso-3");
+const HOJE = diaISO("2026-10-14");
 
 const SEM_HISTORICO: LinhasHistorico = {
   assistidas: [],
@@ -39,7 +33,7 @@ function linha(
 
   return {
     curso: { ...cursoCat(id, { aulas: [1] }), titulo },
-    id: `lib-${id}` as LiberacaoId,
+    id: liberacaoId(`lib-${id}`),
     liberadaEm: new Date("2026-10-01T12:00:00Z"),
     origem: "admin",
     revogadaEm: null,
@@ -69,7 +63,7 @@ describe("acaoNaLiberacao", () => {
 
 const doPerfil = (id: CursoId, titulo: string): LinhaDaLiberacao => ({
   curso: { ...cursoCat(id, { aulas: [1] }), titulo },
-  id: `lp-${id}` as LiberacaoDoPerfilId,
+  id: liberacaoDoPerfilId(`lp-${id}`),
   liberadaEm: new Date("2026-10-02T12:00:00Z"),
   origem: "perfil",
   perfil: "cliente",
@@ -193,7 +187,7 @@ describe("montarAcesso", () => {
       situacao: {
         onde: { aula: 2, modulo: 0 },
         tipo: "estudando",
-        ultimoEstudo: "2026-09-21" as DiaISO,
+        ultimoEstudo: diaISO("2026-09-21"),
       },
     });
   });

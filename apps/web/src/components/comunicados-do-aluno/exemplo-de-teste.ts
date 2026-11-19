@@ -3,7 +3,7 @@ import type {
   ComunicadoDoAluno,
   ComunicadosDoAluno,
 } from "@cursos/api/dominio/comunicado";
-import type { ComunicadoId, DiaISO } from "@cursos/api/dominio/tipos";
+import { comunicadoId, diaISO } from "@cursos/api/dominio/marcas";
 
 const curso = (slug: string, titulo: string): AlvoDoComunicado => ({
   capa: {
@@ -30,8 +30,8 @@ const comunicado = (
   texto: string
 ): ComunicadoDoAluno => ({
   alvo,
-  dia: dia as DiaISO,
-  id: id as ComunicadoId,
+  dia: diaISO(dia),
+  id: comunicadoId(id),
   publicadoEm: `${dia}T13:00:00.000Z`,
   publicadoPor,
   texto,

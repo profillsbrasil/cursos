@@ -22,12 +22,7 @@ import {
   resultadoDaTentativa,
   type TentativaGravada,
 } from "../dominio/questionario";
-import type {
-  AlternativaId,
-  AulaId,
-  PerguntaId,
-  TentativaId,
-} from "../dominio/tipos";
+import type { AulaId, TentativaId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { linhasDoCurso } from "./aula";
 import { type Conclusao, concluirCurso } from "./certificado";
@@ -59,12 +54,12 @@ export async function perguntasDaAula(
 
     return {
       alternativas: p.alternativas.map((a) => ({
-        id: a.id as AlternativaId,
+        id: a.id,
         texto: a.texto,
       })),
-      certa: certa.id as AlternativaId,
+      certa: certa.id,
       enunciado: p.enunciado,
-      id: p.id as PerguntaId,
+      id: p.id,
     };
   });
 }

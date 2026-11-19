@@ -10,7 +10,17 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehQualquer,
+  ehTexto,
+  type Predicado,
+} from "../../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "concessao-de-pontos.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-concessao-falso.js");
@@ -109,7 +119,12 @@ interface Botao {
   texto: string;
 }
 
-const botao = () => avaliar<Botao>(enviar, "window.botao()");
+const ehBotao: Predicado<Botao> = ehObjeto({
+  desligado: ehBooleano,
+  texto: ehTexto,
+});
+
+const botao = () => avaliarComo(enviar, "window.botao()", ehBotao);
 
 const rodar = (codigo: string) =>
   avaliar(enviar, `(async () => { ${codigo} })()`);
@@ -156,16 +171,19 @@ describe.skipIf(!existsSync(CHROMIUM))("concessão de pontos no browser", () => 
       document.querySelector('button[type="submit"]').click();
       await esperar(100);
     `);
-    expect(await avaliar<number>(enviar, "window.chamadas.length")).toBe(0);
+    expect(await avaliarComo(enviar, "window.chamadas.length", ehNumero)).toBe(
+      0
+    );
   });
 
   test("o campo Pontos só aparece com Outro valor e aceita 3.000 e 3000", async () => {
     await abrir();
 
     const temCampo = () =>
-      avaliar<boolean>(
+      avaliarComo(
         enviar,
-        `Boolean(document.querySelector('input[name="quantidade"]'))`
+        `Boolean(document.querySelector('input[name="quantidade"]'))`,
+        ehBooleano
       );
 
     expect(await temCampo()).toBe(false);
@@ -219,7 +237,9 @@ describe.skipIf(!existsSync(CHROMIUM))("concessão de pontos no browser", () => 
       document.querySelector('button[type="submit"]').click();
       await esperar(300);
     `);
-    expect(await avaliar<unknown[]>(enviar, "window.chamadas")).toEqual([
+    expect(
+      await avaliarComo(enviar, "window.chamadas", ehLista(ehQualquer))
+    ).toEqual([
       { motivo: "Campanha de vendas", pontos: 3000, userId: "user_1" },
     ]);
     expect(await botao()).toEqual({
@@ -227,9 +247,10 @@ describe.skipIf(!existsSync(CHROMIUM))("concessão de pontos no browser", () => 
       texto: "Escolha o valor",
     });
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `document.querySelector('input[name="motivo"]').value`
+        `document.querySelector('input[name="motivo"]').value`,
+        ehTexto
       )
     ).toBe("");
     await rodar(`clicar("500"); await esperar(0);`);

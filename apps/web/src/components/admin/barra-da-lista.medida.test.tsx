@@ -15,7 +15,14 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehNumero,
+  ehObjeto,
+  ouNulo,
+  type Predicado,
+} from "../predicados.test-utils";
 import { abasDasLiberacoes } from "./abas-das-liberacoes";
 import { BarraDaLista, contagemDePessoas } from "./barra-da-lista";
 import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./pessoas/perfis";
@@ -127,6 +134,14 @@ interface Medida {
   sobra: number;
 }
 
+const ehMedida: Predicado<Medida> = ehObjeto({
+  altura: ehNumero,
+  alturaDoEsqueleto: ehNumero,
+  busca: ouNulo(ehNumero),
+  contagem: ehNumero,
+  sobra: ehNumero,
+});
+
 async function medir(tela: keyof typeof TELAS, largura: number) {
   const { esqueleto, pronta } = TELAS[tela];
   await avaliar(
@@ -136,7 +151,7 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
     )}); document.close();`
   );
 
-  return await avaliar<Medida>(
+  return await avaliarComo(
     enviar,
     `new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => {
       const barra = document.querySelector("#pronta").firstElementChild;
@@ -148,7 +163,8 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
         busca: busca ? busca.getBoundingClientRect().width : null,
         sobra: barra.scrollWidth - barra.clientWidth,
       });
-    })))`
+    })))`,
+    ehMedida
   );
 }
 

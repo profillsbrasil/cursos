@@ -15,7 +15,16 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { ALUNA, NOVO } from "./exemplo-de-teste";
 import { pontoNaTrilha } from "./geometria";
 import { TelaDeConquistas } from "./tela-de-conquistas";
@@ -74,24 +83,26 @@ interface Caixa {
   topo: number;
 }
 
+const ehCaixa: Predicado<Caixa> = ehObjeto({
+  altura: ehNumero,
+  baixo: ehNumero,
+  direita: ehNumero,
+  esquerda: ehNumero,
+  largura: ehNumero,
+  topo: ehNumero,
+});
+
 const CAIXA = `const caixa = (el) => {
   const r = el.getBoundingClientRect();
   return { altura: r.height, baixo: r.bottom, direita: r.right, esquerda: r.left, largura: r.width, topo: r.top };
 };`;
 
-const medir = <T,>(corpo: string) =>
-  avaliar<T>(enviar, `(() => { ${CAIXA} ${corpo} })()`);
+const medir = <T,>(corpo: string, eh: Predicado<T>) =>
+  avaliarComo(enviar, `(() => { ${CAIXA} ${corpo} })()`, eh);
 
 const trilha = () =>
-  medir<{
-    cartao: Caixa;
-    haste: Caixa;
-    medalhas: Caixa[];
-    ponto: Caixa;
-    preenchido: Caixa;
-    trilho: Caixa;
-    voce: Caixa;
-  }>(`
+  medir(
+    `
     const t = document.querySelector("[data-trilha]");
     const trilho = t.querySelector("[data-trilho]");
     return {
@@ -103,19 +114,24 @@ const trilha = () =>
       trilho: caixa(trilho),
       voce: caixa(t.querySelector("[data-voce]")),
     };
-  `);
+  `,
+    ehObjeto({
+      cartao: ehCaixa,
+      haste: ehCaixa,
+      medalhas: ehLista(ehCaixa),
+      ponto: ehCaixa,
+      preenchido: ehCaixa,
+      trilho: ehCaixa,
+      voce: ehCaixa,
+    })
+  );
 
 const centro = (c: Caixa) => c.esquerda + c.largura / 2;
 const meio = (c: Caixa) => c.topo + c.altura / 2;
 
 const semana = () =>
-  medir<{
-    circulos: Caixa[];
-    faixa: Caixa;
-    fins: Caixa[];
-    lista: Caixa;
-    texto: Caixa;
-  }>(`
+  medir(
+    `
     const faixa = document.querySelector("[data-sequencia]");
     return {
       circulos: [...faixa.querySelectorAll("[data-dia]")].map(caixa),
@@ -124,18 +140,19 @@ const semana = () =>
       lista: caixa(faixa.querySelector("ul")),
       texto: caixa(faixa.querySelector("h3").parentElement),
     };
-  `);
+  `,
+    ehObjeto({
+      circulos: ehLista(ehCaixa),
+      faixa: ehCaixa,
+      fins: ehLista(ehCaixa),
+      lista: ehCaixa,
+      texto: ehCaixa,
+    })
+  );
 
 const fimsDeSemana = () =>
-  medir<
-    {
-      contraste: number;
-      fonte: number;
-      rotate: string;
-      transform: string;
-      writingMode: string;
-    }[]
-  >(`
+  medir(
+    `
     const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
     const rgb = (cor) => {
       ctx.clearRect(0, 0, 1, 1);
@@ -165,28 +182,38 @@ const fimsDeSemana = () =>
         writingMode: s.writingMode,
       };
     });
-  `);
+  `,
+    ehLista(
+      ehObjeto({
+        contraste: ehNumero,
+        fonte: ehNumero,
+        rotate: ehTexto,
+        transform: ehTexto,
+        writingMode: ehTexto,
+      })
+    )
+  );
 
 const gradeMedida = () =>
-  medir<{ cartoes: Caixa[]; ganhas: Caixa[]; medalhas: Caixa[] }>(`
+  medir(
+    `
     const cartoes = [...document.querySelectorAll("[data-por-ganhar]")];
     return {
       cartoes: cartoes.map(caixa),
       ganhas: [...document.querySelectorAll("[data-ganhas] [data-medalha]")].map(caixa),
       medalhas: cartoes.map((c) => caixa(c.querySelector("[data-medalha]"))),
     };
-  `);
+  `,
+    ehObjeto({
+      cartoes: ehLista(ehCaixa),
+      ganhas: ehLista(ehCaixa),
+      medalhas: ehLista(ehCaixa),
+    })
+  );
 
 const cartoes = () =>
-  medir<
-    {
-      cartao: Caixa;
-      capa: Caixa;
-      cabe: boolean;
-      grade: Caixa;
-      lacre: Caixa;
-    }[]
-  >(`
+  medir(
+    `
     return [...document.querySelectorAll('[aria-labelledby="conquistas-certificados"] ol > li > a')].map((a) => ({
       cartao: caixa(a),
       capa: caixa(a.firstElementChild),
@@ -194,12 +221,23 @@ const cartoes = () =>
       grade: caixa(a.closest("ol")),
       lacre: caixa(a.querySelector("[data-medalha]")),
     }));
-  `);
+  `,
+    ehLista(
+      ehObjeto({
+        cabe: ehBooleano,
+        capa: ehCaixa,
+        cartao: ehCaixa,
+        grade: ehCaixa,
+        lacre: ehCaixa,
+      })
+    )
+  );
 
 const rolaDeLado = () =>
-  avaliar<boolean>(
+  avaliarComo(
     enviar,
-    "document.documentElement.scrollWidth > document.documentElement.clientWidth"
+    "document.documentElement.scrollWidth > document.documentElement.clientWidth",
+    ehBooleano
   );
 
 const FOTOS = process.env.FOTOS_DAS_CONQUISTAS;
@@ -209,12 +247,13 @@ async function foto(nome: string) {
     return;
   }
 
-  const altura = await avaliar<number>(
+  const altura = await avaliarComo(
     enviar,
-    "document.documentElement.scrollHeight"
+    "document.documentElement.scrollHeight",
+    ehNumero
   );
 
-  const largura = await avaliar<number>(enviar, "window.innerWidth");
+  const largura = await avaliarComo(enviar, "window.innerWidth", ehNumero);
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
     height: altura,
@@ -222,9 +261,9 @@ async function foto(nome: string) {
     width: largura,
   });
 
-  const { data } = (await enviar("Page.captureScreenshot", {
+  const { data } = await enviar("Page.captureScreenshot", {
     format: "png",
-  })) as { data: string };
+  });
 
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
@@ -312,8 +351,9 @@ describe.skipIf(!existsSync(CHROMIUM))("a tela Conquistas medida", () => {
       test(`${largura} px, ${nome}: as metas das três medalhas ficam na mesma altura, com ou sem legenda`, async () => {
         await abrir(largura, html);
 
-        const metas = await medir<number[]>(
-          `return [...document.querySelectorAll("[data-trilha] ol > li > span:last-child")].map((s) => caixa(s).topo);`
+        const metas = await medir(
+          `return [...document.querySelectorAll("[data-trilha] ol > li > span:last-child")].map((s) => caixa(s).topo);`,
+          ehLista(ehNumero)
         );
 
         expect(metas).toHaveLength(3);

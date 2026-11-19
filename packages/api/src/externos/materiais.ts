@@ -13,7 +13,7 @@ import {
   type TipoDoMaterial,
   tipoDoNome,
 } from "../dominio/material";
-import { type BucketDeCapas, bucketAssinado } from "./capas";
+import { type BucketDeCapas, bucketAssinado, type Enviar } from "./capas";
 
 export type BucketDeMateriais = BucketDeCapas;
 
@@ -88,7 +88,11 @@ export function lerMaterial(
     return recusa(antes);
   }
 
-  const tipo = tipoDoNome(nome) as TipoDoMaterial;
+  const tipo = tipoDoNome(nome);
+
+  if (tipo === null) {
+    return recusa({ tipo: "formato" });
+  }
 
   if (!confirmaOTipo(bytes, tipo)) {
     return recusa({ esperado: tipo, tipo: "assinatura" });
@@ -122,7 +126,7 @@ export function lerMaterial(
  */
 export function materiaisNoBucket(
   cfg: BucketDeMateriais,
-  enviar: typeof fetch = fetch
+  enviar: Enviar = fetch
 ): Materiais {
   const bucket = bucketAssinado(cfg, enviar);
 

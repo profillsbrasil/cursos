@@ -5,7 +5,6 @@ import type {
   PaginaDoCurso,
 } from "@cursos/api/dominio/pagina-do-curso";
 import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
-import type { Route } from "next";
 
 import {
   diaCurto,
@@ -16,7 +15,7 @@ import {
   minutos,
   plural,
 } from "@/lib/formato";
-import { caminhoDoCertificado } from "@/lib/rotas";
+import { caminhoDoCertificado, type Endereco } from "@/lib/rotas";
 
 export const paragrafos = (descricao: string): string[] =>
   descricao
@@ -196,14 +195,14 @@ export type IconeDoCartao =
   | "relogio";
 
 export interface LinhaDoCartao {
-  href?: Route;
+  href?: Endereco;
   icone: IconeDoCartao;
   texto: string;
 }
 
 export interface CartaoDoCurso {
   botao: {
-    href: Route;
+    href: Endereco;
     icone: "play" | "questionario" | "rever";
     texto: string;
     variante: "contorno" | "principal";
@@ -256,7 +255,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
 
       return {
         botao: {
-          href: acao.href as Route,
+          href: acao.href,
           icone: "play",
           texto: "Começar curso",
           variante: "principal",
@@ -283,7 +282,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
 
       return {
         botao: {
-          href: acao.href as Route,
+          href: acao.href,
           icone: "play",
           texto:
             acao.posicaoSeg > 0
@@ -313,7 +312,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
 
       return {
         botao: {
-          href: acao.href as Route,
+          href: acao.href,
           icone: "questionario",
           texto: acao.ultima ? "Tentar de novo" : "Fazer o questionário",
           variante: "principal",
@@ -348,7 +347,7 @@ export function cartaoDoCurso(p: PaginaDoCurso, hoje: DiaISO): CartaoDoCurso {
 
       return {
         botao: {
-          href: acao.href as Route,
+          href: acao.href,
           icone: "rever",
           texto: "Rever o curso",
           variante: "principal",

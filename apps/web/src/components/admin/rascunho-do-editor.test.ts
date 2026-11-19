@@ -11,11 +11,17 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
+import {
+  alternativaId,
+  ehAulaId,
+  ehVersao,
+  marcar,
+  moduloId,
+  perguntaId,
+} from "@cursos/api/dominio/marcas";
 import type {
   AlternativaId,
   AulaId,
-  CategoriaId,
-  ModuloId,
   PerguntaId,
   Versao,
 } from "@cursos/api/dominio/tipos";
@@ -54,8 +60,8 @@ const lerRascunho = (r: RascunhoDoCurso) =>
   lerRascunhoSalvo(r, { versao: null });
 
 const { A1, A2, A3, M1, M2 } = EDICAO;
-const M3 = uuidDeExemplo(13) as ModuloId;
-const A4 = uuidDeExemplo(24) as AulaId;
+const M3 = moduloId(uuidDeExemplo(13));
+const A4 = marcar(ehAulaId, uuidDeExemplo(24));
 
 const exemplo = () => rascunhoDoCurso(documentoDeExemplo());
 
@@ -74,7 +80,7 @@ const problemas = (r: RascunhoDoCurso) => {
   return lido.tipo === "problemas" ? lido.problemas : [];
 };
 
-const V1 = "v1" as Versao;
+const V1 = marcar(ehVersao, "v1");
 
 const documento = (o: Partial<DocumentoDoCurso> = {}): DocumentoDoCurso => ({
   ...documentoDeExemplo(V1),
@@ -413,7 +419,7 @@ describe("lerRascunho: toda recusa do schema aparece", () => {
 
   test("curso sem categoria marca o select da categoria", () => {
     const r = mudar(exemplo(), {
-      mudanca: { categoriaId: "" as CategoriaId },
+      mudanca: { categoriaId: null },
       tipo: "campos",
     });
 
@@ -714,13 +720,13 @@ describe("nenhum erro fica num bloco fechado", () => {
 });
 
 describe("questionário da aula", () => {
-  const P1 = uuidDeExemplo(41) as PerguntaId;
-  const P2 = uuidDeExemplo(42) as PerguntaId;
-  const X1 = uuidDeExemplo(51) as AlternativaId;
-  const X2 = uuidDeExemplo(52) as AlternativaId;
-  const X3 = uuidDeExemplo(53) as AlternativaId;
-  const Y1 = uuidDeExemplo(61) as AlternativaId;
-  const Y2 = uuidDeExemplo(62) as AlternativaId;
+  const P1 = perguntaId(uuidDeExemplo(41));
+  const P2 = perguntaId(uuidDeExemplo(42));
+  const X1 = alternativaId(uuidDeExemplo(51));
+  const X2 = alternativaId(uuidDeExemplo(52));
+  const X3 = alternativaId(uuidDeExemplo(53));
+  const Y1 = alternativaId(uuidDeExemplo(61));
+  const Y2 = alternativaId(uuidDeExemplo(62));
 
   const nova = (
     aulaId: AulaId,
@@ -776,7 +782,7 @@ describe("questionário da aula", () => {
     const cheia = [54, 55, 56].reduce(
       (acc, n) =>
         mudar(acc, {
-          id: uuidDeExemplo(n) as AlternativaId,
+          id: alternativaId(uuidDeExemplo(n)),
           perguntaId: P1,
           tipo: "alternativa_nova",
         }),
@@ -920,13 +926,13 @@ describe("questionário da aula", () => {
 
     expect(painel(escolhido, A1)).toEqual([A2, P1]);
 
-    const P3 = uuidDeExemplo(43) as PerguntaId;
+    const P3 = perguntaId(uuidDeExemplo(43));
 
     const comNova = fazer(
       escolhido,
       nova(A1, P3, [
-        uuidDeExemplo(71) as AlternativaId,
-        uuidDeExemplo(72) as AlternativaId,
+        alternativaId(uuidDeExemplo(71)),
+        alternativaId(uuidDeExemplo(72)),
       ])
     );
 
@@ -1041,8 +1047,8 @@ describe("questionário da aula", () => {
 });
 
 describe("o rascunho apoiado na página", () => {
-  const V2 = "v2" as Versao;
-  const V3 = "v3" as Versao;
+  const V2 = marcar(ehVersao, "v2");
+  const V3 = marcar(ehVersao, "v3");
 
   const digitar = (titulo: string): Mudanca => ({
     mudanca: { titulo },

@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
 import type { ComunicadoNaTela } from "@cursos/api/dominio/comunicado";
-import type { ComunicadoId } from "@cursos/api/dominio/tipos";
+import { comunicadoId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const navegacaoComOUseRouterSubstituido = await import("next/navigation");
@@ -25,7 +25,7 @@ const comunicado = (
   publicadoPor: string | null
 ): ComunicadoNaTela => ({
   curso: null,
-  id: id as ComunicadoId,
+  id: comunicadoId(id),
   publicadoEm: "2026-10-01T12:00:00.000Z",
   publicadoPor,
   texto: "Texto",

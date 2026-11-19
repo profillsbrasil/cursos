@@ -14,6 +14,7 @@ import type { MotivoPonto } from "./pontos";
 import { META_SEQUENCIA, PONTOS } from "./regras";
 import { diaLocal, ehDiaUtil, sequenciaDiasUteis } from "./sequencia";
 import {
+  type AulaId,
   type Capa,
   type CursoId,
   capaDe,
@@ -51,14 +52,14 @@ export interface LinhasDasConquistas {
   assistidas: readonly {
     assistidaEm: Date;
     aula: string;
-    aulaId: string;
+    aulaId: AulaId;
     curso: string;
   }[];
   /** Todo certificado, também de curso revogado. */
   certificados: readonly {
     codigo: string;
     curso: LinhaDaCapa & { slug: string; titulo: string };
-    cursoId: string;
+    cursoId: CursoId;
     emitidoEm: Date;
     /** A soma dos vídeos congelada na emissão, a mesma da folha. */
     segundosDeVideo: number;
@@ -67,14 +68,14 @@ export interface LinhasDasConquistas {
    * As entradas de estudo somadas por dia de São Paulo: os lançamentos positivos
    * fora de FORA_DOS_PONTOS_DA_SEMANA, sem o bônus e sem a concessão.
    */
-  estudoPorDia: readonly { dia: string; pontos: number }[];
+  estudoPorDia: readonly { dia: DiaISO; pontos: number }[];
   /**
    * Os lançamentos de sequência e de troca. Na troca, `cursoId` é o curso da
    * liberação; na sequência, null.
    */
   lancamentos: readonly {
     criadoEm: Date;
-    cursoId: string | null;
+    cursoId: CursoId | null;
     motivo: MotivoPonto;
   }[];
   liberacoes: LinhasPainel["liberacoes"];
@@ -219,7 +220,7 @@ type Lancamento = LinhasDasConquistas["lancamentos"][number];
 
 interface Troca {
   criadoEm: Date;
-  cursoId: string;
+  cursoId: CursoId;
 }
 
 function certificados(
@@ -235,7 +236,7 @@ function certificados(
       codigo: c.codigo,
       curso: {
         capa: capaDe(c.curso),
-        id: c.cursoId as CursoId,
+        id: c.cursoId,
         slug: c.curso.slug,
         titulo: c.curso.titulo,
       },
@@ -324,11 +325,11 @@ function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
     .sort((a, b) => a.criadoEm.getTime() - b.criadoEm.getTime());
 }
 
-function contagem<T extends "tres_trocas" | "tres_cursos">(
-  tipo: T,
+function contagem(
+  tipo: "tres_trocas" | "tres_cursos",
   datas: readonly Date[],
   total: number
-): Extract<MedalhaDaGrade, { tipo: T }> {
+): MedalhaDaGrade {
   const ordenadas = [...datas].sort((a, b) => a.getTime() - b.getTime());
   const aDaMeta = ordenadas[total - 1];
 
@@ -342,7 +343,7 @@ function contagem<T extends "tres_trocas" | "tres_cursos">(
           total,
         },
     tipo,
-  } as Extract<MedalhaDaGrade, { tipo: T }>;
+  };
 }
 
 function primeiraAula(
@@ -619,7 +620,7 @@ function milPontos(
 
     if (soma >= META_DE_PONTOS_DE_ESTUDO) {
       return {
-        medalha: { dia: d.dia as DiaISO, estado: "ganha" },
+        medalha: { dia: d.dia, estado: "ganha" },
         tipo: "mil_pontos",
       };
     }

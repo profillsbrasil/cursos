@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { CursoId, DiaISO } from "./tipos";
+import { cursoId, diaISO } from "./marcas";
 import {
   type Acesso,
   type CursoDaTroca,
@@ -13,7 +13,7 @@ import {
   temCursoTrocavelNaVitrine,
 } from "./troca";
 
-const HOJE = "2026-10-07" as DiaISO;
+const HOJE = diaISO("2026-10-07");
 
 const TROCADO: Acesso = {
   lancamentoId: "lanc-1",
@@ -27,7 +27,7 @@ const curso = (mudar: Partial<CursoDaTroca> = {}): CursoDaTroca => ({
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/bpf.jpg" },
   categoria: "Processo de envase",
   duracaoSeg: 2400,
-  id: "c-1" as CursoId,
+  id: cursoId("c-1"),
   precoTroca: 500,
   slug: "bpf",
   status: "publicado",
@@ -155,7 +155,7 @@ const linha = (
   capaLargura: 1280,
   capaUrl: "/capas/bpf.jpg",
   categoria: { nome: "Processo de envase" },
-  id: "c-1",
+  id: cursoId("c-1"),
   liberacoes: [],
   modulos: [
     { aulas: [{ duracaoSeg: 600 }, { duracaoSeg: 300 }] },
@@ -240,17 +240,17 @@ describe("montarPainelDeTroca", () => {
     const painel = montarPainelDeTroca(
       {
         cursos: [
-          curso({ id: "caro" as CursoId, precoTroca: 1000, titulo: "Caro" }),
-          curso({ id: "b" as CursoId, precoTroca: 300, titulo: "Bê" }),
+          curso({ id: cursoId("caro"), precoTroca: 1000, titulo: "Caro" }),
+          curso({ id: cursoId("b"), precoTroca: 300, titulo: "Bê" }),
           curso({
             acesso: TROCADO,
-            id: "trocado" as CursoId,
+            id: cursoId("trocado"),
             precoTroca: 2000,
             titulo: "Trocado",
           }),
-          curso({ id: "a" as CursoId, precoTroca: 300, titulo: "Á" }),
-          curso({ id: "fora" as CursoId, precoTroca: null }),
-          curso({ acesso: { tipo: "liberado" }, id: "tem" as CursoId }),
+          curso({ id: cursoId("a"), precoTroca: 300, titulo: "Á" }),
+          curso({ id: cursoId("fora"), precoTroca: null }),
+          curso({ acesso: { tipo: "liberado" }, id: cursoId("tem") }),
         ],
         extrato: [],
         pontos: { entradasDaSemana: 40, saldo: 410 },

@@ -13,14 +13,11 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import type {
-  AdminId,
-  Conta,
-  CursoId,
-  LiberacaoDoPerfilId,
-} from "../dominio/tipos";
+import { ehCursoId, ehLiberacaoDoPerfilId, marcar } from "../dominio/marcas";
+import type { Conta, CursoId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { apagarCurso } from "./edicao-do-curso";
 import { liberarParaPerfil, revogarDoPerfil } from "./liberacao-do-perfil";
@@ -30,7 +27,7 @@ const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
 const AGORA = new Date("2026-10-20T13:00:00Z");
-const ADMIN = "user_admin" as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", "user_admin"));
 
 const conta = (email: string | null, emailVerificado = true): Conta => ({
   criadaEm: AGORA,
@@ -243,7 +240,7 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
 
 describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function cursoDeTeste(): Promise<CursoId> {
     const s = hex();
@@ -269,7 +266,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
 
     cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   const ativasDe = (cursoId: CursoId) =>
@@ -337,7 +334,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
       db,
       ADMIN,
       "cliente",
-      "00000000-0000-4000-8000-000000000000" as CursoId,
+      marcar(ehCursoId, "00000000-0000-4000-8000-000000000000"),
       AGORA
     );
 
@@ -379,7 +376,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
       await revogarDoPerfil(
         db,
         ADMIN,
-        "00000000-0000-4000-8000-000000000000" as LiberacaoDoPerfilId,
+        marcar(ehLiberacaoDoPerfilId, "00000000-0000-4000-8000-000000000000"),
         AGORA
       )
     ).toEqual({ revogada: false });

@@ -6,7 +6,7 @@ import {
   perguntaDeExemplo,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { AlternativaId, PerguntaId } from "@cursos/api/dominio/tipos";
+import { alternativaId, perguntaId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ErrosDoEditor } from "./erros-do-editor";
@@ -18,9 +18,9 @@ const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
 const pergunta = (n: number) =>
-  perguntaDeExemplo(uuidDeExemplo(40 + n) as PerguntaId, [
-    uuidDeExemplo(50 + n) as AlternativaId,
-    uuidDeExemplo(60 + n) as AlternativaId,
+  perguntaDeExemplo(perguntaId(uuidDeExemplo(40 + n)), [
+    alternativaId(uuidDeExemplo(50 + n)),
+    alternativaId(uuidDeExemplo(60 + n)),
   ]);
 
 const aulaCom = (perguntas: number) => ({
@@ -66,7 +66,7 @@ describe("questionário da aula", () => {
     const letra = (n: number) =>
       html.match(
         new RegExp(
-          `<input[^>]*id="${ID.alternativa(uuidDeExemplo(n) as AlternativaId)}-letra"[^>]*>`
+          `<input[^>]*id="${ID.alternativa(alternativaId(uuidDeExemplo(n)))}-letra"[^>]*>`
         )
       )?.[0] ?? "";
 
@@ -85,7 +85,7 @@ describe("questionário da aula", () => {
   });
 
   test("o erro do grupo das letras aparece sob as alternativas e na lista", () => {
-    const grupo = ID.pergunta(uuidDeExemplo(41) as PerguntaId, "alternativas");
+    const grupo = ID.pergunta(perguntaId(uuidDeExemplo(41)), "alternativas");
     const html = render(2, new Map([[grupo, "Marque a alternativa certa."]]));
     expect(html).toContain(`id="${grupo}" role="radiogroup"`);
     expect(html).toContain(`aria-invalid="true" aria-labelledby`);

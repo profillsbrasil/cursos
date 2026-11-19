@@ -22,6 +22,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { FORMATO_DO_CODIGO } from "../dominio/certificado";
 import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
 import {
@@ -29,14 +30,22 @@ import {
   formularioDoCurso,
 } from "../dominio/edicao-do-curso";
 import { estudoDe } from "../dominio/historico";
+import {
+  ehAlternativaId,
+  ehAulaId,
+  ehCursoId,
+  ehModuloId,
+  ehPerguntaId,
+  ehTentativaId,
+  marcar,
+  videoId,
+} from "../dominio/marcas";
 import type {
   AlternativaId,
   AulaId,
   CategoriaId,
   CursoId,
-  ModuloId,
   PerguntaId,
-  TentativaId,
 } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import { createCaller } from "../routers/index";
@@ -70,7 +79,7 @@ const recusa = (p: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
   const alunos: string[] = [];
   let categoriaId: CategoriaId;
 
@@ -161,10 +170,10 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         .insert(aula)
         .values({
           duracaoSeg: 600,
-          moduloId: m?.id ?? "",
+          moduloId: definido(m?.id),
           posicao: i + 1,
           titulo: `Aula ${i + 1}`,
-          videoId: "aqz-KE-bpKQ",
+          videoId: videoId("aqz-KE-bpKQ"),
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
@@ -176,7 +185,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         const [pg] = await db
           .insert(pergunta)
           .values({
-            aulaId: a?.id ?? "",
+            aulaId: definido(a?.id),
             enunciado: `Pergunta ${p}`,
             posicao: p,
           })
@@ -187,29 +196,29 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
           .values(
             [1, 2, 3].map((k) => ({
               certa: k === 2,
-              perguntaId: pg?.id ?? "",
+              perguntaId: definido(pg?.id),
               posicao: k,
               texto: `Alternativa ${k}`,
             }))
           )
           .returning({ id: alternativa.id });
 
-        const ids = alts.map((x) => x.id as AlternativaId);
+        const ids = alts.map((x) => x.id);
         perguntas.push({
           alternativas: ids,
-          certa: ids[1] as AlternativaId,
-          id: pg?.id as PerguntaId,
+          certa: definido(ids[1]),
+          id: definido(pg?.id),
         });
         // oxlint-enable no-await-in-loop
       }
 
-      aulas.push({ id: a?.id as AulaId, perguntas });
+      aulas.push({ id: definido(a?.id), perguntas });
     }
 
-    return { aulas, id: c.id as CursoId, slug };
+    return { aulas, id: c.id, slug };
   }
 
-  const liberar = (userId: string, cursoId: string) =>
+  const liberar = (userId: string, cursoId: CursoId) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
@@ -225,8 +234,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
 
   const respostas = (a: AulaPlantada, acertos: number) =>
     a.perguntas.map((p, i) => ({
-      alternativaId:
-        i < acertos ? p.certa : (p.alternativas[0] as AlternativaId),
+      alternativaId: i < acertos ? p.certa : definido(p.alternativas[0]),
       perguntaId: p.id,
     }));
 
@@ -234,7 +242,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     userId: string,
     a: AulaPlantada,
     acertos: number,
-    tentativaId = randomUUID() as TentativaId
+    tentativaId = marcar(ehTentativaId, randomUUID())
   ) =>
     comoAluno(userId).questionario.responder({
       aulaId: a.id,
@@ -388,7 +396,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
 
     const aluno = novoAluno();
     await liberar(aluno, c.id);
-    const id = randomUUID() as TentativaId;
+    const id = marcar(ehTentativaId, randomUUID());
 
     const primeira = await enviar(aluno, a1, 2, id);
     const repetida = await enviar(aluno, a1, 0, id);
@@ -419,7 +427,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     const outra = novoAluno();
     await liberar(dona, c.id);
     await liberar(outra, c.id);
-    const id = randomUUID() as TentativaId;
+    const id = marcar(ehTentativaId, randomUUID());
     const daDona = await enviar(dona, a1, 2, id);
 
     const esperado = {
@@ -622,13 +630,13 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   });
 
   test("a edição do admin que tira a pergunta pendente conclui o curso de quem já assistiu a tudo", async () => {
-    const aulaId = randomUUID() as AulaId;
-    const perguntaId = randomUUID() as PerguntaId;
+    const aulaId = marcar(ehAulaId, randomUUID());
+    const perguntaId = marcar(ehPerguntaId, randomUUID());
 
     const documento: DocumentoDoCurso = {
       categoriaId,
       descricao: "",
-      id: randomUUID() as CursoId,
+      id: marcar(ehCursoId, randomUUID()),
       materiais: [],
       modulos: [
         {
@@ -642,12 +650,12 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
                   alternativas: [
                     {
                       certa: false,
-                      id: randomUUID() as AlternativaId,
+                      id: marcar(ehAlternativaId, randomUUID()),
                       texto: "A",
                     },
                     {
                       certa: true,
-                      id: randomUUID() as AlternativaId,
+                      id: marcar(ehAlternativaId, randomUUID()),
                       texto: "B",
                     },
                   ],
@@ -659,7 +667,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
               video: null,
             },
           ],
-          id: randomUUID() as ModuloId,
+          id: marcar(ehModuloId, randomUUID()),
           nivelOrdem: null,
           numero: 1,
           titulo: "Módulo",
@@ -705,14 +713,14 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   });
 
   test("a aula com tentativa não se apaga pelo editor, e a pergunta respondida sim, sem perder a aprovação", async () => {
-    const aulaId = randomUUID() as AulaId;
-    const p1 = randomUUID() as PerguntaId;
-    const certa = randomUUID() as AlternativaId;
+    const aulaId = marcar(ehAulaId, randomUUID());
+    const p1 = marcar(ehPerguntaId, randomUUID());
+    const certa = marcar(ehAlternativaId, randomUUID());
 
     const documento: DocumentoDoCurso = {
       categoriaId,
       descricao: "",
-      id: randomUUID() as CursoId,
+      id: marcar(ehCursoId, randomUUID()),
       materiais: [],
       modulos: [
         {
@@ -726,7 +734,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
                   alternativas: [
                     {
                       certa: false,
-                      id: randomUUID() as AlternativaId,
+                      id: marcar(ehAlternativaId, randomUUID()),
                       texto: "A",
                     },
                     { certa: true, id: certa, texto: "B" },
@@ -741,13 +749,13 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
             {
               descricao: "",
               duracaoSeg: 600,
-              id: randomUUID() as AulaId,
+              id: marcar(ehAulaId, randomUUID()),
               perguntas: [],
               titulo: "Aula sem questionário",
               video: null,
             },
           ],
-          id: randomUUID() as ModuloId,
+          id: marcar(ehModuloId, randomUUID()),
           nivelOrdem: null,
           numero: 1,
           titulo: "Módulo",

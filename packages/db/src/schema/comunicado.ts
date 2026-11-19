@@ -1,13 +1,16 @@
 import { index, text, uuid } from "drizzle-orm/pg-core";
 
+import type { ComunicadoId, CursoId } from "../marcas";
 import { curso } from "./catalogo";
 import { momento, tabela } from "./comum";
 
 export const comunicado = tabela(
   "comunicado",
   {
-    cursoId: uuid().references(() => curso.id, { onDelete: "cascade" }),
-    id: uuid().primaryKey().defaultRandom(),
+    cursoId: uuid()
+      .references(() => curso.id, { onDelete: "cascade" })
+      .$type<CursoId>(),
+    id: uuid().primaryKey().defaultRandom().$type<ComunicadoId>(),
     publicadoEm: momento(),
     publicadoPor: text().notNull(),
     texto: text().notNull(),

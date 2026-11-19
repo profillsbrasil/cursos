@@ -45,7 +45,12 @@ describe("registrarErroInterno no fetchRequestHandler", () => {
     expect(log).toHaveBeenCalledTimes(1);
     const [linha, erro] = log.mock.calls[0] ?? [];
     expect(linha).toBe("tRPC quebra INTERNAL_SERVER_ERROR");
-    expect((erro as TRPCError).cause?.message).toBe(
+
+    if (!(erro instanceof TRPCError)) {
+      throw new TypeError("O log devia receber um TRPCError.");
+    }
+
+    expect(erro.cause?.message).toBe(
       "violou aula_assistida_aula_id_aula_id_fkey"
     );
   });

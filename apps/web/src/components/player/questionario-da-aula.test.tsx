@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
+import { aulaId } from "@cursos/api/dominio/marcas";
 import type { QuestionarioDaAula as Questionario } from "@cursos/api/dominio/questionario";
-import type { AulaId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import {
@@ -28,10 +28,10 @@ mock.module("next/navigation", () => ({
 const { QuestionarioDaAula, Resultado } =
   await import("./questionario-da-aula");
 
-const AULA = "00000000-0000-4000-8000-00000000aaaa" as AulaId;
+const AULA = aulaId("00000000-0000-4000-8000-00000000aaaa");
 
 const PROXIMA = {
-  id: "00000000-0000-4000-8000-00000000bbbb" as AulaId,
+  id: aulaId("00000000-0000-4000-8000-00000000bbbb"),
   titulo: "Responsabilidades do cliente",
 };
 

@@ -1,9 +1,9 @@
 import { describe, expect, mock, test } from "bun:test";
 
-import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
+import { rota } from "@/lib/rotas";
 
 import type { Continuar } from "./continuar";
 
@@ -17,8 +17,8 @@ mock.module("next/navigation", () => ({
 
 const { CartaoContinuar } = await import("./cartao-continuar");
 
-const AULA = "/cursos/comercial/aulas/a1" as Route;
-const DESTINO_FORA_DA_AULA = "/cursos/comercial" as Route;
+const AULA = rota("/cursos/comercial/aulas/a1");
+const DESTINO_FORA_DA_AULA = rota("/cursos/comercial");
 
 const CONTINUAR: Continuar = {
   chamada: "Continuar · faltam 7 min",

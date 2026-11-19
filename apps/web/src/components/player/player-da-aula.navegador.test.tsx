@@ -3,7 +3,8 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
+import { aulaId, videoId } from "@cursos/api/dominio/marcas";
+import type { VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { build, file } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -15,7 +16,17 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehRegistroDe,
+  ehTexto,
+  ouNulo,
+} from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "player.entrada.tsx");
 const VIDEO_FALSO = join(import.meta.dir, "video-falso.js");
@@ -27,9 +38,9 @@ const UTILS_TRPC = /^@\/utils\/trpc$/;
 const NEXT_NAVIGATION = /^next\/navigation$/;
 const NEXT_LINK = /^next\/link$/;
 
-const ATUAL = "00000000-0000-4000-8000-000000000004" as AulaId;
-const PROXIMA = "00000000-0000-4000-8000-000000000005" as AulaId;
-const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
+const ATUAL = aulaId("00000000-0000-4000-8000-000000000004");
+const PROXIMA = aulaId("00000000-0000-4000-8000-000000000005");
+const VIDEO: VideoDaAula = { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" };
 
 const DADOS: AulaNoPlayer = {
   amostra: null,
@@ -316,7 +327,8 @@ const clicarNoTexto = (texto: string) =>
     `[...document.querySelectorAll("button, a")].find((b) => b.textContent.trim() === ${JSON.stringify(texto)}).click()`
   );
 
-const pedidos = () => avaliar<string[]>(enviar, "window.pedidos.splice(0)");
+const pedidos = () =>
+  avaliarComo(enviar, "window.pedidos.splice(0)", ehLista(ehTexto));
 
 const emitir = (evento: Record<string, unknown>) =>
   avaliar(enviar, `window.emitir(${JSON.stringify(evento)})`);
@@ -356,9 +368,10 @@ async function tabAte(
 ): Promise<string[]> {
   await apertar("Tab");
 
-  const parada = await avaliar<string>(
+  const parada = await avaliarComo(
     enviar,
-    `(() => { const a = document.activeElement; return a.tagName + " " + (a.getAttribute("aria-label") ?? a.textContent.trim()); })()`
+    `(() => { const a = document.activeElement; return a.tagName + " " + (a.getAttribute("aria-label") ?? a.textContent.trim()); })()`,
+    ehTexto
   );
 
   const ate = [...paradas, parada];
@@ -375,23 +388,26 @@ const apertarVezes = (key: string, vezes: number) =>
   );
 
 const focado = () =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent ?? null`
+    `document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent ?? null`,
+    ouNulo(ehTexto)
   );
 
 const pressionado = (seletor: string) =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.querySelector(${JSON.stringify(seletor)})?.getAttribute("aria-pressed") ?? null`
+    `document.querySelector(${JSON.stringify(seletor)})?.getAttribute("aria-pressed") ?? null`,
+    ouNulo(ehTexto)
   );
 
 const FOLHA_DOS_AJUSTES = '[role="dialog"][aria-label="Ajustes"]';
 
 const velocidadeMarcada = () =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.querySelector('${FOLHA_DOS_AJUSTES} input[type="radio"]:checked')?.getAttribute("aria-label") ?? null`
+    `document.querySelector('${FOLHA_DOS_AJUSTES} input[type="radio"]:checked')?.getAttribute("aria-label") ?? null`,
+    ouNulo(ehTexto)
   );
 
 const CONQUISTA_COM_BONUS = {
@@ -401,7 +417,7 @@ const CONQUISTA_COM_BONUS = {
 };
 
 function linhasDaBarra() {
-  return avaliar<{ topos: Record<string, number>; transborda: boolean }>(
+  return avaliarComo(
     enviar,
     `(() => {
       const player = document.getElementById("video");
@@ -424,7 +440,8 @@ function linhasDaBarra() {
         },
         transborda: barra.scrollWidth > barra.clientWidth || document.documentElement.scrollWidth > window.innerWidth,
       };
-    })()`
+    })()`,
+    ehObjeto({ topos: ehRegistroDe(ehNumero), transborda: ehBooleano })
   );
 }
 
@@ -459,9 +476,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     expect(await tabAte("Posição no vídeo")).toEqual(["DIV Posição no vídeo"]);
     expect(
-      await avaliar<boolean>(
+      await avaliarComo(
         enviar,
-        `(() => { const f = document.getElementById("iframe-do-youtube"); const r = f.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === f && getComputedStyle(f).pointerEvents !== "none"; })()`
+        `(() => { const f = document.getElementById("iframe-do-youtube"); const r = f.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === f && getComputedStyle(f).pointerEvents !== "none"; })()`,
+        ehBooleano
       )
     ).toBe(true);
   });
@@ -473,13 +491,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     test(`em ${largura} x ${altura}, a barra de controles e a Próxima aula cabem na janela sem rolar`, async () => {
       await abrir(largura, altura);
 
-      const medida = await avaliar<{
-        controles: number;
-        navegacao: number;
-        rolou: number;
-        visivel: number;
-        video: { altura: number; largura: number };
-      }>(
+      const medida = await avaliarComo(
         enviar,
         `(() => {
           const player = document.getElementById("video");
@@ -492,7 +504,14 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
             visivel: window.innerHeight - 10,
             video: { altura: Math.round(video.height), largura: Math.round(video.width) },
           };
-        })()`
+        })()`,
+        ehObjeto({
+          controles: ehNumero,
+          navegacao: ehNumero,
+          rolou: ehNumero,
+          video: ehObjeto({ altura: ehNumero, largura: ehNumero }),
+          visivel: ehNumero,
+        })
       );
 
       expect(medida.rolou).toBe(0);
@@ -569,7 +588,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await abrir(1440, 900);
 
     const sinal = () =>
-      avaliar<{ ocupado: string | null; pulso: string[] }>(
+      avaliarComo(
         enviar,
         `({
           ocupado: document.getElementById("video").getAttribute("aria-busy"),
@@ -577,7 +596,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
             const b = document.querySelector('button[aria-label="' + r + '"]');
             return (b.disabled ? "desligado " : "ligado ") + getComputedStyle(b.parentElement).animationName;
           }),
-        })`
+        })`,
+        ehObjeto({ ocupado: ouNulo(ehTexto), pulso: ehLista(ehTexto) })
       );
 
     expect(await sinal()).toEqual({
@@ -603,18 +623,20 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       await abrirEsqueleto(largura, altura, celular);
       await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
 
-      const esqueleto = await avaliar<{ altura: number; topo: number }>(
+      const esqueleto = await avaliarComo(
         enviar,
-        `(() => { const r = document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`
+        `(() => { const r = document.querySelector('[aria-busy] [data-slot="skeleton"]:has(> div)').getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`,
+        ehObjeto({ altura: ehNumero, topo: ehNumero })
       );
 
       await abrir(largura, altura, false, celular);
       await emitir({ duracaoSeg: 634, tipo: "pronto" });
       await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
 
-      const player = await avaliar<{ altura: number; topo: number }>(
+      const player = await avaliarComo(
         enviar,
-        `(() => { const r = document.getElementById("video").getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`
+        `(() => { const r = document.getElementById("video").getBoundingClientRect(); return { altura: Math.round(r.height), topo: Math.round(r.top) }; })()`,
+        ehObjeto({ altura: ehNumero, topo: ehNumero })
       );
 
       expect({ altura: esqueleto.altura, largura }).toEqual({
@@ -639,15 +661,17 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await clicar('button[aria-label="Ajustes"]');
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
     expect(
-      await avaliar<boolean>(
+      await avaliarComo(
         enviar,
-        `document.getElementById("video").contains(document.querySelector('${FOLHA_DOS_AJUSTES}'))`
+        `document.getElementById("video").contains(document.querySelector('${FOLHA_DOS_AJUSTES}'))`,
+        ehBooleano
       )
     ).toBe(true);
     expect(
-      await avaliar<string[]>(
+      await avaliarComo(
         enviar,
-        `[...document.querySelectorAll('${FOLHA_DOS_AJUSTES} fieldset label')].map((l) => l.textContent + (l.querySelector("input").checked ? "*" : ""))`
+        `[...document.querySelectorAll('${FOLHA_DOS_AJUSTES} fieldset label')].map((l) => l.textContent + (l.querySelector("input").checked ? "*" : ""))`,
+        ehLista(ehTexto)
       )
     ).toEqual(["0,75", "1*", "1,25", "1,5", "1,75", "2"]);
 
@@ -664,9 +688,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       `document.querySelector('${LISTA_DE_ATALHOS}') && !document.querySelector('${FOLHA_DOS_AJUSTES}')`
     );
 
-    const lista = await avaliar<string>(
+    const lista = await avaliarComo(
       enviar,
-      `document.querySelector('${LISTA_DE_ATALHOS}').textContent`
+      `document.querySelector('${LISTA_DE_ATALHOS}').textContent`,
+      ehTexto
     );
 
     expect(lista).toContain("Atalhos do teclado");
@@ -747,7 +772,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await esperar(
       `document.querySelector('button[aria-label="Reproduzir"]')?.disabled === false`
     );
-    const chamadas = () => avaliar<string[]>(enviar, "window.yt.splice(0)");
+
+    const chamadas = () =>
+      avaliarComo(enviar, "window.yt.splice(0)", ehLista(ehTexto));
+
     await chamadas();
     await avaliar(
       enviar,
@@ -757,9 +785,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await clicar('button[aria-label="Avançar 10 segundos"]');
     expect(await chamadas()).toEqual([]);
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `[...document.querySelectorAll("#video span")].find((s) => s.textContent.includes(" / ")).textContent`
+        `[...document.querySelectorAll("#video span")].find((s) => s.textContent.includes(" / ")).textContent`,
+        ehTexto
       )
     ).toStartWith("00:15 / 10:34");
     await clicar('button[aria-label="Reproduzir"]');
@@ -800,13 +829,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
 
     const sinal = () =>
-      avaliar<{
-        cor: string;
-        folha: string;
-        fundo: string;
-        item: string;
-        sombra: string;
-      }>(
+      avaliarComo(
         enviar,
         `new Promise((pronto) => setTimeout(() => {
           const item = document.activeElement;
@@ -819,7 +842,14 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
             item: item.getAttribute("aria-label") ?? item.textContent,
             sombra: estilo.boxShadow,
           });
-        }, 250))`
+        }, 250))`,
+        ehObjeto({
+          cor: ehTexto,
+          folha: ehTexto,
+          fundo: ehTexto,
+          item: ehTexto,
+          sombra: ehTexto,
+        })
       );
 
     const TRILHO = "rgb(77, 82, 87)";
@@ -847,7 +877,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await clicar('button[aria-label="Ajustes"]');
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
 
-    const medida = await avaliar<{ folha: number[]; linha: number[] }>(
+    const medida = await avaliarComo(
       enviar,
       `new Promise((pronto) => setTimeout(() => {
         const folha = document.querySelector('${FOLHA_DOS_AJUSTES}');
@@ -857,7 +887,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
           folha: [Math.round(f.left + folha.clientLeft), Math.round(f.left + folha.clientLeft + folha.clientWidth)],
           linha: [Math.round(l.left), Math.round(l.right)],
         });
-      }, 250))`
+      }, 250))`,
+      ehObjeto({ folha: ehLista(ehNumero), linha: ehLista(ehNumero) })
     );
 
     expect(medida.linha).toEqual(medida.folha);
@@ -880,11 +911,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await emitir({ tipo: "terminou" });
     await esperar(`document.body.textContent.includes("Fim do vídeo")`);
 
-    const fim = await avaliar<{
-      iframeNoLugar: boolean;
-      iframeVisivel: boolean;
-      sobreposto: boolean;
-    }>(
+    const fim = await avaliarComo(
       enviar,
       `(() => {
         const iframe = document.getElementById("iframe-falso");
@@ -894,7 +921,12 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
           iframeVisivel: iframe.getClientRects().length > 0,
           sobreposto: getComputedStyle(cartao.closest(".grid.min-h-full")).position !== "static",
         };
-      })()`
+      })()`,
+      ehObjeto({
+        iframeNoLugar: ehBooleano,
+        iframeVisivel: ehBooleano,
+        sobreposto: ehBooleano,
+      })
     );
 
     expect(fim).toEqual({
@@ -908,9 +940,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await emitir({ tipo: "tocou" });
     await esperar(`!document.body.textContent.includes("Fim do vídeo")`);
     expect(
-      await avaliar<boolean>(
+      await avaliarComo(
         enviar,
-        `document.getElementById("iframe-falso").getClientRects().length > 0`
+        `document.getElementById("iframe-falso").getClientRects().length > 0`,
+        ehBooleano
       )
     ).toBe(true);
   });
@@ -929,9 +962,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await abrir(1440, 900);
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
 
-    const { x, y } = await avaliar<{ x: number; y: number }>(
+    const { x, y } = await avaliarComo(
       enviar,
-      `(() => { const r = document.querySelector('[aria-label="Voltar 10 segundos"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`
+      `(() => { const r = document.querySelector('[aria-label="Voltar 10 segundos"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`,
+      ehObjeto({ x: ehNumero, y: ehNumero })
     );
 
     await enviar("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
@@ -939,9 +973,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       `[...document.querySelectorAll("[data-side]")].some((d) => d.textContent.includes("Voltar 10 s"))`
     );
     expect(
-      await avaliar<boolean>(
+      await avaliarComo(
         enviar,
-        `[...document.querySelectorAll("[data-side]")].find((d) => d.textContent.includes("Voltar 10 s")).closest("#video") !== null`
+        `[...document.querySelectorAll("[data-side]")].find((d) => d.textContent.includes("Voltar 10 s")).closest("#video") !== null`,
+        ehBooleano
       )
     ).toBe(true);
   });

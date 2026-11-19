@@ -1,3 +1,4 @@
+import { ehEmail } from "./marcas";
 import type { Perfil } from "./perfil";
 import type { ContagemPorPerfil } from "./pessoas";
 import { diaLocal } from "./sequencia";
@@ -6,13 +7,11 @@ import type {
   ConviteId,
   CursoId,
   DiaISO,
+  Email,
   StatusDoCurso,
 } from "./tipos";
 
-declare const lido: unique symbol;
-
-/** E-mail aparado, em ASCII e em minúsculas, no formato do check convite_email_formato. Só lerEmail cria um. */
-export type Email = string & { readonly [lido]: true };
+export type { Email } from "./tipos";
 
 /** Um envio por e-mail no Clerk, que aceita 100 por hora. */
 export const TETO_DE_EMAILS = 20;
@@ -34,21 +33,25 @@ export const PRAZO_DO_PAPEL_MS = 3_600_000;
 export const aceitoDesde = (agora: Date): Date =>
   new Date(agora.getTime() - PRAZO_DO_PAPEL_MS);
 
-const TAMANHO_MAXIMO = 254;
-
-// WARNING: só ASCII, porque toLowerCase do JS e lower() do Postgres divergem fora dele e o check convite_email_formato recusaria o lote inteiro.
-const FORMATO =
-  /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
-
 const SEPARADOR = /[\s,;]+/;
 
-/** null quando o texto não é um e-mail. Mais estreita que o check do banco. */
+const ASCII_VISIVEL = /^[!-~]*$/;
+
+/**
+ * null quando o texto não é um e-mail. Mais estreita que o check do banco. O
+ * texto aparado precisa ser ASCII antes do toLowerCase, que leva o sinal Kelvin
+ * (U+212A) a "k" e o faria passar no formato.
+ */
 export function lerEmail(texto: string): Email | null {
   const aparado = texto.trim();
 
-  return aparado.length <= TAMANHO_MAXIMO && FORMATO.test(aparado)
-    ? (aparado.toLowerCase() as Email)
-    : null;
+  if (!ASCII_VISIVEL.test(aparado)) {
+    return null;
+  }
+
+  const minusculo = aparado.toLowerCase();
+
+  return ehEmail(minusculo) ? minusculo : null;
 }
 
 const TRECHO = /(?:"[^"]*"|[^,;\r\n"]|")+/g;

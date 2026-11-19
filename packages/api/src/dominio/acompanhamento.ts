@@ -176,10 +176,10 @@ export function acompanharCurso(
 
 /** Um curso como o statement da busca lê: só o que a leitura do curso pede. */
 export interface CursoDaBusca {
-  id: string;
+  id: CursoId;
   /** Em ordem de número, aulas em ordem de posição. */
   modulos: readonly {
-    aulas: readonly { id: string; perguntas: number }[];
+    aulas: readonly { id: AulaId; perguntas: number }[];
     numero: number;
     titulo: string;
   }[];
@@ -189,7 +189,7 @@ export interface CursoDaBusca {
 
 /** A do perfil vem só ativa: a revogada é do perfil, não da pessoa. */
 export interface LiberacaoDaBusca {
-  cursoId: string;
+  cursoId: CursoId;
   liberadaEm: Date;
   origem: OrigemDoAcesso;
   revogadaEm: Date | null;
@@ -208,7 +208,7 @@ export interface LinhasDaBusca {
   pessoas: readonly LinhasDaPessoa[];
 }
 
-type CatalogoDaBusca = (id: string) => CursoComAulas;
+type CatalogoDaBusca = (id: CursoId) => CursoComAulas;
 
 /** O curso de cada id, como a leitura do curso pede. A virada lê o mesmo catálogo. */
 export function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
@@ -216,10 +216,10 @@ export function catalogoDo(linhas: LinhasDaBusca): CatalogoDaBusca {
     linhas.cursos.map((c) => [
       c.id,
       {
-        id: c.id as CursoId,
+        id: c.id,
         modulos: c.modulos.map((m) => ({
           aulas: m.aulas.map((a) => ({
-            id: a.id as AulaId,
+            id: a.id,
             perguntas: a.perguntas,
           })),
           numero: m.numero,
@@ -316,7 +316,7 @@ export function montarBusca(
         ...pessoa,
         ativas: p.liberacoes.flatMap((l) =>
           l.revogadaEm === null
-            ? [{ cursoId: l.cursoId as CursoId, origem: l.origem }]
+            ? [{ cursoId: l.cursoId, origem: l.origem }]
             : []
         ),
         situacao: situacaoDaPessoa(p, curso),

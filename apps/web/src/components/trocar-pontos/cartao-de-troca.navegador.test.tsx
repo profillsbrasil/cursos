@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 
+import { cursoId } from "@cursos/api/dominio/marcas";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToString } from "react-dom/server";
 
@@ -26,16 +27,15 @@ mock.module("next/navigation", () => ({
 
 const { CursosParaTrocar } = await import("./cursos-para-trocar");
 
-const curso = (id: string, titulo: string) =>
-  ({
-    aulas: 3,
-    capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
-    categoria: "Envase",
-    duracaoSeg: 900,
-    id,
-    slug: id,
-    titulo,
-  }) as CartaoDeTroca["curso"];
+const curso = (id: string, titulo: string): CartaoDeTroca["curso"] => ({
+  aulas: 3,
+  capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
+  categoria: "Envase",
+  duracaoSeg: 900,
+  id: cursoId(id),
+  slug: id,
+  titulo,
+});
 
 const HTML = renderToString(
   <CursosParaTrocar
@@ -98,13 +98,7 @@ describe.skipIf(!existsSync(CHROMIUM))("os botões dos cartões de troca", () =>
   afterAll(fecharChromium);
 
   test('o leitor de tela ouve "Faltam 190 pts", com o espaço', async () => {
-    const { nodes } = (await enviar("Accessibility.getFullAXTree")) as {
-      nodes: {
-        ignored: boolean;
-        name?: { value: string };
-        role?: { value: string };
-      }[];
-    };
+    const { nodes } = await enviar("Accessibility.getFullAXTree");
 
     const botoes = nodes
       .filter((n) => !n.ignored && n.role?.value === "button")

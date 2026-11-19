@@ -339,8 +339,11 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
   );
 
   const escolherPerfil = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const perfil = e.currentTarget.value as Perfil;
-    setRascunho((r) => ({ ...r, perfil }));
+    const perfil = ORDEM_DOS_PERFIS.find((p) => p === e.currentTarget.value);
+
+    if (perfil !== undefined) {
+      setRascunho((r) => ({ ...r, perfil }));
+    }
   }, []);
 
   const mudarAdmin = useCallback(

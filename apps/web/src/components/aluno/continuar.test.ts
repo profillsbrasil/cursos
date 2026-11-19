@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { aulaId } from "@cursos/api/dominio/marcas";
 import type { Retomada } from "@cursos/api/dominio/painel";
-import type { AulaId } from "@cursos/api/dominio/tipos";
 
 import { hrefDaRetomada } from "@/lib/rotas";
 
@@ -19,7 +19,7 @@ const modulo = { numero: 4, titulo: "Pilar Urgência" };
 
 const aula = {
   duracaoSeg: 900,
-  id: "11111111-1111-4111-8111-111111111111" as AulaId,
+  id: aulaId("11111111-1111-4111-8111-111111111111"),
   numeroNoModulo: 4,
   titulo: "Gatilhos",
 };

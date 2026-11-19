@@ -37,7 +37,7 @@ describe("niveis", () => {
   });
 
   test("nível sem aulas nunca está obtido", () => {
-    const tudo = new Set(todas("n", [2, 2, 1]) as AulaId[]);
+    const tudo = new Set(todas("n", [2, 2, 1]));
     expect(niveis(comNiveis, tudo).faixas[2]).toMatchObject({
       nome: "Vazio",
       obtido: false,
@@ -57,7 +57,7 @@ describe("niveis", () => {
       nivelPorModulo: [1, 2],
     });
 
-    const tudo = new Set(todas("s", [1, 1]) as AulaId[]);
+    const tudo = new Set(todas("s", [1, 1]));
     expect(niveis(semVazio, tudo).proximo).toBeNull();
   });
 
@@ -74,7 +74,7 @@ describe("niveis", () => {
 
     const soA = new Set([idAula("v", 0, 1)] as AulaId[]);
     expect(niveis(meio, soA).proximo?.nome).toBe("C");
-    const tudo = new Set(todas("v", [1, 1]) as AulaId[]);
+    const tudo = new Set(todas("v", [1, 1]));
     expect(niveis(meio, tudo).proximo).toBeNull();
   });
 });

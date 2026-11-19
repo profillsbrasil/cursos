@@ -11,7 +11,16 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "catalogo.entrada.tsx");
@@ -121,7 +130,7 @@ const CURSOS = [
     status,
   ]) => ({
     aulas,
-    capa: capaDe(imagem as string),
+    capa: capaDe(String(imagem)),
     categoria: categoria ?? "Vendas e negócios",
     codigo,
     id: imagem,
@@ -255,18 +264,19 @@ async function foto(nome: string) {
 
   await sleep(DEPOIS_DAS_TRANSICOES_MS);
 
-  const { data } = (await enviar("Page.captureScreenshot", {
+  const { data } = await enviar("Page.captureScreenshot", {
     captureBeyondViewport: true,
     format: "png",
-  })) as { data: string };
+  });
 
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
 
 const titulos = () =>
-  avaliar<string[]>(
+  avaliarComo(
     enviar,
-    `[...document.querySelectorAll("article h2")].map((t) => t.textContent)`
+    `[...document.querySelectorAll("article h2")].map((t) => t.textContent)`,
+    ehLista(ehTexto)
   );
 
 const clicarNoFiltro = (rotulo: string) =>
@@ -290,22 +300,31 @@ interface Caixa {
   topo: number;
 }
 
+const ehCaixa: Predicado<Caixa> = ehObjeto({
+  direita: ehNumero,
+  esquerda: ehNumero,
+  largura: ehNumero,
+  topo: ehNumero,
+});
+
 const caixas = () =>
-  avaliar<Caixa[]>(
+  avaliarComo(
     enviar,
     `[...document.querySelectorAll("article, ${ATALHO}")].map((el) => {
       const r = el.getBoundingClientRect();
       return { direita: Math.round(r.right), esquerda: Math.round(r.left), largura: Math.round(r.width), topo: Math.round(r.top) };
-    })`
+    })`,
+    ehLista(ehCaixa)
   );
 
 const CEU = "rgb(170, 210, 234)";
 const ATALHO = "a[href$='/novo']:not(header a)";
 
 async function tabAte(seletor: string, tentativas = 20): Promise<void> {
-  const chegou = await avaliar<boolean>(
+  const chegou = await avaliarComo(
     enviar,
-    `document.activeElement?.matches(${JSON.stringify(seletor)}) ?? false`
+    `document.activeElement?.matches(${JSON.stringify(seletor)}) ?? false`,
+    ehBooleano
   );
 
   if (chegou || tentativas === 0) {
@@ -355,12 +374,13 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     await tabAte("article h2 a");
     await sleep(DEPOIS_DAS_TRANSICOES_MS);
 
-    const capa = await avaliar<{ anel: string; escala: string }>(
+    const capa = await avaliarComo(
       enviar,
       `(() => {
         const capa = document.querySelector("article > div");
         return { anel: getComputedStyle(capa).boxShadow, escala: getComputedStyle(capa.querySelector("img")).scale };
-      })()`
+      })()`,
+      ehObjeto({ anel: ehTexto, escala: ehTexto })
     );
 
     expect(capa.anel).toContain(CEU);
@@ -369,9 +389,10 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     await sleep(DEPOIS_DAS_TRANSICOES_MS);
     await foto("1280-foco-no-atalho");
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `getComputedStyle(document.querySelector(${JSON.stringify(ATALHO)})).borderTopColor`
+        `getComputedStyle(document.querySelector(${JSON.stringify(ATALHO)})).borderTopColor`,
+        ehTexto
       )
     ).toBe(CEU);
   });
@@ -392,9 +413,10 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     await buscar("zzz");
     expect(await titulos()).toEqual([]);
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `document.querySelector('[role="status"]').textContent`
+        `document.querySelector('[role="status"]').textContent`,
+        ehTexto
       )
     ).toBe("Nenhum curso com esse filtro.");
     await foto("1280-sem-resultado");
@@ -416,9 +438,10 @@ describe.skipIf(!existsSync(CHROMIUM))("catálogo do admin no Chromium", () => {
     await avaliar(enviar, "window.mostrar(0)");
     await foto("1280-vazio");
     expect(
-      await avaliar<number>(
+      await avaliarComo(
         enviar,
-        `document.querySelectorAll("a[href$='/novo']").length`
+        `document.querySelectorAll("a[href$='/novo']").length`,
+        ehNumero
       )
     ).toBe(1);
   });

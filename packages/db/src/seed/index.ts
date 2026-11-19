@@ -5,6 +5,14 @@ import { eq, inArray, sql } from "drizzle-orm";
 
 import { createDb, type Database } from "../index";
 import {
+  type AulaId,
+  aulaId,
+  type CategoriaId,
+  comunicadoId,
+  cursoId,
+  moduloId,
+} from "../marcas";
+import {
   aula,
   aulaAssistida,
   categoria,
@@ -52,11 +60,11 @@ function idFixo(chave: string): string {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${variante}${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 
-const idCurso = (c: string) => idFixo(`curso:${c}`);
-const idModulo = (c: string, n: number) => idFixo(`modulo:${c}:${n}`);
+const idCurso = (c: string) => cursoId(idFixo(`curso:${c}`));
+const idModulo = (c: string, n: number) => moduloId(idFixo(`modulo:${c}:${n}`));
 
 const idAula = (c: string, n: number, p: number) =>
-  idFixo(`aula:${c}:${n}:${p}`);
+  aulaId(idFixo(`aula:${c}:${n}:${p}`));
 
 const diaSp = (d: Date) =>
   new Intl.DateTimeFormat("en-CA", {
@@ -139,7 +147,7 @@ type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 async function plantarCategorias(
   tx: Transacao
-): Promise<ReadonlyMap<string, string>> {
+): Promise<ReadonlyMap<string, CategoriaId>> {
   const nomes = [...new Set(CURSOS.map((c) => c.categoria))];
   await tx
     .insert(categoria)
@@ -154,7 +162,7 @@ async function plantarCategorias(
   return new Map(linhas.map((l) => [l.nome, l.id]));
 }
 
-function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
+function linhasDeConteudo(categorias: ReadonlyMap<string, CategoriaId>) {
   const idDaCategoria = (nome: string) => {
     const id = categorias.get(nome);
 
@@ -276,7 +284,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
       .insert(comunicado)
       .values({
         cursoId: null,
-        id: idFixo(`comunicado:${COMUNICADO.chave}`),
+        id: comunicadoId(idFixo(`comunicado:${COMUNICADO.chave}`)),
         publicadoEm: diasAtras(hoje, 5, 10),
         publicadoPor: LIBERADA_POR,
         texto: COMUNICADO.texto,
@@ -339,7 +347,7 @@ async function semearNoBanco(db: Database, alunoA: string) {
 
     const antigas = assistidas.filter((id) => !recentes.includes(id));
     const diasUteis = ultimosDiasUteis(hoje, recentes.length);
-    const quando = new Map<string, Date>();
+    const quando = new Map<AulaId, Date>();
 
     for (const [i, id] of recentes.entries()) {
       const atras = diasUteis[i] ?? 0;
@@ -375,10 +383,10 @@ async function semearNoBanco(db: Database, alunoA: string) {
 
     const fatos = quando
       .entries()
-      .filter(([aulaId]) => existentes.has(aulaId))
-      .map(([aulaId, assistidaEm]) => ({
+      .filter(([idDaAula]) => existentes.has(idDaAula))
+      .map(([idDaAula, assistidaEm]) => ({
         assistidaEm,
-        aulaId,
+        aulaId: idDaAula,
         userId: alunoA,
       }))
       .toArray();

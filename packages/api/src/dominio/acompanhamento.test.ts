@@ -8,7 +8,7 @@ import {
 } from "./acompanhamento";
 import { cursoCat, idAula } from "./exemplo";
 import { estudoDe, type LinhasHistorico } from "./historico";
-import type { CursoId, DiaISO } from "./tipos";
+import { aulaId, cursoId, diaISO } from "./marcas";
 
 const em = (iso: string) => new Date(iso);
 
@@ -20,14 +20,14 @@ const linhas = (o: Partial<LinhasHistorico>): LinhasHistorico => ({
   ...o,
 });
 
-const assistida = (aulaId: string, iso: string) => ({
+const assistida = (aula: string, iso: string) => ({
   assistidaEm: em(iso),
-  aulaId,
+  aulaId: aulaId(aula),
 });
 
-const certificado = (cursoId: string, iso: string) => ({
-  codigo: `CERT-${cursoId}`,
-  cursoId,
+const certificado = (curso: string, iso: string) => ({
+  codigo: `CERT-${curso}`,
+  cursoId: cursoId(curso),
   emitidoEm: em(iso),
 });
 
@@ -76,7 +76,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
       situacao: {
         onde: { aula: 2, modulo: 0 },
         tipo: "estudando",
-        ultimoEstudo: "2026-10-13" as DiaISO,
+        ultimoEstudo: diaISO("2026-10-13"),
       },
     });
   });
@@ -94,7 +94,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
     expect(acompanharCurso(A, e).situacao).toEqual({
       onde: { aula: 1, modulo: 1 },
       tipo: "estudando",
-      ultimoEstudo: "2026-09-21" as DiaISO,
+      ultimoEstudo: diaISO("2026-09-21"),
     });
   });
 
@@ -138,7 +138,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
     );
 
     expect(acompanharCurso(A, e).situacao).toEqual({
-      em: "2026-09-12" as DiaISO,
+      em: diaISO("2026-09-12"),
       tipo: "concluido",
     });
   });
@@ -160,7 +160,7 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
 });
 
 describe("montarBusca", () => {
-  const HOJE = "2026-10-14" as DiaISO;
+  const HOJE = diaISO("2026-10-14");
 
   const pessoa = (userId: string) => ({
     email: `${userId}@exemplo.com`,
@@ -170,19 +170,19 @@ describe("montarBusca", () => {
     userId,
   });
 
-  const ativa = (cursoId: string, iso: string) => ({
-    cursoId,
+  const ativa = (nome: string, iso: string) => ({
+    cursoId: cursoId(nome),
     liberadaEm: em(iso),
     origem: "admin" as const,
     revogadaEm: null,
   });
 
   const curso = (id: string, aulas: number, status = "publicado" as const) => ({
-    id,
+    id: cursoId(id),
     modulos: [
       {
         aulas: Array.from({ length: aulas }, (_, i) => ({
-          id: idAula(id, 0, i + 1),
+          id: aulaId(idAula(id, 0, i + 1)),
           perguntas: 0,
         })),
         numero: 0,
@@ -235,7 +235,7 @@ describe("montarBusca", () => {
     ).toEqual({
       revogadas: 2,
       tipo: "sem_liberacao",
-      ultimaRevogacao: "2026-09-02" as DiaISO,
+      ultimaRevogacao: diaISO("2026-09-02"),
     });
   });
 
@@ -250,7 +250,7 @@ describe("montarBusca", () => {
         ],
       })
     ).toEqual({
-      desde: "2026-09-30" as DiaISO,
+      desde: diaISO("2026-09-30"),
       numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
       tipo: "nunca_abriu",
     });
@@ -287,7 +287,7 @@ describe("montarBusca", () => {
     ).toEqual({
       numeros: { concluidos: 1, cursos: 3, emProducao: 0 },
       tipo: "estudando",
-      ultimoEstudo: "2026-10-13" as DiaISO,
+      ultimoEstudo: diaISO("2026-10-13"),
     });
   });
 
@@ -309,7 +309,7 @@ describe("montarBusca", () => {
     ).toEqual({
       numeros: { concluidos: 2, cursos: 2, emProducao: 1 },
       tipo: "concluiu_tudo",
-      ultimoEstudo: "2026-09-10" as DiaISO,
+      ultimoEstudo: diaISO("2026-09-10"),
     });
   });
 
@@ -357,8 +357,8 @@ describe("montarBusca", () => {
     );
 
     expect(busca.pessoas[0]?.ativas).toEqual([
-      { cursoId: "x" as CursoId, origem: "admin" },
-      { cursoId: "y" as CursoId, origem: "troca" },
+      { cursoId: cursoId("x"), origem: "admin" },
+      { cursoId: cursoId("y"), origem: "troca" },
     ]);
   });
 

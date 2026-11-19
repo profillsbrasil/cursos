@@ -5,7 +5,6 @@ import type {
 } from "@cursos/api/dominio/comunicado";
 import { cn } from "@cursos/ui/lib/utils";
 import { BookOpen, Megaphone } from "lucide-react";
-import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -19,6 +18,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 import { paragrafos } from "@/components/curso/textos";
 import { Secao } from "@/components/meus-cursos/secao";
 import { fmtData } from "@/lib/formato";
+import { rota } from "@/lib/rotas";
 
 import {
   contagemDoMes,
@@ -52,7 +52,7 @@ function LinkDoCurso({
   alvo: Extract<AlvoDoComunicado, { tipo: "curso" }>;
 }) {
   return (
-    <Link className={LINK_DO_CURSO} href={alvo.href as Route}>
+    <Link className={LINK_DO_CURSO} href={rota(alvo.href)}>
       {alvo.titulo}
     </Link>
   );

@@ -4,13 +4,16 @@ import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
 import { convite, conviteCurso, curso } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 
 import { contextoDeTeste, convitesDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { type Email, lerEmail } from "../dominio/convite";
-import type { AdminId, ConviteId, CursoId, Pessoa } from "../dominio/tipos";
+import { ehConviteId, ehCursoId, ehEmail, marcar } from "../dominio/marcas";
+import type { CursoId, Pessoa } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import {
   cancelarConvite,
@@ -22,13 +25,14 @@ import {
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
-const ADMIN = `user_adminconvite${S}` as AdminId;
-const OUTRO_ADMIN = `user_outroadmin${S}` as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", `user_adminconvite${S}`));
+const OUTRO_ADMIN = adminIdDe(sessaoDe("admin", `user_outroadmin${S}`));
 const AGORA = new Date("2026-11-11T15:00:00Z");
 const MIN = 60_000;
 const DIA = 86_400_000;
 
-const email = (nome: string) => `${nome}.${hex()}@convite${S}.com` as Email;
+const email = (nome: string) =>
+  marcar(ehEmail, `${nome}.${hex()}@convite${S}.com`);
 
 const semConta = { contasCom: () => Promise.resolve(new Map<Email, string>()) };
 
@@ -41,7 +45,7 @@ const recusa = (promessa: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function cursoDeTeste(titulo: string): Promise<CursoId> {
     const s = hex();
@@ -67,7 +71,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
     cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   const linhaDe = async (e: Email) => {
@@ -153,7 +157,8 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
   test("ana@ é convidada mesmo com a conta de diana@ no login", async () => {
     const sufixo = `${hex()}@convite${S}.com`;
-    const [ana, diana] = [`ana.${sufixo}` as Email, `diana.${sufixo}` as Email];
+    const ana = marcar(ehEmail, `ana.${sufixo}`);
+    const diana = marcar(ehEmail, `diana.${sufixo}`);
 
     const ctx = contextoDeTeste({
       db,
@@ -267,7 +272,12 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
   test("o 429 no meio do lote para os envios e guarda os que faltam", async () => {
     const lote = ["a", "b", "c", "d", "e"].map(email);
-    const [a, b, c, d, e] = lote as [Email, Email, Email, Email, Email];
+    const [a0, b0, c0, d0, e0] = lote;
+    const a = definido(a0);
+    const b = definido(b0);
+    const c = definido(c0);
+    const d = definido(d0);
+    const e = definido(e0);
     const carteiro = convitesDeTeste(new Map([[c, "limite"]]));
     const pedidos: string[] = [];
 
@@ -347,7 +357,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           ADMIN,
           pedido(
             [ana, bia],
-            ["00000000-0000-4000-8000-000000000000" as CursoId]
+            [marcar(ehCursoId, "00000000-0000-4000-8000-000000000000")]
           ),
           AGORA
         )
@@ -409,7 +419,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       );
       const linha = await umaLinha(destino);
 
-      return { carteiro, destino, id: linha.id as ConviteId, linha };
+      return { carteiro, destino, id: linha.id, linha };
     }
 
     test("dentro de 60 s devolve o envio que existe, sem outro e-mail", async () => {
@@ -458,7 +468,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([destino]),
         AGORA
       );
-      const id = (await umaLinha(destino)).id as ConviteId;
+      const { id } = await umaLinha(destino);
       falhas.clear();
       const vencido = new Date(AGORA.getTime() + 40 * DIA);
       await reenviarConvite(db, carteiro, id, vencido);
@@ -510,7 +520,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           reenviarConvite(
             db,
             aceito.carteiro,
-            "00000000-0000-4000-8000-000000000000" as ConviteId,
+            marcar(ehConviteId, "00000000-0000-4000-8000-000000000000"),
             depois
           )
         )
@@ -556,7 +566,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([destino]),
         AGORA
       );
-      const id = (await umaLinha(destino)).id as ConviteId;
+      const { id } = await umaLinha(destino);
       const depois = new Date(AGORA.getTime() + MIN);
       expect(
         await cancelarConvite(db, carteiro, OUTRO_ADMIN, id, depois)
@@ -588,7 +598,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         db,
         portas.convites,
         ADMIN,
-        primeiro?.id as ConviteId,
+        definido(primeiro?.id),
         AGORA
       );
 
@@ -620,7 +630,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([destino]),
         AGORA
       );
-      const id = (await umaLinha(destino)).id as ConviteId;
+      const { id } = await umaLinha(destino);
       await db
         .update(convite)
         .set({ aceitoEm: AGORA, aceitoPor: `user_aceitou${hex()}` })
@@ -637,7 +647,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
             db,
             carteiro,
             ADMIN,
-            "00000000-0000-4000-8000-000000000000" as ConviteId,
+            marcar(ehConviteId, "00000000-0000-4000-8000-000000000000"),
             AGORA
           )
         )
@@ -651,17 +661,17 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
     test("lista os vivos que casam o trecho do e-mail, do mais novo ao mais antigo, com os cursos", async () => {
       const marca = `lista${hex()}`;
 
-      const [velho, novo, cancelado, aceito] = [
+      const [velho0, novo0, cancelado0, aceito0] = [
         "velho",
         "novo",
         "cancelado",
         "aceito",
-      ].map((nome) => `${nome}.${marca}@convite${S}.com` as Email) as [
-        Email,
-        Email,
-        Email,
-        Email,
-      ];
+      ].map((nome) => marcar(ehEmail, `${nome}.${marca}@convite${S}.com`));
+
+      const velho = definido(velho0);
+      const novo = definido(novo0);
+      const cancelado = definido(cancelado0);
+      const aceito = definido(aceito0);
 
       const [envase, rotulagem] = [
         await cursoDeTeste("Envase"),
@@ -681,7 +691,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         db,
         portas.convites,
         ADMIN,
-        (await umaLinha(cancelado)).id as ConviteId,
+        (await umaLinha(cancelado)).id,
         AGORA
       );
       await db
@@ -704,8 +714,8 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
     test("o % e o _ do termo casam o próprio caractere", async () => {
       const marca = `curinga${hex()}`;
-      const comSublinhado = `a_b.${marca}@convite${S}.com` as Email;
-      const semSublinhado = `axb.${marca}@convite${S}.com` as Email;
+      const comSublinhado = marcar(ehEmail, `a_b.${marca}@convite${S}.com`);
+      const semSublinhado = marcar(ehEmail, `axb.${marca}@convite${S}.com`);
       await convidar(
         db,
         { convites: convitesDeTeste(), pessoas: semConta },
@@ -722,7 +732,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
     test("o painel do admin sai com o estado e o dia de cada convidado", async () => {
       const marca = `painel${hex()}`;
-      const destino = `ana.${marca}@convite${S}.com` as Email;
+      const destino = marcar(ehEmail, `ana.${marca}@convite${S}.com`);
 
       const admin = createCaller(
         contextoDeTeste({ db, papel: "admin", userId: ADMIN })
@@ -760,7 +770,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           .values({
             comoAdmin: false,
             convidadoPor: ADMIN,
-            email: texto,
+            email: sql`${texto}`,
             expiraEm: AGORA,
             perfil: "publico",
           })

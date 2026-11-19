@@ -37,14 +37,9 @@ import {
   versaoDoCurso,
 } from "../dominio/plano-do-curso";
 import {
-  type AlternativaId,
-  type AulaId,
   type CategoriaId,
   type CursoId,
   capaDe,
-  type MaterialId,
-  type ModuloId,
-  type PerguntaId,
   type Versao,
 } from "../dominio/tipos";
 import { videoDaAula } from "../dominio/video";
@@ -161,31 +156,31 @@ export async function abrirCurso(
         + (select count(*)::int from ${liberacaoDoPerfil} where ${liberacaoDoPerfil.cursoId} = ${id}) as liberacoes`);
 
   const semVersao: DocumentoDoCurso = {
-    categoriaId: linha.categoriaId as CategoriaId,
+    categoriaId: linha.categoriaId,
     descricao: linha.descricao,
-    id: linha.id as CursoId,
+    id: linha.id,
     materiais: linha.materiais.map((m) => ({
       ...m,
-      id: m.id as MaterialId,
+      id: m.id,
     })),
     modulos: linha.modulos.map((m) => ({
       aulas: m.aulas.map((a) => ({
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
-        id: a.id as AulaId,
+        id: a.id,
         perguntas: a.perguntas.map((p) => ({
           alternativas: p.alternativas.map((x) => ({
             certa: x.certa,
-            id: x.id as AlternativaId,
+            id: x.id,
             texto: x.texto,
           })),
           enunciado: p.enunciado,
-          id: p.id as PerguntaId,
+          id: p.id,
         })),
         titulo: a.titulo,
         video: videoDaAula(a.videoProvedor, a.videoId),
       })),
-      id: m.id as ModuloId,
+      id: m.id,
       nivelOrdem: m.nivelOrdem,
       numero: m.numero,
       titulo: m.titulo,

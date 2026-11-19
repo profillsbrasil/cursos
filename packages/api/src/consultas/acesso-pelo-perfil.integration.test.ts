@@ -20,9 +20,12 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
+import { comunicadoId, diaISO, videoId } from "../dominio/marcas";
 import type { Perfil } from "../dominio/perfil";
-import type { AdminId, AulaId, CursoId } from "../dominio/tipos";
+import type { ComunicadoId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { concluirParaQuemCompletou } from "./certificado";
 import { liberar } from "./liberacao";
@@ -32,14 +35,14 @@ import { definirPerfil } from "./perfil";
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
-const ADMIN = "user_admin" as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", "user_admin"));
 const AGORA = new Date("2026-10-20T15:00:00Z");
 
 describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
-  const cursos: string[] = [];
-  const comunicados: string[] = [];
+  const cursos: CursoId[] = [];
+  const comunicados: ComunicadoId[] = [];
 
   async function aluno(perfil: Perfil, email = "pessoa@exemplo.com") {
     const userId = `user_perfilve${S}x${alunos.length}`;
@@ -100,18 +103,18 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
       .values(
         Array.from({ length: o.aulas ?? 1 }, (_, i) => ({
           duracaoSeg: 60,
-          moduloId: m?.id ?? "",
+          moduloId: definido(m?.id),
           posicao: i + 1,
           titulo: `Aula ${i + 1}`,
-          videoId: "aqz-KE-bpKQ",
+          videoId: videoId("aqz-KE-bpKQ"),
           videoProvedor: "youtube" as const,
         }))
       )
       .returning({ id: aula.id });
 
     return {
-      aulas: aulas.map((a) => a.id as AulaId),
-      id: c.id as CursoId,
+      aulas: aulas.map((a) => a.id),
+      id: c.id,
       slug,
     };
   }
@@ -158,7 +161,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     ).not.toBeNull();
     expect(
       await cliente.pedidoNovo.aula.abrir({
-        aulaId: c.aulas[0] ?? "",
+        aulaId: definido(c.aulas[0]),
         slug: c.slug,
       })
     ).not.toBeNull();
@@ -167,7 +170,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     expect(await publico.pedidoNovo.curso.pagina({ slug: c.slug })).toBeNull();
     expect(
       await publico.pedidoNovo.aula.abrir({
-        aulaId: c.aulas[0] ?? "",
+        aulaId: definido(c.aulas[0]),
         slug: c.slug,
       })
     ).toBeNull();
@@ -203,7 +206,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const cliente = await aluno("cliente");
 
     const r = await cliente.pedidoNovo.aula.registrar({
-      aulaId: c.aulas[0] ?? "",
+      aulaId: definido(c.aulas[0]),
       posicaoSeg: 60,
       trechos: [{ fim: 60, inicio: 0 }],
     });
@@ -222,7 +225,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const cliente = await aluno("cliente");
     await db.insert(aulaAssistida).values({
       assistidaEm: AGORA,
-      aulaId: c.aulas[0] ?? "",
+      aulaId: definido(c.aulas[0]),
       userId: cliente.userId,
     });
     await db.transaction((tx) => concluirParaQuemCompletou(tx, c.id, AGORA));
@@ -237,7 +240,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
   test("o comunicado do curso aberto ao perfil não chega à amostra, e chega a quem tem o curso inteiro", async () => {
     const c = await criarCurso();
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
-    const id = crypto.randomUUID();
+    const id = comunicadoId(crypto.randomUUID());
     comunicados.push(id);
     await db.insert(comunicado).values({
       cursoId: c.id,
@@ -285,7 +288,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const cliente = await aluno("cliente");
     await db.insert(pontoLancamento).values({
       criadoEm: AGORA,
-      diaMarco: "2026-10-01",
+      diaMarco: diaISO("2026-10-01"),
       motivo: "sequencia_7_dias",
       pontos: 500,
       userId: cliente.userId,

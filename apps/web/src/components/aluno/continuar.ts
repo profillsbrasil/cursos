@@ -1,8 +1,7 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
-import type { Route } from "next";
 
 import { faltam, fmtMin, minutos, plural } from "@/lib/formato";
-import { hrefDaRetomada } from "@/lib/rotas";
+import { type Endereco, hrefDaRetomada } from "@/lib/rotas";
 
 /** O cartão "Continuar" do rodapé, montado no servidor: o cliente recebe só texto, um número e o href. */
 export interface Continuar {
@@ -12,7 +11,7 @@ export interface Continuar {
   chamadaAqui: string;
   /** O título do curso, no nome acessível e na dica: a aula sozinha não diz de que curso é. */
   curso: string;
-  href: Route;
+  href: Endereco;
   /** % do curso para a barra; null em "comecar", que não tem barra. */
   pct: number | null;
   /** Nome acessível do link e tooltip da sidebar recolhida. */
@@ -78,7 +77,7 @@ export function continuarDe(retomada: Retomada | null): Continuar | null {
 
 /** O botão que retoma o estudo, com o mesmo verbo no banner de Meus cursos e em Trocar pontos. */
 export interface AcaoDaRetomada {
-  href: Route;
+  href: Endereco;
   icone: "play" | "questionario" | null;
   texto: string;
 }

@@ -16,7 +16,7 @@ import {
   type ResultadoDoEnvio,
   VALIDADE_EM_DIAS,
 } from "../dominio/convite";
-import type { AdminId, ConviteId, CursoId } from "../dominio/tipos";
+import type { AdminId, ConviteId } from "../dominio/tipos";
 import type { Convites } from "../externos/convites";
 import type { Pessoas } from "../externos/pessoas";
 import { ErroParaAPessoa } from "../index";
@@ -99,8 +99,8 @@ async function gravarConvites(
         .returning({ email: convite.email, id: convite.id });
 
       const gravados = novos.map((n) => ({
-        email: n.email as Email,
-        id: n.id as ConviteId,
+        email: n.email,
+        id: n.id,
       }));
 
       if (gravados.length > 0 && oQueDa.cursoIds.length > 0) {
@@ -341,7 +341,7 @@ export async function reenviarConvite(
   let envio: Awaited<ReturnType<Convites["enviar"]>>;
 
   try {
-    envio = await convites.enviar(linha.email as Email, agora);
+    envio = await convites.enviar(linha.email, agora);
   } catch (erro) {
     throw emailNaoSaiu(erro);
   }
@@ -463,12 +463,12 @@ export async function linhasDosConvites(
     convidados: convidados.map((c) => ({
       ...c,
       cursos: c.cursos
-        .map((cc) => ({ id: cc.curso.id as CursoId, titulo: cc.curso.titulo }))
+        .map((cc) => ({ id: cc.curso.id, titulo: cc.curso.titulo }))
         .sort((a, b) => a.titulo.localeCompare(b.titulo, "pt-BR")),
-      email: c.email as Email,
-      id: c.id as ConviteId,
+      email: c.email,
+      id: c.id,
     })),
-    cursos: cursos.map((c) => ({ ...c, id: c.id as CursoId })),
+    cursos: cursos.map((c) => ({ ...c, id: c.id })),
     total,
   };
 }
@@ -506,9 +506,9 @@ export async function reivindicarConvite(
 
   return {
     comoAdmin: aceito.comoAdmin,
-    convidadoPor: aceito.convidadoPor as AdminId,
-    cursoIds: cursos.map((c) => c.cursoId as CursoId),
-    id: aceito.id as ConviteId,
+    convidadoPor: aceito.convidadoPor,
+    cursoIds: cursos.map((c) => c.cursoId),
+    id: aceito.id,
     perfil: aceito.perfil,
   };
 }

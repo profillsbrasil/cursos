@@ -251,7 +251,13 @@ export function ConcessaoDePontos({
     escolha === OUTRO && outro.trim() !== "" && lerQuantidade(outro) === null;
 
   const escolherSentido = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setSentido(e.currentTarget.value as Sentido);
+    const escolhido = SENTIDOS.find((s) => s.valor === e.currentTarget.value);
+
+    if (!escolhido) {
+      return;
+    }
+
+    setSentido(escolhido.valor);
     setErros((x) => ({ ...x, valor: null }));
   }, []);
 

@@ -14,18 +14,23 @@ import type {
   DocumentoDoCurso,
   PerguntaDoDocumento,
 } from "./edicao-do-curso";
+import {
+  alternativaId,
+  aulaId,
+  categoriaId,
+  cursoId,
+  diaISO,
+  moduloId,
+  perguntaId,
+} from "./marcas";
 import type { CursoLinha, LinhasPainel } from "./painel";
 import {
   type AlternativaId,
   type AulaId,
-  type CategoriaId,
   type CursoCatalogo,
-  type CursoId,
   capaDe,
-  type DiaISO,
   type EstudoDoQuestionario,
   type Historico,
-  type ModuloId,
   type PerguntaId,
   type StatusDoCurso,
   type Versao,
@@ -36,16 +41,16 @@ export const uuidDeExemplo = (n: number) =>
   `0a0b0c0d-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
 export const EDICAO = {
-  A1: uuidDeExemplo(21) as AulaId,
-  A2: uuidDeExemplo(22) as AulaId,
-  A3: uuidDeExemplo(23) as AulaId,
-  CATEGORIA: uuidDeExemplo(31) as CategoriaId,
-  CURSO: uuidDeExemplo(1) as CursoId,
-  M1: uuidDeExemplo(11) as ModuloId,
-  M2: uuidDeExemplo(12) as ModuloId,
-  P1: uuidDeExemplo(41) as PerguntaId,
-  P1A: uuidDeExemplo(51) as AlternativaId,
-  P1B: uuidDeExemplo(52) as AlternativaId,
+  A1: aulaId(uuidDeExemplo(21)),
+  A2: aulaId(uuidDeExemplo(22)),
+  A3: aulaId(uuidDeExemplo(23)),
+  CATEGORIA: categoriaId(uuidDeExemplo(31)),
+  CURSO: cursoId(uuidDeExemplo(1)),
+  M1: moduloId(uuidDeExemplo(11)),
+  M2: moduloId(uuidDeExemplo(12)),
+  P1: perguntaId(uuidDeExemplo(41)),
+  P1A: alternativaId(uuidDeExemplo(51)),
+  P1B: alternativaId(uuidDeExemplo(52)),
 } as const;
 
 export const aulaDeExemplo = (id: AulaId, titulo: string): AulaDoDocumento => ({
@@ -111,7 +116,7 @@ export function documentoDeExemplo(
 }
 
 export const idAula = (curso: string, modulo: number, posicao: number) =>
-  `${curso}-m${modulo}-a${posicao}`;
+  aulaId(`${curso}-m${modulo}-a${posicao}`);
 
 interface OpcoesCurso {
   /** Aulas por módulo, módulos numerados a partir de `primeiroNumero`. */
@@ -138,7 +143,7 @@ export function cursoLinha(chave: string, o: OpcoesCurso): CursoLinha {
     categoria: { nome: "Categoria" },
     codigo: "CAT-001",
     descricao: "",
-    id: chave,
+    id: cursoId(chave),
     modulos: o.aulas.map((qtd, i) => ({
       aulas: Array.from({ length: qtd }, (_, p) => ({
         descricao: "",
@@ -171,13 +176,13 @@ export function cursoCat(chave: string, o: OpcoesCurso): CursoCatalogo {
     categoria: l.categoria.nome,
     codigo: l.codigo,
     descricao: l.descricao,
-    id: l.id as CursoId,
+    id: l.id,
     modulos: l.modulos.map((m) => ({
       ...m,
       aulas: m.aulas.map((a) => ({
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
-        id: a.id as AulaId,
+        id: a.id,
         perguntas: a.perguntas,
         posicao: a.posicao,
         titulo: a.titulo,
@@ -205,21 +210,21 @@ export function historico(o: {
   questionarios?: [string, EstudoDoQuestionario][];
 }): Historico {
   return {
-    assistidas: new Set((o.assistidas ?? []) as AulaId[]),
+    assistidas: new Set((o.assistidas ?? []).map((a) => aulaId(a))),
     certificados: new Map(
       (o.certificados ?? []).map((c) => [
-        c as CursoId,
+        cursoId(c),
         { codigo: `CERT-${c}`, emitidoEm: "2026-09-01T12:00:00.000Z" },
       ])
     ),
     posicoes: new Map(
       (o.posicoes ?? []).map(([aula, seg, quando]) => [
-        aula as AulaId,
+        aulaId(aula),
         { atualizadaEm: quando ?? "2026-10-07T12:00:00.000Z", posicaoSeg: seg },
       ])
     ),
     questionarios: new Map(
-      (o.questionarios ?? []).map(([aula, q]) => [aula as AulaId, q])
+      (o.questionarios ?? []).map(([aula, q]) => [aulaId(aula), q])
     ),
   };
 }
@@ -243,7 +248,7 @@ function linhaDoSeed(chave: string): CursoLinha {
     categoria: { nome: c.categoria },
     codigo: c.codigo,
     descricao: c.descricao,
-    id: chave,
+    id: cursoId(chave),
     modulos: c.modulos.map((m) => ({
       aulas: m.aulas.map((a, i) => ({
         descricao: a.descricao ?? "",
@@ -293,7 +298,7 @@ export function exemploDoPrototipo(): LinhasPainel {
     certificados: [
       {
         codigo: codigoCertificado("user_seedA"),
-        cursoId: CERTIFICADO_A.curso,
+        cursoId: cursoId(CERTIFICADO_A.curso),
         emitidoEm: em("2026-09-20T12:00:00Z"),
       },
     ],
@@ -319,7 +324,7 @@ export function exemploDoPrototipo(): LinhasPainel {
 }
 
 /** O dia, em São Paulo, em que os testes montam o painel: a semana das posições do exemplo. */
-export const HOJE_DO_EXEMPLO = "2026-10-08" as DiaISO;
+export const HOJE_DO_EXEMPLO = diaISO("2026-10-08");
 
 export const SEM_LIBERACAO: LinhasPainel = {
   assistidas: [],

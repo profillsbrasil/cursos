@@ -14,7 +14,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { UM_GERAL, VARIOS } from "./exemplo-de-teste";
 import { TelaDeComunicados } from "./tela-de-comunicados";
 
@@ -81,8 +89,26 @@ interface Medida {
   titulo: Caixa;
 }
 
+const ehCaixa: Predicado<Caixa> = ehObjeto({
+  altura: ehNumero,
+  direita: ehNumero,
+  esquerda: ehNumero,
+  fundo: ehNumero,
+  largura: ehNumero,
+  topo: ehNumero,
+});
+
+const ehMedida: Predicado<Medida> = ehObjeto({
+  cartao: ehCaixa,
+  dias: ehLista(ehCaixa),
+  lado: ehCaixa,
+  linhas: ehLista(ehCaixa),
+  rolaDeLado: ehBooleano,
+  titulo: ehCaixa,
+});
+
 const medir = () =>
-  avaliar<Medida>(
+  avaliarComo(
     enviar,
     `(() => {
       const caixa = (el) => {
@@ -98,7 +124,8 @@ const medir = () =>
         rolaDeLado: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         titulo: caixa(cartao.querySelector("h2")),
       };
-    })()`
+    })()`,
+    ehMedida
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("a tela Comunicados medida", () => {

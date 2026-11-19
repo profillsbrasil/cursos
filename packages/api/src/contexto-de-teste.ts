@@ -1,4 +1,4 @@
-import type { Database } from "@cursos/db";
+import { createDb, type Database } from "@cursos/db";
 
 import type { Context, Papel } from "./context";
 import type { Email } from "./dominio/convite";
@@ -154,6 +154,14 @@ export function convitesDeTeste(
     },
   };
 }
+
+/**
+ * Um banco de verdade que nunca responde: o Pool do createDb só conecta na
+ * primeira consulta, e o endereço não tem servidor. Para o teste que não chega
+ * ao banco; se chegar, a consulta falha com a conexão recusada.
+ */
+export const bancoSemServidor = () =>
+  createDb({ DATABASE_URL: "postgresql://ninguem@127.0.0.1:9/nenhum" });
 
 /** O aluno que as consultas recebem do alunoProcedure. Sem perfil, Público aberto. */
 export const alunoDeTeste = (

@@ -95,8 +95,14 @@ export interface BucketDeCapas {
   segredo: string;
 }
 
+/** O que o bucket usa do fetch: o pedido, já assinado ou pelo endereço, e a resposta. O fetch global satisfaz. */
+export type Enviar = (
+  pedido: Request | string,
+  init?: RequestInit
+) => Promise<Response>;
+
 /** O bucket com pedido assinado (`aws4fetch`), que capas e materiais dividem. */
-export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
+export function bucketAssinado(cfg: BucketDeCapas, enviar: Enviar) {
   const aws = new AwsClient({
     accessKeyId: cfg.idDaChave,
     region: cfg.regiao,
@@ -228,7 +234,7 @@ export function lerPaginaDaListagem(xml: string): {
  */
 export function capasNoBucket(
   cfg: BucketDeCapas,
-  enviar: typeof fetch = fetch
+  enviar: Enviar = fetch
 ): Capas {
   const bucket = bucketAssinado(cfg, enviar);
 

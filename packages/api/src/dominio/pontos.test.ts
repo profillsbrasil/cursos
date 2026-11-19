@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
+import { diaISO } from "./marcas";
 import { comoGanhar, itemDoExtrato, type LinhaDoExtrato } from "./pontos";
 import { PONTOS } from "./regras";
-import type { DiaISO } from "./tipos";
 
 const linha = (mudar: Partial<LinhaDoExtrato>): LinhaDoExtrato => ({
   aula: null,
@@ -65,7 +65,7 @@ describe("itemDoExtrato", () => {
   test("o dia é o de São Paulo", () => {
     expect(
       itemDoExtrato(linha({ criadoEm: new Date("2026-10-07T02:00:00Z") })).dia
-    ).toBe("2026-10-06" as DiaISO);
+    ).toBe(diaISO("2026-10-06"));
   });
 
   test("referência ausente é dado quebrado e lança", () => {

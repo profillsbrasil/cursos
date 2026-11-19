@@ -57,7 +57,7 @@ async function pedidoDentroDaTarefa() {
 beforeEach(() => {
   pedidos = [];
   Reflect.set(globalThis, "window", globalThis);
-  globalThis.fetch = ((url: string, init: RequestInit) => {
+  Reflect.set(globalThis, "fetch", (url: string, init: RequestInit) => {
     pedidos.push({
       headers: Object.fromEntries(new Headers(init.headers)),
       keepalive: init.keepalive,
@@ -65,7 +65,7 @@ beforeEach(() => {
     });
 
     return new Promise<Response>(() => undefined);
-  }) as typeof fetch;
+  });
 });
 
 afterEach(() => {

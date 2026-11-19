@@ -20,6 +20,7 @@ import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import {
   type DocumentoDoCurso,
   type EdicaoDoCurso,
@@ -28,14 +29,16 @@ import {
   type PerguntaDoDocumento,
 } from "../dominio/edicao-do-curso";
 import { CARACTERES, LIMITES } from "../dominio/limites-do-curso";
-import type {
-  AlternativaId,
-  AulaId,
-  CategoriaId,
-  CursoId,
-  ModuloId,
-  PerguntaId,
-} from "../dominio/tipos";
+import {
+  ehAlternativaId,
+  ehAulaId,
+  ehCategoriaId,
+  ehCursoId,
+  ehModuloId,
+  ehPerguntaId,
+  marcar,
+} from "../dominio/marcas";
+import type { AulaId, CategoriaId, CursoId, ModuloId } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
@@ -99,7 +102,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   );
 
   const cursos: CursoId[] = [];
-  const categorias: string[] = [];
+  const categorias: CategoriaId[] = [];
 
   afterAll(async () => {
     await db.delete(aulaAssistida).where(eq(aulaAssistida.userId, ALUNO));
@@ -113,7 +116,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   const novaAula = (titulo: string) => ({
     descricao: "",
     duracaoSeg: 120,
-    id: randomUUID() as AulaId,
+    id: marcar(ehAulaId, randomUUID()),
     perguntas: [],
     titulo,
     video: null,
@@ -126,11 +129,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   ): PerguntaDoDocumento => ({
     alternativas: textos.map((texto, i) => ({
       certa: i === certa,
-      id: randomUUID() as AlternativaId,
+      id: marcar(ehAlternativaId, randomUUID()),
       texto,
     })),
     enunciado,
-    id: randomUUID() as PerguntaId,
+    id: marcar(ehPerguntaId, randomUUID()),
   });
 
   const novoModulo = (
@@ -139,7 +142,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     aulas: ModuloDoDocumento["aulas"] = []
   ): ModuloDoDocumento => ({
     aulas,
-    id: randomUUID() as ModuloId,
+    id: marcar(ehModuloId, randomUUID()),
     nivelOrdem: null,
     numero,
     titulo,
@@ -153,7 +156,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   function documentoNovo(
     modulosDoCurso: ModuloDoDocumento[] = []
   ): DocumentoDoCurso {
-    const id = randomUUID() as CursoId;
+    const id = marcar(ehCursoId, randomUUID());
     cursos.push(id);
 
     return {
@@ -217,7 +220,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     return [a, b] as const;
   };
 
-  function aulasNoBanco(moduloId: string) {
+  function aulasNoBanco(moduloId: ModuloId) {
     return db
       .select({ id: aula.id, posicao: aula.posicao, titulo: aula.titulo })
       .from(aula)
@@ -225,7 +228,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       .orderBy(asc(aula.posicao));
   }
 
-  const titulos = async (moduloId: string) =>
+  const titulos = async (moduloId: ModuloId) =>
     (await aulasNoBanco(moduloId)).map((x) => x.titulo);
 
   function modulosNoBanco(cursoId: CursoId) {
@@ -374,7 +377,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       [true, true, 1],
       [false, false, 2],
     ]);
-    expect(linhas[1]?.id).toBe(p1.alternativas[1]?.id ?? "");
+    expect(linhas[1]?.id).toBe(definido(p1.alternativas[1]?.id));
     expect(
       await db
         .select({ id: pergunta.id })
@@ -409,10 +412,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     comAlternativa.modulos[0]?.aulas[0]?.perguntas.push({
       ...novaPergunta("Minha", ["Sim"], 0),
       alternativas: [
-        { certa: true, id: randomUUID() as AlternativaId, texto: "Sim" },
         {
-          ...(deFora
-            .alternativas[0] as PerguntaDoDocumento["alternativas"][number]),
+          certa: true,
+          id: marcar(ehAlternativaId, randomUUID()),
+          texto: "Sim",
+        },
+        {
+          ...definido(deFora.alternativas[0]),
           certa: false,
         },
       ],
@@ -435,7 +441,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("o banco aceita os tetos do schema e recusa um a mais", async () => {
     const { documento } = await cursoSalvo();
     const { id } = documento;
-    const aulaId = documento.modulos[0]?.aulas[0]?.id ?? "";
+    const aulaId = definido(documento.modulos[0]?.aulas[0]?.id);
 
     const gravar = (mudanca: Partial<typeof curso.$inferInsert>) =>
       db
@@ -466,7 +472,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       .insert(pergunta)
       .values({ aulaId, enunciado: "Pergunta", posicao: 1 })
       .returning({ id: pergunta.id })
-      .then(([p]) => p?.id ?? "");
+      .then(([p]) => definido(p?.id));
 
     const gravarPergunta = (enunciado: string) =>
       db
@@ -578,13 +584,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     }
 
     await assistir(a1.id);
-    a1.id = a1.id.toUpperCase() as AulaId;
+    a1.id = marcar(ehAulaId, a1.id.toUpperCase());
     a1.titulo = "A1 renomeada";
 
     expect(await resultado(salvar(documento))).toEqual(OK);
 
     expect(await aulasNoBanco(a.id)).toContainEqual({
-      id: a1.id.toLowerCase(),
+      id: marcar(ehAulaId, a1.id.toLowerCase()),
       posicao: 1,
       titulo: "A1 renomeada",
     });
@@ -592,7 +598,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     const posicoes = await db
       .select({ seg: posicaoAula.posicaoSeg })
       .from(posicaoAula)
-      .where(eq(posicaoAula.aulaId, a1.id.toLowerCase()));
+      .where(eq(posicaoAula.aulaId, marcar(ehAulaId, a1.id.toLowerCase())));
 
     expect(posicoes).toEqual([{ seg: 42 }]);
   });
@@ -947,7 +953,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
 
     const doisNaNova = [documentoNovo(), documentoNovo()].map((d) => ({
       ...d,
-      categoriaId: nova.id as CategoriaId,
+      categoriaId: nova.id,
     }));
 
     const salvos = await Promise.all(doisNaNova.map((d) => salvarComCapa(d)));
@@ -1006,7 +1012,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("categoria que não existe é recusada com frase e nada é gravado", async () => {
     const documento = {
       ...documentoNovo(),
-      categoriaId: randomUUID() as CategoriaId,
+      categoriaId: marcar(ehCategoriaId, randomUUID()),
     };
 
     expect(await resultado(salvarComCapa(documento))).toEqual({

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import type { Acompanhamento } from "@cursos/api/dominio/acompanhamento";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
-import type { CursoId, DiaISO, LiberacaoId } from "@cursos/api/dominio/tipos";
+import { cursoId, diaISO, liberacaoId } from "@cursos/api/dominio/marcas";
 
 import { noDia } from "@/lib/formato";
 
@@ -15,7 +15,7 @@ import {
 } from "./acompanhamento";
 
 const HOJE = "2026-10-14";
-const dia = (d: string) => d as DiaISO;
+const dia = (d: string) => diaISO(d);
 
 const curso = (
   situacao: Acompanhamento["situacao"],
@@ -191,8 +191,8 @@ describe("as datas do item da liberação", () => {
   ): LiberacaoNaTela => ({
     acao,
     acompanhamento: concluido,
-    curso: { id: "c1" as CursoId, titulo: "Segurança" },
-    id: "l1" as LiberacaoId,
+    curso: { id: cursoId("c1"), titulo: "Segurança" },
+    id: liberacaoId("l1"),
     liberadaEm,
     origem,
   });

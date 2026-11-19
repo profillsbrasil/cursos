@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import type { PessoaComSituacao } from "@cursos/api/dominio/acompanhamento";
 import type { ResultadoDoLote } from "@cursos/api/dominio/liberacao";
-import type { CursoId, DiaISO, Pessoa } from "@cursos/api/dominio/tipos";
+import { cursoId, diaISO } from "@cursos/api/dominio/marcas";
+import type { Pessoa } from "@cursos/api/dominio/tipos";
 
 import {
   detalheDoResultado,
@@ -17,7 +18,7 @@ import {
   rotuloDoLiberar,
 } from "./lote";
 
-const HOJE = "2026-10-16" as DiaISO;
+const HOJE = diaISO("2026-10-16");
 
 const pessoa = (userId: string, nome: string): Pessoa => ({
   email: `${userId}@exemplo.com`,
@@ -32,7 +33,7 @@ const CAMILA = pessoa("user_camila", "Camila Rocha");
 const LUANA = pessoa("user_luana", "Luana Ferreira");
 
 const COMERCIAL = {
-  id: "11111111-1111-4111-8111-111111111111" as CursoId,
+  id: cursoId("11111111-1111-4111-8111-111111111111"),
   titulo: "Profills School Comercial",
 };
 
@@ -109,7 +110,7 @@ const RESULTADO: ResultadoDoLote = {
   pessoas: [
     { tipo: "liberada_agora", userId: ANA.userId },
     {
-      liberadaEm: "2025-12-30" as DiaISO,
+      liberadaEm: diaISO("2025-12-30"),
       origem: "troca",
       tipo: "ja_tinha",
       userId: CAMILA.userId,

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { videoId } from "../marcas";
 import { ALFABETO_DO_CODIGO, codigoDosIndices } from "../schema/formatos";
 
 export interface AulaSeed {
@@ -40,7 +41,7 @@ export interface CursoSeed {
  */
 export const VIDEO_EXEMPLO = {
   duracaoSeg: 634,
-  id: "aqz-KE-bpKQ",
+  id: videoId("aqz-KE-bpKQ"),
   provedor: "youtube",
 } as const;
 

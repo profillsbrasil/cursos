@@ -1,7 +1,6 @@
 import type { FichaDaPessoa, PontosNaFicha } from "@cursos/api/dominio/pessoas";
 import type { JeitoDeEntrar } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
-import type { Route } from "next";
 import Link from "next/link";
 
 import { SELO } from "@/components/casca/selos";
@@ -24,6 +23,7 @@ import {
   fmtPtsComSinal,
   quando,
 } from "@/lib/formato";
+import { rota } from "@/lib/rotas";
 
 import { FotoDaPessoa } from "../foto-da-pessoa";
 import { VoltaParaALista } from "../volta-para-a-lista";
@@ -214,7 +214,7 @@ export function FichaDaPessoaDoAdmin({
           <div className={PE_DO_CARTAO}>
             <Link
               className="toque text-ceu hover:text-titulo justify-self-start text-[13px] font-semibold transition-colors"
-              href={`/admin/liberacoes/${conta.userId}` as Route}
+              href={rota(`/admin/liberacoes/${conta.userId}`)}
             >
               Ver as liberações e o estudo
             </Link>

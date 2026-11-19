@@ -3,6 +3,7 @@ import { describe, expect, mock, test } from "bun:test";
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import {
   type EdicaoDoCurso,
+  type EdicaoNoEditor,
   edicaoDeCursoNovo,
 } from "@cursos/api/dominio/edicao-do-curso";
 import {
@@ -10,7 +11,7 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { CategoriaId, Versao } from "@cursos/api/dominio/tipos";
+import { categoriaId, versao } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const navegacao = await import("next/navigation");
@@ -41,7 +42,7 @@ function categoriaNoGatilho(html: string) {
   return [texto(conteudo).trim(), atributos.includes(' data-placeholder=""')];
 }
 
-const OUTRA = uuidDeExemplo(32) as CategoriaId;
+const OUTRA = categoriaId(uuidDeExemplo(32));
 
 const CATEGORIAS: CategoriaNaLista[] = [
   {
@@ -55,7 +56,7 @@ const CATEGORIAS: CategoriaNaLista[] = [
 const salvo: EdicaoDoCurso = {
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
   codigo: "PE-001",
-  documento: documentoDeExemplo("v1" as Versao),
+  documento: documentoDeExemplo(versao("v1")),
   podeApagar: false,
   slug: "operacao-da-envasadora",
   uso: {
@@ -66,7 +67,7 @@ const salvo: EdicaoDoCurso = {
   },
 };
 
-const render = (edicao: EdicaoDoCurso) =>
+const render = (edicao: EdicaoNoEditor) =>
   renderToStaticMarkup(
     <EditorDoCurso categorias={CATEGORIAS} edicao={edicao} />
   );

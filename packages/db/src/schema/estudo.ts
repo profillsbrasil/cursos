@@ -16,6 +16,14 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type {
+  AlternativaId,
+  AulaId,
+  CursoId,
+  DiaISO,
+  PerguntaId,
+  TentativaId,
+} from "../marcas";
 import { alternativa, aula, curso, pergunta } from "./catalogo";
 import { momento, tabela } from "./comum";
 import { faixasDeSegundos } from "./tipos-pg";
@@ -27,12 +35,14 @@ export const aulaAssistida = tabela(
     assistidaEm: momento(),
     aulaId: uuid()
       .notNull()
-      .references(() => aula.id, { onDelete: "restrict" }),
+      .references(() => aula.id, { onDelete: "restrict" })
+      .$type<AulaId>(),
     dia: date({ mode: "string" })
       .notNull()
       .generatedAlwaysAs(
         sql`((assistida_em at time zone 'America/Sao_Paulo')::date)`
-      ),
+      )
+      .$type<DiaISO>(),
     userId: text().notNull(),
   },
   (t) => [
@@ -47,7 +57,8 @@ export const posicaoAula = tabela(
     atualizadaEm: momento(),
     aulaId: uuid()
       .notNull()
-      .references(() => aula.id, { onDelete: "cascade" }),
+      .references(() => aula.id, { onDelete: "cascade" })
+      .$type<AulaId>(),
     posicaoSeg: integer().notNull(),
     trechosVistos: faixasDeSegundos()
       .notNull()
@@ -89,9 +100,10 @@ export const questionarioTentativa = tabela(
     aprovada: boolean().notNull(),
     aulaId: uuid()
       .notNull()
-      .references(() => aula.id, { onDelete: "restrict" }),
+      .references(() => aula.id, { onDelete: "restrict" })
+      .$type<AulaId>(),
     enviadaEm: momento(),
-    id: uuid().primaryKey(),
+    id: uuid().primaryKey().$type<TentativaId>(),
     numero: smallint().notNull(),
     total: smallint().notNull(),
     userId: text().notNull(),
@@ -116,12 +128,14 @@ export const questionarioResposta = tabela(
   {
     alternativaId: uuid()
       .notNull()
-      .references(() => alternativa.id, { onDelete: "cascade" }),
+      .references(() => alternativa.id, { onDelete: "cascade" })
+      .$type<AlternativaId>(),
     certa: boolean().notNull(),
     perguntaId: uuid()
       .notNull()
-      .references(() => pergunta.id, { onDelete: "cascade" }),
-    tentativaId: uuid().notNull(),
+      .references(() => pergunta.id, { onDelete: "cascade" })
+      .$type<PerguntaId>(),
+    tentativaId: uuid().notNull().$type<TentativaId>(),
   },
   (t) => [
     primaryKey({ columns: [t.tentativaId, t.perguntaId] }),
@@ -139,7 +153,8 @@ export const certificado = tabela(
     codigo: text().notNull().unique(),
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "restrict" }),
+      .references(() => curso.id, { onDelete: "restrict" })
+      .$type<CursoId>(),
     emitidoEm: momento(),
     id: uuid().primaryKey().defaultRandom(),
     /** A soma dos vídeos do curso no momento da emissão. */

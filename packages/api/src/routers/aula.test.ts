@@ -1,20 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
-import { contextoDeTeste } from "../contexto-de-teste";
+import { bancoSemServidor, contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "./index";
 
-const bancoQueSoLeOPerfilJaGravado = {
-  execute: () =>
-    Promise.resolve({
-      rows: [{ papel_por_aplicar: false, perfil: "publico" }],
-    }),
-};
+const bancoQueSoLeOPerfilJaGravado = bancoSemServidor();
+
+Reflect.set(bancoQueSoLeOPerfilJaGravado.$client, "query", () =>
+  Promise.resolve({ rows: [{ papel_por_aplicar: false, perfil: "publico" }] })
+);
 
 const caller = createCaller(
-  contextoDeTeste({
-    db: bancoQueSoLeOPerfilJaGravado as never,
-    userId: "user_x",
-  })
+  contextoDeTeste({ db: bancoQueSoLeOPerfilJaGravado, userId: "user_x" })
 );
 
 const FORA_DO_FORMATO = ["Comercial", "comercial.", "a_b", "%C3%A7urso"];

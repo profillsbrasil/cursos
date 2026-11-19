@@ -6,7 +6,7 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { ModuloId, VideoId } from "@cursos/api/dominio/tipos";
+import { moduloId, videoId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import {
@@ -16,7 +16,14 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+} from "../predicados.test-utils";
 import {
   BlocoDoModulo,
   ModulosDoCurso,
@@ -32,7 +39,7 @@ const documento = documentoDeExemplo();
 const [primeira, ...resto] = documento.modulos[0].aulas;
 
 documento.modulos[0].aulas = [
-  { ...primeira, video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" } },
+  { ...primeira, video: { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" } },
   ...resto,
 ];
 
@@ -46,7 +53,7 @@ if (!modelo) {
 const MODULOS = Array.from({ length: 16 }, (_, i) => ({
   ...modelo,
   aulas: [],
-  id: uuidDeExemplo(100 + i) as ModuloId,
+  id: moduloId(uuidDeExemplo(100 + i)),
   numero: String(i),
   titulo: `Módulo ${i}`,
 }));
@@ -124,13 +131,14 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         `<div style="width:${bloco}px">${blocoAberto}</div>`
       );
 
-      return await avaliar<{ nivelNaLinhaDoTitulo: boolean; titulo: number }>(
+      return await avaliarComo(
         enviar,
         `(() => {
           const titulo = document.querySelector('[id$="-titulo"]').getBoundingClientRect();
           const nivel = document.querySelector('button[id$="-nivel"]').getBoundingClientRect();
           return { nivelNaLinhaDoTitulo: nivel.top === titulo.top, titulo: titulo.width };
-        })()`
+        })()`,
+        ehObjeto({ nivelNaLinhaDoTitulo: ehBooleano, titulo: ehNumero })
       );
     };
 
@@ -170,7 +178,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         `(${reservarOTopo.toString()})(document.querySelector("nav"))`
       );
       await avaliar(enviar, DEPOIS_DO_RENDER);
-      medida = await avaliar(
+      medida = await avaliarComo(
         enviar,
         `(async () => {
           const nav = document.querySelector("nav");
@@ -188,7 +196,12 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
           await depois();
           const foco = posicao("modulo-${idDoModulo(14)}-cabeca");
           return { alturaDoIndice: nav.offsetHeight, foco, salto };
-        })()`
+        })()`,
+        ehObjeto({
+          alturaDoIndice: ehNumero,
+          foco: ehObjeto({ fundoDoIndice: ehNumero, topo: ehNumero }),
+          salto: ehObjeto({ fundoDoIndice: ehNumero, topo: ehNumero }),
+        })
       );
     }, 20_000);
 
@@ -212,14 +225,15 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
   test("em 390 px, o último número do índice sai da máscara no fim da rolagem", async () => {
     await abrirPagina(390, `<main style="padding:16px">${listaFechada}</main>`);
 
-    const folga = await avaliar<number>(
+    const folga = await avaliarComo(
       enviar,
       `(() => {
         const fila = document.querySelector("nav ol");
         fila.scrollLeft = fila.scrollWidth;
         const ultimo = fila.querySelector("li:last-child a").getBoundingClientRect();
         return fila.getBoundingClientRect().right - ultimo.right;
-      })()`
+      })()`,
+      ehNumero
     );
 
     expect(folga).toBeGreaterThanOrEqual(40);
@@ -236,11 +250,7 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
         `<div style="width:${bloco}px">${blocoAberto}</div>`
       );
 
-      const campo = await avaliar<{
-        cabe: boolean;
-        largura: number;
-        valor: string;
-      }>(
+      const campo = await avaliarComo(
         enviar,
         `(() => {
           const campo = document.getElementById("aula-${EDICAO.A1}-video");
@@ -249,7 +259,8 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
             largura: campo.clientWidth,
             valor: campo.value,
           };
-        })()`
+        })()`,
+        ehObjeto({ cabe: ehBooleano, largura: ehNumero, valor: ehTexto })
       );
 
       expect(campo.largura).toBeGreaterThan(0);

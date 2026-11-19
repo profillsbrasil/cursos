@@ -37,12 +37,16 @@ export interface CursoComAcessoLinha extends CursoLinha {
 }
 
 export interface LinhasCurso {
-  assistidas: readonly { assistidaEm: Date; aulaId: string; dia: string }[];
-  certificados: readonly { codigo: string; cursoId: string; emitidoEm: Date }[];
+  assistidas: readonly { assistidaEm: Date; aulaId: AulaId; dia: DiaISO }[];
+  certificados: readonly {
+    codigo: string;
+    cursoId: CursoId;
+    emitidoEm: Date;
+  }[];
   curso: CursoComAcessoLinha | null;
   posicoes: readonly {
     atualizadaEm: Date;
-    aulaId: string;
+    aulaId: AulaId;
     posicaoSeg: number;
     trechosVistos: readonly Trecho[];
   }[];
@@ -115,14 +119,10 @@ export function montarCursoVisto(linhas: LinhasCurso): CursoAberto | null {
   return {
     amostra,
     curso,
-    diasComAulaAssistida: new Set(
-      linhas.assistidas.map((a) => a.dia as DiaISO)
-    ),
+    diasComAulaAssistida: new Set(linhas.assistidas.map((a) => a.dia)),
     historico: estudo.historico,
     leitura: { ...leitura, estado },
-    trechos: new Map(
-      linhas.posicoes.map((p) => [p.aulaId as AulaId, p.trechosVistos])
-    ),
+    trechos: new Map(linhas.posicoes.map((p) => [p.aulaId, p.trechosVistos])),
   };
 }
 

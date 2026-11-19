@@ -13,8 +13,10 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
-import type { AdminId, CursoId } from "../dominio/tipos";
+import { definido } from "../definido.test-utils";
+import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { definirPerfil } from "./perfil";
 
@@ -26,7 +28,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const DONA = `user_dona${S}`;
   const CLIENTE = `user_cliente${S}`;
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   const admin = createCaller(
     contextoDeTeste({
@@ -83,12 +85,12 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
 
     await db.insert(aula).values({
       duracaoSeg: 60,
-      moduloId: m?.id ?? "",
+      moduloId: definido(m?.id),
       posicao: 1,
       titulo: "Aula",
     });
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   afterAll(async () => {
@@ -133,7 +135,13 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
 
   test("a busca e a tela de acesso contam o curso que a pessoa vê pelo perfil", async () => {
     const id = await criarCurso();
-    await definirPerfil(db, DONA as AdminId, CLIENTE, "cliente", AGORA);
+    await definirPerfil(
+      db,
+      adminIdDe(sessaoDe("admin", DONA)),
+      CLIENTE,
+      "cliente",
+      AGORA
+    );
 
     const situacao = async () =>
       (await admin.admin.liberacoes.buscar({ termo: `Cliente ${S}` }))

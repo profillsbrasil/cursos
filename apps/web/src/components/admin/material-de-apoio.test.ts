@@ -2,7 +2,7 @@ import { describe, expect, mock, test } from "bun:test";
 
 import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, uuidDeExemplo } from "@cursos/api/dominio/exemplo";
-import type { MaterialId, Versao } from "@cursos/api/dominio/tipos";
+import { materialId, versao } from "@cursos/api/dominio/marcas";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -29,7 +29,7 @@ mock.module("next/navigation", () => ({
 const { MaterialDeApoio, resumoDoMaterial } =
   await import("./material-de-apoio");
 
-const idDe = (n: number) => uuidDeExemplo(900 + n) as MaterialId;
+const idDe = (n: number) => materialId(uuidDeExemplo(900 + n));
 
 const material = (n: number): MaterialDoDocumento => ({
   bytes: 1000 * n,
@@ -49,7 +49,7 @@ const enviando = (n: number): EnvioDeMaterial => ({
 });
 
 const salvo = (materiais: MaterialDoDocumento[] = []) =>
-  rascunhoDoEditorEm({ ...documentoDeExemplo("v1" as Versao), materiais });
+  rascunhoDoEditorEm({ ...documentoDeExemplo(versao("v1")), materiais });
 
 const aplicar = (e: RascunhoDoEditor, ...acoes: AcaoDoEditor[]) =>
   acoes.reduce(rascunhoDoEditor, e);

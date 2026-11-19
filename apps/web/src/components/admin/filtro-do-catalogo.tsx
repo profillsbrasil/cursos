@@ -122,11 +122,13 @@ export function GradeDoCatalogo({
   const [busca, setBusca] = useState("");
   const visiveis = cursos.filter((c) => noFiltro(c, filtro, busca));
 
-  const filtrar = useCallback(
-    (e: MouseEvent<HTMLButtonElement>) =>
-      setFiltro(e.currentTarget.value as FiltroDeStatus),
-    []
-  );
+  const filtrar = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+    const escolhido = FILTROS.find((f) => f.filtro === e.currentTarget.value);
+
+    if (escolhido) {
+      setFiltro(escolhido.filtro);
+    }
+  }, []);
 
   const buscar = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => setBusca(e.target.value),

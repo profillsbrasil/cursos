@@ -1,10 +1,11 @@
 import { ID_DO_YOUTUBE } from "@cursos/db/schema/formatos";
 
+import { videoId } from "./marcas";
 import type { VideoDaAula, VideoId, VideoProvedor } from "./tipos";
 
 export function videoDaAula(
   provedor: VideoProvedor | null,
-  id: string | null
+  id: VideoId | null
 ): VideoDaAula | null {
   if (provedor === null || id === null) {
     return null;
@@ -12,7 +13,7 @@ export function videoDaAula(
 
   switch (provedor) {
     case "youtube":
-      return { id: id as VideoId, provedor };
+      return { id, provedor };
     default: {
       const nenhum: never = provedor;
       throw new Error(`Provedor de vídeo sem leitor: ${String(nenhum)}`);
@@ -61,7 +62,7 @@ export function videoDoTexto(texto: string): VideoDaAula | null {
   const s = texto.trim();
 
   if (ID.test(s)) {
-    return { id: s as VideoId, provedor: "youtube" };
+    return { id: videoId(s), provedor: "youtube" };
   }
 
   let url: URL;
@@ -75,6 +76,6 @@ export function videoDoTexto(texto: string): VideoDaAula | null {
   const id = idDoLink(url);
 
   return id !== null && ID.test(id)
-    ? { id: id as VideoId, provedor: "youtube" }
+    ? { id: videoId(id), provedor: "youtube" }
     : null;
 }

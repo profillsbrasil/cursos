@@ -1,4 +1,3 @@
-import type { SessionAuthObject } from "@clerk/backend";
 import type { Database } from "@cursos/db";
 
 import type { Capas } from "./externos/capas";
@@ -43,8 +42,11 @@ export interface Context extends Servicos {
   readonly auth: Sessao | null;
 }
 
-/** O que os dois construtores têm do Clerk: authenticateRequest().toAuth() e auth.protect(). */
-export type AuthDoClerk = Pick<SessionAuthObject, "sessionClaims" | "userId">;
+/** O que contextoDe lê do Clerk: o userId e o claim papel. O authenticateRequest().toAuth() e o auth.protect() satisfazem; sessionClaims chega sem forma garantida e o contextoDe a confere. */
+export interface AuthDoClerk {
+  readonly sessionClaims: unknown;
+  readonly userId: string | null;
+}
 
 /**
  * Única leitura de sessionClaims do app. O claim `papel` vem do template
@@ -62,7 +64,15 @@ export function contextoDe(
     return { ...servicos, auth: null };
   }
 
-  const papel = clerk.sessionClaims?.papel === "admin" ? "admin" : "aluno";
+  const claims = clerk.sessionClaims;
+
+  const papel =
+    typeof claims === "object" &&
+    claims !== null &&
+    "papel" in claims &&
+    claims.papel === "admin"
+      ? "admin"
+      : "aluno";
 
   return { ...servicos, auth: sessaoDe(papel, userId) };
 }

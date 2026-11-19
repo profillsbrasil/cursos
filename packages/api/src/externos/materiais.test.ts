@@ -1,6 +1,8 @@
 import { describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 
+import { ArquivoQueContaAsLeituras } from "./arquivo-que-conta-as-leituras.test-utils";
+import type { Enviar } from "./capas";
 import {
   lerMaterial,
   materiaisDesligados,
@@ -106,7 +108,7 @@ function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];
 
-  const enviar = ((url: Request | string, init?: RequestInit) => {
+  const enviar: Enviar = (url, init) => {
     const pedido = url instanceof Request ? url : new Request(url, init);
     pedidos.push(pedido);
     tamanhos.push(
@@ -114,7 +116,7 @@ function bucketFalso(resposta: (pedido: Request) => Response) {
     );
 
     return Promise.resolve(resposta(pedido));
-  }) as unknown as typeof fetch;
+  };
 
   return { enviar, pedidos, tamanhos };
 }
@@ -154,17 +156,11 @@ describe("materiaisNoBucket", () => {
   test("arquivo recusado não chega ao bucket; o pesado nem é lido", async () => {
     const { enviar, pedidos } = bucketFalso(() => new Response(null));
     const materiais = materiaisNoBucket(BUCKET, enviar);
-    let lidos = 0;
 
-    const pesado = {
-      arrayBuffer: () => {
-        lidos += 1;
-
-        return Promise.resolve(new ArrayBuffer(0));
-      },
-      name: "manual.pdf",
-      size: 50 * 1024 * 1024 + 1,
-    } as unknown as File;
+    const pesado = new ArquivoQueContaAsLeituras(
+      [new Uint8Array(50 * 1024 * 1024 + 1)],
+      "manual.pdf"
+    );
 
     expect(await materiais.receber(pesado)).toEqual({
       recusa: { bytes: 50 * 1024 * 1024 + 1, tipo: "pesado" },
@@ -173,7 +169,7 @@ describe("materiaisNoBucket", () => {
     expect(
       await materiais.receber(new File([ZIP], "manual.pdf"))
     ).toMatchObject({ recusa: { tipo: "assinatura" }, tipo: "recusa" });
-    expect(lidos).toBe(0);
+    expect(pesado.lidos).toBe(0);
     expect(pedidos).toHaveLength(0);
   });
 

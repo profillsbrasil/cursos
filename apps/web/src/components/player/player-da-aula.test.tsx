@@ -3,9 +3,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
+import { aulaId, videoId } from "@cursos/api/dominio/marcas";
+import type { VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
+
+import { definido } from "@/definido.test-utils";
 
 const navegacao = await import("next/navigation");
 
@@ -18,15 +21,15 @@ const { PlayerDaAula } = await import("./player-da-aula");
 const { AulaSemVideo } = await import("./aula-sem-video");
 const { NavegacaoEntreAulas } = await import("./cabecalho-da-aula");
 
-const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
+const VIDEO: VideoDaAula = { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" };
 
 const DADOS: AulaNoPlayer = {
   amostra: null,
-  anterior: { id: "a3" as AulaId, titulo: "O custo do atraso para o cliente" },
+  anterior: { id: aulaId("a3"), titulo: "O custo do atraso para o cliente" },
   aula: {
     descricao: "",
     duracaoSeg: 634,
-    id: "a4" as AulaId,
+    id: aulaId("a4"),
     modulo: { numero: 8, titulo: "Pilar Urgência" },
     numeroNoModulo: 4,
     titulo: "Cronograma reverso",
@@ -40,7 +43,7 @@ const DADOS: AulaNoPlayer = {
   },
   estudo: { assistida: false, posicaoSeg: 222, trechos: SEM_TRECHOS },
   modulos: [],
-  proxima: { id: "a5" as AulaId, titulo: "Prazo que o cliente aceita" },
+  proxima: { id: aulaId("a5"), titulo: "Prazo que o cliente aceita" },
   questionario: null,
 };
 
@@ -174,7 +177,7 @@ describe("Anterior e Próxima em repouso", () => {
 
       const cor = borda ? TOKENS.get(borda) : undefined;
       expect(cor, `borda ${borda} sem token`).toBeDefined();
-      expect(contraste(cor as string, fundo as string)).toBeGreaterThanOrEqual(
+      expect(contraste(definido(cor), definido(fundo))).toBeGreaterThanOrEqual(
         3
       );
     }
