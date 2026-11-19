@@ -17,6 +17,7 @@ import {
   ehBooleano,
   ehLista,
   ehNumero,
+  ehQualquer,
   ehObjeto,
   ehRegistroDe,
   ehTexto,
@@ -253,10 +254,10 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await digitar("sobrenome", "Souza");
       await salvar();
       await esperar("window.refresh > 0");
-      expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+      expect(await avaliarComo(enviar, "window.pedidos", ehQualquer)).toEqual([
         { firstName: "Ana", lastName: "Souza" },
       ]);
-      expect(await avaliar<number>(enviar, "window.refresh")).toBe(1);
+      expect(await avaliarComo(enviar, "window.refresh", ehNumero)).toBe(1);
     });
 
     test("o Clerk recusa: o toast diz a regra e o depois não roda", async () => {
