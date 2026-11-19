@@ -51,7 +51,6 @@ export function FormularioDoNome({
 
   const problema = problemaDoNome(valor.nome, valor.sobrenome);
 
-  // Antes de digitar, o nome vazio não acusa erro no campo: o Salvar parado diz o que falta.
   const digitou = valor.nome !== "" || valor.sobrenome !== "";
   const noCampo = digitou ? problema : null;
   const idDoErro = idDoErroDoNome(id);

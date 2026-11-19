@@ -41,8 +41,12 @@ const PESSOAS = [
   },
 ];
 
-/** O teto da busca, sem espaço: nada na palavra convida a quebrar. */
-const TERMO_LONGO = "anabeatrizdesouzaelimadasilva".repeat(4).slice(0, 100);
+const TERMO_NO_TETO_DA_BUSCA_SEM_ESPACO = "anabeatrizdesouzaelimadasilva"
+  .repeat(4)
+  .slice(0, 100);
+
+const CONTEUDO_EM_1440_COM_SIDEBAR_ABERTA = 1086;
+const CONTEUDO_EM_390_DE_JANELA = 358;
 
 const TELAS = {
   liberacoes: {
@@ -92,9 +96,9 @@ const TELAS = {
         busca={{
           acao: "/admin/pessoas" as Route,
           id: "busca-de-pessoas",
-          termo: TERMO_LONGO,
+          termo: TERMO_NO_TETO_DA_BUSCA_SEM_ESPACO,
         }}
-        contagem={contagemDePessoas(0, 0, TERMO_LONGO)}
+        contagem={contagemDePessoas(0, 0, TERMO_NO_TETO_DA_BUSCA_SEM_ESPACO)}
         opcoes={PESSOAS}
         rotuloDasOpcoes="Filtrar por perfil"
       />
@@ -119,7 +123,6 @@ interface Medida {
   altura: number;
   alturaDoEsqueleto: number;
   busca: number | null;
-  /** A largura do texto da contagem, com o que transborda. */
   contagem: number;
   sobra: number;
 }
@@ -133,7 +136,6 @@ async function medir(tela: keyof typeof TELAS, largura: number) {
     )}); document.close();`
   );
 
-  // No loading.tsx, a barra vem depois do texto do leitor de tela e do cabeçalho.
   return await avaliar<Medida>(
     enviar,
     `new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -164,18 +166,15 @@ describe.skipIf(!existsSync(CHROMIUM))("a barra da lista no browser", () => {
   afterAll(fecharChromium);
 
   for (const tela of ["pessoas", "liberacoes"] as const) {
-    // 1086 px é o conteúdo em 1440 px com a sidebar aberta.
     test(`em ${tela}, na largura do desktop, a barra tem uma linha só, com a busca de 320 px`, async () => {
-      const m = await medir(tela, 1086);
+      const m = await medir(tela, CONTEUDO_EM_1440_COM_SIDEBAR_ABERTA);
       expect(m.altura).toBe(44);
-      // A busca cresce um milésimo da sobra da linha, menos de 1 px.
       expect(m.busca).toBeGreaterThanOrEqual(320);
       expect(m.busca).toBeLessThan(321);
     });
 
-    // 358 px é o conteúdo em 390 px de janela.
     test(`em ${tela}, no celular, a busca desce para a linha de baixo na largura inteira, sem rolagem`, async () => {
-      const m = await medir(tela, 358);
+      const m = await medir(tela, CONTEUDO_EM_390_DE_JANELA);
       expect(m.busca).toBe(358);
       expect(m.sobra).toBe(0);
     });

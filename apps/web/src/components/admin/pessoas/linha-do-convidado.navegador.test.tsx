@@ -25,11 +25,6 @@ const FALSOS: [RegExp, string][] = [
   [/^sonner$/, TOAST],
 ];
 
-/**
- * As linhas da opção Convidados com o servidor e o toast falsos. O falso grava
- * cada pedido em window.chamadas, com o nome do procedure, e o toast vai para
- * window.toasts.
- */
 async function empacotar() {
   const pacote = await build({
     define: { "process.env.NODE_ENV": '"development"' },

@@ -18,7 +18,6 @@ let enviar: Enviar;
 let pacote: string;
 let css = "";
 
-/** O diálogo aberto com duas fichas, uma delas ruim, para a frase de erro entrar na medida. */
 async function abrir(largura: number) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -74,7 +73,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
     beforeAll(async () => {
       enviar = await abrirChromium("convidar-medida");
       pacote = await empacotarConvidar();
-      // As classes saem do diálogo aberto: ele só existe depois do clique.
       await abrir(1440);
 
       const classes = await avaliar<string[]>(
@@ -116,7 +114,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
 
     test("o foco no campo de e-mails acende a borda da moldura, sem contorno", async () => {
       await abrir(1440);
-      // Sem a emulação, a janela do Chromium não tem foco e o :focus-visible não casa.
       await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
 
       const borda = (comFoco: boolean) =>
@@ -132,7 +129,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
           })()`
         );
 
-      // A ficha ruim marca o campo como inválido, e o inválido não acende: sai antes.
       await avaliar(
         enviar,
         `(async () => { botaoCom(dialogo(), "Tirar carla@exemplo").click(); await esperar(0); })()`

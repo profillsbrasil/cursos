@@ -68,12 +68,11 @@ export async function liberarParaPerfil(
       throw cursoSumiu(erro);
     }
 
-    // Outro admin liberou entre a leitura e o insert: a dele vale.
-    const ganhadora =
+    const liberadaPorOutroAdmin =
       restricao === ATIVA_UNICA ? await ativa(db, perfil, cursoId) : null;
 
-    if (ganhadora) {
-      return { id: ganhadora, nova: false };
+    if (liberadaPorOutroAdmin) {
+      return { id: liberadaPorOutroAdmin, nova: false };
     }
 
     throw erro;
@@ -93,7 +92,7 @@ export async function revogarDoPerfil(
   const linhas = await db
     .update(liberacaoDoPerfil)
     .set({
-      // O relógio do app pode estar atrás do now() do banco (liberacao_do_perfil_revogacao_coerente).
+      // WARNING: o relógio do app pode estar atrás do now() do banco; o greatest satisfaz liberacao_do_perfil_revogacao_coerente.
       revogadaEm: sql`greatest(${agora}::timestamptz, ${liberacaoDoPerfil.liberadaEm})`,
       revogadaPor: admin,
     })

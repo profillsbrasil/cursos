@@ -1,7 +1,3 @@
-// Contra o Postgres local. Roda só com TEST_DATABASE_URL em host local. Cada
-// execução cria alunos user_teste<hex>, o slug teste-<hex> e códigos aleatórios, e
-// apaga tudo no afterAll.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 
@@ -89,7 +85,6 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
 
     moduloId = mod?.id ?? "";
 
-    // 7 aulas de 10:34: 1 h 14 min, que arredonda para 2 horas.
     const aulas = await db
       .insert(aula)
       .values(

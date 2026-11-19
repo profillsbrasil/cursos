@@ -8,8 +8,6 @@ import { PRODUTO } from "./marca";
 
 const SRC = join(import.meta.dir, "..");
 
-// Profills e School separados só por espaço, quebra de linha, tag ou o {" "} do JSX:
-// "High School" numa copy de curso não é o nome antigo.
 const NOME_ANTIGO = /\bProfills(?:\s|<[^>]*>|\{"\s*"\})*School\b/;
 
 const arquivos = () =>
@@ -30,7 +28,6 @@ describe("nome do produto", () => {
     expect(fora).toEqual([]);
   });
 
-  // "Profills <span>School</span>" escapava de uma busca pelo nome inteiro.
   test("o nome antigo não volta, nem quebrado em JSX", () => {
     const comSchool = arquivos().filter((a) =>
       NOME_ANTIGO.test(readFileSync(join(SRC, a), "utf8"))

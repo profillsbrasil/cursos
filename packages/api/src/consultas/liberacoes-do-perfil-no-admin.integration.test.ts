@@ -1,6 +1,3 @@
-// O que o admin lê da liberação do perfil: a aba Por perfil, a busca de pessoas
-// e a tela de acesso de cada uma.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 

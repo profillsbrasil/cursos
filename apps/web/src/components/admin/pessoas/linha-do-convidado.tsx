@@ -22,11 +22,6 @@ import {
 } from "./convites";
 import { SELO_DE_ADMIN, seloDoPerfil } from "./perfis";
 
-/**
- * O e-mail, o que o convite dá e o estado têm colunas a partir de 52rem; abaixo,
- * os selos e os cursos descem para uma linha sob o e-mail, e os botões para
- * outra. Reenviar é "Enviar" enquanto nenhum e-mail saiu.
- */
 function LinhaDoConvidado({
   convidado: c,
   hoje,
@@ -79,7 +74,6 @@ function LinhaDoConvidado({
           {quandoDoConvidado(c, hoje)}
         </span>
       </span>
-      {/* Uma linha que quebra no celular; a partir de 52rem, cada filho é uma coluna da grade. */}
       <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 @min-[52rem]:contents">
         <span>
           <SeloDeSituacao

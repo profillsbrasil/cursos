@@ -27,8 +27,7 @@ interface Clique {
 let enviar: Enviar;
 let servidor: Server<undefined> | null = null;
 
-/** A página precisa de uma origem de verdade: num about:blank o link relativo não resolve. */
-const servir = () => {
+const servirEmOrigemReal = () => {
   servidor = serve({
     fetch: () =>
       new Response(PAGINA, {
@@ -87,7 +86,9 @@ function clicar(
 describe.skipIf(!existsSync(CHROMIUM))("guarda de saída por link", () => {
   beforeAll(async () => {
     enviar = await abrirChromium("guarda-de-saida");
-    await enviar("Page.navigate", { url: servir() });
+    await enviar("Page.navigate", {
+      url: servirEmOrigemReal(),
+    });
     await esperarAPagina();
   }, 20_000);
 

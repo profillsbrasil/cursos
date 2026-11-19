@@ -1,6 +1,3 @@
-// Trava que impede seed e testes de escrever fora do Postgres local.
-// O DATABASE_URL do .env aponta para o Postgres de dev da Railway (ver a seção Banco do CLAUDE.md da raiz).
-
 const HOSTS_LOCAIS = new Set(["127.0.0.1", "localhost"]);
 
 const PARAMS_DE_DESTINO = ["host", "hostaddr", "port"];
@@ -14,6 +11,8 @@ export class BancoNaoLocalError extends Error {
 }
 
 /**
+ * Trava que impede seed e testes de escrever fora do Postgres local: o DATABASE_URL do .env
+ * aponta para o Postgres de dev da Railway (seção Banco do CLAUDE.md da raiz).
  * Lança se a URL não for do Postgres local. Com `porta` nula, aceita qualquer porta em host local.
  * Devolve host e porta para o chamador imprimir.
  */
@@ -32,7 +31,7 @@ export function garantirBancoLocal(
     );
   }
 
-  // O pg (pg-connection-string) deixa ?host= e &port= da query valerem no lugar dos do URL.
+  // WARNING: o pg (pg-connection-string) deixa ?host= e &port= da query valerem no lugar dos do URL.
   const sobrescritos = PARAMS_DE_DESTINO.filter((p) =>
     destino.searchParams.has(p)
   );

@@ -54,8 +54,10 @@ const PROCEDIMENTOS_DO_ADMIN = Object.keys(appRouter._def.procedures).filter(
   (caminho) => caminho.startsWith("admin.")
 );
 
-/** Chama um procedimento pelo caminho, sem entrada: a porta roda antes da validação. */
-function chamar(caller: ReturnType<typeof createCaller>, caminho: string) {
+function chamarSemEntradaPoisAPortaRodaAntesDaValidacao(
+  caller: ReturnType<typeof createCaller>,
+  caminho: string
+) {
   const alvo = caminho
     .split(".")
     .reduce<unknown>(
@@ -92,7 +94,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
 
     const codigos = await Promise.all(
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
-        chamar(anonimo, caminho).then(
+        chamarSemEntradaPoisAPortaRodaAntesDaValidacao(anonimo, caminho).then(
           () => "passou",
           (e: unknown) => (e instanceof TRPCError ? e.code : undefined)
         )
@@ -107,7 +109,7 @@ describe("todo procedimento admin.* passa pelo adminProcedure", () => {
 
     const codigos = await Promise.all(
       PROCEDIMENTOS_DO_ADMIN.map((caminho) =>
-        chamar(aluno, caminho).then(
+        chamarSemEntradaPoisAPortaRodaAntesDaValidacao(aluno, caminho).then(
           () => "passou",
           (e: unknown) => (e instanceof TRPCError ? e.code : undefined)
         )

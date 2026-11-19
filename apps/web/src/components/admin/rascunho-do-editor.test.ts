@@ -106,7 +106,6 @@ const estados = (e: RascunhoDoEditor) => blocos(e).map((b) => b.tipo);
 
 const saiu = (id: string): AcaoDoEditor => ({ id, tipo: "saiu_do_campo" });
 
-/** A aula que o painel do primeiro módulo mostra e a pergunta da aula pedida. */
 const painel = (e: RascunhoDoEditor, aulaId: AulaId) => {
   const [m1] = e.rascunho.modulos;
   const a = aula(e.rascunho, aulaId);
@@ -655,7 +654,6 @@ describe("nenhum erro fica num bloco fechado", () => {
       tipo: "aula_editada",
     });
 
-    // Antes de sair do campo, nada marca.
     expect(blocos(digitado)).toEqual([
       { tipo: "fechado" },
       { tipo: "fechado" },
@@ -670,7 +668,6 @@ describe("nenhum erro fica num bloco fechado", () => {
       { campos: 1, tipo: "com_erro" },
     ]);
 
-    // Fechar pelo cabeçalho não tira o erro da tela.
     const fechado = fazer(deixado, { id: M2, tipo: "fechado" });
     expect(blocos(fechado)[1]).toEqual({ campos: 1, tipo: "com_erro" });
 

@@ -8,7 +8,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { AcaoDaRetomada } from "@/components/aluno/continuar";
 import { caminhoDaAula } from "@/lib/rotas";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -101,9 +100,6 @@ describe("a vitrine sem curso trocável tem saída", () => {
   });
 });
 
-// A vitrine vazia também acontece quando existe curso trocável que o aluno já
-// alcança por liberação. A frase fala do lado do aluno, e nenhuma promete prazo
-// ou que ponto não vence (decisão aberta do dono no PRODUCT.md).
 const PROMESSAS = [
   "guardados",
   "Profills ainda não abriu",

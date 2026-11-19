@@ -1,10 +1,9 @@
-// O que a coleta de órfãos (scripts/coletar-orfaos.ts) lê do banco. Só lê.
-
 import { curso, material } from "@cursos/db/schema/index";
 
 import type { ChavesEmUso } from "../dominio/orfaos";
 import type { Executor } from "./comum";
 
+/** O que a coleta de órfãos (scripts/coletar-orfaos.ts) lê do banco. Só lê. */
 export async function chavesEmUso(exec: Executor): Promise<ChavesEmUso> {
   const [capas, materiais] = await Promise.all([
     exec.select({ url: curso.capaUrl }).from(curso),

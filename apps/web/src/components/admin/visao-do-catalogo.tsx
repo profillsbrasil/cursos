@@ -19,17 +19,14 @@ import { GradeDoCatalogo } from "./filtro-do-catalogo";
 
 const NOVO_CURSO = "/admin/catalogo/cursos/novo";
 
-// Sobre a imagem, o selo e o preço levam o fundo da página por baixo da cor.
 const SOBRE_A_CAPA = "absolute bg-background";
 
-// Céu a 14% por cima do fundo: o gradiente de uma cor só pinta sobre o bg-background.
 const PUBLICADO = {
   classe: "bg-linear-to-r from-ceu/14 to-ceu/14 text-ceu",
   icone: Eye,
   rotulo: "Publicado",
 };
 
-/** A coluna mede de 250 px até pouco menos de 520 px, quando a grade ganha outra. */
 const SIZES_DA_CAPA = "(max-width: 767px) 100vw, 520px";
 
 function tamanho(curso: CursoNaVisao) {
@@ -38,12 +35,6 @@ function tamanho(curso: CursoNaVisao) {
     : `${plural(curso.aulas, "aula", "aulas")} · ${fmtHoras(curso.segundosDeVideo)}`;
 }
 
-/**
- * O título é o link, e o ::after dele cobre o cartão: uma parada de teclado por
- * curso, com o título como nome. O anel e a imagem acendem com qualquer parte do
- * cartão sob o cursor e com o foco do link (group-has-hover, que o globals.css
- * também casa com o foco).
- */
 function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
   const apagada = curso.status === "em_producao" && curso.aulas === 0;
 

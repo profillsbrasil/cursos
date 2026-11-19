@@ -7,15 +7,11 @@ import type {
   PlayerDeVideo,
 } from "./video";
 
-// Só o que este adaptador usa da IFrame API documentada
-// (https://developers.google.com/youtube/iframe_api_reference).
 interface YtPlayer {
   destroy: () => void;
   getCurrentTime: () => number;
   getDuration: () => number;
   getPlaybackRate: () => number;
-  // loadModule e unloadModule ficam fora da referência pública. Com controls: 0 o
-  // botão de legenda some, e eles são o único jeito de ligar e desligar a legenda.
   loadModule: (modulo: "captions") => void;
   mute: () => void;
   pauseVideo: () => void;
@@ -101,8 +97,7 @@ const ESTADOS: Readonly<
   Record<number, "tocou" | "pausou" | "esperou" | "terminou">
 > = { 0: "terminou", 1: "tocou", 2: "pausou", 3: "esperou" };
 
-// O próprio unloadModule dispara outro onApiChange: o que chega nesta janela depois
-// de reaplicar a legenda é o eco da chamada, e reaplicar de novo seria um laço.
+// WARNING: o unloadModule dispara outro onApiChange; o eco dentro desta janela não reaplica a legenda, senão vira laço.
 const ECO_DA_LEGENDA_MS = 1000;
 
 const motivoDoErro = (codigo: number): MotivoIndisponivel => {
@@ -125,8 +120,6 @@ export function criarPlayerDoYoutube(
   let destruido = false;
   let legenda = false;
   let reaplicouEm = Number.NEGATIVE_INFINITY;
-  // O seekTo toca o vídeo que ainda não começou (estado -1 ou 5, na referência da
-  // IFrame API): antes do primeiro play, a posição pedida espera o play.
   let comecou = false;
   let posicaoAntesDoPlay: number | null = null;
 
@@ -140,8 +133,7 @@ export function criarPlayerDoYoutube(
   const alvo = document.createElement("div");
   elemento.replaceChildren(alvo);
 
-  // O YouTube carrega o módulo de legenda quando o vídeo começa a tocar e ignora o
-  // unloadModule chamado antes: a escolha volta a cada módulo carregado e a cada play.
+  // WARNING: o YouTube ignora o unloadModule chamado antes de o módulo de legenda carregar; reaplique a escolha a cada módulo e a cada play.
   const aplicarLegenda = () => {
     if (legenda) {
       playerPronto?.loadModule("captions");
@@ -181,7 +173,6 @@ export function criarPlayerDoYoutube(
             const tipo = ESTADOS[e.data];
 
             if (tipo && !comecou) {
-              // O play pelo clique no vídeo também leva à posição pedida antes dele.
               comecou = true;
               aplicarPosicaoAntesDoPlay();
             }
@@ -209,8 +200,6 @@ export function criarPlayerDoYoutube(
         videoId,
       });
 
-      // A barra do app tem os controles, e as 7 paradas de Tab do pôster do YouTube
-      // (em inglês) vinham antes dela. O clique no vídeo continua indo ao iframe.
       elemento.querySelector("iframe")?.setAttribute("tabindex", "-1");
       instancia = criado;
     },

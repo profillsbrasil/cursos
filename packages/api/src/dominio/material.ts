@@ -1,7 +1,3 @@
-// O material de apoio do curso: o que é um arquivo aceitável, sem ler bytes. O
-// editor confere o nome e o tamanho antes de enviar; externos/materiais.ts confere
-// de novo no servidor e confirma o tipo pela assinatura dos bytes.
-
 import { TIPO_DO_MATERIAL } from "@cursos/db/schema/formatos";
 
 import type { MaterialId } from "./tipos";
@@ -21,7 +17,12 @@ export interface TipoRegistrado {
   rotulo: string;
 }
 
-/** O registro dos tipos aceitos. A extensão do nome do arquivo escolhe a linha. */
+/**
+ * O registro dos tipos aceitos do material de apoio do curso: o que é um arquivo
+ * aceitável, sem ler bytes. A extensão do nome do arquivo escolhe a linha. O
+ * editor confere o nome e o tamanho antes de enviar; externos/materiais.ts
+ * confere de novo no servidor e confirma o tipo pela assinatura dos bytes.
+ */
 export const TIPOS_DE_MATERIAL: Readonly<
   Record<TipoDoMaterial, TipoRegistrado>
 > = {
@@ -65,8 +66,7 @@ export const TIPOS_DE_MATERIAL: Readonly<
   zip: { assinatura: "zip", contentType: "application/zip", rotulo: "ZIP" },
 };
 
-/** "jpeg" é o mesmo tipo que "jpg": a chave e o selo usam "jpg". */
-const SINONIMOS: Readonly<Record<string, TipoDoMaterial>> = { jpeg: "jpg" };
+const JPEG_VIRA_JPG: Readonly<Record<string, TipoDoMaterial>> = { jpeg: "jpg" };
 
 const EXTENSAO = /\.([A-Za-z0-9]+)$/;
 
@@ -78,7 +78,7 @@ export function tipoDoNome(nome: string): TipoDoMaterial | null {
     return null;
   }
 
-  const tipo = SINONIMOS[ext] ?? ext;
+  const tipo = JPEG_VIRA_JPG[ext] ?? ext;
 
   return (TIPO_DO_MATERIAL as readonly string[]).includes(tipo)
     ? (tipo as TipoDoMaterial)
@@ -222,7 +222,6 @@ export interface MaterialDaPagina {
   titulo: string;
 }
 
-/** Nome do campo do FormData de admin.catalogo.enviarMaterial. */
 const CAMPO_DO_ARQUIVO = "arquivo";
 
 export function formularioDoMaterial(arquivo: File): FormData {

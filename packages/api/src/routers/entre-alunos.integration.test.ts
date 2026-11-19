@@ -30,11 +30,6 @@ import { contextoDeTeste } from "../contexto-de-teste";
 import type { AlternativaId, PerguntaId, TentativaId } from "../dominio/tipos";
 import { createCaller } from "./index";
 
-/**
- * Ana, a atacante, troca ids no pedido para ler ou gravar o estudo de Bruno, ou
- * para usar o curso que só Bruno tem, sem passar pela tela. Os dois têm o curso
- * comum liberado; o curso só de Bruno não é de Ana.
- */
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 const ANA = `user_ataque${S}ana`;
@@ -60,8 +55,9 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
   const como = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId }));
 
-  /** Curso publicado com uma aula com vídeo por item; cada número é quantas perguntas a aula tem. */
-  async function plantarCurso(perguntasPorAula: readonly number[]) {
+  async function plantarCursoPublicadoComUmaAulaComVideoPorItem(
+    perguntasPorAula: readonly number[]
+  ) {
     const slug = `ataque-${S}-${cursos.length + 1}`;
 
     const [c] = await db
@@ -159,8 +155,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       perguntaId: p.id,
     }));
 
-  /** Tudo o que é de uma pessoa nas tabelas do estudo e dos pontos, em ordem estável. */
-  const fatosDe = async (userId: string) => ({
+  const fatosDoEstudoEDosPontosEmOrdemEstavelDe = async (userId: string) => ({
     assistidas: await db
       .select()
       .from(aulaAssistida)
@@ -202,18 +197,23 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       .orderBy(asc(questionarioTentativa.numero)),
   });
 
-  let comum: Awaited<ReturnType<typeof plantarCurso>>;
-  let soDoBruno: Awaited<ReturnType<typeof plantarCurso>>;
+  let comum: Awaited<
+    ReturnType<typeof plantarCursoPublicadoComUmaAulaComVideoPorItem>
+  >;
+
+  let soDoBruno: Awaited<
+    ReturnType<typeof plantarCursoPublicadoComUmaAulaComVideoPorItem>
+  >;
+
   const TENTATIVA_DO_BRUNO = randomUUID() as TentativaId;
 
   beforeAll(async () => {
-    comum = await plantarCurso([2, 0]);
-    soDoBruno = await plantarCurso([1]);
+    comum = await plantarCursoPublicadoComUmaAulaComVideoPorItem([2, 0]);
+    soDoBruno = await plantarCursoPublicadoComUmaAulaComVideoPorItem([1]);
     await liberar(ANA, comum.id);
     await liberar(BRUNO, comum.id);
     await liberar(BRUNO, soDoBruno.id);
 
-    // Bruno estuda pela API: posição e cota na aula 1, a aprovação no questionário dela.
     const bruno = como(BRUNO);
     const [a1] = comum.aulas;
 
@@ -278,15 +278,17 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     });
 
     test("registrar na aula que Bruno estuda grava só o estudo e a cota de Ana", async () => {
-      const antes = await fatosDe(BRUNO);
+      const antes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO);
       const [a1] = comum.aulas;
       await como(ANA).aula.registrar({
         aulaId: a1?.id ?? "",
         posicaoSeg: 60,
         trechos: [{ fim: 60, inicio: 0 }],
       });
-      expect(await fatosDe(BRUNO)).toEqual(antes);
-      const daAna = await fatosDe(ANA);
+      expect(await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO)).toEqual(
+        antes
+      );
+      const daAna = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA);
       expect(daAna.posicoes.map((p) => p.posicaoSeg)).toEqual([60]);
       expect(daAna.cota).toHaveLength(1);
     });
@@ -294,14 +296,13 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     test("responder com o tentativaId de Bruno é recusado, não devolve o resultado dele e não toca na tentativa", async () => {
       const [a1] = comum.aulas;
       const perguntas = a1?.perguntas ?? [];
-      // Ana já tem uma tentativa reprovada: o envio seguinte passa pela busca do id repetido.
       await como(ANA).questionario.responder({
         aulaId: a1?.id ?? "",
         respostas: respostas(perguntas, false),
         tentativaId: randomUUID(),
       });
-      const antes = await fatosDe(BRUNO);
-      const anaAntes = await fatosDe(ANA);
+      const antes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO);
+      const anaAntes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA);
 
       const codigo = await recusa(
         como(ANA).questionario.responder({
@@ -311,10 +312,13 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         })
       );
 
-      // O insert da tentativa não faz nada no id que já existe, e a recusa sai como CONFLICT.
       expect(codigo).toBe("CONFLICT");
-      expect(await fatosDe(BRUNO)).toEqual(antes);
-      expect(await fatosDe(ANA)).toEqual(anaAntes);
+      expect(await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO)).toEqual(
+        antes
+      );
+      expect(await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA)).toEqual(
+        anaAntes
+      );
     });
 
     test("procedimento sem entrada ignora o userId de Bruno posto no pedido: Ana vê o saldo dela", async () => {
@@ -334,12 +338,16 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     });
 
     test("trocar não alcança o saldo de Bruno: sem saldo próprio, Ana é recusada e nada muda para ele", async () => {
-      const antes = await fatosDe(BRUNO);
+      const antes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO);
       await db
         .update(curso)
         .set({ precoTroca: 100 })
         .where(eq(curso.id, soDoBruno.id));
-      const trocavel = await plantarCurso([0]);
+
+      const trocavel = await plantarCursoPublicadoComUmaAulaComVideoPorItem([
+        0,
+      ]);
+
       await db
         .update(curso)
         .set({ precoTroca: 100 })
@@ -350,8 +358,12 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       );
 
       expect(codigo).toBe("PRECONDITION_FAILED");
-      expect(await fatosDe(BRUNO)).toEqual(antes);
-      expect((await fatosDe(ANA)).pontos).toEqual([]);
+      expect(await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO)).toEqual(
+        antes
+      );
+      expect(
+        (await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA)).pontos
+      ).toEqual([]);
       await db
         .update(curso)
         .set({ precoTroca: null })
@@ -380,7 +392,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       const [a1] = comum.aulas;
       const id = aulaDoBruno?.id ?? "";
       const daBruno = respostas(aulaDoBruno?.perguntas ?? [], true);
-      const antes = await fatosDe(ANA);
+      const antes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA);
 
       expect(
         await Promise.all([
@@ -407,7 +419,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           ),
         ])
       ).toEqual(["NOT_FOUND", "NOT_FOUND", "BAD_REQUEST"]);
-      expect(await fatosDe(ANA)).toEqual(antes);
+      expect(await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA)).toEqual(antes);
     });
   });
 });

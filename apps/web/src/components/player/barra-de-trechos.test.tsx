@@ -12,7 +12,6 @@ const POLEGAR = /class="bg-titulo [^"]*" style="left:([\d.]+)%"/;
 
 const nada = () => undefined;
 
-// Com 100 s de vídeo, 1% da barra é 1 s.
 const barra = (trechos: Trecho[], tempoSeg: number) => {
   const html = renderToStaticMarkup(
     <BarraDeTrechos

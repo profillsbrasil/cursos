@@ -1,8 +1,9 @@
-// A Categoria é um registro que o admin mantém em admin.categorias. O curso aponta
-// para uma pelo id; o aluno só vê o nome.
-
 import type { CategoriaId } from "./tipos";
 
+/**
+ * A Categoria é um registro que o admin mantém em admin.categorias. O curso aponta
+ * para uma pelo id; o aluno só vê o nome.
+ */
 export interface CategoriaNaLista {
   /** Títulos dos cursos que apontam para ela, em ordem pt-BR. Com algum, ela não se apaga. */
   cursos: readonly string[];

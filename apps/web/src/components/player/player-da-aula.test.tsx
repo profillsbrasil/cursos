@@ -7,7 +7,6 @@ import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Fora do App Router o useRouter não tem de onde ler; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -122,7 +121,6 @@ describe("ordem da página da aula", () => {
   });
 });
 
-// Os tokens do tema, lidos do CSS que o app carrega: "--muted-foreground: #a8acb0;".
 const TOKENS = new Map(
   [
     ...readFileSync(
@@ -168,7 +166,6 @@ describe("Anterior e Próxima em repouso", () => {
     expect(fundo).toBeDefined();
 
     for (const c of classes) {
-      // O html tem .dark fixo: a última borda dark: sem estado é a que pinta em repouso.
       const borda = c
         .split(" ")
         .filter((k) => BORDA_DARK.test(k))

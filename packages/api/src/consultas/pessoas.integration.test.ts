@@ -24,7 +24,6 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
   const ANA = `user_ana${S}`;
   const BRUNO = `user_bruno${S}`;
   const CARLA = `user_carla${S}`;
-  // Só para o saldo: nunca entram no app, então nenhum bônus soma ao que o teste grava.
   const DIEGO = `user_diego${S}`;
   const ELISA = `user_elisa${S}`;
   const FABIO = `user_fabio${S}`;
@@ -65,7 +64,6 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     createCaller(contextoDeTeste({ db, pessoas, userId })).meusCursos.painel();
 
   afterAll(async () => {
-    // O primeiro acesso de Funcionário lança o bônus (bonus-de-funcionario.integration.test.ts).
     await db
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, TODOS));
@@ -193,7 +191,6 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     ]);
 
     const { definirPapel } = clerk;
-    // A espera põe as duas mudanças no ar ao mesmo tempo, antes de uma gravar.
     clerk.definirPapel = async (userId, papel) => {
       await esperar(50);
       await definirPapel(userId, papel);

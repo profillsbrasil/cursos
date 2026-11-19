@@ -40,7 +40,6 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
   async function pessoa(perfil: Perfil) {
     const userId = `user_virada${S}x${alunos.length}`;
     alunos.push(userId);
-    // Direto na tabela: quem já era Funcionário antes do bônus não o tem.
     await db.insert(perfilDaPessoa).values({ perfil, userId });
 
     return userId;
@@ -97,7 +96,6 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
   const assistir = (userId: string, aulaId: string) =>
     db.insert(aulaAssistida).values({ assistidaEm: AGORA, aulaId, userId });
 
-  /** Tudo o que a virada pode gravar das pessoas plantadas. */
   async function gravado() {
     const lancamentos = await db
       .select({
@@ -221,7 +219,6 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
         .filter((l) => l.userId === userId)
         .map((l) => [l.motivo, l.pontos]);
 
-    // A troca lança a aula assistida antes dela e conclui o curso de uma aula.
     expect(doAluno(estudou)).toEqual([
       ["troca", -PRECO],
       ["aula_assistida", PONTOS.aula_assistida],

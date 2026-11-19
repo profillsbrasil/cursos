@@ -40,7 +40,7 @@ export const COM_CONTEUDO = {
             videoProvedor: true,
           },
           extras: {
-            // O callback recebe a aula com o alias da consulta; `aula.id` solto sairia sem alias.
+            // WARNING: o callback recebe a aula com o alias da consulta; `aula.id` solto sairia sem alias.
             perguntas: (t: Pick<typeof aula, "id">) =>
               sql<number>`(select count(*)::int from ${pergunta} where ${pergunta.aulaId} = ${t.id})`.as(
                 "perguntas"

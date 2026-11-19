@@ -7,8 +7,10 @@ const TITULO = "Página não encontrada";
 
 export const metadata: Metadata = { title: TITULO };
 
-// Endereço que não existe no app, aberto por quem entrou ou não: fora da casca,
-// com a marca, e o texto não supõe login.
+/**
+ * Endereço que não existe no app, aberto por quem entrou ou não: fora da casca,
+ * com a marca, e o texto não supõe login.
+ */
 export default function PaginaNaoEncontrada() {
   return (
     <PaginaPublica>

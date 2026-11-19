@@ -1,6 +1,3 @@
-// Comunicados do admin contra o Postgres local. Roda só com TEST_DATABASE_URL em host local.
-// Cria cursos com sufixo aleatório; o afterAll apaga os comunicados e os cursos.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
@@ -182,7 +179,6 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
           titulo: `Curso do comunicado ${S} ${cursos.length - 1}`,
         },
         id: antigo,
-        // O Clerk de teste não conhece OUTRO_ADMIN: a tela fica sem autor.
         publicadoPor: null,
       },
     ]);

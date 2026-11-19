@@ -3,7 +3,7 @@
 import { FALHA_SEM_LOGIN } from "@/components/casca/pagina-publica";
 import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
-// Dentro do layout da conferência, então o visitante continua vendo a faixa com a marca.
+/** Erro da conferência: fica dentro do layout dela, então o visitante continua vendo a faixa com a marca. */
 export default function ErroDaConferencia(props: {
   error: Error & { digest?: string };
   retry: () => void;

@@ -25,7 +25,6 @@ import { ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 import { NADA_ESCOLHIDO } from "./rascunho-do-editor";
 
-// Fora do App Router o useRouter lança; a categoria da Capa e descrição cria pelo useAcao.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -117,7 +116,6 @@ const ESPACO = /\s+/;
 
 const css = await cssDoApp(
   [vitrine, modulos, alavancas].flatMap((html) =>
-    // O renderToStaticMarkup escreve o & do seletor da alavanca como &amp;.
     [...html.matchAll(CLASSES)].flatMap(([, c = ""]) =>
       c.replaceAll("&amp;", "&").split(ESPACO)
     )
@@ -219,7 +217,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
 
   afterAll(fecharChromium);
 
-  // 1280 px de janela, menos a sidebar aberta (248 px) e a moldura de 3rem de cada lado.
   describe("em 1280 px", () => {
     let m: Medida;
     beforeAll(async () => {
@@ -253,7 +250,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
     });
 
     test("com o foco no input da capa, a camada Trocar capa aparece", async () => {
-      // Do começo da página, o Tab chega ao input da capa, o primeiro controle.
       const tecla = (type: string) =>
         enviar("Input.dispatchKeyEvent", {
           code: "Tab",
@@ -304,7 +300,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
     });
   });
 
-  // 1920 px de janela, menos a sidebar aberta e a moldura: a capa cresce com o bloco até 440 px.
   describe("em 1920 px", () => {
     let m: Medida;
     beforeAll(async () => {
@@ -327,7 +322,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
     });
   });
 
-  // 390 px de janela, menos a moldura de 16 px de cada lado.
   describe("em 390 px", () => {
     let m: Medida;
     beforeAll(async () => {

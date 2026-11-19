@@ -54,7 +54,6 @@ type Fase =
   | {
       tipo: "respondendo";
       falhou: boolean;
-      /** Só o Tentar de novo leva o foco ao título; a primeira tentativa, ao abrir a aula, não. */
       focar: boolean;
       marcadas: Readonly<Record<string, AlternativaId>>;
       tentativaId: TentativaId;
@@ -62,7 +61,6 @@ type Fase =
   | {
       tipo: "resultado";
       concluiuOCurso: boolean;
-      /** Só o envio leva o foco ao resultado; a última tentativa, ao abrir a aula, não. */
       focar: boolean;
       resultado: ResultadoDoQuestionario;
     };
@@ -130,8 +128,6 @@ function AlternativaParaMarcar({
   );
 
   return (
-    // O rádio fica escondido no rótulo: as setas trocam a resposta como num grupo
-    // de rádio, e o foco de teclado acende o rótulo pela variante hover (#30).
     <label
       className={cn(
         ALTERNATIVA,
@@ -259,8 +255,6 @@ function Pergunta({
       ? fase.resultado.respostas.find((r) => r.perguntaId === pergunta.id)
       : undefined;
 
-  // A linha é a borda da caixa de fora: no próprio fieldset, o legend senta
-  // em cima da borda e a linha corta o enunciado.
   return (
     <div className={cn("border-border border-t py-[22px]", LADO)}>
       <fieldset className="m-0 grid min-w-0 gap-3 border-0 p-0">
@@ -337,8 +331,6 @@ export function Resultado({
   const { aprovada, pontos } = resultado;
   const id = useId();
   const caixa = useRef<HTMLDivElement>(null);
-  // O botão de envio some com o resultado. Sem isto o foco cai no body, e o
-  // resultado, que entra já preenchido, não se anuncia pelo role="status".
   useEffect(() => {
     if (focar) {
       caixa.current?.focus();
@@ -443,9 +435,6 @@ function Cabecalho({
 }) {
   const id = useId();
   const titulo = useRef<HTMLHeadingElement>(null);
-  // O Tentar de novo some com o resultado. O foco vai ao título, e não à
-  // primeira alternativa: o leitor de tela anuncia o começo e a regra, e a
-  // seta não marca uma resposta sem querer.
   useEffect(() => {
     if (focar) {
       titulo.current?.focus();

@@ -43,8 +43,7 @@ interface NaPagina<T> {
   compareDocumentPosition: (outro: T) => number;
 }
 
-/** Node.DOCUMENT_POSITION_PRECEDING, sem depender do DOM no teste. */
-const VEM_ANTES = 2;
+const DOCUMENT_POSITION_PRECEDING = 2;
 
 export function primeiroNaPagina<T extends NaPagina<T>>(
   elementos: readonly T[]
@@ -53,7 +52,7 @@ export function primeiroNaPagina<T extends NaPagina<T>>(
     (primeiro, e) =>
       primeiro === undefined ||
       // oxlint-disable-next-line no-bitwise -- o DOM devolve a posição como máscara de bits.
-      (primeiro.compareDocumentPosition(e) & VEM_ANTES) !== 0
+      (primeiro.compareDocumentPosition(e) & DOCUMENT_POSITION_PRECEDING) !== 0
         ? e
         : primeiro,
     undefined

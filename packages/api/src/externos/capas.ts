@@ -1,8 +1,3 @@
-// Capas num bucket S3 (o bucket "capas" da Railway, que é privado: o app serve
-// cada capa em /capa/<chave>). Só o servidor importa este arquivo: node:crypto,
-// image-size e as chaves do bucket, que entram por apps/web/src/services.ts. O que
-// é uma capa aceitável mora em dominio/capa.ts.
-
 import { createHash } from "node:crypto";
 
 import { AwsClient } from "aws4fetch";
@@ -32,6 +27,8 @@ const TIPOS = {
   png: "image/png",
   webp: "image/webp",
 } as const;
+
+const EXIF_GIRA_90_GRAUS_A_PARTIR_DE = 5;
 
 type Extensao = keyof typeof TIPOS;
 
@@ -66,8 +63,7 @@ export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
     return recusa({ tipo: "formato" });
   }
 
-  // EXIF 5 a 8 gira 90 graus: o navegador mostra a imagem com os lados trocados.
-  const girada = (medida.orientation ?? 1) >= 5;
+  const girada = (medida.orientation ?? 1) >= EXIF_GIRA_90_GRAUS_A_PARTIR_DE;
   const largura = girada ? medida.height : medida.width;
   const altura = girada ? medida.width : medida.height;
   const daMedida = recusaDaMedida(largura, altura);
@@ -119,7 +115,6 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
     );
 
   return {
-    /** DeleteObject. O S3 responde 204 também para a chave que não existe. */
     async apagar(chave: string) {
       const resposta = await enviar(
         await aws.sign(doObjeto(chave), { method: "DELETE" })
@@ -140,16 +135,13 @@ export function bucketAssinado(cfg: BucketDeCapas, enviar: typeof fetch) {
         method: "PUT",
       });
 
-      // Os bytes vão de novo, e não o corpo do Request assinado: o fetch do Next
-      // manda o corpo de um Request em chunked, sem content-length, e o S3 que
-      // exige o tamanho responde 411.
+      // WARNING: mande os bytes de novo, não o corpo do Request assinado: em chunked o S3 responde 411.
       return await enviar(assinado.url, {
         body: bytes,
         headers: assinado.headers,
         method: "PUT",
       });
     },
-    /** ListObjectsV2, página a página, até o fim do bucket. */
     async listar(): Promise<ObjetoDoBucket[]> {
       const objetos: ObjetoDoBucket[] = [];
       let continuacao: string | undefined;
@@ -225,6 +217,11 @@ export function lerPaginaDaListagem(xml: string): {
 }
 
 /**
+ * Capas num bucket S3 (o bucket "capas" da Railway, que é privado: o app serve
+ * cada capa em /capa/<chave>). Só o servidor importa este arquivo: node:crypto,
+ * image-size e as chaves do bucket, que entram por apps/web/src/services.ts. O que
+ * é uma capa aceitável mora em dominio/capa.ts.
+ *
  * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT
  * reescreve os mesmos bytes e o cache pode durar um ano. Capa trocada deixa o
  * objeto antigo no bucket até a coleta de órfãos (scripts/coletar-orfaos.ts).

@@ -1,9 +1,3 @@
-// O material de apoio num bucket S3 (o bucket "materiais" da Railway, privado: o
-// app serve cada arquivo em /material/<id>, só para quem pode ver o curso). No
-// molde de capas.ts: só o servidor importa este arquivo, e as chaves do bucket
-// entram por apps/web/src/services.ts. O que é um arquivo aceitável mora em
-// dominio/material.ts.
-
 import { createHash } from "node:crypto";
 
 import { imageSize } from "image-size";
@@ -38,8 +32,7 @@ export interface Materiais {
 
 const PDF = [0x25, 0x50, 0x44, 0x46, 0x2d];
 
-/** O cabeçalho local do ZIP, e o fim de diretório do ZIP vazio. */
-const ZIP = [
+const ASSINATURAS_DO_ZIP_LOCAL_E_VAZIO = [
   [0x50, 0x4b, 0x03, 0x04],
   [0x50, 0x4b, 0x05, 0x06],
 ];
@@ -57,13 +50,12 @@ function imagemDoTipo(bytes: Uint8Array, tipo: TipoDoMaterial): boolean {
   }
 }
 
-/** Os bytes confirmam a família que a extensão promete. */
 function confirmaOTipo(bytes: Uint8Array, tipo: TipoDoMaterial): boolean {
   switch (TIPOS_DE_MATERIAL[tipo].assinatura) {
     case "pdf":
       return comeca(bytes, PDF);
     case "zip":
-      return ZIP.some((p) => comeca(bytes, p));
+      return ASSINATURAS_DO_ZIP_LOCAL_E_VAZIO.some((p) => comeca(bytes, p));
     case "ole":
       return comeca(bytes, OLE);
     case "imagem":
@@ -118,6 +110,12 @@ export function lerMaterial(
 }
 
 /**
+ * O material de apoio num bucket S3 (o bucket "materiais" da Railway, privado: o
+ * app serve cada arquivo em /material/<id>, só para quem pode ver o curso). No
+ * molde de capas.ts: só o servidor importa este arquivo, e as chaves do bucket
+ * entram por apps/web/src/services.ts. O que é um arquivo aceitável mora em
+ * dominio/material.ts.
+ *
  * O objeto é imutável (nome = hash), então o envio é idempotente: o PUT reescreve
  * os mesmos bytes. Material tirado do curso deixa o objeto no bucket até a coleta
  * de órfãos (scripts/coletar-orfaos.ts).

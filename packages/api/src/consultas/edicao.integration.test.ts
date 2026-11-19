@@ -1,7 +1,3 @@
-// Edição do curso inteiro contra o Postgres local, pelo caller do tRPC como admin.
-// Roda só com TEST_DATABASE_URL em host local. Cada teste cria o próprio curso com
-// sufixo aleatório, e o afterAll apaga tudo.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { setTimeout as esperar } from "node:timers/promises";
@@ -50,7 +46,6 @@ const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 const ALUNO = `user_teste${S}edicao`;
 
-/** Como no Storage, a URL sai do conteúdo: o mesmo arquivo dá a mesma URL. */
 const urlDaCapa = (n: number) => `/capas/teste-${S}-${n}.jpg`;
 const CAPA = { altura: 720, largura: 1280, url: urlDaCapa(1) };
 
@@ -65,7 +60,6 @@ const capasDeTeste: Capas = {
 
 const arquivoDaCapa = (n = 1) => new Blob([new Uint8Array([n])]);
 
-/** Erro sem tradução mostra a restrição violada no lugar do texto do Postgres. */
 const resultado = (p: Promise<unknown>) =>
   p.then(
     () => ({ code: "ok", message: "" }),
@@ -85,7 +79,6 @@ const resultado = (p: Promise<unknown>) =>
 
 const OK = { code: "ok", message: "" };
 
-/** O motivo que o errorFormatter manda ao editor. */
 const motivoDe = (p: Promise<unknown>) =>
   p.then(
     () => "ok",
@@ -178,7 +171,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     };
   }
 
-  /** Curso salvo pelo admin com dois módulos (0: A1, A2, A3; 1: B1) e um nível. */
   async function cursoSalvo(): Promise<EdicaoDoCurso> {
     const a = novoModulo(0, "Módulo A", [
       novaAula("A1"),
@@ -930,7 +922,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       salvarComCapa({ ...documentoNovo(), titulo: `${base} 2` }),
     ]);
 
-    // Quem pega a trava primeiro decide qual dos dois sai com sufixo.
     expect([
       [`envase-${S}-2`, `envase-${S}-2-2`],
       [`envase-${S}-2`, `envase-${S}-3`],
@@ -938,7 +929,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   });
 
   test("o código sai da categoria no primeiro salvamento, -001 e -002 também em paralelo, e não muda com ela", async () => {
-    // Quatro palavras de iniciais sorteadas: a sigla é deste teste, e a contagem começa no 001.
     const letras = Array.from({ length: 4 }, () =>
       String.fromCharCode(65 + randomInt(26))
     );
@@ -1005,7 +995,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
       precoTroca: 150,
       status: "publicado",
     });
-    // O curso publicado antes da regra, sem preço, não salva publicado nem sem mudança.
     await db
       .update(curso)
       .set({ precoTroca: null })
@@ -1126,7 +1115,6 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     expect((await abrir(documento.id)).documento).toEqual(antes.documento);
   });
 
-  /** O DELETE do curso fica parado na linha da aula que o aluno travou ao inserir. */
   async function esperarAlguemEsperandoTrava(tentativas = 100): Promise<void> {
     const { rows } = await db.$client.query<{ n: number }>(
       "select count(*)::int as n from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock'"

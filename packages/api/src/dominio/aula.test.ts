@@ -96,7 +96,6 @@ describe("montarCursoAberto", () => {
   });
 
   test("o curso concluído que ficou sem aula abre inteiro, e a amostra dele não existe", () => {
-    // O certificado vence a falta de aula (concluido), como antes da amostra.
     const vazio = cursoLinha("vazio", { aulas: [0] });
 
     const certificados = [

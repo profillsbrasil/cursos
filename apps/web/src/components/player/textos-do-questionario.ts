@@ -62,7 +62,6 @@ export function fraseDoResultado(r: ResultadoDoQuestionario): FraseDoResultado {
   const errou = erradas ? `Você errou ${erradas}. ` : "";
   const regra = regraDaNota(r.paraPassar, r.total);
 
-  // A regra fala do questionário: a aula assistida e a sequência pontuam à parte.
   const pontos =
     r.pontos > 0
       ? `${SO_NA_PRIMEIRA}: você ganhou ${ganhoDe(r.pontos)} pelos acertos dela.`

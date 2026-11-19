@@ -244,7 +244,6 @@ function certificados(
       horas: cargaHoraria(c.segundosDeVideo),
     }));
 
-  // A amostra não conclui o curso, então não tem certificado por ganhar.
   const porGanhar = cursosQueAbremAula(painel).map((c) => ({
     categoria: c.categoria,
     curso: { capa: c.capa, id: c.id, slug: c.slug, titulo: c.titulo },
@@ -262,7 +261,6 @@ const ABREM_AULA: ReadonlySet<TipoEstado> = new Set([
   "questionarios",
 ]);
 
-/** Os cursos inteiros que ainda abrem aula: os do certificado por ganhar. */
 const cursosQueAbremAula = (painel: PainelMeusCursos): CursoVM[] =>
   painel.cursos.filter(
     (c) => c.amostra === null && ABREM_AULA.has(c.estado.tipo)
@@ -311,7 +309,6 @@ function sequencia(
   };
 }
 
-/** As trocas em ordem de data; a troca sem o curso da liberação é erro do banco. */
 function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
   return lancamentos
     .values()
@@ -327,7 +324,6 @@ function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
     .sort((a, b) => a.criadoEm.getTime() - b.criadoEm.getTime());
 }
 
-/** A medalha de contagem: ganha no dia do fato de número `total`. */
 function contagem<T extends "tres_trocas" | "tres_cursos">(
   tipo: T,
   datas: readonly Date[],
@@ -397,7 +393,6 @@ function primeiraTroca(
   };
 }
 
-/** O curso de maior porcentagem; no empate, o de menos itens por fazer. */
 function oMaisAdiantado<T extends { feitas: number; total: number }>(
   xs: readonly T[]
 ): T | null {
@@ -417,7 +412,6 @@ function oMaisAdiantado<T extends { feitas: number; total: number }>(
   }, null);
 }
 
-/** Aulas e questionários de cada curso que ainda abre aula, como Meus cursos lê. */
 function itensDosCursos(linhas: LinhasDasConquistas, painel: PainelMeusCursos) {
   const estudo = estudoDe(linhas);
   const abrem = new Set<string>(cursosQueAbremAula(painel).map((c) => c.id));
@@ -474,10 +468,6 @@ function primeiroCurso(
   };
 }
 
-/**
- * A troca de um curso cuja aula de amostra a pessoa assistiu antes da troca.
- * Por ganhar, o primeiro passo é a amostra vista de um curso que ela ainda não tem.
- */
 function amostraETroca(
   linhas: LinhasDasConquistas,
   trocas: readonly Troca[],
@@ -520,7 +510,6 @@ function amostraETroca(
   };
 }
 
-/** O certificado de um curso trocado; ganha no dia do fato mais novo dos dois. */
 function trocaAteOFim(
   linhas: LinhasDasConquistas,
   trocas: readonly Troca[],
@@ -571,7 +560,6 @@ function primeiroQuestionario(
   };
 }
 
-/** A tentativa número 1 com todas certas; por ganhar, o melhor acerto de primeira. */
 function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
   const primeiras = questionarios.flatMap((q) =>
     q.primeiraAcertos !== null &&
@@ -620,7 +608,6 @@ function notaCheia(questionarios: readonly TentativasDaAula[]): MedalhaDaGrade {
   };
 }
 
-/** A soma das entradas de estudo; ganha no dia em que a soma chega à meta. */
 function milPontos(
   estudoPorDia: LinhasDasConquistas["estudoPorDia"]
 ): MedalhaDaGrade {

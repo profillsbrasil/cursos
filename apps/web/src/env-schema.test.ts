@@ -4,7 +4,6 @@ import { join } from "node:path";
 
 const SCHEMA = await readFile(join(import.meta.dir, "../.env.schema"), "utf8");
 
-/** Os decoradores da linha de comentário logo acima da chave. */
 function decoradores(chave: string) {
   const linhas = SCHEMA.split("\n");
   const i = linhas.findIndex((l) => l.startsWith(`${chave}=`));
@@ -13,17 +12,12 @@ function decoradores(chave: string) {
 }
 
 describe(".env.schema", () => {
-  // O varlock derruba o request que escreve no HTML o valor de um item sensível.
-  // A origem do app vai ao HTML (link de conferência do certificado, QR), então
-  // ela não pode ser sensível.
-  test("CORS_ORIGIN é @public", () => {
+  test("CORS_ORIGIN é @public: a origem do app vai ao HTML (link de conferência do certificado, QR) e o varlock derruba o request que escreve ali um valor sensível", () => {
     expect(decoradores("CORS_ORIGIN")).toContain("@public");
   });
 
-  // O varlock acusa como vazado todo valor sensível que aparece no build. A
-  // região do bucket é "auto", palavra que existe em qualquer JS.
   test.each(["S3_ENDPOINT", "S3_REGION", "S3_BUCKET"])(
-    "%s não é sensível",
+    '%s não é sensível: o varlock acusa como vazado todo valor sensível que aparece no build, e a região do bucket é "auto", palavra que existe em qualquer JS',
     (chave) => {
       expect(decoradores(chave)).toContain("@sensitive=false");
     }

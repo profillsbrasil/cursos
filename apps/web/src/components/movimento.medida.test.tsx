@@ -1,8 +1,3 @@
-// A curva e o tempo de cada transição no Chromium headless, com o CSS real do app
-// e o do sonner: o que o movimento.test.ts não vê no código-fonte, porque a curva
-// errada vem do padrão do Tailwind, do tw-animate e do sonner. Sem Chromium na
-// máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -25,7 +20,6 @@ import { OPCOES_DO_TOAST } from "./opcoes-do-toast";
 
 const EASE_FORTE = "cubic-bezier(0.23, 1, 0.32, 1)";
 
-/** A vírgula entre os itens de uma lista do CSS, não a de dentro do cubic-bezier. */
 const LISTA = /,\s(?![^(]*\))/;
 
 const SONNER = readFileSync(
@@ -36,8 +30,6 @@ const SONNER = readFileSync(
   "utf8"
 );
 
-// Os popups do Base UI só existem abertos, num portal: aqui ficam as classes que
-// eles levam no packages/ui.
 const corpo = renderToStaticMarkup(
   <>
     <span className="transition-colors" id="cor" />

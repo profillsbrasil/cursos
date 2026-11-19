@@ -16,20 +16,17 @@ import { ATALHO_NO_SERVIDOR, atalhoDe } from "./atalho";
 import { DICA, DICA_SECUNDARIA } from "./estilo";
 import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
 
-// O hover vale também no foco de teclado (#30): o fundo acende nos dois.
 const BOTAO_DE_ICONE = cn(
   "text-muted-foreground grid size-8 shrink-0 place-items-center rounded-[9px]",
   "hover:bg-sidebar-accent hover:text-titulo transition-[color,background-color] duration-150",
   "[&_svg]:size-[18px]"
 );
 
-// Recolhido, o botão tem 40 px, como os itens, e mostra o ícone da marca.
 const ALTERNAR_RECOLHIDA =
   "group/alternar relative size-10 rounded-[10px] text-titulo hover:bg-sidebar-accent [@media(hover:none)]:bg-sidebar-accent";
 
 const SOME_COM_HOVER = "transition-opacity duration-150";
 
-// No celular, abrir e fechar a gaveta têm o mesmo alvo de 40 px.
 const BOTAO_DO_CELULAR = cn(BOTAO_DE_ICONE, "size-10");
 
 const SELO =
@@ -37,8 +34,7 @@ const SELO =
 
 const semInscricao = () => () => undefined;
 
-// O servidor e a hidratação escrevem Ctrl B; o cliente troca para ⌘ B no Mac logo
-// depois, sem divergir do HTML do servidor.
+// WARNING: servidor e hidratação escrevem Ctrl B; só depois o cliente troca para ⌘ B no Mac, sem divergir do HTML.
 function Atalho() {
   const atalho = useSyncExternalStore(
     semInscricao,
@@ -62,8 +58,6 @@ export function CabecalhoDaCasca({ selo }: { selo?: string }) {
 
   return (
     <>
-      {/* O selo da área ocupa o vão à direita de CURSOS, na segunda linha do lockup:
-          ao lado dele, o lockup, o selo e o botão não cabem nos 220 px. */}
       <div className="relative shrink-0 group-data-[collapsible=icon]:hidden">
         <Image
           alt={PRODUTO}

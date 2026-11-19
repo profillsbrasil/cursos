@@ -130,8 +130,6 @@ function esperar(condicao: string) {
   );
 }
 
-// A transição que outra corta no meio, como a abertura que o Enter fecha,
-// rejeita o `finished` com AbortError: espera até não sobrar nenhuma em voo.
 const transicoesTerminadas = () =>
   avaliar(
     enviar,
@@ -163,8 +161,6 @@ async function teclar(tecla: keyof typeof CODIGO_DA_TECLA) {
 const LISTA = '[role="listbox"]';
 const POPUP = `document.querySelector('${LISTA}')?.closest("[data-open]")`;
 
-// No primeiro quadro o Base UI monta o popup com data-starting-style e
-// `transition: none` inline: a lista só está aberta quando ele sai dessa fase.
 const listaAberta = `${POPUP}?.hasAttribute("data-starting-style") === false`;
 
 const fechada = (id: string) =>
@@ -249,7 +245,6 @@ describe.skipIf(!existsSync(CHROMIUM))("a seleção no browser", () => {
     await teclar("ArrowDown");
     await teclar("Enter");
     await esperar(fechada("status"));
-    // A tela seguinte reescreve o documento, e uma saída ainda em voo engoliria o clique dela.
     await transicoesTerminadas();
     expect(
       await avaliar<string[]>(

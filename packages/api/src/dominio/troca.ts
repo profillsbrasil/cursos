@@ -47,11 +47,6 @@ export interface LinhaDoCursoDaTroca extends LinhaDaCapa {
   titulo: string;
 }
 
-/**
- * A origem decide, como no check liberacao_troca_nao_revoga; o lançamento só dá o
- * id e o valor. A liberação do perfil não conta: ela dá a amostra, e o curso
- * continua à venda (ver docs/adr/0004-amostra-pelo-perfil.md).
- */
 function acessoDe(linha: LinhaDoCursoDaTroca): Acesso {
   const [ativa] = linha.liberacoes;
 

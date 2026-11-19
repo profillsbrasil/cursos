@@ -17,7 +17,6 @@ const PDF = bytesDe(0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37);
 const ZIP = bytesDe(0x50, 0x4b, 0x03, 0x04);
 const OLE = bytesDe(0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1);
 
-/** Só o cabeçalho de um PNG: assinatura e IHDR, que é o que o image-size lê. */
 function cabecalhoPng(): Uint8Array<ArrayBuffer> {
   const b = new Uint8Array(33);
   const v = new DataView(b.buffer);
@@ -103,11 +102,6 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
-/**
- * Um fetch falso que guarda cada Request assinado e responde com `resposta`.
- * `tamanhos` guarda o content-length que o S3 enxerga: só um corpo em bytes tem
- * tamanho conhecido; o corpo de um Request vai em chunked no runtime do Next.
- */
 function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];

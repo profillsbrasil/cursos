@@ -94,9 +94,6 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
           >
             Trocar foto
           </button>
-          {/* Fora da árvore de acessibilidade: o Trocar foto é o controle, e o campo de
-              arquivo só anunciaria o "No file chosen" do navegador. O click() abre o
-              seletor mesmo com o campo em display: none. */}
           <input
             accept="image/jpeg,image/png,image/gif,image/webp"
             hidden
@@ -151,7 +148,6 @@ export function SecaoDoNome({
 
   const { nome, sobrenome } = valor;
 
-  // O cartão mostra o nome salvo no Clerk; a folha, o que a pessoa digita.
   const salvo = juntar(user.firstName ?? "", user.lastName ?? "");
   const completo = juntar(nome, sobrenome);
 
@@ -159,7 +155,6 @@ export function SecaoDoNome({
     nome.trim() !== (user.firstName ?? "") ||
     sobrenome.trim() !== (user.lastName ?? "");
 
-  // O campo avisa a regra antes de enviar, e o Salvar diz por que está apagado.
   const problema = mudou ? problemaDoNome(nome, sobrenome) : null;
   const idDoErro = idDoErroDoNome(id);
   const idDeNadaMudou = `${id}-nada-mudou`;
@@ -189,7 +184,6 @@ export function SecaoDoNome({
         "grid @min-[48rem]:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]"
       )}
     >
-      {/* O Salvar mora no pé, preso embaixo: a coluna acompanha a altura da folha ao lado. */}
       <form className="grid grid-rows-[1fr_auto]" onSubmit={salvar}>
         <div className="@container grid content-start gap-[18px] p-[22px] @min-[48rem]:p-[26px]">
           <Foto nome={salvo} user={user} />
@@ -224,7 +218,6 @@ export function SecaoDoNome({
       </form>
       <div className="border-border bg-sidebar grid content-center justify-items-center gap-3.5 border-t p-5 @min-[48rem]:border-t-0 @min-[48rem]:border-l @min-[48rem]:p-7">
         <FolhaNaTela
-          // O nome salvo antes do limite pode ter palavra maior que a linha: ela quebra na folha.
           className="w-full max-w-[440px] -rotate-[1.2deg] wrap-anywhere shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
           folha={folhaComONome(folha.folha, completo || "Seu nome aqui")}
         />

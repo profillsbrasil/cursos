@@ -1,8 +1,3 @@
-// O que o admin vê do estudo de cada pessoa: o acompanhamento de cada liberação,
-// na tela de acesso, e a situação da pessoa, na busca. O estado, o progresso e a
-// aula do Continuar saem da leitura de Meus cursos (lerCursoDoAluno): nada aqui
-// decide de novo se um curso abre, se foi começado ou se foi concluído.
-
 import type { Progresso } from "./curso";
 import {
   type CursoComAulas,
@@ -20,8 +15,6 @@ import type {
   ResultadoDaBusca,
   StatusDoCurso,
 } from "./tipos";
-
-// ---------- o que a tela recebe ----------
 
 /** Onde a pessoa está no curso: a aula para onde o Continuar dela leva. */
 export interface Onde {
@@ -92,8 +85,6 @@ export interface BuscaDeAlunos {
   total: number;
 }
 
-// ---------- o estudo da pessoa ----------
-
 const diaDe = (iso: string): DiaISO => diaLocal(new Date(iso));
 
 const maisRecente = (dias: readonly (DiaISO | null)[]): DiaISO | null =>
@@ -122,7 +113,6 @@ export function ultimoEstudo(curso: CursoComAulas, e: Estudo): DiaISO | null {
   return ultimo ? diaDe(ultimo) : null;
 }
 
-/** Curso em andamento ou com questionário pendente sempre tem estudo: a leitura do curso só chega lá com aula tocada. */
 function estudou(curso: CursoComAulas, e: Estudo): DiaISO {
   const dia = ultimoEstudo(curso, e);
 
@@ -171,8 +161,6 @@ function situacaoNoCurso(
   }
 }
 
-// ---------- o acompanhamento de uma liberação ----------
-
 /** O curso pela mesma leitura de Meus cursos. */
 export function acompanharCurso(
   curso: CursoComAulas,
@@ -185,8 +173,6 @@ export function acompanharCurso(
     situacao: situacaoNoCurso(curso, leitura, e),
   };
 }
-
-// ---------- a situação da pessoa na busca ----------
 
 /** Um curso como o statement da busca lê: só o que a leitura do curso pede. */
 export interface CursoDaBusca {

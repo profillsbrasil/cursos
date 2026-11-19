@@ -217,7 +217,6 @@ export function jaTem(
   pessoa: PessoaComSituacao,
   curso: CursoDoLote | null
 ): string | null {
-  // O curso aberto ao perfil ainda se libera à pessoa: a liberação dela fica se o perfil mudar.
   const ativa = curso
     ? pessoa.ativas.find((l) => l.cursoId === curso.id && l.origem !== "perfil")
     : undefined;

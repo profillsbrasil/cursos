@@ -71,7 +71,6 @@ async function conferir(
   let medida: Medida;
 
   try {
-    // createImageBitmap aplica a orientação EXIF, como o servidor.
     const bitmap = await createImageBitmap(arquivo);
     medida = { altura: bitmap.height, largura: bitmap.width };
     bitmap.close();
@@ -110,10 +109,6 @@ export const capaNoCampo = (
 const AREA_DA_CAPA =
   "group relative grid aspect-[900/604] w-full cursor-pointer place-items-center overflow-hidden rounded-[14px] border-[1.5px] bg-background transition-colors data-arrastando:border-ceu";
 
-/**
- * Sob o cursor e com o foco, a camada escura com a pílula no meio; numa tela sem
- * hover, só a pílula, sempre à vista no canto.
- */
 const CAMADA =
   "absolute inset-0 grid place-items-center bg-black/55 opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:place-items-end [@media(hover:none)]:bg-transparent [@media(hover:none)]:p-2.5 [@media(hover:none)]:opacity-100";
 
@@ -198,7 +193,6 @@ export function CampoDeCapa({
   }, []);
 
   const sair = useCallback((e: DragEvent<HTMLLabelElement>) => {
-    // O dragleave dispara também ao passar de um filho para outro dentro da área.
     if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
       setArrastando(false);
     }

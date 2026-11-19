@@ -58,7 +58,6 @@ import { ORDEM_DOS_PERFIS, SOBRE_O_PERFIL } from "./perfis";
 type FaseDoDialogo =
   | { tipo: "fechado" }
   | { tipo: "editando" }
-  /** As fichas que não saíram no último envio, cada uma com o que o servidor disse. */
   | { tipo: "com_sobras"; sobras: readonly ResultadoDoConvite[] };
 
 interface Rascunho {
@@ -66,7 +65,6 @@ interface Rascunho {
   cursoIds: readonly CursoId[];
   fichas: readonly Ficha[];
   perfil: Perfil;
-  /** O que está escrito no campo e ainda não virou ficha. */
   texto: string;
 }
 
@@ -80,8 +78,6 @@ const VAZIO: Rascunho = {
 
 const SEPARADOR = /[\s,;]/;
 
-// A moldura do campo de fichas: o data-campo dá a borda Céu do index.css sob o
-// cursor e com o foco no input de dentro.
 const CAMPO_DE_FICHAS =
   "flex min-h-11 flex-wrap items-center gap-1.5 rounded-[20px] border border-muted-foreground bg-background px-2 py-1.5 transition-colors";
 
@@ -93,7 +89,6 @@ const FICHA_RUIM = "bg-destructive/10 text-destructive";
 const TIRAR_FICHA =
   "relative grid size-5 shrink-0 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors after:absolute after:-inset-2 hover:bg-muted hover:text-foreground disabled:cursor-not-allowed [&_svg]:size-3";
 
-// O rádio fica por baixo do label, como no sentido da concessão de pontos.
 const OPCAO_DE_PERFIL = cn(
   OPCAO_DA_TRILHA,
   "has-checked:bg-titulo has-checked:text-sobre-cor has-checked:hover:bg-foreground has-checked:hover:text-sobre-cor has-disabled:cursor-not-allowed"
@@ -128,11 +123,6 @@ function FichaDoEmail({
   );
 }
 
-/**
- * O campo com fichas: vírgula, ponto e vírgula, espaço, Enter ou sair do campo
- * fecham a ficha, e colar uma lista fecha várias. Backspace no campo vazio traz
- * a última ficha de volta para corrigir.
- */
 function CampoDeEmails({
   descritoPor,
   desligado,
@@ -180,8 +170,7 @@ function CampoDeEmails({
     [fichas, mudar, texto]
   );
 
-  // O input de uma linha apaga a quebra de linha do que se cola: a lista colada
-  // de uma planilha chegaria ao onChange com os e-mails grudados.
+  // WARNING: o input de uma linha apaga a quebra de linha do que se cola, e a lista colada de uma planilha chegaria com os e-mails grudados.
   const aoColar = useCallback(
     (e: ClipboardEvent<HTMLInputElement>) => {
       const colado = e.clipboardData.getData("text");
@@ -202,7 +191,6 @@ function CampoDeEmails({
 
   const campo = useRef<HTMLInputElement>(null);
 
-  // O botão Tirar some com a ficha; sem isto, o foco do teclado cairia no corpo do diálogo.
   const tirar = useCallback(
     (qual: string) => {
       mudar(
@@ -252,7 +240,6 @@ function CampoDeEmails({
   );
 }
 
-/** O que o servidor disse de cada ficha que não saiu. */
 function SobrasDoEnvio({ sobras }: { sobras: readonly ResultadoDoConvite[] }) {
   return (
     <ul className={cn(DICA, "grid gap-1.5")}>
@@ -324,12 +311,10 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
 
   const envio = envioDasFichas(rascunho.fichas, rascunho.cursoIds.length);
   const razao = `${id}-razao`;
-  // A razão fica à vista quando há o que corrigir; com o campo vazio, só o leitor de tela a ouve.
   const razaoAVista = envio.tipo === "desligado" && rascunho.fichas.length > 0;
 
   const temRascunho = rascunho.fichas.length > 0 || rascunho.texto !== "";
 
-  // Com rascunho, só o Cancelar fecha: um Escape sem querer jogaria fora a lista colada.
   const abrirOuFechar = useCallback(
     (aberto: boolean, detalhes: DialogPrimitive.Root.ChangeEventDetails) => {
       if (pendente || (temRascunho && detalhes.reason === "escape-key")) {
@@ -378,7 +363,6 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
     (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      // O Enter no campo com texto fecha a ficha; o clique no botão chega aqui com o blur já feito.
       if (envio.tipo !== "pronto" || rascunho.texto.trim() !== "") {
         return;
       }
@@ -478,7 +462,6 @@ export function Convidar({ cursos }: { cursos: readonly CursoDoConvite[] }) {
               <p className="sr-only" role="status">
                 {anuncioDasFichas(rascunho.fichas, envio)}
               </p>
-              {/* Montada antes do envio, para o leitor de tela anunciar as sobras que chegam. */}
               <div
                 aria-live="polite"
                 className={sobras.length > 0 ? undefined : "sr-only"}

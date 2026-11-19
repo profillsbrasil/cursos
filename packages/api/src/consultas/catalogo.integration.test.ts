@@ -1,6 +1,3 @@
-// Visão do catálogo contra o Postgres local. Roda só com TEST_DATABASE_URL em host local.
-// Cria cursos com sufixo aleatório e apaga tudo no afterAll.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 

@@ -57,8 +57,6 @@ const emSerie = <T, R>(itens: readonly T[], f: (x: T) => Promise<R>) =>
     Promise.resolve([])
   );
 
-// O pg avisa uma vez por processo quando duas queries dividem um client; a
-// transação do registro não pode disparar isso (no pg 9 vira erro).
 const avisosDoPg: string[] = [];
 
 process.on("warning", (w) => {
@@ -84,8 +82,10 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     }
   );
 
-  // O registrar das corridas roda neste db: esperas() conta só as conexões dele.
-  const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE) });
+  const dbContadoPorEsperas = createDb({
+    DATABASE_URL: urlDaCorrida(URL_TESTE),
+  });
+
   const cursos: string[] = [];
 
   async function criarCurso(
@@ -194,7 +194,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, ALUNOS));
     await db.$client.end();
-    await dbDaCorrida.$client.end();
+    await dbContadoPorEsperas.$client.end();
   });
 
   test("sem login, abrir e registrar lançam UNAUTHORIZED", async () => {
@@ -375,7 +375,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   describe("espera pela cota do aluno", () => {
     const naCorrida = (userId: string) =>
-      createCaller(contextoDeTeste({ db: dbDaCorrida, userId }));
+      createCaller(contextoDeTeste({ db: dbContadoPorEsperas, userId }));
 
     const recusa = (e: unknown) =>
       e instanceof ErroParaAPessoa
@@ -420,7 +420,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
           ms: performance.now() - inicio,
           r,
         })),
-        esperas(dbDaCorrida, 1, PARADO_NA_COTA),
+        esperas(dbContadoPorEsperas, 1, PARADO_NA_COTA),
       ]);
 
       clearTimeout(reserva);
@@ -460,7 +460,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
       const [resposta] = await Promise.all([
         enviar(20),
-        esperas(dbDaCorrida, 1, PARADO_NA_COTA)
+        esperas(dbContadoPorEsperas, 1, PARADO_NA_COTA)
           .then(() => esperar(ESPERA_PELA_COTA_MS / 2))
           .then(soltar),
       ]);
@@ -705,12 +705,6 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(avisosDoPg).toEqual([]);
   });
 
-  // Abrir: os 5 do curso e os 2 do questionário. O envio comum: begin, commit,
-  // o lock_timeout, a cota, os 5 do curso, posição e cota (9). Com conquista, mais
-  // a aula assistida e o lançamento, e a conferência da conclusão do curso (a
-  // trava do aluno, as aulas, a liberação e o histórico de Meus cursos no curso:
-  // assistidas, posições, certificado e questionários), que aqui não emite:
-  // falta a outra aula.
   test("contagem de statements: abrir 7, envio comum 9 e com conquista 18, mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
     const aulaId = c.aulas[0] as AulaId;

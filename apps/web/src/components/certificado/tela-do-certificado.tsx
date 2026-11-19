@@ -59,8 +59,6 @@ function Pendente({
 
   return (
     <div className={GRADE_DO_CERTIFICADO}>
-      {/* O lugar da folha fica marcado com a silhueta dela (a faixa do topo e a
-          linha do pé), para a página não ser um cartão num canto. */}
       <div
         aria-hidden="true"
         className="border-muted-foreground/40 text-muted-foreground relative grid aspect-[1123/794] place-items-center overflow-hidden rounded-[6px] border-[1.5px] border-dashed p-6 text-center"

@@ -14,10 +14,6 @@ const CSS = {
   ),
 };
 
-// O foco de teclado é o hover (#30): o estado de foco se escreve com hover:. A
-// variante focus-visible: não pinta nada, e o app não escreve contorno nem anel de
-// foco. focus: só vale para o destaque de menu (focus:bg-* e focus:text-*), que o
-// Base UI move com o cursor e com as setas.
 const PROIBIDO =
   /focus-visible|focus-within|(?:^|[\s"'`:])[\w-]*focus(?:\/[\w-]+)?:(?=[\w[&*!-])(?!bg-|text-)|(?:^|[\s"'`:])-?outline-[\w[]|ring-(?:ring|sidebar-ring|offset)/;
 
@@ -51,8 +47,7 @@ describe("o foco não desenha contorno nem anel", () => {
     );
   });
 
-  // Decisão do dono: nenhum contorno, nem no alto contraste do Windows.
-  test("nenhum CSS do app desenha contorno, nem em forced-colors", () => {
+  test("por decisão do dono, nenhum CSS do app desenha contorno, nem em forced-colors", () => {
     for (const [nome, caminho] of Object.entries(CSS)) {
       const css = semComentarios(readFileSync(caminho, "utf8"));
 

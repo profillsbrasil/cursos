@@ -1,10 +1,5 @@
-// Formatos em pt-BR usados nas telas do aluno.
-
 const NUMERO = new Intl.NumberFormat("pt-BR");
 
-// Dois formatos de data, e só eles: o longo ("20 de agosto de 2026") e o curto
-// ("7 de out.", com " de 2025" fora do ano de hoje). Um instante entra no curto
-// por `diaCurto(diaEmSaoPaulo(iso), hoje)`.
 const DATA = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "long",
@@ -12,7 +7,7 @@ const DATA = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 });
 
-// O dia (AAAA-MM-DD) já é do calendário de São Paulo: lido em UTC, não muda de dia.
+// WARNING: o dia (AAAA-MM-DD) já é do calendário de São Paulo; lido em UTC, não muda de dia.
 const DIA_DO_CALENDARIO = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "short",

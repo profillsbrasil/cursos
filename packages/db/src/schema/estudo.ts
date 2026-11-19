@@ -20,7 +20,7 @@ import { alternativa, aula, curso, pergunta } from "./catalogo";
 import { momento, tabela } from "./comum";
 import { faixasDeSegundos } from "./tipos-pg";
 
-// Fato imutável. A chave (user_id, aula_id) faz "rever aula" não gravar de novo.
+/** Fato imutável: a chave (user_id, aula_id) faz "rever aula" não gravar de novo. */
 export const aulaAssistida = tabela(
   "aula_assistida",
   {
@@ -28,7 +28,6 @@ export const aulaAssistida = tabela(
     aulaId: uuid()
       .notNull()
       .references(() => aula.id, { onDelete: "restrict" }),
-    // dia civil de São Paulo; o SQL é texto porque a coluna não enxerga a tabela aqui
     dia: date({ mode: "string" })
       .notNull()
       .generatedAlwaysAs(
@@ -58,7 +57,6 @@ export const posicaoAula = tabela(
   (t) => [
     primaryKey({ columns: [t.userId, t.aulaId] }),
     check("posicao_aula_nao_negativa", sql`${t.posicaoSeg} >= 0`),
-    // lower() de multirange vazio é NULL, e check NULL passa: '{}' é válido.
     check(
       "posicao_aula_trechos_nao_negativos",
       sql`lower(${t.trechosVistos}) >= 0`
@@ -79,9 +77,11 @@ export const cotaVideo = tabela(
   ]
 );
 
-// Uma tentativa do questionário de uma aula. O id nasce no cliente, então reenviar
-// a mesma tentativa não cria outra. acertos, total e aprovada são o fato no momento
-// do envio: o admin pode mudar as perguntas depois, e a aprovação fica.
+/**
+ * Uma tentativa do questionário de uma aula. O id nasce no cliente, então reenviar
+ * a mesma tentativa não cria outra. acertos, total e aprovada são o fato no momento
+ * do envio: o admin pode mudar as perguntas depois, e a aprovação fica.
+ */
 export const questionarioTentativa = tabela(
   "questionario_tentativa",
   {
@@ -104,8 +104,7 @@ export const questionarioTentativa = tabela(
       sql`${t.total} >= 1 and ${t.acertos} between 0 and ${t.total}`
     ),
     unique("tentativa_numero_unico").on(t.userId, t.aulaId, t.numero),
-    unique("tentativa_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento
-    // Uma aprovação por aula; parar de tentar depois dela é regra do responder.
+    unique("tentativa_do_aluno").on(t.userId, t.id),
     uniqueIndex("tentativa_aprovada_unica")
       .on(t.userId, t.aulaId)
       .where(sql`${t.aprovada}`),

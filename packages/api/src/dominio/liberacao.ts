@@ -1,7 +1,3 @@
-// Uma regra decide se uma liberação se revoga: acaoNaLiberacao. A tela mostra o
-// botão a partir dela e revogar, em consultas/liberacao.ts, recusa a partir dela.
-// O check liberacao_troca_nao_revoga é a última porta, no banco.
-
 import { type Acompanhamento, acompanharCurso } from "./acompanhamento";
 import { estudoDe, type LinhasHistorico } from "./historico";
 import type { Perfil } from "./perfil";
@@ -41,7 +37,12 @@ export type AcaoNaLiberacao =
   | { tipo: "fixa_por_troca" }
   | { tipo: "revogada"; em: Date };
 
-/** A liberação da pessoa. A do perfil não se revoga pela tela da pessoa (acaoNaTela). */
+/**
+ * A liberação da pessoa. A do perfil não se revoga pela tela da pessoa (acaoNaTela).
+ * Uma regra decide se uma liberação se revoga: a tela mostra o botão a partir
+ * dela e revogar, em consultas/liberacao.ts, recusa a partir dela. O check
+ * liberacao_troca_nao_revoga é a última porta, no banco.
+ */
 export function acaoNaLiberacao(l: {
   origem: OrigemDaLiberacao;
   revogadaEm: Date | null;

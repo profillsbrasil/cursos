@@ -19,13 +19,6 @@ const ITERATOR_HELPER = new RegExp(
   "g"
 );
 
-/**
- * O Next 16 compila o cliente para chrome 111, edge 111, firefox 111 e
- * safari 16.4, sem transpilar nem trazer polyfill de iterator helpers, que só
- * existem a partir do Chrome 122, do Firefox 131 e do Safari 18.4. Nesses
- * navegadores, `lista.values().map` lança TypeError. No cliente, use
- * `flatMap` ou um laço que empurra num array.
- */
 describe("o cliente roda sem iterator helpers", () => {
   const doCliente = new Set<string>();
 

@@ -7,13 +7,10 @@ const withVarlock = varlockNextConfigPlugin();
 
 const nextConfig: NextConfig = {
   experimental: {
-    // O proxy guarda o corpo do pedido até este teto e corta o resto sem erro. O
-    // padrão de 10 MB truncava o material de apoio, que vai até 50 MB (mais o
-    // envelope do multipart).
+    // WARNING: o proxy corta sem erro o corpo acima deste teto; o padrão de 10 MB truncava o material de 50 MB.
     proxyClientMaxBodySize: "51mb",
   },
   reactCompiler: true,
-  // A tela de Alunos virou Liberações (ADR 0003): o link guardado continua abrindo.
   redirects: () =>
     Promise.resolve([
       {

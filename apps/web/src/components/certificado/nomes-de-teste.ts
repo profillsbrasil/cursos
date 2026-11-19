@@ -1,12 +1,10 @@
-// Só dos testes: os nomes que a folha tem de comportar, do comum ao que o
-// formulário de Minha conta já recusa mas o Clerk aceitou antes do limite.
-
 const repetido = (pedaco: string, caracteres: number) =>
   pedaco
     .repeat(Math.ceil(caracteres / pedaco.length))
     .slice(0, caracteres)
     .trim();
 
+/** Só dos testes: os nomes que a folha tem de comportar, do comum ao que o formulário de Minha conta já recusa mas o Clerk aceitou antes do limite. */
 export const NOMES_DA_FOLHA = [
   ["20 caracteres", "Ana Beatriz da Silva"],
   ["uma palavra de 20 W", "W".repeat(20)],

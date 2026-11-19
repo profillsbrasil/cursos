@@ -22,7 +22,6 @@ function erroDoServidor(
 
 const erroDeRede = () => TRPCClientError.from(new TypeError("Failed to fetch"));
 
-/** Roda a ação com efeitos falsos e devolve, em ordem, tudo o que ela fez. */
 async function rodar<T>(fazer: () => Promise<T>, opcoes: OpcoesDaAcao<T>) {
   const feito: string[] = [];
   await rodarAcao(
@@ -180,7 +179,6 @@ describe("rodarAcao", () => {
 const SRC = join(import.meta.dir, "..");
 const MUTACAO = /\.mutate\(|useMutation\(/;
 
-/** Quem muta fora do useAcao, e por quê. */
 const FORA_DO_USE_ACAO: Record<string, string> = {
   "lib/player/use-player-da-aula.ts":
     "o progresso da aula sincroniza em segundo plano, sem toast e sem recarregar a página",

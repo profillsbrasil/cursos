@@ -28,8 +28,10 @@ export const viewport: Viewport = {
   themeColor: "#1A1D22",
 };
 
-// O app tem um tema só, escuro. A classe "dark" fica fixa no <html> para as
-// variantes dark: dos componentes de packages/ui continuarem valendo.
+/**
+ * O app tem um tema só, escuro. A classe "dark" fica fixa no <html> para as
+ * variantes dark: dos componentes de packages/ui continuarem valendo.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

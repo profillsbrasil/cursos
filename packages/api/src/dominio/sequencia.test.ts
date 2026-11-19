@@ -9,7 +9,6 @@ import {
 } from "./sequencia";
 import type { DiaISO } from "./tipos";
 
-// 2026-10-02 é sexta, 2026-10-05 é segunda, 2026-10-07 é quarta.
 const d = (s: string) => s as DiaISO;
 const dias = (...s: string[]) => new Set(s.map(d));
 
@@ -50,8 +49,7 @@ describe("sequenciaDiasUteis", () => {
     expect(sequenciaDiasUteis(estudo, d("2027-01-04"))).toBe(4);
   });
 
-  test("feriado sem estudo quebra a sequência", () => {
-    // 2026-10-12, segunda, é feriado nacional e conta como dia útil (regra atual).
+  test("feriado nacional (2026-10-12, segunda) conta como dia útil, e sem estudo quebra a sequência", () => {
     expect(
       sequenciaDiasUteis(dias("2026-10-09", "2026-10-13"), d("2026-10-13"))
     ).toBe(1);

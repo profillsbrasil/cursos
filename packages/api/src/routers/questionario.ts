@@ -19,7 +19,6 @@ export const envioDoQuestionario = z.object({
 });
 
 export const questionarioRouter = router({
-  // O servidor corrige: a alternativa certa só volta com a aprovação.
   responder: alunoComTraducao
     .input(envioDoQuestionario)
     .mutation(({ ctx, input }) =>

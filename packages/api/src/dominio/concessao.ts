@@ -1,9 +1,10 @@
-// A concessão de pontos: o admin dá ou tira pontos de uma pessoa, com o motivo
-// escrito. Sem Zod e sem banco: a ficha do admin no navegador lê os tetos daqui.
-
 import type { Pessoa } from "./tipos";
 
-/** O teto de pontos de uma concessão, para dar ou para tirar. */
+/**
+ * O teto de pontos de uma concessão, para dar ou para tirar. A concessão é o admin
+ * dar ou tirar pontos de uma pessoa, com o motivo escrito. Este módulo não tem Zod
+ * nem banco: a ficha do admin no navegador lê os tetos daqui.
+ */
 export const TETO_DA_CONCESSAO = 100_000;
 
 /** O check concessao_de_pontos_motivo_formato repete este teto. */

@@ -1,9 +1,3 @@
-// A virada dos pontos: o acerto único de quem já é Funcionário antes de a
-// liberação do perfil passar a abrir só a amostra. Cada Funcionário ganha o
-// bônus, se ainda não tem, e troca pelo preço atual cada curso que já estudou e
-// que hoje vê só pela liberação do perfil. O script scripts/virada-dos-pontos.ts
-// lê, chama planejarVirada e grava pelos escritores de consultas/.
-
 import {
   type CursoDaBusca,
   catalogoDo,
@@ -52,11 +46,6 @@ const NADA = (userId: string): PlanoDaVirada => ({
   userId,
 });
 
-/**
- * Os cursos que a pessoa vê só pela liberação do perfil e que já estudou. "Já
- * estudou" é o contrário de Nunca abriu na Situação da pessoa: ultimoEstudo
- * acha aula assistida, posição acima de 0 s, questionário ou certificado.
- */
 function estudadosSoPeloPerfil(p: PessoaNaVirada) {
   const ativas = p.liberacoes.filter((l) => l.revogadaEm === null);
 
@@ -81,7 +70,13 @@ function estudadosSoPeloPerfil(p: PessoaNaVirada) {
 }
 
 /**
- * O plano de uma pessoa. Cliente e Público aberto não mudam. O saldo com o
+ * A virada dos pontos: o acerto único de quem já é Funcionário antes de a
+ * liberação do perfil passar a abrir só a amostra. Cada Funcionário ganha o
+ * bônus, se ainda não tem, e troca pelo preço atual cada curso que já estudou e
+ * que hoje vê só pela liberação do perfil. O script scripts/virada-dos-pontos.ts
+ * lê, chama planejarVirada e grava pelos escritores de consultas/.
+ *
+ * O plano de uma pessoa: Cliente e Público aberto não mudam. O saldo com o
  * bônus paga as trocas do curso mais barato ao mais caro; o que não cabe pula.
  */
 export function planejarVirada(p: PessoaNaVirada): PlanoDaVirada {

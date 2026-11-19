@@ -29,7 +29,6 @@ import { DicaDoPlayer, PortalDoPlayer } from "./dica-do-player";
 import { ICONE } from "./partes";
 import { StatusDoPlayer } from "./status-do-player";
 
-/** O botão de ícone com a dica do nome e, quando há, da tecla. */
 function BotaoComDica({
   children,
   className,
@@ -59,21 +58,8 @@ function BotaoComDica({
   );
 }
 
-/** Os botões de um grupo da barra, sempre juntos na mesma linha. */
 const GRUPO = "inline-flex items-center gap-1.5 @max-[40rem]/barra:gap-1";
 
-/**
- * A barra mede o próprio contêiner, não a janela, porque a largura do player muda com
- * a coluna do curso. Os grupos são a (reproduzir e os saltos), b (volume), c (tempo e
- * "% visto") e d (legenda, Ajustes e tela cheia). Larga, uma linha só, com o c no
- * meio. Abaixo de 40rem, duas linhas: os botões em cima e o tempo com o "% visto"
- * embaixo, na largura toda. Abaixo de 24rem o slider sai e fica o botão de som; abaixo
- * de 18,5rem, que só um celular de 320 px alcança, o som desce para a linha do tempo,
- * e o aviso da conquista cobre o tempo enquanto aparece, porque não cabe só no vão.
- * Ali a primeira coluna tem os 38 px do botão de som, e o grupo a ocupa as duas
- * primeiras, para o tempo começar logo depois do som. A posição de cada grupo é
- * explícita, sem `grid-template-areas`, para a classe não levar aspas.
- */
 const BARRA =
   "grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-x-1.5 gap-y-1 @max-[40rem]/barra:gap-x-1 @max-[18.5rem]/barra:grid-cols-[38px_auto_minmax(0,1fr)_auto]";
 
@@ -187,7 +173,6 @@ export function ControlesDoPlayer({
     <PortalDoPlayer value={portal}>
       <div className="@container/barra" data-barra="">
         <div className={BARRA}>
-          {/* Enquanto o YouTube não fica pronto, os três botões desligados pulsam como o esqueleto. */}
           <span className={cn(GRUPO, LUGAR_A, carregando && "animate-pulse")}>
             <BotaoComDica
               aria-label={tocando ? "Pausar" : "Reproduzir"}
@@ -244,8 +229,7 @@ export function ControlesDoPlayer({
                 min={0}
                 onValueChange={definirVolume}
                 step={5}
-                // Em array: com um número, o Slider de @cursos/ui conta os polegares por
-                // [min, max] e desenha dois, cada um com uma parada de Tab.
+                // WARNING: value em array; com um número o Slider de @cursos/ui conta os polegares por [min, max] e desenha dois, cada um com uma parada de Tab.
                 value={[nivelAudivel]}
               />
             </span>

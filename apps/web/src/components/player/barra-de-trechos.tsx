@@ -9,8 +9,6 @@ import { mmss } from "@/lib/formato";
 const pct = (seg: number, duracaoSeg: number) =>
   `${Math.min(100, Math.max(0, (100 * seg) / duracaoSeg))}%`;
 
-// Os trechos guardam segundos inteiros, e o polegar anda com a fração: sem isto, o
-// amarelo fica até 1 s atrás dele, tocando ou pausado.
 const ateOPolegar = (trechos: readonly Trecho[], tempoSeg: number) =>
   trechos.map((t) =>
     t.fim <= tempoSeg && tempoSeg < t.fim + 1 ? { ...t, fim: tempoSeg } : t
@@ -101,7 +99,6 @@ export function BarraDeTrechos({
         style={{ left: `${PCT_AULA_ASSISTIDA}%` }}
         title="90% da aula"
       />
-      {/* O polegar cresce sob o cursor e com o foco de teclado (#30), como o do volume. */}
       <span
         className="bg-titulo ease-forte pointer-events-none absolute top-1/2 -mt-2 -ml-2 size-4 rounded-full shadow-[0_2px_6px_rgb(0_0_0/0.5)] transition-transform duration-150 group-hover:scale-125 motion-reduce:transition-none"
         style={{ left: pct(cabeca, duracaoSeg) }}

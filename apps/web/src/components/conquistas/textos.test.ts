@@ -12,7 +12,6 @@ import {
   semGanha,
 } from "./textos";
 
-/** A frase curta e a do destaque de uma medalha por ganhar. */
 const frase = (m: MedalhaDaGrade) => {
   const l = linhaDaGrade(m);
 

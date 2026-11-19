@@ -104,7 +104,6 @@ const css = await cssDoApp(
 
 let enviar: Enviar;
 
-/** A ordem que a tela mostra, pelos campos de título de cima para baixo. */
 const naTela = () =>
   avaliar<string[]>(
     enviar,
@@ -113,7 +112,6 @@ const naTela = () =>
 
 const ordemNoRascunho = () => avaliar<string[]>(enviar, "window.ordem");
 
-/** O centro do elemento da linha n (a partir de 1) que o seletor acha dentro dela. */
 const centroDe = (linha: number, seletor: string) =>
   avaliar<{ x: number; y: number }>(
     enviar,
@@ -123,7 +121,6 @@ const centroDe = (linha: number, seletor: string) =>
     })()`
   );
 
-/** As linhas que, depois de soltas, ainda não voltaram ao lugar delas na lista. */
 const deslocadas = () =>
   avaliar<string[]>(
     enviar,
@@ -139,7 +136,6 @@ const alturaDaLinha = () =>
     `document.querySelector("li").getBoundingClientRect().height`
   );
 
-/** Aperta em `de`, desce `distancia` px em passos de um quadro e solta. */
 async function arrastar(de: { x: number; y: number }, distancia: number) {
   const ponto = { button: "left", x: de.x };
   await enviar("Input.dispatchMouseEvent", {

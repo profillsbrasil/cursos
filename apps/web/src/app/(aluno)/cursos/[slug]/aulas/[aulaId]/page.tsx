@@ -19,7 +19,7 @@ async function aulaDaUrl(params: Props["params"]) {
   return await carregarAula(slug, aulaId);
 }
 
-// O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.
+// WARNING: o notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dados = await aulaDaUrl(params);
 

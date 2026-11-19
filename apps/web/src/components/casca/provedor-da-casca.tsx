@@ -16,14 +16,12 @@ import {
 import { aberturaEm, alternar, estaAberta, navegar } from "./abertura";
 import { COOKIE_DA_SIDEBAR, LARGURAS_DA_SIDEBAR } from "./nav";
 
-/** A transição de largura de index.css dura 200 ms; a folga cobre o último quadro. */
 const PRAZO_DA_ANIMACAO_MS = 260;
 
 const Animar = createContext<(() => void) | null>(null);
 
 const VALIDADE_DO_COOKIE_S = 60 * 60 * 24 * 7;
 
-/** O único escritor do cookie: o setOpen do packages/ui não grava (sidebar.tsx editado, nav.test.ts confere). */
 const gravarPreferencia = (aberta: boolean) => {
   // oxlint-disable-next-line unicorn/no-document-cookie -- casca.tsx lê este cookie no servidor.
   document.cookie = `${COOKIE_DA_SIDEBAR}=${aberta}; path=/; max-age=${VALIDADE_DO_COOKIE_S}`;
@@ -89,11 +87,6 @@ export function ProvedorDaCasca({
   );
 }
 
-/**
- * A gaveta do celular fecha quando o caminho muda, venha o link de onde vier: menu,
- * Continuar, placar. O SidebarProvider fica no layout e sobrevive à navegação dentro
- * da área, e o Sheet do packages/ui não escuta rota.
- */
 function FecharGavetaAoNavegar() {
   const caminho = usePathname();
   const { setOpenMobile } = useSidebar();

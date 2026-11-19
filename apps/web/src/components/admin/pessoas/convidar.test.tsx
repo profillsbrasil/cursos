@@ -8,11 +8,10 @@ import type {
 import type { ConviteId, CursoId, DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
-const navegacao = await import("next/navigation");
+const navegacaoReal = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
-  ...navegacao,
+  ...navegacaoReal,
   useRouter: () => ({
     push: () => undefined,
     refresh: () => undefined,

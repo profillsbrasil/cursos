@@ -33,7 +33,6 @@ const NADA = `user_teste${S}nada`;
 const DIRETO = `user_teste${S}direto`;
 const ALUNOS = [ESTUDA, NUNCA, REVOGADA, NADA, DIRETO];
 
-/** Fora da busca: só o curso e, com níveis. */
 const ONDE = `user_teste${S}onde`;
 
 const pessoas: Pessoa[] = ALUNOS.map((userId) => ({
@@ -43,7 +42,6 @@ const pessoas: Pessoa[] = ALUNOS.map((userId) => ({
   userId,
 }));
 
-/** O estado do painel do aluno, na palavra do admin. */
 const NA_PALAVRA_DO_ADMIN: Record<
   EstadoCurso["tipo"],
   SituacaoNoCurso["tipo"]
@@ -67,7 +65,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
 
   const cursos: string[] = [];
 
-  /** Aulas por curso, em ordem: a, b, c (em produção) e d. */
   const aulas: Record<"a" | "b" | "c" | "d", string[]> = {
     a: [],
     b: [],
@@ -156,7 +153,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         libera(REVOGADA, d, true),
         ...[a, b, c].map((id) => libera(DIRETO, id)),
       ]);
-    // ESTUDA concluiu a, está no meio de d. DIRETO viu a primeira aula de b.
     await db.insert(aulaAssistida).values([
       ...aulas.a.map((aulaId) => ({
         assistidaEm: new Date("2026-10-05T15:00:00Z"),
@@ -176,7 +172,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       segundosDeVideo: 1200,
       userId: ESTUDA,
     });
-    // 01:00 UTC de 13/10 ainda é 12/10 em São Paulo.
     await db.insert(posicaoAula).values({
       atualizadaEm: new Date("2026-10-13T01:00:00Z"),
       aulaId: aulas.d[0] ?? "",
@@ -184,9 +179,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       userId: ESTUDA,
     });
 
-    // Curso e, com nível: módulo 0 com 2 aulas e módulo 1 com 1. ONDE viu a aula
-    // 1 do módulo 0 e parou a aula 1 do módulo 1 depois: a aula 2 do módulo 0
-    // ficou para trás.
     const [e] = await db
       .insert(curso)
       .values({
@@ -313,7 +305,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       ],
     ]);
 
-    // A mesma conta pelo painel do aluno: cursos fora de em_breve, e os concluídos.
     const paineis = await Promise.all(
       busca.pessoas.map((p) => painelDe(p.userId))
     );
@@ -372,7 +363,6 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
           painelDe(userId),
         ]);
 
-        // Os títulos levam o sufixo do teste, então identificam o curso.
         const doAdmin = (acesso?.liberacoes ?? []).map((l) => ({
           ...l.acompanhamento,
           titulo: l.curso.titulo,

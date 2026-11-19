@@ -44,7 +44,6 @@ export const COLUNAS_DO_QUESTIONARIO = {
   aprovada: sql<boolean>`bool_or(${questionarioTentativa.aprovada})`,
   aulaId: questionarioTentativa.aulaId,
   tentativas: sql<number>`count(*)::int`,
-  // O decodificador da coluna devolve Date; o sql cru devolveria texto.
   ultimaEm: sql`max(${questionarioTentativa.enviadaEm})`.mapWith(
     questionarioTentativa.enviadaEm
   ),
@@ -75,10 +74,6 @@ export function linhasDosQuestionarios(
     .groupBy(t.aulaId);
 }
 
-/**
- * Os statements do histórico de estudo da pessoa, ainda sem rodar: a consulta do
- * drizzle só vai ao banco no await, então quem chama escolhe paralelo ou série.
- */
 function consultasDoHistorico(
   exec: Executor,
   userId: string,
@@ -87,7 +82,6 @@ function consultasDoHistorico(
   const aulas = noCurso && [...noCurso.aulas];
 
   return [
-    // 2. aulas assistidas (inclusive de curso revogado; a montagem ignora as de fora do catálogo)
     exec
       .select({
         assistidaEm: aulaAssistida.assistidaEm,
@@ -100,7 +94,6 @@ function consultasDoHistorico(
           aulas && inArray(aulaAssistida.aulaId, aulas)
         )
       ),
-    // 3. posições com segundo > 0
     exec
       .select({
         atualizadaEm: posicaoAula.atualizadaEm,
@@ -115,7 +108,6 @@ function consultasDoHistorico(
           aulas && inArray(posicaoAula.aulaId, aulas)
         )
       ),
-    // 4. certificados
     exec
       .select({
         codigo: certificado.codigo,
@@ -129,7 +121,6 @@ function consultasDoHistorico(
           noCurso && eq(certificado.cursoId, noCurso.cursoId)
         )
       ),
-    // 5. os questionários tentados
     linhasDosQuestionarios(exec, userId, aulas),
   ] as const;
 }
@@ -221,15 +212,12 @@ interface Liberada {
   liberadaEm: Date;
 }
 
-// Nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita
-// prepared statement nomeado. Os statements correm em paralelo no Pool do node-postgres.
+// WARNING: nenhuma consulta usa .prepare("nome"): o pooler de transação (porta 6543) não aceita prepared statement nomeado.
 export async function linhasDoPainel(db: Database, aluno: Aluno) {
   const { userId } = aluno;
 
   const [liberacoes, historico, comunicados] = await Promise.all([
-    // 1. os cursos que o aluno vê, com o catálogo inteiro
     linhasDosCursosQueOAlunoVe(db, aluno),
-    // 2 a 5
     linhasDoHistorico(db, userId),
     db
       .select({
@@ -254,7 +242,6 @@ export async function linhasDoResumo(
   segunda: DiaISO
 ) {
   const [dias, pontos] = await Promise.all([
-    // 6. dias com aula assistida pela primeira vez
     db
       .selectDistinct({ dia: aulaAssistida.dia })
       .from(aulaAssistida)

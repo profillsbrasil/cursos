@@ -30,11 +30,6 @@ function caminhoAteOZod(arquivo: string, visto: Set<string>): string[] | null {
   return null;
 }
 
-/**
- * O Zod pesa cerca de 90 KB em gzip no navegador. Só o editor do curso valida
- * no cliente, com os schemas de edicao-do-curso; o que ele importa já viaja com
- * o Zod. Qualquer outra tela, do aluno ou do admin, fica sem ele.
- */
 describe("só o editor do curso carrega o Zod no cliente", () => {
   test("nenhum módulo use client fora do editor chega ao zod", () => {
     const doEditor = grafo(join(SRC, "components/admin/editor-do-curso.tsx"));

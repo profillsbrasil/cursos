@@ -18,7 +18,6 @@ import {
   textoDoEnvio,
 } from "./textos-do-questionario";
 
-// Fora do App Router o useRouter não tem de onde ler; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -187,8 +186,6 @@ describe("os textos", () => {
     );
   });
 
-  // Os pontos da aula assistida podem entrar depois do envio: a frase não pode
-  // dizer que nada mais pontua.
   test("reprovado na primeira: a frase não diz que as próximas não valem pontos", () => {
     const { texto: frase } = fraseDoResultado(REPROVADO_NA_PRIMEIRA);
     expect(frase).not.toContain("próximas");

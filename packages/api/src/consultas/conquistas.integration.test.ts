@@ -215,11 +215,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
     await plantarATrocadora();
   });
 
-  /**
-   * A trocadora: três trocas (a de `vista` depois de assistir à amostra dela,
-   * a de `depois` antes de qualquer aula), o certificado de `depois`, a nota
-   * de 2 de 3 de primeira e 990 pts de estudo, mais o bônus e a concessão.
-   */
   async function plantarATrocadora() {
     const vista = await criarCurso("vista", 3, { precoTroca: 300 });
     const depois = await criarCurso("depois", 2, { precoTroca: 200 });
@@ -323,7 +318,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Conquistas", () => {
         tentativaId: primeira,
         userId: TROCADORA,
       },
-      // Fora dos Mil pontos estudando: com eles, a soma passaria de 1.000.
       {
         criadoEm: quando("2026-10-08T14:00:00Z"),
         motivo: "bonus_funcionario",

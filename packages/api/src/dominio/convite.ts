@@ -36,10 +36,7 @@ export const aceitoDesde = (agora: Date): Date =>
 
 const TAMANHO_MAXIMO = 254;
 
-// Só ASCII: o toLowerCase do JS e o lower() do Postgres divergem fora dele ("İ"),
-// e o check convite_email_formato recusaria o lote inteiro. O que passa aqui
-// passa no banco. A parte local é a sem aspas, e o domínio, rótulos com ponto:
-// sem < > " ( ) , : ; [ ] \, um "<b@x.com>" viraria convite que nunca se aplica.
+// WARNING: só ASCII, porque toLowerCase do JS e lower() do Postgres divergem fora dele e o check convite_email_formato recusaria o lote inteiro.
 const FORMATO =
   /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
 
@@ -54,12 +51,8 @@ export function lerEmail(texto: string): Email | null {
     : null;
 }
 
-// O que fica entre vírgula, ponto e vírgula ou quebra de linha; a vírgula entre
-// aspas, como em "Lima, Ana", fica dentro.
 const TRECHO = /(?:"[^"]*"|[^,;\r\n"]|")+/g;
 
-// O nome sem aspas não tem @: em "ana@x.com Bia <bia@x.com>" a ana não some
-// dentro do nome, e o trecho cai na separação por espaço.
 const COM_NOME = /^(?:"[^"]*"|[^"@<>])*<([^<>]*)>$/;
 
 /**

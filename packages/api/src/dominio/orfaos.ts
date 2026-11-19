@@ -1,7 +1,3 @@
-// A coleta dos objetos órfãos dos buckets: capa trocada e material tirado do
-// curso ficam no bucket, porque a chave é o sha256 dos bytes e nada a apaga.
-// Quem lista e apaga é packages/api/scripts/coletar-orfaos.ts.
-
 /** Um objeto como o ListObjectsV2 do bucket o descreve. */
 export interface ObjetoDoBucket {
   bytes: number;
@@ -29,7 +25,6 @@ export const DIAS_ATE_COLETAR = 7;
 const DIA_MS = 24 * 60 * 60 * 1000;
 const PREFIXO_DA_CAPA = "/capa/";
 
-/** A chave que o app grava, de capa e de material. Objeto com outro nome não é do app e fica. */
 const CHAVE_DO_APP = /^[0-9a-f]{64}\.[a-z0-9]+$/;
 
 export interface Orfao extends ObjetoDoBucket {
@@ -48,7 +43,13 @@ function chavesReferenciadas(emUso: ChavesEmUso): Set<string> {
   return chaves;
 }
 
-/** Os objetos que nenhum curso usa e que têm mais de `DIAS_ATE_COLETAR` dias, do mais velho ao mais novo. */
+/**
+ * A coleta dos objetos órfãos dos buckets: capa trocada e material tirado do
+ * curso ficam no bucket, porque a chave é o sha256 dos bytes e nada a apaga.
+ * Quem lista e apaga é packages/api/scripts/coletar-orfaos.ts.
+ *
+ * Devolve os objetos que nenhum curso usa e que têm mais de `DIAS_ATE_COLETAR` dias, do mais velho ao mais novo.
+ */
 export function orfaosDoBucket(
   emUso: ChavesEmUso,
   objetos: readonly ObjetoDoBucket[],

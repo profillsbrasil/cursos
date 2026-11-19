@@ -6,9 +6,11 @@ import {
 } from "@/components/admin/esqueletos";
 import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
-// A aba Por pessoa: a barra com as abas, a contagem e a busca, e depois a
-// lista e a coluna Marcadas, na grade da TelaDeAlunos, com a coluna antes da
-// lista no container estreito. As duas abas somam 181 px.
+/**
+ * A aba Por pessoa: a barra com as abas, a contagem e a busca, e depois a
+ * lista e a coluna Marcadas, na grade da TelaDeAlunos, com a coluna antes da
+ * lista no container estreito. As duas abas somam 181 px.
+ */
 export default function Carregando() {
   return (
     <div aria-busy="true">

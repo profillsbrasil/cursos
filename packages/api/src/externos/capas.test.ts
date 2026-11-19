@@ -17,7 +17,6 @@ const PASTA = join(import.meta.dir, "../../../../apps/web/public/capas");
 const ler = async (nome: string) =>
   new Uint8Array(await readFile(join(PASTA, nome)));
 
-/** Só o cabeçalho de um PNG: assinatura e IHDR, que é o que a medida lê. */
 function cabecalhoPng(
   largura: number,
   altura: number
@@ -120,11 +119,6 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
-/**
- * Um fetch falso que guarda cada pedido assinado e responde com `resposta`.
- * `tamanhos` guarda o content-length que o S3 enxerga: só um corpo em bytes tem
- * tamanho conhecido; o corpo de um Request vai em chunked no runtime do Next.
- */
 function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];

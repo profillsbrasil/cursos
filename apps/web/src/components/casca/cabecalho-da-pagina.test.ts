@@ -12,11 +12,6 @@ const SRC = join(import.meta.dir, "../..");
 const RESUMO_FIXO = /resumo="([^"]*)"/;
 const ESQUELETO = /loading\.tsx$/;
 
-/**
- * Os h1 que não são o título com resumo: a ficha e o acesso abrem com a foto
- * da pessoa, o editor tem o título que acompanha o campo, e as telas de erro,
- * de não encontrado, da aula e do curso têm a forma delas.
- */
 const H1_PROPRIO = new Set([
   "components/admin/editor-do-curso.tsx",
   "components/admin/pessoas/ficha-da-pessoa.tsx",
@@ -29,11 +24,6 @@ const H1_PROPRIO = new Set([
   "components/certificado/conferencia.tsx",
 ]);
 
-/**
- * DESIGN.md, Title page: o resumo vem embaixo do título, a 6 px, nunca na
- * outra ponta da linha, e o conteúdo começa 28 px abaixo dele. Página que
- * escreve o próprio h1 volta a ser acusada aqui.
- */
 describe("cabeçalho da página", () => {
   test("toda página com título e resumo usa o CabecalhoDaPagina", () => {
     const fora: string[] = [];
@@ -51,8 +41,7 @@ describe("cabeçalho da página", () => {
     expect(fora).toEqual([]);
   });
 
-  test("sem resumo, o cabeçalho não deixa linha pulsando na página pronta", () => {
-    // O certificado emitido não tem resumo: a linha do esqueleto ficava ali para sempre.
+  test("sem resumo, como no certificado emitido, o cabeçalho não deixa a linha do esqueleto pulsando na página pronta", () => {
     const html = renderToStaticMarkup(
       createElement(CabecalhoDaPagina, {
         resumo: null,

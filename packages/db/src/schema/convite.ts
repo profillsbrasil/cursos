@@ -20,7 +20,7 @@ export const convite = tabela(
   "convite",
   {
     aceitoEm: timestamp({ withTimezone: true }),
-    aceitoPor: text(), // userId do Clerk de quem chegou
+    aceitoPor: text(),
     canceladoEm: timestamp({ withTimezone: true }),
     canceladoPor: text(),
     clerkConviteId: text(),
@@ -35,7 +35,6 @@ export const convite = tabela(
     perfil: perfil().notNull(),
   },
   (t) => [
-    // A mesma regra de lerEmail (dominio/convite.ts do @cursos/api).
     check(
       "convite_email_formato",
       sql`${t.email} = lower(btrim(${t.email}))
@@ -67,11 +66,9 @@ export const convite = tabela(
       "convite_papel_aplicado_coerente",
       sql`${t.papelAplicadoEm} is null or (${t.comoAdmin} and ${t.aceitoEm} is not null)`
     ),
-    // O expirado continua vivo, e ocupa o e-mail, até o admin reenviar ou cancelar.
     uniqueIndex("convite_vivo_por_email")
       .on(t.email)
       .where(sql`${t.aceitoEm} is null and ${t.canceladoEm} is null`),
-    // Uma pessoa aceita um convite só, e a sonda do papel por aplicar lê por aqui.
     uniqueIndex("convite_aceito_por_unico")
       .on(t.aceitoPor)
       .where(sql`${t.aceitoPor} is not null`),
@@ -85,7 +82,6 @@ export const conviteCurso = tabela(
     conviteId: uuid()
       .notNull()
       .references(() => convite.id, { onDelete: "cascade" }),
-    // cascade: convite pendente não segura o apagamento de um curso.
     cursoId: uuid()
       .notNull()
       .references(() => curso.id, { onDelete: "cascade" }),

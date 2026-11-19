@@ -3,9 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { contextoDeTeste } from "../contexto-de-teste";
 import { createCaller } from "./index";
 
-// O banco só sabe ler o perfil já gravado, que o alunoProcedure lê antes do input:
-// o slug fora do formato não chega a nenhuma outra consulta.
-const soOPerfil = {
+const bancoQueSoLeOPerfilJaGravado = {
   execute: () =>
     Promise.resolve({
       rows: [{ papel_por_aplicar: false, perfil: "publico" }],
@@ -13,7 +11,10 @@ const soOPerfil = {
 };
 
 const caller = createCaller(
-  contextoDeTeste({ db: soOPerfil as never, userId: "user_x" })
+  contextoDeTeste({
+    db: bancoQueSoLeOPerfilJaGravado as never,
+    userId: "user_x",
+  })
 );
 
 const FORA_DO_FORMATO = ["Comercial", "comercial.", "a_b", "%C3%A7urso"];

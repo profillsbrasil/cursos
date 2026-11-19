@@ -12,7 +12,6 @@ const texto = (h: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** O cartão do saldo até o botão, sem o painel de Como ganhar pontos. */
 const saldo = (pontosSemana: number) =>
   `${
     texto(

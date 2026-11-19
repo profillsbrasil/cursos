@@ -8,10 +8,6 @@ import { fraseDoErro } from "./erros";
 
 interface OpcoesDaAcao<T> {
   depois?: (resultado: T) => void;
-  /**
-   * Senha, exclusão, e-mail e conta do Google: o Clerk pode pedir que a pessoa
-   * confirme quem é antes, e a ação roda de novo depois da confirmação.
-   */
   sensivel?: boolean;
   sucesso?: string;
 }

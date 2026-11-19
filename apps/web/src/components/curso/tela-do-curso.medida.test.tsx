@@ -36,7 +36,6 @@ const ENTIDADES: Record<string, string> = {
 
 const ENTIDADE = /&(?:#x27|amp|gt|lt|quot);/g;
 
-// O renderToStaticMarkup escapa a classe, e o Tailwind precisa dela como o browser a lê.
 const semEntidades = (c: string) =>
   c.replace(ENTIDADE, (e) => ENTIDADES[e] ?? e);
 

@@ -69,7 +69,6 @@ export interface CursoAberto {
   trechos: ReadonlyMap<AulaId, readonly Trecho[]>;
 }
 
-/** null: o curso inteiro. undefined: a amostra que não existe, sem aula. */
 function amostraDe(
   linha: CursoComAcessoLinha,
   curso: CursoCatalogo

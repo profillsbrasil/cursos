@@ -1,7 +1,3 @@
-// A amostra nas três telas: o cartão de Meus cursos, a coluna de troca da página
-// do curso e o fim do vídeo da aula de amostra. Texto, destino e o botão
-// desligado com o saldo curto.
-
 import { describe, expect, mock, test } from "bun:test";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
@@ -11,7 +7,6 @@ import type { AulaId, CursoId } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -59,14 +54,12 @@ const nada = () => undefined;
 const botoes = (html: string) => html.match(BOTOES) ?? [];
 const hrefs = (html: string) => [...html.matchAll(LINKS)].map((m) => m[1]);
 
-/** O botão desligado e focável do Base UI: aria-disabled e data-disabled, sem disabled. */
 function desligadoEFocavel(botao: string) {
   expect(botao).toContain('aria-disabled="true"');
   expect(botao).toContain("data-disabled");
   expect(botao).not.toContain(" disabled=");
 }
 
-/** A frase que o aria-describedby do botão aponta. */
 function razaoDo(botao: string, html: string): string {
   const id = DESCRITO_POR.exec(botao)?.[1] ?? "";
   const alvo = new RegExp(`<p[^>]*id="${id}"[^>]*>(.*?)</p>`).exec(html);

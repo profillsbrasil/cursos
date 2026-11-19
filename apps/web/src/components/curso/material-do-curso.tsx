@@ -11,8 +11,7 @@ import { useCallback, useState } from "react";
 import { SeloDoTipo } from "@/components/material-de-apoio/selo-do-tipo";
 import { focarDepois } from "@/lib/editor";
 
-/** O cartão fica preso ao topo: acima disto, ele passaria da altura da janela. */
-const VISIVEIS = 3;
+const VISIVEIS_PARA_O_CARTAO_CABER_NA_JANELA = 3;
 
 const idDoLink = (id: string) => `material-${id}`;
 
@@ -27,12 +26,16 @@ export function MaterialDoCurso({
   materiais: readonly MaterialDaPagina[];
 }) {
   const [todos, setTodos] = useState(false);
-  const mostrados = todos ? materiais : materiais.slice(0, VISIVEIS);
+
+  const mostrados = todos
+    ? materiais
+    : materiais.slice(0, VISIVEIS_PARA_O_CARTAO_CABER_NA_JANELA);
+
   const escondidos = materiais.length - mostrados.length;
 
   const verTodos = useCallback(() => {
     setTodos(true);
-    const primeiro = materiais[VISIVEIS];
+    const primeiro = materiais[VISIVEIS_PARA_O_CARTAO_CABER_NA_JANELA];
 
     if (primeiro) {
       focarDepois(idDoLink(primeiro.id));

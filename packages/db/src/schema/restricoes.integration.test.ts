@@ -1,9 +1,3 @@
-// Estados inválidos que o banco recusa, um caso por constraint (seção 2.8 do desenho).
-// Roda só com TEST_DATABASE_URL apontando para o Postgres local. Cada caso roda numa
-// transação desfeita no fim, então nada fica no banco, que é compartilhado entre worktrees.
-// Com SEM_RESTRICAO=1, cada caso apaga a própria constraint antes de violar: o teste tem
-// de ficar vermelho, prova de que é a constraint que segura o estado.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
@@ -69,7 +63,6 @@ async function montarBase(c: Client): Promise<Base> {
 }
 
 interface Caso {
-  /** SQL que remove a restrição no modo SEM_RESTRICAO. */
   apagar: string;
   constraint: string;
   nome: string;
@@ -936,7 +929,6 @@ const CASOS: Caso[] = [
 
 const AGORA = "2026-11-11T12:00:00Z";
 
-/** Um convite válido, com as colunas de `mudar` por cima. */
 function convidar(c: Client, mudar: Record<string, string | boolean> = {}) {
   const linha = {
     como_admin: false,
@@ -1020,8 +1012,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
     await c.end();
   });
 
-  // Roda o corpo numa transação que sempre volta atrás.
-  async function emTransacao<T>(corpo: () => Promise<T>): Promise<T> {
+  async function emTransacaoDesfeita<T>(corpo: () => Promise<T>): Promise<T> {
     await c.query("begin");
 
     try {
@@ -1033,7 +1024,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
 
   for (const caso of CASOS) {
     test(`recusa ${caso.nome} (${caso.constraint})`, async () => {
-      const erro = await emTransacao(async () => {
+      const erro = await emTransacaoDesfeita(async () => {
         const b = await montarBase(c);
 
         if (SEM_RESTRICAO) {
@@ -1054,7 +1045,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   }
 
   test("aceita a descrição de 2000 caracteres e 10 tópicos de 120", async () => {
-    const lido = await emTransacao(async () => {
+    const lido = await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await c.query(
         "update curso set descricao = repeat('a', 2000), topicos = array_fill(repeat('b', 120), array[10]) where id = $1",
@@ -1079,7 +1070,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita liberar de novo depois de revogar", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await liberar(c, b);
       await c.query(
@@ -1098,7 +1089,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita revogar o curso que o admin liberou para si mesmo", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await c.query(
         "insert into liberacao (user_id, curso_id, liberada_por, origem) values ($1, $2, $1, 'admin')",
@@ -1115,7 +1106,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita ponto de curso concluído com certificado", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await certificar(c, b);
       await c.query(
@@ -1133,7 +1124,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita troca: liberação do próprio aluno paga com lançamento negativo", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await c.query("update curso set preco_troca = 200 where id = $1", [
         b.cursoId,
@@ -1155,7 +1146,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita concessão positiva e negativa, cada uma com o lançamento dela", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, 3000), 3000);
       await lancarConcessao(c, b.aluno, await conceder(c, b.aluno, -500), -500);
@@ -1170,7 +1161,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita um bônus por pessoa, ao lado dos lançamentos com fato", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await darBonus(c, b.aluno);
       await darBonus(c, `${b.aluno}x`);
@@ -1189,7 +1180,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita aula sem vídeo, com vídeo do YouTube e trechos vazios", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       await c.query(
         "insert into posicao_aula (user_id, aula_id, posicao_seg) values ($1, $2, 0)",
@@ -1210,7 +1201,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("a coluna dia guarda o dia civil de São Paulo", async () => {
-    await emTransacao(async () => {
+    await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
 
       const r = await c.query<{ dia: string }>(
@@ -1223,7 +1214,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("aceita convidar de novo o e-mail de um convite cancelado ou aceito", async () => {
-    const vivos = await emTransacao(async () => {
+    const vivos = await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       const email = `${b.aluno}@exemplo.com`;
       await convidar(c, {
@@ -1246,7 +1237,7 @@ describe.skipIf(URL_TESTE === null)("restrições do schema", () => {
   });
 
   test("apagar o curso tira o curso do convite e deixa o convite", async () => {
-    const lido = await emTransacao(async () => {
+    const lido = await emTransacaoDesfeita(async () => {
       const b = await montarBase(c);
       const convite = await convidar(c);
       const conviteId = convite.rows[0]?.id;

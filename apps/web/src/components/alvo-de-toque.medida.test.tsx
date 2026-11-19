@@ -1,8 +1,3 @@
-// As ações em texto e a caixa de marcar desenham 20 px de altura, e no celular o
-// toque erra. O teste abre os controles no Chromium headless em 390 px, com o CSS
-// real do app, e mede até onde o toque ainda cai no controle, a partir do centro,
-// pelo elementFromPoint. Sem Chromium na máquina, a suíte pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
@@ -92,7 +87,6 @@ const css = await cssDoApp(
 
 let enviar: Enviar;
 
-/** Largura e altura da área em que o toque cai no elemento, medidas do centro dele. */
 const alvoDe = (seletor: string) =>
   avaliar<{ altura: number; largura: number }>(
     enviar,

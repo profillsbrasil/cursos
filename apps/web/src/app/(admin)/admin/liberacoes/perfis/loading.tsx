@@ -4,8 +4,10 @@ import {
 } from "@/components/admin/esqueletos";
 import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
-// A aba Por perfil: a barra com as abas e a contagem, e o cartão dos cursos,
-// uma linha por curso. As duas abas somam 181 px.
+/**
+ * A aba Por perfil: a barra com as abas e a contagem, e o cartão dos cursos,
+ * uma linha por curso. As duas abas somam 181 px.
+ */
 export default function Carregando() {
   return (
     <div aria-busy="true">

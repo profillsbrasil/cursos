@@ -32,7 +32,6 @@ import {
   progressoDoCartao,
 } from "./textos";
 
-// Award é só o certificado, em todas as telas; o nível é a bandeira (DESIGN.md, Ícones).
 const ICONE: Record<IconeDoCartao, LucideIcon> = {
   certificado: Award,
   check: Check,
@@ -42,7 +41,6 @@ const ICONE: Record<IconeDoCartao, LucideIcon> = {
   relogio: Clock,
 };
 
-/** As aulas assistidas em Céu: a linha que já está feita. */
 const COR_DO_ICONE: Partial<Record<IconeDoCartao, string>> = {
   check: "text-ceu",
 };

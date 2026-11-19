@@ -1,7 +1,3 @@
-// O cartão de quem não tem nome na página do certificado, montado de verdade no
-// Chromium headless, com o usuário do Clerk falso: o teste digita, salva, faz o
-// Clerk recusar e confere o pedido, o toast e o depois. Sem Chromium, a suíte pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -90,7 +86,6 @@ async function empacotar() {
           )
         );
       `,
-      // O NomeQueFalta importa o useUser; o teste monta só o FormularioDoNome.
       [CLERK]: `export const useReverification = (fazer) => fazer;
         export const useUser = () => ({ user: null });`,
       [SONNER]: `export const toast = {
@@ -101,8 +96,6 @@ async function empacotar() {
         export default function Image({ alt, height, src, style, width }) {
           return createElement("img", { alt, height, src, style, width });
         }`,
-      // O NomeQueFalta importa o useRouter, e o Pendente da tela, o next/link: fora do
-      // App Router, os dois não têm roteador.
       [NAVEGACAO]:
         "export const useRouter = () => ({ refresh: () => undefined });",
       [LINK]: `import { createElement } from "react";
@@ -146,7 +139,6 @@ async function empacotar() {
 let enviar: Enviar;
 let pacote: string;
 
-/** A página de 1280 px com a casca aberta, como a do aluno. */
 async function abrir() {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,

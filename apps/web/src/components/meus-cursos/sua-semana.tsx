@@ -20,8 +20,6 @@ const DESCRICAO: Record<StatusDia, string> = {
   nao_estudou: "não estudou",
 };
 
-// Marcador de cada dia. Hoje se marca pela sigla "Hoje" e, pendente, pela borda
-// em titulo; feito, é o disco Sol dos outros dias estudados.
 const MARCA: Record<StatusDia, string> = {
   estudou: "bg-sol text-sobre-cor",
   fim_de_semana:
@@ -35,8 +33,7 @@ const MARCA: Record<StatusDia, string> = {
 const estudou = (s: StatusDia) => s === "estudou" || s === "hoje_estudou";
 const ehHoje = (s: StatusDia) => s === "hoje_estudou" || s === "hoje_pendente";
 
-// O card expõe o padding em --pad; cada divisória volta o padding com margem
-// negativa, para a linha ir de uma borda à outra do card.
+/** O card expõe o padding em `--pad`; cada divisória volta o padding com margem negativa, para a linha ir de uma borda à outra do card. */
 export function SuaSemana({
   resumo,
   temCursoTrocavelNaVitrine,
@@ -46,8 +43,6 @@ export function SuaSemana({
 }) {
   const semSequencia = resumo.sequenciaDias === 0;
 
-  // A chamada só aparece com um dia útil pendente hoje: no fim de semana a aula
-  // não conta para a sequência, e a frase prometeria o que a regra não cumpre.
   const chamarParaHoje =
     semSequencia && resumo.dias.some((d) => d.status === "hoje_pendente");
 
@@ -66,7 +61,6 @@ export function SuaSemana({
         >
           Sua semana
         </h2>
-        {/* Zero não é conquista: sem sequência, a pílula some e a chamada vem abaixo dos dias. */}
         {semSequencia ? null : (
           <span className="bg-canela text-sobre-cor inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-semibold tabular-nums">
             <Flame aria-hidden="true" className="size-[15px]" />
@@ -148,7 +142,6 @@ export function SuaSemana({
           </dd>
         </div>
       </dl>
-      {/* Sem curso trocável na vitrine, o botão levaria a uma vitrine vazia. */}
       {temCursoTrocavelNaVitrine ? (
         <Link className={cn(BOTAO_CONTORNO, "w-full")} href="/trocar-pontos">
           <Gift aria-hidden="true" />

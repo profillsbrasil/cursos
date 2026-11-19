@@ -68,7 +68,6 @@ const MS_POR_DIA = 86_400_000;
 
 const diaEmSaoPaulo = (d: Date) => new Date(`${DIA.format(d)}T00:00:00Z`);
 
-/** "10h32", no relógio de São Paulo. */
 function hora(d: Date) {
   const partes = HORA.formatToParts(d);
   const h = partes.find((p) => p.type === "hour")?.value ?? "";
@@ -103,12 +102,18 @@ export function quandoFoi(d: Date, agora: Date): string {
   return formato.format(dia);
 }
 
-/** O nome que o Clerk lê do user agent e o que a pessoa reconhece. */
-const SISTEMAS: Record<string, string> = { Macintosh: "Mac", X11: "Linux" };
+const NOME_DO_SISTEMA_QUE_A_PESSOA_RECONHECE: Record<string, string> = {
+  Macintosh: "Mac",
+  X11: "Linux",
+};
 
 function nomeDo(a: SessaoDoClerk["latestActivity"]): string {
   const lido = a.deviceType?.trim();
-  const sistema = lido ? (SISTEMAS[lido] ?? lido) : undefined;
+
+  const sistema = lido
+    ? (NOME_DO_SISTEMA_QUE_A_PESSOA_RECONHECE[lido] ?? lido)
+    : undefined;
+
   const navegador = a.browserName?.trim();
 
   if (navegador && sistema) {

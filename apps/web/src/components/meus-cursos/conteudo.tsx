@@ -10,11 +10,10 @@ import { PainelVazio } from "./painel-vazio";
 import { Secao } from "./secao";
 import { SuaSemana } from "./sua-semana";
 
-// "1 curso liberado para você", "3 cursos liberados para você".
 const liberados = ({ cursos }: PainelMeusCursos) =>
   `${plural(cursos.length, "curso liberado", "cursos liberados")} para você`;
 
-// A página inteira a partir do painel e do resumo. A busca de dados fica na page.tsx.
+/** A página inteira a partir do painel e do resumo. A busca de dados fica na `page.tsx`. */
 export function ConteudoMeusCursos({
   painel,
   resumo,
@@ -33,16 +32,12 @@ export function ConteudoMeusCursos({
     );
   }
 
-  // O servidor decide o lugar: na faixa do topo enquanto é recente, no fim depois.
   const { comunicado } = painel;
 
   return (
     <>
       <CabecalhoDaPagina resumo={liberados(painel)} titulo="Meus cursos" />
       <div className="grid gap-10 max-[760px]:gap-8">
-        {/* Em uma coluna, a faixa vem logo depois do banner, antes de Sua semana,
-            para caber na primeira tela. Em duas colunas, ela ocupa a linha de baixo
-            inteira, e o banner e Sua semana ficam lado a lado na de cima. */}
         <div className="grid items-stretch gap-5 min-[1181px]:grid-cols-[minmax(0,1fr)_320px]">
           <BannerContinuar retomada={painel.retomada} />
           {comunicado?.lugar === "topo" ? (

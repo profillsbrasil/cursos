@@ -23,8 +23,7 @@ const paginaDaUrl = async (params: Props["params"]) => {
   return pagina;
 };
 
-// O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx
-// do curso.
+// WARNING: o notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx do curso.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pagina = await paginaDaUrl(params);
 

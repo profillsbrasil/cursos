@@ -110,9 +110,7 @@ describe("primeiroNaPagina", () => {
 });
 
 describe("focarOPrimeiro", () => {
-  // O Salvar recusado abre o bloco do campo no mesmo render que marca o erro:
-  // procurar o campo antes do quadro seguinte não o acha.
-  test("procura o campo só depois do render", () => {
+  test("procura o campo só depois do render: o Salvar recusado abre o bloco do campo no mesmo render que marca o erro, e procurar antes do quadro seguinte não o acha", () => {
     const quadros: FrameRequestCallback[] = [];
     const focados: string[] = [];
     const naPagina = new Map<string, { focus: () => void }>();
@@ -228,8 +226,6 @@ describe("sincronizarComAPagina", () => {
   });
 });
 
-// Key pela versão remonta o editor no refresh do salvar e apaga o que o admin
-// digitou com o salvar pendente; o Apoio decide quando recomeçar.
 describe("a página monta o editor pela key do id, nunca da versão", () => {
   test("cursos", () => {
     const pagina = readFileSync(

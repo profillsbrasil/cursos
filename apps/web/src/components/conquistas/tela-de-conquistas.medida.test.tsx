@@ -126,11 +126,6 @@ const semana = () =>
     };
   `);
 
-/**
- * A marca "sáb e dom" como o Chromium a desenha: a escrita, o giro (`rotate` e
- * `transform`), a letra e o contraste da cor calculada contra o primeiro fundo
- * pintado atrás dela. O canvas converte qualquer cor (oklch, color-mix) para sRGB.
- */
 const fimsDeSemana = () =>
   medir<
     {

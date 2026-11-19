@@ -36,8 +36,7 @@ const texto = (html: string) =>
     .replace(/&#x27;/g, "'")
     .replace(/\s+/g, " ");
 
-// O formulário antes do Clerk carregar o usuário: o HTML que o servidor manda.
-const PEDIR_O_NOME = (
+const PEDIR_O_NOME_NO_SERVIDOR = (
   <FormularioDoNome
     acao={{ executar: () => undefined, pendente: false }}
     depois={() => undefined}
@@ -69,7 +68,7 @@ const PENDENTE: PaginaDoCertificado = {
 
 describe("a página do aluno", () => {
   test("com o certificado, mostra a folha, os dados e o PDF da sessão", () => {
-    const html = tela(EMITIDO, PEDIR_O_NOME);
+    const html = tela(EMITIDO, PEDIR_O_NOME_NO_SERVIDOR);
     const lido = texto(html);
     expect(html).not.toContain('name="nome"');
     expect(lido).toContain("Ana Souza");
@@ -88,7 +87,7 @@ describe("a página do aluno", () => {
   test("sem nome na conta, a página pede o nome nos campos, sem folha nem PDF", () => {
     const html = tela(
       { ...EMITIDO, certificado: { ...ANA, nome: null } },
-      PEDIR_O_NOME
+      PEDIR_O_NOME_NO_SERVIDOR
     );
 
     const lido = texto(html);

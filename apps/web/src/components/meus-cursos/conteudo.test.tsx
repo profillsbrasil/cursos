@@ -38,13 +38,11 @@ const texto = (html: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** O HTML de dentro da seção, pelo id do título. */
 const secaoDe = (html: string, id: string) =>
   html.match(
     new RegExp(`<section aria-labelledby="${id}">(.*?)</section>`)
   )?.[1] ?? "";
 
-/** Títulos de seção e de curso, na ordem do HTML, a partir de `primeiro`. */
 function titulos(html: string, primeiro: string) {
   const todos = [...html.matchAll(/<h[23][^>]*>(.*?)<\/h[23]>/g)].map((m) =>
     texto(m[1] ?? "")
@@ -53,7 +51,6 @@ function titulos(html: string, primeiro: string) {
   return todos.slice(todos.indexOf(primeiro));
 }
 
-/** O texto de cada capa da seção dos cursos, na ordem. */
 const capas = (html: string) =>
   secaoDe(html, "cursos").split(INICIO_DA_CAPA).slice(1).map(texto);
 
@@ -111,7 +108,6 @@ describe("Meus cursos com o caso do protótipo", () => {
     expect(novaRotina).toContain(
       "Vendas e negócios · POP-COM-001 · 3 de 9 aulas"
     );
-    // Sem aula assistida, o tamanho fica só na etiqueta da capa, sem repetir.
     const linhaDaFabrica = fabrica?.split("Fábrica e montagem")[1];
     expect(linhaDaFabrica).toContain("Produção e montagem · PM-001");
     expect(linhaDaFabrica).not.toContain("aulas");
@@ -125,7 +121,6 @@ describe("Meus cursos com o caso do protótipo", () => {
 
   test("a capa leva a etiqueta com as aulas e a duração do curso, como no protótipo", () => {
     const [comercial, novaRotina, fabrica, gravacao] = capas(html);
-    // A etiqueta vem antes do título; a linha sob a capa, depois.
     expect(comercial?.split("Profills School Comercial")[0]).toContain(
       "90 aulas · 15 h 51 min"
     );
@@ -140,8 +135,6 @@ describe("Meus cursos com o caso do protótipo", () => {
   });
 
   test("o separador da linha nunca fica sozinho na ponta da linha", () => {
-    // Espaço que não quebra dos dois lados do "·" que junta as partes: a quebra
-    // cai dentro de uma parte, e o "·" nunca abre nem fecha uma linha.
     const N = NBSP;
     expect(html).toContain(
       `Vendas e negócios${N}·${N}VN-002${N}·${N}2${N}de${N}2${N}aulas`
@@ -206,7 +199,6 @@ const H2 = /<h2[^>]*>(.*?)<\/h2>/g;
 const DATA_DA_FAIXA = /<time[^>]*>(.*?)<\/time>/;
 
 describe("o comunicado em Meus cursos", () => {
-  // O comunicado do exemplo saiu em 2 de outubro.
   const TITULO =
     "Exemplo: Módulo 13 atualizado com o novo cadastro de atendimentos do CRM";
 
@@ -217,9 +209,6 @@ describe("o comunicado em Meus cursos", () => {
     semana: html.indexOf("Sua semana"),
   });
 
-  // Em uma coluna (abaixo de 1181 px) a ordem do HTML é a da tela: a faixa vem
-  // logo depois do banner, antes de Sua semana, para aparecer mais cedo. Em
-  // duas colunas ela desce para a linha de baixo, sob o banner e Sua semana.
   test("com menos de 14 dias, é uma faixa entre o banner e Sua semana", () => {
     const html = render(montar(exemploDoPrototipo(), "2026-10-15" as DiaISO));
     const p = onde(html);
@@ -252,8 +241,6 @@ describe("o comunicado em Meus cursos", () => {
     expect(texto(html)).toContain("Publicado em 2 de outubro de 2026.");
   });
 
-  // O resumo da faixa usa o curto do resto do app: o dia de São Paulo, com o
-  // ano quando ele não é o de hoje. Aberta, a faixa mostra a data longa.
   test("na virada do ano, a data da faixa leva o ano, no dia de São Paulo", () => {
     const html = renderToStaticMarkup(
       <FaixaComunicado

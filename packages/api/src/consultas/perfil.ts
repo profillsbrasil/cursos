@@ -26,14 +26,6 @@ async function lerPerfil(
   return linha?.perfil ?? null;
 }
 
-/**
- * Único escritor do lançamento `bonus_funcionario`: quem vira Funcionário ganha
- * BONUS_DE_FUNCIONARIO pontos, uma vez por pessoa, para sempre. Roda na transação
- * que grava o perfil. O índice ponto_bonus_funcionario_uma_vez segura o "uma vez",
- * e o on conflict do nothing faz da repetição um no-op: devolve se o bônus nasceu.
- * Uma transição gravada a partir deste código dá o bônus. Quem já era
- * Funcionário antes dele ganha pela virada (darBonusDaVirada).
- */
 async function darBonusDeFuncionario(
   tx: Transacao,
   userId: string,
@@ -65,19 +57,10 @@ export function darBonusDaVirada(
 }
 
 interface Chegada {
-  /**
-   * Há convite de admin aceito por esta pessoa, dentro de PRAZO_DO_PAPEL_MS, que
-   * o Clerk ainda não gravou.
-   */
   papelPorAplicar: boolean;
   perfil: Perfil;
 }
 
-/**
- * A linha do perfil e, na mesma ida, se há papel de convite por aplicar. É o
- * statement de todo pedido do aluno: o exists é uma sonda no índice
- * convite_aceito_por_unico.
- */
 async function lerChegada(
   db: Database,
   userId: string,
@@ -103,7 +86,6 @@ async function lerChegada(
     : null;
 }
 
-/** O curso que sumiu (null) fica de fora, e a chegada libera os outros. */
 async function liberarOsCursosDoConvite(
   aluno: AlunoTravado,
   convite: ConviteAceito,
@@ -115,7 +97,6 @@ async function liberarOsCursosDoConvite(
   }
 }
 
-/** A falha do Clerk aqui tira poder, nunca dá: a pessoa segue aluno, e o pedido seguinte tenta de novo. */
 async function tentarOPapelDoConvite(
   db: Database,
   pessoas: Pick<Pessoas, "definirPapel">,
@@ -174,7 +155,6 @@ export async function perfilDe(
   }
 
   const chegada = await comAlunoTravado(db, userId, async (aluno) => {
-    // Depois da trava, num statement próprio: outro pedido já gravou a linha?
     const ja = await lerPerfil(aluno.tx, userId);
 
     if (ja) {
@@ -228,7 +208,6 @@ export function definirPerfil(
   agora: Date
 ): Promise<{ bonus: boolean }> {
   return comAlunoTravado(db, userId, async (aluno) => {
-    // Depois da trava, num statement próprio: lê o que a outra mudança comitou.
     const antes = await aluno.tx.query.perfilDaPessoa.findFirst({
       columns: { perfil: true },
       where: { userId: aluno.userId },

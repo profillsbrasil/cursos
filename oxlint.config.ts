@@ -86,6 +86,7 @@ export default defineConfig({
       name: "landmines-structure",
       specifier: "@interfere/landmines/structure",
     },
+    { name: "landmines-style", specifier: "@interfere/landmines/style" },
   ],
   ignorePatterns: [
     ...core.ignorePatterns,
@@ -187,6 +188,7 @@ export default defineConfig({
     },
   ],
   rules: {
+    "landmines-style/no-comments": "error",
     "anti-slop/no-array-filter-map": "error",
     "anti-slop/no-chained-type-assertions": "error",
     "anti-slop/no-conditional-empty-object-spread": "off",

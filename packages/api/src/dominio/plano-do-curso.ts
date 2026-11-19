@@ -1,7 +1,3 @@
-// O que um salvamento do curso faz, decidido sem banco. Só o servidor importa este
-// arquivo (versao.ts usa node:crypto). O único escritor do plano é gravarCurso, em
-// consultas/edicao-do-curso.ts.
-
 import type { ImagemDaCapa } from "./capa";
 import type { DocumentoDoCurso, EdicaoDoCurso } from "./edicao-do-curso";
 import type {
@@ -83,6 +79,10 @@ const fora = <T>(lista: readonly T[], de: readonly T[]) => {
 };
 
 /**
+ * O que um salvamento do curso faz, decidido sem banco. Só o servidor importa este
+ * arquivo (versao.ts usa node:crypto). O único escritor do plano é gravarCurso, em
+ * consultas/edicao-do-curso.ts.
+ *
  * `atual` é o que abrirCurso leu com o curso travado; `capaRecebida`, a capa que
  * subiu com este pedido. O plano descreve o estado final. Aqui só se decide o que
  * some e se pode sumir. Aula que muda de módulo mantém o id, então mantém
@@ -116,8 +116,7 @@ export function planejarCurso(
 
   const versao = versaoDoCurso(desejado, capa?.url ?? atual.capa?.url ?? null);
 
-  // Antes da versão: duplo clique e reenvio depois de resposta perdida, inclusive
-  // da criação, são sucesso.
+  // WARNING: esta checagem vem antes da de versão: duplo clique e reenvio depois de resposta perdida, inclusive da criação, são sucesso.
   if (versao === atual.documento.versao) {
     return { tipo: "nada_mudou", versao };
   }

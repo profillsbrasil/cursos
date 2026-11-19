@@ -17,10 +17,7 @@ const ARQUIVO_DE_LOADING = /\/loading\.tsx$/;
 const GRUPO_DE_ROTA = /\/\([^)]+\)/g;
 
 describe("um jeito só de alternar a navegação", () => {
-  // Um SidebarTrigger, ou o setOpen e o setOpenMobile do useSidebar, numa página
-  // alternariam sem passar por useAlternarNavegacao: não animariam no clique, e a
-  // página voltaria a saber da sidebar.
-  test("os controles da sidebar só aparecem em components/casca", () => {
+  test("os controles da sidebar só aparecem em components/casca, ou alternariam sem o useAlternarNavegacao e sem animar", () => {
     const fora = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
       (a) =>
         !a.startsWith("components/casca/") &&
@@ -32,9 +29,7 @@ describe("um jeito só de alternar a navegação", () => {
 });
 
 describe("a pílula anda no clique", () => {
-  // Com loading.tsx, a navegação pré-buscada confirma na hora, o usePathname muda e
-  // a pílula desliza antes de a página chegar. Sem ele, desliza só com a resposta.
-  test("toda rota do menu tem loading.tsx", () => {
+  test("toda rota do menu tem loading.tsx, para a pílula deslizar antes de a página chegar", () => {
     const rotas = [...ITENS_DO_ALUNO, ...ITENS_DO_ADMIN].flatMap((i) =>
       i.tipo === "link" ? [i.href] : []
     );
@@ -61,15 +56,12 @@ const valorDoToken = (css: string, nome: string) =>
   new RegExp(`--${nome}:\\s*([^;]+);`).exec(css)?.[1]?.trim();
 
 describe("os desvios da #30 não voltam", () => {
-  // O botão do banner é o botão principal da casca: clareia e brilha sob o cursor.
-  // Uma cópia local com buttonVariants() escurecia e perdia o brilho.
-  test("o banner usa o BOTAO da casca", () => {
+  test("o banner usa o BOTAO da casca, que clareia e brilha sob o cursor, e não um buttonVariants()", () => {
     const banner = ler("components/meus-cursos/banner-continuar.tsx");
     expect(banner).toMatch(IMPORT_DO_BOTAO);
     expect(banner).not.toContain("buttonVariants");
   });
 
-  // A pílula do item ativo lê o token da sidebar, e o token é o Sol.
   test("a pílula usa sidebar-primary, e sidebar-primary é o Sol", () => {
     expect(ler("components/casca/nav-principal.tsx")).toContain(
       "bg-sidebar-primary"
@@ -78,16 +70,13 @@ describe("os desvios da #30 não voltam", () => {
     expect(valorDoToken(css, "sidebar-primary")).toBe(valorDoToken(css, "sol"));
   });
 
-  // O menu da conta abre em popover, como todo menu do shadcn, não em cartão.
-  test("o menu do cartão de conta não usa bg-card", () => {
+  test("o menu do cartão de conta abre em popover e não usa bg-card", () => {
     expect(ler("components/casca/cartao-de-conta.tsx")).not.toContain(
       "bg-card"
     );
   });
 });
 
-// O que vem entre o import e o from de "motion/react" ou "motion/react-client", em
-// qualquer forma: nomes, alias ou namespace.
 const IMPORTA_MOTION =
   /import\s+([^;"'`]*?)\s*from\s*["']motion\/react(?:-client)?["']/g;
 
@@ -96,13 +85,10 @@ const ALIAS = /\s+as\s+/;
 const IMPORT_DE_TIPO = /^type\s+/;
 const TEXTO = /"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`/g;
 const ESPACOS = /\s+/;
-const TESTE = /\.test\.tsx?$/;
+const TESTE_QUE_CITA_O_IMPORT = /\.test\.tsx?$/;
 
-// O ! do Tailwind no fim (size-8!), no começo (!size-8) ou depois da variante
-// (hover:!bg-sol), procurado só dentro de texto, para não pegar o !x do código.
 const CLASSE_IMPORTANTE = /^!\S|:!\S|\S!$/;
 
-// O motion importado: pelo nome, mesmo com alias, ou pelo namespace inteiro (*).
 const motionsImportados = (codigo: string) =>
   [...codigo.matchAll(IMPORTA_MOTION)].flatMap(([, clausula = ""]) => {
     const nomes = (NOMES_IMPORTADOS.exec(clausula)?.[1] ?? "")
@@ -120,12 +106,9 @@ const classesImportantes = (codigo: string) =>
     .filter((classe) => CLASSE_IMPORTANTE.test(classe));
 
 describe("a navegação fica leve e sem disputa de classes (#29)", () => {
-  // O motion.* puxa o Motion inteiro para toda página logada; o m.* dentro do
-  // LazyMotion carrega só as animações de domAnimation.
-  test("o app importa do Motion só o m, o LazyMotion e o que não é componente", () => {
-    // Os testes ficam de fora: este mesmo arquivo cita os imports que acusa.
+  test("o app importa do Motion só o m, o LazyMotion e o que não é componente, porque o motion.* puxa o Motion inteiro", () => {
     const arquivos = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
-      (a) => !TESTE.test(a)
+      (a) => !TESTE_QUE_CITA_O_IMPORT.test(a)
     );
 
     expect(
@@ -134,12 +117,10 @@ describe("a navegação fica leve e sem disputa de classes (#29)", () => {
     expect(arquivos.flatMap((a) => motionsImportados(ler(a)))).toEqual([]);
   });
 
-  // O Reorder monta o motion.* por dentro, com o arrastar e o layout: fica no
-  // material de apoio do editor, que só o admin abre.
-  test("o Reorder do Motion só entra no material de apoio do editor", () => {
+  test("o Reorder do Motion, que monta o motion.* por dentro, só entra no material de apoio do editor", () => {
     const comReorder = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(
       (a) =>
-        !TESTE.test(a) &&
+        !TESTE_QUE_CITA_O_IMPORT.test(a) &&
         [...ler(a).matchAll(IMPORTA_MOTION)].some(([, clausula = ""]) =>
           clausula.includes("Reorder")
         )
@@ -148,15 +129,12 @@ describe("a navegação fica leve e sem disputa de classes (#29)", () => {
     expect(comReorder).toEqual(["components/admin/material-de-apoio.tsx"]);
   });
 
-  // Com um ! contra outro, o item só saía certo se a classe dele viesse depois da
-  // do SidebarMenuButton; as classes da navegação agora não anulam nenhuma.
-  test("nenhuma classe da navegação usa !", () => {
+  test("nenhuma classe da navegação usa !, que obrigava o item a vir depois do SidebarMenuButton", () => {
     expect(
       classesImportantes(ler("components/casca/nav-principal.tsx"))
     ).toEqual([]);
   });
 
-  // As duas guardas acima só valem se reconhecem cada forma de escrever a mesma coisa.
   test.each([
     'import { m, motion } from "motion/react";',
     'import { motion as M } from "motion/react";',

@@ -1,7 +1,3 @@
-// A virada dos pontos (scripts/virada-dos-pontos.ts): lê cada Funcionário, pede o
-// plano a dominio/virada.ts e grava pelos escritores de perfil.ts (o bônus) e de
-// troca.ts (a troca). Este arquivo não escreve em tabela nenhuma.
-
 import type { Database } from "@cursos/db";
 
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
@@ -39,7 +35,6 @@ async function funcionarios(
   return linhas.map((l) => l.userId);
 }
 
-/** O que planejarVirada pede de uma pessoa, em série, como toda leitura numa transação. */
 async function planoDe(
   exec: Executor,
   userId: string,

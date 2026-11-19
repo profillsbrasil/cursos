@@ -57,7 +57,6 @@ export function PlayerDaAula({
       >
         <div className="bg-black [:fullscreen_&]:min-h-0 [:fullscreen_&]:flex-1">
           <div className={CAIXA_DO_VIDEO}>
-            {/* O iframe nasce aqui e nunca é destruído no fim: fica escondido. Nada fica por cima dele (política do YouTube). */}
             <div
               className={cn(
                 "absolute inset-0 [&_iframe]:size-full",
@@ -96,7 +95,6 @@ export function PlayerDaAula({
           <ProblemaDoPlayer estado={p.estado} />
         </div>
       </section>
-      {/* No fim, o cartão do vídeo já leva a Próxima aula em Sol: um botão principal por vez. */}
       <NavegacaoEntreAulas
         dados={dados}
         destacarProxima={p.estado.assistida && !terminou}

@@ -278,7 +278,6 @@ export function criarSessaoDeEstudo(
   const temNovidade = () =>
     pendentes.length > 0 || posicaoDe(tempoSeg) !== posicaoConfirmada;
 
-  // Erro de quem ouve a conquista não para o envio nem rejeita o voo.
   function avisarConquista(c: Conquista) {
     try {
       deps.aoConquistar(c);

@@ -39,7 +39,6 @@ const POSICOES_DO_CODIGO = [0, 1, 2, 3, 4, 5] as const;
 const SLOT =
   "size-12 rounded-xl border border-muted-foreground bg-background font-mono font-semibold text-xl first:rounded-xl first:border-l last:rounded-xl data-[active=true]:border-ceu data-[active=true]:ring-0 dark:bg-background";
 
-/** Adicionar um e-mail: o endereço, depois o código que chega nele. */
 type Novo =
   | { passo: "fechado" }
   | { passo: "endereco" }

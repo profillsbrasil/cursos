@@ -46,7 +46,6 @@ describe("o visto e o aviso da conquista na barra", () => {
   });
 
   test("o aviso cobre a célula por cima, sem dar largura a ela, e quebra em até duas linhas", () => {
-    // A célula guardava a largura do aviso escondido, e a barra quebrava a 1280 px.
     const h = html({ avisoAparente: false, conquista: CONQUISTA, pct: 91 });
     expect(h.match(RAIZ)?.[1]).toContain("relative");
     expect(regiao(h)).toContain("absolute");
