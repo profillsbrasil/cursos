@@ -184,6 +184,24 @@ Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo 
 
 `packages/api/src` tem 404 deles e `apps/web/src/components`, 192. Desde o `comoTrechos` de `dominio/trechos.ts` ("Plugins JS"), o total é 611. O `JSON.parse` de `entrada/clerk.ts` é o sétimo cast de JSON, contado no `no-unsafe-assignment`.
 
+### As marcas e onde cada uma nasce
+
+Cerca de 80% dos `no-unsafe-type-assertion` criavam uma marca (`CursoId`, `DiaISO`, `Email` e as outras) com `as`. A marca agora tem um lugar só: `packages/db/src/marcas.ts`, sem import, com o tipo `Marca<T, M>`, as 17 marcas, um predicado `ehX(s): s is X` por marca, o construtor `x(s)`, os `novoXId()` e `marcar(eh, valor)`, que lança `MarcaRecusada`. Predicado não é asserção, e a regra não o acusa. O `@cursos/api` reexporta os tipos por `dominio/tipos.ts` e os construtores por `dominio/marcas.ts`, sem Zod, e o app importa de `@cursos/api/dominio/marcas`, porque só `services.ts` importa `@cursos/db`.
+
+| Onde a marca nasce | Como |
+| --- | --- |
+| Coluna do schema (`packages/db/src/schema/`) | `.$type<Marca>()`: a linha do Drizzle já sai marcada, e o insert pede a marca |
+| Consulta que calcula ou lê JSON | `sql<Marca>` ou o tipo do `db.execute<>`, como o `LinhasEmJson` de `consultas/acompanhamento.ts` |
+| Fio do tRPC | `idDe(ehX)` e `idMinusculoDe(ehX)` de `dominio/esquemas-de-marca.ts`, o `z.uuid()` com `.refine(eh)`, que estreita a saída |
+| Id novo, valor calculado, teste e semente | o construtor (`cursoId("c1")`, `diaISO("2026-10-15")`) ou `novoCategoriaId()`, que confere pelo predicado |
+| `AdminId` | `adminIdDe(sessao)` de `packages/api/src/sessao.ts`, que confere o papel da `Sessao` lido do claim |
+
+O predicado de id confere só texto não vazio e sem espaço, para nenhum valor de hoje passar a ser recusado: o UUID continua no `z.uuid()` da borda, e os testes usam ids curtos ("c1", "user_admin"). O de `DiaISO` confere um dia que existe no calendário ("2026-02-30" não passa), e o de `Email`, a regra de `lerEmail` (até 254 caracteres, ASCII, em minúsculas). Medido em 19 de novembro de 2026 pelo predicado sobre os 182 literais que um `as` marcava: 70 `DiaISO`, 22 `Email` e os ids passam, e só os 3 `"" as CategoriaId` seriam recusados; eles são a sentinela `SEM_CATEGORIA`, que sai por `null`, e não por construtor.
+
+O `marcas-nascem-no-lugar.test.ts` de `packages/db/src/` acusa predicado de marca fora de `marcas.ts` e de `sessao.ts`, e `.$type<Marca>` fora de `packages/db/src/schema/`. Com um arquivo plantado com as duas formas, os dois testes falham na linha plantada. O construtor `cursoId` tem o nome de muita variável local: importá-lo onde um parâmetro se chama `cursoId` dispara o `no-shadow`, então o local muda de nome (`curso`, `idDaAula`) ou o código usa `marcar(ehAulaId, valor)`.
+
+Depois do núcleo e do schema, a regra acusa 541, contados pelo `oxlint -f json`. Saíram 70: 62 `linha.id as CursoId` cuja origem já é a marca da coluna, que o `--fix` do `no-unnecessary-type-assertion` apagou; 6 casts de teste sobre linha do banco; o `as AdminId` do `adminProcedure` e o `as Email` de `lerEmail`. Os 17 casts de linha que ficam estão em `packages/api/src/dominio/` (`historico.ts`, `painel.ts`, `aula.ts`, `conquistas.ts`, `grade-dos-perfis.ts`, `troca.ts` e o `VideoId` de `edicao-do-curso.ts`), porque as interfaces de linha do domínio declaram `aulaId: string` à mão: o domínio não importa o Drizzle, e a marca da coluna para nessa interface.
+
 ## Plugins JS
 
 Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no `oxlint.config.ts`; o motivo de cada decisão está nas tabelas abaixo. Contagem do `oxlint -f json` em 18 de novembro de 2026, com a regra ligada e antes das correções. Saídas: (a) autofix, (b) desligada ou com opção no config, (c) corrigida à mão.
