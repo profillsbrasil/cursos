@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictNullChecks": true
   },
-  "exclude": ["node_modules", "tools/oxlint/anti-slop"]
+  "include": ["*.ts"]
 }

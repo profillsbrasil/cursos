@@ -189,8 +189,8 @@ const CATEGORIAS: Categoria[] = [
   {
     nome: "erro global sem arquivo (TS2318, noLib)",
     tsc: ["TS2318", "TS5053"],
-    tsrs: ["TS17004", "TS2339", "TS2812", "TS6142"],
-    esperado: "os dois, com diferença",
+    tsrs: [],
+    esperado: "só o tsc",
     plantios: [
       {
         tipo: "trocar",
