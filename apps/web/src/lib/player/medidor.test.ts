@@ -72,9 +72,9 @@ describe("medidor", () => {
     const um = cortar(m);
     ({ m } = tocar(um.medidor, 15.6, 31.3, 1, 250, 15_600));
     const dois = cortar(m);
-    expect(canonizar([...um.trechos, ...dois.trechos], 600)).toEqual([
+    expect([...canonizar([...um.trechos, ...dois.trechos], 600)]).toEqual([
       { fim: 31, inicio: 0 },
-    ] as never);
+    ]);
   });
 
   test("parado, fechar e cortar não devolvem nada", () => {

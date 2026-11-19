@@ -15,18 +15,19 @@ export function versaoDe(conteudo: unknown): Versao {
   );
 }
 
+const ehObjeto = (valor: unknown): valor is Record<string, unknown> =>
+  valor !== null && typeof valor === "object";
+
 function jsonCanonico(valor: unknown): string {
   if (Array.isArray(valor)) {
     return `[${valor.map((v) => (v === undefined ? "null" : jsonCanonico(v))).join(",")}]`;
   }
 
-  if (valor !== null && typeof valor === "object") {
-    const objeto = valor as Record<string, unknown>;
-
-    const pares = Object.keys(objeto)
+  if (ehObjeto(valor)) {
+    const pares = Object.keys(valor)
       .sort()
-      .filter((k) => objeto[k] !== undefined)
-      .map((k) => `${JSON.stringify(k)}:${jsonCanonico(objeto[k])}`);
+      .filter((k) => valor[k] !== undefined)
+      .map((k) => `${JSON.stringify(k)}:${jsonCanonico(valor[k])}`);
 
     return `{${pares.join(",")}}`;
   }

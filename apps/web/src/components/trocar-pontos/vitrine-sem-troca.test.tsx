@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 
-import { diaISO } from "@cursos/api/dominio/marcas";
+import { cursoId, diaISO } from "@cursos/api/dominio/marcas";
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -26,15 +26,15 @@ const { SuaSemana } = await import("@/components/meus-cursos/sua-semana");
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
 
-const curso = {
+const curso: CartaoDeTroca["curso"] = {
   aulas: 3,
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
   categoria: "Envase",
   duracaoSeg: 900,
-  id: "c-1",
+  id: cursoId("c-1"),
   slug: "x",
   titulo: "Curso de envase",
-} as CartaoDeTroca["curso"];
+};
 
 const AULA = caminhoDaAula("x", "00000000-0000-4000-8000-000000000001");
 

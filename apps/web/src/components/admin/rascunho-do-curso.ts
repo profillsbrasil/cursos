@@ -253,14 +253,18 @@ function campoNaLista(
   return undefined;
 }
 
+const ehCampoDoCursoComId = (
+  a: PropertyKey | undefined
+): a is CampoDoCursoComId => typeof a === "string" && CAMPOS_DO_CURSO.has(a);
+
 function campoDoCaminho(
   r: RascunhoDoCurso,
   caminho: readonly PropertyKey[]
 ): string | null {
   const [a, b, c, d] = caminho;
 
-  if (caminho.length === 1 && CAMPOS_DO_CURSO.has(String(a))) {
-    return ID.curso(a as CampoDoCursoComId);
+  if (caminho.length === 1 && ehCampoDoCursoComId(a)) {
+    return ID.curso(a);
   }
 
   const daLista = campoNaLista(r, caminho);

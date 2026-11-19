@@ -12,7 +12,12 @@ function percorrer(
   passos: readonly (string | { alterna: boolean })[]
 ) {
   const [primeiro, ...resto] = passos;
-  let a = aberturaEm(primeiro as string, preferida);
+
+  if (typeof primeiro !== "string") {
+    throw new TypeError("o percurso começa num caminho");
+  }
+
+  let a = aberturaEm(primeiro, preferida);
   const abertaEmCada = [estaAberta(a)];
 
   for (const passo of resto) {

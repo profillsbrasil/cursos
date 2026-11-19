@@ -23,13 +23,20 @@ function rgb(token: string): Rgb {
     throw new Error(`token --${token} ausente do :root`);
   }
 
-  return [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16)) as Rgb;
+  const canal = (i: number) => Number.parseInt(hex.slice(i, i + 2), 16);
+
+  return [canal(1), canal(3), canal(5)];
 }
 
-const mistura = (frente: Rgb, alfa: number, fundo: Rgb): Rgb =>
-  frente.map((c, i) =>
-    Math.round(c * alfa + (fundo[i] ?? 0) * (1 - alfa))
-  ) as Rgb;
+const mistura = (frente: Rgb, alfa: number, fundo: Rgb): Rgb => {
+  const canal = (c: number, f: number) => Math.round(c * alfa + f * (1 - alfa));
+
+  return [
+    canal(frente[0], fundo[0]),
+    canal(frente[1], fundo[1]),
+    canal(frente[2], fundo[2]),
+  ];
+};
 
 function luminancia([r, g, b]: Rgb) {
   const canal = (c: number) => {

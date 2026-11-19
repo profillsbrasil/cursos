@@ -92,9 +92,11 @@ describe("envioDasFichas", () => {
   });
 });
 
+type SemEmail<R> = R extends unknown ? Omit<R, "email"> : never;
+
 describe("fraseDoResultado", () => {
-  const frase = (r: Record<string, unknown>) =>
-    fraseDoResultado({ email: email("ana@x.com"), ...r } as ResultadoDoConvite);
+  const frase = (r: SemEmail<ResultadoDoConvite>) =>
+    fraseDoResultado({ email: email("ana@x.com"), ...r });
 
   test("cada recusa do envio tem a frase que diz o que fazer", () => {
     expect(frase({ tipo: "ja_tem_conta", userId: "user_ana" })).toBe(
@@ -124,10 +126,28 @@ describe("fraseDoResultado", () => {
 });
 
 describe("textoDoEnvio", () => {
-  const envio = (...tipos: string[]) => ({
-    convites: tipos.map(
-      (tipo, i) => ({ email: email(`p${i}@x.com`), tipo }) as ResultadoDoConvite
-    ),
+  const resultado = (
+    tipo: ResultadoDoConvite["tipo"],
+    i: number
+  ): ResultadoDoConvite => {
+    const deste = email(`p${i}@x.com`);
+
+    switch (tipo) {
+      case "enviado":
+        return { email: deste, tipo };
+      case "ja_tem_conta":
+        return { email: deste, tipo, userId: `user_p${i}` };
+      case "ja_convidado":
+        return { email: deste, enviado: false, tipo };
+      case "nao_enviado":
+        return { email: deste, motivo: { tipo: "falha" }, tipo };
+      default:
+        return tipo satisfies never;
+    }
+  };
+
+  const envio = (...tipos: ResultadoDoConvite["tipo"][]) => ({
+    convites: tipos.map(resultado),
   });
 
   test("conta só os convites que saíram", () => {
