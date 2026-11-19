@@ -4,7 +4,6 @@ import type { CursoDaBusca, LiberacaoDaBusca } from "./acompanhamento";
 import type { LinhasHistorico } from "./historico";
 import { aulaId, cursoId } from "./marcas";
 import { BONUS_DE_FUNCIONARIO } from "./regras";
-import type { CursoId } from "./tipos";
 import {
   type PessoaNaVirada,
   planejarVirada,
@@ -72,7 +71,7 @@ describe("planejarVirada", () => {
     expect(planejarVirada(pessoa(assistiu("c1-a1")))).toEqual({
       bonus: BONUS_DE_FUNCIONARIO,
       pulados: [],
-      trocas: [{ cursoId: "c1" as CursoId, preco: 800, titulo: "Curso c1" }],
+      trocas: [{ cursoId: cursoId("c1"), preco: 800, titulo: "Curso c1" }],
       userId: "user_a",
     });
   });
@@ -144,7 +143,7 @@ describe("planejarVirada", () => {
 
     expect(planejarVirada(p).pulados).toEqual([
       {
-        cursoId: "c1" as CursoId,
+        cursoId: cursoId("c1"),
         motivo: { tipo: "em_producao" },
         titulo: "Curso c1",
       },
@@ -166,12 +165,12 @@ describe("planejarVirada", () => {
 
     const plano = planejarVirada(p);
     expect(plano.trocas.map((t) => t.cursoId)).toEqual([
-      "c2" as CursoId,
-      "c3" as CursoId,
+      cursoId("c2"),
+      cursoId("c3"),
     ]);
     expect(plano.pulados).toEqual([
       {
-        cursoId: "c1" as CursoId,
+        cursoId: cursoId("c1"),
         motivo: { faltam: 1400, tipo: "saldo_curto" },
         titulo: "Curso c1",
       },

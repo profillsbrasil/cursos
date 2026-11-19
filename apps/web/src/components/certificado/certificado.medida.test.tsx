@@ -2,11 +2,11 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { diaISO } from "@cursos/api/dominio/marcas";
 import type {
   CertificadoEmitido,
   PaginaDoCertificado,
 } from "@cursos/api/dominio/pagina-do-certificado";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { LARGURAS_DA_SIDEBAR } from "@/components/casca/nav";
@@ -26,7 +26,7 @@ import { FolhaNaTela } from "./folha-na-tela";
 import { NOMES_DA_FOLHA } from "./nomes-de-teste";
 import { TelaDoCertificado } from "./tela-do-certificado";
 
-const HOJE = "2026-10-16" as DiaISO;
+const HOJE = diaISO("2026-10-16");
 
 const ANA: CertificadoEmitido = {
   codigo: "7K3M-Q9TD",

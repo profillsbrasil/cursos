@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { diaISO } from "@cursos/api/dominio/marcas";
 import type { ItemDoExtrato } from "@cursos/api/dominio/pontos";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { Extrato } from "./extrato";
@@ -12,7 +12,7 @@ describe("o extrato de Trocar pontos", () => {
   test("a data curta do ano corrente não quebra linha na coluna de 64 px", () => {
     const itens: ItemDoExtrato[] = [
       {
-        dia: "2026-03-20" as DiaISO,
+        dia: diaISO("2026-03-20"),
         id: "l-1",
         pontos: 10,
         texto: "Aula assistida",

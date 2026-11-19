@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
+import { diaISO } from "@cursos/api/dominio/marcas";
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -175,7 +175,7 @@ const RESUMO: ResumoAluno = {
   bonus: 30,
   dias: [
     {
-      dia: "2026-10-14" as DiaISO,
+      dia: diaISO("2026-10-14"),
       nome: "quarta-feira",
       sigla: "Q",
       status: "hoje_pendente",

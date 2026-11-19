@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { versao } from "./marcas";
 import type { Versao } from "./tipos";
 
 /**
@@ -9,9 +10,9 @@ import type { Versao } from "./tipos";
  * devolve a string que recebeu.
  */
 export function versaoDe(conteudo: unknown): Versao {
-  return createHash("sha256")
-    .update(jsonCanonico(conteudo))
-    .digest("base64url") as Versao;
+  return versao(
+    createHash("sha256").update(jsonCanonico(conteudo)).digest("base64url")
+  );
 }
 
 function jsonCanonico(valor: unknown): string {

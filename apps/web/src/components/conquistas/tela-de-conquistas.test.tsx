@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { Conquistas } from "@cursos/api/dominio/conquistas";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
+import { diaISO } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ALUNA, NOVO } from "./exemplo-de-teste";
@@ -253,7 +253,7 @@ describe("a aluna com medalhas", () => {
   });
 
   test("a data de outro ano ganha o ano", () => {
-    const virada = { ...ALUNA, hoje: "2027-01-05" as DiaISO };
+    const virada = { ...ALUNA, hoje: diaISO("2027-01-05") };
     expect(ganhas(html(virada))).toContain("Primeira aula 18 de ago. de 2026");
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import { aulaId } from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -38,7 +38,7 @@ const DADOS: AulaNoPlayer = {
   aula: {
     descricao: "",
     duracaoSeg: 634,
-    id: "a4" as AulaId,
+    id: aulaId("a4"),
     modulo: { numero: 8, titulo: "Pilar Urgência" },
     numeroNoModulo: 4,
     titulo: "Cronograma reverso",

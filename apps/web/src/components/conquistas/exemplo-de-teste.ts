@@ -1,7 +1,7 @@
 import type { Conquistas } from "@cursos/api/dominio/conquistas";
-import type { CursoId, DiaISO } from "@cursos/api/dominio/tipos";
+import { cursoId, diaISO } from "@cursos/api/dominio/marcas";
 
-const dia = (d: string) => d as DiaISO;
+const dia = (d: string) => diaISO(d);
 
 const capa = (nome: string) => ({
   alt: `Capa de ${nome}`,
@@ -12,7 +12,7 @@ const capa = (nome: string) => ({
 
 const curso = (id: string, titulo: string) => ({
   capa: capa(id),
-  id: id as CursoId,
+  id: cursoId(id),
   slug: id,
   titulo,
 });

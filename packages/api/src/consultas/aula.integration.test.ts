@@ -266,7 +266,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   test("envios de 15 s até 540 de 600 dão uma conquista, um fato e um lançamento", async () => {
     const { aluno, c } = await cursoLiberado();
-    const aulaId = c.aulas[0] as AulaId;
+    const aulaId = definido(c.aulas[0]);
     const passos = Array.from({ length: 36 }, (_, i) => (i + 1) * 15);
 
     const respostas = await emSerie(passos, (s) =>
@@ -334,7 +334,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const r = await registrar(
       db,
       alunoDeTeste(aluno),
-      c.aulas[0] as AulaId,
+      definido(c.aulas[0]),
       { posicaoSeg: 600, trechos: [t(0, 600)] },
       QUARTA_15H
     );
@@ -349,7 +349,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   test("duas chamadas ao mesmo tempo unem os trechos e gastam a cota uma vez", async () => {
     const { aluno, c } = await cursoLiberado();
-    const aulaId = c.aulas[0] as AulaId;
+    const aulaId = definido(c.aulas[0]);
     const pedido = { posicaoSeg: 100, trechos: [t(0, 100)] };
 
     const [um, dois] = await Promise.all([
@@ -497,8 +497,8 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         userId: aluno,
       }))
     );
-    const primeira = await assistir540(aluno, c.aulas[6] as AulaId, 0);
-    const segunda = await assistir540(aluno, c.aulas[7] as AulaId, 400);
+    const primeira = await assistir540(aluno, definido(c.aulas[6]), 0);
+    const segunda = await assistir540(aluno, definido(c.aulas[7]), 400);
     expect(primeira.conquista).toEqual({
       bonusSequencia: 30,
       pontos: 10,
@@ -549,7 +549,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       pontos: 30,
       userId: aluno,
     });
-    const r = await assistir540(aluno, c.aulas[6] as AulaId, 0);
+    const r = await assistir540(aluno, definido(c.aulas[6]), 0);
     expect(r.conquista).toEqual({
       bonusSequencia: null,
       pontos: 10,
@@ -559,7 +559,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   test("falha no meio desfaz tudo: sem fato, posição e cota de antes", async () => {
     const { aluno, c } = await cursoLiberado();
-    const aulaId = c.aulas[0] as AulaId;
+    const aulaId = definido(c.aulas[0]);
     await terco(aluno, aulaId, 0, 0);
     await terco(aluno, aulaId, 0, 1);
     const nome = `recusa_ponto_${S}`;
@@ -614,7 +614,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await registrar(
       db,
       alunoDeTeste(aluno),
-      c.aulas[1] as AulaId,
+      definido(c.aulas[1]),
       { posicaoSeg: 42, trechos: [t(0, 42)] },
       QUARTA_15H
     );
@@ -641,7 +641,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     expect(
       (await carregarPaginaDoCurso(db, alunoDeTeste(aluno), c.slug))?.acao
     ).toMatchObject({
-      aulaId: c.aulas[1] as AulaId,
+      aulaId: definido(c.aulas[1]),
       tipo: "continuar",
     });
     expect(
@@ -699,7 +699,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       topicos: pagina?.topicos,
     }).toEqual({
       acao: {
-        aulaId: liberado.aulas[0] as AulaId,
+        aulaId: definido(liberado.aulas[0]),
         href: `/cursos/${liberado.slug}/aulas/${liberado.aulas[0]}`,
         onde: { aula: 1, modulo: { numero: 0, titulo: "Módulo" } },
         tipo: "comecar",
@@ -715,13 +715,13 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   test("o registro lê o curso em série dentro da transação", async () => {
     const { aluno, c } = await cursoLiberado();
-    await terco(aluno, c.aulas[0] as AulaId, 0, 0);
+    await terco(aluno, definido(c.aulas[0]), 0, 0);
     expect(avisosDoPg).toEqual([]);
   });
 
   test("contagem de statements: abrir 7, envio comum 9 e com conquista 18, mais begin e commit", async () => {
     const { aluno, c } = await cursoLiberado();
-    const aulaId = c.aulas[0] as AulaId;
+    const aulaId = definido(c.aulas[0]);
 
     const abrir = await contar(() =>
       carregarAula(db, alunoDeTeste(aluno), c.slug, aulaId)

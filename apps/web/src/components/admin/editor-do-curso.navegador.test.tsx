@@ -5,7 +5,7 @@ import { join } from "node:path";
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import type { EdicaoDoCurso } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
-import type { Versao } from "@cursos/api/dominio/tipos";
+import { categoriaId, versao } from "@cursos/api/dominio/marcas";
 import { build, sleep } from "bun";
 
 import {
@@ -37,7 +37,7 @@ const CAPA = `data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><rect width="1280" height="720" fill="#2b5c8a"/></svg>'
 )}`;
 
-const documento = documentoDeExemplo("v1" as Versao);
+const documento = documentoDeExemplo(versao("v1"));
 
 const EDICAO_SALVA: EdicaoDoCurso = {
   capa: { alt: "Capa", altura: 720, largura: 1280, url: CAPA },
@@ -67,7 +67,7 @@ const CATEGORIAS: CategoriaNaLista[] = [
   },
   {
     cursos: ["Comercial", "Vendas"],
-    id: "00000000-0000-4000-8000-0000000000c2" as CategoriaNaLista["id"],
+    id: categoriaId("00000000-0000-4000-8000-0000000000c2"),
     nome: "Vendas e negócios",
   },
 ];

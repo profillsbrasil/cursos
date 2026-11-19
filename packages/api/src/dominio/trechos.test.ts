@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { definido } from "../definido.test-utils";
 import {
   atingiuMeta,
   canonizar,
@@ -133,7 +134,7 @@ describe("quantizar", () => {
     expect(a).toEqual(t(3, 17));
     expect(b).toEqual(t(17, 31));
     expect<readonly Trecho[]>(
-      canonizar([a as Trecho, b as Trecho], 600)
+      canonizar([definido(a), definido(b)], 600)
     ).toEqual([t(3, 31)]);
   });
 

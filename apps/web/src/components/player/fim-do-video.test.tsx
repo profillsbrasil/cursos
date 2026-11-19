@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import { aulaId } from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { FimDoVideo } from "./fim-do-video";
 
-const ATUAL = "00000000-0000-4000-8000-000000000004" as AulaId;
-const PROXIMA = "00000000-0000-4000-8000-000000000005" as AulaId;
+const ATUAL = aulaId("00000000-0000-4000-8000-000000000004");
+const PROXIMA = aulaId("00000000-0000-4000-8000-000000000005");
 
 const DADOS: AulaNoPlayer = {
   amostra: null,

@@ -23,8 +23,9 @@ import { contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
 import { comunicadoId, diaISO, videoId } from "../dominio/marcas";
 import type { Perfil } from "../dominio/perfil";
-import type { AdminId, ComunicadoId, CursoId } from "../dominio/tipos";
+import type { ComunicadoId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { concluirParaQuemCompletou } from "./certificado";
 import { liberar } from "./liberacao";
@@ -34,7 +35,7 @@ import { definirPerfil } from "./perfil";
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
-const ADMIN = "user_admin" as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", "user_admin"));
 const AGORA = new Date("2026-10-20T15:00:00Z");
 
 describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {

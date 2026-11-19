@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { diaISO } from "@cursos/api/dominio/marcas";
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
 import { semana, sequenciaDiasUteis } from "@cursos/api/dominio/sequencia";
 import type { DiaISO } from "@cursos/api/dominio/tipos";
@@ -7,11 +8,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { SuaSemana } from "./sua-semana";
 
-const QUINTA = "2026-10-15" as DiaISO;
-const SABADO = "2026-10-17" as DiaISO;
+const QUINTA = diaISO("2026-10-15");
+const SABADO = diaISO("2026-10-17");
 
 const resumo = (estudados: readonly string[], hoje: DiaISO): ResumoAluno => {
-  const dias = new Set(estudados as DiaISO[]);
+  const dias = new Set(estudados.map((x) => diaISO(x)));
 
   return {
     bonus: 30,

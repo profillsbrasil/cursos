@@ -14,11 +14,14 @@ import { and, eq, inArray } from "drizzle-orm";
 
 import type { Papel } from "../context";
 import { contextoDeTeste, convitesDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { type Email, PRAZO_DO_PAPEL_MS } from "../dominio/convite";
+import { ehEmail, marcar } from "../dominio/marcas";
 import type { Perfil } from "../dominio/perfil";
 import { BONUS_DE_FUNCIONARIO } from "../dominio/regras";
-import type { AdminId, ConviteId, CursoId } from "../dominio/tipos";
+import type { ConviteId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { cancelarConvite, convidar } from "./convite";
 import { perfilDe as chegar } from "./perfil";
@@ -26,7 +29,7 @@ import { perfilDe as chegar } from "./perfil";
 const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
-const ADMIN = `user_admchegada${S}` as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", `user_admchegada${S}`));
 const DIA = 86_400_000;
 
 const semConta = { contasCom: () => Promise.resolve(new Map<Email, string>()) };
@@ -82,7 +85,10 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     const userId = `user_chegada${S}${ids.length}`;
     ids.push(userId);
 
-    return { email: `p${ids.length}.${hex()}@${dominio}` as Email, userId };
+    return {
+      email: marcar(ehEmail, `p${ids.length}.${hex()}@${dominio}`),
+      userId,
+    };
   }
 
   async function convidarComo(
@@ -108,7 +114,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
       .from(convite)
       .where(eq(convite.email, email));
 
-    return linha?.id as ConviteId;
+    return definido(linha?.id);
   }
 
   function login(

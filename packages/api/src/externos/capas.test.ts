@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { definido } from "../definido.test-utils";
 import { LIMITE_DA_CAPA } from "../dominio/capa";
 import {
   bucketAssinado,
@@ -329,9 +330,7 @@ describe("bucketAssinado", () => {
       new Response(null, { status: 404 }),
     ];
 
-    const { enviar, pedidos } = bucketFalso(
-      () => respostas.shift() as Response
-    );
+    const { enviar, pedidos } = bucketFalso(() => definido(respostas.shift()));
 
     const bucket = bucketAssinado(BUCKET, enviar);
 

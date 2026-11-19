@@ -121,7 +121,7 @@ const CURSOS = [
     status,
   ]) => ({
     aulas,
-    capa: capaDe(imagem as string),
+    capa: capaDe(String(imagem)),
     categoria: categoria ?? "Vendas e negócios",
     codigo,
     id: imagem,
@@ -255,10 +255,14 @@ async function foto(nome: string) {
 
   await sleep(DEPOIS_DAS_TRANSICOES_MS);
 
-  const { data } = (await enviar("Page.captureScreenshot", {
+  const { data } = await enviar("Page.captureScreenshot", {
     captureBeyondViewport: true,
     format: "png",
-  })) as { data: string };
+  });
+
+  if (typeof data !== "string") {
+    throw new TypeError("A captura de tela devolveu dados que não são texto.");
+  }
 
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }

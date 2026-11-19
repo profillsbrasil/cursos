@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { MedalhaDaGrade } from "@cursos/api/dominio/conquistas";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
+import { diaISO } from "@cursos/api/dominio/marcas";
 
 import { ALUNA, NOVO } from "./exemplo-de-teste";
 import {
@@ -159,7 +159,7 @@ describe("a ordem da grade", () => {
   });
 
   test("ganhas: pela data, e o empate pelo nome", () => {
-    const ganha = (dia: string) => ({ dia: dia as DiaISO, estado: "ganha" });
+    const ganha = (dia: string) => ({ dia: diaISO(dia), estado: "ganha" });
 
     const medalhas = [
       { medalha: ganha("2026-10-02"), tipo: "tres_cursos" },

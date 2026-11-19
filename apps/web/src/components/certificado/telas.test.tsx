@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
+import { diaISO } from "@cursos/api/dominio/marcas";
 import type {
   CertificadoEmitido,
   PaginaDoCertificado,
 } from "@cursos/api/dominio/pagina-do-certificado";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -13,7 +13,7 @@ import { enderecoDaConferencia, origemDoPedido } from "./folha";
 import { FormularioDoNome } from "./nome-que-falta";
 import { TelaDoCertificado } from "./tela-do-certificado";
 
-const HOJE = "2026-10-16" as DiaISO;
+const HOJE = diaISO("2026-10-16");
 
 const ANA: CertificadoEmitido = {
   codigo: "7K3M-Q9TD",

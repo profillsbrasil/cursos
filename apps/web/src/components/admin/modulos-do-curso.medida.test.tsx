@@ -6,7 +6,7 @@ import {
   EDICAO,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { ModuloId, VideoId } from "@cursos/api/dominio/tipos";
+import { moduloId, videoId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import {
@@ -32,7 +32,7 @@ const documento = documentoDeExemplo();
 const [primeira, ...resto] = documento.modulos[0].aulas;
 
 documento.modulos[0].aulas = [
-  { ...primeira, video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" } },
+  { ...primeira, video: { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" } },
   ...resto,
 ];
 
@@ -46,7 +46,7 @@ if (!modelo) {
 const MODULOS = Array.from({ length: 16 }, (_, i) => ({
   ...modelo,
   aulas: [],
-  id: uuidDeExemplo(100 + i) as ModuloId,
+  id: moduloId(uuidDeExemplo(100 + i)),
   numero: String(i),
   titulo: `Módulo ${i}`,
 }));

@@ -5,8 +5,8 @@ import {
   exemploDoPrototipo,
   HOJE_DO_EXEMPLO,
 } from "@cursos/api/dominio/exemplo";
+import { diaISO } from "@cursos/api/dominio/marcas";
 import { montarPainel, type ResumoAluno } from "@cursos/api/dominio/painel";
-import type { DiaISO } from "@cursos/api/dominio/tipos";
 import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -38,7 +38,7 @@ const naCasca = (filhos: ReactNode) =>
     </ProvedorDaCasca>
   );
 
-const dia = (d: string) => d as DiaISO;
+const dia = (d: string) => diaISO(d);
 
 const TROCAR = naCasca(
   <div className="grid gap-10">

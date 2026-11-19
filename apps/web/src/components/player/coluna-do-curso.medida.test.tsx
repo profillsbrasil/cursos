@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import { aulaId } from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { build } from "bun";
 import { renderToString } from "react-dom/server";
@@ -22,7 +22,9 @@ const MODULOS = 16;
 const AULAS_POR_MODULO = 8;
 
 const idDaAula = (modulo: number, aula: number) =>
-  `00000000-0000-4000-8000-${String(modulo * 100 + aula).padStart(12, "0")}` as AulaId;
+  aulaId(
+    `00000000-0000-4000-8000-${String(modulo * 100 + aula).padStart(12, "0")}`
+  );
 
 function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
   const atual = idDaAula(modulo, aula);

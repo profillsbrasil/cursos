@@ -9,8 +9,8 @@ import {
   perguntaDeExemplo,
   uuidDeExemplo,
 } from "./exemplo";
+import { alternativaId, aulaId, moduloId, perguntaId } from "./marcas";
 import { planejarCurso, versaoDoCurso } from "./plano-do-curso";
-import type { AlternativaId, AulaId, ModuloId, PerguntaId } from "./tipos";
 
 const { A1, A2, A3, M2, P1, P1A, P1B } = EDICAO;
 
@@ -227,11 +227,11 @@ describe("planejarCurso", () => {
 
     const maior = editar(d, (x) => {
       x.modulos[0]?.aulas.push(
-        aulaDeExemplo(uuidDeExemplo(24) as AulaId, "Aula 4")
+        aulaDeExemplo(aulaId(uuidDeExemplo(24)), "Aula 4")
       );
       x.modulos.push({
         aulas: [],
-        id: uuidDeExemplo(13) as ModuloId,
+        id: moduloId(uuidDeExemplo(13)),
         nivelOrdem: null,
         numero: 7,
         titulo: "Novo",
@@ -247,10 +247,10 @@ describe("planejarCurso", () => {
   });
 
   test("pergunta e alternativa que saem entram no apagar; as que ficam, não", () => {
-    const P2 = uuidDeExemplo(42) as PerguntaId;
-    const P2A = uuidDeExemplo(53) as AlternativaId;
-    const P2B = uuidDeExemplo(54) as AlternativaId;
-    const P1C = uuidDeExemplo(55) as AlternativaId;
+    const P2 = perguntaId(uuidDeExemplo(42));
+    const P2A = alternativaId(uuidDeExemplo(53));
+    const P2B = alternativaId(uuidDeExemplo(54));
+    const P1C = alternativaId(uuidDeExemplo(55));
 
     const d = editar(documento(), (x) => {
       const a1 = x.modulos[0]?.aulas[0];

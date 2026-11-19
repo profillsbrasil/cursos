@@ -17,7 +17,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
-import { diaISO } from "../dominio/marcas";
+import { diaISO, ehCursoId, marcar } from "../dominio/marcas";
 import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -376,7 +376,7 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       trocar(
         db,
         alunoDeTeste(userId),
-        crypto.randomUUID() as CursoId,
+        marcar(ehCursoId, crypto.randomUUID()),
         300,
         AGORA
       ),

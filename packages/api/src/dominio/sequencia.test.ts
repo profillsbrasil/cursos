@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { diaISO } from "./marcas";
 import {
   diaLocal,
   faltamParaBonus,
@@ -9,9 +10,8 @@ import {
   somarDias,
   diasCorridos,
 } from "./sequencia";
-import type { DiaISO } from "./tipos";
 
-const d = (s: string) => s as DiaISO;
+const d = (s: string) => diaISO(s);
 const dias = (...s: string[]) => new Set(s.map(d));
 
 describe("sequenciaDiasUteis", () => {

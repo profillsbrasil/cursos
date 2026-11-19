@@ -14,8 +14,9 @@ import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
-import type { AdminId, CursoId } from "../dominio/tipos";
+import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { definirPerfil } from "./perfil";
 
@@ -122,7 +123,13 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
 
   test("a busca e a tela de acesso contam o curso que a pessoa vê pelo perfil", async () => {
     const id = await criarCurso();
-    await definirPerfil(db, DONA as AdminId, CLIENTE, "cliente", AGORA);
+    await definirPerfil(
+      db,
+      adminIdDe(sessaoDe("admin", DONA)),
+      CLIENTE,
+      "cliente",
+      AGORA
+    );
 
     const situacao = async () =>
       (await admin.admin.liberacoes.buscar({ termo: `Cliente ${S}` }))

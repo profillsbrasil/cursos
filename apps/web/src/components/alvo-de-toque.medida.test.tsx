@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
-import type { DiaISO } from "@cursos/api/dominio/tipos";
+import { diaISO } from "@cursos/api/dominio/marcas";
 import { Checkbox } from "@cursos/ui/components/checkbox";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -25,7 +25,7 @@ import {
   TEXTO_DA_LINHA,
 } from "./minha-conta/partes";
 
-const HOJE = "2026-10-14" as DiaISO;
+const HOJE = diaISO("2026-10-14");
 
 const PAGINA = renderToStaticMarkup(
   <div className="grid gap-10 p-4">

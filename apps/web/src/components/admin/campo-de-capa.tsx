@@ -193,7 +193,13 @@ export function CampoDeCapa({
   }, []);
 
   const sair = useCallback((e: DragEvent<HTMLLabelElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+    const destino = e.relatedTarget;
+
+    if (destino !== null && !(destino instanceof Node)) {
+      throw new Error("relatedTarget do dragleave deveria ser um Node");
+    }
+
+    if (!e.currentTarget.contains(destino)) {
       setArrastando(false);
     }
   }, []);

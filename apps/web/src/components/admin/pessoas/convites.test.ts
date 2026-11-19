@@ -2,10 +2,15 @@ import { describe, expect, test } from "bun:test";
 
 import type {
   ConvidadoNaTela,
-  Email,
   ResultadoDoConvite,
 } from "@cursos/api/dominio/convite";
-import type { ConviteId, CursoId, DiaISO } from "@cursos/api/dominio/tipos";
+import {
+  conviteId,
+  cursoId,
+  diaISO,
+  ehEmail,
+  marcar,
+} from "@cursos/api/dominio/marcas";
 
 import {
   contagemDeConvidados,
@@ -19,7 +24,7 @@ import {
   textoDoEnvio,
 } from "./convites";
 
-const email = (texto: string) => texto as Email;
+const email = (texto: string) => marcar(ehEmail, texto);
 const boa = (texto: string): Ficha => ({ email: email(texto), texto });
 const ruim = (texto: string): Ficha => ({ email: null, texto });
 
@@ -139,15 +144,15 @@ describe("textoDoEnvio", () => {
   });
 });
 
-const HOJE = "2026-11-11" as DiaISO;
+const HOJE = diaISO("2026-11-11");
 
 const convidado = (estado: ConvidadoNaTela["estado"]): ConvidadoNaTela => ({
   comoAdmin: false,
-  convidadoEm: "2026-11-04" as DiaISO,
+  convidadoEm: diaISO("2026-11-04"),
   cursos: [],
   email: email("ana@x.com"),
   estado,
-  id: "c1" as ConviteId,
+  id: conviteId("c1"),
   perfil: "cliente",
 });
 
@@ -156,7 +161,7 @@ describe("a linha do convidado", () => {
     const selos = [
       {
         enviadoEm: HOJE,
-        expiraEm: "2026-12-11" as DiaISO,
+        expiraEm: diaISO("2026-12-11"),
         tipo: "pendente" as const,
       },
       { em: HOJE, tipo: "expirado" as const },
@@ -176,7 +181,7 @@ describe("a linha do convidado", () => {
       quandoDoConvidado(
         convidado({
           enviadoEm: HOJE,
-          expiraEm: "2026-12-11" as DiaISO,
+          expiraEm: diaISO("2026-12-11"),
           tipo: "pendente",
         }),
         HOJE
@@ -185,8 +190,8 @@ describe("a linha do convidado", () => {
     expect(
       quandoDoConvidado(
         convidado({
-          enviadoEm: "2026-11-04" as DiaISO,
-          expiraEm: "2026-12-04" as DiaISO,
+          enviadoEm: diaISO("2026-11-04"),
+          expiraEm: diaISO("2026-12-04"),
           tipo: "pendente",
         }),
         HOJE
@@ -194,7 +199,7 @@ describe("a linha do convidado", () => {
     ).toBe("Enviado em 4 de nov.");
     expect(
       quandoDoConvidado(
-        convidado({ em: "2026-11-10" as DiaISO, tipo: "expirado" }),
+        convidado({ em: diaISO("2026-11-10"), tipo: "expirado" }),
         HOJE
       )
     ).toBe("Expirou ontem");
@@ -204,7 +209,7 @@ describe("a linha do convidado", () => {
   });
 
   test("os cursos saem como nenhum, o título do único ou a quantidade", () => {
-    const curso = (titulo: string) => ({ id: titulo as CursoId, titulo });
+    const curso = (titulo: string) => ({ id: cursoId(titulo), titulo });
     expect(cursosDoConvidado([])).toBe("Nenhum curso");
     expect(cursosDoConvidado([curso("Envase")])).toBe("Envase");
     expect(cursosDoConvidado([curso("Envase"), curso("Rotulagem")])).toBe(

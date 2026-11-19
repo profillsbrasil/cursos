@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import type { ClerkClient, User } from "@clerk/backend";
 
-import type { Email } from "../dominio/convite";
+import { ehEmail, marcar } from "../dominio/marcas";
 import { paraPessoa, pessoasDoClerk } from "./pessoas";
 
 function usuario(parcial: Partial<User>): User {
@@ -168,7 +168,7 @@ describe("pessoasDoClerk.contasCom", () => {
     const clerk = clerkCom([comEmails("user_diana", "diana@x.com")]);
 
     const contas = await pessoasDoClerk(clerk).contasCom([
-      "ana@x.com" as Email,
+      marcar(ehEmail, "ana@x.com"),
     ]);
 
     expect([...contas]).toEqual([]);
@@ -181,11 +181,11 @@ describe("pessoasDoClerk.contasCom", () => {
     ]);
 
     const contas = await pessoasDoClerk(clerk).contasCom([
-      "ana@x.com" as Email,
-      "bia@x.com" as Email,
+      marcar(ehEmail, "ana@x.com"),
+      marcar(ehEmail, "bia@x.com"),
     ]);
 
-    expect([...contas]).toEqual([["ana@x.com" as Email, "user_ana"]]);
+    expect([...contas]).toEqual([[marcar(ehEmail, "ana@x.com"), "user_ana"]]);
   });
 
   test("segue pelas páginas quando o trecho casa mais gente que o limite", async () => {
@@ -201,10 +201,10 @@ describe("pessoasDoClerk.contasCom", () => {
     );
 
     const contas = await pessoasDoClerk(clerk).contasCom([
-      "ana@x.com" as Email,
+      marcar(ehEmail, "ana@x.com"),
     ]);
 
-    expect(contas.get("ana@x.com" as Email)).toBe("user_ana");
+    expect(contas.get(marcar(ehEmail, "ana@x.com"))).toBe("user_ana");
     expect(pedidos.map((p) => p.offset)).toEqual([0, 100]);
   });
 

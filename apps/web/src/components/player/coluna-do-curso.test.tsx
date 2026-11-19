@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId } from "@cursos/api/dominio/tipos";
+import { aulaId } from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ColunaDoCurso } from "./coluna-do-curso";
 
-const AULA = "11111111-1111-4111-8111-111111111111" as AulaId;
+const AULA = aulaId("11111111-1111-4111-8111-111111111111");
 
 const DADOS: AulaNoPlayer = {
   amostra: null,

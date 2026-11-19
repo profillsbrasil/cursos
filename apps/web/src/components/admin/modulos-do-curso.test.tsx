@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
-import type { Versao, VideoId } from "@cursos/api/dominio/tipos";
+import { versao, videoId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ErrosDoEditor } from "./erros-do-editor";
@@ -115,7 +115,7 @@ describe("campo de vídeo da aula salva", () => {
   documento.modulos[0].aulas = [
     {
       ...primeira,
-      video: { id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" },
+      video: { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" },
     },
     ...resto,
   ];
@@ -146,12 +146,12 @@ describe("campo de vídeo da aula salva", () => {
     const lido = lerRascunho(rascunho, { versao: null });
     expect(
       lido.tipo === "lido" ? lido.documento.modulos[0].aulas[0].video : null
-    ).toEqual({ id: "aqz-KE-bpKQ" as VideoId, provedor: "youtube" });
+    ).toEqual({ id: videoId("aqz-KE-bpKQ"), provedor: "youtube" });
   });
 
   test("o link longo colado e salvo volta ao campo curto, sem deixar o editor sujo", () => {
     const sujo = (e: RascunhoDoEditor) => telaDo(e).sujo;
-    const inicio = rascunhoDoEditorEm(documentoDeExemplo("v1" as Versao));
+    const inicio = rascunhoDoEditorEm(documentoDeExemplo(versao("v1")));
 
     const colado = rascunhoDoEditor(inicio, {
       id: EDICAO.A1,
@@ -168,7 +168,7 @@ describe("campo de vídeo da aula salva", () => {
     const salvo = rascunhoDoEditor(colado, {
       envio,
       tipo: "salvo",
-      versao: "v2" as Versao,
+      versao: versao("v2"),
     });
 
     expect(sujo(inicio)).toBe(false);

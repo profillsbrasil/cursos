@@ -6,7 +6,7 @@ import { cursoId, diaISO } from "./marcas";
 import { montarPaginaDoCurso } from "./pagina-do-curso";
 import type { CursoLinha } from "./painel";
 import type { MarcaDoQuestionario } from "./questionario";
-import type { AulaId, CursoId } from "./tipos";
+import type { AulaId } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 
@@ -345,7 +345,7 @@ describe("montarPaginaDoCurso na amostra", () => {
     const p = amostra({ assistidas: [assistida(A1)] });
     expect(p?.amostra).toEqual({
       aulaId: A1,
-      cursoId: "envase" as CursoId,
+      cursoId: cursoId("envase"),
       href: `/cursos/envase/aulas/${A1}`,
       preco: 400,
       saldo: 120,

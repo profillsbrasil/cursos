@@ -1,9 +1,9 @@
 import { describe, expect, mock, test } from "bun:test";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
+import { aulaId, cursoId } from "@cursos/api/dominio/marcas";
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
 import type { CursoVM } from "@cursos/api/dominio/painel";
-import type { AulaId, CursoId } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -24,9 +24,9 @@ const { TelaDoCurso } = await import("./tela-do-curso");
 const { TrocaDaAmostra } = await import("./troca-da-amostra");
 const { fabrica, HOJE, RISCOS } = await import("./exemplo-de-teste");
 
-const CURSO = "00000000-0000-4000-8000-0000000000c1" as CursoId;
-const AULA_1 = "00000000-0000-4000-8000-000000000001" as AulaId;
-const AULA_2 = "00000000-0000-4000-8000-000000000002" as AulaId;
+const CURSO = cursoId("00000000-0000-4000-8000-0000000000c1");
+const AULA_1 = aulaId("00000000-0000-4000-8000-000000000001");
+const AULA_2 = aulaId("00000000-0000-4000-8000-000000000002");
 
 const CAPA = {
   alt: "Capa do curso Curso de Filmagem",

@@ -88,7 +88,11 @@ export function lerMaterial(
     return recusa(antes);
   }
 
-  const tipo = tipoDoNome(nome) as TipoDoMaterial;
+  const tipo = tipoDoNome(nome);
+
+  if (tipo === null) {
+    return recusa({ tipo: "formato" });
+  }
 
   if (!confirmaOTipo(bytes, tipo)) {
     return recusa({ esperado: tipo, tipo: "assinatura" });

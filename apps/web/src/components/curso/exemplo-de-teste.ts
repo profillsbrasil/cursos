@@ -1,3 +1,4 @@
+import { aulaId, diaISO, materialId } from "@cursos/api/dominio/marcas";
 import type { MaterialDaPagina } from "@cursos/api/dominio/material";
 import type {
   AulaDaPagina,
@@ -5,10 +6,10 @@ import type {
   PaginaDoCurso,
 } from "@cursos/api/dominio/pagina-do-curso";
 import type { MarcaDoQuestionario } from "@cursos/api/dominio/questionario";
-import type { AulaId, DiaISO, MaterialId } from "@cursos/api/dominio/tipos";
+import type { AulaId } from "@cursos/api/dominio/tipos";
 
 const id = (n: number) =>
-  `00000000-0000-4000-8000-${String(n).padStart(12, "0")}` as AulaId;
+  aulaId(`00000000-0000-4000-8000-${String(n).padStart(12, "0")}`);
 
 const aula = (
   n: number,
@@ -101,8 +102,9 @@ const material = (
   tipo: MaterialDaPagina["tipo"],
   bytes: number
 ): MaterialDaPagina => {
-  const idDoMaterial =
-    `00000000-0000-4000-9000-${String(n).padStart(12, "0")}` as MaterialId;
+  const idDoMaterial = materialId(
+    `00000000-0000-4000-9000-${String(n).padStart(12, "0")}`
+  );
 
   return {
     bytes,
@@ -338,4 +340,4 @@ export const comercial = {
   },
 } satisfies Record<string, PaginaDoCurso>;
 
-export const HOJE = "2026-10-15" as DiaISO;
+export const HOJE = diaISO("2026-10-15");

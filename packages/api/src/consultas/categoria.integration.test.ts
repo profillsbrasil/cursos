@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { ehCategoriaId, marcar } from "../dominio/marcas";
 import type { CategoriaId, CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { codigoDeTeste } from "./categoria-de-teste";
@@ -41,7 +42,7 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
   });
 
   const novoId = () => {
-    const id = randomUUID() as CategoriaId;
+    const id = marcar(ehCategoriaId, randomUUID());
     categorias.push(id);
 
     return id;

@@ -28,13 +28,8 @@ import {
 } from "../consultas/categoria-de-teste";
 import { contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
-import { diaISO, videoId } from "../dominio/marcas";
-import type {
-  AlternativaId,
-  CursoId,
-  PerguntaId,
-  TentativaId,
-} from "../dominio/tipos";
+import { diaISO, tentativaId, videoId } from "../dominio/marcas";
+import type { AlternativaId, CursoId, PerguntaId } from "../dominio/tipos";
 import { createCaller } from "./index";
 
 const URL_TESTE = urlDeTeste();
@@ -135,9 +130,9 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           .returning({ id: alternativa.id });
 
         perguntas.push({
-          certa: certa?.id as AlternativaId,
-          errada: errada?.id as AlternativaId,
-          id: pg?.id as PerguntaId,
+          certa: definido(certa?.id),
+          errada: definido(errada?.id),
+          id: definido(pg?.id),
         });
         // oxlint-enable no-await-in-loop
       }
@@ -212,7 +207,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     ReturnType<typeof plantarCursoPublicadoComUmaAulaComVideoPorItem>
   >;
 
-  const TENTATIVA_DO_BRUNO = randomUUID() as TentativaId;
+  const TENTATIVA_DO_BRUNO = tentativaId(randomUUID());
 
   beforeAll(async () => {
     comum = await plantarCursoPublicadoComUmaAulaComVideoPorItem([2, 0]);

@@ -200,8 +200,14 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     );
 
     for (const erro of erros) {
+      if (!(erro instanceof TRPCError)) {
+        throw new TypeError(
+          "A chamada sem sessão devia recusar com TRPCError."
+        );
+      }
+
       expect(erro).toBeInstanceOf(TRPCError);
-      expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
+      expect(erro.code).toBe("UNAUTHORIZED");
     }
   });
 

@@ -71,7 +71,11 @@ const nada = () => () => undefined;
 const apagado = () => false;
 
 function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
-  const alvo = e.target as HTMLElement;
+  const alvo = e.target;
+
+  if (!(alvo instanceof HTMLElement)) {
+    throw new TypeError("O alvo da tecla devia ser um elemento HTML.");
+  }
 
   if (alvo === container) {
     return false;

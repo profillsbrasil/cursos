@@ -19,14 +19,9 @@ import { inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
 import { montarBusca, type SituacaoNoCurso } from "../dominio/acompanhamento";
+import { diaISO } from "../dominio/marcas";
 import { diaLocal } from "../dominio/sequencia";
-import type {
-  AulaId,
-  CursoId,
-  DiaISO,
-  EstadoCurso,
-  Pessoa,
-} from "../dominio/tipos";
+import type { AulaId, CursoId, EstadoCurso, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { linhasDaBusca } from "./acompanhamento";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -278,7 +273,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     const busca = montarBusca(
       { pessoas, total: pessoas.length },
       await linhasDaBusca(db, ALUNOS),
-      "2026-10-14" as DiaISO
+      diaISO("2026-10-14")
     );
 
     expect(busca.pessoas.map((p) => [p.userId, p.situacao])).toEqual([
@@ -287,13 +282,13 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           numeros: { concluidos: 1, cursos: 3, emProducao: 1 },
           tipo: "estudando",
-          ultimoEstudo: "2026-10-12" as DiaISO,
+          ultimoEstudo: diaISO("2026-10-12"),
         },
       ],
       [
         NUNCA,
         {
-          desde: "2026-10-01" as DiaISO,
+          desde: diaISO("2026-10-01"),
           numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
           tipo: "nunca_abriu",
         },
@@ -303,7 +298,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           revogadas: 1,
           tipo: "sem_liberacao",
-          ultimaRevogacao: "2026-10-02" as DiaISO,
+          ultimaRevogacao: diaISO("2026-10-02"),
         },
       ],
       [NADA, { revogadas: 0, tipo: "sem_liberacao", ultimaRevogacao: null }],
@@ -312,7 +307,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         {
           numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
           tipo: "estudando",
-          ultimoEstudo: "2026-10-06" as DiaISO,
+          ultimoEstudo: diaISO("2026-10-06"),
         },
       ],
     ]);
@@ -416,7 +411,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     expect(doD?.acompanhamento.situacao).toEqual({
       onde: { aula: 1, modulo: 1 },
       tipo: "estudando",
-      ultimoEstudo: "2026-10-12" as DiaISO,
+      ultimoEstudo: diaISO("2026-10-12"),
     });
     const revogada = await admin.admin.liberacoes.acesso({ userId: REVOGADA });
     expect(

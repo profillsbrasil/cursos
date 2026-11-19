@@ -264,6 +264,11 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
       .catch((e: unknown) => e);
 
     expect(erro).toBeInstanceOf(TRPCError);
-    expect((erro as TRPCError).code).toBe("UNAUTHORIZED");
+
+    if (!(erro instanceof TRPCError)) {
+      throw new TypeError("A chamada sem login devia lançar um TRPCError.");
+    }
+
+    expect(erro.code).toBe("UNAUTHORIZED");
   });
 });

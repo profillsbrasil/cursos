@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { ehVersao, marcar } from "@cursos/api/dominio/marcas";
 import type { Versao } from "@cursos/api/dominio/tipos";
 
 import {
@@ -157,7 +158,7 @@ describe("sincronizarComAPagina", () => {
 
   const doc = (versao: string | null, titulo = "Curso"): Doc => ({
     titulo,
-    versao: versao as Versao | null,
+    versao: versao === null ? null : marcar(ehVersao, versao),
   });
 
   const sujo = { limpo: false };

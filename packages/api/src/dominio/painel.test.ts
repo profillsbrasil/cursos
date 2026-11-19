@@ -7,7 +7,7 @@ import {
   idAula,
   SEM_LIBERACAO,
 } from "./exemplo";
-import { cursoId } from "./marcas";
+import { cursoId, diaISO } from "./marcas";
 import { type LinhasPainel, montarPainel } from "./painel";
 import type { DiaISO } from "./tipos";
 
@@ -305,7 +305,7 @@ describe("montarPainel com regras de liberação", () => {
 });
 
 describe("lugar do comunicado em Meus cursos", () => {
-  const HOJE = "2026-10-15" as DiaISO;
+  const HOJE = diaISO("2026-10-15");
 
   const lugar = (publicadoEm: string) =>
     montar(

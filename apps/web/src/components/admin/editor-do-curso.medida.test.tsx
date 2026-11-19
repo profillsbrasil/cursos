@@ -7,7 +7,7 @@ import {
   perguntaDeExemplo,
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
-import type { AlternativaId, PerguntaId } from "@cursos/api/dominio/tipos";
+import { alternativaId, perguntaId } from "@cursos/api/dominio/marcas";
 import { Switch } from "@cursos/ui/components/switch";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -51,8 +51,8 @@ a1.perguntas = [
     "Por onde o cronograma reverso começa?"
   ),
   perguntaDeExemplo(
-    uuidDeExemplo(42) as PerguntaId,
-    [uuidDeExemplo(55) as AlternativaId, uuidDeExemplo(56) as AlternativaId],
+    perguntaId(uuidDeExemplo(42)),
+    [alternativaId(uuidDeExemplo(55)), alternativaId(uuidDeExemplo(56))],
     "A linha do cliente precisa rodar em 1º de março, e a fabricação leva 90 dias. O que o cronograma reverso mostra?"
   ),
 ];

@@ -14,9 +14,9 @@ import { eq, inArray } from "drizzle-orm";
 import { contextoDeTeste } from "../contexto-de-teste";
 import { diaISO } from "../dominio/marcas";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
-import type { AdminId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { concederPontos } from "./concessao";
 import { PESSOA_SUMIU } from "./liberacao";
 import { linhasDoSaldo } from "./pontos";
@@ -27,6 +27,7 @@ const S = randomBytes(4).toString("hex");
 const AGORA = new Date("2026-10-27T15:00:00Z");
 const SEGUNDA = segundaDaSemana(diaLocal(AGORA));
 const ADMIN = `user_admin${S}`;
+const ADMIN_ID = adminIdDe(sessaoDe("admin", ADMIN));
 
 describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
@@ -106,7 +107,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
 
     const r = await concederPontos(
       db,
-      ADMIN as AdminId,
+      ADMIN_ID,
       { motivo: "Campanha de vendas", pontos: 3000, userId },
       AGORA
     );
@@ -188,7 +189,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
 
     const r = await concederPontos(
       db,
-      ADMIN as AdminId,
+      ADMIN_ID,
       { motivo: "Ajuste", pontos: -30, userId },
       AGORA
     );
@@ -203,7 +204,7 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
       [1, 2].map(() =>
         concederPontos(
           db,
-          ADMIN as AdminId,
+          ADMIN_ID,
           { motivo: "Ajuste", pontos: -60, userId },
           AGORA
         )
@@ -273,13 +274,13 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
     const userId = await aluno(0);
     await concederPontos(
       db,
-      ADMIN as AdminId,
+      ADMIN_ID,
       { motivo: "Primeira", pontos: 500, userId },
       AGORA
     );
     await concederPontos(
       db,
-      ADMIN as AdminId,
+      ADMIN_ID,
       { motivo: "Segunda", pontos: -20, userId },
       new Date(AGORA.getTime() + 60_000)
     );

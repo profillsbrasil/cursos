@@ -9,11 +9,10 @@ import {
 } from "./conquistas";
 import { cursoLinha, idAula } from "./exemplo";
 import { aulaId, cursoId, diaISO } from "./marcas";
-import type { CursoId, DiaISO } from "./tipos";
 import type { CursoDaTroca } from "./troca";
 
-const SEXTA = "2026-10-16" as DiaISO;
-const SABADO = "2026-10-17" as DiaISO;
+const SEXTA = diaISO("2026-10-16");
+const SABADO = diaISO("2026-10-17");
 
 const AUTO = cursoLinha("auto", { aulas: [2] });
 const COMERCIAL = cursoLinha("comercial", { aulas: [3, 3] });
@@ -49,7 +48,7 @@ const vitrine = (preco: number, titulo: string): CursoDaTroca => ({
   capa: { alt: "Capa", altura: 720, largura: 1280, url: "/capas/x.jpg" },
   categoria: "Processo de envase",
   duracaoSeg: 1800,
-  id: `v-${preco}` as CursoId,
+  id: cursoId(`v-${preco}`),
   precoTroca: preco,
   slug: `v-${preco}`,
   status: "publicado",
@@ -149,7 +148,7 @@ describe("montarConquistas", () => {
 
   test("a primeira aula é a mais antiga, com o dia de São Paulo", () => {
     expect(marco(aluna, "primeira_aula")).toEqual({
-      dia: "2026-08-18" as DiaISO,
+      dia: diaISO("2026-08-18"),
       estado: "ganha",
     });
   });
@@ -163,7 +162,7 @@ describe("montarConquistas", () => {
 
   test("a sequência ganha leva o dia da primeira vez e quantas vezes", () => {
     expect(marco(aluna, "sequencia")).toEqual({
-      dia: "2026-09-25" as DiaISO,
+      dia: diaISO("2026-09-25"),
       estado: "ganha",
       vezes: 2,
     });
@@ -171,14 +170,14 @@ describe("montarConquistas", () => {
 
   test("a primeira troca leva o dia da troca", () => {
     expect(marco(aluna, "primeira_troca")).toEqual({
-      dia: "2026-10-13" as DiaISO,
+      dia: diaISO("2026-10-13"),
       estado: "ganha",
     });
   });
 
   test("o primeiro curso concluído é o certificado mais antigo", () => {
     expect(marco(aluna, "primeiro_curso")).toEqual({
-      dia: "2026-09-02" as DiaISO,
+      dia: diaISO("2026-09-02"),
       estado: "ganha",
     });
   });
@@ -233,7 +232,7 @@ describe("montarConquistas", () => {
 
     const c = montarConquistas({ ...NADA, assistidas: dez }, SEXTA);
     expect(marco(c, "aulas", 10)).toEqual({
-      dia: "2026-10-10" as DiaISO,
+      dia: diaISO("2026-10-10"),
       estado: "ganha",
     });
     expect(marco(c, "aulas", 50)).toEqual({ estado: "por_ganhar", feitas: 10 });
@@ -464,49 +463,49 @@ describe("as medalhas novas ganhas", () => {
 
   test("Três cursos trocados fecha no dia da terceira troca", () => {
     expect(marco(c, "tres_trocas")).toEqual({
-      dia: "2026-10-10" as DiaISO,
+      dia: diaISO("2026-10-10"),
       estado: "ganha",
     });
   });
 
   test("Da amostra à troca é a troca do curso cuja amostra veio antes, não a primeira troca", () => {
     expect(marco(c, "amostra_e_troca")).toEqual({
-      dia: "2026-10-05" as DiaISO,
+      dia: diaISO("2026-10-05"),
       estado: "ganha",
     });
   });
 
   test("Troca até o fim é o certificado de um curso trocado", () => {
     expect(marco(c, "troca_ate_o_fim")).toEqual({
-      dia: "2026-10-12" as DiaISO,
+      dia: diaISO("2026-10-12"),
       estado: "ganha",
     });
   });
 
   test("Primeiro questionário é a primeira aprovação, de qualquer tentativa", () => {
     expect(marco(c, "primeiro_questionario")).toEqual({
-      dia: "2026-10-08" as DiaISO,
+      dia: diaISO("2026-10-08"),
       estado: "ganha",
     });
   });
 
   test("Nota cheia é a tentativa número 1 com todas certas", () => {
     expect(marco(c, "nota_cheia")).toEqual({
-      dia: "2026-10-09" as DiaISO,
+      dia: diaISO("2026-10-09"),
       estado: "ganha",
     });
   });
 
   test("Três cursos concluídos fecha no terceiro certificado, também de curso revogado", () => {
     expect(marco(c, "tres_cursos")).toEqual({
-      dia: "2026-10-14" as DiaISO,
+      dia: diaISO("2026-10-14"),
       estado: "ganha",
     });
   });
 
   test("Mil pontos estudando fecha no dia em que a soma chega a 1.000", () => {
     expect(marco(c, "mil_pontos")).toEqual({
-      dia: "2026-10-03" as DiaISO,
+      dia: diaISO("2026-10-03"),
       estado: "ganha",
     });
   });

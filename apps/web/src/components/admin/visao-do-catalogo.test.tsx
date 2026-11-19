@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { CursoNaVisao } from "@cursos/api/dominio/catalogo";
-import type { CursoId } from "@cursos/api/dominio/tipos";
+import { cursoId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { STATUS } from "./coluna-de-publicacao";
@@ -33,7 +33,7 @@ const curso = (
   capa: CAPA,
   categoria: "Vendas e negócios",
   codigo: "VN-001",
-  id: titulo.toLowerCase().replaceAll(" ", "-") as CursoId,
+  id: cursoId(titulo.toLowerCase().replaceAll(" ", "-")),
   modulos: 0,
   precoTroca: null,
   segundosDeVideo: 0,

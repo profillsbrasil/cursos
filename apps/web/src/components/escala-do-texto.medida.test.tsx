@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId, DiaISO } from "@cursos/api/dominio/tipos";
+import { aulaId, diaISO } from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -34,7 +34,7 @@ const AULA: AulaNoPlayer = {
   aula: {
     descricao: "",
     duracaoSeg: 634,
-    id: "a4" as AulaId,
+    id: aulaId("a4"),
     modulo: { numero: 8, titulo: "Pilar Urgência" },
     numeroNoModulo: 4,
     titulo: "Cronograma reverso",
@@ -79,7 +79,7 @@ const PAGINA = renderToStaticMarkup(
     <CabecalhoDaAula dados={AULA} />
     <TelaDoCurso hoje={HOJE} pagina={fabrica.emAndamento} />
     <TelaDoCertificado
-      hoje={"2026-10-16" as DiaISO}
+      hoje={diaISO("2026-10-16")}
       origem="https://cursos.exemplo.com.br"
       pagina={{
         aulas: { feitas: 3, total: 7 },
@@ -97,7 +97,7 @@ const PAGINA = renderToStaticMarkup(
         nome: "Ana Souza",
         tituloDoCurso: "Fábrica e montagem",
       }}
-      hoje={"2026-10-16" as DiaISO}
+      hoje={diaISO("2026-10-16")}
     />
   </div>
 );

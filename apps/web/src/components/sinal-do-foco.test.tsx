@@ -3,12 +3,12 @@ import { existsSync } from "node:fs";
 
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
 import type { LiberacaoNaTela } from "@cursos/api/dominio/liberacao";
-import type {
-  AulaId,
-  CursoId,
-  DiaISO,
-  LiberacaoId,
-} from "@cursos/api/dominio/tipos";
+import {
+  aulaId,
+  cursoId,
+  diaISO,
+  liberacaoId,
+} from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { sleep } from "bun";
 import { Sparkles } from "lucide-react";
@@ -93,7 +93,7 @@ const aula = (id: string, titulo: string, atual: boolean): AulaNaColuna => ({
   assistida: false,
   atual,
   duracaoSeg: 300,
-  id: id as AulaId,
+  id: aulaId(id),
   questionario: { tipo: "sem" },
   titulo,
 });
@@ -171,7 +171,7 @@ const controles = renderToStaticMarkup(
   />
 );
 
-const HOJE = "2026-10-14" as DiaISO;
+const HOJE = diaISO("2026-10-14");
 
 const pessoas = renderToStaticMarkup(
   <ProvedorDoLote>
@@ -209,8 +209,8 @@ const liberacao = (
     progresso: { feitas: 0, pct: 0, total: 2 },
     situacao: { tipo: "nunca_abriu" },
   },
-  curso: { id: id as CursoId, titulo },
-  id: id as LiberacaoId,
+  curso: { id: cursoId(id), titulo },
+  id: liberacaoId(id),
   liberadaEm: "2026-10-01T15:00:00.000Z",
   origem: "admin",
 });

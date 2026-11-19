@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, uuidDeExemplo } from "@cursos/api/dominio/exemplo";
-import type { MaterialId, Versao } from "@cursos/api/dominio/tipos";
+import { materialId, versao } from "@cursos/api/dominio/marcas";
 import { build, sleep } from "bun";
 
 import {
@@ -29,14 +29,14 @@ const SUBSTITUTOS: [RegExp, string][] = [
 const material = (n: number): MaterialDoDocumento => ({
   bytes: 1000 * n,
   chave: `${String(n).padStart(64, "0")}.pdf`,
-  id: uuidDeExemplo(900 + n) as MaterialId,
+  id: materialId(uuidDeExemplo(900 + n)),
   nomeDoArquivo: `arquivo-${n}.pdf`,
   tipo: "pdf",
   titulo: `Material ${n}`,
 });
 
 const DOCUMENTO = {
-  ...documentoDeExemplo("v1" as Versao),
+  ...documentoDeExemplo(versao("v1")),
   materiais: [material(1), material(2), material(3)],
 };
 

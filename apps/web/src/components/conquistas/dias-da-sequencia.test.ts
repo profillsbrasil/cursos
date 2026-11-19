@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import type { DiaISO } from "@cursos/api/dominio/tipos";
+import { diaISO } from "@cursos/api/dominio/marcas";
 
 import { diasDaSequencia } from "./dias-da-sequencia";
 
-const SEXTA = "2026-10-16" as DiaISO;
-const SABADO = "2026-10-17" as DiaISO;
+const SEXTA = diaISO("2026-10-16");
+const SABADO = diaISO("2026-10-17");
 
 const resumo = (o: Parameters<typeof diasDaSequencia>[0]) =>
   diasDaSequencia(o).map((d) => `${d.dia.slice(5)} ${d.estado}`);
@@ -43,7 +43,7 @@ describe("os sete dias da sequência", () => {
     expect(
       resumo({
         dias: 4,
-        hoje: "2026-10-20" as DiaISO,
+        hoje: diaISO("2026-10-20"),
         hojePendente: true,
         meta: 7,
       })
@@ -99,7 +99,7 @@ describe("os sete dias da sequência", () => {
     expect(
       fins({
         dias: 0,
-        hoje: "2026-10-19" as DiaISO,
+        hoje: diaISO("2026-10-19"),
         hojePendente: true,
         meta: 5,
       })

@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
-import type { CategoriaId } from "@cursos/api/dominio/tipos";
+import { categoriaId } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const navegacaoComOUseRouterSubstituido = await import("next/navigation");
@@ -28,13 +28,13 @@ const DESCRITO_POR = /aria-describedby="([^"]+)"/;
 
 const EM_USO: CategoriaNaLista = {
   cursos: ["Autoavaliação Comercial", "Profills School Comercial"],
-  id: "00000000-0000-4000-8000-000000000001" as CategoriaId,
+  id: categoriaId("00000000-0000-4000-8000-000000000001"),
   nome: "Vendas e negócios",
 };
 
 const LIVRE: CategoriaNaLista = {
   cursos: [],
-  id: "00000000-0000-4000-8000-000000000002" as CategoriaId,
+  id: categoriaId("00000000-0000-4000-8000-000000000002"),
   nome: "Rotinas internas",
 };
 

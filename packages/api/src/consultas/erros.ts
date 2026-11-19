@@ -196,6 +196,12 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
   "questionario_tentativa_aula_id_aula_id_fkey",
 ]);
 
+function ehRestricaoComMensagem(
+  restricao: string
+): restricao is keyof typeof MENSAGEM_DA_RESTRICAO {
+  return Object.hasOwn(MENSAGEM_DA_RESTRICAO, restricao);
+}
+
 /**
  * Erro do Postgres que vira ErroParaAPessoa: a frase do lock_timeout (com
  * TOO_MANY_REQUESTS) ou da violação de restrição conhecida, que index.ts lança.
@@ -211,11 +217,9 @@ export function mensagemDoBanco(erro: unknown): MensagemDoBanco | null {
 
   const v = violacaoDe(erro);
 
-  if (!(v && Object.hasOwn(MENSAGEM_DA_RESTRICAO, v.restricao))) {
+  if (!(v && ehRestricaoComMensagem(v.restricao))) {
     return null;
   }
 
-  return MENSAGEM_DA_RESTRICAO[
-    v.restricao as keyof typeof MENSAGEM_DA_RESTRICAO
-  ];
+  return MENSAGEM_DA_RESTRICAO[v.restricao];
 }

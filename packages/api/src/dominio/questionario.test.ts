@@ -12,7 +12,6 @@ import {
   resultadoDaTentativa,
   type TentativaGravada,
 } from "./questionario";
-import type { AlternativaId, PerguntaId } from "./tipos";
 
 test("70% arredonda para cima: 3 de 3, 3 de 4, 4 de 5, 7 de 10", () => {
   expect([1, 2, 3, 4, 5, 6, 7, 10, 20].map(acertosParaPassar)).toEqual([
@@ -24,8 +23,8 @@ test("as cinco letras pela posição", () => {
   expect([0, 1, 4].map(letraDa)).toEqual(["A", "B", "E"]);
 });
 
-const P = (n: number) => `p${n}` as PerguntaId;
-const A = (n: number) => `a${n}` as AlternativaId;
+const P = (n: number) => perguntaId(`p${n}`);
+const A = (n: number) => alternativaId(`a${n}`);
 
 const PERGUNTAS: PerguntaComGabarito[] = [1, 2, 3].map((n) => ({
   alternativas: [
@@ -72,7 +71,7 @@ describe("corrigir", () => {
     expect(
       corrigir(PERGUNTAS, [
         ...responder(2, 4, 6),
-        { alternativaId: A(1), perguntaId: "fantasma" as PerguntaId },
+        { alternativaId: A(1), perguntaId: perguntaId("fantasma") },
       ])
     ).toMatchObject({ acertos: 3, tipo: "corrigida" });
   });

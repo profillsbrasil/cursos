@@ -29,15 +29,16 @@ import {
   type PerguntaDoDocumento,
 } from "../dominio/edicao-do-curso";
 import { CARACTERES, LIMITES } from "../dominio/limites-do-curso";
-import { ehAulaId, marcar } from "../dominio/marcas";
-import type {
-  AlternativaId,
-  AulaId,
-  CategoriaId,
-  CursoId,
-  ModuloId,
-  PerguntaId,
-} from "../dominio/tipos";
+import {
+  ehAlternativaId,
+  ehAulaId,
+  ehCategoriaId,
+  ehCursoId,
+  ehModuloId,
+  ehPerguntaId,
+  marcar,
+} from "../dominio/marcas";
+import type { AulaId, CategoriaId, CursoId, ModuloId } from "../dominio/tipos";
 import type { Capas } from "../externos/capas";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
@@ -115,7 +116,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   const novaAula = (titulo: string) => ({
     descricao: "",
     duracaoSeg: 120,
-    id: randomUUID() as AulaId,
+    id: marcar(ehAulaId, randomUUID()),
     perguntas: [],
     titulo,
     video: null,
@@ -128,11 +129,11 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   ): PerguntaDoDocumento => ({
     alternativas: textos.map((texto, i) => ({
       certa: i === certa,
-      id: randomUUID() as AlternativaId,
+      id: marcar(ehAlternativaId, randomUUID()),
       texto,
     })),
     enunciado,
-    id: randomUUID() as PerguntaId,
+    id: marcar(ehPerguntaId, randomUUID()),
   });
 
   const novoModulo = (
@@ -141,7 +142,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     aulas: ModuloDoDocumento["aulas"] = []
   ): ModuloDoDocumento => ({
     aulas,
-    id: randomUUID() as ModuloId,
+    id: marcar(ehModuloId, randomUUID()),
     nivelOrdem: null,
     numero,
     titulo,
@@ -155,7 +156,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   function documentoNovo(
     modulosDoCurso: ModuloDoDocumento[] = []
   ): DocumentoDoCurso {
-    const id = randomUUID() as CursoId;
+    const id = marcar(ehCursoId, randomUUID());
     cursos.push(id);
 
     return {
@@ -411,10 +412,13 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     comAlternativa.modulos[0]?.aulas[0]?.perguntas.push({
       ...novaPergunta("Minha", ["Sim"], 0),
       alternativas: [
-        { certa: true, id: randomUUID() as AlternativaId, texto: "Sim" },
         {
-          ...(deFora
-            .alternativas[0] as PerguntaDoDocumento["alternativas"][number]),
+          certa: true,
+          id: marcar(ehAlternativaId, randomUUID()),
+          texto: "Sim",
+        },
+        {
+          ...definido(deFora.alternativas[0]),
           certa: false,
         },
       ],
@@ -580,7 +584,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
     }
 
     await assistir(a1.id);
-    a1.id = a1.id.toUpperCase() as AulaId;
+    a1.id = marcar(ehAulaId, a1.id.toUpperCase());
     a1.titulo = "A1 renomeada";
 
     expect(await resultado(salvar(documento))).toEqual(OK);
@@ -1008,7 +1012,7 @@ describe.skipIf(URL_TESTE === null)("edição do curso", () => {
   test("categoria que não existe é recusada com frase e nada é gravado", async () => {
     const documento = {
       ...documentoNovo(),
-      categoriaId: randomUUID() as CategoriaId,
+      categoriaId: marcar(ehCategoriaId, randomUUID()),
     };
 
     expect(await resultado(salvarComCapa(documento))).toEqual({

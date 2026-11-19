@@ -15,15 +15,10 @@ import { eq, inArray, sql } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
-import { diaISO } from "../dominio/marcas";
-import type {
-  AdminId,
-  CursoId,
-  DiaISO,
-  LiberacaoId,
-  Pessoa,
-} from "../dominio/tipos";
+import { diaISO, ehCursoId, ehLiberacaoId, marcar } from "../dominio/marcas";
+import type { CursoId, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
+import { adminIdDe, sessaoDe } from "../sessao";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import {
   esperas as esperasNoBanco,
@@ -37,7 +32,7 @@ const URL_TESTE = urlDeTeste();
 const hex = () => randomBytes(4).toString("hex");
 const S = hex();
 const AGORA = new Date("2026-10-07T18:00:00Z");
-const ADMIN = "user_admin" as AdminId;
+const ADMIN = adminIdDe(sessaoDe("admin", "user_admin"));
 
 const pessoa = (userId: string): Pessoa => ({
   email: null,
@@ -270,7 +265,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
     const segunda = await revogar(
       db,
-      "user_outro" as AdminId,
+      adminIdDe(sessaoDe("admin", "user_outro")),
       liberacaoId,
       new Date(AGORA.getTime() + 120_000)
     );
@@ -303,12 +298,9 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     await trocar(db, alunoDeTeste(userId), c, 300, AGORA);
     const [troca] = await liberacoesDe(userId);
 
-    const erro = await revogar(
-      db,
-      ADMIN,
-      troca?.id as LiberacaoId,
-      AGORA
-    ).catch((e: unknown) => e);
+    const erro = await revogar(db, ADMIN, definido(troca?.id), AGORA).catch(
+      (e: unknown) => e
+    );
 
     expect(erro).toMatchObject({ code: "PRECONDITION_FAILED" });
     expect(await liberacoesDe(userId)).toMatchObject([
@@ -320,7 +312,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
     const erro = await revogar(
       db,
       ADMIN,
-      crypto.randomUUID() as LiberacaoId,
+      marcar(ehLiberacaoId, crypto.randomUUID()),
       AGORA
     ).catch((e: unknown) => e);
 
@@ -334,7 +326,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       db,
       ADMIN,
       pessoa(userId),
-      crypto.randomUUID() as CursoId,
+      marcar(ehCursoId, crypto.randomUUID()),
       AGORA
     ).catch((e: unknown) => e);
 
@@ -506,13 +498,13 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       expect(r.pessoas).toEqual([
         { tipo: "liberada_agora", userId: nova },
         {
-          liberadaEm: "2026-08-20" as DiaISO,
+          liberadaEm: diaISO("2026-08-20"),
           origem: "admin",
           tipo: "ja_tinha",
           userId: peloAdmin,
         },
         {
-          liberadaEm: "2025-12-30" as DiaISO,
+          liberadaEm: diaISO("2025-12-30"),
           origem: "troca",
           tipo: "ja_tinha",
           userId: porTroca,

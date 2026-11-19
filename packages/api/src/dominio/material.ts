@@ -4,6 +4,9 @@ import type { MaterialId } from "./tipos";
 
 export type TipoDoMaterial = (typeof TIPO_DO_MATERIAL)[number];
 
+const ehTipoDoMaterial = (v: string): v is TipoDoMaterial =>
+  TIPO_DO_MATERIAL.some((item) => item === v);
+
 /**
  * Como os bytes de cada tipo começam. OOXML (docx, xlsx, pptx) é um ZIP, e os
  * antigos do Office são OLE; a imagem é lida pelo image-size.
@@ -80,9 +83,7 @@ export function tipoDoNome(nome: string): TipoDoMaterial | null {
 
   const tipo = JPEG_VIRA_JPG[ext] ?? ext;
 
-  return (TIPO_DO_MATERIAL as readonly string[]).includes(tipo)
-    ? (tipo as TipoDoMaterial)
-    : null;
+  return ehTipoDoMaterial(tipo) ? tipo : null;
 }
 
 /** O schema zod e os checks material_* do banco repetem estes tetos. */

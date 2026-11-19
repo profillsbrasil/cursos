@@ -3,7 +3,8 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
-import type { AulaId, VideoDaAula } from "@cursos/api/dominio/tipos";
+import { aulaId, videoId } from "@cursos/api/dominio/marcas";
+import type { VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { build, file } from "bun";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -27,9 +28,9 @@ const UTILS_TRPC = /^@\/utils\/trpc$/;
 const NEXT_NAVIGATION = /^next\/navigation$/;
 const NEXT_LINK = /^next\/link$/;
 
-const ATUAL = "00000000-0000-4000-8000-000000000004" as AulaId;
-const PROXIMA = "00000000-0000-4000-8000-000000000005" as AulaId;
-const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
+const ATUAL = aulaId("00000000-0000-4000-8000-000000000004");
+const PROXIMA = aulaId("00000000-0000-4000-8000-000000000005");
+const VIDEO: VideoDaAula = { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" };
 
 const DADOS: AulaNoPlayer = {
   amostra: null,

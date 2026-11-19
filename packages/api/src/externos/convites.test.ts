@@ -3,11 +3,11 @@ import { describe, expect, spyOn, test } from "bun:test";
 import type { ClerkClient } from "@clerk/backend";
 import { ClerkAPIResponseError } from "@clerk/backend/errors";
 
-import type { Email } from "../dominio/convite";
+import { email } from "../dominio/marcas";
 import { convitesDoClerk } from "./convites";
 
 const AGORA = new Date("2026-11-11T15:00:00Z");
-const ANA = "ana@exemplo.com" as Email;
+const ANA = email("ana@exemplo.com");
 const CRIAR_CONTA = "https://cursos.exemplo.com/criar-conta";
 
 const clerkQue = (invitations: Record<string, unknown>) =>
