@@ -4,7 +4,7 @@ import { mensagemDoBanco } from "./consultas/erros";
 import { perfilDe } from "./consultas/perfil";
 import { type Context, ehAdmin, type Sessao } from "./context";
 import type { Perfil } from "./dominio/perfil";
-import type { AdminId } from "./dominio/tipos";
+import { adminIdDe } from "./sessao";
 
 /**
  * O que a tela decide sem ler o texto: "versao_mudou" pede recarregar. Um nome
@@ -119,7 +119,7 @@ export const alunoComTraducao = alunoProcedure.use(traduzErroDoBanco);
 
 /**
  * Segunda porta do admin; a primeira é exigirAdmin em apps/web/src/server/api.ts.
- * É o único lugar que fabrica um AdminId, então quem grava autoria de admin
+ * O AdminId nasce aqui, por adminIdDe, então quem grava autoria de admin
  * (liberada_por, revogada_por, publicado_por) só roda atrás desta porta.
  */
 export const adminProcedure = protegidoComTraducao.use(({ ctx, next }) => {
@@ -133,6 +133,6 @@ export const adminProcedure = protegidoComTraducao.use(({ ctx, next }) => {
   }
 
   return next({
-    ctx: { ...ctx, admin: auth.userId as AdminId, auth },
+    ctx: { ...ctx, admin: adminIdDe(auth), auth },
   });
 });

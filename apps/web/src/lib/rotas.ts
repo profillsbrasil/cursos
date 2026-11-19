@@ -8,6 +8,13 @@ import {
 } from "@cursos/api/dominio/rotas";
 import type { Route } from "next";
 
+/**
+ * Devolve o próprio href, conferido pelo typedRoutes: o Next infere T do
+ * template literal e o compara com as rotas dinâmicas do app. Com T = string,
+ * Route só aceita rota estática.
+ */
+export const rota = <T extends string>(href: Route<T>): Route<T> => href;
+
 export const caminhoDoCurso = (slug: string) => curso(slug) as Route;
 
 export const caminhoDaAula = (slug: string, aulaId: string) =>

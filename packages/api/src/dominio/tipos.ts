@@ -1,3 +1,4 @@
+import type { AulaId, CursoId, VideoId } from "@cursos/db/marcas";
 import type { videoProvedor } from "@cursos/db/schema/comum";
 import type {
   ORIGEM_DA_LIBERACAO,
@@ -6,44 +7,25 @@ import type {
 
 import type { Papel } from "../context";
 
-declare const marca: unique symbol;
-
-type Marca<T, M extends string> = T & { readonly [marca]: M };
-
-export type CursoId = Marca<string, "CursoId">;
-
-export type AulaId = Marca<string, "AulaId">;
-
-export type ModuloId = Marca<string, "ModuloId">;
-
-export type PerguntaId = Marca<string, "PerguntaId">;
-
-export type AlternativaId = Marca<string, "AlternativaId">;
-
-/** Uma tentativa do questionário de uma aula. O id nasce no cliente. */
-export type TentativaId = Marca<string, "TentativaId">;
-
-/** Impressão do conteúdo de um documento do admin (dominio/versao.ts). */
-export type Versao = Marca<string, "Versao">;
-
-export type LiberacaoId = Marca<string, "LiberacaoId">;
-
-export type LiberacaoDoPerfilId = Marca<string, "LiberacaoDoPerfilId">;
-
-export type ConviteId = Marca<string, "ConviteId">;
-
-export type ComunicadoId = Marca<string, "ComunicadoId">;
-
-export type CategoriaId = Marca<string, "CategoriaId">;
-
-/** Um arquivo do material de apoio do curso. O id nasce no editor. */
-export type MaterialId = Marca<string, "MaterialId">;
-
-/** "2026-10-07": dia civil de São Paulo. */
-export type DiaISO = Marca<string, "DiaISO">;
-
-/** userId de quem passou pelo adminProcedure. Só o middleware cria um. */
-export type AdminId = Marca<string, "AdminId">;
+export type {
+  AdminId,
+  AlternativaId,
+  AulaId,
+  CategoriaId,
+  ComunicadoId,
+  ConviteId,
+  CursoId,
+  DiaISO,
+  Email,
+  LiberacaoDoPerfilId,
+  LiberacaoId,
+  MaterialId,
+  ModuloId,
+  PerguntaId,
+  TentativaId,
+  Versao,
+  VideoId,
+} from "@cursos/db/marcas";
 
 /** Uma pessoa do Clerk, como o admin a vê. O Clerk é a tabela de usuários. */
 export interface Pessoa {
@@ -87,8 +69,6 @@ export type OrigemDaLiberacao = (typeof ORIGEM_DA_LIBERACAO)[number];
 export type OrigemDoAcesso = OrigemDaLiberacao | "perfil";
 
 export type StatusDoCurso = (typeof STATUS_DO_CURSO)[number];
-
-export type VideoId = Marca<string, "VideoId">;
 
 export type VideoDaAula = {
   [P in VideoProvedor]: { id: VideoId; provedor: P };

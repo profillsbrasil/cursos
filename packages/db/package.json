@@ -3,6 +3,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./marcas": "./src/marcas.ts",
     "./schema/comum": "./src/schema/comum.ts",
     "./schema/formatos": "./src/schema/formatos.ts",
     "./schema/index": "./src/schema/index.ts",
