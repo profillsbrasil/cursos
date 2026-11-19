@@ -1,7 +1,3 @@
-// A Moldura no Chromium headless, com o CSS real do app: a sidebar sem borda, o
-// painel do conteúdo e a moldura fixa que acompanha a largura da sidebar, aberta,
-// recolhida e na transição do botão. Sem Chromium na máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
@@ -69,7 +65,6 @@ interface Medida {
     transicao: string;
     z: string;
   };
-  /** direita: do painel à borda da área útil da janela, sem a barra de rolagem. */
   painel: { direita: number; esquerda: number; pe: number; topo: number };
   rolagem: { documento: boolean; painel: string };
 }

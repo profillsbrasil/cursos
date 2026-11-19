@@ -1,9 +1,3 @@
-// Erro do Postgres que vira ErroParaAPessoa: a violação de restrição, com mensagem
-// para o admin, e o lock_timeout, com TOO_MANY_REQUESTS.
-// erros.integration.test.ts amarra a tabela ao banco nos dois sentidos: toda chave
-// daqui existe lá, e toda restrição que uma escrita do admin pode violar está aqui
-// ou em SEM_MENSAGEM_PROPRIA.
-
 import type { TRPC_ERROR_CODE_KEY } from "@trpc/server";
 
 /**
@@ -14,8 +8,7 @@ export const FK_VIOLADA: ReadonlySet<string> = new Set(["23001", "23503"]);
 
 const CODIGOS = new Set([...FK_VIOLADA, "23505", "23514"]);
 
-/** lock_not_available: o lock_timeout da transação venceu esperando uma trava. */
-const ESPERA_VENCIDA = "55P03";
+const CODIGO_LOCK_NOT_AVAILABLE_DO_LOCK_TIMEOUT = "55P03";
 
 export interface Violacao {
   codigo: string;
@@ -28,11 +21,6 @@ interface NoDaCadeia {
   constraint?: unknown;
 }
 
-/**
- * Procura o erro do node-postgres na cadeia de cause (TRPCError, depois
- * DrizzleQueryError, depois o erro do pg), sem instanceof: o erro pode vir de
- * outra cópia do drizzle-orm.
- */
 function naCadeia<T>(erro: unknown, ler: (no: NoDaCadeia) => T | null) {
   let atual: unknown = erro;
 
@@ -60,8 +48,9 @@ export function violacaoDe(erro: unknown): Violacao | null {
 }
 
 const esperaVencida = (erro: unknown) =>
-  naCadeia(erro, ({ code }) => (code === ESPERA_VENCIDA ? true : null)) ??
-  false;
+  naCadeia(erro, ({ code }) =>
+    code === CODIGO_LOCK_NOT_AVAILABLE_DO_LOCK_TIMEOUT ? true : null
+  ) ?? false;
 
 /**
  * A recusa do lock_timeout. TOO_MANY_REQUESTS não para o player: ele trata como
@@ -208,8 +197,11 @@ export const SEM_MENSAGEM_PROPRIA: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * A frase do lock_timeout ou da violação conhecida, que index.ts lança como
- * ErroParaAPessoa. Qualquer outro erro devolve null e sobe como está
+ * Erro do Postgres que vira ErroParaAPessoa: a frase do lock_timeout (com
+ * TOO_MANY_REQUESTS) ou da violação de restrição conhecida, que index.ts lança.
+ * A tabela de restrições e SEM_MENSAGEM_PROPRIA cobrem, nos dois sentidos, as
+ * chaves do banco que uma escrita do admin pode violar
+ * (erros.integration.test.ts). Qualquer outro erro devolve null e sobe como está
  * (INTERNAL_SERVER_ERROR, texto genérico na tela).
  */
 export function mensagemDoBanco(erro: unknown): MensagemDoBanco | null {

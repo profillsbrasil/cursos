@@ -19,10 +19,6 @@ import {
   telaDo,
 } from "./rascunho-do-editor";
 
-/**
- * Na navegação do App Router, o link clicado sai do DOM e o foco cai no
- * <body>; o editor que abre assim põe o foco no título.
- */
 function useTituloComFoco<T extends HTMLElement>() {
   const titulo = useRef<T>(null);
   useEffect(() => {
@@ -55,7 +51,6 @@ export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
   }
 
   useGuardaDeSaida(tela.sujo);
-  // Depois do render: o campo marcado pode estar num bloco que abriu com o erro.
   useEffect(() => {
     if (estado.foco) {
       focarOPrimeiro(estado.foco);
@@ -92,7 +87,6 @@ export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
     );
   }, [envio, executar, router]);
 
-  // O aviso sai do DOM com o botão Recarregar, e o foco cairia no <body>.
   const descartar = useCallback(() => {
     despachar({ tipo: "descartado" });
     router.refresh();

@@ -21,12 +21,9 @@ import {
 import { NavPrincipal } from "./nav-principal";
 import { ProvedorDaCasca } from "./provedor-da-casca";
 
-/** O alvo do Pular para o conteúdo: a moldura das páginas, depois do topo do celular. */
-const CONTEUDO = "conteudo";
+const ALVO_DO_PULAR_PARA_O_CONTEUDO = "conteudo";
 
-// O botão amarelo fica acima da janela e desce só com o foco de teclado, porque a
-// variante hover: também casa com ele (#30); fora da janela, o cursor não o alcança.
-// Ele aparece aceso e sem transição: ação de teclado não anima.
+// WARNING: o botão fica acima da janela e desce só com o foco de teclado porque hover: também casa com ele (#30), e sem transição.
 const PULAR = cn(
   BOTAO,
   "fixed -top-16 left-3 z-50 transition-none hover:top-3"
@@ -64,7 +61,7 @@ export async function Casca({
 
   return (
     <ProvedorDaCasca aberta={aberta}>
-      <a className={PULAR} href={`#${CONTEUDO}`}>
+      <a className={PULAR} href={`#${ALVO_DO_PULAR_PARA_O_CONTEUDO}`}>
         Pular para o conteúdo
       </a>
       <Sidebar collapsible="icon" variant="sidebar">
@@ -86,7 +83,7 @@ export async function Casca({
         <TopoDoCelular selo={selo} />
         <div
           className="min-w-0 px-[clamp(1rem,4vw,3rem)] pt-8 pb-16"
-          id={CONTEUDO}
+          id={ALVO_DO_PULAR_PARA_O_CONTEUDO}
           tabIndex={-1}
         >
           {children}

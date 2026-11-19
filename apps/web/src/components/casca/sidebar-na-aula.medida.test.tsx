@@ -147,7 +147,6 @@ async function empacotar() {
     throw new Error(`o pacote da casca não saiu: ${pacote.logs.join("\n")}`);
   }
 
-  // O next/image lê a configuração do process.env, que o Next define no build.
   return `window.process ??= { env: {} }; ${await saida.text()}`;
 }
 

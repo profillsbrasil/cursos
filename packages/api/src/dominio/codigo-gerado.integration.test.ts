@@ -1,7 +1,3 @@
-// A migração codigo_gerado contra a regra de codigo-do-curso.ts, no Postgres local.
-// Roda a migração de verdade, numa transação desfeita no fim: os cursos plantados
-// sem código e as categorias novas somem com o rollback.
-
 import { describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
@@ -21,14 +17,12 @@ const PASTA = join(import.meta.dir, "../../../db/src/migrations");
 const pasta = readdirSync(PASTA).find((p) => p.endsWith("_codigo_gerado"));
 const MIGRACAO = readFileSync(join(PASTA, `${pasta}/migration.sql`), "utf8");
 
-/** Cada nome com quantos cursos sem código ele ganha. */
-const CATEGORIAS: readonly [string, number][] = [
+const CURSOS_SEM_CODIGO_POR_CATEGORIA: readonly [string, number][] = [
   ["Processo de envase", 2],
   ["Ação", 1],
   ["Vendas e negócios", 1],
   ["Comercial", 1],
   ["Segurança do trabalho em máquinas industriais pesadas", 2],
-  // As duas viram GP: o número continua de uma para a outra.
   ["Gestão da produção", 1],
   ["Gás & Pressão", 1],
   ["Para os de com a o as os", 1],
@@ -48,7 +42,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
           );
           await tx
             .insert(categoria)
-            .values(CATEGORIAS.map(([nome]) => ({ nome })))
+            .values(CURSOS_SEM_CODIGO_POR_CATEGORIA.map(([nome]) => ({ nome })))
             .onConflictDoNothing({ target: categoria.nome });
 
           const categorias = await tx
@@ -57,14 +51,13 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
             .where(
               inArray(
                 categoria.nome,
-                CATEGORIAS.map(([nome]) => nome)
+                CURSOS_SEM_CODIGO_POR_CATEGORIA.map(([nome]) => nome)
               )
             );
 
           const idDe = (nome: string) =>
             categorias.find((c) => c.nome === nome)?.id ?? "";
 
-          // O código que já existe ocupa o número: STMI começa no 002.
           await tx.insert(curso).values({
             capaAlt: "Capa de teste",
             capaAltura: 720,
@@ -87,8 +80,8 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
             ).map((c) => c.codigo)
           );
 
-          const plantados = CATEGORIAS.flatMap(([nome, n]) =>
-            Array.from({ length: n }, () => nome)
+          const plantados = CURSOS_SEM_CODIGO_POR_CATEGORIA.flatMap(
+            ([nome, n]) => Array.from({ length: n }, () => nome)
           ).map((nome, i) => ({
             capaAlt: "Capa de teste",
             capaAltura: 720,

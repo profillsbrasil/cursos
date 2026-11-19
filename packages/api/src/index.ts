@@ -51,7 +51,7 @@ export const { router } = t;
 
 export const publicProcedure = t.procedure;
 
-// O middleware estreita a sessão: depois dele, ctx.auth é Sessao, não Sessao | null.
+/** Depois do middleware, ctx.auth é Sessao, não Sessao | null. */
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   const { auth } = ctx;
 
@@ -88,15 +88,10 @@ export const traduzErroDoBanco = t.middleware(async ({ next }) => {
   return resultado;
 });
 
-// O protegido com a tradução: a base do admin.
+/** O protegido com a tradução: a base do admin. */
 export const protegidoComTraducao = protectedProcedure.use(traduzErroDoBanco);
 
-/**
- * O perfil por pedido. A Sessao nasce uma vez por pedido (contextoDe), e as
- * chamadas da mesma página dividem a leitura: no primeiro acesso, o Clerk é
- * lido uma vez, não uma por procedure.
- */
-const perfilDoPedido = new WeakMap<Sessao, Promise<Perfil>>();
+const perfilDoPedidoPorSessao = new WeakMap<Sessao, Promise<Perfil>>();
 
 /**
  * Todo procedure que lê o que o aluno vê. Entrega ctx.aluno com o perfil, e no
@@ -105,11 +100,11 @@ const perfilDoPedido = new WeakMap<Sessao, Promise<Perfil>>();
  */
 export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const { auth } = ctx;
-  let lendo = perfilDoPedido.get(auth);
+  let lendo = perfilDoPedidoPorSessao.get(auth);
 
   if (!lendo) {
     lendo = perfilDe(ctx.db, auth.userId, ctx.pessoas, new Date());
-    perfilDoPedido.set(auth, lendo);
+    perfilDoPedidoPorSessao.set(auth, lendo);
   }
 
   return await next({

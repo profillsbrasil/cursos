@@ -31,7 +31,6 @@ const capa = (url: string): ImagemDaCapa => ({
   url,
 });
 
-/** O documento como abrirCurso devolve: versão da árvore com a capa do banco. */
 function documento(): DocumentoDoCurso {
   const d = documentoDeExemplo();
 

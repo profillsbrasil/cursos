@@ -153,7 +153,7 @@ export function salvarComunicado(
         set: { cursoId: c.cursoId, texto: c.texto, titulo: c.titulo },
         target: comunicado.id,
       })
-      // xmax = 0 só na linha que o INSERT criou; na que o ON CONFLICT atualizou, não.
+      // WARNING: xmax = 0 só na linha que o INSERT criou; na que o ON CONFLICT atualizou, não.
       .returning({ novo: sql<boolean>`xmax = 0` });
 
     if (!linha) {

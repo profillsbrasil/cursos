@@ -1,7 +1,3 @@
-// Liga MENSAGEM_DA_RESTRICAO e SEM_MENSAGEM_PROPRIA aos nomes reais do banco local,
-// nos dois sentidos. Renomear, criar ou apagar uma restrição sem mexer em erros.ts
-// deixa este teste vermelho.
-
 import { afterAll, describe, expect, test } from "bun:test";
 
 import { createDb } from "@cursos/db";
@@ -12,7 +8,6 @@ import { MENSAGEM_DA_RESTRICAO, SEM_MENSAGEM_PROPRIA } from "./erros";
 
 const URL_TESTE = urlDeTeste();
 
-/** As tabelas que o admin escreve, nesta área e nos PRs seguintes. */
 const TABELAS_DO_ADMIN = [
   "alternativa",
   "aula",
@@ -38,10 +33,6 @@ describe.skipIf(URL_TESTE === null)("mensagens de restrição", () => {
     await db.$client.end();
   });
 
-  /**
-   * Restrições das tabelas do admin, mais as FKs de outras tabelas que apontam
-   * para elas (disparam quando o admin apaga), mais os unique index parciais.
-   */
   async function restricoesNoBanco(): Promise<Set<string>> {
     const tabelas = sql.join(
       TABELAS_DO_ADMIN.map((t) => sql`${t}`),

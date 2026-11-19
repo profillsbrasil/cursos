@@ -1,6 +1,3 @@
-// O texto dos campos lidos mora aqui, e não no input, para sobreviver quando a
-// linha remonta (uma aula movida de módulo).
-
 import {
   type AulaDoDocumento,
   type DocumentoDoCurso,
@@ -165,7 +162,6 @@ export function lerVideo(texto: string): Leitura<AulaDoDocumento["video"]> {
     : { erro: "Cole um link do YouTube ou o id do vídeo." };
 }
 
-/** Só algarismos: Number aceitaria "1e6", "0x10" e " ". */
 const SO_ALGARISMOS = /^\d+$/;
 
 const lerInteiro =
@@ -228,7 +224,6 @@ const CAMPOS_DO_CURSO = new Set<string>([
   "titulo",
 ] satisfies CampoDoCursoComId[]);
 
-/** Os tópicos, o material e os níveis; undefined quando o caminho é de outra lista. */
 function campoNaLista(
   r: RascunhoDoCurso,
   caminho: readonly PropertyKey[]
@@ -379,6 +374,8 @@ function mensagemDaIssue(i: z.core.$ZodIssue, temCampo: boolean): string {
   return fraseDeReserva(i.path);
 }
 
+const numeroNegativoEUnico = (i: number) => -1 - i;
+
 export function lerRascunho(
   r: RascunhoDoCurso,
   salvo: Pick<DocumentoDoCurso, "versao">
@@ -408,11 +405,10 @@ export function lerRascunho(
       })),
       id: m.id,
       nivelOrdem: m.nivelOrdem,
-      // Negativo e único: o zod marca este campo, sem acusar número repetido.
       numero: ler(
         lerNumeroDoModulo(m.numero),
         ID.modulo(m.id, "numero"),
-        -1 - i
+        numeroNegativoEUnico(i)
       ),
       titulo: m.titulo,
     })),

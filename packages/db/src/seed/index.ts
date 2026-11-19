@@ -1,10 +1,3 @@
-// Seed de EXEMPLO. Sem flag, só escreve no Postgres local (SEED_DATABASE_URL, padrão 127.0.0.1:54322).
-// Com --cloud, lê o DATABASE_URL do ambiente, imprime o destino e só segue com --sim-cloud.
-// Catálogo: só cria curso que falta, por id fixo. Curso que já existe é do admin,
-// com tudo o que ele mudou ou tirou dentro dele. Fatos dos alunos de exemplo: apagados só por user_id
-// e reinseridos; fato que aponta para aula que o admin apagou fica de fora.
-// Uso: bun run db:seed -- --aluno user_xxx [--cloud --sim-cloud]
-
 import { createHash } from "node:crypto";
 import { parseArgs } from "node:util";
 
@@ -50,8 +43,8 @@ import {
 
 const USER_ID_CLERK = /^user_[A-Za-z0-9]+$/;
 const FUSO = "America/Sao_Paulo";
+const HORAS_DE_SAO_PAULO_ATRAS_DE_UTC = 3;
 
-/** UUID fixo derivado da chave, para o upsert achar a mesma linha em toda execução. */
 function idFixo(chave: string): string {
   const h = createHash("sha1").update(`cursos-seed:${chave}`).digest("hex");
   const variante = ((Number.parseInt(h[16] ?? "0", 16) % 4) + 8).toString(16);
@@ -73,16 +66,14 @@ const diaSp = (d: Date) =>
     year: "numeric",
   }).format(d);
 
-/** Instante às `hora` de São Paulo (UTC-3, sem horário de verão desde 2019) do dia `dias` atrás. */
 function diasAtras(hoje: string, dias: number, hora: number): Date {
   const d = new Date(`${hoje}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() - dias);
-  d.setUTCHours(hora + 3, 0, 0, 0);
+  d.setUTCHours(hora + HORAS_DE_SAO_PAULO_ATRAS_DE_UTC, 0, 0, 0);
 
   return d;
 }
 
-/** Os `n` dias úteis mais recentes até hoje, em dias atrás (0 = hoje). */
 function ultimosDiasUteis(hoje: string, n: number): number[] {
   const dias: number[] = [];
 
@@ -146,10 +137,6 @@ function lerArgs() {
 
 type Transacao = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
-/**
- * As categorias que os cursos de exemplo usam. A que já existe pelo nome, criada
- * pelo admin ou por outra execução, fica com o id dela. Devolve o id por nome.
- */
 async function plantarCategorias(
   tx: Transacao
 ): Promise<ReadonlyMap<string, string>> {
@@ -167,7 +154,6 @@ async function plantarCategorias(
   return new Map(linhas.map((l) => [l.nome, l.id]));
 }
 
-/** Linhas do conteúdo de exemplo, com ids fixos. */
 function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
   const idDaCategoria = (nome: string) => {
     const id = categorias.get(nome);
@@ -231,10 +217,6 @@ function linhasDeConteudo(categorias: ReadonlyMap<string, string>) {
   return { aulas, cursos, modulos, niveis };
 }
 
-/**
- * Catálogo: cria só o que falta, na ordem das FKs. Níveis, módulos e aulas entram só para
- * curso que nasceu nesta execução.
- */
 async function plantarConteudo(tx: Transacao) {
   const l = linhasDeConteudo(await plantarCategorias(tx));
 
@@ -268,6 +250,14 @@ async function plantarConteudo(tx: Transacao) {
   return { cursosNovos: cursosNovos.size };
 }
 
+/**
+ * Seed de EXEMPLO. Sem flag, só escreve no Postgres local (SEED_DATABASE_URL, padrão
+ * 127.0.0.1:54322). Com --cloud, lê o DATABASE_URL do ambiente, imprime o destino e só
+ * segue com --sim-cloud. Catálogo: só cria curso que falta, por id fixo; curso que já
+ * existe é do admin, com tudo o que ele mudou ou tirou dentro dele. Fatos dos alunos de
+ * exemplo: apagados só por user_id e reinseridos; fato que aponta para aula que o admin
+ * apagou fica de fora. Uso: bun run db:seed -- --aluno user_xxx [--cloud --sim-cloud]
+ */
 export async function semear(url: string, alunoA: string) {
   const db = createDb({ DATABASE_URL: url });
 
@@ -296,7 +286,6 @@ async function semearNoBanco(db: Database, alunoA: string) {
       })
       .onConflictDoNothing();
 
-    // Fatos dos alunos de exemplo: apagados só por user_id, na ordem das FKs.
     const alunos = [alunoA, ALUNO_B];
     await tx
       .delete(pontoLancamento)
@@ -327,7 +316,6 @@ async function semearNoBanco(db: Database, alunoA: string) {
       },
     ]);
 
-    // Aulas assistidas do aluno A, em ordem de estudo.
     const assistidas = PROGRESSO_A.flatMap((p) => {
       const c = CURSOS.find((x) => x.chave === p.curso);
       const m = c?.modulos.find((x) => x.numero === p.modulo);
@@ -343,9 +331,6 @@ async function semearNoBanco(db: Database, alunoA: string) {
         .map((_, i) => idAula(p.curso, p.modulo, i + 1));
     });
 
-    // As 5 últimas assistidas caem nos 5 últimos dias úteis (a sequência mostra 5);
-    // o resto fica entre 40 e 20 dias atrás. Ordem: comercial até a aula 3 do módulo 8,
-    // depois Nova Rotina e Autoavaliação.
     const recentes = [
       idAula("comercial", 8, 3),
       idAula("comercial", 8, 2),
@@ -373,7 +358,6 @@ async function semearNoBanco(db: Database, alunoA: string) {
       quando.set(id, diasAtras(hoje, atras, 15));
     }
 
-    // Aula de exemplo que o admin apagou fica sem fato: o seed não a recria.
     const aulaDaPosicao = idAula(
       POSICAO_A.curso,
       POSICAO_A.modulo,
@@ -417,7 +401,6 @@ async function semearNoBanco(db: Database, alunoA: string) {
 
     const emitidoEm = diasAtras(hoje, 20, 16);
 
-    // A carga horária fica congelada no certificado: a soma dos vídeos do curso como está no banco.
     const [carga] = await tx
       .select({
         segundos: sql<number>`coalesce(sum(${aula.duracaoSeg}), 0)::int`,

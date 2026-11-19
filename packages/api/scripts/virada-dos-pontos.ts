@@ -1,12 +1,3 @@
-// A virada dos pontos: antes da liberação do perfil passar a abrir só a amostra,
-// todo Funcionário ganha o bônus (se ainda não tem) e troca pelo preço atual os
-// cursos que já estudou e vê só pelo perfil.
-// Uso: bun run virada-dos-pontos [-- --gravar], da raiz. Sem flag, só o ensaio,
-// em transação read only. O varlock carrega o DATABASE_URL e o CLERK_SECRET_KEY
-// pelo contrato de apps/web/.env.schema; sem a chave do Clerk, sai só o userId.
-// A regra mora em src/dominio/virada.ts; a leitura e a gravação, em
-// src/consultas/virada.ts.
-
 import { parseArgs } from "node:util";
 
 import { createClerkClient } from "@clerk/backend";

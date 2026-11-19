@@ -1,6 +1,3 @@
-// O primeiro acesso de quem foi convidado, pela porta que o app usa: um procedure
-// do aluno. O que se confere é o que fica no banco e no login.
-
 import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
@@ -81,7 +78,6 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     return c.id as CursoId;
   }
 
-  /** Uma pessoa com conta no login e nenhum acesso ao app ainda. */
   function pessoa(dominio = `cliente${S}.example`) {
     const userId = `user_chegada${S}${ids.length}`;
     ids.push(userId);
@@ -115,10 +111,6 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     return linha?.id as ConviteId;
   }
 
-  /**
-   * O login com esta pessoa, e quantas vezes o app gravou o papel dela.
-   * `gravaEFalha`: o login grava o papel e mesmo assim responde com erro.
-   */
   function login(
     p: { email: Email; userId: string },
     o: {
@@ -171,13 +163,11 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     };
 
     return {
-      /** Um pedido novo da pessoa: outra Sessao, como outra página. */
       entrar: () =>
         createCaller({
           ...contextoDeTeste({ db, userId: p.userId }),
           pessoas,
         }).meusCursos.painel(),
-      /** O dono muda o papel pelo painel do Clerk, fora do app. */
       mudarNoPainelDoClerk: (papel: Papel) =>
         base.pessoas.definirPapel(p.userId, papel),
       papeisGravados,
@@ -398,11 +388,6 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
     expect(eu.papeisGravados).toEqual(["admin"]);
   });
 
-  /**
-   * O login grava admin e responde com erro, então o marcador fica vazio. Depois
-   * o dono tira o papel pelo painel do Clerk, e a pessoa volta `depoisMs` depois
-   * do aceite.
-   */
   async function voltarDepoisDoPainel(depoisMs: number) {
     const p = pessoa();
 

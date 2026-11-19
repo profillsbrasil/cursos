@@ -143,7 +143,7 @@ export function CampoLido({
         const proximo = e.relatedTarget;
         aoSair();
 
-        // O React move o bloco na lista, e o foco que ia para ele se perde.
+        // WARNING: o React move o bloco na lista e o foco que ia para ele se perde; o requestAnimationFrame o devolve.
         if (proximo instanceof HTMLElement) {
           requestAnimationFrame(() => proximo.focus());
         }
@@ -212,7 +212,6 @@ export function AreaDeTexto({
 
   return (
     <Field
-      // relative: o rótulo sr-only é absolute e, sem isto, escapa para fora do painel.
       className={cn("relative gap-1.5", campoClasse)}
       data-invalid={mensagem ? true : undefined}
     >

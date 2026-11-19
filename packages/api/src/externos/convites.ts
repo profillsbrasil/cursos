@@ -1,15 +1,11 @@
-// O Clerk é o carteiro do convite: manda o e-mail com o link e o revoga. O tipo
-// Invitation do SDK e o status do convite no Clerk não saem deste arquivo, e o app
-// nunca os lê: o estado mora na tabela convite.
-
 import type { ClerkClient } from "@clerk/backend";
 import { isClerkAPIResponseError } from "@clerk/backend/errors";
 
 import { type Email, VALIDADE_EM_DIAS } from "../dominio/convite";
 
+/** No tipo "limite", o Clerk respondeu 429 e `tentarEm` vem do Retry-After. */
 export type EnvioDoConvite =
   | { tipo: "enviado"; clerkConviteId: string }
-  /** O Clerk respondeu 429. `tentarEm` vem do Retry-After. */
   | { tipo: "limite"; tentarEm: Date };
 
 export interface Convites {
@@ -29,9 +25,13 @@ export interface Convites {
 
 const LIMITE_DE_ENVIOS = 429;
 
-/** O limite de createInvitation é por hora: sem Retry-After, vale a hora inteira. */
 const ESPERA_SEM_RETRY_AFTER_SEG = 3600;
 
+/**
+ * O Clerk é o carteiro do convite: manda o e-mail com o link e o revoga. O tipo
+ * Invitation do SDK e o status do convite no Clerk não saem deste arquivo, e o app
+ * nunca os lê: o estado mora na tabela convite.
+ */
 export function convitesDoClerk(
   clerk: ClerkClient,
   opcoes: { criarConta: string }
@@ -42,8 +42,7 @@ export function convitesDoClerk(
         const convite = await clerk.invitations.createInvitation({
           emailAddress: email,
           expiresInDays: VALIDADE_EM_DIAS,
-          // Sem isto, o Clerk recusa o e-mail já convidado com um erro sem código
-          // documentado. "Já tem conta" sai de Pessoas.contasCom.
+          // WARNING: sem ignoreExisting, o Clerk recusa e-mail já convidado com erro sem código documentado.
           ignoreExisting: true,
           notify: true,
           redirectUrl: opcoes.criarConta,

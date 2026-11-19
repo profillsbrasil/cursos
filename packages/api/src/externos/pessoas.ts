@@ -1,12 +1,10 @@
-// O Clerk é a tabela de usuários. O tipo User do SDK não sai deste arquivo: o
-// resto do código vê Pessoa.
-
 import type { ClerkClient, User } from "@clerk/backend";
 
 import type { Papel } from "../context";
 import type { Email } from "../dominio/convite";
 import type { BuscaDeContas, Conta, Pessoa } from "../dominio/tipos";
 
+/** O Clerk é a tabela de usuários. O tipo User do SDK não sai deste arquivo: o resto do código vê Pessoa. */
 export interface Pessoas {
   /**
    * Casa nome, sobrenome, e-mail, telefone, username e userId, por trecho, e
@@ -30,8 +28,7 @@ export interface Pessoas {
 
 export const LIMITE = 20;
 
-/** A Backend API devolve o provedor como "oauth_google"; o tipo do SDK fala em "google". */
-const OAUTH = /^oauth_/;
+const PREFIXO_OAUTH_DA_BACKEND_API = /^oauth_/;
 
 /** O Clerk aceita até 100 userIds num filtro. */
 export const TETO_DO_FILTRO = 100;
@@ -49,7 +46,7 @@ export function paraPessoa(u: User): Pessoa {
 
 function paraConta(u: User): Conta {
   const google = u.externalAccounts.some(
-    (c) => c.provider.replace(OAUTH, "") === "google"
+    (c) => c.provider.replace(PREFIXO_OAUTH_DA_BACKEND_API, "") === "google"
   );
 
   return {
@@ -90,9 +87,7 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
     async contasCom(emails) {
       const pedidos = new Set<string>(emails);
       const achadas = new Map<Email, string>();
-      // O filtro emailAddress do Clerk casa trecho: `ana@x.com` traz também
-      // `diana@x.com`. Por isso a igualdade é conferida aqui, e a busca segue
-      // pelas páginas até achar todos ou acabar.
+      // WARNING: o filtro emailAddress do Clerk casa trecho (`ana@x.com` traz `diana@x.com`), então a igualdade é conferida aqui.
       let offset = 0;
 
       while (pedidos.size > 0 && achadas.size < pedidos.size) {
@@ -123,7 +118,7 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
       return achadas;
     },
     async definirPapel(userId, papel) {
-      // null tira a chave no merge do Clerk: sem papel, o claim vale aluno.
+      // WARNING: null tira a chave no merge do Clerk, e sem papel o claim vale aluno.
       await clerk.users.updateUserMetadata(userId, {
         publicMetadata: { papel: papel === "admin" ? "admin" : null },
       });
@@ -136,8 +131,6 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
   };
 }
 
-// A lista filtrada por userId devolve vazio para quem não existe; getUser
-// lançaria 404 e pediria tradução de erro.
 async function umUsuario(
   clerk: ClerkClient,
   userId: string

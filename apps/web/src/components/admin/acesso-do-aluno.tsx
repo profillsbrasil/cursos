@@ -44,8 +44,7 @@ interface Para {
   userId: string;
 }
 
-// Só quando o foco caiu no body: se o admin já está em outra linha, não o tira de lá.
-const focarLiberacoes = () => {
+const focarLiberacoesSeOFocoCaiuNoBody = () => {
   if (document.activeElement === document.body) {
     document.getElementById("liberacoes")?.focus();
   }
@@ -67,10 +66,9 @@ function AcaoDaLiberacao({
       executar(
         () => trpcClient.admin.liberacoes.revogar.mutate({ liberacaoId: l.id }),
         {
-          // O botão some e a linha desce para as revogadas: o foco vai para o título da tabela.
           depois: () => {
             fechar(`revogar:${l.id}`);
-            focarLiberacoes();
+            focarLiberacoesSeOFocoCaiuNoBody();
           },
           sucesso: (r) =>
             r.revogada
@@ -127,10 +125,6 @@ function Rodape({ hoje, l }: { hoje: string; l: LiberacaoNaTela }) {
   );
 }
 
-/**
- * Uma liberação: título e selo; a frase do estudo; a barra; a data. Revogar fica
- * à direita e, em container estreito, desce para o pé.
- */
 function ItemDaLiberacao({
   hoje,
   l,
@@ -211,8 +205,6 @@ function Liberacoes({
         <ul className="divide-border divide-y">{ativas.map(item)}</ul>
       )}
       {revogadas.length === 0 ? null : (
-        // As revogadas ficam recolhidas no fim. Sob o cursor e com o foco, o
-        // summary ganha o fundo branco a 8% e o texto em titulo, como o módulo do player.
         <details className="group/revogadas border-border border-t">
           <summary className="text-muted-foreground hover:text-titulo flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-white/8 @xl:px-5 [&::-webkit-details-marker]:hidden">
             <ChevronRight
@@ -230,10 +222,6 @@ function Liberacoes({
   );
 }
 
-/**
- * Liberar a partir de uma linha. Depois do sucesso a linha fica no lugar e o
- * botão vira o selo "Liberado", que recebe o foco sem rolar a página.
- */
 function useLiberar({ nome, userId }: Para, cursoId: CursoId, titulo: string) {
   const { executar, pendente } = useAcao();
   const focarSelo = useRef(false);
@@ -302,9 +290,6 @@ function LinhaDoCurso({ c, para }: { c: CursoParaLiberar; para: Para }) {
   const { id, titulo } = c.curso;
   const { enviando, liberar, selo } = useLiberar(para, id, titulo);
 
-  // Em lista de 32rem ou mais, o botão fica na coluna da direita mesmo quando o
-  // selo quebra linha. Mais estreita, a linha quebra como texto: um selo longo
-  // não cabe ao lado do botão.
   return (
     <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-3.5 @lg:grid @lg:grid-cols-[minmax(0,1fr)_auto]">
       <span className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">

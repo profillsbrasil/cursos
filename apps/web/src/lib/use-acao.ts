@@ -46,7 +46,6 @@ export async function rodarAcao<T>(
 
     opcoes.depois?.(r);
   } catch (e) {
-    // Erro de rede chega sem data: o servidor não respondeu.
     const recusa =
       isTRPCClientError<AppRouter>(e) && e.data
         ? { ...e.data, mensagem: e.message }

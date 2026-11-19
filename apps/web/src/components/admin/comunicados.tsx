@@ -38,7 +38,6 @@ import {
 import { Secao, Vazio } from "./partes";
 import { type ItemDaSelecao, SelecaoComBusca } from "./selecao";
 
-/** O que o formulário envia; cursoId vazio é o comunicado geral. */
 interface Rascunho {
   cursoId: string;
   texto: string;
@@ -203,11 +202,6 @@ const paraEnviar = (id: string, r: Rascunho) => ({
   titulo: r.titulo,
 });
 
-/**
- * O id do comunicado novo nasce aqui: enviar duas vezes o mesmo formulário edita
- * o que já foi publicado, em vez de publicar outro. Depois do sucesso um id novo
- * remonta o formulário vazio.
- */
 function NovoComunicado({ cursos }: { cursos: readonly CursoDoComunicado[] }) {
   const { executar, pendente } = useAcao();
   const [id, setId] = useState(() => crypto.randomUUID());
@@ -243,7 +237,6 @@ function NovoComunicado({ cursos }: { cursos: readonly CursoDoComunicado[] }) {
   );
 }
 
-// Fora da edição o foco volta ao título do item, que continua no lugar.
 const focarSeVoltou =
   (voltou: { current: boolean }) => (el: HTMLHeadingElement | null) => {
     if (el && voltou.current) {

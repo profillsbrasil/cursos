@@ -67,8 +67,11 @@ function CampoDaCategoria({
 }) {
   const id = ID.curso("categoriaId");
   const { executar } = useAcao();
-  // A criada aparece na lista antes de o refresh trazer a página com ela.
-  const [criadas, setCriadas] = useState<readonly CategoriaNaLista[]>([]);
+
+  const [criadasAntesDoRefresh, setCriadasAntesDoRefresh] = useState<
+    readonly CategoriaNaLista[]
+  >([]);
+
   const [criada, setCriada] = useState<CategoriaNaLista | null>(null);
   const [recusa, setRecusa] = useState<string | null>(null);
 
@@ -81,7 +84,9 @@ function CampoDaCategoria({
 
   const todas = [
     ...categorias,
-    ...criadas.filter((c) => !categorias.some((d) => d.id === c.id)),
+    ...criadasAntesDoRefresh.filter(
+      (c) => !categorias.some((d) => d.id === c.id)
+    ),
   ];
 
   const escolher = useCallback(
@@ -107,7 +112,7 @@ function CampoDaCategoria({
             aoRecusar: (_motivo, frase) =>
               setRecusa(frase ?? "Não deu para criar a categoria."),
             depois: () => {
-              setCriadas((atual) => [...atual, nova]);
+              setCriadasAntesDoRefresh((atual) => [...atual, nova]);
               setCriada(nova);
               mudar(nova.id);
             },
@@ -166,7 +171,6 @@ function CampoDaCategoria({
   );
 }
 
-/** O id do título da seção, alvo do índice (secoesDoEditor). */
 const ID_DA_SECAO = "capa-e-descricao";
 
 export function CapaEDescricao({
@@ -200,8 +204,6 @@ export function CapaEDescricao({
   );
 
   return (
-    // O cartão abre o editor sem título visível; o h2 escondido nomeia a região e
-    // é o alvo do índice. A seção relativa segura o h2 no alto dela.
     <section aria-labelledby={ID_DA_SECAO} className="relative">
       <h2 className="sr-only" id={ID_DA_SECAO} tabIndex={-1}>
         Capa e descrição

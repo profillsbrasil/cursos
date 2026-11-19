@@ -11,13 +11,6 @@ const BRILHO = "0 6px 18px rgb(255 204 1 / 0.28)";
 const TRANSICAO =
   "color 150ms var(--ease-forte), border-color 150ms var(--ease-forte), background-color 150ms var(--ease-forte), box-shadow 150ms var(--ease-forte)";
 
-/**
- * O Clerk desenha borda e anel de foco com box-shadow, em regras como
- * `.cl-internal-x[data-variant][data-color]:focus` (três classes e a pseudo). O
- * `&&&` repete a classe do elemento para a nossa regra empatar ou vencer na
- * especificidade, e ela vem depois na folha. O foco de teclado acende igual ao
- * cursor, como no resto do app (#30), e nada desenha anel.
- */
 const forte = (
   repouso: Record<string, unknown>,
   aceso: Record<string, unknown>
@@ -48,8 +41,6 @@ const LINK = forte(
   { color: "var(--titulo)" }
 );
 
-// O título fica fora de vista, e não fora da árvore, para o leitor de tela ainda
-// anunciar a página.
 const FORA_DE_VISTA = {
   clip: "rect(0 0 0 0)",
   height: "1px",
@@ -59,12 +50,8 @@ const FORA_DE_VISTA = {
   width: "1px",
 } as const;
 
-// O login e o cadastro dividem o cartão. Fica fora do tema geral para não mudar
-// o <UserProfile> e o <UserButton>.
 const CARTAO_DE_ENTRADA = {
   elements: {
-    // A primeira tela do login (só ela) tem o logo direto acima do Google. O Clerk
-    // marca o passo no cartão: cl-signIn-start, cl-signUp-start, e assim por diante.
     card: {
       "&.cl-signIn-start :is(.cl-headerTitle, .cl-headerSubtitle)":
         FORA_DE_VISTA,
@@ -102,7 +89,6 @@ const CARTAO_DE_ENTRADA = {
     formFieldInput: {
       ...CAMPO,
       "&::placeholder": { color: "var(--muted-foreground)" },
-      // O campo com erro fica vermelho também no foco e sob o cursor.
       '&&&[aria-invalid="true"]': { borderColor: "var(--destructive)" },
     },
     formFieldLabel: {
@@ -149,7 +135,6 @@ const CARTAO_DE_ENTRADA = {
     logoImageUrl: LOCKUP.src,
     logoPlacement: "inside",
   },
-  // Sem anel de foco do Clerk no cartão: o que se foca acende como sob o cursor.
   variables: {
     colorDanger: "#FF8F86",
     colorRing: "transparent",
@@ -158,7 +143,7 @@ const CARTAO_DE_ENTRADA = {
   },
 } satisfies NonNullable<Props["appearance"]>["signIn"];
 
-// O app tem um tema só, escuro.
+/** O app tem um tema só, escuro. */
 export const APARENCIA_CLERK = {
   signIn: CARTAO_DE_ENTRADA,
   signUp: CARTAO_DE_ENTRADA,
@@ -175,9 +160,6 @@ export const APARENCIA_CLERK = {
   },
 } satisfies Props["appearance"];
 
-// O ptBR inteiro tem 62 KB e vai no HTML de toda carga completa. O app só desenha o
-// SignIn, o SignUp e o modal de reverificação do useReverification; os textos
-// soltos do topo são os que eles dividem.
 const PARTES_USADAS = new Set<string>([
   "dates",
   "impersonationFab",
@@ -195,17 +177,10 @@ const doApp = Object.fromEntries(
   )
 );
 
-// O nome da instância no Clerk ("cursos") entra nos textos por {{applicationName}};
-// o nome que a pessoa lê é o PRODUTO.
 const comOProduto: typeof ptBR = JSON.parse(
   JSON.stringify(doApp).replaceAll("{{applicationName}}", PRODUTO)
 );
 
-// O link de entrada (__clerk_ticket). O Clerk procura a recusa da API em
-// unstable__errors.<code> e, sem a chave, mostra o long_message dela, em inglês; o
-// ptBR não traz esses códigos. O tipo do Clerk não lista os sign_in_token_*, mas
-// a leitura é pelo caminho no objeto mesclado: vão por spread, que o TypeScript
-// não confere como propriedade a mais. Códigos da doc de erros da Frontend API.
 const ERROS_DO_LINK_DE_ENTRADA = {
   sign_in_token_already_used_code:
     "Este link de entrada já foi usado, e cada link vale uma vez só. Entre com seu e-mail ou com o Google.",
@@ -220,6 +195,7 @@ const ERROS_DO_LINK_DE_ENTRADA = {
     "Este link não vale mais ou já foi usado. Entre com seu e-mail ou com o Google.",
 };
 
+/** Textos em pt-BR do Clerk, só das partes que o app desenha, com o nome do produto no lugar de {{applicationName}}. */
 export const TEXTOS_CLERK = {
   ...comOProduto,
   dividerText: "ou com e-mail",
@@ -253,8 +229,6 @@ export const TEXTOS_CLERK = {
       ...comOProduto.signUp?.start,
       actionLink: "Entrar",
       actionText: "Já tem conta?",
-      // A instância do Clerk não pede nome no cadastro: o subtítulo não promete
-      // o campo, e diz onde o nome do certificado se acerta.
       subtitle:
         "Use seu e-mail ou o Google. O nome do certificado você confere depois, em Minha conta.",
       title: "Criar sua conta",

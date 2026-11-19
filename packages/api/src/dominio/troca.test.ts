@@ -271,8 +271,6 @@ describe("montarPainelDeTroca", () => {
     });
   });
 
-  // O fato que apaga o brilho do saldo e muda a frase da vitrine. O saldo não
-  // entra: curso que falta pontos também aceita troca.
   const temCurso = (cursos: CursoDaTroca[]) =>
     montarPainelDeTroca(
       { cursos, extrato: [], pontos: { entradasDaSemana: 0, saldo: 0 } },

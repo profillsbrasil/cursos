@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 
 import { atalhoDe } from "./atalho";
 
-// O Ctrl+B da sidebar também aceita a tecla Command. No Mac a dica mostra o
-// atalho que a pessoa usa ali.
 describe("a dica de recolher mostra o atalho da plataforma", () => {
   test("macOS pelo navigator.platform: ⌘ B", () => {
     expect(atalhoDe({ platform: "MacIntel" })).toBe("⌘ B");

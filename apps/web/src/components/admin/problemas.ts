@@ -1,5 +1,3 @@
-// Sem "use client": as duas telas e os testes importam.
-
 import type { z } from "zod";
 
 import { fmtNum } from "@/lib/formato";
@@ -21,8 +19,10 @@ export function mensagemDoTexto(i: z.core.$ZodIssue): string | null {
     return `Use até ${fmtNum(Number(i.maximum))} caracteres.`;
   }
 
-  // O curso novo começa com o id vazio, que o z.uuid() recusa.
-  if (i.code === "invalid_format" && i.path.at(-1) === "categoriaId") {
+  const categoriaNovaSemId =
+    i.code === "invalid_format" && i.path.at(-1) === "categoriaId";
+
+  if (categoriaNovaSemId) {
     return "Escolha a categoria.";
   }
 

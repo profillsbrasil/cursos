@@ -26,16 +26,18 @@ async function headers(): Promise<Record<string, string>> {
   return comToken(await clerkAuth.getToken());
 }
 
-// O registro só sai do browser, e também no pagehide, que não espera a rede.
 const headersDoRegistro = async () =>
   comToken(await getClerkAuthTokenSemEspera());
 
 const URL_API = "/api/trpc";
 
-// O registro do player vai sem lote e com keepalive: o httpBatchLink agenda o lote
-// num setTimeout, e timer não roda depois do pagehide.
-// FormData (o salvarCurso, com a capa) também vai sem lote: o lote serializa a
-// entrada em JSON e o arquivo se perderia.
+/**
+ * O registro do player (aula.registrar) vai sem lote e com keepalive: o
+ * httpBatchLink agenda o lote num setTimeout, e timer não roda depois do pagehide.
+ * Ele só sai do browser, também no pagehide, que não espera a rede, então usa o
+ * token sem espera. FormData (o salvarCurso, com a capa) também vai sem lote: o
+ * lote serializa a entrada em JSON e o arquivo se perderia.
+ */
 export const trpcClient = createTRPCClient<AppRouter>({
   links: [
     splitLink({

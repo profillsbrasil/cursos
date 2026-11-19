@@ -121,7 +121,6 @@ function MarcaDaAula({
   );
 }
 
-/** Na amostra, a aula fechada: o cadeado no lugar do número, sem link. */
 function AulaFechada({ aula }: { aula: AulaDaPagina }) {
   return (
     <li className="border-border relative grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-3.5 gap-y-1 border-t py-3.5 pr-5 pl-5 first:border-t-0 sm:pl-[62px] [[data-atual]+&]:border-t-transparent">
@@ -150,7 +149,6 @@ function Livro({
   parou,
   slug,
 }: {
-  /** A aula de amostra; null no curso inteiro. */
   amostra: AulaId | null;
   atual: AulaId | null;
   modulo: ModuloDaPagina;

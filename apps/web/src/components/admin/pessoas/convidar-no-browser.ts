@@ -1,6 +1,3 @@
-// O diálogo de convidar empacotado para o Chromium dos testes, com o servidor, a
-// navegação, o link e o toast falsos. Só os testes importam este módulo.
-
 import { join } from "node:path";
 
 import { build } from "bun";
@@ -19,7 +16,8 @@ const FALSOS: [RegExp, string][] = [
 ];
 
 /**
- * O falso grava cada pedido em window.chamadas e responde com
+ * O diálogo de convidar empacotado para o Chromium dos testes, com o servidor, a
+ * navegação, o link e o toast falsos. Só os testes importam este módulo. O falso grava cada pedido em window.chamadas e responde com
  * window.resposta(pedido); sem ela, todo e-mail sai. O toast vai para
  * window.toasts.
  */

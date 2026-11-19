@@ -1,5 +1,3 @@
-/** Classes que as peças do player dividem. Fora de módulo "use client", para o loading.tsx também poder lê-las. */
-
 /** O botão de ícone da barra de controles: o foco de teclado ganha o mesmo fundo do cursor. */
 export const ICONE =
   "relative size-[38px] rounded-[10px] text-foreground hover:bg-accent dark:hover:bg-accent [&_svg:not([class*='size-'])]:size-[18px]";

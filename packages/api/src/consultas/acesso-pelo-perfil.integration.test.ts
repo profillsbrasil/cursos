@@ -1,8 +1,3 @@
-// O que o aluno vê pela liberação do perfil, por todos os routers do aluno: o
-// alunoProcedure lê o perfil e cada leitor soma a liberação do perfil à própria.
-// A liberação do perfil dá a amostra (amostra.integration.test.ts prova cada
-// procedure); aqui fica quem vê o curso e quem não vê.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
@@ -46,13 +41,11 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
   const cursos: string[] = [];
   const comunicados: string[] = [];
 
-  /** Um aluno com o perfil já escolhido pelo admin, e o caller de um pedido dele. */
   async function aluno(perfil: Perfil, email = "pessoa@exemplo.com") {
     const userId = `user_perfilve${S}x${alunos.length}`;
     alunos.push(userId);
     await definirPerfil(db, ADMIN, userId, perfil, AGORA);
 
-    // Cada leitura de caller é um pedido novo, como cada página no app.
     return {
       get caller() {
         return comoAluno(userId, email);
@@ -245,8 +238,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await db.insert(comunicado).values({
       cursoId: c.id,
       id,
-      // Agora, e não AGORA: o painel mostra o comunicado mais novo, e o banco
-      // local tem os gerais do seed, publicados depois de 20 de outubro.
+      // WARNING: Agora, e não AGORA: o painel mostra o comunicado mais novo, e o seed local publica gerais depois de 20/10.
       publicadoEm: new Date(),
       publicadoPor: ADMIN,
       texto: "Módulo novo.",
@@ -261,7 +253,6 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const noPainel = async (x: ReturnType<typeof comoAluno>) =>
       (await x.meusCursos.painel()).comunicado?.id;
 
-    // O curso aparece como amostra, mas o comunicado dele é conteúdo do curso.
     expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
     expect(await ids(cliente.caller)).not.toContain(id);
     expect(await noPainel(cliente.caller)).not.toBe(id);

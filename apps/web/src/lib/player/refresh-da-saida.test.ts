@@ -25,8 +25,6 @@ const aceito = (conquista: Conquista | null): RespostaDoEnvio => ({
   tipo: "ok",
 });
 
-// Uma resposta de cada vez, na ordem da sessão: o enviar resolve e, com conquista,
-// o aoConquistar roda logo depois.
 function ligar() {
   const respostas: RespostaDoEnvio[] = [];
   const conquistas: Conquista[] = [];
@@ -101,8 +99,6 @@ describe("refresh da saída", () => {
   });
 });
 
-// A montagem do hook: a sessão recebe o `aoConquistar` e o `enviar` do módulo, não
-// os crus. Com os crus, a conquista não pede refresh e a saída não marca o envio.
 describe("ligarRefreshDaSaida", () => {
   function montar(resposta: RespostaDoEnvio) {
     const conquistas: Conquista[] = [];

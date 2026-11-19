@@ -49,7 +49,6 @@ const linhasEmHtml = () =>
 
 const linhas = () => linhasEmHtml().map(texto);
 
-/** As classes do elemento que tem só o texto dado. */
 const classesDe = (linha: string, conteudo: string) =>
   linha.match(new RegExp(`class="([^"]*)"[^>]*>${conteudo}<`))?.[1] ?? "";
 

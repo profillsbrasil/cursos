@@ -40,7 +40,6 @@ interface Categoria {
   esperado: Resultado;
   nome: string;
   plantios: Plantio[];
-  /** Os códigos TS que cada lado devolve, em ordem. */
   tsc: string[];
   tsrs: string[];
 }
@@ -377,7 +376,6 @@ const plantar = async (copia: string, plantios: Plantio[]) => {
 const LINHA_DO_TSC = /^(?:(.+?)\(\d+,\d+\): )?error (TS\d+):/u;
 const CODIGO_DO_OXLINT = /^typescript\((TS\d+)\)$/u;
 
-// O tsc 7 sai com 1 quando acha erro de tipo com --noEmit, e com 0 sem erro.
 const SAIDA_DO_TSC_COM_ERRO = 1;
 
 const errosDoTsc = async (copia: string) => {
@@ -489,7 +487,6 @@ const rodarOsDois = async (copia: string) => {
     errosDoTsrs(copia),
   ]);
 
-  // Prova de que os dois lados rodaram: um lado parado não lê arquivo nenhum.
   expect(tsc.arquivos).toBeGreaterThan(0);
   expect(tsrs.arquivos).toBeGreaterThan(0);
 
@@ -557,8 +554,6 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
   });
 
   test("o código sem plantio não tem erro de tipo nos dois", async () => {
-    // Sentinela: os dois lados acusam um erro plantado antes de a cópia limpa
-    // valer como prova. Com um lado parado, o "0 erros" não prova nada.
     const desfazer = await plantar(copia, [
       {
         tipo: "acrescentar",

@@ -1,8 +1,3 @@
-// O código do curso ("PE-001"). O servidor escolhe no primeiro salvamento, a partir
-// da categoria, e não troca depois, nem se a categoria mudar. A migração
-// codigo_gerado repete esta regra em SQL, e o codigo-gerado.integration.test.ts
-// confere os dois lados.
-
 const MARCAS = /[̀-ͯ]/g;
 const FORA_DO_FORMATO = /[^A-Za-z0-9]+/g;
 
@@ -22,10 +17,14 @@ const LIGACAO: ReadonlySet<string> = new Set([
   "PARA",
 ]);
 
-/** Categoria só de palavras de ligação ou sem letra, como "???". */
 const SEM_PALAVRA = "CUR";
 
 /**
+ * O código do curso ("PE-001"): o servidor escolhe no primeiro salvamento, a
+ * partir da categoria, e não troca depois, nem se a categoria mudar. A migração
+ * codigo_gerado repete esta regra em SQL, e o codigo-gerado.integration.test.ts
+ * confere os dois lados.
+ *
  * "Processo de envase" vira "PE": sem acento, em maiúsculas e sem as palavras de
  * ligação. Com duas palavras ou mais, as iniciais das quatro primeiras; com uma,
  * as três primeiras letras ("Comercial" vira "COM").

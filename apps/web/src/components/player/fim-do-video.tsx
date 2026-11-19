@@ -12,12 +12,6 @@ import {
 import { fmtMin } from "@/lib/formato";
 import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
-/**
- * O cartão do app no lugar do vídeo que terminou, em vez da tela de outros vídeos do
- * YouTube. O iframe continua no player, escondido, e o cartão toma o lugar dele no
- * fluxo, sem ficar por cima.
- */
-/** O fim da aula de amostra (a variante D do protótipo): o convite de troca no lugar da próxima aula. */
 function FimDaAmostra({
   amostra,
   slug,
@@ -55,6 +49,11 @@ function FimDaAmostra({
   );
 }
 
+/**
+ * O cartão do app no lugar do vídeo que terminou, em vez da tela de outros vídeos do
+ * YouTube. O iframe continua no player, escondido, e o cartão toma o lugar dele no
+ * fluxo, sem ficar por cima.
+ */
 export function FimDoVideo({
   aoRever,
   assistida,

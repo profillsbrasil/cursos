@@ -1,5 +1,3 @@
-// Gera os três SVG do cubo da marca a partir das faces abaixo.
-// Uso, da raiz do repo: bun docs/marca/cubo.ts apps/web
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -10,17 +8,17 @@ interface Face {
   pontos: readonly Ponto[];
 }
 
-// Medidas do símbolo da Profills School, traçado pelo potrace e acertado à mão:
-// a aresta da frente em x 269, a inclinação de 0,525, lajes de 99 e vãos de 42.
 const LARGURA = 664.5;
 const ALTURA = 573;
+
+const FOLGA_LATERAL = 2;
+const X_ONDE_COMECA_O_TEXTO = 150;
 
 const CEU = { luz: "#AAD2EA", sombra: "#7BB5DD", topo: "#D4E8F4" };
 const SOL = { luz: "#FFCC01", sombra: "#E0A800" };
 const CANELA = { luz: "#E5977A", sombra: "#C9785C" };
 
-// A ordem é a de pintura, de cima para baixo. Em cada laje, a face da esquerda
-// fica na sombra e a da direita leva a cor do app.
+// WARNING: a ordem de FACES é a de pintura, de cima para baixo.
 const FACES: readonly Face[] = [
   {
     cor: CEU.topo,
@@ -105,26 +103,23 @@ function caminhos(escala: number, dx: number, dy: number) {
   });
 }
 
-// O cubo centrado num quadro quadrado, com 2 unidades de folga nas laterais.
 function quadrado(lado: number, titulo: string) {
-  const escala = (lado - 4) / LARGURA;
+  const escala = (lado - 2 * FOLGA_LATERAL) / LARGURA;
   const dy = (lado - ALTURA * escala) / 2;
 
   return [
     `<svg viewBox="0 0 ${lado} ${lado}" xmlns="http://www.w3.org/2000/svg">`,
     `  <title>${titulo}</title>`,
-    ...caminhos(escala, 2, dy),
+    ...caminhos(escala, FOLGA_LATERAL, dy),
     "</svg>",
     "",
   ].join("\n");
 }
 
-// No lockup, o cubo ocupa a altura toda à esquerda, e o texto já desenhado fica.
-// O texto é todo path que começa depois de x 150.
 function lockup(atual: string) {
   const texto = atual
     .matchAll(/<path\b[^>]*?\bd="M(\d+(?:\.\d+)?)[\s\S]*?\/>/g)
-    .filter((m) => Number(m[1]) > 150)
+    .filter((m) => Number(m[1]) > X_ONDE_COMECA_O_TEXTO)
     .map((m) => `  ${m[0]}`)
     .toArray();
 

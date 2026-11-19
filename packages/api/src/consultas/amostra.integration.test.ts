@@ -1,8 +1,3 @@
-// A amostra pela liberação do perfil, por todos os procedures que abrem
-// conteúdo: com só a liberação do perfil, a primeira aula abre e as outras são
-// recusadas no servidor. A amostra grava o fato aula_assistida sem lançamento, e
-// a troca abre o curso inteiro e lança as aulas já assistidas.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 
@@ -52,7 +47,6 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
   const alunos: string[] = [];
   const cursos: string[] = [];
 
-  /** Uma cliente sem liberação própria, com `pontos` de saldo. */
   async function cliente(pontos = 0) {
     const userId = `user_amostra${S}x${alunos.length}`;
     alunos.push(userId);
@@ -69,7 +63,6 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     }
 
     return {
-      // Cada leitura é um pedido novo, como cada página no app.
       get caller() {
         return createCaller(
           contextoDeTeste({
@@ -85,11 +78,6 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     };
   }
 
-  /**
-   * Um curso publicado de dois módulos, aberto ao perfil Cliente. A aula 1 (a
-   * primeira do primeiro módulo) e a aula 2 têm uma pergunta cada; o módulo 1
-   * vem depois do 0, embora seja inserido antes.
-   */
   async function cursoComAmostra(
     o: { aulas?: number; perguntas?: boolean; preco?: number | null } = {}
   ) {
@@ -256,7 +244,6 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       preco: PRECO,
       vista: false,
     });
-    // A retomada nunca leva a uma aula fechada.
     expect(painel.retomada).toBeNull();
 
     const pagina = await pessoa.caller.curso.pagina({ slug: c.slug });
@@ -267,7 +254,6 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
       preco: PRECO,
       saldo: 120,
     });
-    // O material de apoio não sai na página da amostra.
     expect(pagina?.materiais).toEqual([]);
 
     const vitrine = await pessoa.caller.troca.painel();
@@ -361,7 +347,6 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
 
     expect(posicao?.posicaoSeg).toBe(60);
     expect(await lancamentosDe(pessoa.userId)).toEqual([]);
-    // A amostra do curso de uma aula só também não emite o certificado, nem pela edição do admin.
     await db.transaction((tx) => concluirParaQuemCompletou(tx, c.id, AGORA));
     expect(
       await db.query.certificado.findMany({ where: { userId: pessoa.userId } })

@@ -3,7 +3,7 @@ import {
   EsqueletoDoTopoDaPessoa,
 } from "@/components/admin/esqueletos";
 
-// O acesso da pessoa: o topo, a seção das liberações e a de liberar curso.
+/** O acesso da pessoa: o topo, a seção das liberações e a de liberar curso. */
 export default function Carregando() {
   return (
     <div aria-busy="true">

@@ -8,7 +8,6 @@ import { ProvedorDaCasca } from "./provedor-da-casca";
 const BOTAO = /<button[^>]*>/g;
 const ATRIBUTO = /\s(aria-[a-z]+)="([^"]*)"/g;
 
-/** Os atributos aria de cada botão do cabeçalho no computador. */
 function botoes(aberta: boolean) {
   const html = renderToStaticMarkup(
     <ProvedorDaCasca aberta={aberta}>
@@ -23,9 +22,7 @@ function botoes(aberta: boolean) {
   );
 }
 
-// Dois botões trocados por CSS escondiam o que tinha o foco, e o teclado caía no
-// body. Com um botão só, o foco fica nele ao recolher e ao abrir.
-describe("o cabeçalho tem um botão só para alternar a navegação", () => {
+describe("o cabeçalho tem um botão só para alternar a navegação, e o foco não cai no body", () => {
   test("aberta: Recolher, expandido", () => {
     expect(botoes(true)).toEqual([
       { "aria-expanded": "true", "aria-label": "Recolher navegação" },

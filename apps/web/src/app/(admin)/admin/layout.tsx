@@ -10,8 +10,10 @@ export const metadata: Metadata = {
   title: { default: "Admin", template: TEMPLATE_DO_TITULO_DO_ADMIN },
 };
 
-// proxy.ts não tem regra por caminho: a porta é exigirAdmin aqui e em cada carregador,
-// mais o adminProcedure em cada procedimento.
+/**
+ * O proxy.ts não tem regra por caminho: a porta é o exigirAdmin aqui e em cada
+ * carregador, mais o adminProcedure em cada procedimento.
+ */
 export default async function LayoutDoAdmin({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

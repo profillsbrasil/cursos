@@ -12,7 +12,6 @@ import type { CursoId, DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
 
-/** Linhas do histórico com datas literais; o que não vem fica vazio. */
 const linhas = (o: Partial<LinhasHistorico>): LinhasHistorico => ({
   assistidas: [],
   certificados: [],
@@ -32,7 +31,6 @@ const certificado = (cursoId: string, iso: string) => ({
   emitidoEm: em(iso),
 });
 
-// a: módulo 0 com 2 aulas, módulo 1 com 1 aula.
 const A = cursoCat("a", { aulas: [2, 1] });
 
 describe("acompanharCurso, um estado por linha da tabela", () => {
@@ -60,7 +58,6 @@ describe("acompanharCurso, um estado por linha da tabela", () => {
   });
 
   test("estudando: a aula do Continuar e o dia do último estudo em São Paulo", () => {
-    // 01:30 UTC de 14/10 é 22:30 de 13/10 em São Paulo.
     const e = estudoDe(
       linhas({
         assistidas: [assistida(idAula("a", 0, 1), "2026-10-12T15:00:00Z")],
@@ -195,7 +192,6 @@ describe("montarBusca", () => {
     titulo: `Curso ${id}`,
   });
 
-  // x (2 aulas), y (1 aula), z em produção, w (1 aula).
   const catalogo: Omit<LinhasDaBusca, "pessoas"> = {
     cursos: [
       curso("x", 2),
@@ -254,7 +250,6 @@ describe("montarBusca", () => {
       })
     ).toEqual({
       desde: "2026-09-30" as DiaISO,
-      // z está em produção e fica fora da conta de cursos.
       numeros: { concluidos: 0, cursos: 2, emProducao: 1 },
       tipo: "nunca_abriu",
     });

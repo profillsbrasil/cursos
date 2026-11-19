@@ -20,7 +20,6 @@ export const LUGAR_DO_CARTAO =
 
 export const LUGAR_DO_RESTO = "grid min-w-0 content-start gap-10";
 
-// O "·" mora à esquerda de cada parte. A parte que abre uma linha o põe na margem negativa, que o overflow esconde.
 const SEPARADO =
   "relative ml-7 before:absolute before:inset-y-0 before:-left-7 before:flex before:w-7 before:items-center before:justify-center before:content-['·']";
 

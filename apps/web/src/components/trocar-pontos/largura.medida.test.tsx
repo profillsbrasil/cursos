@@ -119,7 +119,6 @@ const larguraDe = (seletor: string) =>
     `Math.round(document.querySelector(${JSON.stringify(seletor)}).getBoundingClientRect().width)`
   );
 
-// O cartão do vazio de Cursos para trocar, que leva a frase e o botão na mesma linha.
 const larguraDoVazio = () =>
   avaliar<number>(
     enviar,

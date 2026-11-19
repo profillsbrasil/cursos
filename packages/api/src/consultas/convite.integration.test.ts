@@ -28,7 +28,6 @@ const AGORA = new Date("2026-11-11T15:00:00Z");
 const MIN = 60_000;
 const DIA = 86_400_000;
 
-/** Um e-mail só deste teste e desta execução: o banco local é dividido entre worktrees. */
 const email = (nome: string) => `${nome}.${hex()}@convite${S}.com` as Email;
 
 const semConta = { contasCom: () => Promise.resolve(new Map<Email, string>()) };
@@ -469,7 +468,6 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       falhas.set(destino, "limite");
       expect(await recusa(reenviarConvite(db, carteiro, id, depois))).toEqual([
         "TOO_MANY_REQUESTS",
-        // 3 dias depois das 15h UTC, mais a hora do Retry-After: 13h em São Paulo.
         "O limite de envios desta hora acabou. Tente de novo depois das 13h00.",
       ]);
       falhas.set(destino, "erro");

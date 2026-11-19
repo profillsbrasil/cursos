@@ -20,10 +20,6 @@ export type Etiqueta =
 const aulasEDuracao = (c: CursoVM) =>
   `${plural(c.aulas, "aula", "aulas")} · ${fmtHoras(c.duracaoSeg)}`;
 
-/**
- * A etiqueta sobre a imagem, como no protótipo aprovado: "Em produção" no curso em
- * produção e, nos outros, as aulas e a duração do curso inteiro.
- */
 function etiquetaDe(c: CursoVM): Etiqueta {
   if (c.estado.tipo === "em_breve") {
     return { tipo: "em_producao" };
@@ -60,10 +56,6 @@ export function linhaDoCurso(c: CursoVM): string {
     .join(`${ESPACO_QUE_NAO_QUEBRA}·${ESPACO_QUE_NAO_QUEBRA}`);
 }
 
-/**
- * "Agora: Módulo 8, Pilar Urgência", só no curso em andamento dividido em níveis.
- * No curso curto o módulo não diz nada que o título não diga.
- */
 const moduloDeAgora = (c: CursoVM) =>
   c.estado.tipo === "em_andamento" && c.temNiveis ? c.moduloAtual : null;
 
@@ -119,14 +111,8 @@ export function sizesDaCapa(n: number) {
 export const GRADE_CAPAS =
   "grid grid-cols-[repeat(auto-fill,minmax(min(100%,max(250px,(100%_-_36px)/3)),1fr))] gap-x-[18px] gap-y-[22px]";
 
-/** sizes de toda capa da GRADE_CAPAS: com no máximo 3 colunas, a conta é a de 3 capas. */
 const SIZES_DA_GRADE = sizesDaCapa(3);
 
-/**
- * O curso da amostra (a variante A do protótipo), na mesma grade: a capa velada
- * com o selo "Amostra" e o preço, e o "Assistir à amostra", que leva à aula de
- * amostra. O cartão inteiro é o link, como nos outros cursos.
- */
 function CapaDaAmostra({
   aulaId,
   curso,
@@ -178,7 +164,9 @@ function CapaDaAmostra({
         {curso.titulo}
       </h3>
       <p className="text-muted-foreground grid gap-1 text-[13px]">
-        <span>{linhaDoCurso({ ...curso, progresso: SEM_AULA })}</span>
+        <span>
+          {linhaDoCurso({ ...curso, progresso: PROGRESSO_ZERADO_DA_AMOSTRA })}
+        </span>
         <span>{linhaDaAmostra({ ...curso, vista })}</span>
       </p>
       <span
@@ -195,10 +183,9 @@ function CapaDaAmostra({
   );
 }
 
-/** A linha do curso da amostra não conta aula: o progresso é o da amostra. */
-const SEM_AULA = { feitas: 0, pct: 0, total: 0 };
+const PROGRESSO_ZERADO_DA_AMOSTRA = { feitas: 0, pct: 0, total: 0 };
 
-// Link quando o estado abre o curso; div aria-disabled em em_breve.
+/** Link quando o estado abre o curso; div `aria-disabled` em `em_breve`. */
 export function CapaCurso({ curso }: { curso: CursoVM }) {
   const { amostra } = curso;
 
@@ -272,7 +259,6 @@ export function CapaCurso({ curso }: { curso: CursoVM }) {
   }
 
   return (
-    // O foco de teclado acende o cartão como o cursor: anel Céu, capa e título (#30).
     <Link className={cn(base, "group")} href={caminhoDoCurso(curso.slug)}>
       {conteudo}
     </Link>

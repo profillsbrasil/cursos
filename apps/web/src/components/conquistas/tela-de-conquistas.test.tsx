@@ -17,7 +17,6 @@ const texto = (h: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** O HTML depois da tag que tem `marca`, até a tag do primeiro `fim`. */
 const trecho = (h: string, marca: string, fim: string) => {
   const inicio = h.indexOf(marca);
 
@@ -29,7 +28,6 @@ const trecho = (h: string, marca: string, fim: string) => {
       );
 };
 
-/** O nome do link: o texto sem o que é `aria-hidden`. */
 const nome = (h: string) =>
   texto(h.replace(/<span aria-hidden="true"[^>]*>[^<]*<\/span>/g, " "));
 
@@ -46,7 +44,6 @@ const sequencia = (h: string) =>
     )
   );
 
-/** O cartão Ganhas vai até a grade, ou até o fim de Marcos sem ela. */
 const cartaoDasGanhas = (h: string) =>
   trecho(
     h,

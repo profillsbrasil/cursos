@@ -44,7 +44,6 @@ const conta = (email: string | null, emailVerificado = true): Conta => ({
   userId: "user_x",
 });
 
-/** O login como perfilDe o vê. Sem convite, a chegada nunca grava papel. */
 const login = (lerConta: () => Promise<Conta | null>) => ({
   conta: lerConta,
   definirPapel: () =>
@@ -71,7 +70,6 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
   };
 
   afterAll(async () => {
-    // O primeiro acesso de Funcionário lança o bônus (bonus-de-funcionario.integration.test.ts).
     await db
       .delete(pontoLancamento)
       .where(inArray(pontoLancamento.userId, pessoas));
@@ -142,7 +140,6 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
       ...base,
       pessoas: {
         ...base.pessoas,
-        // A espera põe as duas chamadas no ar ao mesmo tempo, antes de a linha nascer.
         conta: async (id) => {
           leituras += 1;
           await esperar(50);

@@ -119,7 +119,6 @@ interface Letra {
   tamanho: string;
 }
 
-/** A letra do elemento que segura o primeiro texto com o trecho pedido. */
 const letraDe = (trecho: string) =>
   avaliar<Letra | null>(
     enviar,

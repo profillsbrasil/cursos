@@ -17,9 +17,7 @@ const SIDEBAR_DO_UI = join(
 );
 
 describe("cookie da sidebar", () => {
-  // O shadcn add --overwrite devolve a gravação ao setOpen do packages/ui, que
-  // escreveria a abertura da aula por cima da preferência que o provedor grava.
-  test("só o provedor da casca grava o cookie, e o sidebar.tsx não", () => {
+  test("só o provedor da casca grava o cookie, e o sidebar.tsx não, porque o shadcn add --overwrite devolve a gravação ao setOpen do packages/ui", () => {
     const gravaNoUi = readFileSync(SIDEBAR_DO_UI, "utf8").includes(
       "document.cookie"
     );
@@ -29,9 +27,7 @@ describe("cookie da sidebar", () => {
 });
 
 describe("largura recolhida", () => {
-  // A Moldura tira o border-r do sidebar-container (moldura.medida.test.tsx mede
-  // no Chromium): a largura recolhida é só o quadrado e os dois recuos.
-  test("14 px de recuo, 40 px de conteúdo e 14 px de recuo", () => {
+  test("14 px de recuo, 40 px de conteúdo e 14 px de recuo, sem o border-r do sidebar-container", () => {
     expect(LARGURAS_DA_SIDEBAR["--sidebar-width-icon"]).toBe("68px");
   });
 });

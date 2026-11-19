@@ -78,11 +78,6 @@ const LARGAS = /[MWmwŒÆœæ@%—]/u;
 const LATINA = /[\p{Script=Latin}\p{Nd}]/u;
 const MAIUSCULA = /\p{Lu}/u;
 
-/**
- * A largura da letra em em na Geist Bold, arredondada para cima por grupo: a conta
- * nunca dá linha mais curta que a desenhada. Fora do latim (emoji, outra escrita),
- * vale o teto de 1,3 em.
- */
 function emDaLetra(letra: string) {
   if (letra === " ") {
     return 0.25;
@@ -108,10 +103,6 @@ const emDaPalavra = (palavra: string) =>
 
 const LARGURA_DO_CENTRO = FOLHA_EM_PX.largura - 2 * FOLHA_EM_PX.centro.lado;
 
-/**
- * Quantas linhas o texto ocupa na largura do meio da folha. A palavra maior que a
- * linha quebra letra a letra, com o hífen no fim de cada pedaço (`quebravel`).
- */
 function linhasDo(texto: string, tamanho: number) {
   const cabe = LARGURA_DO_CENTRO / tamanho;
   const hifen = emDaLetra("-");
@@ -147,7 +138,6 @@ function linhasDo(texto: string, tamanho: number) {
 
 const { abre, centro, curso, frase, nome, traco } = FOLHA_EM_PX;
 
-/** A altura do meio da folha menos tudo o que não é o nome, com 8 px de folga para o pé. */
 function alturaParaONome(cursoNaFolha: { tamanho: number; texto: string }) {
   const doCurso =
     linhasDo(cursoNaFolha.texto, cursoNaFolha.tamanho) *

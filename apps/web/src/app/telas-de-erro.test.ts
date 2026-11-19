@@ -1,7 +1,3 @@
-// O error.tsx mais perto da página dá o título da tela de erro. O do grupo do
-// aluno dizia "seus cursos" em Minha conta, no curso e no certificado, e a
-// conferência pública caía no erro da raiz, sem a faixa com a marca.
-
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -10,7 +6,6 @@ import { Glob } from "bun";
 
 const APP = import.meta.dir;
 
-/** A pasta do error.tsx que pega o erro da página, ou null. */
 function erroDe(pagina: string) {
   let pasta = dirname(pagina);
 
@@ -30,7 +25,7 @@ const paginasDe = (pasta: string) =>
     join(APP, pasta, p)
   );
 
-describe("as telas de erro", () => {
+describe("o error.tsx mais perto da página dá o título da tela de erro", () => {
   test.each(paginasDe("(aluno)").map((p) => [relative(APP, p)]))(
     "%s tem error.tsx com o nome da tela, abaixo do grupo",
     (pagina) => {

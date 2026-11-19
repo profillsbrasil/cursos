@@ -1,8 +1,3 @@
-// Acha e, com --apagar, apaga os objetos órfãos dos buckets de capa e de material.
-// Uso: bun run coletar-orfaos [-- --apagar], da raiz. O varlock carrega o
-// DATABASE_URL e as S3_* pelo contrato de apps/web/.env.schema.
-// A regra mora em src/dominio/orfaos.ts.
-
 import { parseArgs } from "node:util";
 
 import { createDb } from "@cursos/db";
@@ -58,14 +53,15 @@ const configurados = [
   ),
 ].filter((b) => b !== null);
 
-// No dev, capa e material moram no mesmo bucket: ele é listado uma vez.
-const buckets = [...new Map(configurados.map((b) => [b.bucket, b])).values()];
+const bucketsSemRepetir = [
+  ...new Map(configurados.map((b) => [b.bucket, b])).values(),
+];
 
 if (!DATABASE_URL) {
   throw new Error("Falta o DATABASE_URL.");
 }
 
-if (buckets.length === 0) {
+if (bucketsSemRepetir.length === 0) {
   throw new Error("Nenhum bucket configurado: faltam as variáveis S3_*.");
 }
 
@@ -74,7 +70,7 @@ const emUso = await chavesEmUso(db);
 
 await db.$client.end();
 
-// Antes de listar: com o banco errado, nenhum bucket é tocado.
+// WARNING: a recusa vem antes de listar, para que com o banco errado nenhum bucket seja tocado.
 const recusa = apagar ? recusaDoApagar(emUso) : null;
 
 if (recusa) {
@@ -84,7 +80,7 @@ if (recusa) {
 const agora = new Date();
 
 const coletas = await Promise.all(
-  buckets.map(async (cfg) => {
+  bucketsSemRepetir.map(async (cfg) => {
     const bucket = bucketAssinado(cfg, fetch);
     const objetos = await bucket.listar();
 

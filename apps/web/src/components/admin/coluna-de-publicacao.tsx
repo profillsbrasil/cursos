@@ -134,10 +134,6 @@ function AntesDePublicar({ itens }: { itens: readonly ItemAntesDePublicar[] }) {
   );
 }
 
-/**
- * A seção cujo título passou pelo terço de cima da janela por último. Um só
- * observador para todas; sem IntersectionObserver, nenhuma fica marcada.
- */
 function useSecaoAtual(ids: readonly string[]): string | null {
   const [atual, setAtual] = useState<string | null>(null);
   const chave = ids.join(" ");
@@ -222,7 +218,6 @@ function IndiceDasSecoes({
   );
 }
 
-/** Um clique sem querer não perde o rascunho: o Descartar pergunta antes. */
 function Descartar({
   chave,
   descartar,

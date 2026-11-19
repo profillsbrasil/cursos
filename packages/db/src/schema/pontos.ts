@@ -24,11 +24,11 @@ export const concessaoDePontos = tabela(
   "concessao_de_pontos",
   {
     concedidaEm: momento(),
-    concedidaPor: text().notNull(), // userId do admin
+    concedidaPor: text().notNull(),
     id: uuid().primaryKey().defaultRandom(),
     motivo: text().notNull(),
     pontos: integer().notNull(),
-    userId: text().notNull(), // userId do Clerk
+    userId: text().notNull(),
   },
   (t) => [
     check(
@@ -36,17 +36,17 @@ export const concessaoDePontos = tabela(
       sql`${t.userId} ~ '^user_[A-Za-z0-9]+$'`
     ),
     check("concessao_de_pontos_nao_zero", sql`${t.pontos} <> 0`),
-    // O teto repete MOTIVO_DA_CONCESSAO_MAX de dominio/concessao.ts do @cursos/api.
+    // WARNING: o teto de 200 repete MOTIVO_DA_CONCESSAO_MAX de dominio/concessao.ts do @cursos/api.
     check(
       "concessao_de_pontos_motivo_formato",
       sql`${t.motivo} = trim(${t.motivo}) and char_length(${t.motivo}) between 1 and 200`
     ),
-    unique("concessao_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento
+    unique("concessao_do_aluno").on(t.userId, t.id),
     index("concessao_de_pontos_por_pessoa").on(t.userId, t.concedidaEm),
   ]
 );
 
-// Livro-razão imutável. Cada lançamento aponta para exatamente um fato do mesmo aluno.
+/** Livro-razão imutável: cada lançamento aponta para exatamente um fato do mesmo aluno. */
 export const pontoLancamento = tabela(
   "ponto_lancamento",
   {
@@ -54,7 +54,7 @@ export const pontoLancamento = tabela(
     concessaoId: uuid(),
     criadoEm: momento(),
     cursoId: uuid(),
-    diaMarco: date({ mode: "string" }), // dia útil que fechou o bloco de 7
+    diaMarco: date({ mode: "string" }),
     id: uuid().primaryKey().defaultRandom(),
     liberacaoId: uuid(),
     motivo: motivoPonto().notNull(),
@@ -63,15 +63,11 @@ export const pontoLancamento = tabela(
     userId: text().notNull(),
   },
   (t) => {
-    // Quantos fatos o lançamento referencia. O check e o índice do bônus leem a
-    // mesma lista: coluna de referência nova entra aqui, nos dois de uma vez.
+    // WARNING: o check e o índice do bônus leem esta lista; coluna de referência nova entra aqui.
     const fatos = sql`num_nonnulls(${t.aulaId}, ${t.concessaoId}, ${t.cursoId}, ${t.diaMarco}, ${t.liberacaoId}, ${t.tentativaId})`;
 
     return [
-      // ::text porque as migrações concessao_de_pontos e bonus_de_funcionario fazem
-      // ALTER TYPE ... ADD VALUE, e o Postgres recusa o valor novo do enum na mesma
-      // transação (ver schema/acesso.ts). O bônus de funcionário é o único lançamento
-      // sem fato: ele é um por pessoa, e quem segura isso é ponto_bonus_funcionario_uma_vez.
+      // WARNING: o ::text do motivo existe porque o Postgres recusa o valor novo do enum na transação do ADD VALUE (schema/acesso.ts).
       check(
         "ponto_lancamento_referencia",
         sql`${fatos} = case ${t.motivo}::text when 'bonus_funcionario' then 0 else 1 end
@@ -94,17 +90,13 @@ export const pontoLancamento = tabela(
             else ${t.pontos} > 0
           end`
       ),
-      // NULL é distinto de NULL: cada unique só morde o motivo que preenche a coluna
       unique("ponto_aula_uma_vez").on(t.userId, t.aulaId),
       unique("ponto_curso_uma_vez").on(t.userId, t.cursoId),
       unique("ponto_sequencia_uma_vez").on(t.userId, t.diaMarco),
       unique("ponto_troca_uma_vez").on(t.userId, t.liberacaoId),
       unique("ponto_questionario_uma_vez").on(t.userId, t.tentativaId),
       unique("ponto_concessao_uma_vez").on(t.userId, t.concessaoId),
-      // Uma vez por pessoa, para sempre: sair de Funcionário e voltar não dá outro.
-      // O predicado não compara o motivo: o cast do enum para texto não é IMMUTABLE,
-      // e o valor novo não vale na transação do ADD VALUE. Pelo check de referência,
-      // o lançamento sem fato é o bônus.
+      // WARNING: o predicado não compara o motivo (cast de enum para texto não é IMMUTABLE); sem fato, o lançamento é o bônus.
       uniqueIndex("ponto_bonus_funcionario_uma_vez")
         .on(t.userId)
         .where(sql`${fatos} = 0`),

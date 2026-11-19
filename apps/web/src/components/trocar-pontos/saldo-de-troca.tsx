@@ -33,7 +33,6 @@ export function SaldoDeTroca({
         "text-card-foreground relative overflow-clip p-(--pad) [--pad:clamp(20px,3.5vw,32px)]"
       )}
     >
-      {/* O brilho chama para a troca; sem curso trocável na vitrine, o saldo fica em repouso. */}
       {temCursoTrocavelNaVitrine ? (
         <div
           aria-hidden="true"
@@ -60,10 +59,8 @@ export function SaldoDeTroca({
               pts
             </small>
           </strong>
-          {/* Zero não é conquista: sem pontos na semana, o saldo fica sozinho. */}
           {pontosSemana > 0 ? (
             <span className="bg-sol/14 text-sol mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold tabular-nums">
-              {/* A chama é da sequência de dias (cartão de conta, Sua semana); pontos ganhos sobem. */}
               <TrendingUp aria-hidden="true" className="size-[15px]" />
               {`+${fmtPts(pontosSemana)} nesta semana`}
             </span>

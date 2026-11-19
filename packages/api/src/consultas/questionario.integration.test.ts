@@ -124,7 +124,6 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     perguntas: PerguntaPlantada[];
   }
 
-  /** Curso publicado com uma aula por item de `perguntasPorAula`, cada uma com N perguntas de 3 alternativas (a certa é a 2ª). */
   async function plantarCurso(perguntasPorAula: readonly number[]) {
     const slug = `teste-${S}-${cursos.length + 1}`;
 
@@ -224,7 +223,6 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   const comoAluno = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId }));
 
-  /** As respostas de uma aula: a certa em `acertos` perguntas e a 1ª nas outras. */
   const respostas = (a: AulaPlantada, acertos: number) =>
     a.perguntas.map((p, i) => ({
       alternativaId:
@@ -429,7 +427,6 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       message: TENTATIVA_EM_USO,
     };
 
-    // Sem tentativa dela na aula, e depois com uma reprovada: os dois caminhos chegam ao insert.
     expect(await recusa(enviar(outra, a1, 2, id))).toEqual(esperado);
     await enviar(outra, a1, 0);
     expect(await recusa(enviar(outra, a1, 2, id))).toEqual(esperado);
@@ -617,7 +614,6 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
     expect(await certificadosDe(aluno)).toHaveLength(1);
     await terco(2);
     expect(await certificadosDe(aluno)).toHaveLength(1);
-    // O registrar grava com o relógio do teste, e o responder com o de agora: a ordem não importa.
     expect((await pontosDe(aluno)).map((p) => p.motivo).toSorted()).toEqual([
       "aula_assistida",
       "curso_concluido",

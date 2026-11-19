@@ -43,7 +43,6 @@ const ultimaAtividade = (
     return quando > max ? quando : max;
   }, "");
 
-/** O curso começado em que a pessoa estudou por último. */
 function maisRecente(
   cursos: readonly CursoNaTela[],
   atividade: ReadonlyMap<AulaId, string>
@@ -59,7 +58,6 @@ function maisRecente(
   );
 }
 
-/** A aula da vez, com o que o banner mostra dela; o curso que abre aula sempre tem uma. */
 function aulaDaVez(x: CursoNaTela): { aula: AulaCatalogo; vez: AulaDaVez } {
   const vez = x.leitura.aulaDaVez;
   const aula = vez && aulasDe(x.curso).find((a) => a.id === vez.id);
@@ -108,7 +106,6 @@ export function retomada({
     return continuar(emAndamento, h);
   }
 
-  // 5: o curso com questionário pendente e a atividade mais recente.
   const comQuestionario = maisRecente(
     cursos.filter(ehEstado("questionarios")),
     atividade
@@ -127,7 +124,6 @@ export function retomada({
     };
   }
 
-  // 6: o primeiro curso não iniciado, na ordem da tela.
   const novo = cursos.find(ehEstado("nao_iniciado"));
 
   if (novo) {

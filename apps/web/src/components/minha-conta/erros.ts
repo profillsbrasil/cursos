@@ -42,7 +42,6 @@ export const FRASES_DO_CLERK: Record<string, string> = {
 
 const CAMPOS_DO_NOME = new Set(["first_name", "last_name"]);
 
-/** A recusa do nome pelo Clerk: tag de HTML, endereço de site ou outra regra dele. */
 function fraseDoNomeRecusado(longMessage = "") {
   if (longMessage.includes("HTML")) {
     return FRASES_DO_NOME.sinais;
@@ -55,7 +54,6 @@ function fraseDoNomeRecusado(longMessage = "") {
   return FRASES_DO_NOME.recusado;
 }
 
-/** O tipo do Clerk deixa o meta do erro como any. */
 function campoDoErro(erro: { meta?: { paramName?: unknown } } | undefined) {
   const campo = erro?.meta?.paramName;
 

@@ -14,7 +14,7 @@ mock.module("next/navigation", () => ({
   usePathname: () => caminhoAtual,
 }));
 
-// O mock vale para os arquivos que rodam depois, no mesmo processo: eles ficam fora da aula.
+// WARNING: o mock vale para os arquivos que rodam depois, no mesmo processo: eles ficam fora da aula.
 afterAll(() => {
   caminhoAtual = "/meus-cursos";
 });
@@ -36,9 +36,7 @@ function MostraModo() {
 
 const renderizar = (arvore: ReactNode) => () => renderToStaticMarkup(arvore);
 
-// Antes, a checagem morava no callback do clique: um consumidor fora do
-// ProvedorDaCasca renderizava normal e só quebrava quando alguém clicava.
-describe("useAlternarNavegacao exige o ProvedorDaCasca", () => {
+describe("useAlternarNavegacao exige o ProvedorDaCasca na renderização, e não só no clique", () => {
   test("dentro de um SidebarProvider sem a casca, lança na renderização", () => {
     expect(
       renderizar(

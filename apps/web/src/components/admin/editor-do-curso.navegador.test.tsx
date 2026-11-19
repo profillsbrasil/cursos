@@ -228,7 +228,6 @@ const fonte = ["Regular", "Medium", "SemiBold", "Bold"]
 let enviar: Enviar;
 let pacote: string;
 
-/** A casca: a sidebar aberta tira 248 px e a moldura 48 px de cada lado; no celular, 16 px. */
 async function abrirEditor(janela: number) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -373,7 +372,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       expect(await textoDe("#curso-categoriaId-criada")).toBe(
         'Categoria "Filmagem" criada.'
       );
-      // O refresh trouxe a página na mesma versão: o título editado fica.
       expect(
         await avaliar<string>(
           enviar,
@@ -445,7 +443,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       );
 
     test("com 960 px de editor ou mais, a coluna de 300 px fica à direita, a 32 px, e a barra do pé some", async () => {
-      // 1920 px de janela: 1576 px de editor.
       await abrirEditor(1920);
       const d = await disposicao();
       expect(Math.round(d.coluna.largura)).toBe(300);
@@ -457,7 +454,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
 
     test("ao rolar, a coluna fica presa a 24 px do topo", async () => {
       await abrirEditor(1920);
-      // No meio da página: no fim, o curso de exemplo acaba antes da coluna e a empurra.
       await avaliar(enviar, "window.scrollTo(0, 600)");
       await avaliar(
         enviar,
@@ -467,7 +463,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
     });
 
     test("abaixo de 960 px de editor, a barra do pé volta e a coluna desce sem a lista", async () => {
-      // 1280 px de janela com a sidebar aberta: 936 px de editor.
       await abrirEditor(1280);
       const d = await disposicao();
       expect(d.barra).not.toBe("none");
@@ -549,7 +544,6 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
   });
 
   describe("Ctrl+S", () => {
-    // O navegador abriria o "salvar página" no Ctrl+S que ninguém impediu.
     const vigiar = () =>
       avaliar(
         enviar,

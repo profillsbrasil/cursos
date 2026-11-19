@@ -28,7 +28,6 @@ describe("autor do comunicado", () => {
     },
     [
       { email: null, foto: null, nome: "Dona do admin", userId: "user_dona" },
-      // Sem nome, usuário nem e-mail, o Clerk devolve o userId no lugar do nome.
       {
         email: null,
         foto: null,

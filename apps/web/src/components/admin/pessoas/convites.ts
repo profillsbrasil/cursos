@@ -1,6 +1,3 @@
-// As frases, os selos e as fichas do convite. Sem "use client": o diálogo, a
-// lista e a página leem daqui.
-
 import {
   type ConvidadoNaTela,
   type Email,
@@ -142,7 +139,6 @@ export function textoDoEnvio(r: ResultadoDoEnvio): string {
     : `${fmtNum(enviados)} convites enviados`;
 }
 
-// As cores dos selos de estado do DESIGN.md. Nenhum vermelho: convite parado não é erro.
 const SOL_SUAVE = "bg-sol/14 text-sol";
 const NEUTRO = "bg-popover text-foreground";
 

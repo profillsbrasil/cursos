@@ -11,8 +11,10 @@ export const metadata: Metadata = {
   title: "Conferir certificado",
 };
 
-// O proxy.ts roda o clerkMiddleware em toda rota, então o auth() lê a sessão
-// sem o ClerkProvider, que esta página pública não carrega.
+/**
+ * O proxy.ts roda o clerkMiddleware em toda rota, então o auth() lê a sessão
+ * sem o ClerkProvider, que esta página pública não carrega.
+ */
 export default async function LayoutDaConferencia({
   children,
 }: {

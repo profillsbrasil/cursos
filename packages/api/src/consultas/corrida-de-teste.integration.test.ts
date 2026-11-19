@@ -1,6 +1,3 @@
-// esperas() conta só as conexões do próprio teste: outra suíte ou outro agente
-// no mesmo banco, parado num lock com o mesmo começo de SQL, não entra na conta.
-
 import { afterAll, describe, expect, test } from "bun:test";
 
 import { createDb } from "@cursos/db";
@@ -40,7 +37,6 @@ describe.skipIf(URL_TESTE === null)("esperas", () => {
         [chave]
       );
 
-      // A espera de fora aparece no banco antes de conferir a do teste.
       await esperas(deFora, 1, ["select pg_advisory_xact_lock"]);
 
       const minhas = await esperas(meu, 1, ["select pg_advisory_xact_lock"], 5)

@@ -1,6 +1,6 @@
 import type { PERFIS } from "@cursos/db/schema/formatos";
 
-// O app lê a lista por aqui: só o services.ts dele importa @cursos/db.
+/** O app lê a lista por aqui: só o services.ts dele importa @cursos/db. */
 export { PERFIS } from "@cursos/db/schema/formatos";
 
 export type Perfil = (typeof PERFIS)[number];

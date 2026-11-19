@@ -7,10 +7,6 @@ import { Glob } from "bun";
 const SRC = join(import.meta.dir, "../..");
 const SELECT_DO_SISTEMA = /native-select|<select[\s>]/;
 
-/**
- * A lista do <select> sai com as cores do sistema operacional. Toda escolha do
- * app passa pela Selecao, que desenha a lista no padrão do menu da conta.
- */
 describe("o app não usa o select do sistema", () => {
   test("nenhum arquivo importa o NativeSelect nem escreve <select>", () => {
     const fora = [...new Glob("**/*.{ts,tsx}").scanSync(SRC)].filter(

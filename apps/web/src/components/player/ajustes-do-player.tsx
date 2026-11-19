@@ -27,10 +27,6 @@ const ATALHOS: readonly { faz: string; teclas: readonly string[] }[] = [
   { faz: "Tela cheia", teclas: ["f"] },
 ];
 
-/**
- * Cada velocidade é um rádio escondido no rótulo, como as alternativas do questionário:
- * o Tab entra na marcada e sai do grupo, e as setas andam entre elas, já escolhendo.
- */
 function OpcaoDeVelocidade({
   comandar,
   grupo,
@@ -70,15 +66,9 @@ function OpcaoDeVelocidade({
   );
 }
 
-/**
- * O item da folha sob o cursor e com o foco de teclado sobe um degrau de tom sobre o
- * `popover` da folha, até o `trilho`. O `cartao`, um degrau abaixo, deixava o item
- * focado com um fundo escuro que mal se via.
- */
 const OPCAO =
   "flex h-[38px] w-full items-center gap-2.5 rounded-lg px-2 text-left text-foreground transition-colors duration-150 ease-forte hover:bg-trilho hover:text-titulo [&_svg]:size-[18px]";
 
-/** O Esc devolve o foco à engrenagem já no quadro em que a folha começa a sair. */
 const fechouNoEsc = (
   aberto: boolean,
   detalhes: PopoverPrimitive.Root.ChangeEventDetails
@@ -116,8 +106,6 @@ export function AjustesDoPlayer({
     aoMudarAtalhos(true);
   }, [aoMudarAtalhos]);
 
-  // O Base UI só devolve o foco quando a folha termina de sair, 150 ms depois; até
-  // lá o foco ficava no botão que some, como o 2× da velocidade.
   const mudarAjustes = useCallback(
     (abrir: boolean, detalhes: PopoverPrimitive.Root.ChangeEventDetails) => {
       setAberto(abrir);
@@ -191,7 +179,6 @@ export function AjustesDoPlayer({
                   ))}
                 </div>
               </fieldset>
-              {/* A folha tem 8 px de padding; a linha volta até a borda (The Edge To Edge Rule). */}
               <hr className="border-border -mx-2 my-1" />
               <button
                 aria-pressed={legenda}

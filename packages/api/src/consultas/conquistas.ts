@@ -36,11 +36,6 @@ const CURSO_DO_CERTIFICADO = {
   titulo: curso.titulo,
 };
 
-/**
- * Os questionários por aula de `linhasDosQuestionarios`, mais a data da
- * aprovação e a nota da tentativa número 1, para Primeiro questionário e Nota
- * cheia.
- */
 function linhasDasTentativas(
   exec: Executor,
   userId: string
@@ -80,9 +75,7 @@ export async function linhasDasConquistas(
     questionarios,
     estudo,
   ] = await Promise.all([
-    // 1. os cursos que o aluno vê, com o catálogo
     linhasDosCursosQueOAlunoVe(db, aluno),
-    // 2. toda aula assistida, com os títulos da aula e do curso
     db
       .select({
         assistidaEm: aulaAssistida.assistidaEm,
@@ -95,7 +88,6 @@ export async function linhasDasConquistas(
       .innerJoin(modulo, eq(modulo.id, aula.moduloId))
       .innerJoin(curso, eq(curso.id, modulo.cursoId))
       .where(eq(aulaAssistida.userId, userId)),
-    // 3. posições com segundo > 0
     db
       .select({
         atualizadaEm: posicaoAula.atualizadaEm,
@@ -106,7 +98,6 @@ export async function linhasDasConquistas(
       .where(
         and(eq(posicaoAula.userId, userId), gt(posicaoAula.posicaoSeg, 0))
       ),
-    // 4. todo certificado, com o título, o endereço e a capa do curso
     db
       .select({
         codigo: certificado.codigo,
@@ -118,7 +109,6 @@ export async function linhasDasConquistas(
       .from(certificado)
       .innerJoin(curso, eq(curso.id, certificado.cursoId))
       .where(eq(certificado.userId, userId)),
-    // 5. lançamentos de sequência e de troca, com o curso trocado
     db
       .select({
         criadoEm: pontoLancamento.criadoEm,
@@ -139,11 +129,8 @@ export async function linhasDasConquistas(
           inArray(pontoLancamento.motivo, ["sequencia_7_dias", "troca"])
         )
       ),
-    // 6. a vitrine de Trocar pontos
     linhasDosCursos(db, aluno, "vitrine"),
-    // 7. os questionários por aula, como no painel, com a aprovação e a tentativa 1
     linhasDasTentativas(db, userId),
-    // 8. as entradas de estudo por dia, para Mil pontos estudando
     estudoPorDia(db, userId),
   ]);
 

@@ -51,7 +51,6 @@ const TECLAS = {
   Tab: { codigo: 9, texto: undefined },
 } as const;
 
-/** Uma tecla de verdade, pelo CDP; `shift` aperta junto o Shift. */
 async function tecla(nome: keyof typeof TECLAS, shift = false) {
   const { codigo, texto } = TECLAS[nome];
 

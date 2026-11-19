@@ -12,8 +12,6 @@ export const trocaRouter = router({
   painel: alunoProcedure.query(({ ctx }) =>
     carregarPainelDeTroca(ctx.db, ctx.aluno, new Date())
   ),
-  // Só Meus cursos chama, para o botão de Sua semana. Trocar pontos lê o mesmo
-  // fato do painel.
   temCursoTrocavelNaVitrine: alunoProcedure.query(({ ctx }) =>
     carregarTemCursoTrocavelNaVitrine(ctx.db, ctx.aluno)
   ),

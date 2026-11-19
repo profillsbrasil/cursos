@@ -32,7 +32,6 @@ const capaDe = (nome: string) => ({
 
 const h = (horas: number, min: number) => horas * 3600 + min * 60;
 
-// Os 10 cursos do protótipo aprovado, com a categoria longa que alargava o item.
 const CURSOS = [
   ["Atendimento pós-venda", "pos-venda", 4, 18, h(2, 40), 300, "VN-003", null],
   [
@@ -303,7 +302,6 @@ const caixas = () =>
 const CEU = "rgb(170, 210, 234)";
 const ATALHO = "a[href$='/novo']:not(header a)";
 
-/** Aperta Tab, como a pessoa, até o foco chegar ao seletor. */
 async function tabAte(seletor: string, tentativas = 20): Promise<void> {
   const chegou = await avaliar<boolean>(
     enviar,

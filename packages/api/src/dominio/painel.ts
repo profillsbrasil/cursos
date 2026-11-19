@@ -26,8 +26,6 @@ import {
 } from "./tipos";
 import { videoDaAula } from "./video";
 
-// ---------- entrada: as linhas cruas das consultas (seção 4.3 do desenho) ----------
-
 export interface CursoLinha extends LinhaDaCapa {
   categoria: { nome: string };
   codigo: string;
@@ -86,8 +84,6 @@ export interface LinhasResumo {
   dias: readonly { dia: string }[];
   pontos: { saldo: number; entradasDaSemana: number };
 }
-
-// ---------- saída: o view model da tela ----------
 
 /**
  * O curso da amostra. `aulaId` é a aula de amostra, para onde o cartão leva
@@ -205,8 +201,6 @@ export interface ResumoAluno {
   sequenciaDias: number;
 }
 
-// ---------- montagem ----------
-
 /** Borda: marca os ids das linhas do banco. */
 export function paraCatalogo(linha: CursoLinha): CursoCatalogo {
   return {
@@ -279,8 +273,7 @@ export function montarPainel(
 ): PainelMeusCursos {
   const estudo = estudoDe(linhas);
 
-  // O sort é estável, então o empate fica na ordem da liberação. A amostra vem
-  // depois dos cursos da pessoa, na mesma grade.
+  // WARNING: o sort é estável: o empate fica na ordem da liberação, e a amostra vem depois dos cursos da pessoa.
   const telas = linhas.liberacoes
     .map(({ amostra, curso }) => {
       const c = paraCatalogo(curso);
@@ -303,8 +296,6 @@ export function montarPainel(
           ORDEM_DOS_CURSOS[b.leitura.estado.tipo]
     );
 
-  // A retomada só leva ao curso inteiro: a aula da vez da amostra pode estar
-  // fechada. O comunicado de um curso também só chega a quem o tem inteiro.
   const inteiros: CursoNaTela[] = telas.filter((x) => x.amostra === null);
   const acessiveis = new Set<string>(inteiros.map((x) => x.curso.id));
 

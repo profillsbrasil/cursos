@@ -54,7 +54,6 @@ export function BotaoDeTroca({
         disabled
         focusableWhenDisabled
       >
-        {/* Um texto só: o espaço solto entre dois pedaços some do nome acessível. */}
         {troca.botao}
       </Button>
     );

@@ -1,7 +1,3 @@
-// O caminho HTTP de admin.catalogo.salvarCurso: o fetch adapter do tRPC lê o corpo
-// multipart/form-data e entrega o FormData ao procedure. Sem banco: o documento
-// quebrado é recusado pelo leitor do formulário antes de qualquer consulta.
-
 import { describe, expect, test } from "bun:test";
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -25,7 +21,7 @@ function enviar(corpo: FormData) {
 }
 
 describe("salvarCurso por HTTP", () => {
-  test("o FormData chega ao procedure e o documento quebrado vira BAD_REQUEST", async () => {
+  test("o fetch adapter lê o multipart/form-data, entrega o FormData ao procedure e o documento quebrado vira BAD_REQUEST sem tocar o banco", async () => {
     const corpo = new FormData();
     corpo.set("documento", "{");
     corpo.set("capa", new Blob([new Uint8Array([1])]), "capa.jpg");

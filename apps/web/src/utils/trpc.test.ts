@@ -3,8 +3,6 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { type ClerkNoNavegador, setClerkAuthTokenGetter } from "./clerk-auth";
 import { trpcClient } from "./trpc";
 
-// O pagehide dá ao envio de saída só as microtarefas da tarefa dele: a próxima
-// tarefa já não roda. Cem voltas de microtarefa sobram para a cadeia do link.
 const VOLTAS_DE_MICROTAREFA = 100;
 
 const AULA = "0b5f7f4e-6a43-4a0e-9a4f-3c8a6d1b2c3d";
@@ -24,7 +22,6 @@ const original = {
 
 let pedidos: Pedido[] = [];
 
-/** O window.Clerk que o clerk-js monta, só com o último token da sessão. */
 function clerkComUltimoToken(raw: string, venceEmSeg: number) {
   const exp = Math.floor(Date.now() / 1000) + venceEmSeg;
 
@@ -37,7 +34,6 @@ function clerkComUltimoToken(raw: string, venceEmSeg: number) {
   Reflect.set(globalThis, "Clerk", clerk);
 }
 
-/** O getToken do Clerk quando o cache já soltou o token e a renovação depende da rede. */
 const getTokenEsperandoARede = () =>
   new Promise<string | null>(() => undefined);
 
@@ -47,7 +43,6 @@ function registrar() {
     .catch(() => undefined);
 }
 
-/** Só microtarefas, nenhum timer: o que o link faz aqui é o que o pagehide deixa sair. */
 const microtarefas = (voltas: number): Promise<void> =>
   voltas === 0 || pedidos.length > 0
     ? Promise.resolve()
@@ -76,8 +71,7 @@ beforeEach(() => {
 afterEach(() => {
   globalThis.fetch = original.fetch;
 
-  // Sem window antes, ele sai de vez: com window valendo undefined, o "window" in
-  // globalThis de outro arquivo de teste acha que o ambiente tem window.
+  // WARNING: sem window antes, apague-o: com window undefined, o "window" in globalThis de outro teste acha que há window.
   if (original.temWindow) {
     Reflect.set(globalThis, "window", original.window);
   } else {

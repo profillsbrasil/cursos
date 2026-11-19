@@ -13,7 +13,6 @@ interface Props {
   searchParams: Promise<{ novo?: string | string[] }>;
 }
 
-// React.cache divide o carregarCurso entre o título e a página.
 async function abrir({ params, searchParams }: Props) {
   const [{ id }, { novo }] = await Promise.all([params, searchParams]);
 

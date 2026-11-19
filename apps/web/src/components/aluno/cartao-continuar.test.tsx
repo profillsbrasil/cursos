@@ -7,8 +7,6 @@ import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
 
 import type { Continuar } from "./continuar";
 
-// Fora do App Router o usePathname não tem de onde ler; o teste diz o caminho, e o
-// resto do módulo fica o de verdade.
 let caminhoAtual = "/";
 const navegacao = await import("next/navigation");
 
@@ -45,8 +43,7 @@ const QUESTIONARIO_FORA_DA_AULA: Continuar = {
   titulo: "Questionário · Gatilhos",
 };
 
-// O use() lê na hora uma Promise marcada como cumprida, sem suspender.
-function cumprida<T>(valor: T): Promise<T> {
+function promessaCumpridaSemSuspender<T>(valor: T): Promise<T> {
   return Object.assign(Promise.resolve(valor), {
     status: "fulfilled",
     value: valor,
@@ -58,17 +55,13 @@ function html(caminho: string, aberta: boolean, cartao = CONTINUAR) {
 
   return renderToStaticMarkup(
     <ProvedorDaCasca aberta={aberta}>
-      <CartaoContinuar cartao={cumprida(cartao)} />
+      <CartaoContinuar cartao={promessaCumpridaSemSuspender(cartao)} />
     </ProvedorDaCasca>
   );
 }
 
 const vezes = (texto: string, trecho: string) => texto.split(trecho).length - 1;
 
-// Antes, o cartão da aberta e o redondo da recolhida eram dois elementos no HTML, e
-// o CSS escondia um deles em cada modo. O teste conta no markup do servidor, que
-// inclui o que o CSS esconde: o link, o rótulo e o aria-current aparecem uma vez,
-// porque o mesmo elemento encolhe.
 describe("o Continuar é um elemento só", () => {
   for (const aberta of [true, false]) {
     const modo = aberta ? "aberta" : "recolhida";
@@ -104,9 +97,6 @@ const classesDoContinuar = (h: string) => {
   return classes.split(" ");
 };
 
-// O fundo e a cor do Continuar mudam com o modo. Uma transição no próprio elemento
-// anima essa troca, e o Ctrl+B não anima (DESIGN.md). Só a camada do hover
-// (::before) transiciona, e só a opacidade dela.
 describe("a troca de modo não anima o Continuar", () => {
   for (const [caso, caminho] of [
     ["com link", "/meus-cursos"],

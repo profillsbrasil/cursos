@@ -8,7 +8,7 @@ import { CARTAO } from "@/components/casca/cartoes";
 
 import { BOTAO } from "./botoes";
 
-// Corpo dos error.tsx do app: diz o que falhou e oferece tentar de novo.
+/** O corpo dos error.tsx do app: diz o que falhou e oferece tentar de novo. */
 export function TelaDeErro({
   error,
   retry,

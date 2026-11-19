@@ -1,6 +1,3 @@
-// O cartão sem saldo no Chromium headless: o nome que a árvore de acessibilidade
-// dá ao botão é o que o leitor de tela fala. Sem Chromium na máquina, a suíte pula.
-
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 
@@ -16,7 +13,6 @@ import {
   fecharChromium,
 } from "../chromium.test-utils";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -41,8 +37,6 @@ const curso = (id: string, titulo: string) =>
     titulo,
   }) as CartaoDeTroca["curso"];
 
-// renderToString, como o SSR do Next: os pedaços de texto vêm separados por
-// comentário, e cada um vira um nó de texto no navegador.
 const HTML = renderToString(
   <CursosParaTrocar
     cartoes={[

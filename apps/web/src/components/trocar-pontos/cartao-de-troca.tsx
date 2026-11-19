@@ -85,8 +85,6 @@ function Acao({
             )}
             disabled
           >
-            {/* Um texto só: o espaço solto entre dois pedaços vira um item do
-                flex, some, e o nome acessível sai "Faltam190 pts". */}
             {`${faltam(cartao.faltam)} ${fmtPts(cartao.faltam)}`}
           </Button>
         </>

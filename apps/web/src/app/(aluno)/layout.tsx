@@ -10,15 +10,14 @@ import {
   souAdmin,
 } from "@/server/api";
 
-// Conteúdo em largura total: nenhum ancestral do conteúdo tem max-width, container ou mx-auto.
+/** Conteúdo em largura total: nenhum ancestral do conteúdo tem max-width, container ou mx-auto. */
 export default async function LayoutDoAluno({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // await: auth.protect() redireciona aqui, antes de a casca pedir qualquer dado.
+  // WARNING: com await, para o auth.protect() redirecionar aqui, antes de a casca pedir qualquer dado.
   const admin = await souAdmin();
 
-  // Sem await: o cartão chega por streaming. Em /meus-cursos, React.cache faz o
-  // layout e a página dividirem uma execução do painel.
+  // WARNING: sem await, para o cartão chegar por streaming; em /meus-cursos, React.cache faz o layout e a página dividirem uma execução do painel.
   const continuar = paraACasca(
     "continuar",
     carregarPainel().then((p) => continuarDe(p.retomada))

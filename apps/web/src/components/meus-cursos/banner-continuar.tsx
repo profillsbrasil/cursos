@@ -15,13 +15,10 @@ import { BarraProgresso } from "./barra-progresso";
 const CARTAO_DO_BANNER = cn(CARTAO, "text-card-foreground overflow-hidden");
 const BOTAO_DO_BANNER = cn(BOTAO, "self-start max-[760px]:self-stretch");
 
-// Com o mesmo sizes, as duas imagens escolhem a mesma largura do srcset: a desfocada
-// sai do cache da nítida, que tem preload, e não carrega lazy sendo o LCP da tela.
 const SIZES_DA_CAPA = "(max-width: 760px) 100vw, 44vw";
 
 function Capa({ capa }: { capa: CapaDoCurso }) {
   return (
-    // A capa é uma peça com logo e texto: aparece inteira, e a mesma imagem desfocada preenche a sobra.
     <div className="bg-sidebar relative grid place-items-center overflow-hidden max-[760px]:order-first">
       <Image
         alt=""

@@ -96,7 +96,6 @@ export type LancamentoNovo =
   | { diaMarco: DiaISO; motivo: "sequencia_7_dias"; pontos: number }
   | { motivo: "questionario"; pontos: number; tentativaId: TentativaId };
 
-/** Todo motivo de PONTOS que alguma escrita do app grava hoje. */
 const MOTIVOS_GRAVADOS: Record<
   LancamentoNovo["motivo"] | "curso_concluido",
   true

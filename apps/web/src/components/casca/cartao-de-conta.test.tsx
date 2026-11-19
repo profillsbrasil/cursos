@@ -3,7 +3,6 @@ import { describe, expect, mock, test } from "bun:test";
 import { cloneElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Sem o ClerkProvider, useUser e useClerk lançam; o resto do módulo fica o de verdade.
 const clerk = await import("@clerk/nextjs");
 
 mock.module("@clerk/nextjs", () => ({
@@ -15,8 +14,6 @@ mock.module("@clerk/nextjs", () => ({
   }),
 }));
 
-// O menu do Base UI só monta no navegador, em portal. Aqui ele vira HTML em linha,
-// para o teste ler as placas do menu aberto.
 const menu = await import("@cursos/ui/components/dropdown-menu");
 
 const EmLinha = ({ children }: { children?: ReactNode }) => (
@@ -43,7 +40,6 @@ mock.module("@cursos/ui/components/dropdown-menu", () => ({
 const { CartaoDeConta } = await import("./cartao-de-conta");
 const { ProvedorDaCasca } = await import("./provedor-da-casca");
 
-/** A Promise já resolvida, que o `use` do React lê sem suspender. */
 const resolvida = <T,>(valor: T) =>
   Object.assign(Promise.resolve(valor), { status: "fulfilled", value: valor });
 

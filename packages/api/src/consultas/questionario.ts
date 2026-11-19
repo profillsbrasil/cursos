@@ -143,9 +143,6 @@ async function gravarTentativa(
   tentativa: TentativaGravada,
   agora: Date
 ) {
-  // O reenvio do próprio aluno já voltou em resultadoGravado. O id que ainda
-  // colide é de outra pessoa (a trava é por aluno) ou de outra aula, e a recusa
-  // não diz de quem.
   const [gravada] = await aluno.tx
     .insert(questionarioTentativa)
     .values({
@@ -232,10 +229,6 @@ async function abrirQuestionario(
   return { cursoId: aberto.curso.id, perguntas, tentativas };
 }
 
-/**
- * A última tentativa gravada, quando o envio não cria outra: o id já gravado
- * (reenvio) ou o questionário já aprovado. null quando há o que corrigir.
- */
 async function resultadoGravado(
   aluno: AlunoTravado,
   envio: EnvioDoQuestionario,

@@ -2,7 +2,7 @@
 
 import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
-// Erro das páginas do admin, dentro da sidebar. Erro do próprio layout cai no app/error.tsx.
+/** Erro das páginas do admin, dentro da sidebar. Erro do próprio layout cai no app/error.tsx. */
 export default function ErroDoAdmin(props: {
   error: Error & { digest?: string };
   retry: () => void;

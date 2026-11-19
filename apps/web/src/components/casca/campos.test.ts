@@ -20,7 +20,6 @@ function arquivos(pasta: string): string[] {
 
 const ALTURA = /(^|\s)([\w-]+:)*h-(\d|\[)/;
 
-/** As classes que um uso acrescenta ao campo: cn(CAMPO|AREA, "...") e o className dos campos do editor. */
 function classesDoUso(codigo: string): string[] {
   const achadas: string[] = [];
 

@@ -1,5 +1,4 @@
-// O selo, a frase e a barra do estudo, na busca e na tela de acesso. Sem "use
-// client": a lista da busca é Server Component e a tela de acesso é cliente.
+// WARNING: sem "use client": a lista da busca é Server Component e a tela de acesso é cliente.
 
 import type {
   Acompanhamento,
@@ -77,7 +76,6 @@ export function BarraDeAulas({
   );
 }
 
-// As cores dos selos de estado do DESIGN.md. Nenhum vermelho: parar de estudar não é erro.
 const CHEIO_CEU = "bg-ceu text-sobre-cor";
 const SOL_SUAVE = "bg-sol/14 text-sol";
 const CHEIO_CANELA = "bg-canela text-sobre-cor";

@@ -1,6 +1,3 @@
-// O código do certificado. Roda também no browser (a tela de conferência digita
-// o código), então o aleatório vem do Web Crypto, não de node:crypto.
-
 import {
   ALFABETO_DO_CODIGO,
   CODIGO_DO_CERTIFICADO,
@@ -11,12 +8,15 @@ const SIMBOLOS = 8;
 
 export const FORMATO_DO_CODIGO = new RegExp(CODIGO_DO_CERTIFICADO);
 
-// O maior múltiplo do alfabeto abaixo de 256: byte acima dele é sorteado de novo,
-// para nenhum símbolo sair mais vezes que os outros.
 const TETO_SEM_VIES =
   Math.floor(256 / ALFABETO_DO_CODIGO.length) * ALFABETO_DO_CODIGO.length;
 
-/** Um código novo, sorteado. A colisão com o unique é de quem grava. */
+/**
+ * Um código novo, sorteado. A colisão com o unique é de quem grava. Roda também no
+ * browser (a tela de conferência digita o código), então o aleatório vem do Web
+ * Crypto, não de node:crypto. Byte acima do maior múltiplo do alfabeto abaixo de
+ * 256 é sorteado de novo, para nenhum símbolo sair mais vezes que os outros.
+ */
 export function gerarCodigo(): CodigoDoCertificado {
   const indices: number[] = [];
 

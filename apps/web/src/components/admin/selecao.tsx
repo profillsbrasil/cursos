@@ -186,7 +186,6 @@ interface GrupoDaBusca {
   items: readonly OpcaoDaSelecao[];
 }
 
-/** As opções soltas viram um grupo sem rótulo, porque o Combobox filtra grupos. */
 function gruposDaBusca(itens: readonly ItemDaSelecao[]): GrupoDaBusca[] {
   const grupos: { grupo: string; items: OpcaoDaSelecao[] }[] = [];
 
@@ -209,12 +208,10 @@ const mesmaOpcao = (a: OpcaoDaSelecao, b: OpcaoDaSelecao) =>
 const rotuloDa = (o: OpcaoDaSelecao) => o.rotulo;
 const valorDa = (o: OpcaoDaSelecao) => o.valor;
 
-/** O valor da opção que cria; nenhum id do app começa com o caractere nulo. */
 const CRIAR = "\u0000criar";
 
 const comparavel = (texto: string) => texto.trim().toLocaleLowerCase("pt-BR");
 
-/** A opção de criar sempre passa: o rótulo dela não precisa conter a busca. */
 const filtroComCriar = (o: OpcaoDaSelecao, busca: string) =>
   o.valor === CRIAR || comparavel(o.rotulo).includes(comparavel(busca));
 
@@ -223,11 +220,6 @@ export interface CriarNaSelecao {
   rotulo: (nome: string) => string;
 }
 
-/**
- * Com `criar`, a busca que não casa com nenhum rótulo mostra no fim da lista a
- * opção de criar o que foi digitado; escolhê-la chama `aoCriar` com o texto
- * aparado e não muda o valor.
- */
 function opcoesComCriar(
   opcoes: readonly ItemDaSelecao[],
   criar: CriarNaSelecao | undefined,

@@ -49,7 +49,6 @@ export function niveis(
     };
   });
 
-  // Nível sem aulas nunca é obtido, então não pode ser o próximo.
   return {
     faixas,
     proximo: faixas.find((f) => f.total > 0 && !f.obtido) ?? null,

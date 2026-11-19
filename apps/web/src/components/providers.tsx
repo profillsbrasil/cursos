@@ -9,7 +9,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
       <TooltipProvider>{children}</TooltipProvider>
-      {/* Sem ThemeProvider, o Toaster cairia em "system"; a prop vence o useTheme(). */}
       <Toaster theme="dark" toastOptions={OPCOES_DO_TOAST} />
     </>
   );

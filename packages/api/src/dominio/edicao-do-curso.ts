@@ -1,10 +1,4 @@
-// O curso como o admin edita: um documento só (campos do curso, níveis, módulos e
-// aulas), salvo de uma vez. O endereço e o código do curso ficam fora dele: o
-// servidor os escolhe no primeiro salvamento. Roda no editor e no servidor, então nada aqui importa
-// node:crypto, banco ou Clerk. O planejador, que só roda no servidor, mora em
-// plano-do-curso.ts.
-
-// formatos.ts, não comum.ts: este módulo vai para o bundle do browser.
+// WARNING: formatos.ts, não comum.ts: este módulo vai para o bundle do browser.
 import {
   ID_DO_YOUTUBE,
   STATUS_DO_CURSO,
@@ -36,11 +30,9 @@ export const PRECO_MAXIMO = 1_000_000;
 
 const texto = (max: number) => z.string().trim().min(1).max(max);
 
-/** Texto que pode ficar vazio: a descrição do curso e a da aula. */
 const livre = (max: number) => z.string().trim().max(max);
 
-/** O Postgres devolve uuid em minúscula; o mesmo id em outra caixa seria outra linha. */
-const uuid = z.uuid().transform((id) => id.toLowerCase());
+const uuidEmMinuscula = z.uuid().transform((id) => id.toLowerCase());
 
 const video = z
   .object({
@@ -54,7 +46,7 @@ const video = z
 
 const alternativa = z.object({
   certa: z.boolean(),
-  id: uuid.transform((id) => id as AlternativaId),
+  id: uuidEmMinuscula.transform((id) => id as AlternativaId),
   texto: texto(CARACTERES.alternativa),
 });
 
@@ -65,7 +57,7 @@ const pergunta = z
       .min(ALTERNATIVAS.min)
       .max(ALTERNATIVAS.max),
     enunciado: texto(CARACTERES.enunciado),
-    id: uuid.transform((id) => id as PerguntaId),
+    id: uuidEmMinuscula.transform((id) => id as PerguntaId),
   })
   .superRefine((p, ctx) => {
     if (p.alternativas.filter((a) => a.certa).length !== 1) {
@@ -80,8 +72,7 @@ const pergunta = z
 const aula = z.object({
   descricao: livre(CARACTERES.descricaoDaAula),
   duracaoSeg: z.int().positive().max(DURACAO_MAXIMA_SEG),
-  /** Aula nova: o editor gera o id. A posição é o índice no módulo mais 1. */
-  id: uuid.transform((id) => id as AulaId),
+  id: uuidEmMinuscula.transform((id) => id as AulaId),
   perguntas: z.array(pergunta).max(LIMITES.perguntasPorAula),
   titulo: texto(CARACTERES.tituloDaAula),
   video: video.nullable(),
@@ -89,9 +80,8 @@ const aula = z.object({
 
 const modulo = z.object({
   aulas: z.array(aula).max(LIMITES.aulasPorModulo),
-  id: uuid.transform((id) => id as ModuloId),
+  id: uuidEmMinuscula.transform((id) => id as ModuloId),
   nivelOrdem: z.int().min(1).max(LIMITES.niveis).nullable(),
-  /** O número que o aluno vê ("Módulo 3"). O seed começa em 0 ou em 1; buracos valem. */
   numero: z.int().min(0).max(LIMITES.numeroDeModulo),
   titulo: texto(CARACTERES.tituloDoModulo),
 });
@@ -100,8 +90,7 @@ const material = z
   .object({
     bytes: z.int().positive().max(LIMITE_DO_MATERIAL.bytes),
     chave: z.string().regex(CHAVE_DO_MATERIAL),
-    /** Material novo: o editor gera o id. A posição é o índice mais 1. */
-    id: uuid.transform((id) => id as MaterialId),
+    id: uuidEmMinuscula.transform((id) => id as MaterialId),
     nomeDoArquivo: z.string().trim().min(1).max(CARACTERES.nomeDoArquivo),
     tipo: z.enum(TIPO_DO_MATERIAL),
     titulo: texto(CARACTERES.tituloDoMaterial),
@@ -134,6 +123,10 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
   a.ordem - b.ordem;
 
 /**
+ * O curso como o admin edita: um documento só (campos do curso, níveis, módulos e
+ * aulas), salvo de uma vez. O endereço e o código do curso ficam fora dele: o
+ * servidor os escolhe no primeiro salvamento.
+ *
  * Sai na forma que abrirCurso lê do banco: módulos por número, níveis por ordem,
  * ids em minúscula. Assim a versão do que chegou é a versão do que fica gravado.
  * A ordem das aulas é conteúdo: é a posição.
@@ -141,9 +134,9 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
 export const documentoDoCurso = z
   .object({
     /** Uma categoria de admin.categorias.lista; o servidor recusa a que sumiu. */
-    categoriaId: uuid.transform((id) => id as CategoriaId),
+    categoriaId: uuidEmMinuscula.transform((id) => id as CategoriaId),
     descricao: livre(CARACTERES.descricao),
-    id: uuid.transform((id) => id as CursoId),
+    id: uuidEmMinuscula.transform((id) => id as CursoId),
     /** O material de apoio, na ordem em que o aluno lê. */
     materiais: z.array(material).max(LIMITES.materiais),
     modulos: z.array(modulo).max(LIMITES.modulos),
@@ -227,7 +220,6 @@ export type MaterialDoDocumento = DocumentoDoCurso["materiais"][number];
 export type AlternativaDoDocumento =
   PerguntaDoDocumento["alternativas"][number];
 
-/** Nome dos campos do FormData de admin.catalogo.salvarCurso. */
 const CAMPO = { capa: "capa", documento: "documento" } as const;
 
 /** Cliente: o corpo de admin.catalogo.salvarCurso. */
@@ -326,7 +318,6 @@ export const podeApagarCurso = (u: UsoDoCurso): boolean =>
   Object.values(u.assistidasPorAula).every((n) => n === 0) &&
   Object.values(u.tentativasPorAula).every((n) => n === 0);
 
-/** O curso novo ainda sem categoria escolhida; o schema recusa o id vazio. */
 const SEM_CATEGORIA = "" as CategoriaId;
 
 /**

@@ -9,8 +9,10 @@ import { type marca, sessaoDe } from "./sessao";
 
 export type Papel = "aluno" | "admin";
 
-// A marca repete o papel e só sessaoDe a põe. Espalhar uma sessão de aluno com
-// `papel: "admin"` deixa a marca "aluno", e o objeto não vale Sessao.
+/**
+ * A marca repete o papel e só sessaoDe a põe. Espalhar uma sessão de aluno com
+ * `papel: "admin"` deixa a marca "aluno", e o objeto não vale Sessao.
+ */
 interface SessaoDe<P extends Papel> {
   readonly papel: P;
   readonly userId: string;

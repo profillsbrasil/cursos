@@ -15,9 +15,6 @@ import {
 } from "./cabecalho-da-aula";
 import { ALTURA_DA_BARRA, CAIXA_DO_VIDEO } from "./partes";
 
-// O esqueleto desenha cada linha do cabeçalho com 1lh dentro de um bloco com a mesma
-// tipografia do cabeçalho real: a altura bate em toda largura, e o vídeo não pula
-// quando a página chega.
 describe("esqueleto da aula", () => {
   test("o título e a linha do módulo do esqueleto usam a tipografia do cabeçalho", () => {
     const h = renderToStaticMarkup(<CarregandoAula />);
@@ -26,8 +23,6 @@ describe("esqueleto da aula", () => {
     expect(h.match(/h-\[1lh\]/g)?.length).toBe(2);
   });
 
-  // A altura de cada largura, contra o player de verdade, se mede no Chromium
-  // (player-da-aula.navegador.test.tsx).
   test("o vídeo do esqueleto tem a caixa do vídeo real e a barra que lê a própria largura", () => {
     const h = renderToStaticMarkup(<CarregandoAula />);
     expect(h).toContain(`class="${CAIXA_DO_VIDEO.replaceAll("&", "&amp;")}"`);

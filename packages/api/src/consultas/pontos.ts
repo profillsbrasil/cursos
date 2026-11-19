@@ -55,8 +55,7 @@ export function estudoPorDia(
   exec: Executor,
   userId: string
 ): Promise<{ dia: string; pontos: number }[]> {
-  // O fuso entra como literal: com parâmetro, o select e o group by teriam $1 e
-  // $2, e o Postgres não os reconhece como a mesma expressão.
+  // WARNING: o fuso entra como literal; com parâmetro, o select e o group by teriam $1 e $2, e o Postgres não os vê como a mesma expressão.
   const dia = sql<string>`to_char(${pontoLancamento.criadoEm} at time zone ${sql.raw(`'${FUSO}'`)}, 'YYYY-MM-DD')`;
 
   return exec

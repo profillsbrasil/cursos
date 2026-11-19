@@ -1,8 +1,3 @@
-// O notFound() da ficha, do acesso e do editor cai no not-found.tsx do admin,
-// dentro da casca e com a volta para as telas do admin, e a aba diz o mesmo
-// que o h1. O Next só troca o título da aba quando o generateMetadata chama
-// notFound().
-
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 

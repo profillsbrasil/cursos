@@ -1,6 +1,7 @@
-// O que é uma capa aceitável, sem ler bytes: o editor confere o arquivo antes de
-// enviar, e externos/capas.ts confere de novo no servidor.
-
+/**
+ * O que é uma capa aceitável, sem ler bytes: o editor confere o arquivo antes de
+ * enviar, e externos/capas.ts confere de novo no servidor.
+ */
 export const LIMITE_DA_CAPA = {
   bytes: 4 * 1024 * 1024,
   ladoMaximo: 8000,

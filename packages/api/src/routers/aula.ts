@@ -27,7 +27,6 @@ export const aulaRouter = router({
         ? carregarAula(ctx.db, ctx.aluno, input.slug, input.aulaId)
         : null
     ),
-  // A tradução leva o lock_timeout de registrar a TOO_MANY_REQUESTS.
   registrar: alunoComTraducao
     .input(entradaRegistro)
     .mutation(async ({ ctx, input }) => {

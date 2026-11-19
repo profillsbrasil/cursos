@@ -1,7 +1,3 @@
-// O cartão do nome de Minha conta, montado de verdade no Chromium headless, com o
-// usuário do Clerk falso: o teste digita, salva, faz o Clerk recusar e mede. Sem
-// Chromium na máquina, a suíte pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -114,7 +110,6 @@ async function empacotar() {
 let enviar: Enviar;
 let pacote: string;
 
-/** A página de 1280 px com a casca aberta: o cartão fica com 936 px, como no print. */
 async function abrir(inicial: { firstName: string; lastName: string }) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -132,7 +127,6 @@ async function abrir(inicial: { firstName: string; lastName: string }) {
   await estilizar();
 }
 
-/** Compila o CSS do app para as classes que estão na página agora. */
 async function estilizar() {
   const classes = await avaliar<string[]>(
     enviar,
@@ -192,7 +186,6 @@ const RECUSA_DE_HTML = {
 
 const FOTO_OU_ARQUIVO = /foto|file|arquivo/i;
 
-// O texto dentro de um controle repete o nome dele na árvore.
 const TEXTO_SOLTO = new Set(["InlineTextBox", "StaticText"]);
 
 describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
@@ -211,7 +204,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o cartão do nome", () => {
     await esperar("window.toasts.length > 0");
     expect(await textoDe("h2")).toBe("Ana Souza");
     expect(await textoDe('[data-slot="avatar-fallback"]')).toBe("AS");
-    // A folha é a prévia do que a pessoa digitou, e a legenda diz que não salvou.
     expect(await textoDe("figure p:nth-of-type(2)")).toBe("Bia Souza");
     expect(await textoDe("figure + p")).toBe(
       "Prévia: este nome ainda não foi salvo"

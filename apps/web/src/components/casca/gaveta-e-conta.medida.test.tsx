@@ -1,8 +1,3 @@
-// A Casca de verdade, montada no Chromium headless com o CSS do app: a gaveta do
-// celular, o topo do celular, o cartão de conta e o Continuar com a sidebar
-// recolhida. O Clerk, o roteador, o next/link e o next/image viram peças falsas no
-// pacote; o resto é o código do app. Sem Chromium, a suíte pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -21,7 +16,7 @@ import {
 const ENTRADA = join(import.meta.dir, "gaveta-e-conta.entrada.tsx");
 const FALSOS = join(import.meta.dir, "falsos-da-casca.js");
 
-const FALSO =
+const MODULO_QUE_VIRA_FALSO =
   /^(@clerk\/nextjs|next\/navigation|next\/headers|next\/link|next\/image)$/;
 
 const AULA = "/cursos/comercial/aulas/a1";
@@ -95,7 +90,9 @@ async function empacotar() {
       {
         name: "casca-sem-next",
         setup(construtor) {
-          construtor.onResolve({ filter: FALSO }, () => ({ path: FALSOS }));
+          construtor.onResolve({ filter: MODULO_QUE_VIRA_FALSO }, () => ({
+            path: FALSOS,
+          }));
         },
       },
     ],

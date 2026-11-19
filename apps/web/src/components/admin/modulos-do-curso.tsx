@@ -57,7 +57,6 @@ type Despachar = Dispatch<AcaoDoAdmin>;
 
 type Niveis = RascunhoDoCurso["niveis"];
 
-/** Âncora e alvos de foco do bloco; os campos que o schema marca usam o ID. */
 const ALVO = {
   bloco: (id: ModuloId) => `modulo-${id}`,
   cabeca: (id: ModuloId) => `modulo-${id}-cabeca`,
@@ -65,7 +64,6 @@ const ALVO = {
   novoModulo: "modulo-novo",
 };
 
-/** O número do módulo no cabeçalho e no índice: aberto em Sol suave, erro em contorno. */
 const NUMERO: Record<Bloco["tipo"], string> = {
   aberto: "bg-sol/14 text-sol",
   com_erro: "text-destructive ring-1 ring-destructive ring-inset",
@@ -142,7 +140,6 @@ function nomeDoNivel(niveis: Niveis, ordem: number | null) {
   return niveis.find((n) => n.ordem === ordem)?.nome.trim() || `Nível ${ordem}`;
 }
 
-/** A linha que resume o módulo e abre ou fecha o bloco. */
 function CabecaDoBloco({
   alternar,
   assistidas,
@@ -258,7 +255,6 @@ export function BlocoDoModulo({
 
   const ultimo = modulos.length - 1;
 
-  // Com erro na tela o bloco não fecha, e a linha diz por quê.
   const alternar = useCallback(() => {
     if (bloco.tipo !== "com_erro") {
       despachar({
@@ -326,8 +322,6 @@ export function BlocoDoModulo({
         niveis={niveis}
       />
       {bloco.tipo === "fechado" ? null : (
-        // A largura do bloco, e não a da janela, decide a grade: em 768 px com a
-        // sidebar aberta, o nível de 16rem na mesma linha deixava o título com 42 px.
         <div className="@container" id={ALVO.conteudo(id)}>
           <div className="bg-muted/30 grid gap-3 px-5 pt-1 pb-4 @sm:grid-cols-[6rem_minmax(0,1fr)] @sm:items-start @2xl:grid-cols-[6rem_minmax(0,1fr)_16rem]">
             <CampoLido
@@ -473,7 +467,7 @@ function LinkDoIndice({
     <Tooltip>
       <TooltipTrigger
         className={cn(
-          // relative: o sr-only é absolute e, sem isto, escapa da fila que rola e alarga a página.
+          // WARNING: sem o relative, o sr-only (absolute) escapa da fila que rola e alarga a página.
           "relative grid h-9 min-w-9 place-items-center rounded-full px-2.5 text-[13px] font-semibold tabular-nums transition-colors duration-150",
           NUMERO[bloco.tipo],
           NUMERO_SOB_O_CURSOR[bloco.tipo]
@@ -521,7 +515,6 @@ export function reservarOTopo(nav: HTMLElement | null) {
   };
 }
 
-/** Preso ao topo da seção: leva ao módulo e o abre. */
 function IndiceDosModulos({
   blocos,
   irPara,
@@ -545,7 +538,7 @@ function IndiceDosModulos({
         Ir para
       </span>
       <ol
-        // O pr-11 do celular passa da faixa de 2,5rem da máscara: no fim da rolagem, o último número sai inteiro.
+        // WARNING: o pr-11 do celular passa da faixa de 2,5rem da máscara; sem ele o último número sai esmaecido.
         className="flex min-w-0 [scrollbar-width:none] gap-1 overflow-x-auto max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)] max-md:pr-11 md:flex-wrap"
         // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"
@@ -596,7 +589,6 @@ export function ModulosDoCurso({
     focarDepois(ID.modulo(id, "titulo"));
   }, [despachar]);
 
-  // Sem rolagem suave: o salto vem do teclado tanto quanto do mouse.
   const irPara = useCallback(
     (id: ModuloId) => {
       despachar({ id, tipo: "aberto" });
@@ -611,7 +603,6 @@ export function ModulosDoCurso({
   );
 
   return (
-    // min-w-0 e a coluna minmax(0,1fr): a fila do índice rola por dentro em vez de alargar a página.
     <section
       aria-labelledby="modulos"
       className="grid min-w-0 grid-cols-1 gap-3.5"

@@ -1,6 +1,3 @@
-// Server Component: a ficha monta no servidor, e só o cartão de Acesso e o
-// formulário da concessão de pontos são cliente.
-
 import type { FichaDaPessoa, PontosNaFicha } from "@cursos/api/dominio/pessoas";
 import type { JeitoDeEntrar } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
@@ -124,6 +121,10 @@ function PontosDaPessoa({
   );
 }
 
+/**
+ * Server Component: a ficha monta no servidor, e só o cartão de Acesso e o
+ * formulário da concessão de pontos são cliente.
+ */
 export function FichaDaPessoaDoAdmin({
   ficha,
   hoje,

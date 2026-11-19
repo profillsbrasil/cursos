@@ -16,15 +16,13 @@ import {
   traduzErroDoBanco,
 } from "./index";
 
-/** O erro do node-postgres, como o drizzle o deixa na cadeia de cause. */
-const violou = (restricao: string) =>
+const erroDeNodePostgresNaCadeiaDeCause = (restricao: string) =>
   Object.assign(new Error("duplicate key value violates unique constraint"), {
     code: "23505",
     constraint: restricao,
   });
 
-/** O lock_timeout do Postgres, embrulhado como o drizzle embrulha. */
-const esgotou = () =>
+const lockTimeoutEmbrulhadoPeloDrizzle = () =>
   new Error('Failed query: insert into "cota_video"', {
     cause: Object.assign(new Error("canceling statement due to lock timeout"), {
       code: "55P03",
@@ -39,10 +37,10 @@ const rotas = router({
     });
   }),
   esperaEsgotada: publicProcedure.use(traduzErroDoBanco).query(() => {
-    throw esgotou();
+    throw lockTimeoutEmbrulhadoPeloDrizzle();
   }),
   liberacaoRepetida: adminProcedure.query(() => {
-    throw violou("liberacao_curso_ativa_unica");
+    throw erroDeNodePostgresNaCadeiaDeCause("liberacao_curso_ativa_unica");
   }),
   paraAPessoa: publicProcedure.query(() => {
     throw new ErroParaAPessoa({
@@ -62,8 +60,7 @@ const rotas = router({
   }),
 });
 
-/** O corpo de erro que o cliente recebe pelo HTTP, depois do errorFormatter. */
-async function erroDe(caminho: string) {
+async function corpoDoErroNoHttpDepoisDoErrorFormatter(caminho: string) {
   const resposta = await fetchRequestHandler({
     createContext: () =>
       contextoDeTeste({ db: {} as never, papel: "admin", userId: "user_x" }),
@@ -104,7 +101,9 @@ describe("recusa de negócio sai como ErroParaAPessoa", () => {
 
 describe("errorFormatter marca a mensagem escrita para a pessoa", () => {
   test("ErroParaAPessoa chega com paraAPessoa: true e o texto dela", async () => {
-    expect(await erroDe("paraAPessoa")).toEqual({
+    expect(
+      await corpoDoErroNoHttpDepoisDoErrorFormatter("paraAPessoa")
+    ).toEqual({
       code: "CONFLICT",
       message: "O preço deste curso mudou.",
       motivo: null,
@@ -115,7 +114,8 @@ describe("errorFormatter marca a mensagem escrita para a pessoa", () => {
   test("TRPCError comum, erro solto e procedimento que não existe chegam sem a marca", async () => {
     const r = await Promise.all(
       ["doBanco", "quebrou", "naoExiste"].map(async (c) => {
-        const { code, motivo, paraAPessoa } = await erroDe(c);
+        const { code, motivo, paraAPessoa } =
+          await corpoDoErroNoHttpDepoisDoErrorFormatter(c);
 
         return [code, paraAPessoa, motivo];
       })
@@ -131,7 +131,9 @@ describe("errorFormatter marca a mensagem escrita para a pessoa", () => {
 
 describe("errorFormatter leva o motivo, que o editor lê sem ler o texto", () => {
   test("versao_mudou chega com o motivo e a mensagem para a pessoa", async () => {
-    expect(await erroDe("versaoMudou")).toEqual({
+    expect(
+      await corpoDoErroNoHttpDepoisDoErrorFormatter("versaoMudou")
+    ).toEqual({
       code: "CONFLICT",
       message: "Outra pessoa salvou este curso.",
       motivo: "versao_mudou",
@@ -140,7 +142,9 @@ describe("errorFormatter leva o motivo, que o editor lê sem ler o texto", () =>
   });
 
   test("restrição traduzida sem motivo próprio chega marcada e com motivo null", async () => {
-    expect(await erroDe("liberacaoRepetida")).toEqual({
+    expect(
+      await corpoDoErroNoHttpDepoisDoErrorFormatter("liberacaoRepetida")
+    ).toEqual({
       code: "CONFLICT",
       message: "A pessoa já tem este curso liberado.",
       motivo: null,
@@ -149,7 +153,9 @@ describe("errorFormatter leva o motivo, que o editor lê sem ler o texto", () =>
   });
 
   test("lock_timeout (55P03) chega como TOO_MANY_REQUESTS, que o player tenta de novo", async () => {
-    expect(await erroDe("esperaEsgotada")).toEqual({
+    expect(
+      await corpoDoErroNoHttpDepoisDoErrorFormatter("esperaEsgotada")
+    ).toEqual({
       code: "TOO_MANY_REQUESTS",
       message: ESPERA_ESGOTADA.message,
       motivo: null,

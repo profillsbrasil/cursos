@@ -30,7 +30,6 @@ export const categoria = tabela(
   },
   (t) => [
     unique("categoria_nome_unico").on(t.nome),
-    // O teto repete CARACTERES.categoria de limites-do-curso.ts.
     check(
       "categoria_nome_formato",
       sql`${t.nome} = trim(${t.nome}) and char_length(${t.nome}) between 1 and 80`
@@ -42,14 +41,12 @@ export const curso = tabela(
   "curso",
   {
     capaAlt: text().notNull(),
-    // Medida real da imagem em capa_url, para o next/image reservar o espaço.
     capaAltura: smallint().notNull(),
     capaLargura: smallint().notNull(),
     capaUrl: text().notNull(),
     categoriaId: uuid()
       .notNull()
       .references(() => categoria.id, { onDelete: "restrict" }),
-    // O servidor gera no primeiro salvamento (dominio/codigo-do-curso.ts); ex.: PE-001.
     codigo: text().notNull().unique(),
     criadoEm: momento(),
     descricao: text().notNull().default(""),
@@ -65,10 +62,7 @@ export const curso = tabela(
   },
   (t) => [
     check("curso_slug_formato", sql`${t.slug} ~ ${SLUG}`),
-    // Os tetos repetem CARACTERES e LIMITES de limites-do-curso.ts, e o
-    // edicao.integration.test.ts confere os dois lados.
     check("curso_descricao_tamanho", sql`char_length(${t.descricao}) <= 2000`),
-    // A função vem da migração formato_udemy: um check não pode ter subconsulta.
     check("curso_topicos_validos", sql`topicos_validos(${t.topicos})`),
     check("curso_capa_alt_preenchido", sql`length(trim(${t.capaAlt})) > 0`),
     check(
@@ -97,8 +91,6 @@ export const nivel = tabela(
   ]
 );
 
-// nivel_ordem nulo não é checado (MATCH SIMPLE). Preenchido, é nível do mesmo curso.
-// Uma coluna por módulo: dois níveis sobre o mesmo módulo não têm como existir.
 export const modulo = tabela(
   "modulo",
   {
@@ -144,7 +136,6 @@ export const aula = tabela(
       "aula_video_completo",
       sql`(${t.videoProvedor} is null) = (${t.videoId} is null)`
     ),
-    // else false: provedor novo sem ramo aqui é recusado, em vez de passar por NULL.
     check(
       "aula_video_formato",
       sql`${t.videoProvedor} is null or case ${t.videoProvedor}
@@ -155,9 +146,6 @@ export const aula = tabela(
   ]
 );
 
-// "De 2 a 5 alternativas" e "uma certa" são regras entre linhas: ficam no schema
-// zod do único escritor (salvarCurso). O banco segura o que cabe numa linha e,
-// pelo índice parcial, "no máximo uma certa".
 export const pergunta = tabela(
   "pergunta",
   {
@@ -202,11 +190,6 @@ export const alternativa = tabela(
   ]
 );
 
-// O material de apoio do curso inteiro, que o aluno com liberação ativa baixa na
-// página do curso. Os tetos repetem CARACTERES e LIMITES de limites-do-curso.ts, e
-// o edicao.integration.test.ts confere os dois lados; "até 20 por curso" é regra
-// entre linhas e fica no schema zod. O arquivo mora no bucket de materiais pela
-// chave, o sha256 dos bytes mais a extensão do tipo.
 export const material = tabela(
   "material",
   {
