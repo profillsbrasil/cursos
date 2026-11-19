@@ -35,9 +35,21 @@ export const aceitoDesde = (agora: Date): Date =>
 
 const SEPARADOR = /[\s,;]+/;
 
-/** null quando o texto não é um e-mail. Mais estreita que o check do banco. */
+const ASCII_VISIVEL = /^[!-~]*$/;
+
+/**
+ * null quando o texto não é um e-mail. Mais estreita que o check do banco. O
+ * texto aparado precisa ser ASCII antes do toLowerCase, que leva o sinal Kelvin
+ * (U+212A) a "k" e o faria passar no formato.
+ */
 export function lerEmail(texto: string): Email | null {
-  const minusculo = texto.trim().toLowerCase();
+  const aparado = texto.trim();
+
+  if (!ASCII_VISIVEL.test(aparado)) {
+    return null;
+  }
+
+  const minusculo = aparado.toLowerCase();
 
   return ehEmail(minusculo) ? minusculo : null;
 }

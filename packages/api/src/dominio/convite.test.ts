@@ -61,6 +61,10 @@ describe("lerEmail", () => {
   test("recusa o e-mail com caractere fora do ASCII", () => {
     expect(lerEmail("İlker@exemplo.com")).toBeNull();
     expect(lerEmail("joão@exemplo.com")).toBeNull();
+    expect(
+      lerEmail(`${String.fromCodePoint(0x21_2a)}ate@exemplo.com`)
+    ).toBeNull();
+    expect(lerEmail(`ana@${String.fromCodePoint(0x21_2a)}.com`)).toBeNull();
     expect(lerEmail("ana@exemplo.com.br ")).toBe(
       marcar(ehEmail, "ana@exemplo.com.br")
     );
