@@ -1,6 +1,6 @@
 "use client";
 
-import type { StatusDoCurso } from "@cursos/api/dominio/tipos";
+import { STATUS_DO_CURSO, type StatusDoCurso } from "@cursos/api/dominio/tipos";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, Clock, Eye, Undo2 } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useId, useState } from "react";
@@ -77,7 +77,7 @@ function SeletorDoStatus({
           "bg-background ring-muted-foreground grid w-full grid-cols-2"
         )}
       >
-        {(Object.keys(STATUS) as StatusDoCurso[]).map((s) => (
+        {STATUS_DO_CURSO.map((s) => (
           <OpcaoDoStatus
             aoMudar={aoMudar}
             key={s}

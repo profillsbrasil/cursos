@@ -7,6 +7,8 @@ import type {
 
 import type { Papel } from "../context";
 
+export { STATUS_DO_CURSO } from "@cursos/db/schema/formatos";
+
 export type {
   AdminId,
   AlternativaId,

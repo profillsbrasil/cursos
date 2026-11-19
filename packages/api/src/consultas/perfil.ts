@@ -1,5 +1,4 @@
 import type { Database } from "@cursos/db";
-import { PERFIS } from "@cursos/db/schema/formatos";
 import { perfilDaPessoa, pontoLancamento } from "@cursos/db/schema/index";
 import { count, sql } from "drizzle-orm";
 
@@ -267,9 +266,11 @@ export async function contagemPorPerfil(
     .from(perfilDaPessoa)
     .groupBy(perfilDaPessoa.perfil);
 
-  const contagem = Object.fromEntries(
-    PERFIS.map((p) => [p, 0])
-  ) as ContagemPorPerfil;
+  const contagem: ContagemPorPerfil = {
+    cliente: 0,
+    funcionario: 0,
+    publico: 0,
+  };
 
   for (const l of linhas) {
     contagem[l.perfil] = l.n;

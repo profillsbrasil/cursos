@@ -65,9 +65,12 @@ describe("versaoDoCurso", () => {
   test("ignora a ordem das chaves e o próprio campo versao", () => {
     const d = documento();
 
-    const invertido = Object.fromEntries(
-      Object.entries(d).reverse()
-    ) as DocumentoDoCurso;
+    const invertido: DocumentoDoCurso = {
+      ...Object.fromEntries(Object.entries(d).reverse()),
+      ...d,
+    };
+
+    expect(Object.keys(invertido)).toEqual(Object.keys(d).reverse());
 
     expect(versaoDoCurso({ ...invertido, versao: null }, CAPA_ATUAL)).toBe(
       versaoDoCurso(d, CAPA_ATUAL)
