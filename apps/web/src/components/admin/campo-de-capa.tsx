@@ -196,7 +196,7 @@ export function CampoDeCapa({
     const destino = e.relatedTarget;
 
     if (destino !== null && !(destino instanceof Node)) {
-      throw new Error("relatedTarget do dragleave deveria ser um Node");
+      return;
     }
 
     if (!e.currentTarget.contains(destino)) {
