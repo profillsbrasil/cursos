@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { origemDoPedido } from "@/components/certificado/folha";
+import { NomeQueFalta } from "@/components/certificado/nome-que-falta";
 import { TelaDoCertificado } from "@/components/certificado/tela-do-certificado";
 import { carregarPaginaDoCertificado } from "@/server/api";
 
@@ -48,6 +49,7 @@ export default async function Certificado({ params }: Props) {
         hoje={diaLocal(new Date())}
         origem={origemDoPedido(await headers())}
         pagina={pagina}
+        pedirONome={<NomeQueFalta />}
       />
     </>
   );

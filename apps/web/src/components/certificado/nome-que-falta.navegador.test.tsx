@@ -21,9 +21,13 @@ const ENTRADA = join(import.meta.dir, "nome-que-falta.entrada.tsx");
 const CLERK = join(import.meta.dir, "clerk-falso.js");
 const SONNER = join(import.meta.dir, "sonner-falso.js");
 const IMAGEM = join(import.meta.dir, "imagem-falsa.js");
+const NAVEGACAO = join(import.meta.dir, "navegacao-falsa.js");
+const LINK = join(import.meta.dir, "link-sem-roteador.js");
 const CLERK_NEXTJS = /^@clerk\/nextjs$/;
 const SONNER_PACOTE = /^sonner$/;
 const NEXT_IMAGE = /^next\/image$/;
+const NEXT_NAVIGATION = /^next\/navigation$/;
+const NEXT_LINK = /^next\/link$/;
 
 async function empacotar() {
   const pacote = await build({
@@ -86,7 +90,9 @@ async function empacotar() {
           )
         );
       `,
-      [CLERK]: "export const useReverification = (fazer) => fazer;",
+      // O NomeQueFalta importa o useUser; o teste monta só o FormularioDoNome.
+      [CLERK]: `export const useReverification = (fazer) => fazer;
+        export const useUser = () => ({ user: null });`,
       [SONNER]: `export const toast = {
         error: (m) => window.toasts.push(["erro", m]),
         success: (m) => window.toasts.push(["ok", m]),
@@ -94,6 +100,14 @@ async function empacotar() {
       [IMAGEM]: `import { createElement } from "react";
         export default function Image({ alt, height, src, style, width }) {
           return createElement("img", { alt, height, src, style, width });
+        }`,
+      // O NomeQueFalta importa o useRouter, e o Pendente da tela, o next/link: fora do
+      // App Router, os dois não têm roteador.
+      [NAVEGACAO]:
+        "export const useRouter = () => ({ refresh: () => undefined });",
+      [LINK]: `import { createElement } from "react";
+        export default function Link({ href, ...props }) {
+          return createElement("a", { href, ...props });
         }`,
     },
     format: "iife",
@@ -110,6 +124,10 @@ async function empacotar() {
           construtor.onResolve({ filter: NEXT_IMAGE }, () => ({
             path: IMAGEM,
           }));
+          construtor.onResolve({ filter: NEXT_NAVIGATION }, () => ({
+            path: NAVEGACAO,
+          }));
+          construtor.onResolve({ filter: NEXT_LINK }, () => ({ path: LINK }));
         },
       },
     ],

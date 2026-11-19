@@ -13,10 +13,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { BOTAO, LINK_NO_TEXTO } from "@/components/casca/botoes";
+import { BOTAO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 import { diaCurto, diaEmSaoPaulo, plural } from "@/lib/formato";
-import { caminhoDoCertificado, caminhoDoCurso, MINHA_CONTA } from "@/lib/rotas";
+import { caminhoDoCertificado, caminhoDoCurso } from "@/lib/rotas";
 
 import { CopiarLink } from "./copiar-link";
 import { Fatos } from "./fatos";
@@ -115,10 +115,16 @@ export function TelaDoCertificado({
   hoje,
   origem,
   pagina,
+  pedirONome,
 }: {
   hoje: DiaISO;
   origem: string;
   pagina: PaginaDoCertificado;
+  /**
+   * O formulário do nome, que só aparece sem nome na conta. Vem de quem monta a
+   * tela porque ele lê o Clerk, e a tela também renderiza sem o `ClerkProvider`.
+   */
+  pedirONome: React.ReactNode;
 }) {
   if (pagina.tipo === "falta") {
     return <Pendente pagina={pagina} />;
@@ -152,15 +158,9 @@ export function TelaDoCertificado({
           </h2>
           <p className="text-muted-foreground max-w-[60ch] text-pretty">
             O certificado leva o nome da sua conta, e ela ainda não tem um.
-            Ponha o nome em{" "}
-            <Link
-              className={cn(LINK_NO_TEXTO, "text-foreground font-medium")}
-              href={MINHA_CONTA}
-            >
-              Minha conta
-            </Link>{" "}
-            e volte aqui para baixar o PDF.
+            Escreva o nome como ele deve sair no certificado.
           </p>
+          {pedirONome}
         </section>
       )}
       <aside
