@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 import { definido } from "../definido.test-utils";
 import { LIMITE_DA_CAPA } from "../dominio/capa";
+import { ArquivoQueContaAsLeituras } from "./arquivo-que-conta-as-leituras.test-utils";
 import {
   bucketAssinado,
   capasDesligadas,
@@ -121,16 +122,6 @@ const BUCKET = {
   segredo: "segredo-de-teste",
 };
 
-class BlobQueContaAsLeituras extends Blob {
-  lidos = 0;
-
-  override arrayBuffer() {
-    this.lidos += 1;
-
-    return super.arrayBuffer();
-  }
-}
-
 function bucketFalso(resposta: () => Response) {
   const pedidos: Request[] = [];
   const tamanhos: (number | null)[] = [];
@@ -202,9 +193,10 @@ describe("capasNoBucket", () => {
   });
 
   test("arquivo acima do teto é recusado sem ler os bytes", async () => {
-    const pesado = new BlobQueContaAsLeituras([
-      new Uint8Array(LIMITE_DA_CAPA.bytes + 1),
-    ]);
+    const pesado = new ArquivoQueContaAsLeituras(
+      [new Uint8Array(LIMITE_DA_CAPA.bytes + 1)],
+      "capa.jpg"
+    );
 
     expect(await capasNoBucket(BUCKET, fetch).receber(pesado)).toEqual({
       recusa: { limiteMb: 4, tipo: "pesada" },

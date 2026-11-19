@@ -1,6 +1,7 @@
 import { describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 
+import { ArquivoQueContaAsLeituras } from "./arquivo-que-conta-as-leituras.test-utils";
 import type { Enviar } from "./capas";
 import {
   lerMaterial,
@@ -102,16 +103,6 @@ const BUCKET = {
   regiao: "auto",
   segredo: "segredo-de-teste",
 };
-
-class ArquivoQueContaAsLeituras extends File {
-  lidos = 0;
-
-  override arrayBuffer() {
-    this.lidos += 1;
-
-    return super.arrayBuffer();
-  }
-}
 
 function bucketFalso(resposta: (pedido: Request) => Response) {
   const pedidos: Request[] = [];
