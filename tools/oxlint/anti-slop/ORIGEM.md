@@ -12,7 +12,7 @@ Cópia de `src/` do anti-slop, sem a pasta `effect`, porque o repo não usa Effe
 
 ## Mudanças locais
 
-- `rules/no-module-mocking.ts` também acusa `mock.module(...)` do `bun:test`, com os casos em `rules/no-module-mocking.test.ts`.
+- `rules/no-module-mocking.ts` também acusa `mock.module(...)` do `bun:test` e o mocker que chega por `await import(...)` (desestruturado ou guardado numa variável) ou por `import * as`, com os casos em `rules/no-module-mocking.test.ts`.
 - `tsconfig.json` acrescenta `"types": ["node"]` e troca o `include` de `["src/**/*.ts"]` por `["**/*.ts"]`, porque esta pasta é a cópia de `src/`. Sem o `types`, o `bunx tsc -p tools/oxlint/anti-slop/tsconfig.json` também passa hoje (medido em 18 de novembro de 2026).
 
 ## Como atualizar

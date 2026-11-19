@@ -141,15 +141,6 @@ export default defineConfig({
     },
     {
       files: [
-        "apps/web/src/lib/editor.test.ts",
-        "apps/web/src/utils/trpc.test.ts",
-      ],
-      rules: {
-        "landmines-testing/no-test-doubles": "warn",
-      },
-    },
-    {
-      files: [
         "apps/web/src/components/minha-conta/use-acao-da-conta.ts",
         "packages/api/src/consultas/trava.ts",
         "packages/api/src/sessao.ts",
@@ -221,7 +212,7 @@ export default defineConfig({
     "anti-slop/no-unsafe-dictionary-type": "off",
     "anti-slop/no-widen-then-assert": "error",
     "anti-slop/require-readable-spacing": "error",
-    "anti-slop/no-module-mocking": "warn",
+    "anti-slop/no-module-mocking": "error",
     "anti-slop/require-safety-comment-for-type-assertion": "off",
     "landmines-structure/colocated-tests": "error",
     "landmines-structure/package-exports": "error",
