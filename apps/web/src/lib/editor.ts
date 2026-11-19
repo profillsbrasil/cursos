@@ -59,17 +59,29 @@ export function primeiroNaPagina<T extends NaPagina<T>>(
   );
 }
 
-/** Depois do render: o campo marcado pode estar num bloco que abre com o erro. */
-export const focarOPrimeiro = (ids: readonly string[]) =>
-  requestAnimationFrame(() => {
+/** Depois do render: o campo marcado pode estar num bloco que abre com o erro. `quadro` agenda a busca e `porId` acha cada campo; o `focarOPrimeiro` passa o `requestAnimationFrame` e o `document.getElementById`. */
+export const focarOPrimeiroCom = <
+  T extends NaPagina<T> & { focus: () => void },
+>(
+  ids: readonly string[],
+  quadro: (depois: () => void) => unknown,
+  porId: (id: string) => T | null
+) =>
+  quadro(() => {
     const elementos = ids.flatMap((id) => {
-      const e = document.getElementById(id);
+      const e = porId(id);
 
       return e ? [e] : [];
     });
 
     primeiroNaPagina(elementos)?.focus();
   });
+
+/** Depois do render: o campo marcado pode estar num bloco que abre com o erro. */
+export const focarOPrimeiro = (ids: readonly string[]) =>
+  focarOPrimeiroCom(ids, requestAnimationFrame, (id) =>
+    document.getElementById(id)
+  );
 
 interface ComVersao {
   versao: Versao | null;

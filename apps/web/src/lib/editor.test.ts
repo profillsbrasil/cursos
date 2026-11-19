@@ -8,6 +8,7 @@ import type { Versao } from "@cursos/api/dominio/tipos";
 import {
   apoioEm,
   apoioSalvo,
+  focarOPrimeiroCom,
   primeiroNaPagina,
   setaDepoisDeMover,
   sincronizarComAPagina,
@@ -106,6 +107,57 @@ describe("primeiroNaPagina", () => {
 
   test("lista vazia não escolhe nada", () => {
     expect(primeiroNaPagina<Campo>([])).toBeUndefined();
+  });
+});
+
+describe("focarOPrimeiroCom", () => {
+  test("procura o campo só depois do render: o Salvar recusado abre o bloco do campo no mesmo render que marca o erro, e procurar antes do quadro seguinte não o acha", () => {
+    const quadros: (() => void)[] = [];
+    const focados: string[] = [];
+    const naPagina = new Map<string, Campo & { focus: () => void }>();
+
+    focarOPrimeiroCom(
+      ["aula-duracao"],
+      (depois) => quadros.push(depois),
+      (id) => naPagina.get(id) ?? null
+    );
+    naPagina.set("aula-duracao", {
+      compareDocumentPosition: () => DEPOIS,
+      focus: () => {
+        focados.push("aula-duracao");
+      },
+      id: "aula-duracao",
+    });
+    expect(focados).toEqual([]);
+
+    for (const depois of quadros) {
+      depois();
+    }
+
+    expect(focados).toEqual(["aula-duracao"]);
+  });
+
+  test("foca o campo que vem antes na página, não o primeiro da lista", () => {
+    const focados: string[] = [];
+    const c = camposEmOrdem("curso-titulo", "aula-duracao");
+
+    const focavel = (campo: Campo | undefined) =>
+      campo
+        ? {
+            ...campo,
+            focus: () => {
+              focados.push(campo.id);
+            },
+          }
+        : null;
+
+    focarOPrimeiroCom(
+      ["aula-duracao", "curso-titulo", "sumiu"],
+      (depois) => depois(),
+      (id) => focavel(c[id])
+    );
+
+    expect(focados).toEqual(["curso-titulo"]);
   });
 });
 

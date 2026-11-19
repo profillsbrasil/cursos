@@ -294,13 +294,23 @@ A mudança local é o `no-module-mocking`, que só conhecia o `vi` do Vitest e o
 | --- | --- | --- |
 | `next/navigation`, em 20 arquivos | O `ComRoteador` de `components/roteador.test-utils.tsx` monta os contextos reais do App Router, com `caminho`, `busca` e o roteador de `roteadorDeTeste()`, que guarda cada chamada em `chamadas`. O teste de SSR que lia o `useRouter` confere `chamadas` igual a `[]`: o HTML do servidor não navega. | `aluno/cartao-continuar.test.tsx` e `casca/provedor-da-casca.test.tsx` (o caminho), `admin/categorias.test.tsx` (nada navega), `player/questionario-da-aula.navegador.test.tsx` (o `refresh` do `useAcao` no Chromium) |
 | `@clerk/nextjs` | O componente de fora lê o hook e entrega a uma vista exportada o que ela usa, com o tipo estreito: um `Pick` do usuário do Clerk. Onde a vista ainda chama um hook do Clerk que não lê o usuário (o `useReverification` do `useAcaoDaConta`, o `useSession` e o `useClerk`), o teste monta o `ClerkProvider` real dentro do `ComRoteador`, com uma chave pública de exemplo, e no SSR ele responde sem rede. | `MenuDaConta` (`casca/cartao-de-conta.tsx`), `BotoesDeSair` (`minha-conta/secao-de-sair.tsx`), `ConteudoDaMinhaConta` e a `TelaDaMinhaConta` com a prop `conta`, que toma o lugar do `useUser` sem deixar de chamá-lo, porque o lint do React recusa hook passado como valor (`minha-conta/tela-da-minha-conta.tsx`) |
-| `@cursos/ui/components/dropdown-menu` | O teste sobe ao Chromium e abre o menu pelo clique. | `casca/cartao-de-conta.navegador.test.tsx` |
+| `@cursos/ui/components/dropdown-menu` | O teste sobe ao Chromium e abre o menu pelo clique. O gatilho do cartão continua no SSR. | `casca/cartao-de-conta.navegador.test.tsx` (o menu), `casca/cartao-de-conta.test.tsx` (o gatilho) |
 | `next/headers` | A `Casca` lê o cookie e monta a `MolduraDaCasca`, que recebe `aberta`. | `sinal-do-foco.test.tsx` |
 | `@/server/api` | `rotaDoPdfDoAluno` e `rotaDoPdfDaConferencia`, de `certificado/resposta-do-pdf.ts`, montam o `GET` com o carregador por parâmetro. Cada `route.ts` exporta o `GET` montado com o de `@/server/api`, e o teste chama o `GET` montado com um carregador que guarda o slug e o código que recebe. | `certificado/resposta-do-pdf.test.ts` |
 | `fetch` global | `clienteTrpc(buscar)` em `utils/trpc.ts`; o `trpcClient` do app é o `clienteTrpc()`, que chama o `fetch` global na hora do pedido. | `utils/trpc.test.ts` |
-| `requestAnimationFrame` e `document` | O caso do `focarOPrimeiro` roda no Chromium, com o DOM e o quadro de verdade. | `lib/editor.navegador.test.ts` |
+| `requestAnimationFrame` e `document` | `focarOPrimeiroCom` recebe por parâmetro quem agenda o quadro e quem acha o campo pelo id, e o `focarOPrimeiro` passa o `requestAnimationFrame` e o `document.getElementById`. O caso roda sem Chromium com um quadro que o teste dispara, e o do Chromium continua, com o DOM e o quadro de verdade. | `lib/editor.test.ts`, `lib/editor.navegador.test.ts` |
 
 Na troca, cada arquivo convertido falhou com uma mutação do comportamento que ele cobre e voltou a passar sem ela. Os 13 que conferem o roteador falham quando o `useAcao` ou o `usePlayerDaAula` chamam o roteador ao renderizar.
+
+#### O que só roda na máquina
+
+O CI roda com `CHROMIUM=/nao-existe/chromium` (`.github/workflows/ci.yml`), e as suítes de Chromium pulam lá. Antes da troca, o `mock.module` do `dropdown-menu` punha o menu em linha no SSR, e o CI rodava os casos dele. Sem o dublê, o menu do Base UI não renderiza fora do navegador. Medido em 19 de novembro de 2026 com `renderToStaticMarkup`: o `DropdownMenu` com `defaultOpen` devolve só o botão do gatilho, sem os itens; o `Menu.Portal` com `keepMounted` também; e o `DropdownMenuItem` fora do `Menu.Root` lança "MenuRootContext is missing". O repo não tem DOM fora do navegador (nem `happy-dom` nem `jsdom`). Estes casos só rodam na máquina, com o Chromium:
+
+| Caso | Arquivo |
+| --- | --- |
+| Os itens do menu com sequência zero, com sequência e sem placar; Minha conta como link; o Sair chamando `sair` | `casca/cartao-de-conta.navegador.test.tsx` |
+
+Antes do merge de uma mudança no menu da conta ou no Sair, rode essas suítes na máquina (`CHROMIUM=/usr/bin/chromium bun test` em `apps/web`).
 
 #### O que as regras não veem
 
