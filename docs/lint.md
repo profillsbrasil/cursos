@@ -309,6 +309,7 @@ O CI roda com `CHROMIUM=/nao-existe/chromium` (`.github/workflows/ci.yml`), e as
 | Caso | Arquivo |
 | --- | --- |
 | Os itens do menu com sequência zero, com sequência e sem placar; Minha conta como link; o Sair chamando `sair` | `casca/cartao-de-conta.navegador.test.tsx` |
+| O Sair da conta de Minha conta chamando `sair`, pelo clique nos `BotoesDeSair` | `minha-conta/secao-de-sair.navegador.test.tsx` |
 
 Antes do merge de uma mudança no menu da conta ou no Sair, rode essas suítes na máquina (`CHROMIUM=/usr/bin/chromium bun test` em `apps/web`).
 
