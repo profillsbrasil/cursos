@@ -28,6 +28,17 @@ const PULAR = cn(
   "fixed -top-16 left-3 z-50 transition-none hover:top-3"
 );
 
+interface PartesDaCasca {
+  children: ReactNode;
+  itens: readonly ItemDoMenu[];
+  /** A peça da área acima do cartão de conta: o Continuar no aluno, nada no admin. */
+  rodape?: ReactNode;
+  /** aria-label da navegação. */
+  rotulo: string;
+  /** Texto do selo ao lado da marca, como "Admin". */
+  selo?: string;
+}
+
 /**
  * A casca das duas áreas: a sidebar (marca e botão de recolher, a navegação com a
  * pílula, o rodapé com o cartão de conta), a gaveta e o topo do celular, e a moldura
@@ -35,29 +46,36 @@ const PULAR = cn(
  * área, o placar e a peça extra do rodapé.
  */
 export async function Casca({
-  children,
-  itens,
   outraArea,
   placar,
-  rodape,
-  rotulo,
-  selo,
-}: {
-  children: ReactNode;
-  itens: readonly ItemDoMenu[];
+  ...partes
+}: PartesDaCasca & {
   /** Obrigatório, para cada área decidir de propósito: null quando não há outra área. */
   outraArea: LinkDaArea | null;
   /** Saldo e sequência do cartão de conta, por streaming; null no admin, que não tem placar. */
   placar: Promise<Placar | null> | null;
-  /** A peça da área acima do cartão de conta: o Continuar no aluno, nada no admin. */
-  rodape?: ReactNode;
-  /** aria-label da navegação. */
-  rotulo: string;
-  /** Texto do selo ao lado da marca, como "Admin". */
-  selo?: string;
 }) {
   const aberta = (await cookies()).get(COOKIE_DA_SIDEBAR)?.value !== "false";
 
+  return (
+    <MolduraDaCasca
+      {...partes}
+      aberta={aberta}
+      conta={<CartaoDeConta outraArea={outraArea} placar={placar} />}
+    />
+  );
+}
+
+/** A casca já com o estado da sidebar e o cartão de conta prontos: a `Casca` os tira do cookie e do Clerk. */
+export function MolduraDaCasca({
+  aberta,
+  children,
+  conta,
+  itens,
+  rodape,
+  rotulo,
+  selo,
+}: PartesDaCasca & { aberta: boolean; conta: ReactNode }) {
   return (
     <ProvedorDaCasca aberta={aberta}>
       <a className={PULAR} href={`#${ALVO_DO_PULAR_PARA_O_CONTEUDO}`}>
@@ -75,7 +93,7 @@ export async function Casca({
         </SidebarContent>
         <SidebarFooter className="gap-2" style={{ padding: RECUO }}>
           {rodape}
-          <CartaoDeConta outraArea={outraArea} placar={placar} />
+          {conta}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>

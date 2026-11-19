@@ -17,17 +17,17 @@ import { plural } from "@/lib/formato";
 
 import { ACOES, CONTORNO_PEQUENO, EXCLUIR, PERIGO } from "./partes";
 import type { Usuario } from "./tipos";
-import { useAcaoDaConta } from "./use-acao-da-conta";
+import { type AcaoDaConta, useAcaoDaConta } from "./use-acao-da-conta";
 
 function ExcluirConta({
+  acao: { executar, pendente },
   certificados,
   user,
 }: {
+  acao: AcaoDaConta;
   certificados: number;
   user: Pick<Usuario, "delete">;
 }) {
-  const { executar, pendente } = useAcaoDaConta();
-
   const excluir = useCallback(
     () =>
       executar(() => user.delete(), {
@@ -95,7 +95,30 @@ export function SecaoDeSair({
 }) {
   const { signOut } = useClerk();
   const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
+  const acao = useAcaoDaConta();
 
+  return (
+    <BotoesDeSair
+      acao={acao}
+      certificados={certificados}
+      sair={sair}
+      user={user}
+    />
+  );
+}
+
+/** O Sair e o Excluir conta já com o Clerk em mãos: a `SecaoDeSair` entrega a saída e a ação. */
+export function BotoesDeSair({
+  acao,
+  certificados,
+  sair,
+  user,
+}: {
+  acao: AcaoDaConta;
+  certificados: number;
+  sair: () => Promise<unknown>;
+  user: Pick<Usuario, "delete">;
+}) {
   return (
     <div className={cn(ACOES, "justify-between")}>
       <button
@@ -108,7 +131,7 @@ export function SecaoDeSair({
         <LogOut aria-hidden="true" className="size-4" />
         Sair da conta
       </button>
-      <ExcluirConta certificados={certificados} user={user} />
+      <ExcluirConta acao={acao} certificados={certificados} user={user} />
     </div>
   );
 }

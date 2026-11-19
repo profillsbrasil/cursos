@@ -1,28 +1,25 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import { aulaId, cursoId } from "@cursos/api/dominio/marcas";
 import type { PaginaDoCurso } from "@cursos/api/dominio/pagina-do-curso";
 import type { CursoVM } from "@cursos/api/dominio/painel";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const navegacao = await import("next/navigation");
+import { CapaCurso } from "@/components/meus-cursos/capa-curso";
+import { FimDoVideo } from "@/components/player/fim-do-video";
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+import { fabrica, HOJE, RISCOS } from "./exemplo-de-teste";
+import { TelaDoCurso } from "./tela-do-curso";
+import { TrocaDaAmostra } from "./troca-da-amostra";
 
-const { CapaCurso } = await import("@/components/meus-cursos/capa-curso");
-const { FimDoVideo } = await import("@/components/player/fim-do-video");
-const { TelaDoCurso } = await import("./tela-do-curso");
-const { TrocaDaAmostra } = await import("./troca-da-amostra");
-const { fabrica, HOJE, RISCOS } = await import("./exemplo-de-teste");
+const { chamadas, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const CURSO = cursoId("00000000-0000-4000-8000-0000000000c1");
 const AULA_1 = aulaId("00000000-0000-4000-8000-000000000001");
@@ -85,7 +82,7 @@ describe("o cartão da amostra em Meus cursos", () => {
   };
 
   test("mostra o selo, o preço e o tamanho, e leva à aula de amostra num link só", () => {
-    const h = renderToStaticMarkup(<CapaCurso curso={curso} />);
+    const h = renderizar(<CapaCurso curso={curso} />);
     expect(texto(h)).toBe(
       "Amostra 2.000 pts Curso de Filmagem Comercial · COM-004 7 aulas · 16 min · a primeira é aberta Assistir à amostra"
     );
@@ -93,7 +90,7 @@ describe("o cartão da amostra em Meus cursos", () => {
   });
 
   test("com a amostra vista, diz Amostra vista; em produção, é o cartão de sempre", () => {
-    const vista = renderToStaticMarkup(
+    const vista = renderizar(
       <CapaCurso
         curso={{
           ...curso,
@@ -104,7 +101,7 @@ describe("o cartão da amostra em Meus cursos", () => {
 
     expect(texto(vista)).toContain("Amostra vista");
 
-    const breve = renderToStaticMarkup(
+    const breve = renderizar(
       <CapaCurso curso={{ ...curso, estado: { tipo: "em_breve" } }} />
     );
 
@@ -115,7 +112,7 @@ describe("o cartão da amostra em Meus cursos", () => {
 
 describe("a coluna de troca da página do curso", () => {
   const coluna = (preco: number | null, saldo: number) =>
-    renderToStaticMarkup(
+    renderizar(
       <TrocaDaAmostra
         amostra={{
           aulaId: AULA_1,
@@ -193,7 +190,7 @@ describe("o fim do vídeo da aula de amostra", () => {
   });
 
   const fim = (saldo: number) =>
-    renderToStaticMarkup(
+    renderizar(
       <FimDoVideo
         aoRever={nada}
         assistida
@@ -232,7 +229,7 @@ describe("a página do curso na amostra", () => {
     },
   };
 
-  const h = renderToStaticMarkup(<TelaDoCurso hoje={HOJE} pagina={pagina} />);
+  const h = renderizar(<TelaDoCurso hoje={HOJE} pagina={pagina} />);
 
   test("a coluna troca o curso no lugar de Seu progresso", () => {
     expect(h).toContain('aria-label="Trocar o curso"');
@@ -248,4 +245,8 @@ describe("a página do curso na amostra", () => {
     expect(conteudo.match(FECHADA)).toHaveLength(3);
     expect(conteudo.match(TROQUE)).toHaveLength(3);
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import {
@@ -12,20 +12,17 @@ import {
   uuidDeExemplo,
 } from "@cursos/api/dominio/exemplo";
 import { categoriaId, versao } from "@cursos/api/dominio/marcas";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const navegacao = await import("next/navigation");
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+import { EditorDoCurso } from "./editor-do-curso";
 
-const { EditorDoCurso } = await import("./editor-do-curso");
+const { chamadas, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
@@ -68,9 +65,7 @@ const salvo: EdicaoDoCurso = {
 };
 
 const render = (edicao: EdicaoNoEditor) =>
-  renderToStaticMarkup(
-    <EditorDoCurso categorias={CATEGORIAS} edicao={edicao} />
-  );
+  renderizar(<EditorDoCurso categorias={CATEGORIAS} edicao={edicao} />);
 
 describe("editor do curso: endereço e categoria", () => {
   test("o curso salvo mostra o link como texto, fixo, sem campo de endereço", () => {
@@ -174,4 +169,8 @@ describe("editor do curso: topo e código", () => {
       "módulos"
     );
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

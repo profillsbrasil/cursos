@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import { type ClerkNoNavegador, setClerkAuthTokenGetter } from "./clerk-auth";
-import { trpcClient } from "./trpc";
+import { clienteTrpc } from "./trpc";
 
 const VOLTAS_DE_MICROTAREFA = 100;
 
@@ -10,12 +10,11 @@ const AULA = "0b5f7f4e-6a43-4a0e-9a4f-3c8a6d1b2c3d";
 interface Pedido {
   headers: Record<string, string>;
   keepalive: boolean | undefined;
-  url: string;
+  url: RequestInfo | URL | string;
 }
 
 const original = {
   Clerk: "Clerk" in globalThis ? globalThis.Clerk : undefined,
-  fetch: globalThis.fetch,
   temWindow: "window" in globalThis,
   window: "window" in globalThis ? globalThis.window : undefined,
 };
@@ -37,8 +36,18 @@ function clerkComUltimoToken(raw: string, venceEmSeg: number) {
 const getTokenEsperandoARede = () =>
   new Promise<string | null>(() => undefined);
 
+const cliente = clienteTrpc((url, init) => {
+  pedidos.push({
+    headers: Object.fromEntries(new Headers(init.headers)),
+    keepalive: init.keepalive,
+    url,
+  });
+
+  return new Promise<Response>(() => undefined);
+});
+
 function registrar() {
-  trpcClient.aula.registrar
+  cliente.aula.registrar
     .mutate({ aulaId: AULA, posicaoSeg: 42, trechos: [] })
     .catch(() => undefined);
 }
@@ -57,20 +66,9 @@ async function pedidoDentroDaTarefa() {
 beforeEach(() => {
   pedidos = [];
   Reflect.set(globalThis, "window", globalThis);
-  Reflect.set(globalThis, "fetch", (url: string, init: RequestInit) => {
-    pedidos.push({
-      headers: Object.fromEntries(new Headers(init.headers)),
-      keepalive: init.keepalive,
-      url,
-    });
-
-    return new Promise<Response>(() => undefined);
-  });
 });
 
 afterEach(() => {
-  globalThis.fetch = original.fetch;
-
   // WARNING: sem window antes, apague-o: com window undefined, o "window" in globalThis de outro teste acha que há window.
   if (original.temWindow) {
     Reflect.set(globalThis, "window", original.window);

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import { Sidebar } from "@cursos/ui/components/sidebar";
@@ -17,16 +17,9 @@ import {
   avaliarComo,
 } from "../chromium.test-utils";
 import { ehNumero, ehObjeto, type Predicado } from "../predicados.test-utils";
+import { ComRoteador } from "../roteador.test-utils";
+import { CartaoContinuar } from "./cartao-continuar";
 import type { Continuar } from "./continuar";
-
-const navegacao = await import("next/navigation");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  usePathname: () => "/meus-cursos",
-}));
-
-const { CartaoContinuar } = await import("./cartao-continuar");
 
 const COMECAR: Continuar = {
   chamada: "Começar curso",
@@ -50,13 +43,15 @@ function cumprida<T>(valor: T): Promise<T> {
 
 const naSidebar = (cartao: Promise<Continuar | null>) =>
   renderToStaticMarkup(
-    <ProvedorDaCasca aberta>
-      <Sidebar collapsible="icon" variant="sidebar">
-        <div className="p-3.5">
-          <CartaoContinuar cartao={cartao} />
-        </div>
-      </Sidebar>
-    </ProvedorDaCasca>
+    <ComRoteador caminho="/meus-cursos">
+      <ProvedorDaCasca aberta>
+        <Sidebar collapsible="icon" variant="sidebar">
+          <div className="p-3.5">
+            <CartaoContinuar cartao={cartao} />
+          </div>
+        </Sidebar>
+      </ProvedorDaCasca>
+    </ComRoteador>
   );
 
 const CARTOES = {

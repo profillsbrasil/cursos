@@ -1,21 +1,18 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import { categoriaId } from "@cursos/api/dominio/marcas";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const navegacaoComOUseRouterSubstituido = await import("next/navigation");
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
-mock.module("next/navigation", () => ({
-  ...navegacaoComOUseRouterSubstituido,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+import { Categorias } from "./categorias";
 
-const { Categorias } = await import("./categorias");
+const { chamadas, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const TAG = /<[^>]+>/g;
 
@@ -38,7 +35,7 @@ const LIVRE: CategoriaNaLista = {
   nome: "Rotinas internas",
 };
 
-const tela = renderToStaticMarkup(<Categorias categorias={[LIVRE, EM_USO]} />);
+const tela = renderizar(<Categorias categorias={[LIVRE, EM_USO]} />);
 const [linhaLivre = "", linhaEmUso = ""] = tela.match(LINHA) ?? [];
 
 const apagarDe = (linha: string) =>
@@ -105,9 +102,13 @@ describe("tela de categorias", () => {
   });
 
   test("sem categoria, a lista diz onde a primeira vai aparecer", () => {
-    const vazia = texto(renderToStaticMarkup(<Categorias categorias={[]} />));
+    const vazia = texto(renderizar(<Categorias categorias={[]} />));
     expect(vazia).toContain(
       "Nenhuma categoria ainda. A que você criar aparece no editor do curso."
     );
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

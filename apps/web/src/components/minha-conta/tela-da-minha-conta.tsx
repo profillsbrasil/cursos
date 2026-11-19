@@ -3,27 +3,66 @@
 import { useUser } from "@clerk/nextjs";
 
 import { CabecalhoDaMinhaConta, EsqueletoDaMinhaConta } from "./esqueleto";
-import { SecaoDaEntrada } from "./secao-da-entrada";
-import { SecaoDaSenha } from "./secao-da-senha";
+import { type ContaNaEntrada, SecaoDaEntrada } from "./secao-da-entrada";
+import { type ContaDaSenha, SecaoDaSenha } from "./secao-da-senha";
 import { SecaoDeSair } from "./secao-de-sair";
-import { SecaoDoNome } from "./secao-do-nome";
-import { SecaoDosAparelhos } from "./secao-dos-aparelhos";
-import type { FolhaDaConta } from "./tipos";
+import { type ContaDoNome, SecaoDoNome } from "./secao-do-nome";
+import {
+  type ContaDosAparelhos,
+  SecaoDosAparelhos,
+} from "./secao-dos-aparelhos";
+import type { FolhaDaConta, Usuario } from "./tipos";
+
+/** O que as seções de Minha conta leem do usuário do Clerk, cada uma o seu pedaço. */
+export type ContaNaTela = ContaDaSenha &
+  ContaDoNome &
+  ContaDosAparelhos &
+  ContaNaEntrada &
+  Pick<Usuario, "delete" | "id">;
+
+/** O que a `TelaDaMinhaConta` lê do Clerk: a conta e se ela já carregou, como no `useUser`. */
+export interface LeituraDaConta {
+  isLoaded: boolean;
+  user: ContaNaTela | null | undefined;
+}
 
 /** A versão B do protótipo, "Sua folha em destaque". */
 export function TelaDaMinhaConta({
   certificados,
+  conta,
   folha,
 }: {
   certificados: number;
+  /** A leitura da conta no lugar da do `useUser`. A página não passa nada e fica com a do Clerk. */
+  conta?: LeituraDaConta;
   folha: FolhaDaConta;
 }) {
-  const { isLoaded, user } = useUser();
+  const doClerk = useUser();
+  const { isLoaded, user } = conta ?? doClerk;
 
   if (!(isLoaded && user)) {
     return <EsqueletoDaMinhaConta />;
   }
 
+  return (
+    <ConteudoDaMinhaConta
+      certificados={certificados}
+      folha={folha}
+      user={user}
+    />
+  );
+}
+
+/** As seções de Minha conta com a conta já carregada: a `TelaDaMinhaConta` entrega o usuário do `useUser()`. */
+export function ConteudoDaMinhaConta({
+  certificados,
+  folha,
+  user,
+}: {
+  certificados: number;
+  folha: FolhaDaConta;
+  user: ContaNaTela;
+}) {
   return (
     <>
       <CabecalhoDaMinhaConta />

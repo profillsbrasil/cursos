@@ -29,9 +29,18 @@ import { fotoNoLado } from "@/lib/foto-do-clerk";
 import { anelDosPontos } from "@/lib/player/sinal";
 import { MINHA_CONTA } from "@/lib/rotas";
 
+import type { EmailDaConta, Usuario } from "../minha-conta/tipos";
 import { DICA, DICA_SECUNDARIA } from "./estilo";
 import type { LinkDaArea } from "./nav";
 import { useAlternarNavegacao, useModoDaCasca } from "./provedor-da-casca";
+
+/** O que o cartão lê do usuário do Clerk. */
+export type ContaNoCartao = Pick<
+  Usuario,
+  "fullName" | "hasImage" | "imageUrl"
+> & {
+  primaryEmailAddress: Pick<EmailDaConta, "emailAddress"> | null;
+};
 
 /** O que o cartão mostra do resumo, derivado do tipo do domínio. */
 export type Placar = Pick<ResumoAluno, "saldo" | "sequenciaDias">;
@@ -130,6 +139,7 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
   );
 }
 
+/** O cartão com a conta do Clerk: o `MenuDaConta` recebe o usuário e o Sair. */
 export function CartaoDeConta({
   outraArea,
   placar,
@@ -139,9 +149,34 @@ export function CartaoDeConta({
 }) {
   const { isLoaded, user } = useUser();
   const { signOut } = useClerk();
+  const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
+
+  return (
+    <MenuDaConta
+      carregada={isLoaded}
+      conta={user ?? null}
+      outraArea={outraArea}
+      placar={placar}
+      sair={sair}
+    />
+  );
+}
+
+export function MenuDaConta({
+  carregada,
+  conta,
+  outraArea,
+  placar,
+  sair,
+}: {
+  carregada: boolean;
+  conta: ContaNoCartao | null;
+  outraArea: LinkDaArea | null;
+  placar: Promise<Placar | null> | null;
+  sair: () => Promise<unknown>;
+}) {
   const { fecharNoCelular } = useAlternarNavegacao();
   const { recolhida } = useModoDaCasca();
-  const sair = useCallback(() => signOut({ redirectUrl: "/" }), [signOut]);
 
   const aceso = useSyncExternalStore(
     anelDosPontos.assinar,
@@ -150,7 +185,7 @@ export function CartaoDeConta({
   );
 
   const nome =
-    user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? "Sua conta";
+    conta?.fullName ?? conta?.primaryEmailAddress?.emailAddress ?? "Sua conta";
 
   return (
     <DropdownMenu>
@@ -160,16 +195,16 @@ export function CartaoDeConta({
           render={<TooltipTrigger />}
         >
           <Avatar className="size-9 after:hidden">
-            {user?.hasImage ? (
-              <AvatarImage alt="" src={fotoNoLado(user.imageUrl, 36)} />
+            {conta?.hasImage ? (
+              <AvatarImage alt="" src={fotoNoLado(conta.imageUrl, 36)} />
             ) : null}
             <AvatarFallback className="bg-canela text-sobre-cor text-[13px] font-bold">
-              {isLoaded ? iniciais(nome) : null}
+              {carregada ? iniciais(nome) : null}
             </AvatarFallback>
           </Avatar>
           <span className="grid min-w-0 flex-1 gap-0.5 leading-tight group-data-[collapsible=icon]:sr-only">
             <span className="sr-only">Conta de </span>
-            {isLoaded ? (
+            {carregada ? (
               <span className="text-titulo truncate text-sm font-semibold">
                 {nome}
               </span>

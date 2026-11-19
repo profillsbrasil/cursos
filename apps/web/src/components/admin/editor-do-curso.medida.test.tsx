@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import {
@@ -9,7 +9,10 @@ import {
 } from "@cursos/api/dominio/exemplo";
 import { alternativaId, perguntaId } from "@cursos/api/dominio/marcas";
 import { Switch } from "@cursos/ui/components/switch";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
 import { ALAVANCA } from "../casca/campos";
 import {
@@ -31,18 +34,15 @@ import {
   ouNulo,
 } from "../predicados.test-utils";
 import { CampoDeCapa } from "./campo-de-capa";
+import { CapaEDescricao } from "./capa-e-descricao";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 import { NADA_ESCOLHIDO } from "./rascunho-do-editor";
 
-const navegacao = await import("next/navigation");
+const { chamadas, roteador } = roteadorDeTeste();
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
-
-const { CapaEDescricao } = await import("./capa-e-descricao");
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const nada = () => undefined;
 const LINHA_FECHADA = { chave: null, fechar: nada, pedir: nada };
@@ -88,7 +88,7 @@ const CAPA = {
   url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 604'/%3E",
 };
 
-const vitrine = renderToStaticMarkup(
+const vitrine = renderizar(
   <CapaEDescricao
     capa={<CampoDeCapa aoEscolher={nada} arquivo={null} atual={CAPA} />}
     categorias={[{ cursos: [], id: EDICAO.CATEGORIA, nome: "Vendas" }]}
@@ -99,7 +99,7 @@ const vitrine = renderToStaticMarkup(
   />
 );
 
-const modulos = renderToStaticMarkup(
+const modulos = renderizar(
   <ModulosDoCurso
     abertos={new Set([m1.id])}
     assistidasPorAula={{}}
@@ -114,7 +114,7 @@ const modulos = renderToStaticMarkup(
   />
 );
 
-const alavancas = renderToStaticMarkup(
+const alavancas = renderizar(
   <div id="alavancas">
     <Switch checked className={ALAVANCA} />
     <Switch checked={false} className={ALAVANCA} />
@@ -419,4 +419,8 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
       expect(m.transborda).toBeNull();
     });
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

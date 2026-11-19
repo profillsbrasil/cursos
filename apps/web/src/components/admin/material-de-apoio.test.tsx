@@ -1,11 +1,14 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type { MaterialDoDocumento } from "@cursos/api/dominio/edicao-do-curso";
 import { documentoDeExemplo, uuidDeExemplo } from "@cursos/api/dominio/exemplo";
 import { materialId, versao } from "@cursos/api/dominio/marcas";
-import { createElement } from "react";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
+
+import { MaterialDeApoio, resumoDoMaterial } from "./material-de-apoio";
 import { ID } from "./rascunho-do-curso";
 import {
   type AcaoDoEditor,
@@ -19,15 +22,10 @@ import {
   telaDo,
 } from "./rascunho-do-editor";
 
-const navegacao = await import("next/navigation");
+const { chamadas, roteador } = roteadorDeTeste();
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
-
-const { MaterialDeApoio, resumoDoMaterial } =
-  await import("./material-de-apoio");
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const idDe = (n: number) => materialId(uuidDeExemplo(900 + n));
 
@@ -228,8 +226,8 @@ describe("linhas da seção", () => {
       tipo: "materiais_escolhidos",
     });
 
-    const html = renderToStaticMarkup(
-      createElement(MaterialDeApoio, { despachar: () => undefined, estado })
+    const html = renderizar(
+      <MaterialDeApoio despachar={() => undefined} estado={estado} />
     );
 
     const abertura = html.match(/<li[^>]*>/g) ?? [];
@@ -250,4 +248,8 @@ describe("resumo da seção", () => {
       ])
     ).toBe("4 arquivos, 22,4 MB");
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

@@ -1,8 +1,11 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import { documentoDeExemplo, EDICAO } from "@cursos/api/dominio/exemplo";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
 import {
   CabecalhoDaPagina,
@@ -19,19 +22,16 @@ import {
 } from "../chromium.test-utils";
 import { ehLista, ehNumero, ehObjeto } from "../predicados.test-utils";
 import { CampoDeCapa } from "./campo-de-capa";
+import { CapaEDescricao } from "./capa-e-descricao";
 import { EsqueletoDoEditor, EsqueletoDoTopoDaPessoa } from "./esqueletos";
 import { FotoDaPessoa } from "./foto-da-pessoa";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 import { TopicosDoCurso } from "./topicos-do-curso";
 
-const navegacao = await import("next/navigation");
+const { chamadas, roteador } = roteadorDeTeste();
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
-
-const { CapaEDescricao } = await import("./capa-e-descricao");
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const nada = () => undefined;
 
@@ -44,7 +44,7 @@ const CAPA = {
 
 const COLUNA_DE_PUBLICACAO = 300 + 32;
 
-const pronto = renderToStaticMarkup(
+const pronto = renderizar(
   <CapaEDescricao
     capa={<CampoDeCapa aoEscolher={nada} arquivo={null} atual={CAPA} />}
     categorias={[{ cursos: [], id: EDICAO.CATEGORIA, nome: "Vendas" }]}
@@ -55,29 +55,29 @@ const pronto = renderToStaticMarkup(
   />
 );
 
-const esqueleto = renderToStaticMarkup(<EsqueletoDoEditor />);
+const esqueleto = renderizar(<EsqueletoDoEditor />);
 
-const topicos = renderToStaticMarkup(
+const topicos = renderizar(
   <TopicosDoCurso
     despachar={nada}
     topicos={["Planejar", "Gravar", "Iluminar", "Captar o som", "Editar"]}
   />
 );
 
-const foto = renderToStaticMarkup(
+const foto = renderizar(
   <FotoDaPessoa foto={null} nome="Ana Admin" size="lg" />
 );
 
-const topo = renderToStaticMarkup(<EsqueletoDoTopoDaPessoa />);
+const topo = renderizar(<EsqueletoDoTopoDaPessoa />);
 
 const LIBERACOES = {
   resumo: "Marque pessoas para liberar um curso, ou abra uma para ver o acesso",
   titulo: "Liberações",
 };
 
-const cabecalho = renderToStaticMarkup(<CabecalhoDaPagina {...LIBERACOES} />);
+const cabecalho = renderizar(<CabecalhoDaPagina {...LIBERACOES} />);
 
-const cabecalhoQueCarrega = renderToStaticMarkup(
+const cabecalhoQueCarrega = renderizar(
   <EsqueletoDoCabecalho {...LIBERACOES} />
 );
 
@@ -196,4 +196,8 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
       expect(Math.abs(e - p)).toBeLessThanOrEqual(4);
     });
   }
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

@@ -1,19 +1,52 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
+import { ClerkProvider } from "@clerk/nextjs";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import {
+  enderecoDaConferencia,
+  folhaDeExemplo,
+  folhaDo,
+} from "@/components/certificado/folha";
+import { ComRoteador } from "@/components/roteador.test-utils";
+
+import {
+  ConteudoDaMinhaConta,
+  type ContaNaTela,
+  TelaDaMinhaConta,
+} from "./tela-da-minha-conta";
+
+const CHAVE_PUBLICA_DE_EXEMPLO = `pk_test_${btoa("exemplo.clerk.accounts.dev$")}`;
+
+const naoChama = (): never => {
+  throw new Error("renderizar Minha conta não chama o Clerk");
+};
+
+const comClerk = (no: ReactNode) =>
+  renderToStaticMarkup(
+    <ComRoteador>
+      <ClerkProvider publishableKey={CHAVE_PUBLICA_DE_EXEMPLO}>
+        {no}
+      </ClerkProvider>
+    </ComRoteador>
+  );
+
 const GOOGLE = {
+  destroy: naoChama,
   emailAddress: "ana@gmail.com",
   id: "eac_1",
   identificationId: "idn_g",
   provider: "google",
 };
 
-let conta = {};
-
-const usuario = (c: Record<string, unknown> = {}) => ({
+const usuario = (c: Partial<ContaNaTela> = {}): ContaNaTela => ({
+  createEmailAddress: naoChama,
+  createExternalAccount: naoChama,
+  delete: naoChama,
   emailAddresses: [
     {
+      destroy: naoChama,
       emailAddress: "ana@gmail.com",
       id: "idn_1",
       linkedTo: [{ id: GOOGLE.identificationId }],
@@ -22,29 +55,19 @@ const usuario = (c: Record<string, unknown> = {}) => ({
   ],
   externalAccounts: [GOOGLE],
   firstName: "Ana",
+  getSessions: naoChama,
   hasImage: false,
   id: "user_1",
   imageUrl: "",
   lastName: "Souza",
   passwordEnabled: false,
+  primaryEmailAddress: { emailAddress: "ana@gmail.com" },
   primaryEmailAddressId: "idn_1",
+  setProfileImage: naoChama,
+  update: naoChama,
+  updatePassword: naoChama,
   ...c,
 });
-
-const clerk = await import("@clerk/nextjs");
-
-mock.module("@clerk/nextjs", () => ({
-  ...clerk,
-  useClerk: () => ({ signOut: () => undefined }),
-  useReverification: (f: unknown) => f,
-  useSession: () => ({ session: { id: "sess_1" } }),
-  useUser: () => ({ isLoaded: true, user: conta }),
-}));
-
-const { TelaDaMinhaConta } = await import("./tela-da-minha-conta");
-
-const { folhaDeExemplo, folhaDo, enderecoDaConferencia } =
-  await import("@/components/certificado/folha");
 
 const BARRA_LATERAL =
   /inset-y-0 left-0|w-\[5px\]|border-l-\[?\d|border-l-(sol|ceu|canela)/;
@@ -73,13 +96,12 @@ const texto = (h: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-function tela(certificados: number, c: Record<string, unknown> = {}) {
-  conta = usuario(c);
-
-  return renderToStaticMarkup(
-    <TelaDaMinhaConta
+function tela(certificados: number, c: Partial<ContaNaTela> = {}) {
+  return comClerk(
+    <ConteudoDaMinhaConta
       certificados={certificados}
       folha={certificados > 0 ? GANHA : EXEMPLO}
+      user={usuario(c)}
     />
   );
 }
@@ -159,5 +181,36 @@ describe("a página Minha conta", () => {
       "ana@gmail.com E-mail principal. Os códigos e avisos chegam aqui. Principal"
     );
     expect(h).not.toContain("Remover");
+  });
+});
+
+describe("a TelaDaMinhaConta, que lê o useUser", () => {
+  test("com a conta carregada, mostra as seções com os certificados que recebeu", () => {
+    const h = texto(
+      comClerk(
+        <TelaDaMinhaConta
+          certificados={2}
+          folha={GANHA}
+          conta={{ isLoaded: true, user: usuario() }}
+        />
+      )
+    );
+
+    expect(h).not.toContain("Carregando sua conta");
+    expect(h).toContain("Como você entra");
+    expect(h).toContain(
+      "Os 2 certificados que você já tem passam a sair com o nome novo"
+    );
+    expect(h).toContain("Certificamos que Ana Souza");
+    expect(h).toContain("Filmagem da instalação");
+  });
+
+  test("enquanto o Clerk não carrega a conta, mostra o esqueleto, sem seção nenhuma", () => {
+    const h = comClerk(<TelaDaMinhaConta certificados={0} folha={EXEMPLO} />);
+    expect(h).toContain('aria-busy="true"');
+    expect(texto(h)).toContain(
+      "Minha conta Seu nome, como você entra e os aparelhos com a conta aberta. Carregando sua conta"
+    );
+    expect(texto(h)).not.toContain("Como você entra");
   });
 });

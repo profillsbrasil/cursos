@@ -29,6 +29,9 @@ import {
 import type { SessaoComAtividade, Usuario } from "./tipos";
 import { useAcaoDaConta } from "./use-acao-da-conta";
 
+/** O que a seção Aparelhos lê do usuário do Clerk. */
+export type ContaDosAparelhos = Pick<Usuario, "getSessions" | "id">;
+
 type Lista =
   | { estado: "carregando" }
   | { estado: "falhou"; frase: string }
@@ -176,7 +179,7 @@ function ListaDosAparelhos({
   );
 }
 
-export function SecaoDosAparelhos({ user }: { user: Usuario }) {
+export function SecaoDosAparelhos({ user }: { user: ContaDosAparelhos }) {
   const id = useId();
   const { session } = useSession();
   const [lista, setLista] = useState<Lista>({ estado: "carregando" });

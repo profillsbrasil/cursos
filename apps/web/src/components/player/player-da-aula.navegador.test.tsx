@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -7,8 +7,12 @@ import { aulaId, videoId } from "@cursos/api/dominio/marcas";
 import type { VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { build, file } from "bun";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
+
+import CarregandoAula from "../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading";
 import {
   abrirChromium,
   avaliar,
@@ -27,6 +31,13 @@ import {
   ehTexto,
   ouNulo,
 } from "../predicados.test-utils";
+import { FimDoVideo } from "./fim-do-video";
+import { PlayerDaAula } from "./player-da-aula";
+
+const { chamadas: chamadasDoRoteador, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const ENTRADA = join(import.meta.dir, "player.entrada.tsx");
 const VIDEO_FALSO = join(import.meta.dir, "video-falso.js");
@@ -191,20 +202,7 @@ async function empacotar(comYoutube = false) {
   return await saida.text();
 }
 
-const navegacao = await import("next/navigation");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
-
-const { PlayerDaAula } = await import("./player-da-aula");
-
-const { default: CarregandoAula } =
-  await import("../../app/(aluno)/cursos/[slug]/aulas/[aulaId]/loading");
-
-const ESQUELETO = renderToStaticMarkup(<CarregandoAula />);
-const { FimDoVideo } = await import("./fim-do-video");
+const ESQUELETO = renderizar(<CarregandoAula />);
 
 const PAGINA =
   "grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]";
@@ -230,12 +228,10 @@ const nada = () => undefined;
 
 const css = await cssDoApp([
   ...classesDe(
-    renderToStaticMarkup(
-      <PlayerDaAula dados={DADOS} inicioSeg={0} video={VIDEO} />
-    )
+    renderizar(<PlayerDaAula dados={DADOS} inicioSeg={0} video={VIDEO} />)
   ),
   ...classesDe(
-    renderToStaticMarkup(
+    renderizar(
       <FimDoVideo aoRever={nada} assistida conquista={null} dados={DADOS} />
     )
   ),
@@ -980,4 +976,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       )
     ).toBe(true);
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadasDoRoteador).toEqual([]);
 });

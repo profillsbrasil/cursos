@@ -1,27 +1,23 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import { cursoId, diaISO } from "@cursos/api/dominio/marcas";
 import type { ResumoAluno } from "@cursos/api/dominio/painel";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import type { AcaoDaRetomada } from "@/components/aluno/continuar";
+import { SuaSemana } from "@/components/meus-cursos/sua-semana";
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 import { caminhoDaAula } from "@/lib/rotas";
 
-const navegacao = await import("next/navigation");
+import { CursosParaTrocar } from "./cursos-para-trocar";
+import { SaldoDeTroca } from "./saldo-de-troca";
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+const { chamadas, roteador } = roteadorDeTeste();
 
-const { CursosParaTrocar } = await import("./cursos-para-trocar");
-const { SaldoDeTroca } = await import("./saldo-de-troca");
-const { SuaSemana } = await import("@/components/meus-cursos/sua-semana");
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
@@ -49,7 +45,7 @@ const vitrineEmHtml = (
   temCursoTrocavelNaVitrine: boolean,
   retomar: AcaoDaRetomada = CONTINUAR
 ) =>
-  renderToStaticMarkup(
+  renderizar(
     <CursosParaTrocar
       cartoes={cartoes}
       extrato={[]}
@@ -148,7 +144,7 @@ describe("a vitrine sem curso trocável não culpa quem estuda nem promete", () 
 });
 
 const saldo = (temCursoTrocavelNaVitrine: boolean) =>
-  renderToStaticMarkup(
+  renderizar(
     <SaldoDeTroca
       comoGanhar={[]}
       pontosSemana={0}
@@ -188,7 +184,7 @@ const RESUMO: ResumoAluno = {
 };
 
 const semana = (temCursoTrocavelNaVitrine: boolean) =>
-  renderToStaticMarkup(
+  renderizar(
     <SuaSemana
       resumo={RESUMO}
       temCursoTrocavelNaVitrine={temCursoTrocavelNaVitrine}
@@ -203,4 +199,8 @@ describe("Sua semana só leva a Trocar pontos quando há curso trocável", () =>
   test("com curso trocável, o botão aparece", () => {
     expect(semana(true)).toContain('href="/trocar-pontos"');
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

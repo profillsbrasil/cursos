@@ -8,7 +8,7 @@ import type { Versao } from "@cursos/api/dominio/tipos";
 import {
   apoioEm,
   apoioSalvo,
-  focarOPrimeiro,
+  focarOPrimeiroCom,
   primeiroNaPagina,
   setaDepoisDeMover,
   sincronizarComAPagina,
@@ -110,48 +110,54 @@ describe("primeiroNaPagina", () => {
   });
 });
 
-describe("focarOPrimeiro", () => {
+describe("focarOPrimeiroCom", () => {
   test("procura o campo só depois do render: o Salvar recusado abre o bloco do campo no mesmo render que marca o erro, e procurar antes do quadro seguinte não o acha", () => {
-    const quadros: FrameRequestCallback[] = [];
+    const quadros: (() => void)[] = [];
     const focados: string[] = [];
-    const naPagina = new Map<string, { focus: () => void }>();
+    const naPagina = new Map<string, Campo & { focus: () => void }>();
 
-    const antes = {
-      document: globalThis.document,
-      requestAnimationFrame: globalThis.requestAnimationFrame,
-    };
-
-    Reflect.set(
-      globalThis,
-      "requestAnimationFrame",
-      (f: FrameRequestCallback) => quadros.push(f)
+    focarOPrimeiroCom(
+      ["aula-duracao"],
+      (depois) => quadros.push(depois),
+      (id) => naPagina.get(id) ?? null
     );
-    Reflect.set(globalThis, "document", {
-      getElementById: (id: string) => naPagina.get(id),
+    naPagina.set("aula-duracao", {
+      compareDocumentPosition: () => DEPOIS,
+      focus: () => {
+        focados.push("aula-duracao");
+      },
+      id: "aula-duracao",
     });
+    expect(focados).toEqual([]);
 
-    try {
-      focarOPrimeiro(["aula-duracao"]);
-      naPagina.set("aula-duracao", {
-        focus: () => {
-          focados.push("aula-duracao");
-        },
-      });
-      expect(focados).toEqual([]);
-
-      for (const f of quadros) {
-        f(0);
-      }
-
-      expect(focados).toEqual(["aula-duracao"]);
-    } finally {
-      Reflect.set(globalThis, "document", antes.document);
-      Reflect.set(
-        globalThis,
-        "requestAnimationFrame",
-        antes.requestAnimationFrame
-      );
+    for (const depois of quadros) {
+      depois();
     }
+
+    expect(focados).toEqual(["aula-duracao"]);
+  });
+
+  test("foca o campo que vem antes na página, não o primeiro da lista", () => {
+    const focados: string[] = [];
+    const c = camposEmOrdem("curso-titulo", "aula-duracao");
+
+    const focavel = (campo: Campo | undefined) =>
+      campo
+        ? {
+            ...campo,
+            focus: () => {
+              focados.push(campo.id);
+            },
+          }
+        : null;
+
+    focarOPrimeiroCom(
+      ["aula-duracao", "curso-titulo", "sumiu"],
+      (depois) => depois(),
+      (id) => focavel(c[id])
+    );
+
+    expect(focados).toEqual(["curso-titulo"]);
   });
 });
 

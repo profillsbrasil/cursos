@@ -14,7 +14,11 @@ import { SELO } from "@/components/casca/selos";
 import { campoDeTexto } from "@/lib/formulario";
 import { MINHA_CONTA } from "@/lib/rotas";
 
-import { contaDoGoogle, podeDesconectarOGoogle } from "./entrada";
+import {
+  type ContaParaEntrar,
+  contaDoGoogle,
+  podeDesconectarOGoogle,
+} from "./entrada";
 import { IconeDoGoogle } from "./icone-do-google";
 import {
   ACAO_NA_LINHA,
@@ -39,6 +43,28 @@ const POSICOES_DO_CODIGO = [0, 1, 2, 3, 4, 5] as const;
 const SLOT =
   "size-12 rounded-xl border border-muted-foreground bg-background font-mono font-semibold text-xl first:rounded-xl first:border-l last:rounded-xl data-[active=true]:border-ceu data-[active=true]:ring-0 dark:bg-background";
 
+type EmailNaLista = ContaParaEntrar["emailAddresses"][number] &
+  Pick<EmailDaConta, "destroy" | "emailAddress">;
+
+type ContaExternaNaLista = ContaParaEntrar["externalAccounts"][number] &
+  Pick<Usuario["externalAccounts"][number], "destroy" | "emailAddress">;
+
+/** O que a seção Como você entra lê do usuário do Clerk. */
+export type ContaNaEntrada = Omit<
+  ContaParaEntrar,
+  "emailAddresses" | "externalAccounts"
+> &
+  Pick<
+    Usuario,
+    | "createEmailAddress"
+    | "createExternalAccount"
+    | "primaryEmailAddressId"
+    | "update"
+  > & {
+    emailAddresses: readonly EmailNaLista[];
+    externalAccounts: readonly ContaExternaNaLista[];
+  };
+
 type Novo =
   | { passo: "fechado" }
   | { passo: "endereco" }
@@ -51,7 +77,7 @@ function PedirCodigo({
 }: {
   fechar: () => void;
   irAoCodigo: (email: EmailDaConta) => void;
-  user: Usuario;
+  user: Pick<Usuario, "createEmailAddress">;
 }) {
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
@@ -197,7 +223,11 @@ function ConfirmarCodigo({
   );
 }
 
-function AdicionarEmail({ user }: { user: Usuario }) {
+function AdicionarEmail({
+  user,
+}: {
+  user: Pick<Usuario, "createEmailAddress">;
+}) {
   const [novo, setNovo] = useState<Novo>({ passo: "fechado" });
   const fechar = useCallback(() => setNovo({ passo: "fechado" }), []);
   const abrir = useCallback(() => setNovo({ passo: "endereco" }), []);
@@ -224,7 +254,13 @@ function AdicionarEmail({ user }: { user: Usuario }) {
   );
 }
 
-function LinhaDoEmail({ email, user }: { email: EmailDaConta; user: Usuario }) {
+function LinhaDoEmail({
+  email,
+  user,
+}: {
+  email: EmailNaLista;
+  user: Pick<Usuario, "primaryEmailAddressId" | "update">;
+}) {
   const { executar, pendente } = useAcaoDaConta();
   const principal = email.id === user.primaryEmailAddressId;
   const confirmado = email.verification?.status === "verified";
@@ -290,7 +326,7 @@ function LinhaDoEmail({ email, user }: { email: EmailDaConta; user: Usuario }) {
   );
 }
 
-function LinhaDoGoogle({ user }: { user: Usuario }) {
+function LinhaDoGoogle({ user }: { user: ContaNaEntrada }) {
   const { executar, pendente } = useAcaoDaConta();
   const google = contaDoGoogle(user);
 
@@ -371,7 +407,7 @@ function LinhaDoGoogle({ user }: { user: Usuario }) {
   );
 }
 
-export function SecaoDaEntrada({ user }: { user: Usuario }) {
+export function SecaoDaEntrada({ user }: { user: ContaNaEntrada }) {
   const id = useId();
 
   return (

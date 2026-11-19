@@ -1,21 +1,13 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
+import { ComRoteador } from "@/components/roteador.test-utils";
 import { rota } from "@/lib/rotas";
 
+import { CartaoContinuar } from "./cartao-continuar";
 import type { Continuar } from "./continuar";
-
-let caminhoAtual = "/";
-const navegacao = await import("next/navigation");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  usePathname: () => caminhoAtual,
-}));
-
-const { CartaoContinuar } = await import("./cartao-continuar");
 
 const AULA = rota("/cursos/comercial/aulas/a1");
 const DESTINO_FORA_DA_AULA = rota("/cursos/comercial");
@@ -51,12 +43,12 @@ function promessaCumpridaSemSuspender<T>(valor: T): Promise<T> {
 }
 
 function html(caminho: string, aberta: boolean, cartao = CONTINUAR) {
-  caminhoAtual = caminho;
-
   return renderToStaticMarkup(
-    <ProvedorDaCasca aberta={aberta}>
-      <CartaoContinuar cartao={promessaCumpridaSemSuspender(cartao)} />
-    </ProvedorDaCasca>
+    <ComRoteador caminho={caminho}>
+      <ProvedorDaCasca aberta={aberta}>
+        <CartaoContinuar cartao={promessaCumpridaSemSuspender(cartao)} />
+      </ProvedorDaCasca>
+    </ComRoteador>
   );
 }
 
