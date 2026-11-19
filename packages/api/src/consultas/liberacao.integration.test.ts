@@ -14,6 +14,8 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
+import { diaISO } from "../dominio/marcas";
 import type {
   AdminId,
   CursoId,
@@ -50,7 +52,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
   });
 
   const alunos: string[] = [];
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function aluno(saldo = 0) {
     const userId = `user_lib${S}${alunos.length}`;
@@ -60,9 +62,9 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       await db.insert(pontoLancamento).values(
         Array.from({ length: saldo / 10 }, (_, i) => ({
           criadoEm: new Date(Date.UTC(2026, 0, 1 + i, 15)),
-          diaMarco: new Date(Date.UTC(2026, 0, 1 + i))
-            .toISOString()
-            .slice(0, 10),
+          diaMarco: diaISO(
+            new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)
+          ),
           motivo: "sequencia_7_dias" as const,
           pontos: 10,
           userId,
@@ -105,12 +107,12 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
     await db.insert(aula).values({
       duracaoSeg: 600,
-      moduloId: m?.id ?? "",
+      moduloId: definido(m?.id),
       posicao: 1,
       titulo: "Aula",
     });
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   const saldoDe = async (userId: string) => {

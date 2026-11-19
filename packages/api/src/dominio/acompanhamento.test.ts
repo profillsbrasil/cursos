@@ -8,6 +8,7 @@ import {
 } from "./acompanhamento";
 import { cursoCat, idAula } from "./exemplo";
 import { estudoDe, type LinhasHistorico } from "./historico";
+import { aulaId, cursoId } from "./marcas";
 import type { CursoId, DiaISO } from "./tipos";
 
 const em = (iso: string) => new Date(iso);
@@ -20,14 +21,14 @@ const linhas = (o: Partial<LinhasHistorico>): LinhasHistorico => ({
   ...o,
 });
 
-const assistida = (aulaId: string, iso: string) => ({
+const assistida = (aula: string, iso: string) => ({
   assistidaEm: em(iso),
-  aulaId,
+  aulaId: aula,
 });
 
-const certificado = (cursoId: string, iso: string) => ({
-  codigo: `CERT-${cursoId}`,
-  cursoId,
+const certificado = (curso: string, iso: string) => ({
+  codigo: `CERT-${curso}`,
+  cursoId: curso,
   emitidoEm: em(iso),
 });
 
@@ -169,19 +170,19 @@ describe("montarBusca", () => {
     userId,
   });
 
-  const ativa = (cursoId: string, iso: string) => ({
-    cursoId,
+  const ativa = (nome: string, iso: string) => ({
+    cursoId: cursoId(nome),
     liberadaEm: em(iso),
     origem: "admin" as const,
     revogadaEm: null,
   });
 
   const curso = (id: string, aulas: number, status = "publicado" as const) => ({
-    id,
+    id: cursoId(id),
     modulos: [
       {
         aulas: Array.from({ length: aulas }, (_, i) => ({
-          id: idAula(id, 0, i + 1),
+          id: aulaId(idAula(id, 0, i + 1)),
           perguntas: 0,
         })),
         numero: 0,

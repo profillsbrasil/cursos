@@ -129,9 +129,9 @@ export interface TentativaGravada {
   aprovada: boolean;
   numero: number;
   respostas: readonly {
-    alternativaId: string;
+    alternativaId: AlternativaId;
     certa: boolean;
-    perguntaId: string;
+    perguntaId: PerguntaId;
   }[];
   total: number;
 }
@@ -167,7 +167,7 @@ export function resultadoDaTentativa(
       return r
         ? [
             {
-              alternativaId: r.alternativaId as AlternativaId,
+              alternativaId: r.alternativaId,
               certa: r.certa,
               certaId: tentativa.aprovada ? p.certa : null,
               perguntaId: p.id,

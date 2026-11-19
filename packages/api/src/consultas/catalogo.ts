@@ -9,7 +9,7 @@ import {
 import { eq, sql } from "drizzle-orm";
 
 import type { VisaoDoCatalogo } from "../dominio/catalogo";
-import { type CursoId, capaDe } from "../dominio/tipos";
+import { capaDe } from "../dominio/tipos";
 import { COLUNAS_DA_CAPA } from "./comum";
 
 export const COM_CONTEUDO = {
@@ -89,7 +89,7 @@ export async function visaoDoCatalogo(db: Database): Promise<VisaoDoCatalogo> {
       capa: capaDe(c),
       categoria: c.categoria,
       codigo: c.codigo,
-      id: c.id as CursoId,
+      id: c.id,
       modulos: c.modulos,
       precoTroca: c.precoTroca,
       segundosDeVideo: c.segundosDeVideo,

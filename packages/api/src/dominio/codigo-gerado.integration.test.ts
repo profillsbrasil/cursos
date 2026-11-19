@@ -8,6 +8,7 @@ import { categoria, curso } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray, isNotNull, sql, TransactionRollbackError } from "drizzle-orm";
 
+import { definido } from "../definido.test-utils";
 import { codigoLivre, siglaDaCategoria } from "./codigo-do-curso";
 
 const URL_TESTE = urlDeTeste();
@@ -56,7 +57,7 @@ describe.skipIf(URL_TESTE === null)("migração codigo_gerado", () => {
             );
 
           const idDe = (nome: string) =>
-            categorias.find((c) => c.nome === nome)?.id ?? "";
+            definido(categorias.find((c) => c.nome === nome)?.id);
 
           await tx.insert(curso).values({
             capaAlt: "Capa de teste",

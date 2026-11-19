@@ -11,6 +11,13 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type {
+  AulaId,
+  CursoId,
+  DiaISO,
+  LiberacaoId,
+  TentativaId,
+} from "../marcas";
 import { liberacao } from "./acesso";
 import { momento, motivoPonto, tabela } from "./comum";
 import { aulaAssistida, certificado, questionarioTentativa } from "./estudo";
@@ -50,16 +57,16 @@ export const concessaoDePontos = tabela(
 export const pontoLancamento = tabela(
   "ponto_lancamento",
   {
-    aulaId: uuid(),
+    aulaId: uuid().$type<AulaId>(),
     concessaoId: uuid(),
     criadoEm: momento(),
-    cursoId: uuid(),
-    diaMarco: date({ mode: "string" }),
+    cursoId: uuid().$type<CursoId>(),
+    diaMarco: date({ mode: "string" }).$type<DiaISO>(),
     id: uuid().primaryKey().defaultRandom(),
-    liberacaoId: uuid(),
+    liberacaoId: uuid().$type<LiberacaoId>(),
     motivo: motivoPonto().notNull(),
     pontos: integer().notNull(),
-    tentativaId: uuid(),
+    tentativaId: uuid().$type<TentativaId>(),
     userId: text().notNull(),
   },
   (t) => {

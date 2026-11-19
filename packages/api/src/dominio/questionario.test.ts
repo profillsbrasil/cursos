@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { alternativaId, perguntaId } from "./marcas";
 import {
   acertosParaPassar,
   corrigir,
@@ -142,7 +143,11 @@ describe("pontos e resultado da tentativa", () => {
       ...fora,
       respostas: [
         ...fora.respostas.toReversed(),
-        { alternativaId: "x", certa: true, perguntaId: "apagada" },
+        {
+          alternativaId: alternativaId("x"),
+          certa: true,
+          perguntaId: perguntaId("apagada"),
+        },
       ],
     };
 

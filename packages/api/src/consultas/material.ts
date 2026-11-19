@@ -31,7 +31,7 @@ export async function materiaisDaPagina(
   return linhas.map((m) => ({
     ...m,
     href: caminhoDoMaterial(m.id),
-    id: m.id as MaterialId,
+    id: m.id,
   }));
 }
 

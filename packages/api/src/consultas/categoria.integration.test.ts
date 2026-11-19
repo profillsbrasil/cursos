@@ -70,7 +70,7 @@ describe.skipIf(URL_TESTE === null)("categorias do admin", () => {
       throw new Error("curso não criado");
     }
 
-    cursos.push(c.id as CursoId);
+    cursos.push(c.id);
   }
 
   const minhas = async () =>

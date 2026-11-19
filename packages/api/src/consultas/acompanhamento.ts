@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 
 import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
-import type { OrigemDoAcesso } from "../dominio/tipos";
+import type { CursoId, OrigemDoAcesso } from "../dominio/tipos";
 import type { Executor } from "./comum";
 
 const arrayDeTexto = (itens: readonly string[]) =>
@@ -13,7 +13,7 @@ interface PessoaEmJson {
   assistidas: { assistidaEm: Ms; aulaId: string }[];
   certificados: { codigo: string; cursoId: string; emitidoEm: Ms }[];
   liberacoes: {
-    cursoId: string;
+    cursoId: CursoId;
     liberadaEm: Ms;
     origem: OrigemDoAcesso;
     revogadaEm: Ms | null;

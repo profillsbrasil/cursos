@@ -21,7 +21,7 @@ const ALUNO = `user_alunocom${S}`;
 describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const cursos: CursoId[] = [];
-  const comunicados: string[] = [];
+  const comunicados: ComunicadoId[] = [];
 
   const comoAdmin = (userId = DONO) =>
     createCaller(
@@ -61,12 +61,12 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
       throw new Error("curso não criado");
     }
 
-    cursos.push(c.id as CursoId);
+    cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
-  const linhasDe = (id: string) =>
+  const linhasDe = (id: ComunicadoId) =>
     db.select().from(comunicado).where(eq(comunicado.id, id));
 
   afterAll(async () => {

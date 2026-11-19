@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type { AdminId, ConviteId, CursoId, Email } from "../marcas";
 import { curso } from "./catalogo";
 import { momento, perfil, tabela } from "./comum";
 
@@ -26,11 +27,11 @@ export const convite = tabela(
     clerkConviteId: text(),
     comoAdmin: boolean().notNull(),
     convidadoEm: momento(),
-    convidadoPor: text().notNull(),
-    email: text().notNull(),
+    convidadoPor: text().notNull().$type<AdminId>(),
+    email: text().notNull().$type<Email>(),
     enviadoEm: timestamp({ withTimezone: true }),
     expiraEm: timestamp({ withTimezone: true }).notNull(),
-    id: uuid().primaryKey().defaultRandom(),
+    id: uuid().primaryKey().defaultRandom().$type<ConviteId>(),
     papelAplicadoEm: timestamp({ withTimezone: true }),
     perfil: perfil().notNull(),
   },
@@ -81,10 +82,12 @@ export const conviteCurso = tabela(
   {
     conviteId: uuid()
       .notNull()
-      .references(() => convite.id, { onDelete: "cascade" }),
+      .references(() => convite.id, { onDelete: "cascade" })
+      .$type<ConviteId>(),
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "cascade" }),
+      .references(() => curso.id, { onDelete: "cascade" })
+      .$type<CursoId>(),
   },
   (t) => [primaryKey({ columns: [t.conviteId, t.cursoId] })]
 );

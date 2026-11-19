@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import type { CursoId, LiberacaoDoPerfilId, LiberacaoId } from "../marcas";
 import { curso } from "./catalogo";
 import { liberacaoOrigem, momento, perfil, tabela } from "./comum";
 
@@ -38,8 +39,9 @@ export const liberacaoDoPerfil = tabela(
   {
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "restrict" }),
-    id: uuid().primaryKey().defaultRandom(),
+      .references(() => curso.id, { onDelete: "restrict" })
+      .$type<CursoId>(),
+    id: uuid().primaryKey().defaultRandom().$type<LiberacaoDoPerfilId>(),
     liberadaEm: momento(),
     liberadaPor: text().notNull(),
     perfil: perfil().notNull(),
@@ -63,8 +65,9 @@ export const liberacao = tabela(
   {
     cursoId: uuid()
       .notNull()
-      .references(() => curso.id, { onDelete: "restrict" }),
-    id: uuid().primaryKey().defaultRandom(),
+      .references(() => curso.id, { onDelete: "restrict" })
+      .$type<CursoId>(),
+    id: uuid().primaryKey().defaultRandom().$type<LiberacaoId>(),
     liberadaEm: momento(),
     liberadaPor: text().notNull(),
     origem: liberacaoOrigem().notNull(),

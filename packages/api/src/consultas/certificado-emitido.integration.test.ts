@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes } from "node:crypto";
 
 import { createDb } from "@cursos/db";
 import {
@@ -18,8 +18,10 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { gerarCodigo } from "../dominio/certificado";
-import type { Pessoa } from "../dominio/tipos";
+import { novaTentativaId } from "../dominio/marcas";
+import type { CursoId, ModuloId, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 
@@ -52,8 +54,8 @@ const SLUG = `teste-${S}-fabrica`;
 
 describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  let cursoId = "";
-  let moduloId = "";
+  let cursoId: CursoId;
+  let moduloId: ModuloId;
 
   const como = (userId: string | null) =>
     createCaller(contextoDeTeste({ db, pessoas: PESSOAS, userId }));
@@ -76,14 +78,14 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
       })
       .returning({ id: curso.id });
 
-    cursoId = novo?.id ?? "";
+    cursoId = definido(novo?.id);
 
     const [mod] = await db
       .insert(modulo)
       .values({ cursoId, numero: 1, titulo: "Segurança do posto" })
       .returning({ id: modulo.id });
 
-    moduloId = mod?.id ?? "";
+    moduloId = definido(mod?.id);
 
     const aulas = await db
       .insert(aula)
@@ -119,8 +121,8 @@ describe.skipIf(URL_TESTE === null)("certificado.pagina e conferir", () => {
       [true, false].map((aprovada, i) => ({
         acertos: aprovada ? 1 : 0,
         aprovada,
-        aulaId: aulas[i]?.id ?? "",
-        id: randomUUID(),
+        aulaId: definido(aulas[i]?.id),
+        id: novaTentativaId(),
         numero: 1,
         total: 1,
         userId: BRUNO,

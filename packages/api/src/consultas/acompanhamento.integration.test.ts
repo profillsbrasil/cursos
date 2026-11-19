@@ -17,9 +17,16 @@ import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { montarBusca, type SituacaoNoCurso } from "../dominio/acompanhamento";
 import { diaLocal } from "../dominio/sequencia";
-import type { DiaISO, EstadoCurso, Pessoa } from "../dominio/tipos";
+import type {
+  AulaId,
+  CursoId,
+  DiaISO,
+  EstadoCurso,
+  Pessoa,
+} from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { linhasDaBusca } from "./acompanhamento";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -63,9 +70,9 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
   const painelDe = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId })).meusCursos.painel();
 
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
-  const aulas: Record<"a" | "b" | "c" | "d", string[]> = {
+  const aulas: Record<"a" | "b" | "c" | "d", AulaId[]> = {
     a: [],
     b: [],
     c: [],
@@ -129,9 +136,12 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
         .map((x) => x.id);
     }
 
-    const [a = "", b = "", c = "", d = ""] = cursos;
+    const a = definido(cursos[0]);
+    const b = definido(cursos[1]);
+    const c = definido(cursos[2]);
+    const d = definido(cursos[3]);
 
-    const libera = (userId: string, cursoId: string, revogada = false) => ({
+    const libera = (userId: string, cursoId: CursoId, revogada = false) => ({
       cursoId,
       liberadaEm: new Date("2026-10-01T15:00:00Z"),
       liberadaPor: "user_admin",
@@ -161,7 +171,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       })),
       {
         assistidaEm: new Date("2026-10-06T15:00:00Z"),
-        aulaId: aulas.b[0] ?? "",
+        aulaId: definido(aulas.b[0]),
         userId: DIRETO,
       },
     ]);
@@ -174,7 +184,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
     });
     await db.insert(posicaoAula).values({
       atualizadaEm: new Date("2026-10-13T01:00:00Z"),
-      aulaId: aulas.d[0] ?? "",
+      aulaId: definido(aulas.d[0]),
       posicaoSeg: 120,
       userId: ESTUDA,
     });
@@ -194,7 +204,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       })
       .returning({ id: curso.id });
 
-    const cursoE = e?.id ?? "";
+    const cursoE = definido(e?.id);
     cursos.push(cursoE);
     await db
       .insert(nivel)
@@ -213,7 +223,7 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       .returning({ id: modulo.id, numero: modulo.numero });
 
     const doModulo = (numero: number) =>
-      modulosE.find((m) => m.numero === numero)?.id ?? "";
+      definido(modulosE.find((m) => m.numero === numero)?.id);
 
     const aulasE = await db
       .insert(aula)
@@ -231,9 +241,11 @@ describe.skipIf(URL_TESTE === null)("acompanhamento do admin", () => {
       });
 
     const aulaE = (numero: number, posicao: number) =>
-      aulasE.find(
-        (x) => x.moduloId === doModulo(numero) && x.posicao === posicao
-      )?.id ?? "";
+      definido(
+        aulasE.find(
+          (x) => x.moduloId === doModulo(numero) && x.posicao === posicao
+        )?.id
+      );
 
     await db.insert(liberacao).values(libera(ONDE, cursoE));
     await db.insert(aulaAssistida).values({

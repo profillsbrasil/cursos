@@ -16,6 +16,8 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
+import { diaISO } from "../dominio/marcas";
 import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
@@ -29,7 +31,7 @@ const AGORA = new Date("2026-10-07T18:00:00Z");
 describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function aluno(saldo: number) {
     const userId = `user_teste${S}${alunos.length}`;
@@ -39,9 +41,9 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
       await db.insert(pontoLancamento).values(
         Array.from({ length: saldo / 10 }, (_, i) => ({
           criadoEm: new Date(Date.UTC(2026, 0, 1 + i, 15)),
-          diaMarco: new Date(Date.UTC(2026, 0, 1 + i))
-            .toISOString()
-            .slice(0, 10),
+          diaMarco: diaISO(
+            new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)
+          ),
           motivo: "sequencia_7_dias" as const,
           pontos: 10,
           userId,
@@ -84,12 +86,12 @@ describe.skipIf(URL_TESTE === null)("troca de pontos", () => {
 
     await db.insert(aula).values({
       duracaoSeg: 600,
-      moduloId: m?.id ?? "",
+      moduloId: definido(m?.id),
       posicao: 1,
       titulo: "Aula",
     });
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   const saldoDe = async (userId: string) => {

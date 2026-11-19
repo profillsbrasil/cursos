@@ -31,7 +31,7 @@ import {
   type Registro,
 } from "../dominio/registro";
 import { COTA_VIDEO, PONTOS } from "../dominio/regras";
-import type { AulaId, CursoId, DiaISO } from "../dominio/tipos";
+import type { AulaId, CursoId } from "../dominio/tipos";
 import { cobertura } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
 import { COM_CONTEUDO } from "./catalogo";
@@ -43,7 +43,7 @@ import { saldoDe } from "./pontos";
 import { linhasDoQuestionario } from "./questionario";
 import { type AlunoTravado, travarAluno } from "./trava";
 
-export type ChaveCurso = { aulaId: string } | { slug: string };
+export type ChaveCurso = { aulaId: AulaId } | { slug: string };
 
 /**
  * `serial` é para dentro de uma transação: os cinco dividem um client, e o pg 8
@@ -306,7 +306,7 @@ export function registrar(
       if (fato && !aberto.amostra) {
         const efeitos = lancamentosDaAssistida(
           aulaId,
-          fato.dia as DiaISO,
+          fato.dia,
           aberto.diasComAulaAssistida
         );
 

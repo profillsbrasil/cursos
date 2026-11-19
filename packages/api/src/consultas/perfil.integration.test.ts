@@ -234,7 +234,7 @@ describe.skipIf(URL_TESTE === null)("perfil da pessoa", () => {
 
 describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function cursoDeTeste(): Promise<CursoId> {
     const s = hex();
@@ -260,7 +260,7 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil", () => {
 
     cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   const ativasDe = (cursoId: CursoId) =>

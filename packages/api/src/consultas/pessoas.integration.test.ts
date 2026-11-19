@@ -9,7 +9,8 @@ import { TRPCError } from "@trpc/server";
 import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste, pessoasDeTeste } from "../contexto-de-teste";
-import type { Conta, Pessoa } from "../dominio/tipos";
+import { diaISO } from "../dominio/marcas";
+import type { Conta, DiaISO, Pessoa } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 
 const URL_TESTE = urlDeTeste();
@@ -93,7 +94,7 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
   });
 
   test("a lista traz o saldo de cada pessoa, a soma dos lançamentos, e 0 para quem não tem nenhum", async () => {
-    const lancamento = (userId: string, dia: string, pontos: number) => ({
+    const lancamento = (userId: string, dia: DiaISO, pontos: number) => ({
       criadoEm: new Date(`${dia}T15:00:00Z`),
       diaMarco: dia,
       motivo: "sequencia_7_dias" as const,
@@ -104,10 +105,10 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     await db
       .insert(pontoLancamento)
       .values([
-        lancamento(DIEGO, "2026-09-01", 3000),
-        lancamento(DIEGO, "2026-09-02", 2000),
-        lancamento(DIEGO, "2026-09-03", 130),
-        lancamento(ELISA, "2026-09-01", 10),
+        lancamento(DIEGO, diaISO("2026-09-01"), 3000),
+        lancamento(DIEGO, diaISO("2026-09-02"), 2000),
+        lancamento(DIEGO, diaISO("2026-09-03"), 130),
+        lancamento(ELISA, diaISO("2026-09-01"), 10),
       ]);
 
     const { pessoas: lista } = await admin.admin.pessoas.lista({

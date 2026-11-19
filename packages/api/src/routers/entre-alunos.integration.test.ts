@@ -27,7 +27,14 @@ import {
   codigoDeTeste,
 } from "../consultas/categoria-de-teste";
 import { contextoDeTeste } from "../contexto-de-teste";
-import type { AlternativaId, PerguntaId, TentativaId } from "../dominio/tipos";
+import { definido } from "../definido.test-utils";
+import { diaISO, videoId } from "../dominio/marcas";
+import type {
+  AlternativaId,
+  CursoId,
+  PerguntaId,
+  TentativaId,
+} from "../dominio/tipos";
 import { createCaller } from "./index";
 
 const URL_TESTE = urlDeTeste();
@@ -50,7 +57,7 @@ interface PerguntaPlantada {
 
 describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   const como = (userId: string) =>
     createCaller(contextoDeTeste({ db, userId }));
@@ -94,10 +101,10 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         .insert(aula)
         .values({
           duracaoSeg: 600,
-          moduloId: m?.id ?? "",
+          moduloId: definido(m?.id),
           posicao: i + 1,
           titulo: `Aula ${i + 1}`,
-          videoId: "aqz-KE-bpKQ",
+          videoId: videoId("aqz-KE-bpKQ"),
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
@@ -109,7 +116,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         const [pg] = await db
           .insert(pergunta)
           .values({
-            aulaId: a?.id ?? "",
+            aulaId: definido(a?.id),
             enunciado: `Pergunta ${p}`,
             posicao: p,
           })
@@ -120,7 +127,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           .values(
             [1, 2].map((k) => ({
               certa: k === 2,
-              perguntaId: pg?.id ?? "",
+              perguntaId: definido(pg?.id),
               posicao: k,
               texto: `Alternativa ${k}`,
             }))
@@ -135,13 +142,13 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
         // oxlint-enable no-await-in-loop
       }
 
-      aulas.push({ id: a?.id ?? "", perguntas });
+      aulas.push({ id: definido(a?.id), perguntas });
     }
 
     return { aulas, id: c.id, slug };
   }
 
-  const liberar = (userId: string, cursoId: string) =>
+  const liberar = (userId: string, cursoId: CursoId) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
@@ -234,7 +241,9 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     await db.insert(pontoLancamento).values(
       Array.from({ length: 30 }, (_, i) => ({
         criadoEm: new Date(Date.UTC(2026, 0, 1 + i, 15)),
-        diaMarco: new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10),
+        diaMarco: diaISO(
+          new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)
+        ),
         motivo: "sequencia_7_dias" as const,
         pontos: 10,
         userId: BRUNO,
@@ -264,7 +273,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
   describe("Ana troca ids para alcançar o estudo de Bruno", () => {
     test("abrir a aula que Bruno estudou mostra a posição e o questionário de Ana, não os dele", async () => {
       const [a1] = comum.aulas;
-      const entrada = { aulaId: a1?.id ?? "", slug: comum.slug };
+      const entrada = { aulaId: definido(a1?.id), slug: comum.slug };
       const doBruno = await como(BRUNO).aula.abrir(entrada);
       expect(doBruno?.estudo.posicaoSeg).toBe(120);
       expect(doBruno?.questionario?.ultima?.aprovada).toBe(true);
@@ -281,7 +290,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       const antes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(BRUNO);
       const [a1] = comum.aulas;
       await como(ANA).aula.registrar({
-        aulaId: a1?.id ?? "",
+        aulaId: definido(a1?.id),
         posicaoSeg: 60,
         trechos: [{ fim: 60, inicio: 0 }],
       });
@@ -297,7 +306,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       const [a1] = comum.aulas;
       const perguntas = a1?.perguntas ?? [];
       await como(ANA).questionario.responder({
-        aulaId: a1?.id ?? "",
+        aulaId: definido(a1?.id),
         respostas: respostas(perguntas, false),
         tentativaId: randomUUID(),
       });
@@ -306,7 +315,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
 
       const codigo = await recusa(
         como(ANA).questionario.responder({
-          aulaId: a1?.id ?? "",
+          aulaId: definido(a1?.id),
           respostas: respostas(perguntas, false),
           tentativaId: TENTATIVA_DO_BRUNO,
         })
@@ -375,7 +384,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
     test("abrir, página do curso e página do certificado devolvem null, também com o slug de um curso dela", async () => {
       const ana = como(ANA);
       const [aulaDoBruno] = soDoBruno.aulas;
-      const id = aulaDoBruno?.id ?? "";
+      const id = definido(aulaDoBruno?.id);
       expect(
         await Promise.all([
           ana.aula.abrir({ aulaId: id, slug: soDoBruno.slug }),
@@ -390,7 +399,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
       const ana = como(ANA);
       const [aulaDoBruno] = soDoBruno.aulas;
       const [a1] = comum.aulas;
-      const id = aulaDoBruno?.id ?? "";
+      const id = definido(aulaDoBruno?.id);
       const daBruno = respostas(aulaDoBruno?.perguntas ?? [], true);
       const antes = await fatosDoEstudoEDosPontosEmOrdemEstavelDe(ANA);
 
@@ -412,7 +421,7 @@ describe.skipIf(URL_TESTE === null)("ataques entre alunos", () => {
           ),
           recusa(
             ana.questionario.responder({
-              aulaId: a1?.id ?? "",
+              aulaId: definido(a1?.id),
               respostas: daBruno,
               tentativaId: randomUUID(),
             })

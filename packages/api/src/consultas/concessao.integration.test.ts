@@ -12,6 +12,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { diaISO } from "../dominio/marcas";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
 import type { AdminId } from "../dominio/tipos";
 import { ErroParaAPessoa } from "../index";
@@ -40,7 +41,9 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
     await db.insert(pontoLancamento).values([
       ...Array.from({ length: antes / 10 }, (_, i) => ({
         criadoEm: new Date(Date.UTC(2026, 0, 1 + i, 15)),
-        diaMarco: new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10),
+        diaMarco: diaISO(
+          new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)
+        ),
         motivo: "sequencia_7_dias" as const,
         pontos: 10,
         userId,

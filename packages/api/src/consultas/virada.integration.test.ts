@@ -17,9 +17,10 @@ import {
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
 import { asc, inArray } from "drizzle-orm";
 
+import { definido } from "../definido.test-utils";
 import type { Perfil } from "../dominio/perfil";
 import { BONUS_DE_FUNCIONARIO, PONTOS } from "../dominio/regras";
-import type { AdminId, CursoId } from "../dominio/tipos";
+import type { AdminId, AulaId, CursoId } from "../dominio/tipos";
 import { nadaAFazer } from "../dominio/virada";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { liberarParaPerfil } from "./liberacao-do-perfil";
@@ -35,7 +36,7 @@ const PRECO = 800;
 describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function pessoa(perfil: Perfil) {
     const userId = `user_virada${S}x${alunos.length}`;
@@ -79,7 +80,7 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
       .insert(aula)
       .values({
         duracaoSeg: 600,
-        moduloId: m?.id ?? "",
+        moduloId: definido(m?.id),
         posicao: 1,
         titulo: "Aula",
       })
@@ -87,13 +88,13 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
 
     for (const perfil of perfis) {
       // oxlint-disable-next-line no-await-in-loop -- poucas linhas de preparo.
-      await liberarParaPerfil(db, ADMIN, perfil, c.id as CursoId, AGORA);
+      await liberarParaPerfil(db, ADMIN, perfil, c.id, AGORA);
     }
 
-    return { aulaId: a?.id ?? "", id: c.id as CursoId };
+    return { aulaId: definido(a?.id), id: c.id };
   }
 
-  const assistir = (userId: string, aulaId: string) =>
+  const assistir = (userId: string, aulaId: AulaId) =>
     db.insert(aulaAssistida).values({ assistidaEm: AGORA, aulaId, userId });
 
   async function gravado() {
@@ -124,8 +125,8 @@ describe.skipIf(URL_TESTE === null)("virada dos pontos", () => {
   let naoEstudou: string;
   let jaTemBonus: string;
   let cliente: string;
-  let comPreco: { aulaId: string; id: CursoId };
-  let semPreco: { aulaId: string; id: CursoId };
+  let comPreco: { aulaId: AulaId; id: CursoId };
+  let semPreco: { aulaId: AulaId; id: CursoId };
 
   beforeAll(async () => {
     comPreco = await cursoDoPerfil(PRECO, "funcionario", "cliente");

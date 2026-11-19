@@ -20,7 +20,9 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
-import type { AulaId, StatusDoCurso } from "../dominio/tipos";
+import { definido } from "../definido.test-utils";
+import { diaISO, videoId } from "../dominio/marcas";
+import type { AulaId, CursoId, StatusDoCurso } from "../dominio/tipos";
 import type { Trecho } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
 import { createCaller } from "../routers/index";
@@ -86,7 +88,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     DATABASE_URL: urlDaCorrida(URL_TESTE),
   });
 
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function criarCurso(
     n: number,
@@ -125,20 +127,23 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       .values(
         Array.from({ length: n }, (_, i) => ({
           duracaoSeg: 600,
-          moduloId: m?.id ?? "",
+          moduloId: definido(m?.id),
           posicao: i + 1,
           titulo: `Aula ${i + 1}`,
           ...(o.comVideo === false
             ? {}
-            : { videoId: "aqz-KE-bpKQ", videoProvedor: "youtube" as const }),
+            : {
+                videoId: videoId("aqz-KE-bpKQ"),
+                videoProvedor: "youtube" as const,
+              }),
         }))
       )
       .returning({ id: aula.id });
 
-    return { aulas: aulas.map((a) => a.id as AulaId), id: c.id, slug };
+    return { aulas: aulas.map((a) => a.id), id: c.id, slug };
   }
 
-  const liberarCurso = (userId: string, cursoId: string) =>
+  const liberarCurso = (userId: string, cursoId: CursoId) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
@@ -215,7 +220,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const aluno = novoAluno();
     const caller = comoAluno(aluno);
 
-    const tentar = (aulaId: string) =>
+    const tentar = (aulaId: AulaId) =>
       caller.aula
         .registrar({ aulaId, posicaoSeg: 10, trechos: [t(0, 10)] })
         .then(() => "ok", codigo);
@@ -226,12 +231,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     const primeiro = await criarCurso(1);
     await liberarCurso(aluno, primeiro.id);
 
-    expect(await tentar(semLiberacao.aulas[0] ?? "")).toBe("NOT_FOUND");
-    expect(await tentar(breve.aulas[0] ?? "")).toBe("NOT_FOUND");
-    expect(await tentar(primeiro.aulas[0] ?? "")).toBe("ok");
+    expect(await tentar(definido(semLiberacao.aulas[0]))).toBe("NOT_FOUND");
+    expect(await tentar(definido(breve.aulas[0]))).toBe("NOT_FOUND");
+    expect(await tentar(definido(primeiro.aulas[0]))).toBe("ok");
     expect(
       await caller.aula.abrir({
-        aulaId: semLiberacao.aulas[0] ?? "",
+        aulaId: definido(semLiberacao.aulas[0]),
         slug: semLiberacao.slug,
       })
     ).toBeNull();
@@ -240,7 +245,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       .update(liberacao)
       .set({ revogadaEm: new Date(), revogadaPor: "user_admin" })
       .where(and(eq(liberacao.userId, aluno), isNull(liberacao.revogadaEm)));
-    expect(await tentar(primeiro.aulas[0] ?? "")).toBe("NOT_FOUND");
+    expect(await tentar(definido(primeiro.aulas[0]))).toBe("NOT_FOUND");
   });
 
   test("PRECONDITION_FAILED em aula sem vídeo", async () => {
@@ -249,7 +254,11 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await liberarCurso(aluno, c.id);
 
     const erro = await comoAluno(aluno)
-      .aula.registrar({ aulaId: c.aulas[0] ?? "", posicaoSeg: 5, trechos: [] })
+      .aula.registrar({
+        aulaId: definido(c.aulas[0]),
+        posicaoSeg: 5,
+        trechos: [],
+      })
       .catch(codigo);
 
     expect(erro).toBe("PRECONDITION_FAILED");
@@ -315,7 +324,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       .where(eq(pontoLancamento.userId, aluno));
 
     expect(fatos).toHaveLength(1);
-    expect(fatos[0]?.dia).toBe("2026-10-07");
+    expect(fatos[0]?.dia).toBe(diaISO("2026-10-07"));
     expect(pontos).toEqual([{ motivo: "aula_assistida", pontos: 10 }]);
   });
 
@@ -386,7 +395,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
     async function alunoComCota() {
       const { aluno, c } = await cursoLiberado();
-      const aulaId = c.aulas[0] ?? "";
+      const aulaId = definido(c.aulas[0]);
       const caller = naCorrida(aluno);
       await caller.aula.registrar({
         aulaId,
@@ -484,7 +493,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db.insert(aulaAssistida).values(
       dias.map((dia, i) => ({
         assistidaEm: new Date(`${dia}T15:00:00Z`),
-        aulaId: c.aulas[i] ?? "",
+        aulaId: definido(c.aulas[i]),
         userId: aluno,
       }))
     );
@@ -511,7 +520,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
         )
       );
 
-    expect(bonus).toEqual([{ diaMarco: "2026-10-07" }]);
+    expect(bonus).toEqual([{ diaMarco: diaISO("2026-10-07") }]);
   });
 
   test("a conquista mostra só os lançamentos que entraram", async () => {
@@ -529,13 +538,13 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     await db.insert(aulaAssistida).values(
       dias.map((dia, i) => ({
         assistidaEm: new Date(`${dia}T15:00:00Z`),
-        aulaId: c.aulas[i] ?? "",
+        aulaId: definido(c.aulas[i]),
         userId: aluno,
       }))
     );
     await db.insert(pontoLancamento).values({
       criadoEm: em(-3600),
-      diaMarco: "2026-10-07",
+      diaMarco: diaISO("2026-10-07"),
       motivo: "sequencia_7_dias",
       pontos: 30,
       userId: aluno,
@@ -614,7 +623,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       db,
       alunoDeTeste(aluno),
       c.slug,
-      c.aulas[1] ?? ""
+      definido(c.aulas[1])
     );
 
     expect(vm).toMatchObject({

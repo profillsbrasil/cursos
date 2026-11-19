@@ -34,7 +34,7 @@ const semConta = { contasCom: () => Promise.resolve(new Map<Email, string>()) };
 describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const ids: string[] = [];
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   afterAll(async () => {
     await db
@@ -75,7 +75,7 @@ describe.skipIf(URL_TESTE === null)("chegada de quem foi convidado", () => {
 
     cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   function pessoa(dominio = `cliente${S}.example`) {

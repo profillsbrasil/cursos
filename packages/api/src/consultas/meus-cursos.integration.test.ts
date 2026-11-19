@@ -18,6 +18,9 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
+import { diaISO, liberacaoId } from "../dominio/marcas";
+import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 import { carregarPainel, carregarResumo } from "./meus-cursos";
@@ -67,7 +70,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     }
   );
 
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function criarCursos(n: number) {
     const sufixo = hex();
@@ -119,7 +122,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     };
   }
 
-  const liberar = (userId: string, ids: readonly string[]) =>
+  const liberar = (userId: string, ids: readonly CursoId[]) =>
     db.insert(liberacao).values(
       ids.map((cursoId) => ({
         cursoId,
@@ -129,7 +132,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       }))
     );
 
-  const liberarCurso = (userId: string, cursoId: string, revogada = false) =>
+  const liberarCurso = (userId: string, cursoId: CursoId, revogada = false) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
@@ -145,7 +148,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
   });
 
   const publicar = (
-    cursoId: string | undefined,
+    cursoId: CursoId | undefined,
     quando: string,
     titulo: string
   ) =>
@@ -212,15 +215,15 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     await liberar(ALUNO_A, pequena.cursos);
     const a = await comoAluno(ALUNO_A).meusCursos.painel();
     const b = await comoAluno(ALUNO_B).meusCursos.painel();
-    expect(idsDe(a)).toContain(pequena.cursos[0] ?? "");
-    expect(idsDe(b)).not.toContain(pequena.cursos[0] ?? "");
+    expect(idsDe(a)).toContain(definido(pequena.cursos[0]));
+    expect(idsDe(b)).not.toContain(definido(pequena.cursos[0]));
   });
 
   test("liberação revogada tira o curso do painel, e liberar de novo devolve o progresso", async () => {
     const [primeira] = pequena.aulas;
     await db
       .insert(aulaAssistida)
-      .values({ aulaId: primeira ?? "", userId: ALUNO_A });
+      .values({ aulaId: definido(primeira), userId: ALUNO_A });
     const antes = await carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA);
     expect(doPequeno(antes)?.progresso).toEqual({
       feitas: 1,
@@ -233,7 +236,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       .set({ revogadaEm: new Date(), revogadaPor: "user_admin" })
       .where(and(eq(liberacao.userId, ALUNO_A), isNull(liberacao.revogadaEm)));
     const revogado = await carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA);
-    expect(idsDe(revogado)).not.toContain(pequena.cursos[0] ?? "");
+    expect(idsDe(revogado)).not.toContain(definido(pequena.cursos[0]));
 
     await liberar(ALUNO_A, pequena.cursos);
     const deNovo = await carregarPainel(db, alunoDeTeste(ALUNO_A), AGORA);
@@ -249,7 +252,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const [, segunda] = pequena.aulas;
     await db
       .insert(posicaoAula)
-      .values({ aulaId: segunda ?? "", posicaoSeg: 120, userId: ALUNO_A });
+      .values({ aulaId: definido(segunda), posicaoSeg: 120, userId: ALUNO_A });
     const b = await carregarPainel(db, alunoDeTeste(ALUNO_B), AGORA);
     expect(doPequeno(b)).toMatchObject({
       estado: { tipo: "nao_iniciado" },
@@ -262,7 +265,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const [primeira, segunda] = pequena.aulas;
     await db
       .insert(aulaAssistida)
-      .values({ aulaId: segunda ?? "", userId: ALUNO_A });
+      .values({ aulaId: definido(segunda), userId: ALUNO_A });
     await db.insert(pontoLancamento).values([
       {
         aulaId: primeira,
@@ -280,7 +283,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       },
       {
         criadoEm: new Date("2026-10-06T15:00:00Z"),
-        diaMarco: "2026-10-06",
+        diaMarco: diaISO("2026-10-06"),
         motivo: "sequencia_7_dias",
         pontos: 30,
         userId: ALUNO_A,
@@ -297,12 +300,12 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const [cursoId] = t.cursos;
     await db
       .insert(aulaAssistida)
-      .values({ aulaId: aulaId ?? "", userId: ALUNO_TROCA });
+      .values({ aulaId: definido(aulaId), userId: ALUNO_TROCA });
 
     const [lib] = await db
       .insert(liberacao)
       .values({
-        cursoId: cursoId ?? "",
+        cursoId: definido(cursoId),
         liberadaPor: ALUNO_TROCA,
         origem: "troca",
         userId: ALUNO_TROCA,
@@ -319,7 +322,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       },
       {
         criadoEm: new Date("2026-10-06T15:00:00Z"),
-        diaMarco: "2026-10-06",
+        diaMarco: diaISO("2026-10-06"),
         motivo: "sequencia_7_dias",
         pontos: 30,
         userId: ALUNO_TROCA,
@@ -369,7 +372,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       cursos: [liberado],
     } = await criarCursos(1);
 
-    await liberarCurso(ALUNO_DIRETO, liberado ?? "");
+    await liberarCurso(ALUNO_DIRETO, definido(liberado));
     await publicar(liberado, "2091-01-01T00:00:00Z", `Aviso direto ${S}`);
     const painel = await carregarPainel(db, alunoDeTeste(ALUNO_DIRETO), AGORA);
     expect(painel.comunicado?.titulo).toBe(`Aviso direto ${S}`);
@@ -383,7 +386,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     } = await criarCursos(1);
 
     await liberar(ALUNO_REVOGADO_DIRETO, liberada.cursos);
-    await liberarCurso(ALUNO_REVOGADO_DIRETO, revogado ?? "", true);
+    await liberarCurso(ALUNO_REVOGADO_DIRETO, definido(revogado), true);
     await publicar(liberada.cursos[0], "2092-01-01T00:00:00Z", `Visível ${S}`);
     await publicar(revogado, "2092-01-02T00:00:00Z", `Revogado ${S}`);
 
@@ -401,17 +404,21 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       cursos: [um, dois],
     } = await criarCursos(2);
 
-    const [menor, maior] = [crypto.randomUUID(), crypto.randomUUID()].sort();
+    const [menor, maior] = [
+      liberacaoId(crypto.randomUUID()),
+      liberacaoId(crypto.randomUUID()),
+    ].sort();
+
     await db.insert(liberacao).values([
       {
-        cursoId: dois ?? "",
+        cursoId: definido(dois),
         id: maior,
         liberadaPor: "user_admin",
         origem: "admin",
         userId: ALUNO_MESMO_INSTANTE,
       },
       {
-        cursoId: um ?? "",
+        cursoId: definido(um),
         id: menor,
         liberadaPor: "user_admin",
         origem: "admin",
@@ -425,7 +432,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       AGORA
     );
 
-    expect(idsDe(painel)).toEqual([um ?? "", dois ?? ""]);
+    expect(idsDe(painel)).toEqual([definido(um), definido(dois)]);
   });
 
   test("Sua semana e Trocar pontos leem o mesmo curso trocável na vitrine", async () => {

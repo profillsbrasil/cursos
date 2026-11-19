@@ -13,6 +13,8 @@ import { inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import type { ComunicadosDoAluno } from "../dominio/comunicado";
+import { comunicadoId } from "../dominio/marcas";
+import type { CursoId } from "../dominio/tipos";
 import { createCaller } from "../routers/index";
 import { categoriaDeTeste, codigoDeTeste } from "./categoria-de-teste";
 
@@ -24,17 +26,17 @@ const AUTORA = `user_autora${S}`;
 
 describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   const ids = {
-    deCursoLiberado: crypto.randomUUID(),
-    deCursoNaoLiberado: crypto.randomUUID(),
-    deCursoRevogado: crypto.randomUUID(),
-    geralNovo: crypto.randomUUID(),
-    geralVelho: crypto.randomUUID(),
+    deCursoLiberado: comunicadoId(crypto.randomUUID()),
+    deCursoNaoLiberado: comunicadoId(crypto.randomUUID()),
+    deCursoRevogado: comunicadoId(crypto.randomUUID()),
+    geralNovo: comunicadoId(crypto.randomUUID()),
+    geralVelho: comunicadoId(crypto.randomUUID()),
   };
 
-  const nossos = new Set<string>(Object.values(ids));
+  const nossos = new Set(Object.values(ids));
 
   async function novoCurso(nome: string) {
     const [c] = await db

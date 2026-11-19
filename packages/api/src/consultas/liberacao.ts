@@ -14,7 +14,6 @@ import { diaLocal } from "../dominio/sequencia";
 import type {
   AdminId,
   CursoId,
-  LiberacaoDoPerfilId,
   LiberacaoId,
   OrigemDaLiberacao,
   Pessoa,
@@ -57,7 +56,7 @@ export async function inserirLiberacao(
     throw new Error("O insert da liberação não devolveu a linha.");
   }
 
-  return linha.id as LiberacaoId;
+  return linha.id;
 }
 
 /**
@@ -102,7 +101,7 @@ async function ativaDoCurso(
 
   return l
     ? {
-        liberacaoId: l.id as LiberacaoId,
+        liberacaoId: l.id,
         liberadaEm: l.liberadaEm,
         origem: l.origem,
       }
@@ -383,7 +382,7 @@ export async function linhasDoAcesso(
   const doPerfil = perfil
     ? perfil.liberacoesDoPerfil.map((l) => ({
         curso: paraCatalogo(l.curso),
-        id: l.id as LiberacaoDoPerfilId,
+        id: l.id,
         liberadaEm: l.liberadaEm,
         origem: "perfil" as const,
         perfil: perfil.perfil,
@@ -392,12 +391,12 @@ export async function linhasDoAcesso(
     : [];
 
   return {
-    catalogo: catalogo.map((c) => ({ ...c, id: c.id as CursoId })),
+    catalogo: catalogo.map((c) => ({ ...c, id: c.id })),
     historico,
     liberacoes: [
       ...liberacoes.map((l) => ({
         curso: paraCatalogo(l.curso),
-        id: l.id as LiberacaoId,
+        id: l.id,
         liberadaEm: l.liberadaEm,
         origem: l.origem,
         revogadaEm: l.revogadaEm,

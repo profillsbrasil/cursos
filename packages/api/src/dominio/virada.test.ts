@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import type { CursoDaBusca, LiberacaoDaBusca } from "./acompanhamento";
 import type { LinhasHistorico } from "./historico";
+import { aulaId, cursoId } from "./marcas";
 import { BONUS_DE_FUNCIONARIO } from "./regras";
 import type { CursoId } from "./tipos";
 import {
@@ -14,12 +15,12 @@ import {
 const AGORA = new Date("2026-10-27T12:00:00Z");
 
 const cursoDaBusca = (id: string, mudar: Partial<CursoDaBusca> = {}) => ({
-  id,
+  id: cursoId(id),
   modulos: [
     {
       aulas: [
-        { id: `${id}-a1`, perguntas: 0 },
-        { id: `${id}-a2`, perguntas: 0 },
+        { id: aulaId(`${id}-a1`), perguntas: 0 },
+        { id: aulaId(`${id}-a2`), perguntas: 0 },
       ],
       numero: 1,
       titulo: "Módulo",
@@ -30,8 +31,8 @@ const cursoDaBusca = (id: string, mudar: Partial<CursoDaBusca> = {}) => ({
   ...mudar,
 });
 
-const doPerfil = (cursoId: string): LiberacaoDaBusca => ({
-  cursoId,
+const doPerfil = (curso: string): LiberacaoDaBusca => ({
+  cursoId: cursoId(curso),
   liberadaEm: AGORA,
   origem: "perfil",
   revogadaEm: null,
@@ -46,7 +47,7 @@ const SEM_ESTUDO: LinhasHistorico = {
 
 const assistiu = (...aulas: string[]): LinhasHistorico => ({
   ...SEM_ESTUDO,
-  assistidas: aulas.map((aulaId) => ({ assistidaEm: AGORA, aulaId })),
+  assistidas: aulas.map((aula) => ({ assistidaEm: AGORA, aulaId: aula })),
 });
 
 function pessoa(mudar: Partial<PessoaNaVirada> = {}): PessoaNaVirada {

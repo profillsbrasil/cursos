@@ -27,7 +27,7 @@ export async function listarCategorias(
   return linhas
     .map((l) => ({
       cursos: l.cursos.toSorted(PT_BR.compare),
-      id: l.id as CategoriaId,
+      id: l.id,
       nome: l.nome,
     }))
     .toSorted((a, b) => PT_BR.compare(a.nome, b.nome));

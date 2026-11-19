@@ -27,7 +27,7 @@ export async function categoriaDeTeste(db: Database): Promise<CategoriaId> {
     throw new Error("A categoria dos testes não foi criada.");
   }
 
-  return linha.id as CategoriaId;
+  return linha.id;
 }
 
 /** O código que o curso plantado direto no banco leva: único e fora de qualquer sigla real. */

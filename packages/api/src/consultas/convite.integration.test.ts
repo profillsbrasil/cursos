@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { createDb } from "@cursos/db";
 import { convite, conviteCurso, curso } from "@cursos/db/schema/index";
 import { urlDeTeste } from "@cursos/db/seed/guarda-local";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 
 import { contextoDeTeste, convitesDeTeste } from "../contexto-de-teste";
 import { type Email, lerEmail } from "../dominio/convite";
@@ -41,7 +41,7 @@ const recusa = (promessa: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
 
   async function cursoDeTeste(titulo: string): Promise<CursoId> {
     const s = hex();
@@ -67,7 +67,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
 
     cursos.push(c.id);
 
-    return c.id as CursoId;
+    return c.id;
   }
 
   const linhaDe = async (e: Email) => {
@@ -400,7 +400,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
       );
       const linha = await umaLinha(destino);
 
-      return { carteiro, destino, id: linha.id as ConviteId, linha };
+      return { carteiro, destino, id: linha.id, linha };
     }
 
     test("dentro de 60 s devolve o envio que existe, sem outro e-mail", async () => {
@@ -449,7 +449,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([destino]),
         AGORA
       );
-      const id = (await umaLinha(destino)).id as ConviteId;
+      const { id } = await umaLinha(destino);
       falhas.clear();
       const vencido = new Date(AGORA.getTime() + 40 * DIA);
       await reenviarConvite(db, carteiro, id, vencido);
@@ -547,7 +547,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([destino]),
         AGORA
       );
-      const id = (await umaLinha(destino)).id as ConviteId;
+      const { id } = await umaLinha(destino);
       const depois = new Date(AGORA.getTime() + MIN);
       expect(
         await cancelarConvite(db, carteiro, OUTRO_ADMIN, id, depois)
@@ -611,7 +611,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         pedido([destino]),
         AGORA
       );
-      const id = (await umaLinha(destino)).id as ConviteId;
+      const { id } = await umaLinha(destino);
       await db
         .update(convite)
         .set({ aceitoEm: AGORA, aceitoPor: `user_aceitou${hex()}` })
@@ -672,7 +672,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
         db,
         portas.convites,
         ADMIN,
-        (await umaLinha(cancelado)).id as ConviteId,
+        (await umaLinha(cancelado)).id,
         AGORA
       );
       await db
@@ -751,7 +751,7 @@ describe.skipIf(URL_TESTE === null)("convite pelo admin", () => {
           .values({
             comoAdmin: false,
             convidadoPor: ADMIN,
-            email: texto,
+            email: sql`${texto}`,
             expiraEm: AGORA,
             perfil: "publico",
           })

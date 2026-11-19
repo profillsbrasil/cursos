@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import { contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import {
   type DocumentoDoCurso,
   formularioDoCurso,
@@ -282,7 +283,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
       db
         .update(material)
         .set(mudanca)
-        .where(eq(material.id, linha?.id ?? ""))
+        .where(eq(material.id, definido(linha?.id)))
         .then(
           () => "ok",
           (e: unknown) => violacaoDe(e)?.restricao ?? String(e)

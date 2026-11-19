@@ -22,6 +22,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, inArray } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
+import { definido } from "../definido.test-utils";
 import { FORMATO_DO_CODIGO } from "../dominio/certificado";
 import { type CursoComAulas, lerCursoDoAluno } from "../dominio/curso-do-aluno";
 import {
@@ -29,6 +30,7 @@ import {
   formularioDoCurso,
 } from "../dominio/edicao-do-curso";
 import { estudoDe } from "../dominio/historico";
+import { videoId } from "../dominio/marcas";
 import type {
   AlternativaId,
   AulaId,
@@ -70,7 +72,7 @@ const recusa = (p: Promise<unknown>) =>
 
 describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
-  const cursos: string[] = [];
+  const cursos: CursoId[] = [];
   const alunos: string[] = [];
   let categoriaId: CategoriaId;
 
@@ -161,10 +163,10 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         .insert(aula)
         .values({
           duracaoSeg: 600,
-          moduloId: m?.id ?? "",
+          moduloId: definido(m?.id),
           posicao: i + 1,
           titulo: `Aula ${i + 1}`,
-          videoId: "aqz-KE-bpKQ",
+          videoId: videoId("aqz-KE-bpKQ"),
           videoProvedor: "youtube",
         })
         .returning({ id: aula.id });
@@ -176,7 +178,7 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
         const [pg] = await db
           .insert(pergunta)
           .values({
-            aulaId: a?.id ?? "",
+            aulaId: definido(a?.id),
             enunciado: `Pergunta ${p}`,
             posicao: p,
           })
@@ -187,14 +189,14 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
           .values(
             [1, 2, 3].map((k) => ({
               certa: k === 2,
-              perguntaId: pg?.id ?? "",
+              perguntaId: definido(pg?.id),
               posicao: k,
               texto: `Alternativa ${k}`,
             }))
           )
           .returning({ id: alternativa.id });
 
-        const ids = alts.map((x) => x.id as AlternativaId);
+        const ids = alts.map((x) => x.id);
         perguntas.push({
           alternativas: ids,
           certa: ids[1] as AlternativaId,
@@ -206,10 +208,10 @@ describe.skipIf(URL_TESTE === null)("questionário do aluno", () => {
       aulas.push({ id: a?.id as AulaId, perguntas });
     }
 
-    return { aulas, id: c.id as CursoId, slug };
+    return { aulas, id: c.id, slug };
   }
 
-  const liberar = (userId: string, cursoId: string) =>
+  const liberar = (userId: string, cursoId: CursoId) =>
     db.insert(liberacao).values({
       cursoId,
       liberadaPor: "user_admin",
