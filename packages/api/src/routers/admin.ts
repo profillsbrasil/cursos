@@ -64,9 +64,18 @@ import {
   TETO_DE_CURSOS,
   TETO_DE_EMAILS,
 } from "../dominio/convite";
+import { idDe, idMinusculoDe } from "../dominio/esquemas-de-marca";
 import { montarGrade } from "../dominio/grade-dos-perfis";
 import { montarAcesso, TETO_DO_LOTE } from "../dominio/liberacao";
 import { CARACTERES } from "../dominio/limites-do-curso";
+import {
+  ehCategoriaId,
+  ehComunicadoId,
+  ehConviteId,
+  ehCursoId,
+  ehLiberacaoDoPerfilId,
+  ehLiberacaoId,
+} from "../dominio/marcas";
 import {
   arquivoDoFormulario,
   type MaterialEnviado,
@@ -74,14 +83,6 @@ import {
 } from "../dominio/material";
 import { montarFicha, montarListaDePessoas } from "../dominio/pessoas";
 import { diaLocal, segundaDaSemana } from "../dominio/sequencia";
-import type {
-  CategoriaId,
-  ComunicadoId,
-  ConviteId,
-  CursoId,
-  LiberacaoDoPerfilId,
-  LiberacaoId,
-} from "../dominio/tipos";
 import { TETO_DO_FILTRO } from "../externos/pessoas";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
@@ -92,8 +93,8 @@ const userId = z
   .string()
   .regex(USER_ID_NO_FORMATO_DO_CHECK_LIBERACAO_USER_ID_CLERK);
 
-const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
-const categoriaId = z.uuid().transform((id) => id.toLowerCase() as CategoriaId);
+const cursoId = idMinusculoDe(ehCursoId);
+const categoriaId = idMinusculoDe(ehCategoriaId);
 
 const nomeDaCategoriaNoFormatoDoCheckDoBanco = z
   .string()
@@ -105,7 +106,7 @@ const doCurso = z.object({ id: cursoId });
 
 const perfil = z.enum(PERFIS);
 
-const conviteId = z.uuid().transform((id) => id.toLowerCase() as ConviteId);
+const conviteId = idMinusculoDe(ehConviteId);
 
 const email = z
   .string()
@@ -199,10 +200,8 @@ export const adminRouter = router({
   }),
   comunicados: router({
     apagar: adminProcedure
-      .input(z.object({ id: z.uuid() }))
-      .mutation(({ ctx, input }) =>
-        apagarComunicado(ctx.db, input.id as ComunicadoId)
-      ),
+      .input(z.object({ id: idDe(ehComunicadoId) }))
+      .mutation(({ ctx, input }) => apagarComunicado(ctx.db, input.id)),
     lista: adminProcedure.query(async ({ ctx }) => {
       const linhas = await linhasDosComunicados(ctx.db);
       const autores = new Set(linhas.comunicados.map((c) => c.publicadoPor));
@@ -215,8 +214,8 @@ export const adminRouter = router({
     salvar: adminProcedure
       .input(
         z.object({
-          cursoId: z.uuid().nullable(),
-          id: z.uuid(),
+          cursoId: idDe(ehCursoId).nullable(),
+          id: idDe(ehComunicadoId),
           texto: z.string().trim().min(1).max(TEXTO_MAX),
           titulo: z.string().trim().min(1).max(TITULO_MAX),
         })
@@ -226,8 +225,8 @@ export const adminRouter = router({
           ctx.db,
           ctx.admin,
           {
-            cursoId: input.cursoId as CursoId | null,
-            id: input.id as ComunicadoId,
+            cursoId: input.cursoId,
+            id: input.id,
             texto: input.texto,
             titulo: input.titulo,
           },
@@ -361,9 +360,9 @@ export const adminRouter = router({
         )
       ),
     revogar: adminProcedure
-      .input(z.object({ liberacaoId: z.uuid() }))
+      .input(z.object({ liberacaoId: idDe(ehLiberacaoId) }))
       .mutation(({ ctx, input }) =>
-        revogar(ctx.db, ctx.admin, input.liberacaoId as LiberacaoId, new Date())
+        revogar(ctx.db, ctx.admin, input.liberacaoId, new Date())
       ),
   }),
   perfis: router({
@@ -387,14 +386,9 @@ export const adminRouter = router({
         )
       ),
     revogar: adminProcedure
-      .input(z.object({ id: z.uuid() }))
+      .input(z.object({ id: idDe(ehLiberacaoDoPerfilId) }))
       .mutation(({ ctx, input }) =>
-        revogarDoPerfil(
-          ctx.db,
-          ctx.admin,
-          input.id as LiberacaoDoPerfilId,
-          new Date()
-        )
+        revogarDoPerfil(ctx.db, ctx.admin, input.id, new Date())
       ),
   }),
   pessoas: router({

@@ -121,11 +121,11 @@ export async function carregarAula(
   db: Database,
   aluno: Aluno,
   slug: string,
-  aulaId: string
+  aulaId: AulaId
 ): Promise<AulaNoPlayer | null> {
   const [linhas, questionario] = await Promise.all([
     linhasDoCurso(db, aluno, { slug }, { serial: false }),
-    linhasDoQuestionario(db, aluno.userId, aulaId as AulaId),
+    linhasDoQuestionario(db, aluno.userId, aulaId),
   ]);
 
   const aberto = montarCursoVisto(linhas);

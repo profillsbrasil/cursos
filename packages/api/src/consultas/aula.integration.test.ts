@@ -21,7 +21,7 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { alunoDeTeste, contextoDeTeste } from "../contexto-de-teste";
 import { definido } from "../definido.test-utils";
-import { diaISO, videoId } from "../dominio/marcas";
+import { diaISO, ehAulaId, marcar, videoId } from "../dominio/marcas";
 import type { AulaId, CursoId, StatusDoCurso } from "../dominio/tipos";
 import type { Trecho } from "../dominio/trechos";
 import { ErroParaAPessoa } from "../index";
@@ -645,7 +645,12 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       tipo: "continuar",
     });
     expect(
-      await carregarAula(db, alunoDeTeste(aluno), c.slug, cursos[0] ?? "")
+      await carregarAula(
+        db,
+        alunoDeTeste(aluno),
+        c.slug,
+        marcar(ehAulaId, definido(cursos[0]))
+      )
     ).toBeNull();
   });
 

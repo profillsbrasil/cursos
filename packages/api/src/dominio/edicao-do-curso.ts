@@ -6,22 +6,22 @@ import {
 } from "@cursos/db/schema/formatos";
 import { z } from "zod";
 
+import { idMinusculoDe } from "./esquemas-de-marca";
 import { CARACTERES, LIMITES } from "./limites-do-curso";
+import {
+  ehAlternativaId,
+  ehAulaId,
+  ehCategoriaId,
+  ehCursoId,
+  ehMaterialId,
+  ehModuloId,
+  ehPerguntaId,
+  ehVersao,
+  ehVideoId,
+} from "./marcas";
 import { CHAVE_DO_MATERIAL, LIMITE_DO_MATERIAL } from "./material";
 import { ALTERNATIVAS } from "./questionario";
-import type {
-  AlternativaId,
-  AulaId,
-  Capa,
-  CategoriaId,
-  CursoId,
-  MaterialId,
-  ModuloId,
-  PerguntaId,
-  Versao,
-  VideoDaAula,
-  VideoId,
-} from "./tipos";
+import type { Capa, CategoriaId, CursoId, VideoDaAula } from "./tipos";
 
 export const SEM_CERTA = "Marque a alternativa certa: clique na letra dela.";
 
@@ -32,21 +32,22 @@ const texto = (max: number) => z.string().trim().min(1).max(max);
 
 const livre = (max: number) => z.string().trim().max(max);
 
-const uuidEmMinuscula = z.uuid().transform((id) => id.toLowerCase());
-
 const video = z
   .object({
-    id: z.string().regex(new RegExp(ID_DO_YOUTUBE)),
+    id: z
+      .string()
+      .regex(new RegExp(ID_DO_YOUTUBE), { abort: true })
+      .refine(ehVideoId),
     provedor: z.literal("youtube"),
   })
   .transform((v): VideoDaAula => ({
-    id: v.id as VideoId,
+    id: v.id,
     provedor: v.provedor,
   }));
 
 const alternativa = z.object({
   certa: z.boolean(),
-  id: uuidEmMinuscula.transform((id) => id as AlternativaId),
+  id: idMinusculoDe(ehAlternativaId),
   texto: texto(CARACTERES.alternativa),
 });
 
@@ -57,7 +58,7 @@ const pergunta = z
       .min(ALTERNATIVAS.min)
       .max(ALTERNATIVAS.max),
     enunciado: texto(CARACTERES.enunciado),
-    id: uuidEmMinuscula.transform((id) => id as PerguntaId),
+    id: idMinusculoDe(ehPerguntaId),
   })
   .superRefine((p, ctx) => {
     if (p.alternativas.filter((a) => a.certa).length !== 1) {
@@ -72,7 +73,7 @@ const pergunta = z
 const aula = z.object({
   descricao: livre(CARACTERES.descricaoDaAula),
   duracaoSeg: z.int().positive().max(DURACAO_MAXIMA_SEG),
-  id: uuidEmMinuscula.transform((id) => id as AulaId),
+  id: idMinusculoDe(ehAulaId),
   perguntas: z.array(pergunta).max(LIMITES.perguntasPorAula),
   titulo: texto(CARACTERES.tituloDaAula),
   video: video.nullable(),
@@ -80,7 +81,7 @@ const aula = z.object({
 
 const modulo = z.object({
   aulas: z.array(aula).max(LIMITES.aulasPorModulo),
-  id: uuidEmMinuscula.transform((id) => id as ModuloId),
+  id: idMinusculoDe(ehModuloId),
   nivelOrdem: z.int().min(1).max(LIMITES.niveis).nullable(),
   numero: z.int().min(0).max(LIMITES.numeroDeModulo),
   titulo: texto(CARACTERES.tituloDoModulo),
@@ -90,7 +91,7 @@ const material = z
   .object({
     bytes: z.int().positive().max(LIMITE_DO_MATERIAL.bytes),
     chave: z.string().regex(CHAVE_DO_MATERIAL),
-    id: uuidEmMinuscula.transform((id) => id as MaterialId),
+    id: idMinusculoDe(ehMaterialId),
     nomeDoArquivo: z.string().trim().min(1).max(CARACTERES.nomeDoArquivo),
     tipo: z.enum(TIPO_DO_MATERIAL),
     titulo: texto(CARACTERES.tituloDoMaterial),
@@ -134,9 +135,9 @@ const porOrdem = (a: { ordem: number }, b: { ordem: number }) =>
 export const documentoDoCurso = z
   .object({
     /** Uma categoria de admin.categorias.lista; o servidor recusa a que sumiu. */
-    categoriaId: uuidEmMinuscula.transform((id) => id as CategoriaId),
+    categoriaId: idMinusculoDe(ehCategoriaId),
     descricao: livre(CARACTERES.descricao),
-    id: uuidEmMinuscula.transform((id) => id as CursoId),
+    id: idMinusculoDe(ehCursoId),
     /** O material de apoio, na ordem em que o aluno lê. */
     materiais: z.array(material).max(LIMITES.materiais),
     modulos: z.array(modulo).max(LIMITES.modulos),
@@ -147,10 +148,7 @@ export const documentoDoCurso = z
     /** "O que você vai aprender", na ordem em que o aluno lê. */
     topicos: z.array(texto(CARACTERES.topico)).max(LIMITES.topicos),
     /** null: o editor acha que o curso é novo. Senão, a versão que ele abriu. */
-    versao: z
-      .string()
-      .nullable()
-      .transform((v) => v as Versao | null),
+    versao: z.string().refine(ehVersao).nullable(),
   })
   .superRefine((d, ctx) => {
     const falha = (message: string, path: (string | number)[]) =>

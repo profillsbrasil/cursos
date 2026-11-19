@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import type { z } from "zod";
+
 import {
   type DocumentoDoCurso,
   documentoDoCurso,
@@ -23,6 +25,7 @@ import type {
   PerguntaId,
   Versao,
 } from "./tipos";
+import { versaoDe } from "./versao";
 
 const { A1, CURSO } = EDICAO;
 
@@ -420,5 +423,39 @@ describe("questionário da aula", () => {
       `Pergunta ${P1} aparece duas vezes.`,
       `Alternativa ${P1B} aparece duas vezes.`,
     ]);
+  });
+});
+
+describe("os campos marcados do documento", () => {
+  const issues = (d: z.input<typeof documentoDoCurso>) =>
+    documentoDoCurso
+      .safeParse(d)
+      .error?.issues.map((i) => [i.path.join("."), i.code]) ?? [];
+
+  test("id de vídeo fora do formato sai só com o issue do regex", () => {
+    for (const id of ["", "a b", "abc", " aqz-KE-bpKQ"]) {
+      const d: z.input<typeof documentoDoCurso> = documento();
+      const aula = d.modulos[0]?.aulas[0];
+
+      if (aula) {
+        aula.video = { id, provedor: "youtube" };
+      }
+
+      expect(issues(d)).toEqual([
+        ["modulos.0.aulas.0.video.id", "invalid_format"],
+      ]);
+    }
+  });
+
+  test("a versão que o servidor calcula passa igual, e o null também", () => {
+    for (const conteudo of [{}, { titulo: "Curso" }, [1, 2, 3], "x", null]) {
+      const versao = versaoDe(conteudo);
+
+      expect(documentoDoCurso.parse(documentoDeExemplo(versao)).versao).toBe(
+        versao
+      );
+    }
+
+    expect(documentoDoCurso.parse(documentoDeExemplo()).versao).toBeNull();
   });
 });
