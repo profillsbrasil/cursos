@@ -11,7 +11,7 @@
     "./seed/guarda-local": "./src/seed/guarda-local.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "tsrs --noEmit",
     "db:copiar-producao": "bash scripts/copiar-producao.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -34,7 +34,6 @@
     "@types/bun": "^1.4.4",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "1.0.0-rc.5",
-    "typescript": "catalog:",
     "varlock": "catalog:"
   }
 }

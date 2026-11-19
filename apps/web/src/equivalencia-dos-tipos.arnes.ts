@@ -33,15 +33,15 @@ type Resultado =
   | "nenhum"
   | "os dois"
   | "os dois, com diferença"
-  | "só o tsc"
-  | "só o tsrs";
+  | "só o Oxlint"
+  | "só o tsrs direto";
 
 interface Categoria {
   esperado: Resultado;
   nome: string;
+  oxlint: string[];
   plantios: Plantio[];
-  tsc: string[];
-  tsrs: string[];
+  tsrsDireto: string[];
 }
 
 const ATRIBUICAO_ERRADA = '\nexport const erroPlantado: number = "texto";\n';
@@ -49,8 +49,8 @@ const ATRIBUICAO_ERRADA = '\nexport const erroPlantado: number = "texto";\n';
 const CATEGORIAS: Categoria[] = [
   {
     nome: "atribuição errada em apps/web (TS2322)",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -62,8 +62,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "atribuição errada em packages/api (TS2322)",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -75,8 +75,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "href de rota inexistente (typedRoutes)",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -89,15 +89,15 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "RouteContext sem apps/web/.next/types",
-    tsc: ["TS2304"],
-    tsrs: ["TS2304"],
+    tsrsDireto: ["TS2304"],
+    oxlint: ["TS2304"],
     esperado: "os dois",
     plantios: [{ tipo: "tirar", arquivo: "apps/web/.next/types" }],
   },
   {
     nome: "import de módulo inexistente (TS2307)",
-    tsc: ["TS2307"],
-    tsrs: ["TS2307"],
+    tsrsDireto: ["TS2307"],
+    oxlint: ["TS2307"],
     esperado: "os dois",
     plantios: [
       {
@@ -109,8 +109,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "propriedade inexistente (TS2339)",
-    tsc: ["TS2339"],
-    tsrs: ["TS2339"],
+    tsrsDireto: ["TS2339"],
+    oxlint: ["TS2339"],
     esperado: "os dois",
     plantios: [
       {
@@ -123,8 +123,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "argumento errado numa procedure do tRPC chamada pelo web",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -137,8 +137,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "erro num arquivo de teste",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -150,8 +150,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "erro dentro de um .d.ts (skipLibCheck), com sentinela num .ts",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -169,8 +169,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "declaração global de um .d.ts usada por um .ts",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -187,8 +187,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "erro global sem arquivo (TS2318, noLib), com sentinela",
-    tsc: ["TS2318", "TS2322", "TS5053"],
-    tsrs: ["TS2322", "tsconfig-error"],
+    tsrsDireto: ["TS2318", "TS2322", "TS5053"],
+    oxlint: ["TS2322", "tsconfig-error"],
     esperado: "os dois, com diferença",
     plantios: [
       {
@@ -206,8 +206,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "erro de declaração (TS4094, declaration), com sentinela",
-    tsc: ["TS2322", "TS4094"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322", "TS4094"],
+    oxlint: ["TS2322"],
     esperado: "os dois, com diferença",
     plantios: [
       {
@@ -219,14 +219,20 @@ const CATEGORIAS: Categoria[] = [
       {
         tipo: "criar",
         arquivo: "packages/ui/src/plantado.ts",
-        texto: `export const Plantada = class {\n  private segredo = 1;\n  ler() {\n    return this.segredo;\n  }\n};\n${ATRIBUICAO_ERRADA}`,
+        texto:
+          "export const Plantada = class {\n  private segredo = 1;\n  ler() {\n    return this.segredo;\n  }\n};\n",
+      },
+      {
+        tipo: "acrescentar",
+        arquivo: "apps/web/src/lib/formulario.ts",
+        texto: ATRIBUICAO_ERRADA,
       },
     ],
   },
   {
     nome: "noUncheckedIndexedAccess de packages/api",
-    tsc: ["TS2322"],
-    tsrs: ["TS2322"],
+    tsrsDireto: ["TS2322"],
+    oxlint: ["TS2322"],
     esperado: "os dois",
     plantios: [
       {
@@ -239,8 +245,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "noUnusedLocals de packages/api (TS6133)",
-    tsc: ["TS6133"],
-    tsrs: ["TS6133"],
+    tsrsDireto: ["TS6133"],
+    oxlint: ["TS6133"],
     esperado: "os dois",
     plantios: [
       {
@@ -252,8 +258,8 @@ const CATEGORIAS: Categoria[] = [
   },
   {
     nome: "export de packages/api renomeado, visto pelo web",
-    tsc: ["TS2305"],
-    tsrs: ["TS2305"],
+    tsrsDireto: ["TS2724"],
+    oxlint: ["TS2724"],
     esperado: "os dois",
     plantios: [
       {
@@ -378,19 +384,19 @@ const plantar = async (copia: string, plantios: Plantio[]) => {
   return () => Promise.all(desfazeres.map((desfazer) => desfazer()));
 };
 
-const LINHA_DO_TSC = /^(?:(.+?)\(\d+,\d+\): )?error (TS\d+):/u;
+const LINHA_DO_TSRS = /^(?:(.+?)\(\d+,\d+\): )?error (TS\d+):/u;
 const CODIGO_DO_OXLINT = /^typescript\((TS\d+|tsconfig-error)\)$/u;
 
-const SAIDA_DO_TSC_COM_ERRO = 1;
+const SAIDA_DO_TSRS_COM_ERRO = 2;
 
-const errosDoTsc = async (copia: string) => {
+const errosDoTsrsDireto = async (copia: string) => {
   const saidas = await Promise.all(
     PACOTES.map(async (pacote) => {
       const pasta = join(copia, pacote);
 
       const { codigo, saida } = await rodar(
         [
-          join(copia, "node_modules/.bin/tsc"),
+          join(copia, "node_modules/.bin/tsrs"),
           "--noEmit",
           "--pretty",
           "false",
@@ -402,7 +408,7 @@ const errosDoTsc = async (copia: string) => {
       const linhas = saida.split("\n");
 
       const erros = linhas.flatMap((linha) => {
-        const achado = LINHA_DO_TSC.exec(linha);
+        const achado = LINHA_DO_TSRS.exec(linha);
 
         if (!achado?.[2]) {
           return [];
@@ -415,11 +421,11 @@ const errosDoTsc = async (copia: string) => {
         return [`${arquivo} ${achado[2]}`];
       });
 
-      const esperado = erros.length > 0 ? SAIDA_DO_TSC_COM_ERRO : 0;
+      const esperado = erros.length > 0 ? SAIDA_DO_TSRS_COM_ERRO : 0;
 
       if (codigo !== esperado) {
         throw new Error(
-          `O tsc de ${pacote} saiu com ${codigo}, e ${erros.length} erros pediam ${esperado}:\n${saida.slice(-2000)}`
+          `O tsrs de ${pacote} saiu com ${codigo}, e ${erros.length} erros pediam ${esperado}:\n${saida.slice(-2000)}`
         );
       }
 
@@ -451,7 +457,7 @@ const ehSaidaDoOxlint = (
   "number_of_files" in valor &&
   typeof valor.number_of_files === "number";
 
-const errosDoTsrs = async (copia: string) => {
+const errosDoOxlint = async (copia: string) => {
   const { saida } = await rodar(
     [join(copia, "node_modules/.bin/oxlint"), "-f", "json"],
     copia
@@ -487,28 +493,29 @@ const codigos = (erros: Set<string>) =>
   [...new Set([...erros].map((erro) => erro.split(" ")[1]))].sort();
 
 const rodarOsDois = async (copia: string) => {
-  const [tsc, tsrs] = await Promise.all([
-    errosDoTsc(copia),
-    errosDoTsrs(copia),
+  const [tsrsDireto, oxlint] = await Promise.all([
+    errosDoTsrsDireto(copia),
+    errosDoOxlint(copia),
   ]);
 
-  expect(tsc.arquivos).toBeGreaterThan(0);
-  expect(tsrs.arquivos).toBeGreaterThan(0);
+  expect(tsrsDireto.arquivos).toBeGreaterThan(0);
+  expect(oxlint.arquivos).toBeGreaterThan(0);
 
-  return { tsc: tsc.erros, tsrs: tsrs.erros };
+  return { oxlint: oxlint.erros, tsrsDireto: tsrsDireto.erros };
 };
 
-const comparar = (tsc: Set<string>, tsrs: Set<string>): Resultado => {
-  if (tsc.size === 0) {
-    return tsrs.size === 0 ? "nenhum" : "só o tsrs";
+const comparar = (tsrsDireto: Set<string>, oxlint: Set<string>): Resultado => {
+  if (tsrsDireto.size === 0) {
+    return oxlint.size === 0 ? "nenhum" : "só o Oxlint";
   }
 
-  if (tsrs.size === 0) {
-    return "só o tsc";
+  if (oxlint.size === 0) {
+    return "só o tsrs direto";
   }
 
   const iguais =
-    tsc.size === tsrs.size && [...tsc].every((erro) => tsrs.has(erro));
+    tsrsDireto.size === oxlint.size &&
+    [...tsrsDireto].every((erro) => oxlint.has(erro));
 
   return iguais ? "os dois" : "os dois, com diferença";
 };
@@ -527,22 +534,22 @@ const resumir = (erros: Set<string>) => {
 
 interface Linha {
   nome: string;
+  oxlint: Set<string>;
   resultado: Resultado;
-  tsc: Set<string>;
-  tsrs: Set<string>;
+  tsrsDireto: Set<string>;
 }
 
 const tabela = (linhas: Linha[]) =>
   [
-    "| Categoria | tsc | tsrs | Resultado |",
+    "| Categoria | tsrs direto | Oxlint | Resultado |",
     "| --- | --- | --- | --- |",
     ...linhas.map(
       (linha) =>
-        `| ${linha.nome} | ${resumir(linha.tsc)} | ${resumir(linha.tsrs)} | ${linha.resultado} |`
+        `| ${linha.nome} | ${resumir(linha.tsrsDireto)} | ${resumir(linha.oxlint)} | ${linha.resultado} |`
     ),
   ].join("\n");
 
-describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
+describe("check de tipos: tsrs --noEmit contra oxlint --type-check", () => {
   let copia = "";
   const linhas: Linha[] = [];
 
@@ -569,15 +576,15 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
 
     try {
       const sentinela = await rodarOsDois(copia);
-      expect(codigos(sentinela.tsc)).toEqual(["TS2322"]);
-      expect(codigos(sentinela.tsrs)).toEqual(["TS2322"]);
+      expect(codigos(sentinela.tsrsDireto)).toEqual(["TS2322"]);
+      expect(codigos(sentinela.oxlint)).toEqual(["TS2322"]);
     } finally {
       await desfazer();
     }
 
-    const { tsc, tsrs } = await rodarOsDois(copia);
-    expect([...tsc]).toEqual([]);
-    expect([...tsrs]).toEqual([]);
+    const { tsrsDireto, oxlint } = await rodarOsDois(copia);
+    expect([...tsrsDireto]).toEqual([]);
+    expect([...oxlint]).toEqual([]);
   }, 120_000);
 
   test.each(CATEGORIAS)(
@@ -586,12 +593,12 @@ describe("check de tipos: tsc contra oxlint --type-check (tsrs)", () => {
       const desfazer = await plantar(copia, categoria.plantios);
 
       try {
-        const { tsc, tsrs } = await rodarOsDois(copia);
-        const resultado = comparar(tsc, tsrs);
-        linhas.push({ nome: categoria.nome, resultado, tsc, tsrs });
+        const { tsrsDireto, oxlint } = await rodarOsDois(copia);
+        const resultado = comparar(tsrsDireto, oxlint);
+        linhas.push({ nome: categoria.nome, oxlint, resultado, tsrsDireto });
         expect(resultado).toBe(categoria.esperado);
-        expect(codigos(tsc)).toEqual(categoria.tsc);
-        expect(codigos(tsrs)).toEqual(categoria.tsrs);
+        expect(codigos(tsrsDireto)).toEqual(categoria.tsrsDireto);
+        expect(codigos(oxlint)).toEqual(categoria.oxlint);
       } finally {
         await desfazer();
       }

@@ -53,7 +53,7 @@ O serviço `web` da Railway builda com `bun run --cwd apps/web build` (sem turbo
 
 ## Tipos
 
-O `tsc` do `apps/web` roda sem `incremental`, porque o do TypeScript 7 reaproveita o diagnóstico guardado no `.tsbuildinfo` quando só um tipo global muda, como a lista de rotas, e o turbo inclui `.next/types` no hash do `web#check-types`, senão repete o veredito da rota antiga.
+O `check-types` do `apps/web` roda sem `incremental`. O motivo foi medido com o `tsc` do TypeScript 7: ele reaproveita o diagnóstico guardado no `.tsbuildinfo` quando só um tipo global muda, como a lista de rotas, e repete o veredito da rota antiga. Com o tsrs, o mesmo cenário não repetiu: medido em 19 de novembro de 2026, tirando `"/admin/pessoas"` da união `AppRoutes` de `apps/web/.next/types/routes.d.ts` depois de uma rodada limpa, o `tsc --noEmit --incremental` 7.0.2 sai com 0 erros e a rodada sem `incremental` com 1; o `tsrs --noEmit --incremental` 7.1.0-beta.tsrs3 sai com 1 erro, como a rodada sem `incremental`. Foi um cenário só, e o `incremental` segue desligado. O turbo inclui `.next/types` no hash do `web#check-types`, senão o cache dele repete o veredito da rota antiga.
 
 ## Testes no Chromium
 

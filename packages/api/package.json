@@ -12,7 +12,7 @@
     "./routers/index": "./src/routers/index.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit",
+    "check-types": "tsrs --noEmit",
     "coletar-orfaos": "varlock run --path ../../apps/web/ -- bun scripts/coletar-orfaos.ts",
     "test": "bun test",
     "virada-dos-pontos": "varlock run --path ../../apps/web/ -- bun scripts/virada-dos-pontos.ts"
@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "@cursos/config": "workspace:*",
-    "@types/bun": "^1.4.4",
-    "typescript": "catalog:"
+    "@types/bun": "^1.4.4"
   }
 }
