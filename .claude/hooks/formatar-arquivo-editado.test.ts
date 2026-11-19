@@ -189,3 +189,29 @@ test(
   },
   TIMEOUT_TESTE_MS
 );
+
+test("arquivo limpo da raiz não devolve erro de outro arquivo", () => {
+  const alvo = join(raiz, "oxlint.config.ts");
+  const antes = conteudo(alvo);
+
+  const resultado = rodarHook(alvo);
+
+  expect(resultado.codigo).toBe(0);
+  expect(resultado.saida).not.toContain("deixaram erros");
+  expect(resultado.saida).not.toContain("apps/web");
+  expect(conteudo(alvo)).toBe(antes);
+});
+
+test("erro de tipo num arquivo da raiz volta só com o erro dele", () => {
+  const sonda = join(raiz, "sonda-hook.ts");
+  writeFileSync(sonda, 'export const sonda: number = "texto";\n');
+  limpezas.push(() => rmSync(sonda, { force: true }));
+
+  const resultado = rodarHook(sonda);
+  const contexto = JSON.parse(resultado.saida).hookSpecificOutput;
+
+  expect(resultado.codigo).toBe(0);
+  expect(contexto.additionalContext).toContain("typescript(TS2322)");
+  expect(contexto.additionalContext).not.toContain("apps/web");
+  expect(contexto.additionalContext).not.toContain("packages/");
+});

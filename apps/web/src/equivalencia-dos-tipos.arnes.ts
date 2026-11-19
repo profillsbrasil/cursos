@@ -186,9 +186,9 @@ const CATEGORIAS: Categoria[] = [
     ],
   },
   {
-    nome: "erro global sem arquivo (TS2318, noLib)",
-    tsc: ["TS2318", "TS5053"],
-    tsrs: ["TS17004", "TS2339", "TS2812", "TS6142"],
+    nome: "erro global sem arquivo (TS2318, noLib), com sentinela",
+    tsc: ["TS2318", "TS2322", "TS5053"],
+    tsrs: ["TS2322", "tsconfig-error"],
     esperado: "os dois, com diferença",
     plantios: [
       {
@@ -196,6 +196,11 @@ const CATEGORIAS: Categoria[] = [
         arquivo: "packages/ui/tsconfig.json",
         de: '"strictNullChecks": true',
         para: '"strictNullChecks": true,\n    "noLib": true',
+      },
+      {
+        tipo: "acrescentar",
+        arquivo: "apps/web/src/lib/formulario.ts",
+        texto: ATRIBUICAO_ERRADA,
       },
     ],
   },
@@ -374,7 +379,7 @@ const plantar = async (copia: string, plantios: Plantio[]) => {
 };
 
 const LINHA_DO_TSC = /^(?:(.+?)\(\d+,\d+\): )?error (TS\d+):/u;
-const CODIGO_DO_OXLINT = /^typescript\((TS\d+)\)$/u;
+const CODIGO_DO_OXLINT = /^typescript\((TS\d+|tsconfig-error)\)$/u;
 
 const SAIDA_DO_TSC_COM_ERRO = 1;
 
