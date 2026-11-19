@@ -166,7 +166,7 @@ Contagem do `oxlint -f json` com o type-aware ligado e o escopo acima, antes das
 | `prefer-includes` | 2 | (a) autofix | Regex sem metacaractere virou `includes`; as constantes que sobraram saíram. |
 | `no-unsafe-call` | 1 | (b) desligada em `service-worker.test.ts` | O teste executa a fonte do `public/sw.js` por `new Function`, como o `no-new-func` dos testes. |
 | `no-implied-eval` | 1 | (b) desligada em `service-worker.test.ts` | O mesmo `new Function`. |
-| `no-unnecessary-type-parameters` | 1 | (b) desligada | `novoId<T>()` de `lib/editor.ts` usa o genérico só no retorno para o editor fabricar ids com marca; trocar pede um construtor por marca. |
+| `no-unnecessary-type-parameters` | 1 | (b) desligada | O caso era o `novoId<T>()` de `lib/editor.ts`, que usava o genérico só no retorno. Ele saiu para os `novoXId()` de `dominio/marcas.ts`, e a regra segue desligada até alguém medir o resto com ela ligada. |
 
 ### Os casts que ficam em warn
 
