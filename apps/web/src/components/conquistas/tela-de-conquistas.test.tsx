@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import type { Conquistas } from "@cursos/api/dominio/conquistas";
+import type {
+  Conquistas,
+  Marco,
+  MedalhaDaGrade,
+  MetaDeAulas,
+} from "@cursos/api/dominio/conquistas";
 import { diaISO } from "@cursos/api/dominio/marcas";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -90,26 +95,14 @@ const MARCOS_SEM_TITULO_A_VISTA =
 
 const PILULA_VOCE = /<b class="([^"]*)" data-voce="true" style="([^"]*)"/;
 
-const comMarco = (
-  base: Conquistas,
-  i: number,
-  medalha: object
-): Conquistas => ({
+const comMarco = (base: Conquistas, i: number, marco: Marco): Conquistas => ({
   ...base,
-  marcos: base.marcos.map((m, j) =>
-    j === i ? ({ ...m, medalha } as (typeof base.marcos)[number]) : m
-  ),
+  marcos: base.marcos.map((m, j) => (j === i ? marco : m)),
 });
 
-const comMedalha = (
-  base: Conquistas,
-  tipo: string,
-  medalha: object
-): Conquistas => ({
+const comMedalha = (base: Conquistas, medalha: MedalhaDaGrade): Conquistas => ({
   ...base,
-  medalhas: base.medalhas.map((m) =>
-    m.tipo === tipo ? ({ ...m, medalha } as (typeof base.medalhas)[number]) : m
-  ),
+  medalhas: base.medalhas.map((m) => (m.tipo === medalha.tipo ? medalha : m)),
 });
 
 const naGrade = (c: Conquistas, medalha: string) =>
@@ -311,8 +304,18 @@ describe("o aluno novo", () => {
 
 describe("as frases que mudam com o progresso", () => {
   test("com as três medalhas de aulas, a trilha fecha", () => {
-    const ganha = { dia: "2026-10-01", estado: "ganha" };
-    const c = comMarco(comMarco(comMarco(ALUNA, 0, ganha), 1, ganha), 2, ganha);
+    const aulasGanhas = (meta: MetaDeAulas): Marco => ({
+      medalha: { dia: diaISO("2026-10-01"), estado: "ganha" },
+      meta,
+      tipo: "aulas",
+    });
+
+    const c = comMarco(
+      comMarco(comMarco(ALUNA, 0, aulasGanhas(10)), 1, aulasGanhas(50)),
+      2,
+      aulasGanhas(100)
+    );
+
     expect(trilha(html(c))).toStartWith(
       "100 aulas assistidas. As três medalhas de aulas são suas."
     );
@@ -321,10 +324,13 @@ describe("as frases que mudam com o progresso", () => {
   test("continuar a aula começada", () => {
     expect(
       naGrade(
-        comMedalha(NOVO, "primeira_aula", {
-          estado: "por_ganhar",
-          pct: 0,
-          proxima: { aula: "Aula 2", curso: "Curso", tipo: "continuar" },
+        comMedalha(NOVO, {
+          medalha: {
+            estado: "por_ganhar",
+            pct: 0,
+            proxima: { aula: "Aula 2", curso: "Curso", tipo: "continuar" },
+          },
+          tipo: "primeira_aula",
         }),
         "Primeira aula"
       )
@@ -334,13 +340,10 @@ describe("as frases que mudam com o progresso", () => {
   test("com as dez ganhas, a grade some e o cartão Ganhas mostra as dez", () => {
     const todas: Conquistas = {
       ...ALUNA,
-      medalhas: ALUNA.medalhas.map(
-        (m) =>
-          ({
-            ...m,
-            medalha: { dia: "2026-10-01", estado: "ganha" },
-          }) as (typeof ALUNA.medalhas)[number]
-      ),
+      medalhas: ALUNA.medalhas.map((m): MedalhaDaGrade => ({
+        ...m,
+        medalha: { dia: diaISO("2026-10-01"), estado: "ganha" },
+      })),
     };
 
     const h = html(todas);
@@ -353,10 +356,13 @@ describe("as frases que mudam com o progresso", () => {
       sequencia(
         html(
           comMarco(NOVO, 3, {
-            dias: 6,
-            estado: "por_ganhar",
-            hojePendente: false,
-            meta: 7,
+            medalha: {
+              dias: 6,
+              estado: "por_ganhar",
+              hojePendente: false,
+              meta: 7,
+            },
+            tipo: "sequencia",
           })
         )
       )
@@ -367,7 +373,10 @@ describe("as frases que mudam com o progresso", () => {
 
   test("a sequência ganha troca os dias pela medalha e diz quantas vezes", () => {
     const h = html(
-      comMarco(NOVO, 3, { dia: "2026-09-25", estado: "ganha", vezes: 3 })
+      comMarco(NOVO, 3, {
+        medalha: { dia: diaISO("2026-09-25"), estado: "ganha", vezes: 3 },
+        tipo: "sequencia",
+      })
     );
 
     expect(sequencia(h)).toBe(
@@ -383,7 +392,10 @@ describe("as frases que mudam com o progresso", () => {
     expect(
       sequencia(
         html(
-          comMarco(NOVO, 3, { dia: "2026-09-25", estado: "ganha", vezes: 1 })
+          comMarco(NOVO, 3, {
+            medalha: { dia: diaISO("2026-09-25"), estado: "ganha", vezes: 1 },
+            tipo: "sequencia",
+          })
         )
       )
     ).not.toContain("vezes");

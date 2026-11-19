@@ -325,11 +325,11 @@ function trocasDe(lancamentos: readonly Lancamento[]): Troca[] {
     .sort((a, b) => a.criadoEm.getTime() - b.criadoEm.getTime());
 }
 
-function contagem<T extends "tres_trocas" | "tres_cursos">(
-  tipo: T,
+function contagem(
+  tipo: "tres_trocas" | "tres_cursos",
   datas: readonly Date[],
   total: number
-): Extract<MedalhaDaGrade, { tipo: T }> {
+): MedalhaDaGrade {
   const ordenadas = [...datas].sort((a, b) => a.getTime() - b.getTime());
   const aDaMeta = ordenadas[total - 1];
 
@@ -343,7 +343,7 @@ function contagem<T extends "tres_trocas" | "tres_cursos">(
           total,
         },
     tipo,
-  } as Extract<MedalhaDaGrade, { tipo: T }>;
+  };
 }
 
 function primeiraAula(

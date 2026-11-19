@@ -161,36 +161,34 @@ const milPontos = (m: Contagem): Frases => ({
 });
 
 function frases(m: MedalhaDaGrade): Frases {
-  const p = m.medalha;
-
-  if (p.estado === "ganha") {
+  if (m.medalha.estado === "ganha") {
     throw new Error("A medalha ganha não tem o que falta.");
   }
 
   switch (m.tipo) {
     case "primeira_aula":
-      return primeiraAula(p as PorGanhar<typeof m>);
+      return primeiraAula(m.medalha);
     case "primeira_troca":
-      return primeiraTroca(p as PorGanhar<typeof m>);
+      return primeiraTroca(m.medalha);
     case "primeiro_curso":
-      return primeiroCurso(p as PorGanhar<typeof m>);
+      return primeiroCurso(m.medalha);
     case "tres_trocas":
-      return tresTrocas(p as PorGanhar<typeof m>);
+      return tresTrocas(m.medalha);
     case "amostra_e_troca":
-      return amostraETroca(p as PorGanhar<typeof m>);
+      return amostraETroca(m.medalha);
     case "troca_ate_o_fim":
-      return trocaAteOFim(p as PorGanhar<typeof m>);
+      return trocaAteOFim(m.medalha);
     case "primeiro_questionario":
       return {
         detalhe: "Você pode tentar de novo quantas vezes quiser.",
         falta: "Seja aprovado no questionário de uma aula.",
       };
     case "nota_cheia":
-      return notaCheia(p as PorGanhar<typeof m>);
+      return notaCheia(m.medalha);
     case "tres_cursos":
-      return tresCursos(p as PorGanhar<typeof m>);
+      return tresCursos(m.medalha);
     case "mil_pontos":
-      return milPontos(p as PorGanhar<typeof m>);
+      return milPontos(m.medalha);
     default:
       return m satisfies never;
   }
