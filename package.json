@@ -58,7 +58,7 @@
     "oxfmt": "0.79.0",
     "oxlint": "1.94.0",
     "railway": "^3.17.0",
-    "tsrs": "0.25.0-ts7.1.0-beta",
+    "tsrs": "7.1.0-beta.tsrs3",
     "turbo": "^2.11.13",
     "typescript": "catalog:",
     "ultracite": "8.3.0",
