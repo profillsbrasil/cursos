@@ -1,8 +1,3 @@
-// Só do titulo-nao-encontrado.test.tsx do admin, que roda este arquivo num
-// processo próprio: troca o @/server/api por um que não acha nada, chama o
-// generateMetadata da ficha, do acesso e do editor e escreve em JSON o título
-// de cada um, ou "notFound()".
-
 import { plugin } from "bun";
 import {
   getAccessFallbackHTTPStatus,
@@ -30,7 +25,6 @@ const daFicha = await import("./pessoas/[userId]/page");
 const doAcesso = await import("./liberacoes/[userId]/page");
 const doEditor = await import("./catalogo/cursos/[id]/page");
 
-/** O título, "notFound()" ou a mensagem do erro, para o teste mostrar qual. */
 async function titulo(gerar: () => Promise<{ title?: unknown }>) {
   try {
     return (await gerar()).title;

@@ -4,7 +4,7 @@ import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
 const PULSO = "bg-card";
 
-// O título, o cartão do formulário e o cartão da lista, enquanto o banco e o Clerk respondem.
+/** O título, o cartão do formulário e o cartão da lista, enquanto o banco e o Clerk respondem. */
 export default function Carregando() {
   return (
     <div aria-busy="true">

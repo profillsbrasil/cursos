@@ -29,7 +29,6 @@ const botao = (html: string, rotulo: string) => {
   return achado;
 };
 
-/** O texto que a página mostra, sem o que só o leitor de tela ouve. */
 const textoVisivel = (html: string) =>
   html
     .replace(/<span class="sr-only"[^>]*>[^<]*<\/span>/g, "")

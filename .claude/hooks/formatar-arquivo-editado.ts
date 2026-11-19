@@ -100,8 +100,7 @@ if (alvo) {
     (processo) => processo !== null && processo.status !== 0
   );
 
-  // Em PostToolUse, exit 1 só mostra um aviso ao user, e o modelo não lê o
-  // stderr. O additionalContext chega ao modelo junto do resultado da tool.
+  // WARNING: em PostToolUse o exit 1 só avisa o user e o modelo não lê o stderr; só o additionalContext chega a ele.
   if (falhas.length === 0) {
     process.stdout.write(`${oxfmt.stdout}${oxlint?.stdout ?? ""}`);
   } else {

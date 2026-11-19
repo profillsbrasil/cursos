@@ -1,10 +1,3 @@
-// O bloco aberto e o índice dos módulos no Chromium headless, com o CSS real
-// do app. Cada suíte mede o que a revisão do PR 56 apontou: o título do módulo
-// espremido em 768 px com a sidebar aberta, o salto do índice que parava com o
-// cabeçalho embaixo do índice de duas linhas e o último número do índice
-// esmaecido no fim da rolagem em 390 px. A última mede o campo de vídeo da aula
-// salva, que escondia o id no fim do link longo. Sem Chromium na máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
@@ -50,7 +43,6 @@ if (!modelo) {
   throw new Error("o exemplo não tem módulo");
 }
 
-/** O curso de 16 módulos da Profills School Comercial, sem as aulas. */
 const MODULOS = Array.from({ length: 16 }, (_, i) => ({
   ...modelo,
   aulas: [],
@@ -142,21 +134,18 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
       );
     };
 
-    // 768 px de janela, menos a sidebar aberta (248 px) e a moldura (2 × 30,7 px).
     test("em 768 px com a sidebar aberta, o nível desce e o título fica com a linha", async () => {
       const grade = await medirGrade(768, 458);
       expect(grade.nivelNaLinhaDoTitulo).toBe(false);
       expect(grade.titulo).toBeGreaterThan(280);
     });
 
-    // 1024 px de janela, menos a sidebar aberta e a moldura de 41 px de cada lado.
     test("em 1024 px com a sidebar aberta, número, título e nível dividem a linha", async () => {
       const grade = await medirGrade(1024, 694);
       expect(grade.nivelNaLinhaDoTitulo).toBe(true);
       expect(grade.titulo).toBeGreaterThan(256);
     });
 
-    // 390 px de janela, menos a moldura de 16 px de cada lado.
     test("em 390 px, cada campo tem a linha inteira", async () => {
       const grade = await medirGrade(390, 358);
       expect(grade.nivelNaLinhaDoTitulo).toBe(false);
@@ -233,12 +222,9 @@ describe.skipIf(!existsSync(CHROMIUM))("bloco e índice no browser", () => {
       })()`
     );
 
-    // A máscara vai a transparente nos últimos 2,5rem (40 px) da fila.
     expect(folga).toBeGreaterThanOrEqual(40);
   });
 
-  // Cada bloco é a janela menos a sidebar aberta (248 px) e a moldura, como acima;
-  // em 1280 px a moldura chega ao teto de 3rem de cada lado.
   describe.each([
     [1280, 936],
     [1024, 694],

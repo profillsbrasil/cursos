@@ -2,8 +2,11 @@
 
 import { useEffect } from "react";
 
-// Na captura, antes do Link do Next: ele navega no clique que chega ao React.
-// Sem nada de fora do corpo: o teste a roda no Chromium pelo texto dela.
+/**
+ * Pergunta antes de o clique em link sair da página. Escuta na captura, antes do
+ * Link do Next, que navega no clique que chega ao React. Não usa nada de fora do
+ * corpo: o teste a roda no Chromium pelo texto dela.
+ */
 export function guardarLinks(
   raiz: Document,
   confirmar: (aviso: string) => boolean
@@ -48,7 +51,7 @@ export function guardarLinks(
   return () => raiz.removeEventListener("click", aoClicar, true);
 }
 
-// O Voltar do navegador fica sem aviso: o App Router não dá um ponto em que recusar o popstate.
+/** O Voltar do navegador fica sem aviso: o App Router não dá um ponto em que recusar o popstate. */
 export function useGuardaDeSaida(sujo: boolean) {
   useEffect(() => {
     if (!sujo) {

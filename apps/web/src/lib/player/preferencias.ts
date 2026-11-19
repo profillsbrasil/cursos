@@ -25,7 +25,7 @@ const CHAVE = "cursos:player:preferencias";
 const objeto = (valor: unknown): valor is Record<string, unknown> =>
   typeof valor === "object" && valor !== null;
 
-// Checagem à mão: o Zod levaria cerca de 90 KB em gzip ao cliente da aula.
+// WARNING: checagem à mão; o Zod levaria cerca de 90 KB em gzip ao cliente da aula.
 function paraVolume(valor: unknown): Volume | null {
   if (!objeto(valor)) {
     return null;
@@ -59,7 +59,6 @@ export function paraPreferencias(texto: string | null): Preferencias {
     return PREFERENCIAS_PADRAO;
   }
 
-  // O valor gravado antes da legenda existir não tem o campo, e continua valendo.
   const legenda = lido.legenda ?? false;
   const velocidade = VELOCIDADES.find((v) => v === lido.velocidade);
   const volume = paraVolume(lido.volume);
@@ -81,7 +80,7 @@ export function gravarPreferencias(p: Preferencias): void {
   try {
     window.localStorage.setItem(CHAVE, JSON.stringify(p));
   } catch {
-    // Sem armazenamento, a preferência dura só esta aula.
+    // WARNING: sem armazenamento, a preferência dura só esta aula; não propague o erro.
   }
 }
 

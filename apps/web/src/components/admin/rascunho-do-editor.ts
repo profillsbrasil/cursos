@@ -1,5 +1,3 @@
-// Sem "use client": o editor e os testes importam.
-
 import type { Motivo } from "@cursos/api";
 import type {
   DocumentoDoCurso,
@@ -405,10 +403,6 @@ export type Abertos = ReadonlySet<ModuloId>;
 
 export const NENHUM_ABERTO: Abertos = new Set();
 
-/**
- * Os blocos abertos quando o editor monta: o curso de um módulo só abre com ele
- * aberto, porque fechado ele custaria um clique sem esconder nada.
- */
 function abertosAoAbrir(r: RascunhoDoCurso): Abertos {
   const [unico, ...outros] = r.modulos;
 
@@ -430,7 +424,6 @@ const comAberto = (abertos: Abertos, id: ModuloId): Abertos =>
 const semAberto = (abertos: Abertos, id: ModuloId): Abertos =>
   abertos.has(id) ? new Set([...abertos].filter((x) => x !== id)) : abertos;
 
-/** O foco vai para dentro do módulo novo e do destino da aula movida. */
 function abertosDepoisDe(abertos: Abertos, m: Mudanca): Abertos {
   switch (m.tipo) {
     case "modulo_novo":
@@ -490,7 +483,6 @@ export function blocoDoModulo(
   return abertos.has(m.id) ? { tipo: "aberto" } : { tipo: "fechado" };
 }
 
-/** O grupo das letras não tem campo para sair: conta como deixado quando o enunciado e todas as alternativas foram deixados. */
 function comGrupoDasLetrasTocado(
   tocados: ReadonlySet<string>,
   r: RascunhoDoCurso
@@ -568,7 +560,6 @@ export function perguntaEscolhida(
   return a.perguntas.find((p) => p.id === id) ?? a.perguntas[0] ?? null;
 }
 
-/** Os painéis passam a mostrar a aula e a pergunta donas do campo. */
 function comODonoDoCampo(
   e: Escolhas,
   r: RascunhoDoCurso,
@@ -635,10 +626,6 @@ export function linhasDoMaterial(
 export const idDaLinha = (l: LinhaDaLista): MaterialId =>
   l.tipo === "material" ? l.material.id : l.envio.id;
 
-/**
- * O inverso de linhasDoMaterial: os materiais vão ao rascunho na ordem das
- * linhas, e cada envio guarda a posição da linha dele.
- */
 function comLinhas(
   e: RascunhoDoEditor,
   linhas: readonly LinhaDaLista[]
@@ -658,7 +645,6 @@ function comLinhas(
   };
 }
 
-/** As setas e o arrastar pela alça põem a linha no índice pedido; fora da lista, nada muda. */
 function movido(
   e: RascunhoDoEditor,
   id: MaterialId,
@@ -755,29 +741,20 @@ export type AcaoDoAdmin =
   | { tipo: "pergunta_escolhida"; aulaId: AulaId; perguntaId: PerguntaId }
   | { tipo: "saiu_do_campo"; id: string }
   | { tipo: "capa_escolhida"; arquivo: File | null }
-  /** Os arquivos escolhidos, já conferidos no navegador: os recusados vêm com o motivo. */
   | { tipo: "materiais_escolhidos"; envios: readonly EnvioDeMaterial[] }
   | { tipo: "envio_tirado"; id: MaterialId }
-  /** O índice conta todas as linhas da seção, também as dos envios. */
   | { tipo: "material_movido"; id: MaterialId; para: number }
   | { tipo: "material_removido"; id: MaterialId }
   | { tipo: "linha_pedida"; chave: string | null }
   | { tipo: "linha_fechada"; chave: string }
   | { tipo: "salvar" }
-  /** O Recarregar recomeça da última página que chegou, e o refresh traz a seguinte. */
   | { tipo: "descartado" };
 
 export type RespostaDoServidor =
   | { tipo: "pagina"; pagina: DocumentoDoCurso }
-  /** O bucket guardou o arquivo; ele entra no rascunho no lugar da linha dele. */
   | { tipo: "material_recebido"; material: MaterialDoDocumento }
   | { tipo: "material_recusado"; id: MaterialId; motivo: string }
-  /** O servidor gravou o envio; o que o admin editou depois fica. */
   | { tipo: "salvo"; envio: Envio; versao: Versao }
-  /**
-   * versao_mudou liga o aviso já, antes de o refresh trazer a página; a página
-   * que chega decide se ele fica.
-   */
   | { tipo: "recusado"; envio: Envio; motivo: Motivo | null };
 
 export type AcaoDoEditor = AcaoDoAdmin | RespostaDoServidor;
@@ -789,13 +766,11 @@ const SEM_CAPA: Problema = {
 
 const ehNovo = (e: RascunhoDoEditor) => e.apoio.base.versao === null;
 
-/** O arquivo subindo também prende o admin: sair agora o perderia. */
 const ehSujo = (e: RascunhoDoEditor) =>
   e.daGeracao.capa !== null ||
   e.daGeracao.envios.some((x) => x.estado.tipo === "enviando") ||
   !mesmoRascunho(rascunhoDoCurso(e.apoio.base), e.rascunho);
 
-/** O que o Salvar recusa sem ir ao servidor, ou o envio quando não há nada. */
 function leitura(e: RascunhoDoEditor): {
   achados: Problema[];
   envio: Envio | null;
@@ -873,7 +848,6 @@ const recomecado = (
   rascunho: rascunhoDoCurso(apoio.base),
 });
 
-/** O Salvar com erro leva o painel e o foco ao primeiro campo marcado. */
 function salvar(e: RascunhoDoEditor): RascunhoDoEditor {
   const { achados, envio } = leitura(e);
 
@@ -920,10 +894,6 @@ export function dentroDoLimite(
   });
 }
 
-/**
- * O envio de outra geração (o admin pediu Recarregar enquanto o arquivo subia)
- * não entra: o rascunho dele foi jogado fora.
- */
 function recebido(
   e: RascunhoDoEditor,
   material: MaterialDoDocumento
@@ -1009,7 +979,6 @@ function passo(e: RascunhoDoEditor, a: AcaoDoEditor): RascunhoDoEditor {
       return {
         ...e,
         apoio: apoioSalvo(e.apoio, gravado),
-        // A capa escolhida durante o salvar fica para o próximo.
         daGeracao:
           capa === a.envio.capa ? { ...e.daGeracao, capa: null } : e.daGeracao,
         rascunho: mesmoRascunho(e.rascunho, a.envio.rascunho)

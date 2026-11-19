@@ -23,7 +23,6 @@ import { linhasDoSaldo } from "./pontos";
 const URL_TESTE = urlDeTeste();
 const S = randomBytes(4).toString("hex");
 
-// Terça: a segunda da semana é 26 de outubro.
 const AGORA = new Date("2026-10-27T15:00:00Z");
 const SEGUNDA = segundaDaSemana(diaLocal(AGORA));
 const ADMIN = `user_admin${S}`;
@@ -32,7 +31,6 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
   const db = createDb({ DATABASE_URL: URL_TESTE ?? "" });
   const alunos: string[] = [];
 
-  /** Um aluno com `antes` pontos de semanas passadas e 30 na semana de `nestaSemana`. */
   async function aluno(
     antes: number,
     nestaSemana = new Date("2026-10-26T15:00:00Z")
@@ -141,7 +139,6 @@ describe.skipIf(URL_TESTE === null)("concessão de pontos", () => {
   });
 
   test("tirar desconta do saldo, e o aluno vê no extrato o rótulo e o motivo", async () => {
-    // O painel lê a semana pelo relógio do servidor, não por AGORA.
     const userId = await aluno(100, new Date());
     await comoAdmin().admin.pessoas.concederPontos({
       motivo: "Lançado em dobro",

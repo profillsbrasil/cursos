@@ -43,10 +43,6 @@ function carregarServiceWorker() {
   return { navegar, pedidosDoServiceWorker };
 }
 
-/**
- * O pedido que o service worker refaz com fetch() sai com Sec-Fetch-Dest:
- * empty, e o Clerk só faz o handshake para "document": o login vira loop.
- */
 describe("service worker na navegação", () => {
   test("entrega a página do preload do browser, sem refazer o pedido", async () => {
     const sw = carregarServiceWorker();

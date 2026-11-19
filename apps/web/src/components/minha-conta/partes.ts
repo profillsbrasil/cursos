@@ -50,7 +50,6 @@ export const BOTAO_PEQUENO = cn(BOTAO, PEQUENO);
 
 export const CONTORNO_PEQUENO = cn(BOTAO_CONTORNO, PEQUENO);
 
-// A outline troca o texto por foreground sob o cursor e com o foco: o perigo repete o erro.
 export const PERIGO = cn(
   CONTORNO_PEQUENO,
   "border-destructive text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive",

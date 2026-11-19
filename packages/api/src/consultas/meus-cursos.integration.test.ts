@@ -1,7 +1,3 @@
-// Consultas contra o Postgres local. Roda só com TEST_DATABASE_URL em host local.
-// Cada execução cria alunos user_teste<hex> e slugs teste-<hex> e apaga tudo no afterAll.
-// Sem db reset nem TRUNCATE: o banco local é compartilhado entre worktrees.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
@@ -55,7 +51,6 @@ const ALUNOS = [
   ALUNO_TROCA,
 ];
 
-// quarta-feira, 2026-10-07, 15:00 em São Paulo
 const AGORA = new Date("2026-10-07T18:00:00Z");
 
 describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
@@ -74,7 +69,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   const cursos: string[] = [];
 
-  /** `n` cursos publicados de 1 módulo e 2 aulas cada. */
   async function criarCursos(n: number) {
     const sufixo = hex();
     const categoriaId = await categoriaDeTeste(db);
@@ -125,7 +119,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     };
   }
 
-  /** Uma liberação ativa por curso. */
   const liberar = (userId: string, ids: readonly string[]) =>
     db.insert(liberacao).values(
       ids.map((cursoId) => ({
@@ -136,7 +129,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       }))
     );
 
-  /** Liberação de um curso só, ativa ou já revogada. */
   const liberarCurso = (userId: string, cursoId: string, revogada = false) =>
     db.insert(liberacao).values({
       cursoId,
@@ -268,12 +260,10 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
 
   test("saldo é a soma do livro-razão e a semana começa na segunda 00:00 de São Paulo", async () => {
     const [primeira, segunda] = pequena.aulas;
-    // A aula 1 já foi assistida pelo aluno A no teste da revogação.
     await db
       .insert(aulaAssistida)
       .values({ aulaId: segunda ?? "", userId: ALUNO_A });
     await db.insert(pontoLancamento).values([
-      // domingo 23:59 em São Paulo: semana anterior
       {
         aulaId: primeira,
         criadoEm: new Date("2026-10-05T02:59:00Z"),
@@ -281,7 +271,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
         pontos: 10,
         userId: ALUNO_A,
       },
-      // segunda 00:00 em São Paulo: esta semana
       {
         aulaId: segunda,
         criadoEm: new Date("2026-10-05T03:00:00Z"),
@@ -354,8 +343,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     const minha = await criarCursos(1);
     const alheia = await criarCursos(1);
     await liberar(ALUNO_AVISO, minha.cursos);
-    // Datas no futuro para ficar à frente de qualquer comunicado geral do banco local.
-    // O cascade do curso apaga os comunicados no afterAll.
     const base = Date.parse("2090-01-01T00:00:00Z");
     await db.insert(comunicado).values({
       cursoId: minha.cursos[0],
@@ -377,8 +364,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(painel.comunicado?.titulo).toBe(`Aviso do meu curso ${S}`);
   });
 
-  // Nos dois testes abaixo, as datas no futuro deixam os comunicados à frente de
-  // qualquer comunicado geral do banco local.
   test("comunicado de curso liberado aparece", async () => {
     const {
       cursos: [liberado],
@@ -443,11 +428,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(idsDe(painel)).toEqual([um ?? "", dois ?? ""]);
   });
 
-  // O banco local é compartilhado e tem cursos com preço do seed. Para o false
-  // aparecer, o aluno alcança todo curso com preço numa transação em repeatable
-  // read (curso com preço criado por outro teste no meio não entra no retrato),
-  // e o rollback desfaz tudo. Os quatro passos mudam o valor, então uma resposta
-  // fixa não passa.
   test("Sua semana e Trocar pontos leem o mesmo curso trocável na vitrine", async () => {
     const {
       cursos: [trocavel],
@@ -533,16 +513,7 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
       });
 
     expect(desfeito).toBe(true);
-    expect(vistos).toEqual([
-      // o curso novo está à venda
-      true,
-      // liberação de todo curso com preço: nada à venda
-      false,
-      // revogada a do curso novo, ele volta à venda
-      true,
-      // liberado de novo, ele sai da venda
-      false,
-    ]);
+    expect(vistos).toEqual([true, false, true, false]);
   });
 
   test("Sua semana lê a vitrine num statement, fora do resumo", async () => {
@@ -551,8 +522,6 @@ describe.skipIf(URL_TESTE === null)("consultas de Meus cursos", () => {
     expect(statements).toBe(1);
   });
 
-  // O resumo alimenta o placar da casca, que roda em toda página do aluno e do
-  // admin. A vitrine fica fora dele.
   test("painel faz 6 statements e resumo 2, com 1 e com 40 cursos", async () => {
     const grande = await criarCursos(40);
     await liberar(ALUNO_B, grande.cursos);

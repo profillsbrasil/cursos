@@ -13,7 +13,6 @@ import {
 import type { CategoriaId, Versao } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -35,10 +34,6 @@ const PARAGRAFO = /<\/?p[\s>]/g;
 const GATILHO_DA_CATEGORIA =
   /<button([^>]*id="curso-categoriaId"[^>]*)>(.*?)<\/button>/;
 
-/**
- * O que o gatilho da categoria mostra, e se é o placeholder. A lista aberta só
- * existe no browser, e o selecao.navegador.test.tsx a confere.
- */
 function categoriaNoGatilho(html: string) {
   const [, atributos = "", conteudo = ""] =
     GATILHO_DA_CATEGORIA.exec(html) ?? [];

@@ -16,7 +16,6 @@ export default function CarregandoAula() {
     >
       <span className="sr-only">Carregando a aula</span>
       <div className="grid gap-4">
-        {/* Cada linha tem 1lh dentro da tipografia do cabeçalho real: o vídeo não pula quando a aula chega. */}
         <div>
           <div className={TITULO_DA_AULA}>
             <Skeleton className={`${PULSO} h-[1lh] w-2/3 rounded-lg`} />
@@ -25,7 +24,6 @@ export default function CarregandoAula() {
             <Skeleton className={`${PULSO} h-[1lh] w-1/2 rounded-md`} />
           </div>
         </div>
-        {/* A caixa do vídeo e os controles, com o padding, a barra de posição e a barra dos botões do player real. */}
         <Skeleton
           className={`${PULSO} rounded-[20px] border border-transparent`}
         >

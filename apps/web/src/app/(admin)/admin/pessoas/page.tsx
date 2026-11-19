@@ -41,8 +41,6 @@ export default async function Pessoas({
   const perfil = visao.tipo === "perfil" ? visao.perfil : null;
   const deConvidados = visao.tipo === "convidados";
 
-  // O painel de convites dá os números da trilha e os cursos do diálogo em toda
-  // visão. A lista de pessoas, que vai ao Clerk, só carrega quando aparece.
   const [lista, convites] = await Promise.all([
     deConvidados ? null : carregarListaDePessoas(termo, perfil),
     carregarConvites(deConvidados ? termo : ""),

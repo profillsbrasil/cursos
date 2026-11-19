@@ -31,7 +31,6 @@ const SEM_HISTORICO: LinhasHistorico = {
   questionarios: [],
 };
 
-/** Curso de uma aula, o mínimo que a liberação lê. */
 function linha(
   id: CursoId,
   parcial: Partial<LinhaDaPessoa> & { titulo?: string } = {}

@@ -22,12 +22,6 @@ const AVISO = "Curso liberado. Ele já está em Meus cursos.";
 
 const NENHUM_CURSO_NOVO = "Nenhum curso novo para trocar agora";
 
-/**
- * Sem curso trocável na vitrine, a culpa não é de quem estuda: a frase nunca diz
- * que faltam pontos. Ela também fala só do lado do aluno, porque a vitrine vazia
- * pode ter curso trocável que ele já alcança por liberação, e não promete prazo nem
- * que ponto não vence (decisão aberta do dono no PRODUCT.md).
- */
 function subtitulo(
   cartoes: readonly Cartao[],
   temCursoTrocavelNaVitrine: boolean
@@ -94,7 +88,6 @@ export function CursosParaTrocar({
 
   return (
     <>
-      {/* Nó sempre montado, fora da grade que redesenha, para o leitor de tela anunciar. */}
       <div
         className="bg-ceu text-sobre-cor -mt-4 flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-[14px] px-[18px] py-3.5 font-semibold empty:hidden"
         role="status"
@@ -118,8 +111,6 @@ export function CursosParaTrocar({
         titulo="Cursos para trocar"
       >
         {cartoes.length === 0 ? (
-          // O vazio é um cartão com o botão na mesma linha, não um texto solto, e
-          // para na largura do extrato: esticado, o botão ficava a 800 px da frase.
           <div
             className={cn(
               CARTAO,

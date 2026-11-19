@@ -27,7 +27,6 @@ const capas =
       })
     : capasDesligadas;
 
-/** O endpoint e a região são os mesmos do bucket das capas; as chaves, não. */
 const materiais =
   ENV.S3_ENDPOINT &&
   ENV.S3_REGION &&
@@ -52,7 +51,6 @@ export const clerk = createClerkClient({
 /** Montados uma vez por processo. Os dois construtores de Context (context.ts e server/api.ts) usam estes. */
 export const servicos: Servicos = {
   capas,
-  // O link do convite cai em /criar-conta com o __clerk_ticket, que o <SignUp /> trata.
   convites: convitesDoClerk(clerk, {
     criarConta: new URL(CRIAR_CONTA, ENV.CORS_ORIGIN).href,
   }),

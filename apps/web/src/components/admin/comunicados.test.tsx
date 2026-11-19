@@ -4,11 +4,10 @@ import type { ComunicadoNaTela } from "@cursos/api/dominio/comunicado";
 import type { ComunicadoId } from "@cursos/api/dominio/tipos";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
-const navegacao = await import("next/navigation");
+const navegacaoComOUseRouterSubstituido = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
-  ...navegacao,
+  ...navegacaoComOUseRouterSubstituido,
   useRouter: () => ({
     push: () => undefined,
     refresh: () => undefined,

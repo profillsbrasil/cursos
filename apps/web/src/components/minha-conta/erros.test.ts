@@ -11,7 +11,6 @@ const doClerk = (code: string, status = 422) =>
     status,
   });
 
-// A recusa que o Clerk devolveu ao nome "<b>html</b> 😀 -5" (medida no POST /v1/users).
 const nomeRecusado = (param_name: string, long_message: string) =>
   new ClerkAPIResponseError("erro", {
     data: [

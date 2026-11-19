@@ -8,8 +8,7 @@ import { TextoQueAbre } from "@/components/casca/texto-que-abre";
 import { fmtMin } from "@/lib/formato";
 import { caminhoDaAula } from "@/lib/rotas";
 
-// O esqueleto de loading.tsx desenha as duas linhas com estas mesmas classes, então
-// a altura dele bate com a do cabeçalho em toda largura.
+/** As classes do título da aula, as mesmas do esqueleto de loading.tsx: a altura dele bate com a do cabeçalho em toda largura. */
 export const TITULO_DA_AULA =
   "font-bold text-[clamp(22px,2.4vw,30px)] text-titulo leading-[1.2] tracking-tight";
 

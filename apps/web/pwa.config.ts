@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
+/** Acrescenta os headers do /sw.js; em export estático eles ficam por conta da hospedagem. */
 export function withPwa(config: NextConfig): NextConfig {
-  // Static exports need these headers configured at the hosting layer.
   if (config.output === "export") {
     return config;
   }

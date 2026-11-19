@@ -1,21 +1,23 @@
 import { buttonVariants } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 
-// O foco de teclado acende o botão como o cursor: a variante hover: do globals.css
-// também casa com o foco (#30). Nenhum botão desenha contorno.
-// O buttonVariants traz transition-all; no <Button> o index.css já a restringe pelo
-// data-slot, e o link com a cara de botão não tem esse data-slot.
 const SEM_DESLOCAR =
   "transition-[color,background-color,border-color,box-shadow,opacity]";
 
+/**
+ * O foco de teclado acende o botão como o cursor: a variante hover: do globals.css
+ * também casa com o foco (#30). Nenhum botão desenha contorno.
+ */
 export const BOTAO = cn(
   buttonVariants(),
   SEM_DESLOCAR,
   "hover:bg-sol-hover hover:shadow-brilho h-11 gap-2 rounded-full px-[18px] text-sm font-semibold"
 );
 
-// A outline traz dark:border-input, dark:bg-input/30 e dark:hover:bg-input/50, que vencem
-// as classes sem variante com .dark fixo no <html>: cada cor se repete com dark:.
+/**
+ * A outline traz dark:border-input, dark:bg-input/30 e dark:hover:bg-input/50, que vencem
+ * as classes sem variante com .dark fixo no <html>: cada cor se repete com dark:.
+ */
 export const BOTAO_CONTORNO = cn(
   buttonVariants({ variant: "outline" }),
   SEM_DESLOCAR,
@@ -24,8 +26,10 @@ export const BOTAO_CONTORNO = cn(
   "dark:border-muted-foreground dark:hover:border-titulo dark:bg-transparent dark:hover:bg-transparent"
 );
 
-// A confirmação da ação que não se desfaz (apagar, excluir) fica no erro cheio, e não
-// no Sol: The Red Is Only Error Rule. A variante padrão não troca o texto sob o cursor.
+/**
+ * A confirmação da ação que não se desfaz (apagar, excluir) fica no erro cheio, e não
+ * no Sol: The Red Is Only Error Rule. A variante padrão não troca o texto sob o cursor.
+ */
 export const BOTAO_PERIGO = cn(
   buttonVariants(),
   "bg-destructive text-sobre-cor hover:bg-destructive/85 h-11 gap-2 rounded-full px-[18px] text-sm font-semibold"

@@ -26,8 +26,7 @@ export const relacaoLiberacoesAtivas = (userId: string) =>
 export const filtroDoPerfilAtivo = (perfil: Perfil) =>
   ({ perfil, revogadaEm: { isNull: true } }) as const;
 
-/** O curso que o aluno vê: liberação própria ativa ou liberação ativa do perfil dele. */
-// Sem as const: o OR do Drizzle pede array mutável.
+/** O curso que o aluno vê: liberação própria ativa ou liberação ativa do perfil dele. Sem `as const`: o OR do Drizzle pede array mutável. */
 export const cursoQueOAlunoVe = (aluno: Aluno) => ({
   OR: [
     { liberacoes: filtroLiberacaoAtiva(aluno.userId) },

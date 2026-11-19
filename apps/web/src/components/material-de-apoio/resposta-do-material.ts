@@ -1,5 +1,3 @@
-// O corpo da rota app/material/[id]: o arquivo como anexo, ou 404.
-
 import { disposicaoDoAnexo } from "@/lib/anexo";
 
 export interface MaterialAberto {
@@ -10,7 +8,7 @@ export interface MaterialAberto {
 }
 
 /**
- * Para quem não pode ver e para o id que não existe, o mesmo 404, sem dizer qual
+ * O corpo da rota app/material/[id]: o arquivo como anexo, ou 404. Para quem não pode ver e para o id que não existe, o mesmo 404, sem dizer qual
  * dos dois. A capa é pública; o material não. Nem o navegador guarda: com cache,
  * quem saiu da conta ou perdeu a liberação ainda abria o arquivo pela mesma URL.
  */

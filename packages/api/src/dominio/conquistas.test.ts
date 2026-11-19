@@ -402,7 +402,6 @@ describe("as medalhas novas ganhas", () => {
     {
       ...NADA,
       assistidas: [
-        // A amostra de VISTA antes da troca dela; a aula 1 de DEPOIS só depois.
         assistida(VISTA, 1, "2026-10-01T14:00:00Z"),
         assistida(DEPOIS, 1, "2026-09-21T14:00:00Z"),
         assistida(DEPOIS, 2, "2026-09-22T14:00:00Z"),
@@ -540,7 +539,6 @@ describe("as medalhas novas por ganhar", () => {
         { amostra: { preco: 300 }, curso: AMOSTRA, liberadaEm: new Date() },
       ],
       questionarios: [
-        // Errou de primeira e passou na segunda: aprovou, sem nota cheia.
         tentativas(idAula(INTEIRO.id, 0, 1), {
           aprovada: true,
           aprovadaEm: new Date("2026-10-04T14:00:00Z"),
@@ -582,7 +580,6 @@ describe("as medalhas novas por ganhar", () => {
   });
 
   test("Primeiro curso concluído conta aulas e questionários do curso mais adiantado", () => {
-    // inteiro: 3 de 3 aulas e 1 de 3 questionários, 4 de 6; trocado: 4 de 10.
     expect(marco(c, "primeiro_curso")).toEqual({
       estado: "por_ganhar",
       maisPerto: { curso: "Curso inteiro", feitas: 3, total: 3 },

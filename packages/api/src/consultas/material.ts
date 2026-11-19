@@ -1,7 +1,3 @@
-// O material de apoio como o aluno o lê: a lista da página do curso e a porta do
-// download. O único escritor da tabela material é salvarCurso
-// (consultas/edicao-do-curso.ts).
-
 import type { Database } from "@cursos/db";
 import { curso, material } from "@cursos/db/schema/index";
 import { asc, eq } from "drizzle-orm";
@@ -14,7 +10,7 @@ import type { MaterialId } from "../dominio/tipos";
 import { linhasDoCurso } from "./aula";
 import type { Executor } from "./comum";
 
-/** Em ordem de posição. */
+/** A lista de materiais da página do curso, em ordem de posição. O único escritor da tabela material é salvarCurso (consultas/edicao-do-curso.ts). */
 export async function materiaisDaPagina(
   exec: Executor,
   slug: string

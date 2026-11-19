@@ -1,7 +1,3 @@
-// Escritor único de convite e convite_curso. O banco decide o estado, e o Clerk só
-// entrega o link: toda chamada à porta Convites deixa, no pior caso, um link que
-// só cria conta (docs/adr/0005-convite.md).
-
 import type { Database } from "@cursos/db";
 import { convite, conviteCurso } from "@cursos/db/schema/index";
 import { and, eq, gt, inArray, isNull, sql } from "drizzle-orm";
@@ -42,7 +38,6 @@ const VIVO = and(isNull(convite.aceitoEm), isNull(convite.canceladoEm));
 
 const FK_DO_CURSO = "convite_curso_curso_id_curso_id_fkey";
 
-/** O teto da lista da opção Convidados. */
 const TETO_DA_LISTA = 100;
 
 const ESCAPE_DO_LIKE = /[\\%_]/g;
@@ -69,12 +64,6 @@ const emailNaoSaiu = (cause: unknown) =>
     message: "O e-mail não saiu. O convite ficou como estava.",
   });
 
-/**
- * INSERT de convite e de convite_curso, numa transação. `on conflict do nothing`
- * no índice convite_vivo_por_email: dois admins que convidam o mesmo e-mail
- * gravam uma linha, e o segundo lê ja_convidado. A FK do curso vira recusa para
- * a pessoa, e nada fica gravado.
- */
 async function gravarConvites(
   db: Database,
   admin: AdminId,
@@ -156,10 +145,6 @@ async function gravarConvites(
   }
 }
 
-/**
- * Grava o envio que saiu e renova a validade, só em convite vivo: a validade
- * conta do último e-mail que o Clerk mandou. Devolve se gravou.
- */
 async function marcarEnviado(
   db: Database,
   id: ConviteId,
@@ -194,7 +179,6 @@ async function enviarUm(
     }
 
     if (!(await marcarEnviado(db, gravado.id, r.clerkConviteId, agora))) {
-      // Outro admin cancelou entre o INSERT e o envio: o link que saiu não vale.
       await convites.revogar(r.clerkConviteId);
     }
 
@@ -301,7 +285,6 @@ const naoExiste = () =>
     message: "Este convite não existe.",
   });
 
-/** A recusa de reenviar ou cancelar o convite que já teve fim. */
 function recusaDoFim(
   estado: Extract<EstadoDoConvite, { tipo: "aceito" | "cancelado" }>,
   aceito: string
@@ -371,7 +354,6 @@ export async function reenviarConvite(
   }
 
   if (!(await marcarEnviado(db, id, envio.clerkConviteId, agora))) {
-    // O convite teve fim enquanto o Clerk respondia: o link novo não vale.
     await convites.revogar(envio.clerkConviteId);
     const depois = await lerEstado(db, id, agora);
 
@@ -524,7 +506,6 @@ export async function reivindicarConvite(
 
   return {
     comoAdmin: aceito.comoAdmin,
-    // Só o adminProcedure chega ao INSERT de convite.
     convidadoPor: aceito.convidadoPor as AdminId,
     cursoIds: cursos.map((c) => c.cursoId as CursoId),
     id: aceito.id as ConviteId,

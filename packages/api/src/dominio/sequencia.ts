@@ -25,8 +25,15 @@ const formatador = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
 });
 
-/** Pelo `getUTCDay`: 0 é domingo. Meus cursos e Conquistas escrevem os dias assim. */
-const SIGLAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"] as const;
+const SIGLAS_DOMINGO_PRIMEIRO = [
+  "Dom",
+  "Seg",
+  "Ter",
+  "Qua",
+  "Qui",
+  "Sex",
+  "Sáb",
+] as const;
 
 export const FIM_DE_SEMANA_NAO_QUEBRA = "Fim de semana não quebra a sequência";
 
@@ -58,13 +65,15 @@ const MS_POR_DIA = 86_400_000;
 export const diasCorridos = (de: DiaISO, ate: DiaISO): number =>
   Math.round((meioDia(ate).getTime() - meioDia(de).getTime()) / MS_POR_DIA);
 
-/** 0 = domingo. */
 const diaDaSemana = (dia: DiaISO) => meioDia(dia).getUTCDay();
 
 export const siglaDoDia = (dia: DiaISO): string =>
-  SIGLAS[diaDaSemana(dia)] ?? "";
+  SIGLAS_DOMINGO_PRIMEIRO[diaDaSemana(dia)] ?? "";
 
-export const SIGLAS_DO_FIM_DE_SEMANA = [SIGLAS[6], SIGLAS[0]] as const;
+export const SIGLAS_DO_FIM_DE_SEMANA = [
+  SIGLAS_DOMINGO_PRIMEIRO[6],
+  SIGLAS_DOMINGO_PRIMEIRO[0],
+] as const;
 
 export const ehDiaUtil = (dia: DiaISO): boolean => {
   const d = diaDaSemana(dia);
@@ -82,7 +91,7 @@ export function diaUtilAnterior(dia: DiaISO): DiaISO {
   return d;
 }
 
-// Hoje sem estudo ainda não quebra: a contagem começa no dia útil anterior.
+/** Hoje sem estudo ainda não quebra: a contagem começa no dia útil anterior. */
 export function sequenciaDiasUteis(
   dias: ReadonlySet<DiaISO>,
   hoje: DiaISO

@@ -34,10 +34,8 @@ const SENTIDOS: readonly { rotulo: string; valor: Sentido }[] = [
   { rotulo: "Tirar pontos", valor: "tirar" },
 ];
 
-/** Os valores que o admin mais concede; o resto vai em Outro valor. */
 const ATALHOS = [500, 1000, 3000, 5000] as const;
 
-/** Um atalho, Outro valor (o campo Pontos) ou nada escolhido ainda. */
 type Escolha = number | "outro" | null;
 
 const OUTRO = "outro";
@@ -49,18 +47,14 @@ const SEM_OUTRO = "Escreva o valor em Pontos.";
 
 const SO_ALGARISMOS = /^\d+$/;
 
-// O rádio fica por baixo do label: as setas andam entre as opções, e o label
-// acende com o foco do input pela variante hover: do globals.css.
 const OPCAO_DO_SENTIDO = cn(
   OPCAO_DA_TRILHA,
   "has-checked:bg-titulo has-checked:text-sobre-cor has-checked:hover:bg-foreground has-checked:hover:text-sobre-cor has-disabled:cursor-not-allowed"
 );
 
-// O data-campo do label dá a borda Céu do index.css sob o cursor e com o foco.
 const ATALHO =
   "inline-flex h-9 cursor-pointer items-center rounded-full border border-muted-foreground px-3.5 font-semibold text-[13px] text-foreground transition-colors has-checked:border-sol has-checked:text-sol has-disabled:cursor-not-allowed has-disabled:opacity-50";
 
-/** "3.000" e "3000" valem 3000; o resto, null. */
 function lerQuantidade(texto: string): number | null {
   const limpo = texto.replaceAll(".", "").replaceAll(" ", "");
 
@@ -77,10 +71,6 @@ type Envio =
   | { razao: string; rotulo: string; tipo: "desligado" }
   | { pontos: number; rotulo: string; tipo: "pronto" };
 
-/**
- * O que o botão diz e se ele envia. Tirar mais que o saldo nem vai ao servidor;
- * o servidor recusa por conta própria do mesmo jeito.
- */
 function envioDe(
   saldo: number,
   sentido: Sentido,
@@ -124,13 +114,11 @@ function envioDe(
 
 interface Erros {
   motivo: string | null;
-  /** A recusa do servidor, sob o valor. */
   valor: string | null;
 }
 
 const SEM_ERRO: Erros = { motivo: null, valor: null };
 
-/** Os atalhos e o Outro valor, rádios de um grupo só, com a recusa embaixo. */
 function GrupoDoValor({
   aoEscolher,
   erro,
@@ -185,7 +173,6 @@ function GrupoDoValor({
   );
 }
 
-/** O campo do Outro valor: aceita "3.000" e "3000". */
 function CampoPontos({
   aoEscrever,
   campoRef,
@@ -288,7 +275,6 @@ export function ConcessaoDePontos({
     (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      // O botão desligado segue focável, e o Enter no Motivo ainda envia.
       if (envio.tipo !== "pronto") {
         if (escolha === OUTRO) {
           quantidade.current?.focus();

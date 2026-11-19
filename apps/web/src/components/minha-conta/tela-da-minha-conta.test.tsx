@@ -31,7 +31,6 @@ const usuario = (c: Record<string, unknown> = {}) => ({
   ...c,
 });
 
-// Sem o ClerkProvider, os hooks do Clerk lançam; o resto do módulo fica o de verdade.
 const clerk = await import("@clerk/nextjs");
 
 mock.module("@clerk/nextjs", () => ({
@@ -47,7 +46,6 @@ const { TelaDaMinhaConta } = await import("./tela-da-minha-conta");
 const { folhaDeExemplo, folhaDo, enderecoDaConferencia } =
   await import("@/components/certificado/folha");
 
-/** A barra colorida da prévia antiga: um traço absoluto na esquerda ou uma borda esquerda grossa ou colorida. */
 const BARRA_LATERAL =
   /inset-y-0 left-0|w-\[5px\]|border-l-\[?\d|border-l-(sol|ceu|canela)/;
 

@@ -1,13 +1,12 @@
-// As frases da amostra, que o cartão de Meus cursos, a coluna de troca da página
-// do curso e o fim do vídeo do player dividem. Puro, sem React.
-
 import { faltam, fmtHoras, fmtPts, plural } from "@/lib/formato";
 
-/** O que a troca da amostra mostra, pelo preço do curso e pelo saldo da pessoa. */
+/**
+ * O que a troca da amostra mostra, pelo preço do curso e pelo saldo da pessoa.
+ * Em `faltam`, o botão diz quanto falta e `saldo` é a razão do botão desligado.
+ */
 export type TrocaDaAmostra =
   | { tipo: "sem_preco"; frase: string }
   | { tipo: "pode_trocar"; botao: string; preco: number; saldo: string }
-  /** Sem saldo: o botão diz quanto falta, e `saldo` é a razão do botão desligado. */
   | { tipo: "faltam"; botao: string; preco: number; saldo: string };
 
 export const SEM_PRECO = "Este curso ainda não tem preço de troca.";

@@ -1,8 +1,3 @@
-// O que o aluno vê pela liberação do perfil, por todos os routers do aluno: o
-// alunoProcedure lê o perfil e cada leitor soma a liberação do perfil à própria.
-// A liberação do perfil dá a amostra (amostra.integration.test.ts prova cada
-// procedure); aqui fica quem vê o curso e quem não vê.
-
 import { afterAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "node:crypto";
 
@@ -46,15 +41,13 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
   const cursos: string[] = [];
   const comunicados: string[] = [];
 
-  /** Um aluno com o perfil já escolhido pelo admin, e o caller de um pedido dele. */
   async function aluno(perfil: Perfil, email = "pessoa@exemplo.com") {
     const userId = `user_perfilve${S}x${alunos.length}`;
     alunos.push(userId);
     await definirPerfil(db, ADMIN, userId, perfil, AGORA);
 
-    // Cada leitura de caller é um pedido novo, como cada página no app.
     return {
-      get caller() {
+      get pedidoNovo() {
         return comoAluno(userId, email);
       },
       userId,
@@ -157,19 +150,21 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const cliente = await aluno("cliente");
     const publico = await aluno("publico");
 
-    expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
-    expect(await cliente.caller.curso.pagina({ slug: c.slug })).not.toBeNull();
+    expect(await slugsEmMeusCursos(cliente.pedidoNovo)).toContain(c.slug);
     expect(
-      await cliente.caller.aula.abrir({
+      await cliente.pedidoNovo.curso.pagina({ slug: c.slug })
+    ).not.toBeNull();
+    expect(
+      await cliente.pedidoNovo.aula.abrir({
         aulaId: c.aulas[0] ?? "",
         slug: c.slug,
       })
     ).not.toBeNull();
 
-    expect(await slugsEmMeusCursos(publico.caller)).not.toContain(c.slug);
-    expect(await publico.caller.curso.pagina({ slug: c.slug })).toBeNull();
+    expect(await slugsEmMeusCursos(publico.pedidoNovo)).not.toContain(c.slug);
+    expect(await publico.pedidoNovo.curso.pagina({ slug: c.slug })).toBeNull();
     expect(
-      await publico.caller.aula.abrir({
+      await publico.pedidoNovo.aula.abrir({
         aulaId: c.aulas[0] ?? "",
         slug: c.slug,
       })
@@ -180,14 +175,14 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const c = await criarCurso();
     const { id } = await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const cliente = await aluno("cliente");
-    expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
+    expect(await slugsEmMeusCursos(cliente.pedidoNovo)).toContain(c.slug);
 
     await definirPerfil(db, ADMIN, cliente.userId, "publico", AGORA);
-    expect(await slugsEmMeusCursos(cliente.caller)).not.toContain(c.slug);
+    expect(await slugsEmMeusCursos(cliente.pedidoNovo)).not.toContain(c.slug);
 
     await definirPerfil(db, ADMIN, cliente.userId, "cliente", AGORA);
     await revogarDoPerfil(db, ADMIN, id, AGORA);
-    expect(await slugsEmMeusCursos(cliente.caller)).not.toContain(c.slug);
+    expect(await slugsEmMeusCursos(cliente.pedidoNovo)).not.toContain(c.slug);
   });
 
   test("o primeiro acesso com e-mail da Profills já vê o curso dos funcionários", async () => {
@@ -205,7 +200,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await liberarParaPerfil(db, ADMIN, "cliente", c.id, AGORA);
     const cliente = await aluno("cliente");
 
-    const r = await cliente.caller.aula.registrar({
+    const r = await cliente.pedidoNovo.aula.registrar({
       aulaId: c.aulas[0] ?? "",
       posicaoSeg: 60,
       trechos: [{ fim: 60, inicio: 0 }],
@@ -213,9 +208,9 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
 
     expect(r.assistida).toBe(true);
     expect(
-      await cliente.caller.certificado.pagina({ slug: c.slug })
+      await cliente.pedidoNovo.certificado.pagina({ slug: c.slug })
     ).toBeNull();
-    const conquistas = await cliente.caller.aluno.conquistas();
+    const conquistas = await cliente.pedidoNovo.aluno.conquistas();
     expect(JSON.stringify(conquistas.certificados)).not.toContain(c.slug);
   });
 
@@ -245,8 +240,7 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     await db.insert(comunicado).values({
       cursoId: c.id,
       id,
-      // Agora, e não AGORA: o painel mostra o comunicado mais novo, e o banco
-      // local tem os gerais do seed, publicados depois de 20 de outubro.
+      // WARNING: Agora, e não AGORA: o painel mostra o comunicado mais novo, e o seed local publica gerais depois de 20/10.
       publicadoEm: new Date(),
       publicadoPor: ADMIN,
       texto: "Módulo novo.",
@@ -261,11 +255,10 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
     const noPainel = async (x: ReturnType<typeof comoAluno>) =>
       (await x.meusCursos.painel()).comunicado?.id;
 
-    // O curso aparece como amostra, mas o comunicado dele é conteúdo do curso.
-    expect(await slugsEmMeusCursos(cliente.caller)).toContain(c.slug);
-    expect(await ids(cliente.caller)).not.toContain(id);
-    expect(await noPainel(cliente.caller)).not.toBe(id);
-    expect(await ids(publico.caller)).not.toContain(id);
+    expect(await slugsEmMeusCursos(cliente.pedidoNovo)).toContain(c.slug);
+    expect(await ids(cliente.pedidoNovo)).not.toContain(id);
+    expect(await noPainel(cliente.pedidoNovo)).not.toBe(id);
+    expect(await ids(publico.pedidoNovo)).not.toContain(id);
 
     await liberar(
       db,
@@ -274,8 +267,8 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
       c.id,
       AGORA
     );
-    expect(await ids(cliente.caller)).toContain(id);
-    expect(await noPainel(cliente.caller)).toBe(id);
+    expect(await ids(cliente.pedidoNovo)).toContain(id);
+    expect(await noPainel(cliente.pedidoNovo)).toBe(id);
   });
 
   test("curso trocável aberto ao perfil fica na vitrine e a troca cobra o preço", async () => {
@@ -289,9 +282,9 @@ describe.skipIf(URL_TESTE === null)("acesso pela liberação do perfil", () => {
       pontos: 500,
       userId: cliente.userId,
     });
-    const painel = await cliente.caller.troca.painel();
+    const painel = await cliente.pedidoNovo.troca.painel();
     expect(JSON.stringify(painel.cartoes)).toContain(c.id);
-    await cliente.caller.troca.trocar({ cursoId: c.id, precoVisto: 100 });
+    await cliente.pedidoNovo.troca.trocar({ cursoId: c.id, precoVisto: 100 });
 
     const lancamentos = await db.query.pontoLancamento.findMany({
       where: { userId: cliente.userId },

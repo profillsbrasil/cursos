@@ -1,6 +1,3 @@
-// Contraste WCAG 2.1 dos pares de tokens que a tela usa (PRODUCT.md, Accessibility).
-// Lê o :root do globals.css: um token trocado para pior derruba o teste.
-
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
@@ -29,7 +26,6 @@ function rgb(token: string): Rgb {
   return [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16)) as Rgb;
 }
 
-/** Cor `frente` com opacidade `alfa` composta sobre `fundo`. */
 const mistura = (frente: Rgb, alfa: number, fundo: Rgb): Rgb =>
   frente.map((c, i) =>
     Math.round(c * alfa + (fundo[i] ?? 0) * (1 - alfa))
@@ -54,8 +50,7 @@ function razao(a: Rgb, b: Rgb) {
 const TEXTO = 4.5;
 const PECA = 3;
 
-// [frente, fundo, mínimo]: fundo pode ser um token ou uma cor composta.
-const PARES: [string, string | Rgb, number][] = [
+const PARES: [frente: string, fundo: string | Rgb, minimo: number][] = [
   ["foreground", "background", TEXTO],
   ["foreground", "card", TEXTO],
   ["foreground", "popover", TEXTO],

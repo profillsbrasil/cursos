@@ -36,8 +36,7 @@ describe("capaNoCampo: quando o campo da capa zera", () => {
 
 const CAMPO_DE_CAPA = /<CampoDeCapa\b[^>]*>/g;
 
-// O recomeço do editor zera o campo, aviso inclusive, pela key da geração.
-describe("o editor do curso monta o campo da capa pela geração", () => {
+describe("o editor do curso monta o campo da capa pela geração, e o recomeço do editor zera o campo, aviso inclusive, pela key", () => {
   test("editor-do-curso.tsx", () => {
     const editor = readFileSync(
       join(import.meta.dir, "editor-do-curso.tsx"),

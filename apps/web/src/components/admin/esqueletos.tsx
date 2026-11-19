@@ -5,10 +5,6 @@ import { LINHA_QUE_CARREGA } from "@/components/casca/cabecalho-da-pagina";
 
 import { BARRA, BUSCA_DA_BARRA, CONTAGEM_DA_BARRA } from "./barra-da-lista";
 
-/**
- * As peças dos loading.tsx do admin, cada uma na altura da peça pronta, para
- * o conteúdo não pular quando a página chega.
- */
 const PULSO = "bg-card";
 const LINHAS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 

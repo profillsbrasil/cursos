@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 
 import { aparelhosDe, quandoFoi, type SessaoDoClerk } from "./aparelhos";
 
-// Segunda, 19 de outubro de 2026, 14h05 em São Paulo.
 const AGORA = new Date("2026-10-19T17:05:00Z");
 
 const sessao = (
@@ -33,7 +32,6 @@ describe("quandoFoi", () => {
   });
 
   test("a virada do dia é a de São Paulo, não a de UTC", () => {
-    // 01h30 em UTC do dia 19 ainda é 22h30 do dia 18 em São Paulo.
     expect(quandoFoi(new Date("2026-10-19T01:30:00Z"), AGORA)).toBe(
       "ontem às 22h30"
     );

@@ -1,13 +1,9 @@
-// O selo do tipo do arquivo, que o editor do curso e o cartão da página do curso
-// dividem. Sem "use client" nem hook: roda dos dois lados da fronteira.
-
 import {
   TIPOS_DE_MATERIAL,
   type TipoDoMaterial,
 } from "@cursos/api/dominio/material";
 import { cn } from "@cursos/ui/lib/utils";
 
-/** O PDF em Canela, a planilha em Céu e os slides em Sol, a 14%; o resto, neutro. */
 const COR: Partial<Record<TipoDoMaterial, string>> = {
   pdf: "bg-canela/14 text-canela",
   ppt: "bg-sol/14 text-sol",
@@ -22,8 +18,10 @@ const TAMANHO = {
 } as const;
 
 /**
- * Uma folha com a ponta dobrada e a sigla do tipo. O recusado vai em `erro`, e
- * o arquivo sem tipo aceito mostra "?".
+ * O selo do tipo do arquivo, que o editor do curso e o cartão da página do curso
+ * dividem: uma folha com a ponta dobrada e a sigla do tipo. O recusado vai em
+ * `recusado`, e o arquivo sem tipo aceito mostra "?". Sem "use client" nem hook:
+ * roda dos dois lados da fronteira.
  */
 export function SeloDoTipo({
   recusado = false,

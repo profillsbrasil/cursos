@@ -38,8 +38,6 @@ export type Placar = Pick<ResumoAluno, "saldo" | "sequenciaDias">;
 
 const apagado = () => false;
 
-// Recolhido, o avatar cobre o fundo e a borda de 1 px quase não muda: sob o cursor,
-// com o foco e com o menu aberto, acende o anel de 2 px em Céu.
 const GATILHO = cn(
   "border-sidebar-border bg-sidebar flex w-full items-center gap-2.5 rounded-2xl border p-2 text-left",
   "ease-forte transition-[border-color,background-color,box-shadow] duration-150",
@@ -48,8 +46,7 @@ const GATILHO = cn(
   "group-data-[collapsible=icon]:data-popup-open:ring-ceu group-data-[collapsible=icon]:hover:ring-ceu group-data-[collapsible=icon]:hover:ring-2 group-data-[collapsible=icon]:data-popup-open:ring-2"
 );
 
-// O anel acende quando a conquista chega no player (anelDosPontos).
-const ANEL = "ring-3 ring-sol/35 duration-200";
+const ANEL_DA_CONQUISTA = "ring-3 ring-sol/35 duration-200";
 
 const ITEM =
   "h-9 gap-2.5 rounded-[9px] px-2.5 font-medium text-[13px] text-sidebar-foreground focus:bg-sidebar-accent focus:text-titulo [&_svg]:text-muted-foreground";
@@ -59,7 +56,6 @@ const PLACA =
 
 const LINHA_ESQUELETO = "block animate-pulse rounded bg-muted";
 
-// O menu tem p-1.5: a divisória volta os 6 px para ir de uma borda à outra.
 const DIVISORIA = "-mx-1.5 my-1";
 
 function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
@@ -76,7 +72,6 @@ function NumerosDoGatilho({ placar }: { placar: Promise<Placar | null> }) {
         <span className="sr-only">, saldo de </span>
         {fmtPts(p.saldo)}
       </span>
-      {/* Zero não é conquista: sem sequência, a chama e o número somem. */}
       {p.sequenciaDias > 0 ? (
         <span className="inline-flex items-center gap-1">
           <Flame aria-hidden="true" className="text-canela size-3" />
@@ -96,7 +91,6 @@ function SaldoDaDica({ placar }: { placar: Promise<Placar | null> }) {
 
 function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
   const p = use(placar);
-  // Em /trocar-pontos o caminho não muda, e só este clique fecha a gaveta.
   const { fecharNoCelular } = useAlternarNavegacao();
 
   if (!p) {
@@ -118,7 +112,6 @@ function PlacarDoMenu({ placar }: { placar: Promise<Placar | null> }) {
             {fmtPts(p.saldo)}
           </b>
         </DropdownMenuItem>
-        {/* Sem sequência, a placa do saldo ocupa a linha inteira. */}
         {p.sequenciaDias > 0 ? (
           <DropdownMenuItem
             className={PLACA}
@@ -163,7 +156,7 @@ export function CartaoDeConta({
     <DropdownMenu>
       <Tooltip disabled={!recolhida}>
         <DropdownMenuTrigger
-          className={cn(GATILHO, aceso && ANEL)}
+          className={cn(GATILHO, aceso && ANEL_DA_CONQUISTA)}
           render={<TooltipTrigger />}
         >
           <Avatar className="size-9 after:hidden">

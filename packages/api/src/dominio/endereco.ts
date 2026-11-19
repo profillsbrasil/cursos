@@ -1,20 +1,20 @@
-// O endereço do curso (o slug de /cursos/<slug>). O servidor escolhe na criação, a
-// partir do título, e não troca depois: o link que o aluno guardou continua abrindo.
-
 import { CARACTERES } from "./limites-do-curso";
 
-/** Deixa espaço para o sufixo "-N" sem passar de CARACTERES.slug. */
-const TETO_DA_BASE = CARACTERES.slug - 8;
+const ESPACO_DO_SUFIXO = 8;
+const TETO_DA_BASE = CARACTERES.slug - ESPACO_DO_SUFIXO;
 
 const DIACRITICOS = /\p{Diacritic}/gu;
 const FORA_DO_FORMATO = /[^a-z0-9]+/g;
 const HIFEN_NAS_PONTAS = /^-+|-+$/g;
 const SUFIXOS_NUMERICOS = /(-\d+)+$/;
 
-/** Título sem letra nem algarismo, como "???". */
 const SEM_LETRA = "curso";
 
 /**
+ * O endereço do curso (o slug de /cursos/<slug>). O servidor escolhe na criação,
+ * a partir do título, e não troca depois: o link que o aluno guardou continua
+ * abrindo.
+ *
  * "Profills School Comercial" vira "profills-school-comercial": minúsculas, sem
  * acento, hífen no lugar de espaço e pontuação. Sempre casa com SLUG, de formatos.ts.
  */

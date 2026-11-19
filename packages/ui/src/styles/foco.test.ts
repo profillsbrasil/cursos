@@ -1,8 +1,3 @@
-// O foco de teclado é o hover (#30). Compila o globals.css real com o Tailwind do
-// pacote e as classes de todos os componentes, e confere o CSS que chega ao
-// navegador: todo hover: também vale no foco de teclado, focus-visible: não casa com
-// nada, e nenhuma regra que casa com um elemento focado desenha contorno ou anel.
-
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -14,15 +9,14 @@ const PACOTE = join(import.meta.dir, "../..");
 const GLOBALS = join(import.meta.dir, "globals.css");
 const COMPONENTES = join(PACOTE, "src/components");
 
-// Os @import do globals.css, pelo id que ele escreve.
-const ESTILOS: Record<string, string> = {
+const ESTILOS_DOS_IMPORTS_DO_GLOBALS: Record<string, string> = {
   "shadcn/tailwind.css": "node_modules/shadcn/dist/tailwind.css",
   tailwindcss: "node_modules/tailwindcss/index.css",
   "tw-animate-css": "node_modules/tw-animate-css/dist/tw-animate.css",
 };
 
 function lerEstilo(id: string, base: string) {
-  const conhecido = ESTILOS[id];
+  const conhecido = ESTILOS_DOS_IMPORTS_DO_GLOBALS[id];
   const caminho = conhecido ? join(PACOTE, conhecido) : join(base, id);
 
   return Promise.resolve({
@@ -39,15 +33,17 @@ const CARACTERE_DE_CLASSE = /[\w-]/;
 const NOME_DE_CLASSE = /\.(?:\\.|[\w-])+/g;
 const CLASSE_NO_FIM = /\s\.(?:\\.|[\w-])+$/;
 
-/** Cada classe dos componentes, com os arquivos em que aparece. */
-const origem = new Map<string, string[]>();
+const arquivosPorClasse = new Map<string, string[]>();
 
 for (const arquivo of new Glob("*.tsx").scanSync(COMPONENTES)) {
   const texto = readFileSync(join(COMPONENTES, arquivo), "utf8");
 
   for (const token of new Set(texto.split(SEPARADOR))) {
     if (token) {
-      origem.set(token, [...(origem.get(token) ?? []), arquivo]);
+      arquivosPorClasse.set(token, [
+        ...(arquivosPorClasse.get(token) ?? []),
+        arquivo,
+      ]);
     }
   }
 }
@@ -63,7 +59,7 @@ const compilador = await compile(readFileSync(GLOBALS, "utf8"), {
   loadStylesheet: lerEstilo,
 });
 
-const saida = compilador.build([...origem.keys(), ...EXEMPLOS]);
+const saida = compilador.build([...arquivosPorClasse.keys(), ...EXEMPLOS]);
 
 interface Regra {
   classe: string;
@@ -71,7 +67,6 @@ interface Regra {
   seletor: string;
 }
 
-/** O que o `:is(` do começo do seletor envolve, até o `)` que o fecha. */
 function dentroDoIs(seletor: string) {
   if (!seletor.startsWith(":is(")) {
     return null;
@@ -98,11 +93,6 @@ function dentroDoIs(seletor: string) {
   return null;
 }
 
-/**
- * `.hover\:bg-muted:is(...)` vira `hover:bg-muted`: a primeira classe, sem escapes.
- * O `group-hover:x` sai `:is(<grupo> .group-hover\:x)` desde o Tailwind 4.3.4, e
- * aí a classe é a que fecha o `:is(`.
- */
 function classeDe(seletor: string) {
   const grupo = dentroDoIs(seletor) ?? "";
   const fim = grupo.search(CLASSE_NO_FIM);
@@ -127,10 +117,6 @@ function classeDe(seletor: string) {
   return classe;
 }
 
-/**
- * Cada regra com as declarações dela, inclusive as que o Tailwind aninha num
- * `@supports` dentro da regra. O `@media` que envolve uma regra não conta como seletor.
- */
 function regrasDoCss(css: string): Regra[] {
   const porSeletor = new Map<string, string[]>();
   const pilha: string[] = [];
@@ -170,12 +156,10 @@ function regrasDoCss(css: string): Regra[] {
 
 const regras = regrasDoCss(saida.slice(saida.indexOf("@layer utilities")));
 
-/** O seletor sem os nomes de classe, que podem conter a palavra focus. */
 const semClasses = (seletor: string) => seletor.replace(NOME_DE_CLASSE, "");
 const casaComFoco = (r: Regra) => semClasses(r.seletor).includes(":focus");
 const regrasDe = (classe: string) => regras.filter((r) => r.classe === classe);
 
-/** Separa as variantes do utilitário, sem cortar dentro de [] ou (). */
 function partes(classe: string) {
   const segmentos: string[] = [];
   let atual = "";
@@ -217,7 +201,6 @@ const TOKEN_DO_ANEL = /var\(--(?:sidebar-)?ring\)|^transparent$/;
 const coresDoAnel = (r: Regra) =>
   [...r.declaracoes.matchAll(COR_DO_ANEL)].map((m) => (m[1] ?? "").trim());
 
-/** Uma cor de anel da mesma variante que lê o token transparente. */
 function temCorTransparente(classe: string) {
   const prefixo = partes(classe).variantes.join(":");
 
@@ -232,7 +215,6 @@ function temCorTransparente(classe: string) {
   });
 }
 
-/** O que a regra desenha no foco, ou null quando ela pode estar ali. */
 function problemaDe(r: Regra) {
   if (CONTORNO.test(r.declaracoes)) {
     return "contorno";
@@ -282,12 +264,10 @@ describe("o foco de teclado é o hover", () => {
     expect(valorDoToken("sidebar-ring")).toBe("transparent");
   });
 
-  // Aceita a cópia do hover, o destaque de menu (focus:bg-*, focus:text-*), a borda e
-  // o anel que leem o token transparente. Contorno não passa nem vindo do hover.
   test("nenhuma regra dos componentes desenha contorno ou anel no foco", () => {
     const achados = regras.filter(casaComFoco).flatMap((r) => {
       const problema = problemaDe(r);
-      const arquivos = (origem.get(r.classe) ?? []).join(", ");
+      const arquivos = (arquivosPorClasse.get(r.classe) ?? []).join(", ");
 
       return problema ? [`${r.classe} (${arquivos}): ${problema}`] : [];
     });

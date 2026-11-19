@@ -143,7 +143,6 @@ export async function carregarAula(
   );
 }
 
-/** O saldo só entra na amostra, para a troca; o curso inteiro não o lê. */
 const saldoDaAmostra = (db: Database, aluno: Aluno, c: CursoAberto) =>
   c.amostra ? saldoDe(db, aluno.userId) : Promise.resolve(0);
 
@@ -163,7 +162,6 @@ export async function carregarPaginaDoCurso(
     return null;
   }
 
-  // A amostra não lista o material de apoio: o download também a recusa.
   return montarPaginaDoCurso(
     aberto,
     aberto.amostra ? [] : materiais,
@@ -232,12 +230,11 @@ export function registrar(
   const { userId } = aluno;
 
   return db.transaction(async (tx) => {
-    // set_config(..., true) é o SET LOCAL: vale só até o fim desta transação.
     await tx.execute(
       sql`select set_config('lock_timeout', ${`${ESPERA_PELA_COTA_MS}ms`}, true)`
     );
 
-    // O DO UPDATE trava a linha do aluno até o fim da transação.
+    // WARNING: o DO UPDATE trava a linha do aluno até o fim da transação.
     const [cota] = await tx
       .insert(cotaVideo)
       .values({ atualizadaEm: agora, segundos: COTA_VIDEO.tetoSeg, userId })
@@ -306,8 +303,6 @@ export function registrar(
         .onConflictDoNothing()
         .returning({ dia: aulaAssistida.dia });
 
-      // A amostra grava o fato e não lança: os pontos dela entram na troca
-      // (lancarAulasAssistidas), e o curso não conclui sem ela.
       if (fato && !aberto.amostra) {
         const efeitos = lancamentosDaAssistida(
           aulaId,

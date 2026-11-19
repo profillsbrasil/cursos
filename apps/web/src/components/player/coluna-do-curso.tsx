@@ -14,27 +14,11 @@ import {
 } from "@/lib/player/rolagem-da-coluna";
 import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
-/**
- * O script que segue a coluna no HTML do servidor: na carga direta (F5, link,
- * PWA reaberto) ela pinta já centrada, sem esperar o JS. O React não executa
- * script que ele mesmo insere, então na navegação no cliente quem centra é o
- * `useColunaNaAulaAtual`.
- */
+// WARNING: o React não executa script que ele mesmo insere; na navegação no cliente quem centra é useColunaNaAulaAtual.
 const CENTRAR_NA_CARGA = `(${centrarAAulaAtual.toString()})(document.currentScript.previousElementSibling, ${rolagemDaColuna.toString()})`;
 
-/**
- * No cliente o script vira bloco de dados: o React acusa no console todo
- * script de JS que ele cria, e esse nunca rodaria. Na hidratação o tipo
- * difere do HTML do servidor, que já executou.
- */
 const TIPO_DO_SCRIPT = typeof window === "undefined" ? undefined : "text/plain";
 
-/**
- * Centra a coluna na montagem pelo React e a cada aula nova. Na hidratação o
- * script do servidor já centrou, e a pessoa pode ter rolado a coluna antes de
- * o JS chegar: a montagem só centra a coluna que ainda está no topo. A página
- * nunca rola: no celular a coluna não tem rolagem própria.
- */
 function useColunaNaAulaAtual(aulaId: string) {
   const coluna = useRef<HTMLElement>(null);
   const montada = useRef<boolean>(false);
@@ -77,7 +61,6 @@ function Estado({ aula, numero }: { aula: AulaNaColuna; numero: number }) {
   );
 }
 
-/** A lista de checks antes da duração: Céu com o questionário aprovado, apagada com ele por fazer. */
 function MarcaDoQuestionario({
   marca,
 }: {
@@ -141,7 +124,6 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
             key={m.numero}
             open={m.atual}
           >
-            {/* Sob o cursor e com o foco de teclado, fundo branco a 8% e título claro (#44). */}
             <summary className="group/modulo grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-5 py-[13px] transition-colors duration-150 hover:bg-white/8 [&::-webkit-details-marker]:hidden">
               <span className="text-muted-foreground w-[26px] text-center font-mono text-xs tabular-nums">
                 {m.numero}
@@ -165,7 +147,6 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
               {m.aulas.map((a, i) => (
                 <li key={a.id}>
                   {amostra && !a.atual ? (
-                    // Na amostra, só a aula aberta é link; as outras levam o cadeado.
                     <span className="text-muted-foreground grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2">
                       <span className="grid size-[26px] shrink-0 place-items-center">
                         <Lock aria-hidden="true" className="size-4" />
@@ -201,10 +182,10 @@ export function ColunaDoCurso({ dados }: { dados: AulaNoPlayer }) {
           </details>
         ))}
       </aside>
-      {/* O texto sai do bundle de cada lado, e o tipo muda no cliente: a hidratação não confere os dois. */}
       <script
         // oxlint-disable-next-line react/no-danger -- o texto é o código de centrarAAulaAtual, sem dado de fora.
         dangerouslySetInnerHTML={{ __html: CENTRAR_NA_CARGA }}
+        // WARNING: o texto sai do bundle de cada lado e o tipo muda no cliente; a hidratação não confere os dois.
         suppressHydrationWarning
         type={TIPO_DO_SCRIPT}
       />

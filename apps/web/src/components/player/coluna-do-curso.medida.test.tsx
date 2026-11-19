@@ -1,11 +1,3 @@
-// A coluna do curso no Chromium headless, numa janela de 1440 x 710, com o CSS
-// real do app. Acima de 1080 px ela rola sozinha e precisa abrir com a aula
-// atual no meio. Três caminhos chegam a ela: a carga direta (F5, link, PWA
-// reaberto), em que o HTML do servidor pinta antes do JS; o streaming do
-// loading.tsx, em que a coluna chega escondida e o React a revela depois; e a
-// navegação no cliente, em que o React monta a coluna e troca a aula. Sem
-// Chromium na máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -32,7 +24,6 @@ const AULAS_POR_MODULO = 8;
 const idDaAula = (modulo: number, aula: number) =>
   `00000000-0000-4000-8000-${String(modulo * 100 + aula).padStart(12, "0")}` as AulaId;
 
-/** O curso de 16 módulos de 8 aulas, com a aula atual onde o teste pedir. */
 function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
   const atual = idDaAula(modulo, aula);
 
@@ -74,10 +65,8 @@ function cursoNaAula(modulo: number, aula: number): AulaNoPlayer {
   };
 }
 
-/** "Cronograma reverso", a aula 4 do módulo 8, a da prova do PR #59. */
 const NO_MEIO = cursoNaAula(8, 3);
 
-/** Longe o bastante do fim da lista para caber no meio da coluna. */
 const MAIS_ABAIXO = cursoNaAula(10, 2);
 
 const CLASSES = /class="([^"]*)"/g;
@@ -91,9 +80,6 @@ const css = await cssDoApp(
   )
 );
 
-// O componente de verdade, empacotado para o browser. O next/link vira um <a>,
-// porque fora do App Router ele não tem roteador. Os dois arquivos só existem
-// na memória do empacotador.
 const ENTRADA = join(import.meta.dir, "coluna-do-curso.entrada.tsx");
 const LINK = join(import.meta.dir, "link-sem-roteador.js");
 const NEXT_LINK = /^next\/link$/;
@@ -168,7 +154,6 @@ async function empacotar() {
 let enviar: Enviar;
 let pacote: string;
 
-/** A página com o CSS do app e a coluna na largura que ela tem no player. */
 async function abrirPagina(corpo: string) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
@@ -235,7 +220,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await abrirPagina(
         RAIZ(renderToString(<ColunaDoCurso dados={NO_MEIO} />))
       );
-      // Sem esperar quadro nenhum: a medida sai na mesma tarefa que escreveu o HTML.
       esperarCentrada(await avaliar<Medida>(enviar, MEDIR));
     });
 
@@ -247,7 +231,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
       );
       await avaliar(enviar, DEPOIS_DO_RENDER);
 
-      // O $RC do React: move o conteúdo da caixa escondida para o lugar.
       const medida = await avaliar<Medida>(
         enviar,
         `(async () => {

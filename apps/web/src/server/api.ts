@@ -9,11 +9,6 @@ import { cache } from "react";
 
 import { servicos } from "@/services";
 
-// React.cache vale por request: generateMetadata e a página pedem a aula e ela roda uma vez.
-// auth.protect() manda quem não tem sessão para o login em toda página e layout que
-// lê dados por aqui (a checagem por recurso que o Clerk 7 recomenda no lugar do
-// createRouteMatcher no proxy). O protectedProcedure continua como segunda porta.
-// contextoDe é a mesma leitura de papel do route.ts.
 const contexto = cache(async () => contextoDe(await auth.protect(), servicos));
 
 const caller = cache(async () => createCaller(await contexto()));

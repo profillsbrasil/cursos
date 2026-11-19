@@ -1,9 +1,3 @@
-// O player da aula no Chromium headless, com o CSS real do app e o componente
-// empacotado pelo Bun.build. O YouTube vira um player falso que guarda o que a
-// sessão pediu e emite os eventos que o teste manda, e a casca é desenhada com as
-// medidas dela: a sidebar recolhida de 68 px, a moldura de 10 px e o padding do
-// conteúdo. Sem Chromium na máquina, tudo pula.
-
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -37,7 +31,6 @@ const ATUAL = "00000000-0000-4000-8000-000000000004" as AulaId;
 const PROXIMA = "00000000-0000-4000-8000-000000000005" as AulaId;
 const VIDEO = { id: "aqz-KE-bpKQ", provedor: "youtube" } as VideoDaAula;
 
-/** Uma aula real de 10:34, com título de uma linha e descrição de duas. */
 const DADOS: AulaNoPlayer = {
   amostra: null,
   anterior: null,
@@ -63,11 +56,6 @@ const DADOS: AulaNoPlayer = {
   questionario: null,
 };
 
-/**
- * A IFrame API do YouTube falsa, para o adaptador de verdade (`lib/player/youtube.ts`):
- * como a real, o `Player` troca o elemento por um iframe, aqui com os três controles
- * que o YouTube põe no pôster, e anota cada chamada em `window.yt`.
- */
 const YOUTUBE_FALSO = `
   window.yt = [];
   window.YT = {
@@ -117,8 +105,6 @@ async function empacotar(comYoutube = false) {
           )
         );
       `,
-      // O player falso cria um iframe de verdade, como o YouTube, para o teste ver
-      // que o fim do vídeo o esconde sem destruir.
       [VIDEO_FALSO]: `
         window.pedidos = [];
         export function criarPlayerDeVideo(_video, elemento, opcoes) {
@@ -157,7 +143,6 @@ async function empacotar(comYoutube = false) {
           },
         };
       `,
-      // O roteador do App Router é o mesmo objeto a cada render, e o efeito da sessão depende dele.
       [NAVEGACAO]: `
         const roteador = { refresh: () => undefined };
         export const useRouter = () => roteador;
@@ -210,7 +195,6 @@ const { default: CarregandoAula } =
 const ESQUELETO = renderToStaticMarkup(<CarregandoAula />);
 const { FimDoVideo } = await import("./fim-do-video");
 
-// A página da aula, como o page.tsx a monta, com a coluna do curso no lugar.
 const PAGINA =
   "grid items-start gap-6 min-[1081px]:grid-cols-[minmax(0,1fr)_360px]";
 
@@ -221,9 +205,6 @@ const SEPARADOR_DE_CLASSES = /[\s"'`]+/;
 const classesDe = (h: string) =>
   [...h.matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO));
 
-// As folhas dos ajustes e dos atalhos e o vídeo escondido no fim só existem depois
-// do clique ou do evento: as classes deles vêm do código-fonte, lido como texto, como
-// o Tailwind do app faz.
 const fontes = await Promise.all(
   [
     "partes.ts",
@@ -256,7 +237,6 @@ let enviar: Enviar;
 let pacote: string;
 let pacoteComYoutube: string;
 
-// No celular a casca não tem sidebar nem moldura, e o conteúdo tem 16 px dos lados.
 const CASCA_DO_COMPUTADOR =
   '<div style="flex:none;width:68px"></div><main style="flex:1;min-width:0;margin:10px 10px 10px 0;padding:32px clamp(1rem,4vw,3rem) 64px">';
 
@@ -282,7 +262,6 @@ async function abrir(
       `<!doctype html><html class="dark" lang="pt-BR"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body style="margin:0"><div style="display:flex">${celular ? CASCA_DO_CELULAR : CASCA_DO_COMPUTADOR}<div class="${PAGINA}"><div id="raiz"></div><aside style="height:420px"></aside></div></main></div></body></html>`
     )}); document.close(); window.scrollTo(0, 0);`
   );
-  // O document.open troca o documento, não a janela: o que um teste pôs nela sai aqui.
   await avaliar(
     enviar,
     `window.assistidaNoTeste = ${assistida}; window.conquistaNoTeste = undefined;`
@@ -294,7 +273,6 @@ async function abrir(
 const COM_BARRA_DE_ROLAGEM =
   'document.documentElement.style.overflowY = "scroll"';
 
-/** O loading.tsx da aula na mesma casca, no lugar da página. */
 async function abrirEsqueleto(
   largura: number,
   altura: number,
@@ -349,7 +327,6 @@ const teclar = (key: string) =>
     `document.getElementById("video").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: ${JSON.stringify(key)} }))`
   );
 
-/** Uma tecla de verdade, pelo DevTools, com o keydown e o keyup que o browser gera. */
 const TECLAS: Record<string, { code: string; vk: number }> = {
   ArrowLeft: { code: "ArrowLeft", vk: 37 },
   ArrowRight: { code: "ArrowRight", vk: 39 },
@@ -373,7 +350,6 @@ async function apertar(key: string) {
   );
 }
 
-/** Cada parada do Tab até o controle com o rótulo pedido, em no máximo 10 Tabs. */
 async function tabAte(
   rotulo: string,
   paradas: string[] = []
@@ -392,7 +368,6 @@ async function tabAte(
     : await tabAte(rotulo, ate);
 }
 
-/** A mesma tecla várias vezes, uma depois da outra. */
 const apertarVezes = (key: string, vezes: number) =>
   Array.from({ length: vezes }).reduce<Promise<void>>(
     (anterior) => anterior.then(() => apertar(key)),
@@ -413,21 +388,18 @@ const pressionado = (seletor: string) =>
 
 const FOLHA_DOS_AJUSTES = '[role="dialog"][aria-label="Ajustes"]';
 
-/** A velocidade marcada nos Ajustes, pelo rótulo dela. */
 const velocidadeMarcada = () =>
   avaliar<string | null>(
     enviar,
     `document.querySelector('${FOLHA_DOS_AJUSTES} input[type="radio"]:checked')?.getAttribute("aria-label") ?? null`
   );
 
-/** A conquista mais longa: a aula assistida com o bônus da sequência. */
 const CONQUISTA_COM_BONUS = {
   bonusSequencia: 30,
   pontos: 10,
   sequenciaDias: 7,
 };
 
-/** O meio vertical de cada peça da barra de controles, arredondado, e se a barra transborda. */
 function linhasDaBarra() {
   return avaliar<{ topos: Record<string, number>; transborda: boolean }>(
     enviar,
@@ -456,7 +428,6 @@ function linhasDaBarra() {
   );
 }
 
-/** Toca até o fim com o servidor devolvendo a conquista, como na aula que fica assistida. */
 async function assistirAteOFim() {
   await avaliar(
     enviar,
@@ -487,7 +458,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       `document.querySelector("#iframe-do-youtube")?.contentDocument?.querySelector("button")`
     );
     expect(await tabAte("Posição no vídeo")).toEqual(["DIV Posição no vídeo"]);
-    // O clique no meio do vídeo ainda cai no iframe.
     expect(
       await avaliar<boolean>(
         enviar,
@@ -528,7 +498,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       expect(medida.rolou).toBe(0);
       expect(medida.controles).toBeLessThanOrEqual(medida.visivel);
       expect(medida.navegacao).toBeLessThanOrEqual(medida.visivel);
-      // O vídeo continua 16:9, só menor.
       expect(
         Math.abs(medida.video.largura / medida.video.altura - 16 / 9)
       ).toBeLessThan(0.01);
@@ -544,7 +513,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
       await assistirAteOFim();
       const { topos, transborda } = await linhasDaBarra();
       expect(transborda).toBe(false);
-      // Uma linha só: todas as peças no meio do botão de reproduzir, a 1 px.
       const linha = topos.reproduzir;
 
       for (const [peca, topo] of Object.entries(topos)) {
@@ -623,8 +591,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     });
   });
 
-  // A barra tem uma linha a partir de 40rem de largura dela e duas abaixo disso: no
-  // celular, no tablet e entre 1081 e uns 1230 px, onde a coluna do curso a estreita.
   for (const [largura, altura, celular] of [
     [1440, 900, false],
     [1120, 800, false],
@@ -635,7 +601,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
   ] as const) {
     test(`em ${largura} x ${altura}, o esqueleto do player tem o topo e a altura do player com os controles`, async () => {
       await abrirEsqueleto(largura, altura, celular);
-      // A barra de rolagem depende do que vem abaixo do player, que o esqueleto não sabe.
       await avaliar(enviar, COM_BARRA_DE_ROLAGEM);
 
       const esqueleto = await avaliar<{ altura: number; topo: number }>(
@@ -657,7 +622,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         largura,
       });
 
-      // Em 320 px a linha do módulo desta aula quebra em duas, e o esqueleto tem uma.
       if (largura > 320) {
         expect({ largura, topo: esqueleto.topo }).toEqual({
           largura,
@@ -674,7 +638,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
 
     await clicar('button[aria-label="Ajustes"]');
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    // A folha nasce dentro do player, que é o que aparece em tela cheia.
     expect(
       await avaliar<boolean>(
         enviar,
@@ -725,12 +688,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    // Da velocidade marcada até o 2×, pelas setas.
     await apertarVezes("ArrowRight", 4);
     expect(await focado()).toBe("2×");
     expect(await velocidadeMarcada()).toBe("2×");
     await apertar("Escape");
-    // Já no quadro do Esc, com a folha ainda saindo: o 2× que some não segura o foco.
     expect(await focado()).toBe("Ajustes");
     await esperar(`!document.querySelector('${FOLHA_DOS_AJUSTES}')`);
     expect(await focado()).toBe("Ajustes");
@@ -753,13 +714,11 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await apertarVezes("ArrowLeft", 2);
     expect(await focado()).toBe("0,75×");
     expect(await velocidadeMarcada()).toBe("0,75×");
-    // As setas trocam a velocidade, e nenhuma delas anda no vídeo.
     expect(await pedidos()).toEqual([
       "velocidade:1.25",
       "velocidade:1",
       "velocidade:0.75",
     ]);
-    // O Tab sai do grupo para o item seguinte, sem passar pelas outras velocidades.
     await apertar("Tab");
     expect(await focado()).toBe("LegendasDesligadas");
   });
@@ -796,7 +755,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("ArrowRight");
     await clicar('button[aria-label="Avançar 10 segundos"]');
-    // O seekTo do YouTube toca o vídeo que ainda não começou.
     expect(await chamadas()).toEqual([]);
     expect(
       await avaliar<string>(
@@ -806,7 +764,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     ).toStartWith("00:15 / 10:34");
     await clicar('button[aria-label="Reproduzir"]');
     expect(await chamadas()).toEqual(["seekTo:15,true", "playVideo"]);
-    // Depois do primeiro play, andar no vídeo vai direto ao YouTube.
     await avaliar(enviar, "window.ytEventos.onStateChange({ data: 1 })");
     await chamadas();
     await clicar('button[aria-label="Avançar 10 segundos"]');
@@ -822,7 +779,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     );
     await apertar("Enter");
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
-    // Da velocidade marcada, o Tab passa por Legendas e chega aos Atalhos.
     await apertarVezes("Tab", 2);
     expect(await focado()).toBe("Atalhos do teclado?");
     await apertar("Enter");
@@ -852,7 +808,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
         sombra: string;
       }>(
         enviar,
-        // A transição de cor dura 150 ms: a medida espera ela acabar.
         `new Promise((pronto) => setTimeout(() => {
           const item = document.activeElement;
           // O rádio da velocidade fica escondido: quem acende é o rótulo dele.
@@ -871,7 +826,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     const TITULO = "rgb(244, 245, 247)";
     const POPOVER = "rgb(58, 63, 69)";
 
-    // A velocidade marcada, que recebe o foco quando a folha abre.
     const marcada = await sinal();
     expect(marcada).toMatchObject({
       folha: POPOVER,
@@ -893,7 +847,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await clicar('button[aria-label="Ajustes"]');
     await esperar(`document.querySelector('${FOLHA_DOS_AJUSTES}')`);
 
-    // A folha cresce de 95% ao abrir: a medida espera os 150 ms da entrada.
     const medida = await avaliar<{ folha: number[]; linha: number[] }>(
       enviar,
       `new Promise((pronto) => setTimeout(() => {
@@ -967,7 +920,6 @@ describe.skipIf(!existsSync(CHROMIUM))("o player da aula no browser", () => {
     await emitir({ duracaoSeg: 634, tipo: "pronto" });
     await emitir({ tipo: "terminou" });
     await esperar(`document.body.textContent.includes("Aula assistida")`);
-    // O botão de baixo estava em Sol antes do fim, e a cor dele sai numa transição.
     await esperar(
       `[...document.querySelectorAll("a")].filter((a) => a.textContent.trim() === "Próxima aula" && getComputedStyle(a).backgroundColor === "rgb(255, 204, 1)").length === 1`
     );

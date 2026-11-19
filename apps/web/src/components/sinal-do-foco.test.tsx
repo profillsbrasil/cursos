@@ -1,11 +1,3 @@
-// Os quatro controles da #44 tinham foco de teclado quase invisível. Cada um é
-// renderizado como o app o monta, e o CSS real do app (index.css com o globals.css)
-// é compilado pelo Tailwind com as classes que saem dele. O teste lê só as regras
-// que casam com o foco de teclado e confere o sinal que o dono escolheu. A pílula
-// acende por um irmão (:has e ~), que só um browser de verdade avalia: a navegação
-// abre no Chromium headless, com o cursor e o foco forçados no link. Sem Chromium
-// na máquina, pulam a suíte da pílula e a do Revogar em 390 px.
-
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 
@@ -34,8 +26,6 @@ import {
   fecharChromium,
 } from "./chromium.test-utils";
 
-// Fora do App Router o usePathname não tem de onde ler e o useRouter lança; o teste
-// diz o caminho, e o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -48,8 +38,6 @@ mock.module("next/navigation", () => ({
   }),
 }));
 
-// A Casca inteira, para o link de pular: ela lê o cookie da sidebar, e o cartão de
-// conta lê a pessoa do Clerk, que sem o ClerkProvider lança.
 const cabecalhos = await import("next/headers");
 
 mock.module("next/headers", () => ({
@@ -92,7 +80,6 @@ const ITEM_EM_BREVE_DE_TESTE = {
   tipo: "em_breve",
 } as const;
 
-// O HTML de cada controle, como o app o renderiza.
 const nav = renderToStaticMarkup(
   <ProvedorDaCasca aberta>
     <NavPrincipal
@@ -160,7 +147,6 @@ const coluna = renderToStaticMarkup(
   />
 );
 
-// Os controles do player, com o player pronto e a tela cheia disponível.
 const nada = () => undefined;
 
 const controles = renderToStaticMarkup(
@@ -213,7 +199,6 @@ const pessoas = renderToStaticMarkup(
   </ProvedorDoLote>
 );
 
-// Uma liberação ativa, com Revogar, e uma revogada, que fica no summary recolhido.
 const liberacao = (
   id: string,
   titulo: string,
@@ -263,8 +248,6 @@ const faixa = renderToStaticMarkup(
   />
 );
 
-// O Continuar do rodapé da sidebar aberta, em "Começar curso", como no teste de
-// usabilidade (r1/teclado/01): o Tab chegava nele e só o fundo trocava de cinza.
 const COMECAR: Continuar = {
   chamada: "Começar curso",
   chamadaAqui: "Assistindo agora",
@@ -291,8 +274,6 @@ const continuar = renderToStaticMarkup(
   </ProvedorDaCasca>
 );
 
-// A casca do aluno como o layout a monta, com o Continuar no rodapé e uma página
-// cujo primeiro controle é "Começar o curso".
 const PRIMEIRO_DO_CONTEUDO = "Começar o curso";
 
 const casca = renderToStaticMarkup(
@@ -318,7 +299,6 @@ const casca = renderToStaticMarkup(
   })
 );
 
-// Apagar aberto na linha, como a categoria, o comunicado e o curso o montam.
 const apagarNaLinha = renderToStaticMarkup(
   <ConfirmacaoNaLinha
     botao={{ nome: "Confirmar: apagar Envase", perigo: true, rotulo: "Apagar" }}
@@ -349,13 +329,11 @@ const pedeDaConta = renderToStaticMarkup(
   />
 );
 
-// O diálogo de Excluir conta abre num portal, que o HTML do servidor não traz.
 const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;
 
 interface Elemento {
   atributos: Partial<Record<string, string>>;
   classes: string[];
-  /** O texto que vem logo depois da tag, até a próxima tag. */
   texto: string;
 }
 
@@ -402,7 +380,6 @@ interface Regra {
   seletor: string;
 }
 
-/** Cada regra com as declarações dela; o @media e o @supports não contam como seletor. */
 function regrasDoCss(texto: string): Regra[] {
   const regras: Regra[] = [];
   const pilha: string[] = [];
@@ -435,7 +412,6 @@ function regrasDoCss(texto: string): Regra[] {
 
 const regras = regrasDoCss(css.slice(css.indexOf("@layer utilities")));
 
-/** O que o `:is(` do começo do seletor envolve, até o `)` que o fecha. */
 function dentroDoIs(seletor: string) {
   if (!seletor.startsWith(":is(")) {
     return null;
@@ -462,11 +438,6 @@ function dentroDoIs(seletor: string) {
   return null;
 }
 
-/**
- * As regras da classe: `hover:bg-x` é escrita `.hover\:bg-x` no começo do seletor,
- * e `group-hover:x` fecha o `:is(<grupo> .group-hover\:x)` que abre o seletor
- * desde o Tailwind 4.3.4, seguido ou não de `:not(:disabled)` ou de um filho.
- */
 function regrasDe(classe: string) {
   const escapada = `.${classe.replace(/[^\w-]/g, (c) => `\\${c}`)}`;
 
@@ -484,11 +455,6 @@ const NOME_DE_CLASSE = /\.(?:\\.|[\w-])+/g;
 const casaComFoco = (r: Regra) =>
   r.seletor.replace(NOME_DE_CLASSE, "").includes(":focus-visible");
 
-/**
- * O que muda no elemento com o foco de teclado: as declarações das regras das
- * classes dele que só casam com um :focus-visible, no próprio elemento, num grupo
- * ou num irmão.
- */
 const noFoco = (e: Elemento) =>
   e.classes.flatMap((classe) =>
     regrasDe(classe)
@@ -502,9 +468,6 @@ function unico(lista: Elemento[], descricao: string) {
   return lista[0];
 }
 
-// O Chromium da máquina (chromium.test-utils.ts) avalia o seletor da variante
-// ativo-aceso (:has com ~) contra o HTML renderizado, com o CSS compilado.
-// Preenchidos pelo beforeAll da suíte do Chromium; sem Chromium, a suíte pula.
 let enviar: Awaited<ReturnType<typeof abrirChromium>>;
 let raiz: number;
 let temCursor: boolean;
@@ -532,7 +495,6 @@ async function noDe(seletor: string) {
   return nodeId;
 }
 
-/** Aperta Tab, como a pessoa, até a condição valer ou acabarem as tentativas. */
 async function tabAte(condicao: string, tentativas: number): Promise<void> {
   if (tentativas === 0 || (await avaliar<boolean>(condicao))) {
     return;
@@ -548,13 +510,11 @@ async function tabAte(condicao: string, tentativas: number): Promise<void> {
 const LINK_ATIVO = 'nav a[aria-current="page"]';
 const OUTRO_LINK = "nav a[href]:not([aria-current])";
 
-// A cor e o brilho mudam com transição: lê depois que ela termina.
 const lerPilula = () =>
   avaliar<{ fundo: string; sombra: string }>(
     `(async () => { const li = document.querySelector('nav li[aria-hidden="true"]'); getComputedStyle(li).backgroundColor; await Promise.all(li.getAnimations().map((a) => a.finished)); const p = getComputedStyle(li); return { fundo: p.backgroundColor, sombra: p.boxShadow }; })()`
   );
 
-/** A cor e a sombra da pílula com o cursor ou o foco forçado num link. */
 async function pilulaCom(link: string, estado: "hover" | "focus-visible") {
   const nodeId = await noDe(link);
   await enviar("CSS.forcePseudoState", {
@@ -619,7 +579,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       });
 
       test("em repouso, a pílula fica no amarelo de sempre, sem brilho", () => {
-        // O ramo do cursor mora num @media (hover: hover): sem cursor, ele não vale.
         expect(temCursor).toBe(true);
         expect(solHover).toStartWith("rgb");
         expect(repouso.fundo).not.toBe(solHover);
@@ -640,8 +599,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     }
   );
 
-  // A tabela de liberações tinha 640 px de largura mínima: em 390 px, o Tab até
-  // Revogar rolava a tabela para o lado e o título da liberação saía da tela.
   describe.skipIf(!existsSync(CHROMIUM))(
     "com o foco de teclado em 390 px, Revogar aparece inteiro, sem rolar a lista para o lado",
     () => {
@@ -666,20 +623,16 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         await enviar("Emulation.setEmulatedMedia", {
           features: [{ name: "prefers-reduced-motion", value: "reduce" }],
         });
-        // A moldura do conteúdo do app no celular: 16 px de cada lado.
         await avaliar(
           `document.open(); document.write(${JSON.stringify(
             `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0"><main style="padding:16px">${acesso}</main><div id="sonda" style="color: var(--titulo)"></div></body></html>`
           )}); document.close();`
         );
-        // Tab de verdade, como a pessoa: o foco vem do teclado e o navegador
-        // rola o que for preciso para mostrar o botão.
         await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
         await tabAte(
           `document.activeElement?.getAttribute("aria-label") === "Revogar Ativo"`,
           20
         );
-        // A borda troca de cor com transição: lê depois que ela termina.
         await sleep(400);
         medida = await avaliar(`(() => {
           const revogar = document.activeElement;
@@ -719,8 +672,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     }
   );
 
-  // O Continuar aberto só trocava o fundo de sidebar-accent (#2f343a) para popover
-  // (#3a3f45), 1,15:1 um contra o outro: com o Tab nele, a tela parecia parada.
   describe.skipIf(!existsSync(CHROMIUM))(
     "com o Tab no Continuar da sidebar aberta, o play redondo clareia e brilha como o botão amarelo",
     () => {
@@ -735,7 +686,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
       let comCursor: Redondo;
       let solHoverAqui: string;
 
-      // A cor e o brilho mudam com transição: lê depois que ela termina.
       const lerRedondo = () =>
         avaliar<Redondo>(`(async () => {
           const link = document.querySelector('a[aria-label="${COMECAR.rotulo}"]');
@@ -775,7 +725,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
           "getComputedStyle(document.getElementById('sonda')).backgroundColor"
         );
         emRepouso = await lerRedondo();
-        // O cursor forçado no link, sem foco.
         const link = await noDe(`a[aria-label="${COMECAR.rotulo}"]`);
         await enviar("CSS.forcePseudoState", {
           forcedPseudoClasses: ["hover"],
@@ -786,7 +735,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
           forcedPseudoClasses: [],
           nodeId: link,
         });
-        // Tab de verdade, como a pessoa.
         await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
         await tabAte(
           `document.activeElement?.getAttribute("aria-label") === ${JSON.stringify(COMECAR.rotulo)}`,
@@ -838,7 +786,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
 
   test("o módulo da coluna do player ganha fundo branco a 8% e o título em titulo", () => {
     const daColuna = elementos(coluna);
-    // O módulo 2 está fechado: o título não vem claro do group-open.
     const resumos = daColuna.filter((e) => e.classes.includes("list-none"));
     expect(resumos).toHaveLength(2);
     const [, resumo] = resumos;
@@ -852,7 +799,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
     );
 
     expect(noFoco(titulo)).toContain("color: var(--titulo)");
-    // O título acende pelo grupo do summary, que precisa existir.
     expect(resumo.classes).toContain("group/modulo");
   });
 
@@ -974,7 +920,6 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
   });
 });
 
-/** As cores de texto que o foco põe no elemento e que não são a de repouso. */
 const outraCorNoFoco = (e: Elemento, corDeRepouso: string) =>
   noFoco(e).filter(
     (d) => d.startsWith("color:") && d !== `color: var(--${corDeRepouso})`
@@ -1049,8 +994,6 @@ describe("o foco passa de branco a 4% para o sinal do cursor", () => {
   });
 });
 
-// Teste de usabilidade (r2/teclado/01): sem link de pular, o Tab passava por 7
-// paradas da casca (recolher, 4 itens, Continuar, conta) antes do conteúdo.
 describe.skipIf(!existsSync(CHROMIUM))(
   "na casca, o primeiro Tab mostra Pular para o conteúdo, e o Enter leva o Tab seguinte ao conteúdo",
   () => {
@@ -1096,7 +1039,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
       return a?.getAttribute("aria-label") || a?.id || a?.textContent?.trim() || a?.tagName;
     })()`;
 
-    // O link de pular, pelo texto; o fundo lido depois que a transição termina.
     const lerPular = () =>
       avaliar<Pular>(`(async () => {
         const link = [...document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Pular para o conteúdo");
@@ -1129,7 +1071,6 @@ describe.skipIf(!existsSync(CHROMIUM))(
       solHoverAqui = await avaliar<string>(
         "getComputedStyle(document.getElementById('sonda')).backgroundColor"
       );
-      // Tab e Enter de verdade, como a pessoa.
       await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
       antes = await lerPular();
       await tecla("Tab");

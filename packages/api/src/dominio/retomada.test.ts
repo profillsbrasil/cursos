@@ -6,7 +6,6 @@ import type { Estudo } from "./historico";
 import { type EntradaRetomada, retomada } from "./retomada";
 import type { AulaId, CursoCatalogo, Historico } from "./tipos";
 
-/** Os cursos na ordem da tela, cada um lido do mesmo estudo. A atividade, sem outra, é a das posições. */
 const entrada = (
   cursos: CursoCatalogo[],
   h: Historico,

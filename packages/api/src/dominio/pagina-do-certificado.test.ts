@@ -8,7 +8,6 @@ describe("cargaHoraria", () => {
     [3599, 1],
     [3600, 1],
     [3601, 2],
-    // Fábrica e montagem do protótipo: 7 aulas de 10:34 somam 1 h 14 min.
     [7 * 634, 2],
     [10 * 3600, 10],
   ])("%p s dão %p h", (segundos, horas) => {

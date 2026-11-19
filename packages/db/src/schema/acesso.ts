@@ -22,7 +22,7 @@ export const perfilDaPessoa = tabela(
     definidoEm: momento(),
     definidoPor: text(),
     perfil: perfil().notNull(),
-    userId: text().primaryKey(), // userId do Clerk
+    userId: text().primaryKey(),
   },
   (t) => [
     check(
@@ -67,11 +67,10 @@ export const liberacao = tabela(
     id: uuid().primaryKey().defaultRandom(),
     liberadaEm: momento(),
     liberadaPor: text().notNull(),
-    // Sem default: todo INSERT diz de onde veio a liberação.
     origem: liberacaoOrigem().notNull(),
     revogadaEm: timestamp({ withTimezone: true }),
     revogadaPor: text(),
-    userId: text().notNull(), // userId do Clerk
+    userId: text().notNull(),
   },
   (t) => [
     check("liberacao_user_id_clerk", sql`${t.userId} ~ '^user_[A-Za-z0-9]+$'`),
@@ -80,9 +79,7 @@ export const liberacao = tabela(
       sql`(${t.revogadaEm} is null) = (${t.revogadaPor} is null)
           and (${t.revogadaEm} is null or ${t.revogadaEm} >= ${t.liberadaEm})`
     ),
-    // ::text pelo mesmo padrão dos checks de ponto_lancamento. Lá ele é obrigatório: a
-    // migração troca faz ALTER TYPE ... ADD VALUE, e o Postgres recusa o valor novo na
-    // mesma transação. Aqui o enum nasce com CREATE TYPE, que não tem essa regra.
+    // WARNING: o check usa ::text no enum; com ALTER TYPE ... ADD VALUE o Postgres recusa o valor novo na mesma transação.
     check(
       "liberacao_troca_nao_revoga",
       sql`${t.revogadaEm} is null or ${t.origem}::text <> 'troca'`
@@ -91,8 +88,7 @@ export const liberacao = tabela(
       "liberacao_troca_pelo_aluno",
       sql`${t.origem}::text <> 'troca' or ${t.liberadaPor} = ${t.userId}`
     ),
-    unique("liberacao_do_aluno").on(t.userId, t.id), // alvo da FK composta do lançamento de troca
-    // Uma liberação ativa por curso. Revogar e liberar de novo continua possível.
+    unique("liberacao_do_aluno").on(t.userId, t.id),
     uniqueIndex("liberacao_curso_ativa_unica")
       .on(t.userId, t.cursoId)
       .where(sql`${t.revogadaEm} is null`),

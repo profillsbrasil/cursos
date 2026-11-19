@@ -7,12 +7,14 @@ import { BOTAO, BOTAO_CONTORNO } from "@/components/casca/botoes";
 
 const TITULO = "Página não encontrada";
 
-// Vale porque o generateMetadata da ficha, do acesso e do editor chama notFound().
+/** Vale porque o generateMetadata da ficha, do acesso e do editor chama notFound(). */
 export const metadata: Metadata = { title: `${TITULO} · Admin` };
 
-// notFound() das telas do admin: fica dentro da casca do admin, com a volta
-// para as telas dele. Quem não é admin cai antes, no notFound() do layout, que
-// sobe para a 404 do app.
+/**
+ * O notFound() das telas do admin: fica dentro da casca do admin, com a volta
+ * para as telas dele. Quem não é admin cai antes, no notFound() do layout, que
+ * sobe para a 404 do app.
+ */
 export default function AdminNaoEncontrado() {
   return (
     <TelaNaoEncontrada

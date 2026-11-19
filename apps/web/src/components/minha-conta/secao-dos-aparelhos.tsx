@@ -29,7 +29,6 @@ import {
 import type { SessaoComAtividade, Usuario } from "./tipos";
 import { useAcaoDaConta } from "./use-acao-da-conta";
 
-/** As sessões e o instante em que chegaram, que mede o "ontem às 19h40". */
 type Lista =
   | { estado: "carregando" }
   | { estado: "falhou"; frase: string }

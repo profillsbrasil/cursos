@@ -6,8 +6,7 @@ import type { ReactNode } from "react";
 import { BOTAO } from "@/components/casca/botoes";
 import { CARTAO } from "@/components/casca/cartoes";
 
-// Corpo dos not-found.tsx do app: diz o que faltou e leva de volta, por padrão
-// a Meus cursos; o admin passa as voltas dele.
+/** Corpo dos not-found.tsx do app: diz o que faltou e leva de volta, por padrão a Meus cursos; o admin passa as voltas dele. */
 export function TelaNaoEncontrada({
   acao = "Voltar para Meus cursos",
   children,

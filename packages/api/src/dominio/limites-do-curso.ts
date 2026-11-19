@@ -1,10 +1,10 @@
-// Os tetos do curso que o editor e o servidor dividem. Fica fora de
-// edicao-do-curso.ts, que importa o Zod: a tela de Categorias e o endereço só
-// precisam dos números, e o Zod pesa cerca de 90 KB em gzip no navegador.
-
 import { LIMITE_DO_MATERIAL } from "./material";
 
 /**
+ * Os tetos do curso que o editor e o servidor dividem. Fica fora de
+ * edicao-do-curso.ts, que importa o Zod: a tela de Categorias e o endereço só
+ * precisam dos números, e o Zod pesa cerca de 90 KB em gzip no navegador.
+ *
  * Tetos do documento. gravarCurso deriva deles o deslocamento que regrava números
  * e posições sem colidir nos uniques não deferrable.
  */

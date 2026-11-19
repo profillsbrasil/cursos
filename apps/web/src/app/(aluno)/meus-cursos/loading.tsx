@@ -5,9 +5,11 @@ import { GRADE_CAPAS } from "@/components/meus-cursos/capa-curso";
 
 const PULSO = "bg-card";
 
-// Esqueleto no formato do cabeçalho, do banner, da semana e da seção dos cursos:
-// o resumo de exemplo pulsa no lugar da contagem, e as capas ficam na mesma grade
-// da página.
+/**
+ * Esqueleto no formato do cabeçalho, do banner, da semana e da seção dos
+ * cursos: o resumo de exemplo pulsa no lugar da contagem, e as capas ficam na
+ * mesma grade da página.
+ */
 export default function Carregando() {
   return (
     <>

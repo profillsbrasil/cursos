@@ -1,4 +1,4 @@
-// Tabela do PRODUCT.md. O admin passa a ajustar no PR da tela dele, que traz regra_ponto.
+/** Tabela do PRODUCT.md. O admin passa a ajustar no PR da tela dele, que traz regra_ponto. */
 export const PONTOS = {
   aula_assistida: 10,
   curso_concluido: 100,

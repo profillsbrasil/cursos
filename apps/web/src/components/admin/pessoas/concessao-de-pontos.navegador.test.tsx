@@ -21,11 +21,6 @@ const NEXT_NAVIGATION = /^next\/navigation$/;
 
 const SALDO = 3130;
 
-/**
- * A ficha de verdade lê o saldo do servidor; aqui o refresh do useAcao troca o
- * saldo pelo que o servidor devolveu. O falso grava cada chamada em
- * window.chamadas.
- */
 async function empacotar() {
   const pacote = await build({
     define: { "process.env.NODE_ENV": '"development"' },
@@ -78,8 +73,6 @@ async function empacotar() {
   return await saida.text();
 }
 
-// Funções da página: clicam no rótulo como a pessoa, escrevem no campo pelo
-// setter nativo (o React lê o evento input) e leem o botão de enviar.
 const AJUDANTES = `
   window.clicar = (rotulo) => {
     const alvo = [...document.querySelectorAll("label")].find((l) => l.textContent.trim() === rotulo);

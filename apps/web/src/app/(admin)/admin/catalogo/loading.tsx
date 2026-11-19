@@ -5,8 +5,10 @@ import { EsqueletoDoCabecalho } from "@/components/casca/cabecalho-da-pagina";
 
 const PULSO = "bg-card";
 
-// O cabeçalho e as capas na mesma grade da página, enquanto o banco responde:
-// a capa, o título com a categoria e o código embaixo, e a linha dos módulos.
+/**
+ * O cabeçalho e as capas na mesma grade da página, enquanto o banco responde:
+ * a capa, o título com a categoria e o código embaixo, e a linha dos módulos.
+ */
 export default function Carregando() {
   return (
     <div aria-busy="true">

@@ -77,21 +77,13 @@ const ACEITOS = Object.keys(TIPOS_DE_MATERIAL)
 
 const FALHA_DO_ENVIO = "Não deu para enviar. Tente de novo em instantes.";
 
-/** Uma linha do cartão: 1 px de borda a borda em cima, padding só dentro dela. */
 const LINHA =
   "grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3.5 border-border border-t bg-card py-3 pr-5 pl-2.5 first:border-t-0";
 
-/** A linha presa ao ponteiro flutua sobre as outras, com a sombra Flutuante. */
 const LINHA_ARRASTADA = "shadow-[0_10px_30px_rgb(0_0_0/0.45)]";
 
-/** A coluna da alça; a linha que não arrasta deixa a coluna vazia, para os selos ficarem alinhados. */
 const ALCA = "flex h-11 w-6 items-center justify-center";
 
-/**
- * Como as linhas andam. As outras abrem espaço para a arrastada só durante o
- * arrastar; pelas setas, que são o caminho do teclado, a linha troca de lugar na
- * hora. Solta, a arrastada assenta sem quique; com movimento reduzido, nada desliza.
- */
 function movimentoDasLinhas(arrastando: boolean, reduzir: boolean) {
   return {
     assentar: reduzir
@@ -133,7 +125,6 @@ function Alca({
 }) {
   const pegar = useCallback(
     (e: PointerEvent<HTMLSpanElement>) => {
-      // Sem isso, o ponteiro arrastado seleciona o texto das linhas por onde passa.
       e.preventDefault();
       aoComecar();
       controles.start(e);
@@ -142,7 +133,6 @@ function Alca({
   );
 
   return (
-    // Só o ponteiro arrasta; o teclado e o leitor de tela usam as setas da linha.
     <span
       aria-hidden="true"
       className={cn(
@@ -173,20 +163,15 @@ function LinhaDoMaterial({
   aoSoltar: () => void;
   arrastada: boolean;
   despachar: Dispatch<AcaoDoEditor>;
-  /** A posição entre todas as linhas da seção, também as dos envios. */
   indice: number;
   material: MaterialDoDocumento;
   movimento: Movimento;
-  /** Quem recebe o foco quando esta linha sai. */
   proximo: string;
   total: number;
 }) {
   const { id } = material;
   const controles = useDragControls();
-  // A linha só anda na vertical. Quando a barra de rolagem da página aparece no
-  // meio do arrastar, a linha estreita 10 px, o Motion soma ao x dela os 5 px que
-  // o centro andou e, ao soltar, só devolve o y: ela ficava torta. Com o _dragX
-  // num valor que ninguém desenha, esse desvio não chega à linha.
+  // WARNING: sem o _dragX num valor que ninguém desenha, a barra de rolagem que surge no arrastar deixa a linha torta.
   const deslizeHorizontal = useMotionValue(0);
   const comecar = useCallback(() => aoComecar(id), [aoComecar, id]);
   const campo = ID.material(id);
@@ -229,8 +214,7 @@ function LinhaDoMaterial({
       dragMomentum={false}
       dragTransition={movimento.assentar}
       onDragEnd={aoSoltar}
-      // O Motion 14 põe a linha no Tab para reordenar pelo teclado; aqui o
-      // teclado reordena pelas setas da linha, e a linha fica fora do Tab.
+      // WARNING: o Motion 14 põe a linha no Tab; o teclado reordena pelas setas, então o tabIndex fica undefined.
       tabIndex={undefined}
       transition={movimento.transition}
       value={id}
@@ -289,11 +273,6 @@ function LinhaDoMaterial({
   );
 }
 
-/**
- * A linha que sobe ou foi recusada não arrasta nem tem setas: a que sobe vira
- * material em segundos, no mesmo lugar, e a recusada não entra no curso. Ela
- * abre espaço quando outra linha passa.
- */
 function LinhaDoEnvio({
   despachar,
   envio,
@@ -303,7 +282,6 @@ function LinhaDoEnvio({
   despachar: Dispatch<AcaoDoEditor>;
   envio: EnvioDeMaterial;
   movimento: Movimento;
-  /** Quem recebe o foco quando esta linha sai. */
   proximo: string;
 }) {
   const { estado, id, nomeDoArquivo } = envio;

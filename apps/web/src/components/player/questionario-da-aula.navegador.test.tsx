@@ -104,7 +104,6 @@ async function empacotar() {
       [NAVEGACAO]: `
         export const useRouter = () => ({ refresh: () => undefined });
       `,
-      // Fora do App Router o next/link não tem roteador: vira um <a>.
       [LINK]: `import { createElement } from "react";
         export default function Link(props) { return createElement("a", props); }`,
     },
@@ -165,7 +164,6 @@ const htmlDe = (q: (typeof ESTADOS)[number]) =>
 const CLASSES = /class="([^"]*)"/g;
 const ESPACO = /\s+/;
 
-// A alternativa marcada só existe depois do clique: as classes dela vêm à mão.
 const css = await cssDoApp(
   ESTADOS.flatMap((q) =>
     [...htmlDe(q).matchAll(CLASSES)].flatMap(([, c = ""]) => c.split(ESPACO))
@@ -248,7 +246,6 @@ interface Marcada {
 
 const OITO_POR_CENTO = / \/ 0\.08\)$/;
 
-// Depois da transição de 150 ms das cores.
 const marcada = () =>
   avaliar<Marcada>(
     enviar,
@@ -306,16 +303,12 @@ const MEDIR = `(() => {
 const medir = () => avaliar<Medida>(enviar, MEDIR);
 
 interface Divisoria {
-  /** Do fim do enunciado ao bloco seguinte (a marca ou as alternativas). */
   ateOBloco: number;
-  /** Do fim da linha ao topo do enunciado. */
   ateOEnunciado: number;
   esquerda: number;
   largura: number;
 }
 
-// A linha de cada pergunta é a borda de cima do primeiro contêiner com borda,
-// subindo do fieldset até a seção.
 const DIVISORIAS = `(() => {
   const secao = document.getElementById("questionario").getBoundingClientRect();
   return {
@@ -357,10 +350,8 @@ async function enterEm(rotulo: string) {
   await tecla("Enter", "keyUp");
 }
 
-// O primeiro envio cai na rede e o foco fica no botão; o segundo vira o resultado.
 async function enviarPeloEnter() {
   await enterEm("Enviar respostas");
-  // O alerta entra antes do fim do pendente: espera o rótulo do reenvio.
   await esperar(
     `[...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Enviar de novo")`
   );
@@ -368,7 +359,6 @@ async function enviarPeloEnter() {
   await esperar(`document.querySelector('[role="status"]')`);
 }
 
-/** O que a árvore de acessibilidade do Chromium dá para o elemento com foco. */
 async function anuncioDoFoco() {
   const { result } = (await enviar("Runtime.evaluate", {
     expression: "document.activeElement",
@@ -409,10 +399,8 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     expect(await textoDe('[aria-disabled="true"]')).toBe("Enviar respostas");
     await marcarAsCertas();
     expect(await marcados()).toBe(3);
-    // A escolha é Sol; o Céu fica para o foco e para a correção.
     expect(await marcada()).toEqual({
       borda: "rgb(255, 204, 1)",
-      // O Chromium escreve o Sol a 8% em oklab.
       fundo: expect.stringMatching(OITO_POR_CENTO),
       letra: { cor: "rgb(34, 38, 43)", fundo: "rgb(255, 204, 1)" },
       raio: "23px",
@@ -491,14 +479,12 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
       nome: "Questionário",
       papel: "heading",
     });
-    // Foco é hover: o título não ganha contorno.
     expect(
       await avaliar<string>(
         enviar,
         "getComputedStyle(document.activeElement).outlineStyle"
       )
     ).toBe("none");
-    // O Tab seguinte entra na primeira pergunta.
     await tecla("Tab", "keyDown");
     await tecla("Tab", "keyUp");
     expect(

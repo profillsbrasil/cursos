@@ -8,18 +8,12 @@ const SRC = join(import.meta.dir, "..");
 const TEXTO_EM_PX = /text-\[(\d+(?:\.\d+)?)px\]/g;
 const MENOR_LEGIVEL_PX = 11;
 
-/** As exceções que o DESIGN.md escreve, cada uma no único arquivo dela. */
 const ABAIXO_DE_11_PX: Record<string, string> = {
   "components/casca/cabecalho-da-casca.tsx": "o selo da área, 10 px",
   "components/player/controles-do-player.tsx":
     'o "10" de 7 px, parte do glifo de voltar 10 s',
 };
 
-/**
- * O princípio 4 do PRODUCT.md: ninguém deixa de enxergar um texto. Texto
- * abaixo de 11 px fora das exceções volta a ser acusado aqui, com o arquivo e
- * a linha.
- */
 describe("tamanho mínimo do texto", () => {
   test("nenhum texto fica abaixo de 11 px fora das exceções do DESIGN.md", () => {
     const fora: string[] = [];

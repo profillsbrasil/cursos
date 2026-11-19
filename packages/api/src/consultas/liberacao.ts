@@ -90,7 +90,6 @@ interface LiberacaoAtiva {
   origem: OrigemDaLiberacao;
 }
 
-/** A liberação ativa do curso, de qualquer origem. O índice liberacao_curso_ativa_unica garante uma no máximo. */
 async function ativaDoCurso(
   exec: Executor,
   userId: string,
@@ -133,7 +132,7 @@ export async function liberarNoAlunoTravado(
   cursoId: CursoId,
   agora: Date
 ): Promise<(LiberacaoAtiva & { nova: boolean }) | null> {
-  // Em série: a transação tem um client só (consultas/aula.ts).
+  // WARNING: em série, a transação tem um client só (consultas/aula.ts).
   if (!(await cursoExiste(aluno.tx, cursoId))) {
     return null;
   }
@@ -184,8 +183,7 @@ export async function liberar(
       return liberada;
     });
   } catch (erro) {
-    // O curso foi lido antes de o DELETE dele comitar: liberar trava o aluno,
-    // não o curso, e o INSERT espera a linha e para no FK.
+    // WARNING: liberar trava o aluno, não o curso: o DELETE do curso pode comitar depois da leitura e o INSERT para no FK.
     if (violacaoDe(erro)?.restricao === FK_DO_CURSO) {
       throw cursoSumiu(erro);
     }

@@ -38,8 +38,7 @@ const RESPOSTA = {
   });`,
 };
 
-/** O refresh troca a lista pelo que o servidor teria devolvido depois da resposta. */
-const DEPOIS = {
+const LISTA_QUE_O_SERVIDOR_DEVOLVERIA_NO_REFRESH = {
   aceita: JSON.stringify([EM_USO]),
   recusada: JSON.stringify([{ ...LIVRE, cursos: ["Curso novo"] }, EM_USO]),
 };
@@ -59,7 +58,7 @@ async function empacotar(resposta: keyof typeof RESPOSTA) {
         crypto.randomUUID ??= () => "00000000-0000-4000-8000-1" + String(++n).padStart(11, "0");
         function Raiz() {
           const [lista, trocar] = useState(${JSON.stringify([LIVRE, EM_USO])});
-          window.atualizar = () => trocar(${DEPOIS[resposta]});
+          window.atualizar = () => trocar(${LISTA_QUE_O_SERVIDOR_DEVOLVERIA_NO_REFRESH[resposta]});
           return <Categorias categorias={lista} />;
         }
         flushSync(() => createRoot(document.getElementById("raiz")).render(<Raiz />));

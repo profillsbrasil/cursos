@@ -262,7 +262,6 @@ describe("montarPainelDeConvites", () => {
     const painel = montarPainelDeConvites(
       {
         convidados: [
-          // 02h de 11/11 em UTC ainda é dia 10 em São Paulo.
           convidado("ana@x.com", {
             enviadoEm: new Date("2026-11-11T02:00:00Z"),
           }),

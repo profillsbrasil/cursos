@@ -2,7 +2,7 @@ import { Skeleton } from "@cursos/ui/components/skeleton";
 
 import { EsqueletoDoTopoDaPessoa } from "@/components/admin/esqueletos";
 
-// A ficha da pessoa: o topo e os cartões Acesso, Conta e Pontos, dois a dois no lg.
+/** A ficha da pessoa: o topo e os cartões Acesso, Conta e Pontos, dois a dois no lg. */
 export default function Carregando() {
   return (
     <div aria-busy="true">

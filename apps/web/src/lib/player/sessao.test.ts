@@ -41,7 +41,6 @@ function relogioFalso() {
     });
 
   async function avancar(ms: number): Promise<void> {
-    // Respostas já resolvidas agendam timers em microtask: elas rodam antes da varredura.
     await flush();
     const fim = agora + ms;
     let proximo: [number, { em: number; fn: () => void }] | null = null;
@@ -91,7 +90,6 @@ function playerFalso(relogio: Relogio) {
   let taxa = 1;
   let tocando = false;
   let pronto = false;
-  // Como o YouTube: antes do onReady, volume e velocidade não chegam ao player.
   const aplicado = { legenda: true, mudo: false, nivel: 100, velocidade: 1 };
   let aoEvento: (e: EventoDoVideo) => void = () => undefined;
 
@@ -101,7 +99,6 @@ function playerFalso(relogio: Relogio) {
       : base;
 
   const player: PlayerDeVideo = {
-    // Como o YouTube: busca com o vídeo tocando passa por buffer (3) e volta a tocar (1).
     buscar(seg) {
       base = seg;
       desde = relogio.agora();
@@ -238,7 +235,6 @@ function montar(
   const conquistas: Conquista[] = [];
   let refreshes = 0;
 
-  // Ligado como no player: a regra do refresh roda com a ordem real das respostas.
   const saida = criarRefreshDaSaida({
     aoConquistar: (c) => {
       conquistas.push(c);
@@ -653,8 +649,6 @@ describe("encerrar com a rede caída", () => {
   });
 });
 
-// O refresh na saída mantém fresco o "Continuar" do rodapé. A regra mora em
-// refresh-da-saida.ts; aqui ela roda ligada à sessão, com a ordem real das respostas.
 describe("a saída pede refresh só quando a retomada do layout ficou velha", () => {
   test("sem envio aceito, a saída não pede refresh", async () => {
     const { refreshes, relogio, sair, servidor } = montar(120);

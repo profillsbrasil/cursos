@@ -10,7 +10,6 @@ import { SuaSemana } from "./sua-semana";
 const QUINTA = "2026-10-15" as DiaISO;
 const SABADO = "2026-10-17" as DiaISO;
 
-/** A semana de 12 a 18 de outubro de 2026, montada pelo domínio: dias, nomes e sequência. */
 const resumo = (estudados: readonly string[], hoje: DiaISO): ResumoAluno => {
   const dias = new Set(estudados as DiaISO[]);
 
@@ -47,7 +46,6 @@ const texto = (h: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** O texto que o leitor de tela lê: sem o que tem aria-hidden="true", com os aria-label. */
 const legivel = (h: string) =>
   texto(
     h
@@ -55,7 +53,6 @@ const legivel = (h: string) =>
       .replace(/<[^>]*aria-label="([^"]*)"[^>]*>/g, " $1 ")
   );
 
-/** Cada dia da lista: a sigla que se vê, o aria-label e as classes da marca. */
 const dias = (h: string) =>
   [
     ...h.matchAll(

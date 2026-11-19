@@ -1,7 +1,3 @@
-// A ordem de gravarCurso é o único lugar que conhece os uniques não deferrable
-// modulo_numero_unico, aula_posicao_unica, pergunta_posicao_unica,
-// alternativa_posicao_unica, alternativa_certa_unica e material_posicao_unica.
-
 import type { Database } from "@cursos/db";
 import {
   alternativa,
@@ -58,15 +54,8 @@ import { COLUNAS_DA_CAPA, type Executor, type Transacao } from "./comum";
 import { CURSO_EM_USO, FK_VIOLADA, violacaoDe } from "./erros";
 import { comTrava, travarTambem } from "./trava";
 
-/**
- * Teto dos valores finais. O deslocamento de cada regravação é
- * greatest(max(valor atual do curso), TETO_FINAL) + 1: maior que qualquer valor
- * antigo e que qualquer valor final. A soma fica abaixo de 2000, longe do teto
- * do smallint.
- */
 const TETO_FINAL = Math.max(LIMITES.numeroDeModulo, LIMITES.aulasPorModulo);
 
-/** Linhas por INSERT: 8 colunas vezes 1000 fica longe dos 65535 parâmetros do Postgres. */
 const LINHAS_POR_LOTE = 1000;
 
 /**
@@ -280,7 +269,6 @@ function erroDaEdicao(r: RecusaDaEdicao, cause?: unknown): ErroParaAPessoa {
   }
 }
 
-/** Todas saem como PRECONDITION_FAILED, um dos códigos cuja mensagem a tela mostra. */
 function erroDaCapa(r: RecusaDaCapa): ErroParaAPessoa {
   return new ErroParaAPessoa({
     code: "PRECONDITION_FAILED",
@@ -317,13 +305,6 @@ export function erroDoMaterial(r: RecusaDoMaterial): ErroParaAPessoa {
   });
 }
 
-/**
- * O material novo do documento (chave que o curso ainda não tem) precisa estar
- * no bucket: o editor só manda a chave que admin.catalogo.enviarMaterial
- * devolveu, então chave que não existe é envio forjado ou bucket trocado. Roda
- * fora da transação (rede). O bucket não apaga objeto, então a conferência não
- * envelhece até o commit.
- */
 async function exigirMateriaisNoBucket(
   s: Pick<Servicos, "db" | "materiais">,
   documento: DocumentoDoCurso
@@ -354,10 +335,6 @@ async function exigirMateriaisNoBucket(
   }
 }
 
-/**
- * A categoria do documento fica travada (key share) até o commit: apagarCategoria,
- * que pega FOR UPDATE, espera e depois conta este curso.
- */
 async function exigirCategoria(tx: Transacao, id: CategoriaId) {
   const [alvo] = await tx
     .select({ nome: categoria.nome })
@@ -372,16 +349,10 @@ async function exigirCategoria(tx: Transacao, id: CategoriaId) {
   return alvo;
 }
 
-/**
- * O endereço do curso novo: o slug do título, ou ele com o menor sufixo livre. A
- * trava da raiz serializa as criações que disputam o mesmo endereço, e a leitura
- * vem depois dela, para ver o curso que a outra acabou de criar.
- */
 async function slugParaCursoNovo(tx: Transacao, titulo: string) {
   const base = slugDoTitulo(titulo);
   await travarTambem(tx, `slug:${raizDoSlug(base)}`);
 
-  // O slug só tem [a-z0-9-], então nem "_" nem "%" escapam do like.
   const ocupados = await tx
     .select({ slug: curso.slug })
     .from(curso)
@@ -390,15 +361,10 @@ async function slugParaCursoNovo(tx: Transacao, titulo: string) {
   return slugLivre(base, new Set(ocupados.map((c) => c.slug)));
 }
 
-/**
- * O código do curso novo: a sigla da categoria com o menor número livre. A trava
- * da sigla serializa as criações na mesma sigla, e a leitura vem depois dela.
- */
 async function codigoParaCursoNovo(tx: Transacao, nomeDaCategoria: string) {
   const sigla = siglaDaCategoria(nomeDaCategoria);
   await travarTambem(tx, `codigo:${sigla}`);
 
-  // A sigla só tem [A-Z0-9], então nem "_" nem "%" escapam do like.
   const ocupados = await tx
     .select({ codigo: curso.codigo })
     .from(curso)
@@ -412,7 +378,7 @@ interface IdentidadeDoCursoNovo {
   slug: string;
 }
 
-/** Em série e nesta ordem: toda criação pega a trava do slug antes da do código. */
+// WARNING: em série e nesta ordem, toda criação pega a trava do slug antes da do código.
 async function identidadeDoCursoNovo(
   tx: Transacao,
   titulo: string,
@@ -424,17 +390,17 @@ async function identidadeDoCursoNovo(
   return { codigo, slug };
 }
 
+const FK_DO_ALUNO: ReadonlySet<string> = new Set([
+  "aula_assistida_aula_id_aula_id_fkey",
+  "questionario_tentativa_aula_id_aula_id_fkey",
+]);
+
 /**
  * admin.catalogo.salvarCurso. A capa sobe antes da transação (rede); objeto que
  * sobe e não chega a ser gravado fica no bucket, e reenviar reusa o mesmo nome.
  * A trava curso:<id> serializa dois salvamentos do mesmo curso, inclusive a
  * criação repetida, sem bloquear troca nem registro de aula.
  */
-const FK_DO_ALUNO: ReadonlySet<string> = new Set([
-  "aula_assistida_aula_id_aula_id_fkey",
-  "questionario_tentativa_aula_id_aula_id_fkey",
-]);
-
 export async function salvarCurso(
   s: Pick<Servicos, "capas" | "db" | "materiais">,
   formulario: FormData,
@@ -493,7 +459,6 @@ export async function salvarCurso(
         await gravarCurso(tx, plano, novo);
       }
 
-      // A aula ou a pergunta que saiu pode ter sido a última coisa que faltava a alguém.
       if (
         plano.tipo === "atualizar" &&
         (plano.apagar.aulas.length > 0 || plano.apagar.perguntas.length > 0)
@@ -504,8 +469,6 @@ export async function salvarCurso(
       return { cursoId: documento.id, slug, versao: plano.versao };
     });
   } catch (erro) {
-    // O aluno não pega a trava do curso: a aula assistida ou a tentativa que entra
-    // entre a conta e o DELETE para no FK restrict. O plano refeito já a conta.
     if (FK_DO_ALUNO.has(violacaoDe(erro)?.restricao ?? "")) {
       const plano = planejarCurso(
         await abrirCurso(s.db, documento.id),
@@ -522,10 +485,6 @@ export async function salvarCurso(
   }
 }
 
-/**
- * O texto alternativo da capa, a única fonte dele: o admin não escreve, e cada
- * salvamento o refaz do título, então o curso renomeado não fica com o nome velho.
- */
 const altDaCapa = (titulo: string) => `Capa do curso ${titulo}`;
 
 const colunasDaCapa = (c: ImagemDaCapa) => ({
@@ -534,19 +493,12 @@ const colunasDaCapa = (c: ImagemDaCapa) => ({
   capaUrl: c.url,
 });
 
-/** O valor que o INSERT propôs, no SET de um upsert. */
 const proposto = (coluna: AnyPgColumn) =>
   sql`excluded.${sql.identifier(coluna.name)}`;
 
-/** Lista de uuid como um parâmetro só, de qualquer tamanho. */
-const umDe = (coluna: AnyPgColumn, ids: readonly string[]) =>
+const umDeComUmParametroSo = (coluna: AnyPgColumn, ids: readonly string[]) =>
   sql`${coluna} = any(${`{${ids.join(",")}}`}::uuid[])`;
 
-/**
- * Soma a todas as linhas do filtro o mesmo deslocamento, que leva cada valor para
- * acima do maior valor antigo: o UPDATE não colide no meio, mesmo com o unique
- * conferido linha a linha.
- */
 const deslocado = (tabela: PgTable, coluna: AnyPgColumn, filtro: SQL) =>
   sql`${coluna} + (select greatest(max(${coluna}), ${TETO_FINAL}) + 1 from ${tabela} where ${filtro})`;
 
@@ -556,37 +508,7 @@ function lotes<T>(lista: readonly T[], tamanho: number): T[][] {
   );
 }
 
-/**
- * Escreve o estado final do documento em statements de ordem fixa:
- *
- *   1. curso: INSERT ou UPDATE; as colunas da capa só com imagem nova.
- *   2. níveis: upsert por (curso_id, ordem).
- *   3. aulas que saem: DELETE. A posição delas cai em cascade; aula assistida
- *      segura (o planejador já recusou, o banco confirma).
- *   4. todos os módulos do curso: numero + deslocamento.
- *   5. todas as aulas do curso: posicao + deslocamento.
- *   6. módulos: upsert por id com o número final.
- *   7. aulas: upsert por id com módulo e posição finais, em lotes. Aula que troca
- *      de módulo muda aqui e mantém o id.
- *   8. perguntas e alternativas que saem: DELETE. As da aula que saiu caíram em
- *      cascade no passo 3.
- *   9. todas as perguntas das aulas do curso: posicao + deslocamento; todas as
- *      alternativas delas: posicao + deslocamento e certa = false, porque o
- *      índice parcial alternativa_certa_unica também confere linha a linha, e a
- *      certa nova entraria antes de a velha sair.
- *  10. perguntas: upsert por id com aula e posição finais.
- *  11. alternativas: upsert por id com pergunta, posição e certa finais.
- *  12. módulos que saem: DELETE (já vazios depois dos passos 3 e 7).
- *  13. níveis que saem: DELETE (nenhum módulo aponta para eles depois do passo 6).
- *  14. materiais que saem: DELETE; os que ficam: posicao + deslocamento; depois
- *      upsert por id com a posição final.
- *
- * Depois dos passos 4, 5 e 9, todo valor antigo fica acima de TETO_FINAL e todo
- * valor final abaixo dele, então o upsert não colide com linha nova nem mantida.
- * Os finais são únicos porque o schema recusa número de módulo repetido e as
- * posições são o índice. O upsert só atualiza linha deste curso: id de outro
- * curso volta fora do returning, e a contagem recusa o documento inteiro.
- */
+// WARNING: a ordem dos statements de gravarCurso é a única defesa dos uniques não deferrable; não reordene.
 async function gravarCurso(
   tx: Transacao,
   plano: PlanoDeGravacao,
@@ -622,7 +544,6 @@ async function gravarCurso(
     tx.select({ id: pergunta.id }).from(pergunta).where(nasAulasDoCurso)
   );
 
-  // O slug e o código só entram na criação: depois dela, não mudam.
   if (plano.tipo === "criar") {
     if (!novo) {
       throw new Error(`Curso ${cursoId} criado sem endereço nem código.`);
@@ -653,7 +574,9 @@ async function gravarCurso(
 
   if (plano.tipo === "atualizar") {
     if (plano.apagar.aulas.length > 0) {
-      await tx.delete(aula).where(umDe(aula.id, plano.apagar.aulas));
+      await tx
+        .delete(aula)
+        .where(umDeComUmParametroSo(aula.id, plano.apagar.aulas));
     }
 
     await tx
@@ -736,7 +659,9 @@ async function gravarCurso(
 
   if (plano.tipo === "atualizar") {
     if (plano.apagar.modulos.length > 0) {
-      await tx.delete(modulo).where(umDe(modulo.id, plano.apagar.modulos));
+      await tx
+        .delete(modulo)
+        .where(umDeComUmParametroSo(modulo.id, plano.apagar.modulos));
     }
 
     if (plano.apagar.niveis.length > 0) {
@@ -762,7 +687,7 @@ async function gravarMateriais(tx: Transacao, plano: PlanoDeGravacao) {
     if (plano.apagar.materiais.length > 0) {
       await tx
         .delete(material)
-        .where(umDe(material.id, plano.apagar.materiais));
+        .where(umDeComUmParametroSo(material.id, plano.apagar.materiais));
     }
 
     await tx
@@ -820,13 +745,13 @@ async function gravarQuestionario(
     if (plano.apagar.perguntas.length > 0) {
       await tx
         .delete(pergunta)
-        .where(umDe(pergunta.id, plano.apagar.perguntas));
+        .where(umDeComUmParametroSo(pergunta.id, plano.apagar.perguntas));
     }
 
     if (plano.apagar.alternativas.length > 0) {
       await tx
         .delete(alternativa)
-        .where(umDe(alternativa.id, plano.apagar.alternativas));
+        .where(umDeComUmParametroSo(alternativa.id, plano.apagar.alternativas));
     }
 
     await tx
@@ -943,8 +868,6 @@ export async function apagarCurso(
       return { apagado: true };
     });
   } catch (erro) {
-    // O aluno não pega a trava do curso: uma aula assistida, liberação ou
-    // certificado que entra depois da conta de uso para no FK restrict.
     if (FK_VIOLADA.has(violacaoDe(erro)?.codigo ?? "")) {
       throw new ErroParaAPessoa({
         cause: erro,

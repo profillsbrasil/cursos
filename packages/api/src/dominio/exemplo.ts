@@ -1,5 +1,3 @@
-// Construtores de dados para os testes do domínio. Nada aqui roda em produção.
-
 import {
   CERTIFICADO_A,
   COMUNICADO,
@@ -229,8 +227,6 @@ export function historico(o: {
 /** Todas as aulas de um curso de cursoLinha, em ordem. */
 export const aulasDe = (l: CursoLinha) =>
   l.modulos.flatMap((m) => m.aulas.map((a) => a.id));
-
-// ---------- o caso do protótipo, com os dados do seed (proto-v2/data.js) ----------
 
 function linhaDoSeed(chave: string): CursoLinha {
   const c = CURSOS.find((x) => x.chave === chave);

@@ -1,5 +1,3 @@
-// Server Component: cada linha é um link para a ficha, sem estado no cliente.
-
 import type {
   ListaDePessoas,
   PessoaNaLista,
@@ -24,11 +22,6 @@ const ultimoAcesso = (p: PessoaNaLista, hoje: string) =>
     ? quando(diaEmSaoPaulo(p.ultimoAcesso.toISOString()), hoje)
     : null;
 
-/**
- * O perfil, o papel e o último acesso têm colunas a partir de 52rem; abaixo,
- * descem para uma linha sob o e-mail. O saldo fica na coluna dele nas duas
- * larguras, para os números continuarem um embaixo do outro.
- */
 function LinhaDaPessoa({ hoje, p }: { hoje: string; p: PessoaNaLista }) {
   const selo = seloDoPerfil(p.perfil);
   const acesso = ultimoAcesso(p, hoje);
@@ -110,6 +103,7 @@ const tituloDaLista = (termo: string, lista: ListaDePessoas) => {
     : "Por último acesso";
 };
 
+/** Server Component: cada linha é um link para a ficha, sem estado no cliente. */
 export function ListaDePessoasDoAdmin({
   hoje,
   lista,

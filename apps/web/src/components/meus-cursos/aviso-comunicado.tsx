@@ -5,8 +5,10 @@ import { ChevronDown, Megaphone } from "lucide-react";
 import { CARTAO } from "@/components/casca/cartoes";
 import { diaCurto, diaEmSaoPaulo, fmtData } from "@/lib/formato";
 
-// O comunicado recente (`lugar: "topo"`): uma linha com o título e a data, no
-// topo de Meus cursos. O texto abre por baixo, no `details`, sem JavaScript.
+/**
+ * O comunicado recente (`lugar: "topo"`): uma linha com o título e a data, no
+ * topo de Meus cursos. O texto abre por baixo, no `details`, sem JavaScript.
+ */
 export function FaixaComunicado({
   className,
   comunicado,
@@ -23,8 +25,6 @@ export function FaixaComunicado({
     >
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-[14px] px-4 py-2.5 transition-colors duration-150 group-open:rounded-b-none hover:bg-white/8 [&::-webkit-details-marker]:hidden">
         <Megaphone aria-hidden="true" className="text-ceu size-4 shrink-0" />
-        {/* Fechada, o título corta em uma linha; aberta, ele quebra e aparece inteiro.
-            O h2 dentro do summary deixa o comunicado na navegação por títulos. */}
         <h2 className="text-titulo min-w-0 flex-1 truncate text-sm font-semibold group-open:whitespace-normal">
           <span className="sr-only">Comunicado: </span>
           {comunicado.titulo}
@@ -47,8 +47,10 @@ export function FaixaComunicado({
   );
 }
 
-// O comunicado que passou do topo (`lugar: "fim"`), com o texto inteiro, depois
-// dos cursos. Ainda sem link para a tela Comunicados.
+/**
+ * O comunicado que passou do topo (`lugar: "fim"`), com o texto inteiro, depois
+ * dos cursos. Ainda sem link para a tela Comunicados.
+ */
 export function AvisoComunicado({ comunicado }: { comunicado: ComunicadoVM }) {
   return (
     <section

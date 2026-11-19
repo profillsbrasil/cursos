@@ -19,7 +19,6 @@ import {
   telaDo,
 } from "./rascunho-do-editor";
 
-// Fora do App Router o useRouter lança; o resto do módulo fica o de verdade.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -58,7 +57,6 @@ const aplicar = (e: RascunhoDoEditor, ...acoes: AcaoDoEditor[]) =>
 const titulos = (e: RascunhoDoEditor) =>
   e.rascunho.materiais.map((m) => m.titulo);
 
-/** A lista que a seção mostra: o título de cada material e o arquivo de cada envio. */
 const linhas = (e: RascunhoDoEditor) =>
   linhasDoMaterial(e).map((l) =>
     l.tipo === "material"

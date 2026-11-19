@@ -5,9 +5,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@cursos/ui/components/avatar";
-import { Button } from "@cursos/ui/components/button";
-import { FieldError } from "@cursos/ui/components/field";
-import { Input } from "@cursos/ui/components/input";
 import { cn } from "@cursos/ui/lib/utils";
 import {
   type ChangeEvent,
@@ -18,18 +15,21 @@ import {
   useState,
 } from "react";
 
-import { CONTORNO_DESLIGADO, PEQUENO } from "@/components/casca/botoes";
-import { CAMPO, ROTULO } from "@/components/casca/campos";
 import { FolhaNaTela } from "@/components/certificado/folha-na-tela";
 import { folhaComONome } from "@/components/certificado/medidas-da-folha";
 import { iniciais, plural } from "@/lib/formato";
 import { fotoNoLado } from "@/lib/foto-do-clerk";
 
-import { type CampoDoNome, LIMITE_DO_NOME, problemaDoNome } from "./nome";
+import {
+  CamposDoNome,
+  idDoErroDoNome,
+  type NomeDigitado,
+  SalvarNome,
+} from "./campos-do-nome";
+import { problemaDoNome } from "./nome";
 import {
   ACAO_NA_LINHA,
   ACOES,
-  BOTAO_PEQUENO,
   CARTAO,
   DETALHE_DA_LINHA,
   PE_DO_CARTAO,
@@ -94,9 +94,6 @@ function Foto({ nome, user }: { nome: string; user: Usuario }) {
           >
             Trocar foto
           </button>
-          {/* Fora da árvore de acessibilidade: o Trocar foto é o controle, e o campo de
-              arquivo só anunciaria o "No file chosen" do navegador. O click() abre o
-              seletor mesmo com o campo em display: none. */}
           <input
             accept="image/jpeg,image/png,image/gif,image/webp"
             hidden
@@ -131,41 +128,6 @@ function legendaDaFolha(exemplo: boolean, mudou: boolean) {
     : "Assim o nome sai no certificado";
 }
 
-/**
- * Parado (nada mudou ou o nome não passa na regra), o Salvar é o contorno
- * desligado e focável, e diz por quê; enviando, fica Sol com o desligado.
- */
-function SalvarNome({
-  descritoPor,
-  idDeNadaMudou,
-  parado,
-  pendente,
-}: {
-  descritoPor: string;
-  idDeNadaMudou: string;
-  parado: boolean;
-  pendente: boolean;
-}) {
-  return (
-    <>
-      <Button
-        aria-describedby={parado ? descritoPor : undefined}
-        className={
-          parado && !pendente ? cn(CONTORNO_DESLIGADO, PEQUENO) : BOTAO_PEQUENO
-        }
-        disabled={pendente || parado}
-        focusableWhenDisabled
-        type="submit"
-      >
-        Salvar nome
-      </Button>
-      <span className="sr-only" id={idDeNadaMudou}>
-        Nada mudou no nome.
-      </span>
-    </>
-  );
-}
-
 /** O topo de Minha conta: quem é a pessoa, com o nome salvo, os campos do nome e, ao lado, a folha do certificado com o nome dos campos. */
 export function SecaoDoNome({
   certificados,
@@ -179,12 +141,13 @@ export function SecaoDoNome({
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
 
-  const [{ nome, sobrenome }, setCampos] = useState({
+  const [valor, setValor] = useState<NomeDigitado>({
     nome: user.firstName ?? "",
     sobrenome: user.lastName ?? "",
   });
 
-  // O cartão mostra o nome salvo no Clerk; a folha, o que a pessoa digita.
+  const { nome, sobrenome } = valor;
+
   const salvo = juntar(user.firstName ?? "", user.lastName ?? "");
   const completo = juntar(nome, sobrenome);
 
@@ -192,20 +155,9 @@ export function SecaoDoNome({
     nome.trim() !== (user.firstName ?? "") ||
     sobrenome.trim() !== (user.lastName ?? "");
 
-  // O campo avisa a regra antes de enviar, e o Salvar diz por que está apagado.
   const problema = mudou ? problemaDoNome(nome, sobrenome) : null;
-  const idDoErro = `${id}-erro`;
+  const idDoErro = idDoErroDoNome(id);
   const idDeNadaMudou = `${id}-nada-mudou`;
-
-  const marcar = (campo: CampoDoNome) =>
-    problema?.campos.includes(campo)
-      ? { "aria-describedby": idDoErro, "aria-invalid": true }
-      : {};
-
-  const mudar = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCampos((c) => ({ ...c, [name]: value }));
-  }, []);
 
   const salvar = useCallback(
     (e: SubmitEvent<HTMLFormElement>) => {
@@ -232,46 +184,15 @@ export function SecaoDoNome({
         "grid @min-[48rem]:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]"
       )}
     >
-      {/* O Salvar mora no pé, preso embaixo: a coluna acompanha a altura da folha ao lado. */}
       <form className="grid grid-rows-[1fr_auto]" onSubmit={salvar}>
         <div className="@container grid content-start gap-[18px] p-[22px] @min-[48rem]:p-[26px]">
           <Foto nome={salvo} user={user} />
-          <div className="grid gap-3 @min-[24rem]:grid-cols-2">
-            <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-nome`}>
-              <span className={ROTULO}>Nome</span>
-              <Input
-                {...marcar("nome")}
-                autoComplete="given-name"
-                className={CAMPO}
-                id={`${id}-nome`}
-                maxLength={LIMITE_DO_NOME}
-                name="nome"
-                onChange={mudar}
-                placeholder="Ana"
-                required
-                value={nome}
-              />
-            </label>
-            <label className="grid min-w-0 gap-1.5" htmlFor={`${id}-sobrenome`}>
-              <span className={ROTULO}>Sobrenome</span>
-              <Input
-                {...marcar("sobrenome")}
-                autoComplete="family-name"
-                className={CAMPO}
-                id={`${id}-sobrenome`}
-                maxLength={LIMITE_DO_NOME}
-                name="sobrenome"
-                onChange={mudar}
-                placeholder="Souza"
-                value={sobrenome}
-              />
-            </label>
-            {problema ? (
-              <FieldError className="@min-[24rem]:col-span-2" id={idDoErro}>
-                {problema.frase}
-              </FieldError>
-            ) : null}
-          </div>
+          <CamposDoNome
+            id={id}
+            problema={problema}
+            setValor={setValor}
+            valor={valor}
+          />
           {certificados > 0 ? (
             <p className={DETALHE_DA_LINHA}>
               {certificados === 1 ? "O " : "Os "}
@@ -287,7 +208,8 @@ export function SecaoDoNome({
           <div className={ACOES}>
             <SalvarNome
               descritoPor={problema ? idDoErro : idDeNadaMudou}
-              idDeNadaMudou={idDeNadaMudou}
+              idDoMotivo={idDeNadaMudou}
+              motivo="Nada mudou no nome."
               parado={!mudou || problema !== null}
               pendente={pendente}
             />
@@ -296,7 +218,6 @@ export function SecaoDoNome({
       </form>
       <div className="border-border bg-sidebar grid content-center justify-items-center gap-3.5 border-t p-5 @min-[48rem]:border-t-0 @min-[48rem]:border-l @min-[48rem]:p-7">
         <FolhaNaTela
-          // O nome salvo antes do limite pode ter palavra maior que a linha: ela quebra na folha.
           className="w-full max-w-[440px] -rotate-[1.2deg] wrap-anywhere shadow-[0_10px_30px_rgb(0_0_0/0.35)]"
           folha={folhaComONome(folha.folha, completo || "Seu nome aqui")}
         />

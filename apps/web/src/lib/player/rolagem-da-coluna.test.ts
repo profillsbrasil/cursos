@@ -4,8 +4,6 @@ import { rolagemDaColuna } from "./rolagem-da-coluna";
 
 describe("rolagemDaColuna", () => {
   test("centra a aula atual no meio da coluna", () => {
-    // Aula de 40 px a 1500 px do topo, coluna de 678 px que rola por 2400 px:
-    // o centro da aula (1520) fica no centro da janela (339).
     expect(
       rolagemDaColuna({
         alturaDaAula: 40,

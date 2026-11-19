@@ -20,7 +20,6 @@ const aula = (chave: string, modulo: number, posicao: number) =>
   idAula(chave, modulo, posicao) as AulaId;
 
 describe("os cinco estados do curso, de uma leitura só", () => {
-  // Dois módulos: 0 com duas aulas sem pergunta, 1 com uma aula de questionário.
   const c: CursoComAulas = {
     ...cursoCat("c", { aulas: [2, 1] }),
     modulos: cursoCat("c", { aulas: [2, 1] }).modulos.map((m, i) => ({

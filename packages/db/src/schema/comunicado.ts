@@ -6,7 +6,7 @@ import { momento, tabela } from "./comum";
 export const comunicado = tabela(
   "comunicado",
   {
-    cursoId: uuid().references(() => curso.id, { onDelete: "cascade" }), // null: geral
+    cursoId: uuid().references(() => curso.id, { onDelete: "cascade" }),
     id: uuid().primaryKey().defaultRandom(),
     publicadoEm: momento(),
     publicadoPor: text().notNull(),

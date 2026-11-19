@@ -55,16 +55,15 @@ export const COOKIE_DA_SIDEBAR = "sidebar_state";
 /** Da borda da sidebar ao conteúdo, nos dois modos; casca.tsx aplica no cabeçalho, na lista e no rodapé. */
 export const RECUO = 14;
 
-/** O quadrado recolhido: o item, o botão do cabeçalho, o Continuar e o cartão de conta. */
-const LADO = 40;
+const LADO_DO_QUADRADO_RECOLHIDO = 40;
 
 /** Sem borda no sidebar-container (a Moldura de index.css a tira): a largura recolhida é só recuo, lado e recuo. */
 export const LARGURAS_DA_SIDEBAR = {
   "--sidebar-width": "15.5rem",
-  "--sidebar-width-icon": `${RECUO + LADO + RECUO}px`,
+  "--sidebar-width-icon": `${RECUO + LADO_DO_QUADRADO_RECOLHIDO + RECUO}px`,
 };
 
-const ALTURA_DO_ITEM = LADO;
+const ALTURA_DO_ITEM = LADO_DO_QUADRADO_RECOLHIDO;
 const VAO_DO_ITEM = 4;
 const PASSO = ALTURA_DO_ITEM + VAO_DO_ITEM;
 

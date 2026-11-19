@@ -2,9 +2,11 @@
 
 import { TelaDeErro } from "@/components/casca/tela-de-erro";
 
-// Erro da página do aluno sem error.tsx próprio, dentro da sidebar. Erro do próprio
-// layout cai no app/error.tsx.
-// No Next 16.3 a função de recuperação do error.js se chama retry (antes, reset).
+/**
+ * Erro da página do aluno sem error.tsx próprio, dentro da sidebar. Erro do
+ * próprio layout cai no app/error.tsx. No Next 16.3 a função de recuperação do
+ * error.js se chama retry (antes, reset).
+ */
 export default function ErroDoAluno(props: {
   error: Error & { digest?: string };
   retry: () => void;

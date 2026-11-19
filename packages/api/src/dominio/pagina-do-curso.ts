@@ -1,7 +1,3 @@
-// A página do curso para o aluno, no formato da Udemy: o que o curso ensina, a ação
-// principal e as aulas por módulo. Só monta a partir de um CursoAberto, então a
-// regra de quem vê é a de montarCursoAberto, a mesma do player.
-
 import type { CursoAberto } from "./aula";
 import {
   type EstadoQueAbre,
@@ -100,10 +96,6 @@ export interface PaginaDoCurso {
   topicos: readonly string[];
 }
 
-/**
- * Na amostra, a ação é a aula de amostra: começar, ou continuar onde a pessoa
- * parou nela. A aula da vez do curso inteiro pode estar fechada.
- */
 function acaoDaAmostra(c: CursoAberto, aulaId: AulaId): AcaoDaPagina {
   const { curso, historico } = c;
 
@@ -189,7 +181,12 @@ function acaoDe(c: CursoAberto): AcaoDaPagina {
   }
 }
 
-/** `saldo` só pesa na amostra. */
+/**
+ * A página do curso para o aluno, no formato da Udemy: o que o curso ensina, a
+ * ação principal e as aulas por módulo. Só monta a partir de um CursoAberto, então
+ * a regra de quem vê é a de montarCursoAberto, a mesma do player. `saldo` só pesa
+ * na amostra.
+ */
 export function montarPaginaDoCurso(
   c: CursoAberto,
   materiais: readonly MaterialDaPagina[],
@@ -220,7 +217,6 @@ export function montarPaginaDoCurso(
         descricao: a.descricao,
         duracaoSeg: a.duracaoSeg,
         id: a.id,
-        // A amostra não tem questionário: nenhuma aula marca pendência.
         questionario: c.amostra
           ? SEM_QUESTIONARIO
           : marcaDoQuestionario(a.perguntas, questionarios.get(a.id)),

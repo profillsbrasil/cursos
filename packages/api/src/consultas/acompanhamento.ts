@@ -4,11 +4,9 @@ import type { CursoDaBusca, LinhasDaBusca } from "../dominio/acompanhamento";
 import type { OrigemDoAcesso } from "../dominio/tipos";
 import type { Executor } from "./comum";
 
-/** Literal de text[] do Postgres, com aspas e barras escapadas. */
 const arrayDeTexto = (itens: readonly string[]) =>
   `{${itens.map((s) => `"${s.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`).join(",")}}`;
 
-/** Instante em milissegundos desde 1970, como o node-postgres corta o timestamptz. */
 type Ms = number;
 
 interface PessoaEmJson {

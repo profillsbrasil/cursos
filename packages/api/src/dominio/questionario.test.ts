@@ -26,7 +26,6 @@ test("as cinco letras pela posição", () => {
 const P = (n: number) => `p${n}` as PerguntaId;
 const A = (n: number) => `a${n}` as AlternativaId;
 
-/** Três perguntas de duas alternativas; a certa é a segunda (a2, a4, a6). */
 const PERGUNTAS: PerguntaComGabarito[] = [1, 2, 3].map((n) => ({
   alternativas: [
     { id: A(n * 2 - 1), texto: "Errada" },

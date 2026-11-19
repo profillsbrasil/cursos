@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { origemDoPedido } from "@/components/certificado/folha";
+import { NomeQueFalta } from "@/components/certificado/nome-que-falta";
 import { TelaDoCertificado } from "@/components/certificado/tela-do-certificado";
 import { carregarPaginaDoCertificado } from "@/server/api";
 
@@ -22,8 +23,7 @@ const paginaDaUrl = async (params: Props["params"]) => {
   return pagina;
 };
 
-// O notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx
-// do curso.
+// WARNING: o notFound() aqui também: só assim o Next troca o título pelo do not-found.tsx do curso.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pagina = await paginaDaUrl(params);
 
@@ -48,6 +48,7 @@ export default async function Certificado({ params }: Props) {
         hoje={diaLocal(new Date())}
         origem={origemDoPedido(await headers())}
         pagina={pagina}
+        pedirONome={<NomeQueFalta />}
       />
     </>
   );

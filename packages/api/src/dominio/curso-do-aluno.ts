@@ -1,9 +1,3 @@
-// O curso como a pessoa o estudou, lido de uma vez: o estado do curso, o
-// progresso, os questionários, a aula da vez e se o curso está completo para o
-// certificado. Meus cursos, a página do curso, o player, a página do
-// certificado, o acompanhamento do admin e a emissão do certificado leem daqui,
-// e nenhum deles decide de novo se um curso abre, foi começado ou terminou.
-
 import { numeroDaAula, type Progresso } from "./curso";
 import type { Estudo } from "./historico";
 import type {
@@ -64,14 +58,13 @@ export interface CursoDoAluno {
 
 const aulasDe = (c: CursoComAulas) => c.modulos.flatMap((m) => m.aulas);
 
-// floor: 199 de 200 mostra 99%, nunca 100% com aula faltando
+// WARNING: floor, não round: 199 de 200 mostra 99%, nunca 100% com aula faltando
 const fracao = (feitas: number, total: number): Progresso => ({
   feitas,
   pct: total === 0 ? 0 : Math.floor((feitas * 100) / total),
   total,
 });
 
-/** As aulas com questionário por aprovar, as reprovadas primeiro. */
 function questionariosPendentes(curso: CursoComAulas, h: Historico) {
   const comQuestionario = aulasDe(curso).filter((a) => a.perguntas > 0);
 
@@ -91,14 +84,6 @@ function questionariosPendentes(curso: CursoComAulas, h: Historico) {
   };
 }
 
-/**
- * A regra única do estado de um curso liberado. O curso só é concluído com o
- * certificado, que a emissão grava na escrita que completa o curso (a última
- * aula assistida, o último questionário aprovado ou a edição do admin que tira
- * o que faltava); com tudo feito e sem certificado, o que só uma corrida entre
- * essas escritas deixa, o estado fica em `questionarios` apontando para a
- * primeira aula com questionário.
- */
 function estadoDoCurso(
   curso: CursoComAulas,
   h: Historico,
@@ -108,7 +93,6 @@ function estadoDoCurso(
   const cert = h.certificados.get(curso.id);
 
   if (cert) {
-    // vence aula nova e volta a "em produção"
     return { certificado: cert, tipo: "concluido" };
   }
 
@@ -145,10 +129,6 @@ function estadoDoCurso(
   };
 }
 
-/**
- * Começar leva à primeira aula. Continuar leva à aula da atividade mais recente,
- * ou à próxima não assistida quando aquela já foi assistida.
- */
 function aulaDaVezId(
   curso: CursoComAulas,
   estado: EstadoCurso,
@@ -198,6 +178,13 @@ function ondeNoCurso(curso: CursoComAulas, aulaId: AulaId): OndeNoCurso {
   throw new Error(`Aula ${aulaId} fora do curso ${curso.titulo}`);
 }
 
+/**
+ * O curso como a pessoa o estudou, lido de uma vez: o estado do curso, o
+ * progresso, os questionários, a aula da vez e se o curso está completo para o
+ * certificado. Meus cursos, a página do curso, o player, a página do
+ * certificado, o acompanhamento do admin e a emissão do certificado leem daqui,
+ * e nenhum deles decide de novo se um curso abre, foi começado ou terminou.
+ */
 export function lerCursoDoAluno(
   curso: CursoComAulas,
   estudo: Estudo

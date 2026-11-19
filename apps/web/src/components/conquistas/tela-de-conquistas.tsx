@@ -67,11 +67,6 @@ type Cor = "sol" | "ceu" | "canela";
 
 type Figura = Marco["tipo"] | TipoDaGrade | "certificado";
 
-/**
- * A cor e o ícone saem do fato: Sol na aula, na troca, nos pontos e no
- * certificado; Céu nas aulas da trilha, no curso concluído e no questionário;
- * Canela na sequência. Um ícone, um sentido (DESIGN.md, "Ícones").
- */
 const APARENCIA: Record<Figura, { cor: Cor; icone: LucideIcon }> = {
   amostra_e_troca: { cor: "sol", icone: Gift },
   aulas: { cor: "ceu", icone: BookOpenCheck },
@@ -199,7 +194,6 @@ function TrilhaDeAulas({
           Cada aula assistida até o fim conta para as três medalhas.
         </p>
       </div>
-      {/* O pino: a pílula, a haste da base dela até o centro do trilho e o ponto. */}
       <div className="relative pt-11">
         <b
           className={cn(
@@ -258,7 +252,6 @@ function TrilhaDeAulas({
   );
 }
 
-/** Uma faixa baixa: o título e a frase à esquerda, o que mostra o estado à direita. */
 const FAIXA = cn(
   CARTAO,
   "flex flex-wrap items-center gap-x-8 gap-y-4 px-4 py-5 @min-[521px]:px-6"
@@ -370,7 +363,6 @@ type Ganha = Extract<LinhaDaGrade, { estado: "ganha" }>;
 
 type PorGanhar = Extract<LinhaDaGrade, { estado: "por_ganhar" }>;
 
-/** A fila das ganhas da grade: a medalha de 40 px, o nome e a data curta. */
 function CartaoDasGanhas({
   ganhas,
   hoje,
@@ -439,7 +431,6 @@ function CartaoPorGanhar({
     >
       <div className="flex items-start justify-between gap-3">
         <Medalha figura={l.tipo} ganha={false} tamanho={destaque ? 56 : 40} />
-        {/* A barra leva o valor para o leitor de tela. */}
         <span
           aria-hidden="true"
           className={cn(

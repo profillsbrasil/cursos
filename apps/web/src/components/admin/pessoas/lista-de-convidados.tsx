@@ -1,6 +1,3 @@
-// Server Component: a opção Convidados da tela Pessoas. Só o convite vivo chega
-// aqui; o aceito virou Pessoa e aparece nas outras opções.
-
 import type { PainelDeConvites } from "@cursos/api/dominio/convite";
 
 import { fmtNum } from "@/lib/formato";
@@ -8,6 +5,10 @@ import { fmtNum } from "@/lib/formato";
 import { SecaoSobABarra, Vazio } from "../partes";
 import { LinhasDosConvidados } from "./linha-do-convidado";
 
+/**
+ * Server Component: a opção Convidados da tela Pessoas. Só o convite vivo chega
+ * aqui; o aceito virou Pessoa e aparece nas outras opções.
+ */
 export function ListaDeConvidados({
   convites,
   termo,

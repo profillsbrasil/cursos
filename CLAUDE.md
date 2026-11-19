@@ -68,7 +68,7 @@ As cercas abaixo valem para qualquer pasta, e um teste ou uma regra do Oxlint ac
 
 ## Código
 
-O oxfmt e o Oxlint (via Ultracite) cobrem formatação e a maior parte do estilo; a decisão de cada regra e o que saiu com o Biome moram em `docs/lint.md`. O que eles não pegam:
+O oxfmt e o Oxlint (via Ultracite) cobrem formatação e a maior parte do estilo; a decisão de cada regra e o que saiu com o Biome moram em `docs/lint.md`. O `landmines-style/no-comments` barra comentário em prosa e aceita só a diretiva funcional (`oxlint-disable`, `@ts-expect-error`), o TSDoc em API exportada e o `// WARNING:` de uma linha, reservado a armadilha perigosa e recorrente. O motivo que não cabe no código vai para a entrada do arquivo em `docs/mapa.md`, e o de cada regra do config mora em `docs/lint.md`. O que eles não pegam:
 
 - Busca assíncrona de dados vai em Server Component, não em Client Component `async`.
 - Erro para o usuário sai como `ErroParaAPessoa` com `code` e `message`. Só essa mensagem chega ao toast do `useAcao`; os outros erros viram o texto genérico.

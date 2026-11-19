@@ -1,6 +1,4 @@
-/** Classes que as ilhas da casca dividem. Fora de módulo "use client", para um Server Component também poder lê-las. */
-
-/** O tooltip da casca: claro sobre a sidebar escura, com a seta da mesma cor. */
+/** O tooltip da casca: claro sobre a sidebar escura, com a seta da mesma cor. Como as outras classes que as ilhas da casca dividem, mora fora de módulo "use client" para um Server Component também poder lê-las. */
 export const DICA =
   "rounded-[7px] bg-titulo px-2.5 py-1.5 font-semibold text-sobre-cor text-xs *:data-[side]:bg-titulo *:data-[side]:fill-titulo";
 

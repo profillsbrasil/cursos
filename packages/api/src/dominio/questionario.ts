@@ -13,8 +13,6 @@ export const NOTA_MINIMA = 70;
 export const acertosParaPassar = (perguntas: number) =>
   Math.ceil((perguntas * NOTA_MINIMA) / 100);
 
-// ---------- o questionário como o aluno o vê e o servidor o corrige ----------
-
 export interface AlternativaDaAula {
   id: AlternativaId;
   texto: string;

@@ -1,7 +1,3 @@
-// Só dos testes: o CSS real do app, compilado pelo Tailwind, e o Chromium da
-// máquina guiado pelo protocolo do DevTools. Sem Chromium, a suíte que depende
-// dele pula (`describe.skipIf(!existsSync(CHROMIUM))`).
-
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -40,6 +36,7 @@ export async function cssDoApp(classes: Iterable<string>) {
   return compilador.build([...new Set(classes)]);
 }
 
+/** Só dos testes: o Chromium da máquina, guiado pelo protocolo do DevTools. Sem ele, a suíte que depende dele pula (`describe.skipIf(!existsSync(CHROMIUM))`). */
 export const CHROMIUM = process.env.CHROMIUM ?? "/usr/bin/chromium";
 const DEVTOOLS = /DevTools listening on (ws:\/\/\S+)/;
 
@@ -65,7 +62,6 @@ async function enderecoDoDevTools(saida: ReadableStream<Uint8Array>) {
   throw new Error(`o Chromium não abriu o DevTools:\n${lido}`);
 }
 
-/** O que o fecharChromium desfaz, na ordem inversa: vale também se o setup cair no meio. */
 const limpezas: (() => unknown)[] = [];
 
 const TETO_DO_WEBSOCKET_MS = 5000;
@@ -112,7 +108,6 @@ export async function abrirChromium(prefixo: string): Promise<Enviar> {
       "--remote-debugging-port=0",
       `--user-data-dir=${perfil}`,
       "--no-first-run",
-      // O headless se declara sem cursor; aqui ele tem um mouse (hover: hover).
       "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
       "about:blank",
     ],

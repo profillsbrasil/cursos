@@ -16,28 +16,16 @@ import { useModoDaCasca } from "@/components/casca/provedor-da-casca";
 
 import { type Continuar, estaAqui } from "./continuar";
 
-// Um elemento só nos dois modos, como o SidebarMenuButton: aberto, o cartão;
-// recolhida, ele encolhe para o redondo de 40 px, preso à esquerda como os itens. O
-// group-data vence as classes do cartão pela especificidade. O elemento não tem
-// transição: a troca de modo (Ctrl+B inclusive) muda a cor na hora.
 const CARTAO = cn(
   "bg-sidebar-accent text-sidebar-foreground relative isolate grid gap-2 rounded-[14px] p-3",
   "group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:place-items-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
 );
 
-// Recolhida, o Sol cheio é do botão que leva à aula. Na própria aula o cartão não é
-// link, e o redondo fica no realce da sidebar com o play em Sol.
 const RECOLHIDO_COM_LINK =
   "group-data-[collapsible=icon]:bg-sol group-data-[collapsible=icon]:text-sobre-cor";
 
 const RECOLHIDO_AQUI = "group-data-[collapsible=icon]:text-sol";
 
-// O hover também é o foco de teclado (#30). Aberto, o fundo vira popover e o play
-// redondo clareia e brilha (REDONDO, pelo group/continuar): o fundo sozinho mede
-// 1,15:1 contra o realce da sidebar e não se via. Recolhida, o redondo de 40 px
-// clareia e brilha como o botão amarelo. A cor do hover mora numa camada (::before)
-// atrás do miolo, e só a opacidade dela transiciona: o hover entra e sai em 150 ms,
-// e a troca de modo, que só troca a cor da camada, não anima.
 const COM_LINK = cn(
   "group/continuar",
   "before:bg-muted before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:opacity-0",
@@ -45,14 +33,9 @@ const COM_LINK = cn(
   "group-data-[collapsible=icon]:before:bg-sol-hover group-data-[collapsible=icon]:before:shadow-brilho"
 );
 
-// Recolhida, a linha e o redondo de 32 px saem da caixa (contents), e o ícone fica
-// sozinho no centro do redondo de 40 px.
 const LINHA =
   "flex items-center gap-2.5 group-data-[collapsible=icon]:contents";
 
-// Com o cursor ou o foco no link, o redondo de 32 px acende como o botão amarelo.
-// Recolhida ele é contents, sem caixa: o fundo e a sombra não pintam, quem acende
-// é o próprio cartão, e o ícone herda a cor dele.
 const REDONDO = cn(
   "bg-sol text-sobre-cor grid size-8 shrink-0 place-items-center rounded-full group-data-[collapsible=icon]:contents group-data-[collapsible=icon]:text-inherit [&_svg]:size-3.5 [&_svg]:fill-current group-data-[collapsible=icon]:[&_svg]:size-4",
   "ease-forte group-hover/continuar:bg-sol-hover group-hover/continuar:shadow-brilho transition-[background-color,box-shadow] duration-150"
@@ -68,13 +51,6 @@ function Icone({ tipo }: { tipo: Continuar["tipo"] }) {
 
 type Linhas = Pick<Continuar, "pct" | "tipo" | "titulo"> & { chamada: string };
 
-/**
- * O miolo do cartão. Em "comecar" (pct null) não há barra, e a linha leva o lugar
- * dela (o gap de 8 px e o trilho de 4 px) metade em cima e metade embaixo: o miolo
- * fica no meio, e o cartão mede o mesmo nos dois casos, como o esqueleto, que
- * desenha este mesmo miolo invisível. Recolhida, o título e a chamada ficam só para
- * o leitor de tela, e a barra some.
- */
 function ConteudoDoCartao({ chamada, pct, tipo, titulo }: Linhas) {
   return (
     <>
@@ -148,12 +124,8 @@ function Cartao({ cartao }: { cartao: Promise<Continuar | null> }) {
   );
 }
 
-// O espaço sem quebra (U+00A0) dá altura às linhas de texto invisíveis; um espaço
-// comum sozinho colapsa, e a linha mediria 0 px.
-const LINHA_VAZIA = "\u00A0";
+const ESPACO_SEM_QUEBRA_QUE_DA_ALTURA = "\u00A0";
 
-// A altura vem do mesmo miolo do cartão, desenhado invisível, e não de um número:
-// o rodapé não pula quando o cartão chega. Recolhida, vira o círculo de 40 px.
 function Esqueleto() {
   return (
     <div
@@ -162,10 +134,10 @@ function Esqueleto() {
     >
       <span className="invisible contents group-data-[collapsible=icon]:hidden">
         <ConteudoDoCartao
-          chamada={LINHA_VAZIA}
+          chamada={ESPACO_SEM_QUEBRA_QUE_DA_ALTURA}
           pct={null}
           tipo="continuar"
-          titulo={LINHA_VAZIA}
+          titulo={ESPACO_SEM_QUEBRA_QUE_DA_ALTURA}
         />
       </span>
     </div>

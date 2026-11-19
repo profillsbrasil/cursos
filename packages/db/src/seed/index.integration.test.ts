@@ -34,7 +34,6 @@ const idDaAula = async (
   return r.rows[0]?.id ?? null;
 };
 
-/** Aula que some do catálogo. Os fatos saem antes porque o banco recusa apagar aula assistida. */
 async function apagarAula(c: Client, id: string) {
   await c.query("delete from ponto_lancamento where aula_id = $1", [id]);
   await c.query("delete from aula_assistida where aula_id = $1", [id]);

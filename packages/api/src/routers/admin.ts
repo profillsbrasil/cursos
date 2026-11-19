@@ -85,15 +85,21 @@ import type {
 import { TETO_DO_FILTRO } from "../externos/pessoas";
 import { adminProcedure, ErroParaAPessoa, router } from "../index";
 
-// O mesmo formato do check liberacao_user_id_clerk.
-const USER_ID = /^user_[A-Za-z0-9]+$/;
-const userId = z.string().regex(USER_ID);
+const USER_ID_NO_FORMATO_DO_CHECK_LIBERACAO_USER_ID_CLERK =
+  /^user_[A-Za-z0-9]+$/;
+
+const userId = z
+  .string()
+  .regex(USER_ID_NO_FORMATO_DO_CHECK_LIBERACAO_USER_ID_CLERK);
 
 const cursoId = z.uuid().transform((id) => id.toLowerCase() as CursoId);
 const categoriaId = z.uuid().transform((id) => id.toLowerCase() as CategoriaId);
 
-/** O mesmo formato do check categoria_nome_formato: aparado, de 1 a 80 caracteres. */
-const nomeDaCategoria = z.string().trim().min(1).max(CARACTERES.categoria);
+const nomeDaCategoriaNoFormatoDoCheckDoBanco = z
+  .string()
+  .trim()
+  .min(1)
+  .max(CARACTERES.categoria);
 
 const doCurso = z.object({ id: cursoId });
 
@@ -101,7 +107,6 @@ const perfil = z.enum(PERFIS);
 
 const conviteId = z.uuid().transform((id) => id.toLowerCase() as ConviteId);
 
-/** O e-mail de um convite, já lido por lerEmail: a mesma regra do diálogo e do banco. */
 const email = z
   .string()
   .max(254)
@@ -126,7 +131,7 @@ const naoEMaisAdmin = () =>
     message: "Você não é mais admin.",
   });
 
-// Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere.
+/** Todo procedimento daqui usa adminProcedure; routers/admin.test.ts percorre a árvore e confere. */
 export const adminRouter = router({
   catalogo: router({
     /**
@@ -184,7 +189,12 @@ export const adminRouter = router({
     lista: adminProcedure.query(({ ctx }) => listarCategorias(ctx.db)),
     /** Upsert pelo id que nasce no cliente, como em comunicados. */
     salvar: adminProcedure
-      .input(z.object({ id: categoriaId, nome: nomeDaCategoria }))
+      .input(
+        z.object({
+          id: categoriaId,
+          nome: nomeDaCategoriaNoFormatoDoCheckDoBanco,
+        })
+      )
       .mutation(({ ctx, input }) => salvarCategoria(ctx.db, input)),
   }),
   comunicados: router({
@@ -242,8 +252,7 @@ export const adminRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        // Dar o papel pede o papel de verdade, lido no Clerk como em
-        // pessoas.definirPapel: o token diz admin por até 60 s depois de perder.
+        // WARNING: o token diz admin por até 60 s depois de perder o papel, então o papel vem do Clerk.
         if (
           input.comoAdmin &&
           (await ctx.pessoas.conta(ctx.admin))?.papel !== "admin"
@@ -283,11 +292,14 @@ export const adminRouter = router({
       }),
   }),
   liberacoes: router({
-    // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
     acesso: adminProcedure
       .input(z.object({ userId: z.string() }))
       .query(async ({ ctx, input }) => {
-        if (!USER_ID.test(input.userId)) {
+        if (
+          !USER_ID_NO_FORMATO_DO_CHECK_LIBERACAO_USER_ID_CLERK.test(
+            input.userId
+          )
+        ) {
           return null;
         }
 
@@ -298,7 +310,6 @@ export const adminRouter = router({
 
         return montarAcesso(input.userId, pessoa, linhas, diaLocal(new Date()));
       }),
-    // Duas idas em série: o Clerk entrega a página, e o banco lê o estudo dos userIds dela.
     buscar: adminProcedure
       .input(z.object({ termo: z.string().trim().max(100) }))
       .query(async ({ ctx, input }) => {
@@ -414,8 +425,6 @@ export const adminRouter = router({
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
       .mutation(({ ctx, input }) => {
-        // Ninguém tira o próprio papel: quem tira o de outro continua admin, e
-        // a plataforma nunca fica sem admin.
         if (input.userId === ctx.admin && input.papel === "aluno") {
           throw new ErroParaAPessoa({
             code: "PRECONDITION_FAILED",
@@ -423,8 +432,7 @@ export const adminRouter = router({
           });
         }
 
-        // Sob a trava, o papel de quem pede vem do Clerk, não do token: o token
-        // diz admin por até 60 s depois de outro admin tirar o papel dele.
+        // WARNING: sob a trava, o papel de quem pede vem do Clerk, não do token, que diz admin por até 60 s.
         return comTrava(ctx.db, "papel", async (tx) => {
           const [eu, alvo] = await Promise.all([
             ctx.pessoas.conta(ctx.admin),
@@ -439,9 +447,7 @@ export const adminRouter = router({
             throw pessoaSumiu();
           }
 
-          // Antes do Clerk: se o Clerk falha, o rollback desfaz o encerramento.
-          // Na ordem contrária, a falha daqui deixaria o convite regravar admin
-          // por cima do papel que a ficha acabou de gravar.
+          // WARNING: encerrar o convite vem antes do Clerk, para o rollback desfazê-lo se o Clerk falhar.
           await encerrarPapelDoConvite(tx, input.userId, new Date());
           await ctx.pessoas.definirPapel(input.userId, input.papel);
 
@@ -465,11 +471,14 @@ export const adminRouter = router({
 
         return { bonus, perfil: input.perfil };
       }),
-    // O userId vem do endereço: fora do formato é uma página que não existe, não um erro.
     ficha: adminProcedure
       .input(z.object({ userId: z.string() }))
       .query(async ({ ctx, input }) => {
-        if (!USER_ID.test(input.userId)) {
+        if (
+          !USER_ID_NO_FORMATO_DO_CHECK_LIBERACAO_USER_ID_CLERK.test(
+            input.userId
+          )
+        ) {
           return null;
         }
 

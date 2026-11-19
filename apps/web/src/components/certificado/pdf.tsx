@@ -22,8 +22,7 @@ import {
   quebravel,
 } from "./medidas-da-folha";
 
-// process.cwd() é apps/web no next dev, no build e no bun test; o trace do build
-// leva os arquivos lidos por caminho fixo a partir dele.
+// WARNING: process.cwd() é apps/web no next dev, no build e no bun test; o trace do build leva os arquivos lidos por caminho fixo a partir dele.
 const FONTES = join(process.cwd(), "src/components/certificado/fontes");
 const MARCA = join(process.cwd(), "public", LOCKUP.src);
 
@@ -37,8 +36,7 @@ Font.register({
   ],
 });
 
-// Sem isto, o react-pdf hifeniza nome e curso pelas regras do inglês. Quebra só
-// no hífen oculto que `quebravel` põe na palavra maior que a linha.
+// WARNING: sem isto o react-pdf hifeniza nome e curso pelas regras do inglês; quebra só no hífen oculto que `quebravel` põe na palavra maior que a linha.
 Font.registerHyphenationCallback((palavra) => palavra.split(HIFEN_OCULTO));
 
 type Forma =

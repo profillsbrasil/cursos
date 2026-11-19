@@ -31,7 +31,6 @@ const conta = (userId: string, email: string): Conta => ({
   userId,
 });
 
-/** O login como perfilDe o vê. Sem convite, a chegada nunca grava papel. */
 const login = (daPessoa: Conta) => ({
   conta: () => Promise.resolve(daPessoa),
   definirPapel: () =>

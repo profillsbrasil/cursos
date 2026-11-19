@@ -15,8 +15,7 @@ function handler(req: NextRequest) {
       endpoint: "/api/trpc",
       onError: registrarErroInterno,
       req,
-      // A sessão também chega por cookie, e o CDN da Railway guarda resposta
-      // pública: a do tRPC nunca é de todo mundo.
+      // WARNING: a sessão também chega por cookie e o CDN da Railway guarda resposta pública: a do tRPC nunca é de todo mundo.
       responseMeta: () => ({
         headers: new Headers({ "cache-control": "private, no-store" }),
       }),

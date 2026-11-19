@@ -56,6 +56,7 @@ const tela = (pagina: PaginaDoCertificado) =>
       hoje={HOJE}
       origem="https://cursos.exemplo.com.br"
       pagina={pagina}
+      pedirONome={null}
     />
   );
 

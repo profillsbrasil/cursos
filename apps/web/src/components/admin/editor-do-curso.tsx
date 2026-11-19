@@ -64,7 +64,6 @@ function Publicacao({
   despachar,
   rascunho,
 }: {
-  /** null até o primeiro salvamento, quando o servidor gera o código. */
   codigo: string | null;
   despachar: Despachar;
   rascunho: RascunhoDoCurso;
@@ -446,7 +445,6 @@ export function EditorDoCurso({
               secoes={secoesDoEditor(rascunho, tela.novo)}
               status={rascunho.status}
             />
-            {/* Na coluna estreita, o Apagar vem depois do status; na larga, embaixo dos módulos. */}
             {tela.novo ? null : (
               <div className="min-w-0">
                 <Secao id="apagar" resumo="" titulo="Apagar">

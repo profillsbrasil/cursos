@@ -22,7 +22,6 @@ import { FotoDaPessoa } from "./foto-da-pessoa";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
 import { TopicosDoCurso } from "./topicos-do-curso";
 
-// Fora do App Router o useRouter lança; a categoria da Capa e descrição cria pelo useAcao.
 const navegacao = await import("next/navigation");
 
 mock.module("next/navigation", () => ({
@@ -56,7 +55,6 @@ const pronto = renderToStaticMarkup(
 
 const esqueleto = renderToStaticMarkup(<EsqueletoDoEditor />);
 
-// Cinco tópicos, como o curso de exemplo do dev.
 const topicos = renderToStaticMarkup(
   <TopicosDoCurso
     despachar={nada}
@@ -100,14 +98,11 @@ const css = await cssDoApp(
 
 let enviar: Enviar;
 
-// De 960 px de container para cima, o editor põe a coluna de publicação ao lado.
 const larguraDoEsqueleto = (formulario: number) =>
   formulario + COLUNA_DE_PUBLICACAO >= 960
     ? formulario + COLUNA_DE_PUBLICACAO
     : formulario;
 
-// O cartão da capa pronto numa coluna de `formulario` px, e o esqueleto inteiro
-// na largura que deixa a coluna dele com os mesmos `formulario` px.
 async function alturas(formulario: number) {
   await avaliar(
     enviar,
@@ -165,7 +160,6 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
     expect(lados.topo).toBe(lados.foto);
   });
 
-  // 358 px é o conteúdo em 390 px de janela, onde o resumo de Liberações quebra.
   for (const largura of [358, 1086]) {
     test(`o cabeçalho tem a altura do pronto com ${largura} px`, async () => {
       await avaliar(
@@ -184,9 +178,6 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
     });
   }
 
-  // 358 px é a coluna do editor em 390 px de janela.
-  // 754 px é a coluna do editor em 1440 px com a sidebar aberta: a capa fica sobre os campos.
-  // 1234 px é a de 1920 px: a capa fica ao lado deles.
   for (const formulario of [358, 754, 1234]) {
     test(`o cartão da capa tem a altura do pronto com ${formulario} px de coluna`, async () => {
       const { esqueleto: e, pronto: p } = await alturas(formulario);

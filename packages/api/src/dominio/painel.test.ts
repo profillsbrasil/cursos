@@ -128,8 +128,6 @@ describe("montarPainel com regras de liberação", () => {
   });
 
   test("o módulo da capa é o da aula para onde o Continuar leva, não o primeiro com aula pendente", () => {
-    // Módulo 0 com 2 aulas e módulo 1 com 1: a pessoa viu a aula 1 do módulo 0 e
-    // parou depois na aula 1 do módulo 1.
     const e = cursoLinha("e", { aulas: [2, 1] });
 
     const painel = montar(
@@ -333,9 +331,7 @@ describe("lugar do comunicado em Meus cursos", () => {
   });
 
   test("os dias contam no fuso de São Paulo, não em UTC", () => {
-    // 02/10 às 02:00 UTC ainda é 01/10 às 23:00 em São Paulo: 14 dias.
     expect(lugar("2026-10-02T02:00:00Z")).toBe("fim");
-    // 02/10 às 03:00 UTC já é meia-noite de 02/10 em São Paulo: 13 dias.
     expect(lugar("2026-10-02T03:00:00Z")).toBe("topo");
   });
 

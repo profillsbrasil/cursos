@@ -1,8 +1,3 @@
-// O material de apoio contra o Postgres local: o salvarCurso como único escritor
-// (cria, reordena, tira, recusa chave que não está no bucket e o 21º arquivo), os
-// tetos do banco e a porta do download (admin, aluno liberado, aluno sem
-// liberação e liberação revogada). Roda só com TEST_DATABASE_URL em host local.
-
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes, randomUUID } from "node:crypto";
 
@@ -57,12 +52,11 @@ const capasDeTeste: Capas = {
     }),
 };
 
-/** O bucket falso só conhece as chaves que o teste pôs nele. */
-const noBucket = new Set<string>();
+const chavesNoBucketFalso = new Set<string>();
 
 const materiaisDeTeste: Materiais = {
   abrir: () => Promise.resolve(null),
-  existe: (guardada) => Promise.resolve(noBucket.has(guardada)),
+  existe: (guardada) => Promise.resolve(chavesNoBucketFalso.has(guardada)),
   receber: () => Promise.reject(new Error("o teste não envia arquivo")),
 };
 
@@ -79,12 +73,11 @@ function novoMaterial(n: number, tipo: "pdf" | "xlsx" = "pdf") {
     titulo: `Material ${n}`,
   };
 
-  noBucket.add(m.chave);
+  chavesNoBucketFalso.add(m.chave);
 
   return m;
 }
 
-/** Erro sem tradução mostra a restrição violada no lugar do texto do Postgres. */
 const resultado = (p: Promise<unknown>) =>
   p.then(
     () => ({ code: "ok", message: "" }),
@@ -233,7 +226,7 @@ describe.skipIf(URL_TESTE === null)("material de apoio", () => {
   test("chave nova que não está no bucket é recusada com frase e nada muda", async () => {
     const criado = await salvar(documentoNovo([novoMaterial(10)]));
     const forjado = { ...novoMaterial(11), nomeDoArquivo: "forjado.pdf" };
-    noBucket.delete(forjado.chave);
+    chavesNoBucketFalso.delete(forjado.chave);
 
     expect(
       await resultado(

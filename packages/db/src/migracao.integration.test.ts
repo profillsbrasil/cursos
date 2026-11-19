@@ -24,8 +24,7 @@ async function migracoes() {
   );
 }
 
-// Sem parâmetros, o pg manda o texto pelo protocolo simples, que aceita vários statements.
-const aplicar = (c: Client, lista: readonly { sql: string }[]) =>
+const aplicarSemParametros = (c: Client, lista: readonly { sql: string }[]) =>
   c.query(
     lista
       .map((m) => m.sql.replaceAll("--> statement-breakpoint", ""))
@@ -37,10 +36,6 @@ const codigoDoErro = (e: unknown) =>
     ? String(e.constraint)
     : `sem constraint: ${String(e)}`;
 
-/**
- * Banco novo com as migrações anteriores a `<timestamp>_<migracao>`, as linhas de
- * `plantar` e depois o resto: as linhas já existem quando a migração roda.
- */
 function migracaoComLinhas(
   titulo: string,
   migracao: string,
@@ -62,9 +57,9 @@ function migracaoComLinhas(
       const todas = await migracoes();
       const ate = todas.findIndex((m) => m.nome.endsWith(`_${migracao}`));
       expect(ate).toBeGreaterThan(0);
-      await aplicar(c, todas.slice(0, ate));
+      await aplicarSemParametros(c, todas.slice(0, ate));
       await plantar(c);
-      await aplicar(c, todas.slice(ate));
+      await aplicarSemParametros(c, todas.slice(ate));
     });
 
     afterAll(async () => {
@@ -161,7 +156,6 @@ migracaoComLinhas(
       "insert into ponto_lancamento (user_id, motivo, pontos, liberacao_id) values ($1, 'troca', -200, $2)",
       [ALUNO, troca.rows[0]?.id]
     );
-    // Admin que liberou para si mesmo: antes da origem, o banco a lia como troca.
     await c.query(
       "insert into liberacao (user_id, curso_id, liberada_por) values ($1, $2, $1)",
       [ADMIN, proprio]
@@ -381,7 +375,6 @@ migracaoComLinhas(
         "select enum_range(null::motivo_ponto)::text as valores"
       );
 
-      // As migrações seguintes também rodam: a lista cresce, e trilha_concluida não volta.
       expect(r.rows[0]?.valores).not.toContain("trilha_concluida");
       expect(r.rows[0]?.valores).toContain("troca");
     });
@@ -564,8 +557,8 @@ migracaoComLinhas(
 
       expect(valores.rows.map((r) => r.v)).toEqual([
         "aula_assistida",
-        "bonus_funcionario", // da migração bonus_de_funcionario, que roda depois
-        "concessao", // da migração concessao_de_pontos, que roda depois
+        "bonus_funcionario",
+        "concessao",
         "curso_concluido",
         "questionario",
         "sequencia_7_dias",

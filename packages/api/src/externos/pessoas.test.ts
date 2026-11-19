@@ -136,7 +136,6 @@ describe("pessoasDoClerk.contasCom", () => {
       id,
     });
 
-  /** O filtro emailAddress do Clerk: trecho do e-mail, sem caixa, em páginas. */
   const clerkCom = (usuarios: User[], pedidos: unknown[] = []) =>
     ({
       users: {

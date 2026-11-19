@@ -139,7 +139,6 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
 
   const seguraOsInserts = () => seguraATabela(db);
 
-  /** 'advisory' é a trava do aluno; 'relation', o INSERT ou o UPDATE parado. */
   const esperas = (n: number) =>
     esperasNoBanco(db, n, [
       'insert into "liberacao"',
@@ -385,7 +384,6 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       });
       expect(await liberacoesDe(userId)).toEqual([]);
     } finally {
-      // Sem o commit, a transação aberta morre com a conexão em vez de voltar ao pool.
       outro.release(true);
     }
   });

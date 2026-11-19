@@ -19,7 +19,6 @@ import type { Transacao } from "./comum";
 import { linhasDoHistoricoNoCurso } from "./meus-cursos";
 import { type AlunoTravado, travarAluno } from "./trava";
 
-/** Colidir duas vezes em 31^8 códigos é defeito, não azar. */
 const SORTEIOS = 5;
 
 export interface Conclusao {
@@ -30,7 +29,6 @@ interface CursoParaConcluir extends CursoComAulas {
   segundosDeVideo: number;
 }
 
-/** Um statement: o curso com os módulos, as aulas e as perguntas contadas. null sem o curso. */
 async function cursoParaConcluir(
   tx: Transacao,
   cursoId: CursoId
@@ -96,10 +94,6 @@ async function cursoParaConcluir(
   };
 }
 
-/**
- * Só o curso inteiro emite: a liberação própria ativa (do admin ou de troca). A
- * liberação do perfil dá a amostra, que não conclui o curso.
- */
 async function temAcessoAtivo(aluno: AlunoTravado, cursoId: CursoId) {
   const { rows } = await aluno.tx.execute<{ ve: boolean }>(sql`
     select exists (
@@ -111,11 +105,6 @@ async function temAcessoAtivo(aluno: AlunoTravado, cursoId: CursoId) {
   return rows[0]?.ve === true;
 }
 
-/**
- * O código só colide com o unique: on conflict (codigo) do nothing não devolve
- * linha, e o sorteio repete. O unique de um por curso ainda sobe, e não deve
- * disparar: quem chama leu que não há certificado com o aluno travado.
- */
 async function gravarCertificado(
   aluno: AlunoTravado,
   alvo: CursoParaConcluir,

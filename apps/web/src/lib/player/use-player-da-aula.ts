@@ -77,8 +77,6 @@ function teclaDoControle(e: KeyboardEvent, container: HTMLElement) {
     return false;
   }
 
-  // As folhas dos Ajustes e dos atalhos ficam com as teclas delas: as setas andam
-  // na velocidade, e nenhuma letra lá dentro toca ou anda no vídeo.
   if (alvo.closest("[role=dialog]")) {
     return true;
   }
@@ -96,7 +94,6 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
   const refContainer = useRef<HTMLElement>(null);
   const [inicial] = useState(entrada);
 
-  // O servidor não lê localStorage: o snapshot antes da sessão usa o padrão.
   const [estadoAntes] = useState(() =>
     estadoInicial({ ...inicial, preferencias: PREFERENCIAS_PADRAO })
   );
@@ -160,8 +157,6 @@ export function usePlayerDaAula(entrada: EntradaDoPlayer) {
       pararDeGravar();
       document.removeEventListener("visibilitychange", aoEsconder);
       window.removeEventListener("pagehide", aoSair);
-      // A limpeza roda no commit da navegação para fora da aula: o refresh pede a
-      // página nova e o layout junto, com o "Continuar" do rodapé em dia.
       void s.encerrar().then(ligacao.aoEncerrar);
       aviso.encerrar();
     };
