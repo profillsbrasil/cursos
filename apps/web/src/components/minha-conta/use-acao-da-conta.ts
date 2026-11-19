@@ -53,3 +53,5 @@ export function useAcaoDaConta() {
 
   return { executar, pendente };
 }
+
+export type AcaoDaConta = ReturnType<typeof useAcaoDaConta>;
