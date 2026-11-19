@@ -14,12 +14,13 @@ import { ConteudoMeusCursos } from "@/components/meus-cursos/conteudo";
 
 import {
   abrirChromium,
-  avaliar,
   CHROMIUM,
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehNumero } from "../predicados.test-utils";
 import { CabecalhoDaPagina, EsqueletoDoCabecalho } from "./cabecalho-da-pagina";
 
 const naPagina = (filhos: ReactNode) =>
@@ -81,11 +82,12 @@ async function topoDoConteudo(largura: number, corpo: string) {
     width: largura,
   });
 
-  return await avaliar<number>(
+  return await avaliarComo(
     enviar,
     `document.open(); document.write(${JSON.stringify(
       `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`
-    )}); document.close(); Math.round(document.querySelector("main").firstElementChild.nextElementSibling.getBoundingClientRect().top)`
+    )}); document.close(); Math.round(document.querySelector("main").firstElementChild.nextElementSibling.getBoundingClientRect().top)`,
+    ehNumero
   );
 }
 

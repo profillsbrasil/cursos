@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { TRPCError } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Glob } from "bun";
+import { z } from "zod";
 
 import { ESPERA_ESGOTADA } from "./consultas/erros";
 import { contextoDeTeste } from "./contexto-de-teste";
@@ -60,6 +61,17 @@ const rotas = router({
   }),
 });
 
+const CORPO_DO_ERRO = z.object({
+  error: z.object({
+    data: z.object({
+      code: z.string(),
+      motivo: z.string().nullish(),
+      paraAPessoa: z.boolean().optional(),
+    }),
+    message: z.string(),
+  }),
+});
+
 async function corpoDoErroNoHttpDepoisDoErrorFormatter(caminho: string) {
   const resposta = await fetchRequestHandler({
     createContext: () =>
@@ -70,12 +82,7 @@ async function corpoDoErroNoHttpDepoisDoErrorFormatter(caminho: string) {
     router: rotas,
   });
 
-  const corpo = (await resposta.json()) as {
-    error: {
-      data: { code: string; motivo?: string | null; paraAPessoa?: boolean };
-      message: string;
-    };
-  };
+  const corpo = CORPO_DO_ERRO.parse(await resposta.json());
 
   return {
     code: corpo.error.data.code,

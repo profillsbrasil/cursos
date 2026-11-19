@@ -15,7 +15,19 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  type Predicado,
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehRegistroDe,
+  ehTexto,
+  ehTupla,
+  ouNulo,
+} from "../predicados.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "editor.entrada.tsx");
@@ -300,12 +312,13 @@ async function escrever(seletor: string, valor: string) {
 }
 
 const pedidos = () =>
-  avaliar<Record<string, string>[]>(enviar, "window.pedidos");
+  avaliarComo(enviar, "window.pedidos", ehLista(ehRegistroDe(ehTexto)));
 
 const textoDe = (seletor: string) =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.querySelector(${JSON.stringify(seletor)})?.textContent ?? null`
+    `document.querySelector(${JSON.stringify(seletor)})?.textContent ?? null`,
+    ouNulo(ehTexto)
   );
 
 const GATILHO = "#curso-categoriaId";
@@ -332,9 +345,9 @@ async function foto(nome: string) {
 
   await sleep(300);
 
-  const { data } = (await enviar("Page.captureScreenshot", {
+  const { data } = await enviar("Page.captureScreenshot", {
     format: "png",
-  })) as { data: string };
+  });
 
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
@@ -355,9 +368,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       await escrever("#curso-titulo", "Curso de Filmagem 2");
       await abrirCategoriaEDigitar("Filmagem");
 
-      const opcoes = await avaliar<string[]>(
+      const opcoes = await avaliarComo(
         enviar,
-        `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`
+        `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`,
+        ehLista(ehTexto)
       );
 
       expect(opcoes).toEqual(['Criar categoria "Filmagem"']);
@@ -373,9 +387,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
         'Categoria "Filmagem" criada.'
       );
       expect(
-        await avaliar<string>(
+        await avaliarComo(
           enviar,
-          `document.getElementById("curso-titulo").value`
+          `document.getElementById("curso-titulo").value`,
+          ehTexto
         )
       ).toBe("Curso de Filmagem 2");
     });
@@ -384,9 +399,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       await abrirEditor(1280);
       await abrirCategoriaEDigitar("");
 
-      const lista = await avaliar<string[]>(
+      const lista = await avaliarComo(
         enviar,
-        `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`
+        `[...document.querySelectorAll('[role="option"]')].map((o) => o.textContent.trim())`,
+        ehLista(ehTexto)
       );
 
       expect(lista).toEqual([
@@ -394,9 +410,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
         "Vendas e negócios2 cursos",
       ]);
       expect(
-        await avaliar<string | null>(
+        await avaliarComo(
           enviar,
-          `document.querySelector('a[href="/admin/categorias"]')?.textContent ?? null`
+          `document.querySelector('a[href="/admin/categorias"]')?.textContent ?? null`,
+          ouNulo(ehTexto)
         )
       ).toBe("Gerenciar");
     });
@@ -409,9 +426,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       await esperar(`document.getElementById("curso-categoriaId-erro")`);
       expect(await textoDe("#curso-categoriaId-erro")).toBe(REPETIDO);
       expect(
-        await avaliar<[string | null, string | null]>(
+        await avaliarComo(
           enviar,
-          `(() => { const g = document.querySelector("${GATILHO}"); return [g.getAttribute("aria-invalid"), g.getAttribute("aria-describedby")]; })()`
+          `(() => { const g = document.querySelector("${GATILHO}"); return [g.getAttribute("aria-invalid"), g.getAttribute("aria-describedby")]; })()`,
+          ehTupla(ouNulo(ehTexto), ouNulo(ehTexto))
         )
       ).toEqual(["true", "curso-categoriaId-erro"]);
     });
@@ -425,8 +443,19 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       lista: boolean;
     }
 
+    const ehDisposicao: Predicado<Disposicao> = ehObjeto({
+      barra: ehTexto,
+      coluna: ehObjeto({
+        esquerda: ehNumero,
+        largura: ehNumero,
+        topo: ehNumero,
+      }),
+      conteudo: ehObjeto({ direita: ehNumero, fundo: ehNumero }),
+      lista: ehBooleano,
+    });
+
     const disposicao = () =>
-      avaliar<Disposicao>(
+      avaliarComo(
         enviar,
         `(() => {
           const coluna = document.querySelector('aside[aria-label="Publicação do curso"]').getBoundingClientRect();
@@ -439,7 +468,8 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
             conteudo: { direita: conteudo.right, fundo: conteudo.bottom },
             lista: lista ? lista.getClientRects().length > 0 : false,
           };
-        })()`
+        })()`,
+        ehDisposicao
       );
 
     test("com 960 px de editor ou mais, a coluna de 300 px fica à direita, a 32 px, e a barra do pé some", async () => {
@@ -475,9 +505,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       await abrirEditor(1920);
 
       const marca = () =>
-        avaliar<string>(
+        avaliarComo(
           enviar,
-          `[...document.querySelectorAll("li")].find((l) => l.textContent.startsWith("Descrição")).textContent`
+          `[...document.querySelectorAll("li")].find((l) => l.textContent.startsWith("Descrição")).textContent`,
+          ehTexto
         );
 
       expect(await marca()).toBe("Descrição: pronto.");
@@ -503,7 +534,7 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
       "Gravar a visão geral, cada etapa e a embalagem final, na horizontal e na vertical, sem cortar a máquina";
 
     const inteiro = (seletor: string) =>
-      avaliar<{ alto: boolean; cabe: boolean; valor: string }>(
+      avaliarComo(
         enviar,
         `(() => {
           const c = document.querySelector(${JSON.stringify(seletor)});
@@ -512,7 +543,8 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
             cabe: c.scrollWidth <= c.clientWidth && c.scrollHeight <= c.clientHeight,
             valor: c.value,
           };
-        })()`
+        })()`,
+        ehObjeto({ alto: ehBooleano, cabe: ehBooleano, valor: ehTexto })
       );
 
     for (const janela of [1280, 390]) {
@@ -564,9 +596,10 @@ describe.skipIf(!existsSync(CHROMIUM))("editor do curso no browser", () => {
           { salvarCurso: "Curso de Filmagem revisto" },
         ]);
         expect(
-          await avaliar<boolean[]>(
+          await avaliarComo(
             enviar,
-            "window.impedidos.map((e) => e.defaultPrevented)"
+            "window.impedidos.map((e) => e.defaultPrevented)",
+            ehLista(ehBooleano)
           )
         ).toEqual([true, true]);
       });

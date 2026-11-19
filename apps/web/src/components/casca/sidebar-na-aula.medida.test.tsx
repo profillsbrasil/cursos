@@ -15,7 +15,16 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 
 let caminhoAtual = "/meus-cursos";
 const navegacao = await import("next/navigation");
@@ -186,6 +195,13 @@ interface Medida {
   transicao: string;
 }
 
+const ehMedida: Predicado<Medida> = ehObjeto({
+  animando: ehBooleano,
+  cookie: ehTexto,
+  largura: ehNumero,
+  transicao: ehTexto,
+});
+
 const MEDIR = `(() => {
   const $ = (s) => document.querySelector('[data-slot="' + s + '"]');
   const container = $("sidebar-container");
@@ -197,7 +213,7 @@ const MEDIR = `(() => {
   };
 })()`;
 
-const medir = () => avaliar<Medida>(enviar, MEDIR);
+const medir = () => avaliarComo(enviar, MEDIR, ehMedida);
 
 const navegar = (caminho: string) =>
   avaliar(enviar, `window.casca.navegar(${JSON.stringify(caminho)})`);
@@ -262,7 +278,9 @@ describe.skipIf(!existsSync(CHROMIUM))("a sidebar na aula, a 1280 px", () => {
       cookie: "sidebar_state=true",
       largura: RECOLHIDA,
     });
-    expect(await avaliar<string[]>(enviar, "window.errosDoReact")).toEqual([]);
+    expect(
+      await avaliarComo(enviar, "window.errosDoReact", ehLista(ehTexto))
+    ).toEqual([]);
   });
 
   test("entrar na aula pelo cliente recolhe com a animação do Recolher, e sair abre de novo", async () => {

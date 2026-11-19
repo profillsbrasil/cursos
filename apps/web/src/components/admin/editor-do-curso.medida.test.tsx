@@ -19,7 +19,17 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  type Predicado,
+  ehBooleano,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  ehTupla,
+  ouNulo,
+} from "../predicados.test-utils";
 import { CampoDeCapa } from "./campo-de-capa";
 import { ModulosDoCurso } from "./modulos-do-curso";
 import { rascunhoDoCurso } from "./rascunho-do-curso";
@@ -151,23 +161,76 @@ interface Alavanca {
   polegar: { fundo: string; lado: number; recuo: number; topo: number };
 }
 
+interface Retangulo {
+  bottom: number;
+  height: number;
+  left: number;
+  right: number;
+  top: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
 interface Medida {
   alavancas: [Alavanca, Alavanca];
   area: { altura: number; raio: string; rola: boolean };
   camada: string;
   campo: { altura: number; raio: string };
-  capa: DOMRect;
-  edicao: DOMRect;
+  capa: Retangulo;
+  edicao: Retangulo;
   fontes: { aula: [string, string]; curso: [string, string] };
-  lista: DOMRect;
-  painel: DOMRect;
-  perguntas: DOMRect;
-  titulo: DOMRect;
+  lista: Retangulo;
+  painel: Retangulo;
+  perguntas: Retangulo;
+  titulo: Retangulo;
   transborda: string | null;
 }
 
+const ehAlavanca: Predicado<Alavanca> = ehObjeto({
+  altura: ehNumero,
+  borda: ehTexto,
+  fundo: ehTexto,
+  largura: ehNumero,
+  polegar: ehObjeto({
+    fundo: ehTexto,
+    lado: ehNumero,
+    recuo: ehNumero,
+    topo: ehNumero,
+  }),
+});
+
+const ehRetangulo: Predicado<Retangulo> = ehObjeto({
+  bottom: ehNumero,
+  height: ehNumero,
+  left: ehNumero,
+  right: ehNumero,
+  top: ehNumero,
+  width: ehNumero,
+  x: ehNumero,
+  y: ehNumero,
+});
+
+const ehMedida: Predicado<Medida> = ehObjeto({
+  alavancas: ehTupla(ehAlavanca, ehAlavanca),
+  area: ehObjeto({ altura: ehNumero, raio: ehTexto, rola: ehBooleano }),
+  camada: ehTexto,
+  campo: ehObjeto({ altura: ehNumero, raio: ehTexto }),
+  capa: ehRetangulo,
+  edicao: ehRetangulo,
+  fontes: ehObjeto({
+    aula: ehTupla(ehTexto, ehTexto),
+    curso: ehTupla(ehTexto, ehTexto),
+  }),
+  lista: ehRetangulo,
+  painel: ehRetangulo,
+  perguntas: ehRetangulo,
+  titulo: ehRetangulo,
+  transborda: ouNulo(ehTexto),
+});
+
 const medir = () =>
-  avaliar<Medida>(
+  avaliarComo(
     enviar,
     `(() => {
       const caixa = (el) => el.getBoundingClientRect().toJSON();
@@ -207,7 +270,8 @@ const medir = () =>
         titulo: caixa(document.getElementById("curso-titulo")),
         transborda,
       };
-    })()`
+    })()`,
+    ehMedida
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
@@ -260,7 +324,13 @@ describe.skipIf(!existsSync(CHROMIUM))("editor no browser", () => {
 
       await tecla("keyDown");
       await tecla("keyUp");
-      const focado = await avaliar<string>(enviar, "document.activeElement.id");
+
+      const focado = await avaliarComo(
+        enviar,
+        "document.activeElement.id",
+        ehTexto
+      );
+
       await avaliar(enviar, "new Promise((r) => setTimeout(r, 300))");
       expect([focado, (await medir()).camada]).toEqual(["curso-capa", "1"]);
     });

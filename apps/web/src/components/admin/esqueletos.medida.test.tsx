@@ -15,7 +15,9 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehLista, ehNumero, ehObjeto } from "../predicados.test-utils";
 import { CampoDeCapa } from "./campo-de-capa";
 import { EsqueletoDoEditor, EsqueletoDoTopoDaPessoa } from "./esqueletos";
 import { FotoDaPessoa } from "./foto-da-pessoa";
@@ -111,19 +113,20 @@ async function alturas(formulario: number) {
     )}); document.close();`
   );
 
-  return await avaliar<{
-    esqueleto: number;
-    esqueletoDosTopicos: number;
-    pronto: number;
-    topicos: number;
-  }>(
+  return await avaliarComo(
     enviar,
     `new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r({
       pronto: document.querySelector("#pronto section > div").getBoundingClientRect().height,
       esqueleto: document.querySelector("#esqueleto .grid.gap-7 > :nth-child(2)").getBoundingClientRect().height,
       topicos: document.querySelector("#topicos section").getBoundingClientRect().height,
       esqueletoDosTopicos: document.querySelector("#esqueleto .grid.gap-10 > :nth-child(2)").getBoundingClientRect().height,
-    }))))`
+    }))))`,
+    ehObjeto({
+      esqueleto: ehNumero,
+      esqueletoDosTopicos: ehNumero,
+      pronto: ehNumero,
+      topicos: ehNumero,
+    })
   );
 }
 
@@ -148,12 +151,13 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
       )}); document.close();`
     );
 
-    const lados = await avaliar<{ foto: number; topo: number }>(
+    const lados = await avaliarComo(
       enviar,
       `({
         foto: document.querySelector('#foto [data-slot="avatar"]').getBoundingClientRect().width,
         topo: document.querySelector("#topo .rounded-full.shrink-0").getBoundingClientRect().width,
-      })`
+      })`,
+      ehObjeto({ foto: ehNumero, topo: ehNumero })
     );
 
     expect(lados.foto).toBe(56);
@@ -169,9 +173,10 @@ describe.skipIf(!existsSync(CHROMIUM))("esqueletos do admin no browser", () => {
         )}); document.close();`
       );
 
-      const lados = await avaliar<number[]>(
+      const lados = await avaliarComo(
         enviar,
-        `["#pronto", "#esqueleto"].map((id) => document.querySelector(id).firstElementChild.getBoundingClientRect().height)`
+        `["#pronto", "#esqueleto"].map((id) => document.querySelector(id).firstElementChild.getBoundingClientRect().height)`,
+        ehLista(ehNumero)
       );
 
       expect(lados[1]).toBe(lados[0]);

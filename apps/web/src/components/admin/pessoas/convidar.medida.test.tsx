@@ -8,7 +8,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../../chromium.test-utils";
+import {
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../../predicados.test-utils";
 import {
   AJUDANTES_DO_CONVIDAR,
   empacotarConvidar,
@@ -47,8 +55,20 @@ interface Medida {
   rolagemLateral: number;
 }
 
+const ehMedida: Predicado<Medida> = ehObjeto({
+  campoDeFichas: ehNumero,
+  dialogo: ehObjeto({
+    altura: ehNumero,
+    direita: ehNumero,
+    esquerda: ehNumero,
+  }),
+  menorLetra: ehNumero,
+  pe: ehObjeto({ direita: ehNumero, esquerda: ehNumero, linha: ehTexto }),
+  rolagemLateral: ehNumero,
+});
+
 const medir = () =>
-  avaliar<Medida>(
+  avaliarComo(
     enviar,
     `(() => {
       const d = dialogo().getBoundingClientRect();
@@ -64,7 +84,8 @@ const medir = () =>
         pe: { direita: p.right, esquerda: p.left, linha: getComputedStyle(pe).borderTopWidth },
         rolagemLateral: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       };
-    })()`
+    })()`,
+    ehMedida
   );
 
 describe.skipIf(!existsSync(CHROMIUM))(
@@ -75,9 +96,10 @@ describe.skipIf(!existsSync(CHROMIUM))(
       pacote = await empacotarConvidar();
       await abrir(1440);
 
-      const classes = await avaliar<string[]>(
+      const classes = await avaliarComo(
         enviar,
-        `[...document.querySelectorAll("*")].flatMap((e) => [...e.classList])`
+        `[...document.querySelectorAll("*")].flatMap((e) => [...e.classList])`,
+        ehLista(ehTexto)
       );
 
       css = await cssDoApp(classes);
@@ -117,7 +139,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
 
       const borda = (comFoco: boolean) =>
-        avaliar<{ contorno: string; cor: string }>(
+        avaliarComo(
           enviar,
           `(async () => {
             const campo = dialogo().querySelector('input[inputmode="email"]');
@@ -126,7 +148,8 @@ describe.skipIf(!existsSync(CHROMIUM))(
             await esperar(300);
             const moldura = getComputedStyle(dialogo().querySelector("[data-campo]"));
             return { contorno: getComputedStyle(campo).outlineStyle, cor: moldura.borderTopColor };
-          })()`
+          })()`,
+          ehObjeto({ contorno: ehTexto, cor: ehTexto })
         );
 
       await avaliar(

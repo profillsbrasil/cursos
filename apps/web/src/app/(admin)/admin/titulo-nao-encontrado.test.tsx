@@ -11,10 +11,7 @@ const sonda = spawnSync(
   { cwd: join(import.meta.dir, "../../../../..") }
 );
 
-const titulos = JSON.parse(sonda.stdout.toString() || "{}") as Record<
-  "acesso" | "editor" | "ficha",
-  unknown
->;
+const titulos: unknown = JSON.parse(sonda.stdout.toString() || "{}");
 
 const H1 = /<h1[^>]*>([^<]*)<\/h1>/;
 const HREF = /href="([^"]*)"/g;

@@ -15,7 +15,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { ColunaDoCurso } from "./coluna-do-curso";
 
 const MODULOS = 16;
@@ -178,6 +186,13 @@ interface Medida {
   rolagemDaPagina: number;
 }
 
+const ehMedida: Predicado<Medida> = ehObjeto({
+  centroDaAula: ehNumero,
+  centroDaColuna: ehNumero,
+  rolagem: ehNumero,
+  rolagemDaPagina: ehNumero,
+});
+
 const MEDIR = `(() => {
   const coluna = document.querySelector("aside");
   const aula = coluna.querySelector('[aria-current="page"]').getBoundingClientRect();
@@ -200,7 +215,9 @@ function esperarCentrada(medida: Medida) {
 }
 
 async function esperarSemErroDoReact() {
-  expect(await avaliar<string[]>(enviar, "window.errosDoReact")).toEqual([]);
+  expect(
+    await avaliarComo(enviar, "window.errosDoReact", ehLista(ehTexto))
+  ).toEqual([]);
 }
 
 const RAIZ = (html: string) =>
@@ -222,7 +239,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await abrirPagina(
         RAIZ(renderToString(<ColunaDoCurso dados={NO_MEIO} />))
       );
-      esperarCentrada(await avaliar<Medida>(enviar, MEDIR));
+      esperarCentrada(await avaliarComo(enviar, MEDIR, ehMedida));
     });
 
     test("no streaming do loading.tsx, a coluna centra no quadro em que o React a revela", async () => {
@@ -233,14 +250,15 @@ describe.skipIf(!existsSync(CHROMIUM))(
       );
       await avaliar(enviar, DEPOIS_DO_RENDER);
 
-      const medida = await avaliar<Medida>(
+      const medida = await avaliarComo(
         enviar,
         `(async () => {
           const escondida = document.getElementById("escondida");
           document.getElementById("raiz").append(...escondida.childNodes);
           await new Promise((r) => requestAnimationFrame(r));
           return ${MEDIR};
-        })()`
+        })()`,
+        ehMedida
       );
 
       esperarCentrada(medida);
@@ -250,7 +268,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await abrirPagina(RAIZ(""));
       await avaliar(enviar, pacote);
       await avaliar(enviar, `window.coluna.montar(${JSON.stringify(NO_MEIO)})`);
-      esperarCentrada(await avaliar<Medida>(enviar, MEDIR));
+      esperarCentrada(await avaliarComo(enviar, MEDIR, ehMedida));
       await esperarSemErroDoReact();
     });
 
@@ -258,12 +276,12 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await abrirPagina(RAIZ(""));
       await avaliar(enviar, pacote);
       await avaliar(enviar, `window.coluna.montar(${JSON.stringify(NO_MEIO)})`);
-      const antes = await avaliar<Medida>(enviar, MEDIR);
+      const antes = await avaliarComo(enviar, MEDIR, ehMedida);
       await avaliar(
         enviar,
         `window.coluna.trocar(${JSON.stringify(MAIS_ABAIXO)})`
       );
-      const depois = await avaliar<Medida>(enviar, MEDIR);
+      const depois = await avaliarComo(enviar, MEDIR, ehMedida);
       esperarCentrada(depois);
       expect(depois.rolagem).toBeGreaterThan(antes.rolagem);
       await esperarSemErroDoReact();
@@ -280,7 +298,7 @@ describe.skipIf(!existsSync(CHROMIUM))(
         `window.coluna.hidratar(${JSON.stringify(NO_MEIO)})`
       );
       await avaliar(enviar, DEPOIS_DO_RENDER);
-      const medida = await avaliar<Medida>(enviar, MEDIR);
+      const medida = await avaliarComo(enviar, MEDIR, ehMedida);
       expect(medida.rolagem).toBe(40);
       await esperarSemErroDoReact();
     });

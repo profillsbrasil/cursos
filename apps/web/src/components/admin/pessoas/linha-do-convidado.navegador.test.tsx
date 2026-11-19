@@ -10,7 +10,9 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../../chromium.test-utils";
+import { ehLista, ehQualquer, ehTexto } from "../../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "linha-do-convidado.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-convidado-falso.js");
@@ -125,9 +127,11 @@ async function abrir() {
 const clicar = (nome: string) =>
   avaliar(enviar, `window.clicar(${JSON.stringify(nome)})`);
 
-const chamadas = () => avaliar<unknown[]>(enviar, "window.chamadas");
-const toasts = () => avaliar<string[]>(enviar, "window.toasts");
-const nomes = () => avaliar<string[]>(enviar, "window.nomes()");
+const chamadas = () =>
+  avaliarComo(enviar, "window.chamadas", ehLista(ehQualquer));
+
+const toasts = () => avaliarComo(enviar, "window.toasts", ehLista(ehTexto));
+const nomes = () => avaliarComo(enviar, "window.nomes()", ehLista(ehTexto));
 
 describe.skipIf(!existsSync(CHROMIUM))(
   "a linha do convidado no browser",

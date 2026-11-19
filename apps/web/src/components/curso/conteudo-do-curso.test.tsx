@@ -11,7 +11,15 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { ConteudoDoCurso } from "./conteudo-do-curso";
 import { comercial } from "./exemplo-de-teste";
 
@@ -84,6 +92,11 @@ interface Estado {
   botao: string;
 }
 
+const ehEstado: Predicado<Estado> = ehObjeto({
+  abertos: ehLista(ehBooleano),
+  botao: ehTexto,
+});
+
 const ESTADO = `(() => ({
   abertos: [...document.querySelectorAll("details")].map((d) => d.open),
   botao: document.querySelector("section button").textContent,
@@ -99,7 +112,7 @@ async function clicar(seletor: string) {
   );
   await avaliar(enviar, DEPOIS_DO_RENDER);
 
-  return await avaliar<Estado>(enviar, ESTADO);
+  return await avaliarComo(enviar, ESTADO, ehEstado);
 }
 
 describe.skipIf(!existsSync(CHROMIUM))("a sanfona dos módulos", () => {
@@ -123,7 +136,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a sanfona dos módulos", () => {
     );
     await avaliar(enviar, pacote);
     await avaliar(enviar, `window.hidratar(${JSON.stringify(PAGINA)})`);
-    expect(await avaliar<Estado>(enviar, ESTADO)).toEqual({
+    expect(await avaliarComo(enviar, ESTADO, ehEstado)).toEqual({
       abertos: [false, false, true, false],
       botao: "Abrir todos",
     });
@@ -136,7 +149,9 @@ describe.skipIf(!existsSync(CHROMIUM))("a sanfona dos módulos", () => {
       abertos: [false, false, false, false],
       botao: "Abrir todos",
     });
-    expect(await avaliar<string[]>(enviar, "window.errosDoReact")).toEqual([]);
+    expect(
+      await avaliarComo(enviar, "window.errosDoReact", ehLista(ehTexto))
+    ).toEqual([]);
   });
 
   test("abrir os módulos um a um também troca o botão para Fechar todos", async () => {
@@ -145,7 +160,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a sanfona dos módulos", () => {
       'document.querySelectorAll("details:not([open]) > summary").forEach((s) => s.click())'
     );
     await avaliar(enviar, DEPOIS_DO_RENDER);
-    expect(await avaliar<Estado>(enviar, ESTADO)).toEqual({
+    expect(await avaliarComo(enviar, ESTADO, ehEstado)).toEqual({
       abertos: [true, true, true, true],
       botao: "Fechar todos",
     });

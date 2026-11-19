@@ -5,6 +5,17 @@ import { dirname, join } from "node:path";
 import { spawn } from "bun";
 import { compile } from "tailwindcss";
 
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehRegistro,
+  ehTexto,
+  opcional,
+  type Predicado,
+} from "./predicados.test-utils";
+
 const APP = join(import.meta.dir, "../..");
 const UI = join(APP, "../../packages/ui");
 const INDEX = join(APP, "src/index.css");
@@ -40,11 +51,100 @@ export async function cssDoApp(classes: Iterable<string>) {
 export const CHROMIUM = process.env.CHROMIUM ?? "/usr/bin/chromium";
 const DEVTOOLS = /DevTools listening on (ws:\/\/\S+)/;
 
-interface Resposta {
-  error?: { message: string };
-  id?: number;
-  result?: Record<string, unknown>;
+const ehMensagem = ehObjeto({
+  error: opcional(ehObjeto({ message: ehTexto })),
+  id: opcional(ehNumero),
+  result: opcional(ehRegistro),
+});
+
+const ehAlvos = ehLista(
+  ehObjeto({ type: ehTexto, webSocketDebuggerUrl: opcional(ehTexto) })
+);
+
+interface ValorDoAx {
+  value?: string;
 }
+
+interface NoDaArvore {
+  description?: ValorDoAx;
+  ignored: boolean;
+  name?: ValorDoAx;
+  role?: ValorDoAx;
+  value?: Record<string, unknown>;
+}
+
+interface Avaliacao {
+  exceptionDetails?: {
+    exception?: { description?: string };
+    text: string;
+  };
+  result: Record<string, unknown>;
+}
+
+/** A resposta de cada método do protocolo que os testes usam. Quem não lê a resposta fica com o registro cru. */
+interface Respostas {
+  "Accessibility.getFullAXTree": { nodes: NoDaArvore[] };
+  "Accessibility.getPartialAXTree": { nodes: NoDaArvore[] };
+  "CSS.enable": Record<string, unknown>;
+  "CSS.forcePseudoState": Record<string, unknown>;
+  "DOM.enable": Record<string, unknown>;
+  "DOM.getDocument": { root: { nodeId: number } };
+  "DOM.querySelector": { nodeId: number };
+  "Emulation.setDeviceMetricsOverride": Record<string, unknown>;
+  "Emulation.setEmulatedMedia": Record<string, unknown>;
+  "Emulation.setFocusEmulationEnabled": Record<string, unknown>;
+  "Input.dispatchKeyEvent": Record<string, unknown>;
+  "Input.dispatchMouseEvent": Record<string, unknown>;
+  "Input.insertText": Record<string, unknown>;
+  "Page.captureScreenshot": { data: string };
+  "Page.enable": Record<string, unknown>;
+  "Page.navigate": Record<string, unknown>;
+  "Runtime.evaluate": Avaliacao;
+}
+
+const ehValorDoAx: Predicado<ValorDoAx> = ehObjeto({
+  value: opcional(ehTexto),
+});
+
+const ehArvore = ehObjeto({
+  nodes: ehLista(
+    ehObjeto({
+      description: opcional(ehValorDoAx),
+      ignored: ehBooleano,
+      name: opcional(ehValorDoAx),
+      role: opcional(ehValorDoAx),
+      value: opcional(ehRegistro),
+    })
+  ),
+});
+
+const RESPOSTAS: { [M in keyof Respostas]: Predicado<Respostas[M]> } = {
+  "Accessibility.getFullAXTree": ehArvore,
+  "Accessibility.getPartialAXTree": ehArvore,
+  "CSS.enable": ehRegistro,
+  "CSS.forcePseudoState": ehRegistro,
+  "DOM.enable": ehRegistro,
+  "DOM.getDocument": ehObjeto({ root: ehObjeto({ nodeId: ehNumero }) }),
+  "DOM.querySelector": ehObjeto({ nodeId: ehNumero }),
+  "Emulation.setDeviceMetricsOverride": ehRegistro,
+  "Emulation.setEmulatedMedia": ehRegistro,
+  "Emulation.setFocusEmulationEnabled": ehRegistro,
+  "Input.dispatchKeyEvent": ehRegistro,
+  "Input.dispatchMouseEvent": ehRegistro,
+  "Input.insertText": ehRegistro,
+  "Page.captureScreenshot": ehObjeto({ data: ehTexto }),
+  "Page.enable": ehRegistro,
+  "Page.navigate": ehRegistro,
+  "Runtime.evaluate": ehObjeto({
+    exceptionDetails: opcional(
+      ehObjeto({
+        exception: opcional(ehObjeto({ description: opcional(ehTexto) })),
+        text: ehTexto,
+      })
+    ),
+    result: ehRegistro,
+  }),
+};
 
 async function enderecoDoDevTools(saida: ReadableStream<Uint8Array>) {
   const decodificador = new TextDecoder();
@@ -92,10 +192,10 @@ function abrirWebSocket(url: string) {
   });
 }
 
-export type Enviar = (
-  method: string,
+export type Enviar = <M extends keyof Respostas>(
+  method: M,
   params?: Record<string, unknown>
-) => Promise<Record<string, unknown>>;
+) => Promise<Respostas[M]>;
 
 export async function abrirChromium(prefixo: string): Promise<Enviar> {
   const perfil = mkdtempSync(join(tmpdir(), `${prefixo}-`));
@@ -120,20 +220,40 @@ export async function abrirChromium(prefixo: string): Promise<Enviar> {
   });
   const navegador = new URL(await enderecoDoDevTools(processo.stderr));
 
-  const alvos = (await (
+  const alvos: unknown = await (
     await fetch(`http://${navegador.host}/json/list`)
-  ).json()) as { type: string; webSocketDebuggerUrl: string }[];
+  ).json();
 
-  const pagina = alvos.find((a) => a.type === "page");
+  if (!ehAlvos(alvos)) {
+    throw new Error(
+      `o Chromium listou alvos sem a forma do DevTools: ${JSON.stringify(alvos)}`
+    );
+  }
+
+  const pagina = alvos.find((a) => a.type === "page")?.webSocketDebuggerUrl;
 
   if (!pagina) {
     throw new Error("o Chromium abriu sem página");
   }
 
-  const ws = await abrirWebSocket(pagina.webSocketDebuggerUrl);
-  const pendentes = new Map<number, (r: Resposta) => void>();
+  const ws = await abrirWebSocket(pagina);
+
+  const pendentes = new Map<
+    number,
+    (r: {
+      error?: { message: string };
+      result?: Record<string, unknown>;
+    }) => void
+  >();
+
   ws.addEventListener("message", (m) => {
-    const resposta = JSON.parse(String(m.data)) as Resposta;
+    const resposta: unknown = JSON.parse(String(m.data));
+
+    if (!ehMensagem(resposta)) {
+      throw new Error(
+        `o DevTools mandou uma mensagem fora do protocolo: ${String(m.data)}`
+      );
+    }
 
     if (resposta.id !== undefined) {
       pendentes.get(resposta.id)?.(resposta);
@@ -142,7 +262,7 @@ export async function abrirChromium(prefixo: string): Promise<Enviar> {
   });
   let proximo = 0;
 
-  return (method, params = {}) => {
+  const pedir = (method: string, params: Record<string, unknown>) => {
     proximo += 1;
     const id = proximo;
 
@@ -154,6 +274,22 @@ export async function abrirChromium(prefixo: string): Promise<Enviar> {
       );
       ws.send(JSON.stringify({ id, method, params }));
     });
+  };
+
+  return async <M extends keyof Respostas>(
+    method: M,
+    params: Record<string, unknown> = {}
+  ) => {
+    const resultado = await pedir(method, params);
+    const eh = RESPOSTAS[method];
+
+    if (!eh(resultado)) {
+      throw new Error(
+        `${method} respondeu fora da forma esperada: ${JSON.stringify(resultado)}`
+      );
+    }
+
+    return resultado;
   };
 }
 
@@ -168,16 +304,13 @@ export async function fecharChromium() {
     );
 }
 
-/** Avalia a expressão na página e devolve o valor; espera a Promise, se houver. */
-export async function avaliar<T>(enviar: Enviar, expressao: string) {
-  const { exceptionDetails, result } = (await enviar("Runtime.evaluate", {
+/** Avalia a expressão na página e devolve o valor, ainda sem tipo; espera a Promise, se houver. */
+export async function avaliar(enviar: Enviar, expressao: string) {
+  const { exceptionDetails, result } = await enviar("Runtime.evaluate", {
     awaitPromise: true,
     expression: expressao,
     returnByValue: true,
-  })) as {
-    exceptionDetails?: { exception?: { description?: string }; text: string };
-    result: { value: T };
-  };
+  });
 
   if (exceptionDetails) {
     throw new Error(
@@ -186,4 +319,21 @@ export async function avaliar<T>(enviar: Enviar, expressao: string) {
   }
 
   return result.value;
+}
+
+/** Avalia como o `avaliar` e confere o valor pelo predicado: um valor fora da forma lança com o valor na mensagem. */
+export async function avaliarComo<T>(
+  enviar: Enviar,
+  expressao: string,
+  eh: Predicado<T>
+) {
+  const valor = await avaliar(enviar, expressao);
+
+  if (!eh(valor)) {
+    throw new Error(
+      `a página devolveu ${JSON.stringify(valor)}, fora da forma esperada, para:\n${expressao}`
+    );
+  }
+
+  return valor;
 }

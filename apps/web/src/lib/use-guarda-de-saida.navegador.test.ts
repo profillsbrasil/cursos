@@ -5,11 +5,18 @@ import { type Server, serve } from "bun";
 
 import {
   abrirChromium,
-  avaliar,
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../components/chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../components/predicados.test-utils";
 import { guardarLinks } from "./use-guarda-de-saida";
 
 const PAGINA = `<!doctype html><html><body>
@@ -23,6 +30,11 @@ interface Clique {
   avisos: string[];
   chegou: boolean;
 }
+
+const ehClique: Predicado<Clique> = ehObjeto({
+  avisos: ehLista(ehTexto),
+  chegou: ehBooleano,
+});
 
 let enviar: Enviar;
 let servidor: Server<undefined> | null = null;
@@ -40,9 +52,10 @@ const servirEmOrigemReal = () => {
 };
 
 async function esperarAPagina(tentativas = 50): Promise<void> {
-  const pronta = await avaliar<boolean>(
+  const pronta = await avaliarComo(
     enviar,
-    'document.getElementById("catalogo") !== null'
+    'document.getElementById("catalogo") !== null',
+    ehBooleano
   ).catch(() => false);
 
   if (pronta) {
@@ -65,7 +78,7 @@ function clicar(
   resposta: boolean,
   opcoes: { ctrl?: boolean; desligar?: boolean } = {}
 ): Promise<Clique> {
-  return avaliar<Clique>(
+  return avaliarComo(
     enviar,
     `(() => {
       const avisos = [];
@@ -79,7 +92,8 @@ function clicar(
       window.removeEventListener("click", segurar);
       soltar();
       return { avisos, chegou };
-    })()`
+    })()`,
+    ehClique
   );
 }
 

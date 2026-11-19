@@ -15,8 +15,10 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "./chromium.test-utils";
 import { OPCOES_DO_TOAST } from "./opcoes-do-toast";
+import { ehLista, ehTexto } from "./predicados.test-utils";
 
 const EASE_FORTE = "cubic-bezier(0.23, 1, 0.32, 1)";
 
@@ -118,12 +120,13 @@ async function abrirPagina(reduzido: boolean) {
 }
 
 const estilo = (seletor: string, propriedades: string[]) =>
-  avaliar<string[]>(
+  avaliarComo(
     enviar,
     `(() => {
       const e = getComputedStyle(document.querySelector(${JSON.stringify(seletor)}));
       return ${JSON.stringify(propriedades)}.map((p) => e.getPropertyValue(p).trim());
-    })()`
+    })()`,
+    ehLista(ehTexto)
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
@@ -245,14 +248,15 @@ describe.skipIf(!existsSync(CHROMIUM))("movimento no browser", () => {
     await abrirPagina(false);
 
     const cor = (seletor: string, variavel: string) =>
-      avaliar<string[]>(
+      avaliarComo(
         enviar,
         `(() => {
           const sonda = document.createElement("i");
           sonda.style.color = "var(${variavel})";
           document.body.append(sonda);
           return [getComputedStyle(document.querySelector(${JSON.stringify(seletor)})).color, getComputedStyle(sonda).color];
-        })()`
+        })()`,
+        ehLista(ehTexto)
       );
 
     const [sucesso, ceu] = await cor("#toast [data-icon]", "--ceu");

@@ -14,7 +14,9 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehLista, ehNumero, ehObjeto, ehTexto } from "../predicados.test-utils";
 
 const AQUI = import.meta.dir;
 const ENTRADA = join(AQUI, "material.entrada.tsx");
@@ -105,35 +107,40 @@ const css = await cssDoApp(
 let enviar: Enviar;
 
 const naTela = () =>
-  avaliar<string[]>(
+  avaliarComo(
     enviar,
-    `[...document.querySelectorAll("li input")].map((i) => i.value)`
+    `[...document.querySelectorAll("li input")].map((i) => i.value)`,
+    ehLista(ehTexto)
   );
 
-const ordemNoRascunho = () => avaliar<string[]>(enviar, "window.ordem");
+const ordemNoRascunho = () =>
+  avaliarComo(enviar, "window.ordem", ehLista(ehTexto));
 
 const centroDe = (linha: number, seletor: string) =>
-  avaliar<{ x: number; y: number }>(
+  avaliarComo(
     enviar,
     `(() => {
       const r = document.querySelectorAll("li")[${linha - 1}].querySelector(${JSON.stringify(seletor)}).getBoundingClientRect();
       return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-    })()`
+    })()`,
+    ehObjeto({ x: ehNumero, y: ehNumero })
   );
 
 const deslocadas = () =>
-  avaliar<string[]>(
+  avaliarComo(
     enviar,
     `[...document.querySelectorAll("li")].flatMap((li) => {
       const t = getComputedStyle(li).transform;
       return t === "none" || t === "matrix(1, 0, 0, 1, 0, 0)" ? [] : [li.querySelector("input")?.value + " " + t];
-    })`
+    })`,
+    ehLista(ehTexto)
   );
 
 const alturaDaLinha = () =>
-  avaliar<number>(
+  avaliarComo(
     enviar,
-    `document.querySelector("li").getBoundingClientRect().height`
+    `document.querySelector("li").getBoundingClientRect().height`,
+    ehNumero
   );
 
 async function arrastar(de: { x: number; y: number }, distancia: number) {
@@ -198,9 +205,9 @@ describe.skipIf(!existsSync(CHROMIUM))(
       expect(await naTela()).toEqual(esperado);
       expect(await ordemNoRascunho()).toEqual(esperado);
       expect(await deslocadas()).toEqual([]);
-      expect(await avaliar<string>(enviar, "getSelection().toString()")).toBe(
-        ""
-      );
+      expect(
+        await avaliarComo(enviar, "getSelection().toString()", ehTexto)
+      ).toBe("");
     });
 
     test("com movimento reduzido, a alça também leva a linha para o fim", async () => {
@@ -225,9 +232,10 @@ describe.skipIf(!existsSync(CHROMIUM))(
       await enviar("Input.dispatchKeyEvent", { ...tecla, type: "rawKeyDown" });
       await enviar("Input.dispatchKeyEvent", { ...tecla, type: "keyUp" });
       expect(
-        await avaliar<string>(
+        await avaliarComo(
           enviar,
-          `document.activeElement.tagName + " " + document.activeElement.value`
+          `document.activeElement.tagName + " " + document.activeElement.value`,
+          ehTexto
         )
       ).toBe("INPUT Material 1");
     });

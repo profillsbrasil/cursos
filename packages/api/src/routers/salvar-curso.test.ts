@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { z } from "zod";
 
 import { contextoDeTeste } from "../contexto-de-teste";
 import { appRouter } from "./index";
@@ -28,9 +29,14 @@ describe("salvarCurso por HTTP", () => {
 
     const resposta = await enviar(corpo);
 
-    const json = (await resposta.json()) as {
-      error: { data: { code: string }; message: string };
-    };
+    const json = z
+      .object({
+        error: z.object({
+          data: z.object({ code: z.string() }),
+          message: z.string(),
+        }),
+      })
+      .parse(await resposta.json());
 
     expect(resposta.status).toBe(400);
     expect([json.error.data.code, json.error.message]).toEqual([

@@ -12,7 +12,17 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehQualquer,
+  ehTexto,
+  ouNulo,
+  type Predicado,
+} from "../predicados.test-utils";
 import {
   APROVADO_NA_PRIMEIRA,
   BLOQUEIO,
@@ -226,15 +236,17 @@ const marcarAsCertas = () =>
   );
 
 const textoDe = (seletor: string) =>
-  avaliar<string | null>(
+  avaliarComo(
     enviar,
-    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`
+    `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`,
+    ouNulo(ehTexto)
   );
 
 const marcados = () =>
-  avaliar<number>(
+  avaliarComo(
     enviar,
-    `document.querySelectorAll('input[type="radio"]:checked').length`
+    `document.querySelectorAll('input[type="radio"]:checked').length`,
+    ehNumero
   );
 
 interface Marcada {
@@ -247,7 +259,7 @@ interface Marcada {
 const OITO_POR_CENTO = / \/ 0\.08\)$/;
 
 const marcada = () =>
-  avaliar<Marcada>(
+  avaliarComo(
     enviar,
     `new Promise((r) => setTimeout(r, 250)).then(() => {
       const rotulo = document.querySelector('input[type="radio"]:checked').closest("label");
@@ -259,7 +271,8 @@ const marcada = () =>
         letra: { cor: letra.color, fundo: letra.backgroundColor },
         raio: caixa.borderTopLeftRadius,
       };
-    })`
+    })`,
+    ehMarcada
   );
 
 interface Caixa {
@@ -300,7 +313,7 @@ const MEDIR = `(() => {
   };
 })()`;
 
-const medir = () => avaliar<Medida>(enviar, MEDIR);
+const medir = () => avaliarComo(enviar, MEDIR, ehMedida);
 
 interface Divisoria {
   ateOBloco: number;
@@ -308,6 +321,38 @@ interface Divisoria {
   esquerda: number;
   largura: number;
 }
+
+const ehDivisoria: Predicado<Divisoria> = ehObjeto({
+  ateOBloco: ehNumero,
+  ateOEnunciado: ehNumero,
+  esquerda: ehNumero,
+  largura: ehNumero,
+});
+
+const ehCaixa: Predicado<Caixa> = ehObjeto({
+  esquerda: ehNumero,
+  largura: ehNumero,
+  topo: ehNumero,
+});
+
+const ehMedida: Predicado<Medida> = ehObjeto({
+  acoes: ehLista(ehCaixa),
+  alternativa: ehCaixa,
+  larguraDaJanela: ehNumero,
+  larguraDaPagina: ehNumero,
+  larguraSemRolagem: ehNumero,
+  pergunta: ehCaixa,
+  pontos: ehCaixa,
+  secao: ehCaixa,
+  titulo: ehCaixa,
+});
+
+const ehMarcada: Predicado<Marcada> = ehObjeto({
+  borda: ehTexto,
+  fundo: ehTexto,
+  letra: ehObjeto({ cor: ehTexto, fundo: ehTexto }),
+  raio: ehTexto,
+});
 
 const DIVISORIAS = `(() => {
   const secao = document.getElementById("questionario").getBoundingClientRect();
@@ -330,7 +375,11 @@ const DIVISORIAS = `(() => {
 })()`;
 
 const divisorias = () =>
-  avaliar<{ perguntas: Divisoria[] }>(enviar, DIVISORIAS);
+  avaliarComo(
+    enviar,
+    DIVISORIAS,
+    ehObjeto({ perguntas: ehLista(ehDivisoria) })
+  );
 
 const tecla = (key: "Enter" | "Tab", type: "keyDown" | "keyUp") =>
   enviar("Input.dispatchKeyEvent", {
@@ -360,20 +409,14 @@ async function enviarPeloEnter() {
 }
 
 async function anuncioDoFoco() {
-  const { result } = (await enviar("Runtime.evaluate", {
+  const { result } = await enviar("Runtime.evaluate", {
     expression: "document.activeElement",
-  })) as { result: { objectId: string } };
+  });
 
-  const { nodes } = (await enviar("Accessibility.getPartialAXTree", {
+  const { nodes } = await enviar("Accessibility.getPartialAXTree", {
     fetchRelatives: false,
     objectId: result.objectId,
-  })) as {
-    nodes: {
-      description?: { value: string };
-      name?: { value: string };
-      role?: { value: string };
-    }[];
-  };
+  });
 
   return {
     descricao: nodes[0]?.description?.value,
@@ -423,9 +466,13 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
       "Você errou a pergunta 2."
     );
 
-    const pedidos = await avaliar<
-      { respostas: unknown[]; tentativaId: string }[]
-    >(enviar, "window.pedidos");
+    const pedidos = await avaliarComo(
+      enviar,
+      "window.pedidos",
+      ehLista(
+        ehObjeto({ respostas: ehLista(ehQualquer), tentativaId: ehTexto })
+      )
+    );
 
     expect(pedidos).toHaveLength(2);
     expect(pedidos[0]?.tentativaId).toBe(pedidos[1]?.tentativaId);
@@ -439,9 +486,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     await clicarNoBotao("Enviar respostas");
     await esperar("window.pedidos.length === 3");
 
-    const terceiro = await avaliar<{ tentativaId: string }[]>(
+    const terceiro = await avaliarComo(
       enviar,
-      "window.pedidos"
+      "window.pedidos",
+      ehLista(ehObjeto({ tentativaId: ehTexto }))
     );
 
     expect(terceiro[2]?.tentativaId).not.toBe(terceiro[0]?.tentativaId);
@@ -452,9 +500,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     await marcarAsCertas();
     await enviarPeloEnter();
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `document.activeElement === document.querySelector('[role="status"]') ? "resultado" : document.activeElement.tagName`
+        `document.activeElement === document.querySelector('[role="status"]') ? "resultado" : document.activeElement.tagName`,
+        ehTexto
       )
     ).toBe("resultado");
     const anuncio = await anuncioDoFoco();
@@ -469,9 +518,10 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     await enterEm("Tentar de novo");
     await esperar(`document.querySelector('input[type="radio"]')`);
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        "document.activeElement.tagName + ' ' + document.activeElement.textContent.trim()"
+        "document.activeElement.tagName + ' ' + document.activeElement.textContent.trim()",
+        ehTexto
       )
     ).toBe("H2 Questionário");
     expect(await anuncioDoFoco()).toEqual({
@@ -480,17 +530,19 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
       papel: "heading",
     });
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        "getComputedStyle(document.activeElement).outlineStyle"
+        "getComputedStyle(document.activeElement).outlineStyle",
+        ehTexto
       )
     ).toBe("none");
     await tecla("Tab", "keyDown");
     await tecla("Tab", "keyUp");
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        "document.activeElement.closest('fieldset')?.querySelector('legend').textContent.trim() ?? document.activeElement.tagName"
+        "document.activeElement.closest('fieldset')?.querySelector('legend').textContent.trim() ?? document.activeElement.tagName",
+        ehTexto
       )
     ).toStartWith("1.");
   });
@@ -531,14 +583,15 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
   test("entre o resultado e a pergunta 1 fica uma linha só, de 1 px", async () => {
     await abrir(1280, htmlDe({ ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA }));
 
-    const linha = await avaliar<number>(
+    const linha = await avaliarComo(
       enviar,
       `(() => {
         const resultado = document.getElementById("questionario").firstElementChild;
         const pergunta = document.querySelector("fieldset").parentElement;
         const larguraDe = (el, lado) => parseFloat(getComputedStyle(el)[lado]);
         return larguraDe(resultado, "borderBottomWidth") + larguraDe(pergunta, "borderTopWidth");
-      })()`
+      })()`,
+      ehNumero
     );
 
     expect(linha).toBe(1);

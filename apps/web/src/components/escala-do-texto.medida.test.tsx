@@ -20,12 +20,19 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "./chromium.test-utils";
 import { VARIOS, VAZIO } from "./comunicados-do-aluno/exemplo-de-teste";
 import { TelaDeComunicados } from "./comunicados-do-aluno/tela-de-comunicados";
 import { fabrica, HOJE } from "./curso/exemplo-de-teste";
 import { TelaDoCurso } from "./curso/tela-do-curso";
 import { CabecalhoDaAula } from "./player/cabecalho-da-aula";
+import {
+  ehObjeto,
+  ehTexto,
+  ouNulo,
+  type Predicado,
+} from "./predicados.test-utils";
 import { CursosParaTrocar } from "./trocar-pontos/cursos-para-trocar";
 
 const AULA: AulaNoPlayer = {
@@ -120,8 +127,15 @@ interface Letra {
   tamanho: string;
 }
 
+const ehLetra: Predicado<Letra> = ehObjeto({
+  entrelinha: ehTexto,
+  espacamento: ehTexto,
+  numeros: ehTexto,
+  tamanho: ehTexto,
+});
+
 const letraDe = (trecho: string) =>
-  avaliar<Letra | null>(
+  avaliarComo(
     enviar,
     `(() => {
       const andar = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -132,7 +146,8 @@ const letraDe = (trecho: string) =>
         }
       }
       return null;
-    })()`
+    })()`,
+    ouNulo(ehLetra)
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("a escala do texto", () => {

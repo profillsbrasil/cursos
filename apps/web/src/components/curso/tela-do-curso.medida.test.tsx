@@ -13,7 +13,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { fabrica, HOJE } from "./exemplo-de-teste";
 import { TelaDoCurso } from "./tela-do-curso";
 
@@ -81,6 +89,21 @@ interface Medida {
   posicao: string;
 }
 
+const ehCaixa: Predicado<Caixa> = ehObjeto({
+  esquerda: ehNumero,
+  largura: ehNumero,
+  pe: ehNumero,
+  topo: ehNumero,
+});
+
+const ehMedida: Predicado<Medida> = ehObjeto({
+  aprender: ehCaixa,
+  cabecalho: ehCaixa,
+  capa: ehCaixa,
+  cartao: ehCaixa,
+  posicao: ehTexto,
+});
+
 const MEDIR = `(() => {
   const caixa = (el) => {
     const r = el.getBoundingClientRect();
@@ -96,7 +119,7 @@ const MEDIR = `(() => {
   };
 })()`;
 
-const medir = () => avaliar<Medida>(enviar, MEDIR);
+const medir = () => avaliarComo(enviar, MEDIR, ehMedida);
 const rolar = (y: number) => avaliar(enviar, `window.scrollTo(0, ${y})`);
 
 describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
@@ -156,7 +179,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
   test("resumo estreito: a linha que quebra começa no texto, sem o separador na frente", async () => {
     await abrir(560, PAGINA);
 
-    const linhas = await avaliar<{ esquerda: number; inicio: number }[]>(
+    const linhas = await avaliarComo(
       enviar,
       `(() => {
         const p = [...document.querySelectorAll("header p")].find((x) => x.textContent.includes("módulo"));
@@ -174,7 +197,8 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
           if (r) topo = r.top;
         }
         return inicios;
-      })()`
+      })()`,
+      ehLista(ehObjeto({ esquerda: ehNumero, inicio: ehNumero }))
     );
 
     expect(linhas.length).toBeGreaterThan(0);
@@ -196,9 +220,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a grade da página do curso", () => {
       const { cartao } = await medir();
       await abrir(largura, ESQUELETO);
 
-      const esqueleto = await avaliar<Omit<Caixa, "pe">>(
+      const esqueleto = await avaliarComo(
         enviar,
-        cartaoDoEsqueleto
+        cartaoDoEsqueleto,
+        ehObjeto({ esquerda: ehNumero, largura: ehNumero, topo: ehNumero })
       );
 
       expect({

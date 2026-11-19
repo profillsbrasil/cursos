@@ -15,6 +15,7 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "./chromium.test-utils";
 import { ConteudoDoCurso } from "./curso/conteudo-do-curso";
 import { fabrica } from "./curso/exemplo-de-teste";
@@ -24,6 +25,7 @@ import {
   LINHA,
   TEXTO_DA_LINHA,
 } from "./minha-conta/partes";
+import { ehLista, ehNumero, ehObjeto, ehTexto } from "./predicados.test-utils";
 
 const HOJE = diaISO("2026-10-14");
 
@@ -88,7 +90,7 @@ const css = await cssDoApp(
 let enviar: Enviar;
 
 const alvoDe = (seletor: string) =>
-  avaliar<{ altura: number; largura: number }>(
+  avaliarComo(
     enviar,
     `(() => {
       const el = document.querySelector(${JSON.stringify(seletor)});
@@ -102,7 +104,8 @@ const alvoDe = (seletor: string) =>
         return n;
       };
       return { altura: ate(0, -1) + ate(0, 1) + 1, largura: ate(-1, 0) + ate(1, 0) + 1 };
-    })()`
+    })()`,
+    ehObjeto({ altura: ehNumero, largura: ehNumero })
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("o alvo de toque em 390 px", () => {
@@ -139,14 +142,15 @@ describe.skipIf(!existsSync(CHROMIUM))("o alvo de toque em 390 px", () => {
   });
 
   test("o toque entre Trocar foto e Remover não cai no vizinho", async () => {
-    const lados = await avaliar<string[]>(
+    const lados = await avaliarComo(
       enviar,
       `(() => {
         const a = document.querySelector("#trocar-foto").getBoundingClientRect();
         const b = document.querySelector("#remover").getBoundingClientRect();
         const y = a.top + a.height / 2;
         return [a.right - 1, b.left + 1].map((x) => document.elementFromPoint(x, y)?.id ?? "");
-      })()`
+      })()`,
+      ehLista(ehTexto)
     );
 
     expect(lados).toEqual(["trocar-foto", "remover"]);

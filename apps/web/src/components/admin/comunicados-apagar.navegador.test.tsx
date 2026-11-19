@@ -10,7 +10,9 @@ import {
   CHROMIUM,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import { ehLista, ehObjeto, ehTexto } from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "comunicados-apagar.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-comunicados-falso.js");
@@ -110,12 +112,13 @@ describe.skipIf(!existsSync(CHROMIUM))("apagar comunicado no browser", () => {
     );
     await avaliar(enviar, "new Promise((r) => setTimeout(r, 300))");
     expect(
-      await avaliar<{ foco: string; itens: string[] }>(
+      await avaliarComo(
         enviar,
         `({
           foco: document.activeElement.id || document.activeElement.tagName,
           itens: [...document.querySelectorAll("li h3")].map((h) => h.textContent),
-        })`
+        })`,
+        ehObjeto({ foco: ehTexto, itens: ehLista(ehTexto) })
       )
     ).toEqual({ foco: "publicados", itens: [FICA.titulo] });
   });

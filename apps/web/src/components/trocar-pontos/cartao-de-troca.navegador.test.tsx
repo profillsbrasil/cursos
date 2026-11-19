@@ -98,13 +98,7 @@ describe.skipIf(!existsSync(CHROMIUM))("os botões dos cartões de troca", () =>
   afterAll(fecharChromium);
 
   test('o leitor de tela ouve "Faltam 190 pts", com o espaço', async () => {
-    const { nodes } = (await enviar("Accessibility.getFullAXTree")) as {
-      nodes: {
-        ignored: boolean;
-        name?: { value: string };
-        role?: { value: string };
-      }[];
-    };
+    const { nodes } = await enviar("Accessibility.getFullAXTree");
 
     const botoes = nodes
       .filter((n) => !n.ignored && n.role?.value === "button")

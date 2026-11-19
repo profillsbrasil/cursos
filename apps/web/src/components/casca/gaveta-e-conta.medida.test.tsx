@@ -11,7 +11,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehLista,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+} from "../predicados.test-utils";
 
 const ENTRADA = join(import.meta.dir, "gaveta-e-conta.entrada.tsx");
 const FALSOS = join(import.meta.dir, "falsos-da-casca.js");
@@ -158,15 +166,25 @@ async function tecla(key: string) {
 }
 
 const gavetaAberta = () =>
-  avaliar<boolean>(enviar, `!!document.querySelector('[data-mobile="true"]')`);
+  avaliarComo(
+    enviar,
+    `!!document.querySelector('[data-mobile="true"]')`,
+    ehBooleano
+  );
 
 const retangulo = (seletor: string) =>
-  avaliar<{ altura: number; esquerda: number; largura: number; topo: number }>(
+  avaliarComo(
     enviar,
     `(() => {
       const r = document.querySelector(${JSON.stringify(seletor)}).getBoundingClientRect();
       return { altura: r.height, esquerda: r.left, largura: r.width, topo: r.top };
-    })()`
+    })()`,
+    ehObjeto({
+      altura: ehNumero,
+      esquerda: ehNumero,
+      largura: ehNumero,
+      topo: ehNumero,
+    })
   );
 
 describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
@@ -199,7 +217,7 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     expect(await gavetaAberta()).toBe(true);
     await tecla("Tab");
     expect(
-      await avaliar<string>(enviar, "document.activeElement.textContent")
+      await avaliarComo(enviar, "document.activeElement.textContent", ehTexto)
     ).toBe("Meus cursos");
     await tecla("Escape");
     expect(await gavetaAberta()).toBe(false);
@@ -228,9 +246,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     const topo = await retangulo('[data-slot="topo-do-celular"]');
     expect(topo.topo).toBe(0);
     expect(
-      await avaliar<string>(
+      await avaliarComo(
         enviar,
-        `document.querySelector('[data-slot="topo-do-celular"]').textContent`
+        `document.querySelector('[data-slot="topo-do-celular"]').textContent`,
+        ehTexto
       )
     ).toBe("Admin");
   });
@@ -244,12 +263,13 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     await esperar(300);
     const menu = await retangulo('[data-slot="dropdown-menu-content"]');
 
-    const divisorias = await avaliar<{ esquerda: number; largura: number }[]>(
+    const divisorias = await avaliarComo(
       enviar,
       `[...document.querySelectorAll('[data-slot="dropdown-menu-separator"]')].map((d) => {
         const r = d.getBoundingClientRect();
         return { esquerda: r.left, largura: r.width };
-      })`
+      })`,
+      ehLista(ehObjeto({ esquerda: ehNumero, largura: ehNumero }))
     );
 
     expect(divisorias).toHaveLength(2);
@@ -263,9 +283,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     await montar(1280, { aberta: false, caminho: "/meus-cursos" });
 
     const sombra = () =>
-      avaliar<string>(
+      avaliarComo(
         enviar,
-        `getComputedStyle(document.querySelector('[data-slot="sidebar-footer"] [data-slot="dropdown-menu-trigger"]')).boxShadow`
+        `getComputedStyle(document.querySelector('[data-slot="sidebar-footer"] [data-slot="dropdown-menu-trigger"]')).boxShadow`,
+        ehTexto
       );
 
     const repouso = await sombra();
@@ -277,9 +298,10 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     await esperar(200);
     expect(await sombra()).not.toBe(repouso);
     expect(
-      await avaliar<string[]>(
+      await avaliarComo(
         enviar,
-        `[...document.querySelectorAll('[data-slot="tooltip-content"]')].map((d) => d.textContent)`
+        `[...document.querySelectorAll('[data-slot="tooltip-content"]')].map((d) => d.textContent)`,
+        ehLista(ehTexto)
       )
     ).toEqual(["Ana Souza610 pts"]);
   });
@@ -292,18 +314,20 @@ describe.skipIf(!existsSync(CHROMIUM))("a casca no Chromium", () => {
     );
     await tecla("Tab");
     expect(
-      await avaliar<number>(
+      await avaliarComo(
         enviar,
-        `document.querySelectorAll('[data-slot="tooltip-content"]').length`
+        `document.querySelectorAll('[data-slot="tooltip-content"]').length`,
+        ehNumero
       )
     ).toBe(0);
   });
 
   test("recolhida na própria aula, o Continuar não é um círculo Sol cheio", async () => {
     const fundo = (seletor: string) =>
-      avaliar<string>(
+      avaliarComo(
         enviar,
-        `getComputedStyle(document.querySelector(${JSON.stringify(seletor)})).backgroundColor`
+        `getComputedStyle(document.querySelector(${JSON.stringify(seletor)})).backgroundColor`,
+        ehTexto
       );
 
     await montar(1280, { aberta: false, caminho: "/meus-cursos" });

@@ -25,6 +25,13 @@ import {
   cssDoApp,
   fecharChromium,
 } from "./chromium.test-utils";
+import {
+  type Predicado,
+  ehBooleano,
+  ehObjeto,
+  ehTexto,
+  ehNumero,
+} from "./predicados.test-utils";
 
 const navegacao = await import("next/navigation");
 
@@ -474,21 +481,33 @@ let temCursor: boolean;
 let solHover: string;
 let repouso: { fundo: string; sombra: string };
 
-async function avaliar<T>(expressao: string) {
-  const { result } = (await enviar("Runtime.evaluate", {
+async function avaliar(expressao: string) {
+  const { result } = await enviar("Runtime.evaluate", {
     awaitPromise: true,
     expression: expressao,
     returnByValue: true,
-  })) as { result: { value: T } };
+  });
 
   return result.value;
 }
 
+async function avaliarComo<T>(expressao: string, eh: Predicado<T>) {
+  const valor = await avaliar(expressao);
+
+  if (!eh(valor)) {
+    throw new Error(
+      `a página devolveu ${JSON.stringify(valor)}, fora da forma esperada, para:\n${expressao}`
+    );
+  }
+
+  return valor;
+}
+
 async function noDe(seletor: string) {
-  const { nodeId } = (await enviar("DOM.querySelector", {
+  const { nodeId } = await enviar("DOM.querySelector", {
     nodeId: raiz,
     selector: seletor,
-  })) as { nodeId: number };
+  });
 
   expect(nodeId).toBeGreaterThan(0);
 
@@ -496,7 +515,7 @@ async function noDe(seletor: string) {
 }
 
 async function tabAte(condicao: string, tentativas: number): Promise<void> {
-  if (tentativas === 0 || (await avaliar<boolean>(condicao))) {
+  if (tentativas === 0 || (await avaliarComo(condicao, ehBooleano))) {
     return;
   }
 
@@ -511,8 +530,9 @@ const LINK_ATIVO = 'nav a[aria-current="page"]';
 const OUTRO_LINK = "nav a[href]:not([aria-current])";
 
 const lerPilula = () =>
-  avaliar<{ fundo: string; sombra: string }>(
-    `(async () => { const li = document.querySelector('nav li[aria-hidden="true"]'); getComputedStyle(li).backgroundColor; await Promise.all(li.getAnimations().map((a) => a.finished)); const p = getComputedStyle(li); return { fundo: p.backgroundColor, sombra: p.boxShadow }; })()`
+  avaliarComo(
+    `(async () => { const li = document.querySelector('nav li[aria-hidden="true"]'); getComputedStyle(li).backgroundColor; await Promise.all(li.getAnimations().map((a) => a.finished)); const p = getComputedStyle(li); return { fundo: p.backgroundColor, sombra: p.boxShadow }; })()`,
+    ehObjeto({ fundo: ehTexto, sombra: ehTexto })
   );
 
 async function pilulaCom(link: string, estado: "hover" | "focus-visible") {
@@ -546,16 +566,16 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         await enviar("DOM.enable");
         await enviar("CSS.enable");
 
-        const { root } = (await enviar("DOM.getDocument")) as {
-          root: { nodeId: number };
-        };
+        const { root } = await enviar("DOM.getDocument");
 
         raiz = root.nodeId;
-        temCursor = await avaliar<boolean>(
-          "matchMedia('(hover: hover)').matches"
+        temCursor = await avaliarComo(
+          "matchMedia('(hover: hover)').matches",
+          ehBooleano
         );
-        solHover = await avaliar<string>(
-          "getComputedStyle(document.getElementById('sonda')).backgroundColor"
+        solHover = await avaliarComo(
+          "getComputedStyle(document.getElementById('sonda')).backgroundColor",
+          ehTexto
         );
         repouso = await lerPilula();
       }, 20_000);
@@ -634,7 +654,8 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
           20
         );
         await sleep(400);
-        medida = await avaliar(`(() => {
+        medida = await avaliarComo(
+          `(() => {
           const revogar = document.activeElement;
           const r = revogar.getBoundingClientRect();
           let rolagemLateral = document.scrollingElement.scrollLeft;
@@ -652,7 +673,17 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
             rolagemLateral,
             titulo: getComputedStyle(document.getElementById("sonda")).color,
           };
-        })()`);
+        })()`,
+          ehObjeto({
+            borda: ehTexto,
+            direita: ehNumero,
+            esquerda: ehNumero,
+            focado: ehBooleano,
+            largura: ehNumero,
+            rolagemLateral: ehNumero,
+            titulo: ehTexto,
+          })
+        );
       }, 20_000);
 
       afterAll(fecharChromium);
@@ -681,13 +712,20 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         sombra: string;
       }
 
+      const ehRedondo: Predicado<Redondo> = ehObjeto({
+        focado: ehBooleano,
+        fundo: ehTexto,
+        sombra: ehTexto,
+      });
+
       let emRepouso: Redondo;
       let comFoco: Redondo;
       let comCursor: Redondo;
       let solHoverAqui: string;
 
       const lerRedondo = () =>
-        avaliar<Redondo>(`(async () => {
+        avaliarComo(
+          `(async () => {
           const link = document.querySelector('a[aria-label="${COMECAR.rotulo}"]');
           const redondo = link.querySelector("span > span");
           getComputedStyle(redondo).backgroundColor;
@@ -698,7 +736,9 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
             fundo: p.backgroundColor,
             sombra: p.boxShadow,
           };
-        })()`);
+        })()`,
+          ehRedondo
+        );
 
       beforeAll(async () => {
         enviar = await abrirChromium("sinal-do-foco");
@@ -716,13 +756,12 @@ describe("o foco de teclado aparece nos quatro controles da #44", () => {
         await enviar("DOM.enable");
         await enviar("CSS.enable");
 
-        const { root } = (await enviar("DOM.getDocument")) as {
-          root: { nodeId: number };
-        };
+        const { root } = await enviar("DOM.getDocument");
 
         raiz = root.nodeId;
-        solHoverAqui = await avaliar<string>(
-          "getComputedStyle(document.getElementById('sonda')).backgroundColor"
+        solHoverAqui = await avaliarComo(
+          "getComputedStyle(document.getElementById('sonda')).backgroundColor",
+          ehTexto
         );
         emRepouso = await lerRedondo();
         const link = await noDe(`a[aria-label="${COMECAR.rotulo}"]`);
@@ -1003,6 +1042,12 @@ describe.skipIf(!existsSync(CHROMIUM))(
       visivel: boolean;
     }
 
+    const ehPular: Predicado<Pular> = ehObjeto({
+      focado: ehTexto,
+      fundo: ehTexto,
+      visivel: ehBooleano,
+    });
+
     let antes: Pular;
     let noPrimeiroTab: Pular;
     let depoisDoEnter: string;
@@ -1040,7 +1085,8 @@ describe.skipIf(!existsSync(CHROMIUM))(
     })()`;
 
     const lerPular = () =>
-      avaliar<Pular>(`(async () => {
+      avaliarComo(
+        `(async () => {
         const link = [...document.querySelectorAll("a")].find((a) => a.textContent.trim() === "Pular para o conteúdo");
         const ativo = document.activeElement;
         const focado = ativo?.getAttribute("aria-label") || ativo?.textContent?.trim() || ativo?.tagName;
@@ -1053,7 +1099,9 @@ describe.skipIf(!existsSync(CHROMIUM))(
           fundo: getComputedStyle(link).backgroundColor,
           visivel: r.width > 1 && r.height > 1 && r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth,
         };
-      })()`);
+      })()`,
+        ehPular
+      );
 
     beforeAll(async () => {
       enviar = await abrirChromium("sinal-do-foco");
@@ -1068,17 +1116,18 @@ describe.skipIf(!existsSync(CHROMIUM))(
           `<!doctype html><html class="dark" lang="pt-BR"><head><style>${css}</style></head><body style="margin:0">${casca}<div id="sonda" style="background-color: var(--sol-hover)"></div></body></html>`
         )}); document.close();`
       );
-      solHoverAqui = await avaliar<string>(
-        "getComputedStyle(document.getElementById('sonda')).backgroundColor"
+      solHoverAqui = await avaliarComo(
+        "getComputedStyle(document.getElementById('sonda')).backgroundColor",
+        ehTexto
       );
       await enviar("Emulation.setFocusEmulationEnabled", { enabled: true });
       antes = await lerPular();
       await tecla("Tab");
       noPrimeiroTab = await lerPular();
       await tecla("Enter");
-      depoisDoEnter = await avaliar<string>(FOCADO);
+      depoisDoEnter = await avaliarComo(FOCADO, ehTexto);
       await tecla("Tab");
-      depoisDoEnterETab = await avaliar<string>(FOCADO);
+      depoisDoEnterETab = await avaliarComo(FOCADO, ehTexto);
     }, 20_000);
 
     afterAll(fecharChromium);

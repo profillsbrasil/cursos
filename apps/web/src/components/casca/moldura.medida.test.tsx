@@ -11,7 +11,15 @@ import {
   cssDoApp,
   type Enviar,
   fecharChromium,
+  avaliarComo,
 } from "../chromium.test-utils";
+import {
+  ehBooleano,
+  ehNumero,
+  ehObjeto,
+  ehTexto,
+  type Predicado,
+} from "../predicados.test-utils";
 import { ProvedorDaCasca } from "./provedor-da-casca";
 
 const casca = (aberta: boolean) =>
@@ -69,6 +77,28 @@ interface Medida {
   rolagem: { documento: boolean; painel: string };
 }
 
+const ehMedida: Predicado<Medida> = ehObjeto({
+  container: ehObjeto({ borda: ehTexto, largura: ehNumero }),
+  fundoDoWrapper: ehTexto,
+  moldura: ehObjeto({
+    conteudo: ehTexto,
+    direita: ehTexto,
+    esquerda: ehTexto,
+    pe: ehTexto,
+    posicao: ehTexto,
+    topo: ehTexto,
+    transicao: ehTexto,
+    z: ehTexto,
+  }),
+  painel: ehObjeto({
+    direita: ehNumero,
+    esquerda: ehNumero,
+    pe: ehNumero,
+    topo: ehNumero,
+  }),
+  rolagem: ehObjeto({ documento: ehBooleano, painel: ehTexto }),
+});
+
 const MEDIR = `(() => {
   const $ = (s) => document.querySelector('[data-slot="' + s + '"]');
   const container = $("sidebar-container");
@@ -104,7 +134,7 @@ const MEDIR = `(() => {
   };
 })()`;
 
-const medir = () => avaliar<Medida>(enviar, MEDIR);
+const medir = () => avaliarComo(enviar, MEDIR, ehMedida);
 
 const COR_DA_SIDEBAR = "rgb(40, 45, 51)";
 

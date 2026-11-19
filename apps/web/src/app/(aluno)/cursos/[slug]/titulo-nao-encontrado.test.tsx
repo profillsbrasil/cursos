@@ -5,6 +5,8 @@ import { spawnSync } from "bun";
 import type { Metadata } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ehRegistro } from "@/components/predicados.test-utils";
+
 const paginaNaoEncontrada = await import("../../../not-found");
 const aulaNaoEncontrada = await import("./aulas/[aulaId]/not-found");
 const cursoNaoEncontrado = await import("./not-found");
@@ -15,10 +17,8 @@ const sonda = spawnSync(
   { cwd: join(import.meta.dir, "../../../../..") }
 );
 
-const titulos = JSON.parse(sonda.stdout.toString() || "{}") as Record<
-  "aula" | "certificado" | "curso",
-  unknown
->;
+const lido: unknown = JSON.parse(sonda.stdout.toString() || "{}");
+const titulos = ehRegistro(lido) ? lido : {};
 
 const H1 = /<h1[^>]*>([^<]*)<\/h1>/;
 
