@@ -192,6 +192,62 @@ function abrirWebSocket(url: string) {
   });
 }
 
+/** Os pedidos ao DevTools pelo WebSocket: cada pedido espera a resposta do seu id, e a mensagem fora do protocolo recusa todos os pendentes. */
+export function pedidosDoDevTools(ws: WebSocket) {
+  const pendentes = new Map<
+    number,
+    {
+      recusar: (erro: Error) => void;
+      responder: (r: {
+        error?: { message: string };
+        result?: Record<string, unknown>;
+      }) => void;
+    }
+  >();
+
+  ws.addEventListener("message", (m) => {
+    const resposta: unknown = JSON.parse(String(m.data));
+
+    if (!ehMensagem(resposta)) {
+      const erro = new Error(
+        `o DevTools mandou uma mensagem fora do protocolo: ${String(m.data)}`
+      );
+
+      for (const pendente of pendentes.values()) {
+        pendente.recusar(erro);
+      }
+
+      pendentes.clear();
+
+      return;
+    }
+
+    if (resposta.id !== undefined) {
+      pendentes.get(resposta.id)?.responder(resposta);
+      pendentes.delete(resposta.id);
+    }
+  });
+  let proximo = 0;
+
+  const pedir = (method: string, params: Record<string, unknown>) => {
+    proximo += 1;
+    const id = proximo;
+
+    return new Promise<Record<string, unknown>>((resolve, reject) => {
+      pendentes.set(id, {
+        recusar: reject,
+        responder: (r) =>
+          r.error
+            ? reject(new Error(`${method}: ${r.error.message}`))
+            : resolve(r.result ?? {}),
+      });
+      ws.send(JSON.stringify({ id, method, params }));
+    });
+  };
+
+  return pedir;
+}
+
 export type Enviar = <M extends keyof Respostas>(
   method: M,
   params?: Record<string, unknown>
@@ -238,43 +294,7 @@ export async function abrirChromium(prefixo: string): Promise<Enviar> {
 
   const ws = await abrirWebSocket(pagina);
 
-  const pendentes = new Map<
-    number,
-    (r: {
-      error?: { message: string };
-      result?: Record<string, unknown>;
-    }) => void
-  >();
-
-  ws.addEventListener("message", (m) => {
-    const resposta: unknown = JSON.parse(String(m.data));
-
-    if (!ehMensagem(resposta)) {
-      throw new Error(
-        `o DevTools mandou uma mensagem fora do protocolo: ${String(m.data)}`
-      );
-    }
-
-    if (resposta.id !== undefined) {
-      pendentes.get(resposta.id)?.(resposta);
-      pendentes.delete(resposta.id);
-    }
-  });
-  let proximo = 0;
-
-  const pedir = (method: string, params: Record<string, unknown>) => {
-    proximo += 1;
-    const id = proximo;
-
-    return new Promise<Record<string, unknown>>((resolve, reject) => {
-      pendentes.set(id, (r) =>
-        r.error
-          ? reject(new Error(`${method}: ${r.error.message}`))
-          : resolve(r.result ?? {})
-      );
-      ws.send(JSON.stringify({ id, method, params }));
-    });
-  };
+  const pedir = pedidosDoDevTools(ws);
 
   return async <M extends keyof Respostas>(
     method: M,
