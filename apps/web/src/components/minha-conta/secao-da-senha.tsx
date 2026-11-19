@@ -26,12 +26,15 @@ import { useAcaoDaConta } from "./use-acao-da-conta";
 
 const SENHA_MINIMA = 15;
 
+/** O que a seção Senha lê do usuário do Clerk. */
+export type ContaDaSenha = Pick<Usuario, "passwordEnabled" | "updatePassword">;
+
 function FormularioDaSenha({
   fechar,
   user,
 }: {
   fechar: () => void;
-  user: Usuario;
+  user: ContaDaSenha;
 }) {
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
@@ -123,7 +126,7 @@ function FormularioDaSenha({
   );
 }
 
-export function SecaoDaSenha({ user }: { user: Usuario }) {
+export function SecaoDaSenha({ user }: { user: ContaDaSenha }) {
   const id = useId();
   const [aberto, setAberto] = useState(false);
   const temSenha = user.passwordEnabled;

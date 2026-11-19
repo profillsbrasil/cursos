@@ -34,13 +34,24 @@ import {
   DETALHE_DA_LINHA,
   PE_DO_CARTAO,
 } from "./partes";
-import type { FolhaDaConta, Usuario } from "./tipos";
+import type { EmailDaConta, FolhaDaConta, Usuario } from "./tipos";
 import { useAcaoDaConta } from "./use-acao-da-conta";
+
+type ContaDaFoto = Pick<
+  Usuario,
+  "hasImage" | "imageUrl" | "setProfileImage"
+> & {
+  primaryEmailAddress: Pick<EmailDaConta, "emailAddress"> | null;
+};
+
+/** O que o topo de Minha conta lê do usuário do Clerk. */
+export type ContaDoNome = ContaDaFoto &
+  Pick<Usuario, "firstName" | "lastName" | "update">;
 
 const juntar = (nome: string, sobrenome: string) =>
   `${nome.trim()} ${sobrenome.trim()}`.trim();
 
-function Foto({ nome, user }: { nome: string; user: Usuario }) {
+function Foto({ nome, user }: { nome: string; user: ContaDaFoto }) {
   const { executar, pendente } = useAcaoDaConta();
   const arquivo = useRef<HTMLInputElement>(null);
 
@@ -136,7 +147,7 @@ export function SecaoDoNome({
 }: {
   certificados: number;
   folha: FolhaDaConta;
-  user: Usuario;
+  user: ContaDoNome;
 }) {
   const id = useId();
   const { executar, pendente } = useAcaoDaConta();
