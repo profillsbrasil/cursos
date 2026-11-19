@@ -59,6 +59,7 @@ const PAGINA = renderToStaticMarkup(
               email: "ana@exemplo.com",
               foto: null,
               nome: "Ana Exemplo",
+              nomeProprio: "Ana Exemplo",
               situacao: {
                 desde: HOJE,
                 numeros: { concluidos: 0, cursos: 1, emProducao: 0 },

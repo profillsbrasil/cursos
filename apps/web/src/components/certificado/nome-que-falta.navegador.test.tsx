@@ -35,7 +35,7 @@ async function empacotar() {
         import { flushSync } from "react-dom";
         import { createRoot } from "react-dom/client";
         import { useAcaoDaConta } from "../minha-conta/use-acao-da-conta";
-        import { FormularioDoNome } from "./nome-que-falta";
+        import { FormularioDoNome, NomeQueFalta } from "./nome-que-falta";
         import { TelaDoCertificado } from "./tela-do-certificado";
 
         const SEM_NOME = {
@@ -55,6 +55,7 @@ async function empacotar() {
         window.pedidos = [];
         window.toasts = [];
         window.depois = 0;
+        window.refresh = 0;
         const user = {
           update: async (pedido) => {
             window.pedidos.push(pedido);
@@ -63,6 +64,7 @@ async function empacotar() {
             }
           },
         };
+        window.user = user;
 
         function Formulario() {
           const acao = useAcaoDaConta();
@@ -81,13 +83,13 @@ async function empacotar() {
               hoje="2026-10-16"
               origem="https://cursos.exemplo.com.br"
               pagina={SEM_NOME}
-              pedirONome={<Formulario />}
+              pedirONome={window.inteiro ? <NomeQueFalta /> : <Formulario />}
             />
           )
         );
       `,
       [CLERK]: `export const useReverification = (fazer) => fazer;
-        export const useUser = () => ({ user: null });`,
+        export const useUser = () => ({ user: window.user });`,
       [SONNER]: `export const toast = {
         error: (m) => window.toasts.push(["erro", m]),
         success: (m) => window.toasts.push(["ok", m]),
@@ -97,7 +99,7 @@ async function empacotar() {
           return createElement("img", { alt, height, src, style, width });
         }`,
       [NAVEGACAO]:
-        "export const useRouter = () => ({ refresh: () => undefined });",
+        "export const useRouter = () => ({ refresh: () => { window.refresh += 1; } });",
       [LINK]: `import { createElement } from "react";
         export default function Link({ href, ...props }) {
           return createElement("a", { href, ...props });
@@ -139,7 +141,7 @@ async function empacotar() {
 let enviar: Enviar;
 let pacote: string;
 
-async function abrir() {
+async function abrir(inteiro = false) {
   await enviar("Emulation.setDeviceMetricsOverride", {
     deviceScaleFactor: 1,
     height: 900,
@@ -150,7 +152,7 @@ async function abrir() {
     enviar,
     `document.open(); document.write(${JSON.stringify(
       '<!doctype html><html class="dark" lang="pt-BR"><head><style id="css"></style></head><body style="margin:0"><main style="margin-left:248px;padding:32px 48px"><div id="raiz"></div></main></body></html>'
-    )}); document.close(); window.recusa = null;`
+    )}); document.close(); window.recusa = null; window.inteiro = ${inteiro};`
   );
   await avaliar(enviar, pacote);
 
@@ -231,6 +233,18 @@ describe.skipIf(!existsSync(CHROMIUM))(
         ["ok", "Nome salvo."],
       ]);
       expect(await avaliar<number>(enviar, "window.depois")).toBe(1);
+    });
+
+    test("o NomeQueFalta salva no usuário do Clerk e pede um refresh do servidor", async () => {
+      await abrir(true);
+      await digitar("nome", "Ana");
+      await digitar("sobrenome", "Souza");
+      await salvar();
+      await esperar("window.refresh > 0");
+      expect(await avaliar<unknown>(enviar, "window.pedidos")).toEqual([
+        { firstName: "Ana", lastName: "Souza" },
+      ]);
+      expect(await avaliar<number>(enviar, "window.refresh")).toBe(1);
     });
 
     test("o Clerk recusa: o toast diz a regra e o depois não roda", async () => {

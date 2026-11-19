@@ -29,7 +29,13 @@ describe.skipIf(URL_TESTE === null)("comunicados do admin", () => {
         db,
         papel: "admin",
         pessoas: [
-          { email: null, foto: null, nome: "Dona do admin", userId: DONO },
+          {
+            email: null,
+            foto: null,
+            nome: "Dona do admin",
+            nomeProprio: "Dona do admin",
+            userId: DONO,
+          },
         ],
         userId,
       })

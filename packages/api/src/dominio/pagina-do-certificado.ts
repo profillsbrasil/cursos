@@ -5,7 +5,7 @@ export interface CertificadoEmitido {
   codigo: string;
   emitidoEm: string;
   horas: number;
-  /** null quando o Clerk não tem um nome para mostrar: a conta sumiu ou só tem e-mail. */
+  /** null quando a conta sumiu ou a pessoa não escreveu um nome nela. */
   nome: string | null;
   tituloDoCurso: string;
 }
@@ -39,13 +39,8 @@ const SEGUNDOS_POR_HORA = 3600;
 export const cargaHoraria = (segundos: number) =>
   Math.ceil(segundos / SEGUNDOS_POR_HORA);
 
-export function nomeNoCertificado(p: Pessoa | null): string | null {
-  if (!p || p.nome === p.userId || p.nome === p.email) {
-    return null;
-  }
-
-  return p.nome;
-}
+export const nomeNoCertificado = (p: Pessoa | null): string | null =>
+  p?.nomeProprio ?? null;
 
 export const certificadoEmitido = (
   l: LinhaDoCertificado,

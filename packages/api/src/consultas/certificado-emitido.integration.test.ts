@@ -33,13 +33,32 @@ const SUMIU = `user_teste${S}e`;
 const ALUNOS = [ANA, BRUNO, CAIO, SO_EMAIL, SUMIU];
 
 const PESSOAS: Pessoa[] = [
-  { email: "ana@exemplo.com", foto: null, nome: "Ana Souza", userId: ANA },
-  { email: "bruno@exemplo.com", foto: null, nome: "Bruno Lima", userId: BRUNO },
-  { email: "caio@exemplo.com", foto: null, nome: "Caio Reis", userId: CAIO },
+  {
+    email: "ana@exemplo.com",
+    foto: null,
+    nome: "Ana Souza",
+    nomeProprio: "Ana Souza",
+    userId: ANA,
+  },
+  {
+    email: "bruno@exemplo.com",
+    foto: null,
+    nome: "Bruno Lima",
+    nomeProprio: "Bruno Lima",
+    userId: BRUNO,
+  },
+  {
+    email: "caio@exemplo.com",
+    foto: null,
+    nome: "Caio Reis",
+    nomeProprio: "Caio Reis",
+    userId: CAIO,
+  },
   {
     email: "so@exemplo.com",
     foto: null,
     nome: "so@exemplo.com",
+    nomeProprio: null,
     userId: SO_EMAIL,
   },
 ];

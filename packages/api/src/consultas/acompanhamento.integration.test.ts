@@ -39,6 +39,7 @@ const pessoas: Pessoa[] = ALUNOS.map((userId) => ({
   email: `${userId}@exemplo.com`,
   foto: null,
   nome: userId,
+  nomeProprio: userId,
   userId,
 }));
 

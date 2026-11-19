@@ -70,6 +70,7 @@ export function montarListaDePessoas(
       email: c.email,
       foto: c.foto,
       nome: c.nome,
+      nomeProprio: c.nomeProprio,
       papel: c.papel,
       perfil: perfilNaTela(c, porId.get(c.userId)),
       saldo: saldoPorId.get(c.userId) ?? 0,

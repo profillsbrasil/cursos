@@ -33,8 +33,20 @@ describe.skipIf(URL_TESTE === null)("liberação do perfil no admin", () => {
       db,
       papel: "admin",
       pessoas: [
-        { email: null, foto: null, nome: "Dona", userId: DONA },
-        { email: null, foto: null, nome: `Cliente ${S}`, userId: CLIENTE },
+        {
+          email: null,
+          foto: null,
+          nome: "Dona",
+          nomeProprio: "Dona",
+          userId: DONA,
+        },
+        {
+          email: null,
+          foto: null,
+          nome: `Cliente ${S}`,
+          nomeProprio: `Cliente ${S}`,
+          userId: CLIENTE,
+        },
       ],
       userId: DONA,
     })
