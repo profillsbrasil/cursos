@@ -23,10 +23,10 @@ const servicos = {
   pessoas: pessoasDeTeste([]),
 };
 
-const sessao = (
-  claims: Record<string, unknown>,
-  userId = "user_x"
-): AuthDoClerk => ({ sessionClaims: claims, userId });
+const sessao = (claims: unknown, userId = "user_x"): AuthDoClerk => ({
+  sessionClaims: claims,
+  userId,
+});
 
 describe("contextoDe lê o papel do claim", () => {
   test("claim papel admin vira admin", () => {
@@ -43,6 +43,14 @@ describe("contextoDe lê o papel do claim", () => {
         userId: "user_x",
       });
     }
+  });
+
+  test("claim que não é objeto vira aluno, sem lançar", () => {
+    const claims = [undefined, null, {}, { papel: "aluno" }, "admin", 1];
+
+    expect(
+      claims.map((c) => contextoDe(sessao(c), servicos).auth?.papel)
+    ).toEqual(["aluno", "aluno", "aluno", "aluno", "aluno", "aluno"]);
   });
 
   test("sem sessão não tem auth", () => {

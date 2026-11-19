@@ -42,9 +42,9 @@ export interface Context extends Servicos {
   readonly auth: Sessao | null;
 }
 
-/** O que contextoDe lê do Clerk: o userId e o claim papel. O authenticateRequest().toAuth() e o auth.protect() satisfazem. */
+/** O que contextoDe lê do Clerk: o userId e o claim papel. O authenticateRequest().toAuth() e o auth.protect() satisfazem; sessionClaims chega sem forma garantida e o contextoDe a confere. */
 export interface AuthDoClerk {
-  readonly sessionClaims: object | null;
+  readonly sessionClaims: unknown;
   readonly userId: string | null;
 }
 
@@ -67,7 +67,10 @@ export function contextoDe(
   const claims = clerk.sessionClaims;
 
   const papel =
-    claims !== null && "papel" in claims && claims.papel === "admin"
+    typeof claims === "object" &&
+    claims !== null &&
+    "papel" in claims &&
+    claims.papel === "admin"
       ? "admin"
       : "aluno";
 
