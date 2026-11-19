@@ -4,10 +4,10 @@ import type {
 } from "@cursos/api/dominio/pessoas";
 import { cn } from "@cursos/ui/lib/utils";
 import { ChevronRight } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 
 import { diaEmSaoPaulo, fmtNum, fmtPts, quando } from "@/lib/formato";
+import { rota } from "@/lib/rotas";
 
 import { SeloDeSituacao } from "../acompanhamento";
 import { FotoDaPessoa } from "../foto-da-pessoa";
@@ -15,7 +15,7 @@ import { SecaoSobABarra, Vazio } from "../partes";
 import { SELO_DE_ADMIN, SOBRE_O_PERFIL, seloDoPerfil } from "./perfis";
 
 export const fichaDaPessoa = (userId: string) =>
-  `/admin/pessoas/${userId}` as Route;
+  rota(`/admin/pessoas/${userId}`);
 
 const ultimoAcesso = (p: PessoaNaLista, hoje: string) =>
   p.ultimoAcesso

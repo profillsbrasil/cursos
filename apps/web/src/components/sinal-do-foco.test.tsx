@@ -12,11 +12,11 @@ import type {
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
 import { sleep } from "bun";
 import { Sparkles } from "lucide-react";
-import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { PREFERENCIAS_PADRAO } from "@/lib/player/preferencias";
 import { estadoInicial } from "@/lib/player/sessao";
+import { rota } from "@/lib/rotas";
 
 import type { Continuar } from "./aluno/continuar";
 import {
@@ -252,7 +252,7 @@ const COMECAR: Continuar = {
   chamada: "Começar curso",
   chamadaAqui: "Assistindo agora",
   curso: "Fábrica",
-  href: "/cursos/fabrica/aulas/a1" as Route,
+  href: rota("/cursos/fabrica/aulas/a1"),
   pct: null,
   rotulo: "Começar curso: Filmagem da instalação, Fábrica",
   tipo: "comecar",

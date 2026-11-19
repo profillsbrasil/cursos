@@ -1,5 +1,10 @@
 import type { Retomada } from "@cursos/api/dominio/painel";
 import {
+  type CaminhoDaAula,
+  type CaminhoDaConferencia,
+  type CaminhoDoCertificado,
+  type CaminhoDoCurso,
+  type CaminhoDoQuestionario,
   caminhoDaAula as aula,
   caminhoDoCertificado as certificado,
   caminhoDaConferencia as conferencia,
@@ -15,25 +20,36 @@ import type { Route } from "next";
  */
 export const rota = <T extends string>(href: Route<T>): Route<T> => href;
 
-export const caminhoDoCurso = (slug: string) => curso(slug) as Route;
+/**
+ * O href que uma prop guarda: uma rota estática ou um dos caminhos dinâmicos
+ * que o app monta. Route sozinho aceita só a estática.
+ */
+export type Endereco =
+  | Route
+  | Route<CaminhoDoCurso>
+  | Route<CaminhoDaAula>
+  | Route<CaminhoDoQuestionario>
+  | Route<CaminhoDoCertificado>
+  | Route<CaminhoDaConferencia>;
+
+export const caminhoDoCurso = (slug: string) => rota(curso(slug));
 
 export const caminhoDaAula = (slug: string, aulaId: string) =>
-  aula(slug, aulaId) as Route;
+  rota(aula(slug, aulaId));
 
 export const caminhoDoQuestionario = (slug: string, aulaId: string) =>
-  questionario(slug, aulaId) as Route;
+  rota(questionario(slug, aulaId));
 
 /** Para onde a retomada leva: a aula, ou o questionário dela quando só ele falta. O banner e o cartão do rodapé usam a mesma regra. */
-export const hrefDaRetomada = (r: Retomada): Route =>
+export const hrefDaRetomada = (r: Retomada): Endereco =>
   r.tipo === "questionario"
     ? caminhoDoQuestionario(r.curso.slug, r.aula.id)
     : caminhoDaAula(r.curso.slug, r.aula.id);
 
-export const caminhoDoCertificado = (slug: string) =>
-  certificado(slug) as Route;
+export const caminhoDoCertificado = (slug: string) => rota(certificado(slug));
 
 export const caminhoDaConferencia = (codigo: string) =>
-  conferencia(codigo) as Route;
+  rota(conferencia(codigo));
 
 /** O login e o cadastro do Clerk moram no app, e não no Account Portal. */
 export const ENTRAR = "/entrar";

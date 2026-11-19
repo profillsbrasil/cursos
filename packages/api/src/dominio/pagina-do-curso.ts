@@ -12,7 +12,12 @@ import {
   marcaDoQuestionario,
   SEM_QUESTIONARIO,
 } from "./questionario";
-import { caminhoDaAula, caminhoDoQuestionario } from "./rotas";
+import {
+  type CaminhoDaAula,
+  type CaminhoDoQuestionario,
+  caminhoDaAula,
+  caminhoDoQuestionario,
+} from "./rotas";
 import type { AulaId, Capa, CursoId, NivelCatalogo } from "./tipos";
 
 export interface AulaDaPagina {
@@ -40,25 +45,30 @@ export interface ModuloDaPagina {
  * pendente (a reprovada primeiro). O curso concluído leva à primeira aula, para rever.
  */
 export type AcaoDaPagina =
-  | { tipo: "comecar"; aulaId: AulaId; href: string; onde: OndeNoCurso }
+  | {
+      tipo: "comecar";
+      aulaId: AulaId;
+      href: CaminhoDaAula;
+      onde: OndeNoCurso;
+    }
   | {
       tipo: "continuar";
       aulaId: AulaId;
-      href: string;
+      href: CaminhoDaAula;
       onde: OndeNoCurso;
       posicaoSeg: number;
     }
   | {
       tipo: "questionario";
       aulaId: AulaId;
-      href: string;
+      href: CaminhoDoQuestionario;
       onde: OndeNoCurso;
       /** Os questionários aprovados sobre os do curso: a barra do cartão. */
       questionarios: Progresso;
       /** A nota da última tentativa nessa aula; null antes da primeira. */
       ultima: { acertos: number; total: number } | null;
     }
-  | { tipo: "rever"; aulaId: AulaId; href: string };
+  | { tipo: "rever"; aulaId: AulaId; href: CaminhoDaAula };
 
 /**
  * A coluna de troca da amostra: a aula que toca e o preço do curso inteiro.
@@ -67,7 +77,7 @@ export type AcaoDaPagina =
 export interface AmostraDaPagina {
   aulaId: AulaId;
   cursoId: CursoId;
-  href: string;
+  href: CaminhoDaAula;
   preco: number | null;
   saldo: number;
 }

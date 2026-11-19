@@ -4,7 +4,6 @@ import type {
 } from "@cursos/api/dominio/catalogo";
 import { cn } from "@cursos/ui/lib/utils";
 import { Eye, Layers, Library, Plus, Star } from "lucide-react";
-import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -13,6 +12,7 @@ import { CabecalhoDaPagina } from "@/components/casca/cabecalho-da-pagina";
 import { CARTAO } from "@/components/casca/cartoes";
 import { SELO } from "@/components/casca/selos";
 import { fmtHoras, fmtPts, plural } from "@/lib/formato";
+import { rota } from "@/lib/rotas";
 
 import { SeloDeSituacao, seloDoCurso } from "./acompanhamento";
 import { GradeDoCatalogo } from "./filtro-do-catalogo";
@@ -76,7 +76,7 @@ function CartaoDoCurso({ curso }: { curso: CursoNaVisao }) {
         <h2 className="text-titulo text-lg leading-[1.3] font-semibold">
           <Link
             className="after:absolute after:inset-0 after:rounded-[14px]"
-            href={`/admin/catalogo/cursos/${curso.id}` as Route}
+            href={rota(`/admin/catalogo/cursos/${curso.id}`)}
           >
             {curso.titulo}
           </Link>

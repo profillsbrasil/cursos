@@ -2,10 +2,10 @@ import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import { Sidebar } from "@cursos/ui/components/sidebar";
-import type { Route } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProvedorDaCasca } from "@/components/casca/provedor-da-casca";
+import { rota } from "@/lib/rotas";
 
 import {
   abrirChromium,
@@ -30,7 +30,7 @@ const COMECAR: Continuar = {
   chamada: "Começar curso",
   chamadaAqui: "Assistindo agora",
   curso: "Fábrica",
-  href: "/cursos/fabrica/aulas/a1" as Route,
+  href: rota("/cursos/fabrica/aulas/a1"),
   pct: null,
   rotulo: "Começar curso: Filmagem da instalação, Fábrica",
   tipo: "comecar",

@@ -4,11 +4,11 @@ import {
   type DocumentoDoCurso,
   formularioDoCurso,
 } from "@cursos/api/dominio/edicao-do-curso";
-import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
 import { focarOPrimeiro } from "@/lib/editor";
+import { rota } from "@/lib/rotas";
 import { useAcao } from "@/lib/use-acao";
 import { useGuardaDeSaida } from "@/lib/use-guarda-de-saida";
 import { trpcClient } from "@/utils/trpc";
@@ -78,7 +78,7 @@ export function useRascunhoDoEditor(pagina: DocumentoDoCurso) {
 
           if (envio.novo) {
             router.replace(
-              `/admin/catalogo/cursos/${envio.documento.id}` as Route
+              rota(`/admin/catalogo/cursos/${envio.documento.id}`)
             );
           }
         },

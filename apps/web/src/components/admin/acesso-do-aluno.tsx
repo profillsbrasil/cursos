@@ -9,13 +9,13 @@ import type { CursoId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { cn } from "@cursos/ui/lib/utils";
 import { Check, ChevronRight, TriangleAlert } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { SELO } from "@/components/casca/selos";
 import { plural } from "@/lib/formato";
+import { rota } from "@/lib/rotas";
 import { useAcao } from "@/lib/use-acao";
 import { trpcClient } from "@/utils/trpc";
 
@@ -339,7 +339,7 @@ export function AcessoDoAluno({ acesso }: { acesso: Acesso }) {
           {pessoa ? (
             <Link
               className="text-ceu hover:text-titulo justify-self-start text-[13px] font-semibold transition-colors"
-              href={`/admin/pessoas/${userId}` as Route}
+              href={rota(`/admin/pessoas/${userId}`)}
             >
               Perfil e papel
             </Link>
