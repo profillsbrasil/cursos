@@ -190,7 +190,7 @@ Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no
 
 ### landmines
 
-`@interfere/landmines` 0.1.0, exato. Fica para um PR seguinte o `landmines-style/no-comments`, que este config não registra. O `landmines-types/no-explicit-return-types` fica desligado por decisão do dono em 18 de novembro de 2026: das 676 anotações de retorno, 257 saem sem mudar o tipo, 305 só mantêm o tipo exportado trocando o `return` por uma variável tipada (`const retorno: T = ...; return retorno;`, em 445 lugares) e 49 ficariam anotadas por exceção. A branch `chore/sem-tipo-de-retorno` guarda o codemod aplicado. O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
+`@interfere/landmines` 0.1.0, exato. O `landmines-types/no-explicit-return-types` fica desligado por decisão do dono em 18 de novembro de 2026: das 676 anotações de retorno, 257 saem sem mudar o tipo, 305 só mantêm o tipo exportado trocando o `return` por uma variável tipada (`const retorno: T = ...; return retorno;`, em 445 lugares) e 49 ficariam anotadas por exceção. A branch `chore/sem-tipo-de-retorno` guarda o codemod aplicado. O plugin só reconhece `vitest`, `@jest/globals` e `jest` como framework de teste, não o `bun:test`: o `mock()` e o `mock.module()` do Bun passam por ele, e o `no-module-mocking` do anti-slop cobre o segundo.
 
 | Regra | Ocorrências | Decisão | Motivo |
 | --- | --- | --- | --- |
@@ -202,6 +202,20 @@ Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no
 | `landmines-testing/no-unsignaled-poll` | 0 | error | |
 | `landmines-testing/strict-msw` | 0 | error | O repo não usa MSW. |
 | `landmines-structure/test-file-names` | 0 | error | `.integration.test.ts`, `.medida.test.tsx` e `.navegador.test.tsx` passam; ajudante de teste leva `.test-utils.ts`. |
+
+### `landmines-style/no-comments`
+
+Ligada em `error` em 19 de novembro de 2026, por decisão do dono. A regra acusa comentário em prosa. O motivo de uma decisão mora no nome, no tipo, na constante ou no teste e, quando não cabe no código, na entrada do arquivo em `docs/mapa.md` (ou em `docs/operacao.md`, se é de infra, env, banco ou deploy).
+
+Na virada, o repo tinha 1.550 comentários em 347 arquivos. Na conta dos workers que os tiraram, 449 foram apagados, 74 viraram código (nome, constante ou teste), 111 viraram TSDoc e 74 viraram `// WARNING:`. O `rg -c "WARNING:" --glob '!*.md'` acha 66 linhas em 50 arquivos. Os workers devolveram 686 notas com o motivo que não coube no código, e cada uma foi descartada por já estar nos docs ou por só narrar o teste, ou virou uma frase em `docs/mapa.md`, `docs/operacao.md` ou nesta página.
+
+A regra aceita três saídas:
+
+- a diretiva funcional, como `oxlint-disable`, `@ts-expect-error`, `/* @__PURE__ */` e o cabeçalho de licença;
+- o TSDoc (`/** */`) em API exportada, em todo pacote, porque o config não passa `publicApi`;
+- o `// WARNING:` de uma linha.
+
+O `// WARNING:` fica só para armadilha perigosa e recorrente, a linha que quebra produção ou dado quando alguém a muda sem saber, como a ordem dos statements de `gravarCurso` ou o `::text` dos checks de `ponto_lancamento`. Motivo que não é armadilha vai para o mapa.
 
 ### anti-slop
 
@@ -246,6 +260,8 @@ A mudança local é o `no-module-mocking`, que só conhecia o `vi` do Vitest e o
 | `next/headers` | 1 | `sinal-do-foco.test.tsx` |
 | `@/server/api` | 1 | `certificado/rotas-do-pdf.test.ts` |
 
+Quase todos trocam o `next/navigation` ou o `@clerk/nextjs` pelo mesmo motivo. Fora do App Router, o `useRouter` lança e o `usePathname` não tem de onde ler, e sem o `ClerkProvider` os hooks do Clerk lançam. O resto do módulo fica o de verdade.
+
 ### Custo dos plugins JS
 
 Medido em 18 de novembro de 2026, por `systemd-run --user --same-dir --wait --pipe -p MemoryMax=4G -p MemorySwapMax=4G`, 5 rodadas de cada lado, alternadas, no mesmo código. "Antes" é o `oxlint.config.ts` do commit `1be10e6` com o ignore de `tools/oxlint/anti-slop/**`, para lintar os mesmos 584 arquivos. Parede é o "Service runtime", CPU é o "CPU time consumed" e memória é o "Memory peak" do cgroup. O load average ficou entre 13,5 e 19,1 em 16 núcleos, com outras sessões rodando, então os números absolutos ficam acima dos de "Custo do check de tipos".
@@ -281,6 +297,7 @@ O `check` e o `check-types` concordam em arquivo e código TS em 13 das 15 categ
 
 - erro global, sem arquivo, e erro de opção do tsconfig (TS2318 e TS5053 com `noLib`): só o `tsc` os devolve;
 - erro de declaração (TS4094 com `declaration`): só o `tsc` o devolve.
+
 
 Fora dos 4 tsconfig, o `tsc` não checa nada e o tsrs também não, pelo `noCheck` descrito em "Escopo". Tirar o `check-types` do CI é decisão do dono, com a tabela da prova de equivalência como base.
 
