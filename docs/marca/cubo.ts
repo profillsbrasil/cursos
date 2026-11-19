@@ -18,7 +18,6 @@ const CEU = { luz: "#AAD2EA", sombra: "#7BB5DD", topo: "#D4E8F4" };
 const SOL = { luz: "#FFCC01", sombra: "#E0A800" };
 const CANELA = { luz: "#E5977A", sombra: "#C9785C" };
 
-// WARNING: a ordem de FACES é a de pintura, de cima para baixo.
 const FACES: readonly Face[] = [
   {
     cor: CEU.topo,

@@ -27,7 +27,7 @@ A marca da plataforma é o cubo em camadas da Profills, com uma seta saindo da c
 | `apps/web/src/app/favicon.ico` | 16, 32 e 48 | Favicon do navegador que não lê SVG, rendido do `icon.svg` |
 | `apps/web/src/app/apple-icon.png` | 180 × 180 | Ícone da tela inicial do iOS: o ícone com 136 px de lado sobre #1A1D22 |
 | `apps/web/public/favicon/web-app-manifest-192x192.png` e `-512x512.png` | 192 e 512 | Ícones do PWA em `app/manifest.ts`: o ícone com 138 e 368 px de lado sobre #1A1D22 |
-| `docs/marca/cubo.ts` | | As faces do cubo e o gerador dos três SVG |
+| `docs/marca/cubo.ts` | | As faces do cubo e o gerador dos três SVG. A ordem de `FACES` é a de pintura, de cima para baixo |
 | `docs/marca/fontes/orbitron/` | | A Orbitron e a licença dela (`OFL.txt`). Nada no app carrega a fonte |
 | `docs/marca/profills.png` e `profills-branco.png` | 1024 × 225 e 314 × 48 | Logo oficial da Profills (do site institucional), guardado como referência. Nada no app o usa |
 

@@ -207,7 +207,7 @@ Os dois plugins rodam no Node, ao lado do Oxlint. As regras de cada um estão no
 
 Ligada em `error` em 19 de novembro de 2026, por decisão do dono. A regra acusa comentário em prosa. O motivo de uma decisão mora no nome, no tipo, na constante ou no teste e, quando não cabe no código, na entrada do arquivo em `docs/mapa.md` (ou em `docs/operacao.md`, se é de infra, env, banco ou deploy).
 
-Na virada, o repo tinha 1.550 comentários em 347 arquivos. Na conta dos workers que os tiraram, 449 foram apagados, 74 viraram código (nome, constante ou teste), 111 viraram TSDoc e 74 viraram `// WARNING:`. O `rg -c "WARNING:" --glob '!*.md'` acha 66 linhas em 50 arquivos. Os workers devolveram 686 notas com o motivo que não coube no código, e cada uma foi descartada por já estar nos docs ou por só narrar o teste, ou virou uma frase em `docs/mapa.md`, `docs/operacao.md` ou nesta página.
+Na virada, o repo tinha 1.550 comentários em 347 arquivos. Na conta dos workers que os tiraram, 449 foram apagados, 74 viraram código (nome, constante ou teste), 111 viraram TSDoc e 74 viraram `// WARNING:`. Uma revisão independente tirou depois os `// WARNING:` que eram explicação e não armadilha, e em 19 de novembro de 2026 o `rg -c '// WARNING:' -g '*.{ts,tsx}' apps packages .claude .railway docs` acha 59 linhas em 45 arquivos. Os workers devolveram 686 notas com o motivo que não coube no código, e cada uma foi descartada por já estar nos docs ou por só narrar o teste, ou virou uma frase em `docs/mapa.md`, `docs/operacao.md` ou nesta página.
 
 A regra aceita três saídas:
 
