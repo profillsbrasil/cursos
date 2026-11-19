@@ -269,10 +269,6 @@ async function foto(nome: string) {
     format: "png",
   });
 
-  if (typeof data !== "string") {
-    throw new TypeError("A captura de tela devolveu dados que não são texto.");
-  }
-
   writeFileSync(join(FOTOS, `${nome}.png`), Buffer.from(data, "base64"));
 }
 
