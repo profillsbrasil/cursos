@@ -185,6 +185,26 @@ describe("a página Minha conta", () => {
 });
 
 describe("a TelaDaMinhaConta, que lê o useUser", () => {
+  test("com a conta carregada, mostra as seções com os certificados que recebeu", () => {
+    const h = texto(
+      comClerk(
+        <TelaDaMinhaConta
+          certificados={2}
+          folha={GANHA}
+          conta={{ isLoaded: true, user: usuario() }}
+        />
+      )
+    );
+
+    expect(h).not.toContain("Carregando sua conta");
+    expect(h).toContain("Como você entra");
+    expect(h).toContain(
+      "Os 2 certificados que você já tem passam a sair com o nome novo"
+    );
+    expect(h).toContain("Certificamos que Ana Souza");
+    expect(h).toContain("Filmagem da instalação");
+  });
+
   test("enquanto o Clerk não carrega a conta, mostra o esqueleto, sem seção nenhuma", () => {
     const h = comClerk(<TelaDaMinhaConta certificados={0} folha={EXEMPLO} />);
     expect(h).toContain('aria-busy="true"');

@@ -20,15 +20,25 @@ export type ContaNaTela = ContaDaSenha &
   ContaNaEntrada &
   Pick<Usuario, "delete" | "id">;
 
+/** O que a `TelaDaMinhaConta` lê do Clerk: a conta e se ela já carregou, como no `useUser`. */
+export interface LeituraDaConta {
+  isLoaded: boolean;
+  user: ContaNaTela | null | undefined;
+}
+
 /** A versão B do protótipo, "Sua folha em destaque". */
 export function TelaDaMinhaConta({
   certificados,
+  conta,
   folha,
 }: {
   certificados: number;
+  /** A leitura da conta no lugar da do `useUser`. A página não passa nada e fica com a do Clerk. */
+  conta?: LeituraDaConta;
   folha: FolhaDaConta;
 }) {
-  const { isLoaded, user } = useUser();
+  const doClerk = useUser();
+  const { isLoaded, user } = conta ?? doClerk;
 
   if (!(isLoaded && user)) {
     return <EsqueletoDaMinhaConta />;
