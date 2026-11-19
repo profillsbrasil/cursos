@@ -1,9 +1,10 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import { aulaId } from "@cursos/api/dominio/marcas";
 import type { QuestionarioDaAula as Questionario } from "@cursos/api/dominio/questionario";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ComRoteador } from "../roteador.test-utils";
 import {
   APROVADO_NA_PRIMEIRA,
   APROVADO_NA_SEGUNDA_COM_ERRO,
@@ -11,22 +12,13 @@ import {
   CRONOGRAMA,
   REPROVADO_NA_PRIMEIRA,
 } from "./exemplo-do-questionario";
+import { QuestionarioDaAula, Resultado } from "./questionario-da-aula";
 import {
   ENVIO_FALHOU,
   erradasDe,
   fraseDoResultado,
   textoDoEnvio,
 } from "./textos-do-questionario";
-
-const navegacao = await import("next/navigation");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
-
-const { QuestionarioDaAula, Resultado } =
-  await import("./questionario-da-aula");
 
 const AULA = aulaId("00000000-0000-4000-8000-00000000aaaa");
 
@@ -40,13 +32,15 @@ const render = (
   o: { proxima?: typeof PROXIMA | null; temVideo?: boolean } = {}
 ) =>
   renderToStaticMarkup(
-    <QuestionarioDaAula
-      aulaId={AULA}
-      proxima={o.proxima === undefined ? PROXIMA : o.proxima}
-      questionario={questionario}
-      slug="comercial"
-      temVideo={o.temVideo ?? true}
-    />
+    <ComRoteador>
+      <QuestionarioDaAula
+        aulaId={AULA}
+        proxima={o.proxima === undefined ? PROXIMA : o.proxima}
+        questionario={questionario}
+        slug="comercial"
+        temVideo={o.temVideo ?? true}
+      />
+    </ComRoteador>
   );
 
 const texto = (html: string) =>

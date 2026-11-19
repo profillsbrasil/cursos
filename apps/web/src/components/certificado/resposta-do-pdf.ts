@@ -1,7 +1,16 @@
-import type { CertificadoEmitido } from "@cursos/api/dominio/pagina-do-certificado";
+import type {
+  CertificadoEmitido,
+  PaginaDoCertificado,
+} from "@cursos/api/dominio/pagina-do-certificado";
 
 import { comNome, enderecoDaConferencia, folhaDo } from "./folha";
 import { pdfDaFolha } from "./pdf";
+
+/** O certificado que a página do aluno baixa: só o emitido. A página do que falta, ou a que não abre, não tem PDF. */
+export const certificadoDaPagina = (
+  pagina: PaginaDoCertificado | null
+): CertificadoEmitido | null =>
+  pagina?.tipo === "emitido" ? pagina.certificado : null;
 
 export async function respostaDoPdf(
   certificado: CertificadoEmitido | null,

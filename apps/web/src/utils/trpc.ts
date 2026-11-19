@@ -36,22 +36,31 @@ const URL_API = "/api/trpc";
  * httpBatchLink agenda o lote num setTimeout, e timer não roda depois do pagehide.
  * Ele só sai do browser, também no pagehide, que não espera a rede, então usa o
  * token sem espera. FormData (o salvarCurso, com a capa) também vai sem lote: o
- * lote serializa a entrada em JSON e o arquivo se perderia.
+ * lote serializa a entrada em JSON e o arquivo se perderia. `buscar` é o
+ * fetch desse registro: o do app é o global, lido na hora do pedido.
  */
-export const trpcClient = createTRPCClient<AppRouter>({
-  links: [
-    splitLink({
-      condition: (op) => op.path === "aula.registrar",
-      false: splitLink({
-        condition: (op) => isNonJsonSerializable(op.input),
-        false: httpBatchLink({ headers, url: URL_API }),
-        true: httpLink({ headers, url: URL_API }),
+type Buscar = (
+  url: RequestInfo | URL | string,
+  init: RequestInit
+) => Promise<Response>;
+
+export const clienteTrpc = (buscar: Buscar = (url, init) => fetch(url, init)) =>
+  createTRPCClient<AppRouter>({
+    links: [
+      splitLink({
+        condition: (op) => op.path === "aula.registrar",
+        false: splitLink({
+          condition: (op) => isNonJsonSerializable(op.input),
+          false: httpBatchLink({ headers, url: URL_API }),
+          true: httpLink({ headers, url: URL_API }),
+        }),
+        true: httpLink({
+          fetch: (url, init) => buscar(url, { ...init, keepalive: true }),
+          headers: headersDoRegistro,
+          url: URL_API,
+        }),
       }),
-      true: httpLink({
-        fetch: (url, init) => fetch(url, { ...init, keepalive: true }),
-        headers: headersDoRegistro,
-        url: URL_API,
-      }),
-    }),
-  ],
-});
+    ],
+  });
+
+export const trpcClient = clienteTrpc();

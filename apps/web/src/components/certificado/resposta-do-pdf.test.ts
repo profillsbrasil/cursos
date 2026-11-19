@@ -1,22 +1,11 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type {
   CertificadoEmitido,
   PaginaDoCertificado,
 } from "@cursos/api/dominio/pagina-do-certificado";
 
-let daSessao: PaginaDoCertificado | null = null;
-let doCodigo: CertificadoEmitido | null = null;
-
-mock.module("@/server/api", () => ({
-  carregarPaginaDoCertificado: () => Promise.resolve(daSessao),
-  conferirCertificado: () => Promise.resolve(doCodigo),
-}));
-
-const doAluno =
-  await import("@/app/(aluno)/cursos/[slug]/certificado/pdf/route");
-
-const daConferencia = await import("@/app/certificado/[codigo]/pdf/route");
+import { certificadoDaPagina, respostaDoPdf } from "./resposta-do-pdf";
 
 const DA_ANA: CertificadoEmitido = {
   codigo: "7K3M-Q9TD",
@@ -26,30 +15,20 @@ const DA_ANA: CertificadoEmitido = {
   tituloDoCurso: "Fábrica e montagem",
 };
 
-const pedido = () =>
-  new Request("https://cursos.exemplo.com.br/x", {
-    headers: { host: "cursos.exemplo.com.br", "x-forwarded-proto": "https" },
-  });
+const ORIGEM = "https://cursos.exemplo.com.br";
 
-const pdfDoAluno = () =>
-  doAluno.GET(pedido(), {
-    params: Promise.resolve({ slug: "fabrica-e-montagem" }),
-  });
-
-const pdfDoCodigo = () =>
-  daConferencia.GET(pedido(), {
-    params: Promise.resolve({ codigo: "7K3M-Q9TD" }),
-  });
+const pdfDaPagina = (pagina: PaginaDoCertificado | null) =>
+  respostaDoPdf(certificadoDaPagina(pagina), ORIGEM);
 
 describe("o PDF da página do aluno", () => {
   test("a dona do certificado baixa o PDF dela", async () => {
-    daSessao = {
+    const resposta = await pdfDaPagina({
       categoria: "Produção e montagem",
       certificado: DA_ANA,
       slug: "fabrica-e-montagem",
       tipo: "emitido",
-    };
-    const resposta = await pdfDoAluno();
+    });
+
     expect(resposta.status).toBe(200);
     expect(resposta.headers.get("content-type")).toBe("application/pdf");
     expect(resposta.headers.get("content-disposition")).toBe(
@@ -63,41 +42,40 @@ describe("o PDF da página do aluno", () => {
   });
 
   test("outra pessoa no mesmo curso, sem certificado, recebe 404", async () => {
-    daSessao = {
+    const resposta = await pdfDaPagina({
       aulas: { feitas: 3, total: 7 },
       curso: { slug: "fabrica-e-montagem", titulo: "Fábrica e montagem" },
       questionarios: { aprovados: 0, total: 2 },
       tipo: "falta",
-    };
-    expect((await pdfDoAluno()).status).toBe(404);
+    });
+
+    expect(resposta.status).toBe(404);
   });
 
   test("quem não abre o curso recebe 404", async () => {
-    daSessao = null;
-    expect((await pdfDoAluno()).status).toBe(404);
+    expect((await pdfDaPagina(null)).status).toBe(404);
   });
 
   test("sem nome na conta não há folha: 404", async () => {
-    daSessao = {
+    const resposta = await pdfDaPagina({
       categoria: "Produção e montagem",
       certificado: { ...DA_ANA, nome: null },
       slug: "fabrica-e-montagem",
       tipo: "emitido",
-    };
-    expect((await pdfDoAluno()).status).toBe(404);
+    });
+
+    expect(resposta.status).toBe(404);
   });
 });
 
 describe("o PDF da conferência pública", () => {
   test("o código que existe dá o PDF", async () => {
-    doCodigo = DA_ANA;
-    const resposta = await pdfDoCodigo();
+    const resposta = await respostaDoPdf(DA_ANA, ORIGEM);
     expect(resposta.status).toBe(200);
     expect(resposta.headers.get("content-type")).toBe("application/pdf");
   });
 
   test("o código que não existe dá 404", async () => {
-    doCodigo = null;
-    expect((await pdfDoCodigo()).status).toBe(404);
+    expect((await respostaDoPdf(null, ORIGEM)).status).toBe(404);
   });
 });

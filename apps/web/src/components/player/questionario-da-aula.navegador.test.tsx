@@ -24,6 +24,7 @@ import {
   ouNulo,
   type Predicado,
 } from "../predicados.test-utils";
+import { ComRoteador } from "../roteador.test-utils";
 import {
   APROVADO_NA_PRIMEIRA,
   BLOQUEIO,
@@ -31,13 +32,12 @@ import {
   CRONOGRAMA,
   REPROVADO_NA_PRIMEIRA,
 } from "./exemplo-do-questionario";
+import { QuestionarioDaAula } from "./questionario-da-aula";
 
 const ENTRADA = join(import.meta.dir, "questionario.entrada.tsx");
 const TRPC = join(import.meta.dir, "trpc-falso.js");
-const NAVEGACAO = join(import.meta.dir, "navegacao-falsa.js");
 const LINK = join(import.meta.dir, "link-sem-roteador.js");
 const UTILS_TRPC = /^@\/utils\/trpc$/;
-const NEXT_NAVIGATION = /^next\/navigation$/;
 const NEXT_LINK = /^next\/link$/;
 
 const [P1, P2, P3] = CRONOGRAMA.perguntas.map((p) => p.id);
@@ -65,7 +65,10 @@ const RESULTADO = {
 
 async function empacotar() {
   const pacote = await build({
-    define: { "process.env.NODE_ENV": '"development"' },
+    define: {
+      "process.env": "{}",
+      "process.env.NODE_ENV": '"development"',
+    },
     entrypoints: [ENTRADA],
     files: {
       [ENTRADA]: `
@@ -73,6 +76,7 @@ async function empacotar() {
         import { createRoot } from "react-dom/client";
         import { QuestionarioDaAula } from "./questionario-da-aula";
         import { CRONOGRAMA } from "./exemplo-do-questionario";
+        import { ComRoteador, roteadorDeTeste } from "../roteador.test-utils";
 
         // O about:blank do headless não é contexto seguro, e lá o crypto.randomUUID não existe.
         let gerados = 0;
@@ -80,16 +84,20 @@ async function empacotar() {
           gerados += 1;
           return "00000000-0000-4000-8000-1" + String(gerados).padStart(11, "0");
         };
+        const { chamadas, roteador } = roteadorDeTeste();
+        window.chamadasDoRoteador = chamadas;
         const raiz = createRoot(document.getElementById("raiz"));
         flushSync(() =>
           raiz.render(
-            <QuestionarioDaAula
-              aulaId="00000000-0000-4000-8000-00000000aaaa"
-              proxima={{ id: "00000000-0000-4000-8000-00000000bbbb", titulo: "Próxima" }}
-              questionario={CRONOGRAMA}
-              slug="comercial"
-              temVideo
-            />
+            <ComRoteador roteador={roteador}>
+              <QuestionarioDaAula
+                aulaId="00000000-0000-4000-8000-00000000aaaa"
+                proxima={{ id: "00000000-0000-4000-8000-00000000bbbb", titulo: "Próxima" }}
+                questionario={CRONOGRAMA}
+                slug="comercial"
+                temVideo
+              />
+            </ComRoteador>
           )
         );
       `,
@@ -112,9 +120,6 @@ async function empacotar() {
           },
         };
       `,
-      [NAVEGACAO]: `
-        export const useRouter = () => ({ refresh: () => undefined });
-      `,
       [LINK]: `import { createElement } from "react";
         export default function Link(props) { return createElement("a", props); }`,
     },
@@ -124,9 +129,6 @@ async function empacotar() {
         name: "servidor-falso",
         setup(construtor) {
           construtor.onResolve({ filter: UTILS_TRPC }, () => ({ path: TRPC }));
-          construtor.onResolve({ filter: NEXT_NAVIGATION }, () => ({
-            path: NAVEGACAO,
-          }));
           construtor.onResolve({ filter: NEXT_LINK }, () => ({ path: LINK }));
         },
       },
@@ -145,16 +147,6 @@ async function empacotar() {
   return await saida.text();
 }
 
-const navegacao = await import("next/navigation");
-const { mock } = await import("bun:test");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
-
-const { QuestionarioDaAula } = await import("./questionario-da-aula");
-
 const ESTADOS = [
   CRONOGRAMA,
   { ...BLOQUEIO, ultima: REPROVADO_NA_PRIMEIRA },
@@ -163,13 +155,15 @@ const ESTADOS = [
 
 const htmlDe = (q: (typeof ESTADOS)[number]) =>
   renderToStaticMarkup(
-    <QuestionarioDaAula
-      aulaId={aulaId("00000000-0000-4000-8000-00000000aaaa")}
-      proxima={null}
-      questionario={q}
-      slug="comercial"
-      temVideo
-    />
+    <ComRoteador>
+      <QuestionarioDaAula
+        aulaId={aulaId("00000000-0000-4000-8000-00000000aaaa")}
+        proxima={null}
+        questionario={q}
+        slug="comercial"
+        temVideo
+      />
+    </ComRoteador>
   );
 
 const CLASSES = /class="([^"]*)"/g;
@@ -241,6 +235,13 @@ const textoDe = (seletor: string) =>
     enviar,
     `document.querySelector(${JSON.stringify(seletor)})?.textContent.replace(/\\s+/g, " ").trim() ?? null`,
     ouNulo(ehTexto)
+  );
+
+const chamadasDoRoteador = () =>
+  avaliarComo(
+    enviar,
+    "window.chamadasDoRoteador",
+    ehLista(ehObjeto({ metodo: ehTexto }))
   );
 
 const marcados = () =>
@@ -459,6 +460,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
       "Não deu para enviar. Suas respostas continuam marcadas; tente de novo."
     );
     expect(await marcados()).toBe(3);
+    expect(await chamadasDoRoteador()).toEqual([]);
 
     await clicarNoBotao("Enviar de novo");
     await esperar(`document.querySelector('[role="status"]')`);
@@ -478,6 +480,7 @@ describe.skipIf(!existsSync(CHROMIUM))("o questionário no browser", () => {
     expect(pedidos).toHaveLength(2);
     expect(pedidos[0]?.tentativaId).toBe(pedidos[1]?.tentativaId);
     expect(pedidos[1]?.respostas).toHaveLength(3);
+    expect(await chamadasDoRoteador()).toEqual([{ metodo: "refresh" }]);
 
     await clicarNoBotao("Tentar de novo");
     await esperar(`document.querySelector('input[type="radio"]')`);

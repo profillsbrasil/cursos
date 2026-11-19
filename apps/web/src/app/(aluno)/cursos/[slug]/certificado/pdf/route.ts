@@ -1,5 +1,8 @@
 import { origemDoPedido } from "@/components/certificado/folha";
-import { respostaDoPdf } from "@/components/certificado/resposta-do-pdf";
+import {
+  certificadoDaPagina,
+  respostaDoPdf,
+} from "@/components/certificado/resposta-do-pdf";
 import { carregarPaginaDoCertificado } from "@/server/api";
 
 export async function GET(
@@ -9,7 +12,7 @@ export async function GET(
   const pagina = await carregarPaginaDoCertificado((await params).slug);
 
   return await respostaDoPdf(
-    pagina?.tipo === "emitido" ? pagina.certificado : null,
+    certificadoDaPagina(pagina),
     origemDoPedido(pedido.headers)
   );
 }

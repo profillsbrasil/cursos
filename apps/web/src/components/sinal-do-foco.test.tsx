@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import type { AulaNaColuna, AulaNoPlayer } from "@cursos/api/dominio/aula";
@@ -10,21 +10,39 @@ import {
   liberacaoId,
 } from "@cursos/api/dominio/marcas";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
+import { Sidebar } from "@cursos/ui/components/sidebar";
 import { sleep } from "bun";
 import { Sparkles } from "lucide-react";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { PREFERENCIAS_PADRAO } from "@/lib/player/preferencias";
 import { estadoInicial } from "@/lib/player/sessao";
 import { rota } from "@/lib/rotas";
 
+import { AcessoDoAluno } from "./admin/acesso-do-aluno";
+import { ConfirmacaoNaLinha } from "./admin/confirmacao-na-linha";
+import { ListaDePessoas } from "./admin/lista-de-pessoas";
+import { AcessoDaPessoa } from "./admin/pessoas/acesso-da-pessoa";
+import { ProvedorDoLote } from "./admin/provedor-do-lote";
+import { CartaoContinuar } from "./aluno/cartao-continuar";
 import type { Continuar } from "./aluno/continuar";
+import { ITENS_DO_ALUNO } from "./aluno/menu";
+import { type ContaNoCartao, MenuDaConta } from "./casca/cartao-de-conta";
+import { MolduraDaCasca } from "./casca/casca";
+import { NavPrincipal } from "./casca/nav-principal";
+import { ProvedorDaCasca } from "./casca/provedor-da-casca";
 import {
   abrirChromium,
   CHROMIUM,
   cssDoApp,
   fecharChromium,
 } from "./chromium.test-utils";
+import { FaixaComunicado } from "./meus-cursos/aviso-comunicado";
+import { EXCLUIR } from "./minha-conta/partes";
+import { BotoesDeSair } from "./minha-conta/secao-de-sair";
+import { ColunaDoCurso } from "./player/coluna-do-curso";
+import { ControlesDoPlayer } from "./player/controles-do-player";
 import {
   type Predicado,
   ehBooleano,
@@ -32,54 +50,19 @@ import {
   ehTexto,
   ehNumero,
 } from "./predicados.test-utils";
+import { ComRoteador } from "./roteador.test-utils";
 
-const navegacao = await import("next/navigation");
+const ANA: ContaNoCartao = {
+  fullName: "Ana Souza",
+  hasImage: false,
+  imageUrl: "",
+  primaryEmailAddress: null,
+};
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  usePathname: () => "/meus-cursos",
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+const sairDaConta = () => Promise.resolve();
 
-const cabecalhos = await import("next/headers");
-
-mock.module("next/headers", () => ({
-  ...cabecalhos,
-  cookies: () => Promise.resolve({ get: () => undefined }),
-}));
-
-const clerk = await import("@clerk/nextjs");
-
-mock.module("@clerk/nextjs", () => ({
-  ...clerk,
-  useClerk: () => ({ signOut: () => undefined }),
-  useReverification: (acao: unknown) => acao,
-  useUser: () => ({
-    isLoaded: true,
-    user: { fullName: "Ana Souza", hasImage: false },
-  }),
-}));
-
-const { Sidebar } = await import("@cursos/ui/components/sidebar");
-const { Casca } = await import("./casca/casca");
-const { CartaoContinuar } = await import("./aluno/cartao-continuar");
-const { AcessoDoAluno } = await import("./admin/acesso-do-aluno");
-const { ListaDePessoas } = await import("./admin/lista-de-pessoas");
-const { ProvedorDoLote } = await import("./admin/provedor-do-lote");
-const { ITENS_DO_ALUNO } = await import("./aluno/menu");
-const { NavPrincipal } = await import("./casca/nav-principal");
-const { ProvedorDaCasca } = await import("./casca/provedor-da-casca");
-const { ColunaDoCurso } = await import("./player/coluna-do-curso");
-const { ControlesDoPlayer } = await import("./player/controles-do-player");
-const { FaixaComunicado } = await import("./meus-cursos/aviso-comunicado");
-const { ConfirmacaoNaLinha } = await import("./admin/confirmacao-na-linha");
-const { AcessoDaPessoa } = await import("./admin/pessoas/acesso-da-pessoa");
-const { SecaoDeSair } = await import("./minha-conta/secao-de-sair");
-const { EXCLUIR } = await import("./minha-conta/partes");
+const marcacao = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador caminho="/meus-cursos">{no}</ComRoteador>);
 
 const ITEM_EM_BREVE_DE_TESTE = {
   icone: <Sparkles />,
@@ -87,7 +70,7 @@ const ITEM_EM_BREVE_DE_TESTE = {
   tipo: "em_breve",
 } as const;
 
-const nav = renderToStaticMarkup(
+const nav = marcacao(
   <ProvedorDaCasca aberta>
     <NavPrincipal
       itens={[...ITENS_DO_ALUNO, ITEM_EM_BREVE_DE_TESTE]}
@@ -107,7 +90,7 @@ const aula = (id: string, titulo: string, atual: boolean): AulaNaColuna => ({
 
 const PRIMEIRA = aula("11111111-1111-4111-8111-111111111111", "Abertura", true);
 
-const coluna = renderToStaticMarkup(
+const coluna = marcacao(
   <ColunaDoCurso
     dados={
       {
@@ -156,7 +139,7 @@ const coluna = renderToStaticMarkup(
 
 const nada = () => undefined;
 
-const controles = renderToStaticMarkup(
+const controles = marcacao(
   <ControlesDoPlayer
     aoMudarAtalhos={nada}
     atalhosAbertos={false}
@@ -180,7 +163,7 @@ const controles = renderToStaticMarkup(
 
 const HOJE = diaISO("2026-10-14");
 
-const pessoas = renderToStaticMarkup(
+const pessoas = marcacao(
   <ProvedorDoLote>
     <ListaDePessoas
       resultado={{
@@ -223,7 +206,7 @@ const liberacao = (
   origem: "admin",
 });
 
-const acesso = renderToStaticMarkup(
+const acesso = marcacao(
   <AcessoDoAluno
     acesso={{
       cursos: [],
@@ -243,7 +226,7 @@ const acesso = renderToStaticMarkup(
   />
 );
 
-const faixa = renderToStaticMarkup(
+const faixa = marcacao(
   <FaixaComunicado
     comunicado={{
       hoje: HOJE,
@@ -267,7 +250,7 @@ const COMECAR: Continuar = {
   titulo: "Filmagem da instalação",
 };
 
-const continuar = renderToStaticMarkup(
+const continuar = marcacao(
   <ProvedorDaCasca aberta>
     <Sidebar collapsible="icon" variant="sidebar">
       <div className="p-3.5">
@@ -284,30 +267,35 @@ const continuar = renderToStaticMarkup(
 
 const PRIMEIRO_DO_CONTEUDO = "Começar o curso";
 
-const casca = renderToStaticMarkup(
-  await Casca({
-    children: (
-      <>
-        <h1>Meus cursos</h1>
-        <a href="/cursos/fabrica">{PRIMEIRO_DO_CONTEUDO}</a>
-      </>
-    ),
-    itens: ITENS_DO_ALUNO,
-    outraArea: null,
-    placar: null,
-    rodape: (
+const casca = marcacao(
+  <MolduraDaCasca
+    aberta
+    conta={
+      <MenuDaConta
+        carregada
+        conta={ANA}
+        outraArea={null}
+        placar={null}
+        sair={sairDaConta}
+      />
+    }
+    itens={ITENS_DO_ALUNO}
+    rodape={
       <CartaoContinuar
         cartao={Object.assign(Promise.resolve(COMECAR), {
           status: "fulfilled",
           value: COMECAR,
         })}
       />
-    ),
-    rotulo: "Navegação principal",
-  })
+    }
+    rotulo="Navegação principal"
+  >
+    <h1>Meus cursos</h1>
+    <a href="/cursos/fabrica">{PRIMEIRO_DO_CONTEUDO}</a>
+  </MolduraDaCasca>
 );
 
-const apagarNaLinha = renderToStaticMarkup(
+const apagarNaLinha = marcacao(
   <ConfirmacaoNaLinha
     botao={{ nome: "Confirmar: apagar Envase", perigo: true, rotulo: "Apagar" }}
     chave="apagar"
@@ -320,7 +308,7 @@ const apagarNaLinha = renderToStaticMarkup(
   />
 );
 
-const perfilDaPessoa = renderToStaticMarkup(
+const perfilDaPessoa = marcacao(
   <AcessoDaPessoa
     nome="Ana Exemplo"
     papel="aluno"
@@ -330,8 +318,13 @@ const perfilDaPessoa = renderToStaticMarkup(
   />
 );
 
-const pedeDaConta = renderToStaticMarkup(
-  <SecaoDeSair certificados={0} user={{ delete: () => Promise.resolve() }} />
+const pedeDaConta = marcacao(
+  <BotoesDeSair
+    acao={{ executar: nada, pendente: false }}
+    certificados={0}
+    sair={sairDaConta}
+    user={{ delete: () => Promise.resolve() }}
+  />
 );
 
 const excluirDoDialogo = `<button class="${EXCLUIR}">Excluir a conta</button>`;
