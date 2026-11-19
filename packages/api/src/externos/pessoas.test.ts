@@ -41,6 +41,16 @@ describe("paraPessoa", () => {
     expect(nomes).toEqual(["Ana Souza", "ana", "ana@x.com", "user_ana"]);
   });
 
+  test("o nome próprio é só o fullName; sem ele, null", () => {
+    const nomes = [
+      usuario({ fullName: "Ana Souza", username: "ana" }),
+      usuario({ primaryEmailAddress: email("ana@x.com"), username: "ana" }),
+      usuario({ primaryEmailAddress: email("ana@x.com") }),
+    ].map((u) => paraPessoa(u).nomeProprio);
+
+    expect(nomes).toEqual(["Ana Souza", null, null]);
+  });
+
   test("a foto só vem quando a pessoa subiu uma; o avatar padrão do Clerk fica de fora", () => {
     expect(paraPessoa(usuario({ hasImage: true })).foto).toBe(
       "https://img.clerk.com/padrao"

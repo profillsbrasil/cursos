@@ -20,6 +20,7 @@ describe("nomeNoCertificado", () => {
     email: "ana@profills.com.br",
     foto: null,
     nome: "Ana Souza",
+    nomeProprio: "Ana Souza",
     userId: "user_ana",
   };
 
@@ -27,16 +28,41 @@ describe("nomeNoCertificado", () => {
     expect(nomeNoCertificado(ana)).toBe("Ana Souza");
   });
 
+  test("o nome que a pessoa escreveu vai para a folha mesmo igual ao e-mail", () => {
+    expect(
+      nomeNoCertificado({
+        ...ana,
+        nome: "ana@profills.com.br",
+        nomeProprio: "ana@profills.com.br",
+      })
+    ).toBe("ana@profills.com.br");
+  });
+
+  test("a conta só com username fica sem nome", () => {
+    expect(
+      nomeNoCertificado({ ...ana, nome: "ana_souza", nomeProprio: null })
+    ).toBeNull();
+  });
+
   test("a conta só com e-mail não põe o e-mail na folha", () => {
-    expect(nomeNoCertificado({ ...ana, nome: "ana@profills.com.br" })).toBe(
-      null
-    );
+    expect(
+      nomeNoCertificado({
+        ...ana,
+        nome: "ana@profills.com.br",
+        nomeProprio: null,
+      })
+    ).toBeNull();
   });
 
   test("a conta sem nome nem e-mail não põe o userId na folha", () => {
-    expect(nomeNoCertificado({ ...ana, email: null, nome: "user_ana" })).toBe(
-      null
-    );
+    expect(
+      nomeNoCertificado({
+        ...ana,
+        email: null,
+        nome: "user_ana",
+        nomeProprio: null,
+      })
+    ).toBeNull();
   });
 
   test("a pessoa que o Clerk não conhece fica sem nome", () => {
