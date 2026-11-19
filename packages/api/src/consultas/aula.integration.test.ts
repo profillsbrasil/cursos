@@ -82,7 +82,10 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
     }
   );
 
-  const dbDaCorrida = createDb({ DATABASE_URL: urlDaCorrida(URL_TESTE) });
+  const dbContadoPorEsperas = createDb({
+    DATABASE_URL: urlDaCorrida(URL_TESTE),
+  });
+
   const cursos: string[] = [];
 
   async function criarCurso(
@@ -191,7 +194,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       .delete(perfilDaPessoa)
       .where(inArray(perfilDaPessoa.userId, ALUNOS));
     await db.$client.end();
-    await dbDaCorrida.$client.end();
+    await dbContadoPorEsperas.$client.end();
   });
 
   test("sem login, abrir e registrar lançam UNAUTHORIZED", async () => {
@@ -372,7 +375,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
   describe("espera pela cota do aluno", () => {
     const naCorrida = (userId: string) =>
-      createCaller(contextoDeTeste({ db: dbDaCorrida, userId }));
+      createCaller(contextoDeTeste({ db: dbContadoPorEsperas, userId }));
 
     const recusa = (e: unknown) =>
       e instanceof ErroParaAPessoa
@@ -417,7 +420,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
           ms: performance.now() - inicio,
           r,
         })),
-        esperas(dbDaCorrida, 1, PARADO_NA_COTA),
+        esperas(dbContadoPorEsperas, 1, PARADO_NA_COTA),
       ]);
 
       clearTimeout(reserva);
@@ -457,7 +460,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
 
       const [resposta] = await Promise.all([
         enviar(20),
-        esperas(dbDaCorrida, 1, PARADO_NA_COTA)
+        esperas(dbContadoPorEsperas, 1, PARADO_NA_COTA)
           .then(() => esperar(ESPERA_PELA_COTA_MS / 2))
           .then(soltar),
       ]);

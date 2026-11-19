@@ -96,7 +96,9 @@ const perfilDoPedidoPorSessao = new WeakMap<Sessao, Promise<Perfil>>();
 /**
  * Todo procedure que lê o que o aluno vê. Entrega ctx.aluno com o perfil, e no
  * primeiro acesso da pessoa grava o perfil do convite ou o do cadastro e aplica
- * o resto do convite (consultas/perfil.ts).
+ * o resto do convite (consultas/perfil.ts). O perfil fica em cache por Sessao:
+ * a Sessao nasce uma vez por pedido (contextoDe), e as chamadas da mesma página
+ * dividem a leitura, então o Clerk é lido uma vez, não uma por procedure.
  */
 export const alunoProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const { auth } = ctx;

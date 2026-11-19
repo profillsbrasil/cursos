@@ -28,6 +28,8 @@ const TIPOS = {
   webp: "image/webp",
 } as const;
 
+const EXIF_GIRA_90_GRAUS_A_PARTIR_DE = 5;
+
 type Extensao = keyof typeof TIPOS;
 
 const ehExtensao = (tipo: string | undefined): tipo is Extensao =>
@@ -61,7 +63,7 @@ export function lerCapa(bytes: Uint8Array<ArrayBuffer>): CapaLida {
     return recusa({ tipo: "formato" });
   }
 
-  const girada = (medida.orientation ?? 1) >= 5;
+  const girada = (medida.orientation ?? 1) >= EXIF_GIRA_90_GRAUS_A_PARTIR_DE;
   const largura = girada ? medida.height : medida.width;
   const altura = girada ? medida.width : medida.height;
   const daMedida = recusaDaMedida(largura, altura);

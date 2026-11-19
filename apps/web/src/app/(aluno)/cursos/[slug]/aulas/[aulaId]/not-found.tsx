@@ -4,7 +4,7 @@ import { TelaNaoEncontrada } from "@/components/aluno/tela-nao-encontrada";
 
 const TITULO = "Aula não encontrada";
 
-// WARNING: vale porque o generateMetadata da página também chama notFound().
+/** Vale porque o generateMetadata da página também chama notFound(). */
 export const metadata: Metadata = { title: TITULO };
 
 export default function AulaNaoEncontrada() {

@@ -251,12 +251,10 @@ async function plantarConteudo(tx: Transacao) {
 }
 
 /**
- * Seed de EXEMPLO. Sem flag, só escreve no Postgres local (SEED_DATABASE_URL, padrão
- * 127.0.0.1:54322). Com --cloud, lê o DATABASE_URL do ambiente, imprime o destino e só
- * segue com --sim-cloud. Catálogo: só cria curso que falta, por id fixo; curso que já
- * existe é do admin, com tudo o que ele mudou ou tirou dentro dele. Fatos dos alunos de
- * exemplo: apagados só por user_id e reinseridos; fato que aponta para aula que o admin
- * apagou fica de fora. Uso: bun run db:seed -- --aluno user_xxx [--cloud --sim-cloud]
+ * Catálogo: só cria curso que falta, por id fixo; curso que já existe é do admin,
+ * com tudo o que ele mudou ou tirou dentro dele. Fatos dos alunos de exemplo:
+ * apagados só por user_id e reinseridos; fato que aponta para aula que o admin
+ * apagou fica de fora.
  */
 export async function semear(url: string, alunoA: string) {
   const db = createDb({ DATABASE_URL: url });

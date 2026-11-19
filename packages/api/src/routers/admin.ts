@@ -425,7 +425,6 @@ export const adminRouter = router({
     definirPapel: adminProcedure
       .input(z.object({ papel: z.enum(["aluno", "admin"]), userId }))
       .mutation(({ ctx, input }) => {
-        // WARNING: ninguém tira o próprio papel, para a plataforma nunca ficar sem admin.
         if (input.userId === ctx.admin && input.papel === "aluno") {
           throw new ErroParaAPessoa({
             code: "PRECONDITION_FAILED",

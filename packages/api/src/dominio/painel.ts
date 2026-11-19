@@ -273,7 +273,6 @@ export function montarPainel(
 ): PainelMeusCursos {
   const estudo = estudoDe(linhas);
 
-  // WARNING: o sort é estável: o empate fica na ordem da liberação, e a amostra vem depois dos cursos da pessoa.
   const telas = linhas.liberacoes
     .map(({ amostra, curso }) => {
       const c = paraCatalogo(curso);

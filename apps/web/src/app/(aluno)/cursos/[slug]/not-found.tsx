@@ -4,7 +4,7 @@ import { TelaNaoEncontrada } from "@/components/aluno/tela-nao-encontrada";
 
 const TITULO = "Curso não encontrado";
 
-// WARNING: vale porque o generateMetadata da página do curso e o do certificado também chamam notFound().
+/** Vale porque o generateMetadata da página do curso e o do certificado também chamam notFound(). */
 export const metadata: Metadata = { title: TITULO };
 
 export default function CursoNaoEncontrado() {

@@ -467,7 +467,6 @@ function LinkDoIndice({
     <Tooltip>
       <TooltipTrigger
         className={cn(
-          // WARNING: sem o relative, o sr-only (absolute) escapa da fila que rola e alarga a página.
           "relative grid h-9 min-w-9 place-items-center rounded-full px-2.5 text-[13px] font-semibold tabular-nums transition-colors duration-150",
           NUMERO[bloco.tipo],
           NUMERO_SOB_O_CURSOR[bloco.tipo]
@@ -538,7 +537,6 @@ function IndiceDosModulos({
         Ir para
       </span>
       <ol
-        // WARNING: o pr-11 do celular passa da faixa de 2,5rem da máscara; sem ele o último número sai esmaecido.
         className="flex min-w-0 [scrollbar-width:none] gap-1 overflow-x-auto max-md:[mask-image:linear-gradient(to_right,#000_calc(100%_-_2.5rem),transparent)] max-md:pr-11 md:flex-wrap"
         // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- o WebKit tira o papel de lista do `ol` sem marcador, e o VoiceOver não diz "lista".
         role="list"

@@ -20,11 +20,6 @@ const LIGACAO: ReadonlySet<string> = new Set([
 const SEM_PALAVRA = "CUR";
 
 /**
- * O código do curso ("PE-001"): o servidor escolhe no primeiro salvamento, a
- * partir da categoria, e não troca depois, nem se a categoria mudar. A migração
- * codigo_gerado repete esta regra em SQL, e o codigo-gerado.integration.test.ts
- * confere os dois lados.
- *
  * "Processo de envase" vira "PE": sem acento, em maiúsculas e sem as palavras de
  * ligação. Com duas palavras ou mais, as iniciais das quatro primeiras; com uma,
  * as três primeiras letras ("Comercial" vira "COM").
@@ -58,7 +53,13 @@ export function siglaDaCategoria(nome: string): string {
 const codigoDe = (sigla: string, n: number) =>
   `${sigla}-${String(n).padStart(3, "0")}`;
 
-/** O menor número livre da sigla, a partir de 001, entre os códigos ocupados. */
+/**
+ * O código do curso ("PE-001"): o menor número livre da sigla, a partir de 001,
+ * entre os códigos ocupados. O servidor escolhe no primeiro salvamento, a partir
+ * da categoria, e não troca depois, nem se a categoria mudar. A migração
+ * codigo_gerado repete esta regra em SQL, e o codigo-gerado.integration.test.ts
+ * confere os dois lados.
+ */
 export function codigoLivre(
   sigla: string,
   ocupados: ReadonlySet<string>

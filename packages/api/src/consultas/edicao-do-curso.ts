@@ -496,7 +496,7 @@ const colunasDaCapa = (c: ImagemDaCapa) => ({
 const proposto = (coluna: AnyPgColumn) =>
   sql`excluded.${sql.identifier(coluna.name)}`;
 
-const umDe = (coluna: AnyPgColumn, ids: readonly string[]) =>
+const umDeComUmParametroSo = (coluna: AnyPgColumn, ids: readonly string[]) =>
   sql`${coluna} = any(${`{${ids.join(",")}}`}::uuid[])`;
 
 const deslocado = (tabela: PgTable, coluna: AnyPgColumn, filtro: SQL) =>
@@ -574,7 +574,9 @@ async function gravarCurso(
 
   if (plano.tipo === "atualizar") {
     if (plano.apagar.aulas.length > 0) {
-      await tx.delete(aula).where(umDe(aula.id, plano.apagar.aulas));
+      await tx
+        .delete(aula)
+        .where(umDeComUmParametroSo(aula.id, plano.apagar.aulas));
     }
 
     await tx
@@ -657,7 +659,9 @@ async function gravarCurso(
 
   if (plano.tipo === "atualizar") {
     if (plano.apagar.modulos.length > 0) {
-      await tx.delete(modulo).where(umDe(modulo.id, plano.apagar.modulos));
+      await tx
+        .delete(modulo)
+        .where(umDeComUmParametroSo(modulo.id, plano.apagar.modulos));
     }
 
     if (plano.apagar.niveis.length > 0) {
@@ -683,7 +687,7 @@ async function gravarMateriais(tx: Transacao, plano: PlanoDeGravacao) {
     if (plano.apagar.materiais.length > 0) {
       await tx
         .delete(material)
-        .where(umDe(material.id, plano.apagar.materiais));
+        .where(umDeComUmParametroSo(material.id, plano.apagar.materiais));
     }
 
     await tx
@@ -741,13 +745,13 @@ async function gravarQuestionario(
     if (plano.apagar.perguntas.length > 0) {
       await tx
         .delete(pergunta)
-        .where(umDe(pergunta.id, plano.apagar.perguntas));
+        .where(umDeComUmParametroSo(pergunta.id, plano.apagar.perguntas));
     }
 
     if (plano.apagar.alternativas.length > 0) {
       await tx
         .delete(alternativa)
-        .where(umDe(alternativa.id, plano.apagar.alternativas));
+        .where(umDeComUmParametroSo(alternativa.id, plano.apagar.alternativas));
     }
 
     await tx

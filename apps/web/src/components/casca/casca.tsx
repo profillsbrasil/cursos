@@ -23,7 +23,6 @@ import { ProvedorDaCasca } from "./provedor-da-casca";
 
 const ALVO_DO_PULAR_PARA_O_CONTEUDO = "conteudo";
 
-// WARNING: o botão fica acima da janela e desce só com o foco de teclado porque hover: também casa com ele (#30), e sem transição.
 const PULAR = cn(
   BOTAO,
   "fixed -top-16 left-3 z-50 transition-none hover:top-3"
