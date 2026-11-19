@@ -1,9 +1,12 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 
 import { cursoId } from "@cursos/api/dominio/marcas";
 import type { CartaoDeTroca } from "@cursos/api/dominio/troca";
+import type { ReactNode } from "react";
 import { renderToString } from "react-dom/server";
+
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
 import {
   abrirChromium,
@@ -13,19 +16,12 @@ import {
   type Enviar,
   fecharChromium,
 } from "../chromium.test-utils";
+import { CursosParaTrocar } from "./cursos-para-trocar";
 
-const navegacao = await import("next/navigation");
+const { chamadas, roteador } = roteadorDeTeste();
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
-
-const { CursosParaTrocar } = await import("./cursos-para-trocar");
+const renderizar = (no: ReactNode) =>
+  renderToString(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const curso = (id: string, titulo: string): CartaoDeTroca["curso"] => ({
   aulas: 3,
@@ -37,7 +33,7 @@ const curso = (id: string, titulo: string): CartaoDeTroca["curso"] => ({
   titulo,
 });
 
-const HTML = renderToString(
+const HTML = renderizar(
   <CursosParaTrocar
     cartoes={[
       {
@@ -110,4 +106,8 @@ describe.skipIf(!existsSync(CHROMIUM))("os botões dos cartões de troca", () =>
       "Trocar por 500 pts",
     ]);
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

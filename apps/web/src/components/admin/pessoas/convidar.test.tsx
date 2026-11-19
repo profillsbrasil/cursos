@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type {
   ConvidadoNaTela,
@@ -11,21 +11,18 @@ import {
   ehEmail,
   marcar,
 } from "@cursos/api/dominio/marcas";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const navegacaoReal = await import("next/navigation");
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
-mock.module("next/navigation", () => ({
-  ...navegacaoReal,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+import { Convidar } from "./convidar";
+import { ListaDeConvidados } from "./lista-de-convidados";
 
-const { Convidar } = await import("./convidar");
-const { ListaDeConvidados } = await import("./lista-de-convidados");
+const { chamadas, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const TAG = /<[^>]+>/g;
 
@@ -66,14 +63,14 @@ const painel = (convidados: ConvidadoNaTela[], total = convidados.length) =>
 
 describe("o botão Convidar", () => {
   test("fechado, a página só tem o botão: o diálogo não está na tela", () => {
-    const tela = renderToStaticMarkup(<Convidar cursos={[]} />);
+    const tela = renderizar(<Convidar cursos={[]} />);
     expect(texto(tela)).toBe("Convidar");
     expect(tela).not.toContain('role="dialog"');
   });
 });
 
 describe("a opção Convidados", () => {
-  const tela = renderToStaticMarkup(
+  const tela = renderizar(
     <ListaDeConvidados
       convites={painel([
         convidado("ana@x.com", {
@@ -122,25 +119,19 @@ describe("a opção Convidados", () => {
 
   test("sem convite pendente, diz o que fazer; com busca, diz o que não achou", () => {
     expect(
-      texto(
-        renderToStaticMarkup(
-          <ListaDeConvidados convites={painel([])} termo="" />
-        )
-      )
+      texto(renderizar(<ListaDeConvidados convites={painel([])} termo="" />))
     ).toContain(
       "Nenhum convite pendente. Use o botão Convidar para chamar alguém."
     );
     expect(
       texto(
-        renderToStaticMarkup(
-          <ListaDeConvidados convites={painel([], 4)} termo="zeca" />
-        )
+        renderizar(<ListaDeConvidados convites={painel([], 4)} termo="zeca" />)
       )
     ).toContain("Nenhum convite pendente com &quot;zeca&quot; no e-mail.");
   });
 
   test("a lista cortada em 100 manda buscar pelo e-mail", () => {
-    const cortada = renderToStaticMarkup(
+    const cortada = renderizar(
       <ListaDeConvidados
         convites={painel([convidado("ana@x.com")], 250)}
         termo=""
@@ -151,4 +142,8 @@ describe("a opção Convidados", () => {
       "Mostrando os 1 mais recentes. Busque pelo e-mail para achar quem falta."
     );
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

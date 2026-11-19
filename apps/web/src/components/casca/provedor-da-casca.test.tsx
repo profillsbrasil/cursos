@@ -1,26 +1,17 @@
-import { afterAll, describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import { Sidebar, SidebarProvider } from "@cursos/ui/components/sidebar";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ComRoteador } from "@/components/roteador.test-utils";
 import { caminhoDaAula, caminhoDoCurso } from "@/lib/rotas";
 
-let caminhoAtual = "/meus-cursos";
-const navegacao = await import("next/navigation");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  usePathname: () => caminhoAtual,
-}));
-
-// WARNING: o mock vale para os arquivos que rodam depois, no mesmo processo: eles ficam fora da aula.
-afterAll(() => {
-  caminhoAtual = "/meus-cursos";
-});
-
-const { ProvedorDaCasca, useAlternarNavegacao, useModoDaCasca } =
-  await import("./provedor-da-casca");
+import {
+  ProvedorDaCasca,
+  useAlternarNavegacao,
+  useModoDaCasca,
+} from "./provedor-da-casca";
 
 function UsaAlternar() {
   useAlternarNavegacao();
@@ -34,7 +25,10 @@ function MostraModo() {
   return <span>{`celular=${noCelular} recolhida=${recolhida}`}</span>;
 }
 
-const renderizar = (arvore: ReactNode) => () => renderToStaticMarkup(arvore);
+const renderizar = (arvore: ReactNode) => () =>
+  renderToStaticMarkup(
+    <ComRoteador caminho="/meus-cursos">{arvore}</ComRoteador>
+  );
 
 describe("useAlternarNavegacao exige o ProvedorDaCasca na renderização, e não só no clique", () => {
   test("dentro de um SidebarProvider sem a casca, lança na renderização", () => {
@@ -83,14 +77,14 @@ describe("useModoDaCasca lê o modo do cookie no servidor", () => {
 const ESTADO = /data-state="(\w+)"/;
 
 function estadoNoServidor(caminho: string, cookieAberta: boolean) {
-  caminhoAtual = caminho;
-
   const html = renderToStaticMarkup(
-    <ProvedorDaCasca aberta={cookieAberta}>
-      <Sidebar collapsible="icon">
-        <span>menu</span>
-      </Sidebar>
-    </ProvedorDaCasca>
+    <ComRoteador caminho={caminho}>
+      <ProvedorDaCasca aberta={cookieAberta}>
+        <Sidebar collapsible="icon">
+          <span>menu</span>
+        </Sidebar>
+      </ProvedorDaCasca>
+    </ComRoteador>
   );
 
   return html.match(ESTADO)?.[1];

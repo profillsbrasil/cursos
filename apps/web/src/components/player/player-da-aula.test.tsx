@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -6,20 +6,20 @@ import type { AulaNoPlayer } from "@cursos/api/dominio/aula";
 import { aulaId, videoId } from "@cursos/api/dominio/marcas";
 import type { VideoDaAula } from "@cursos/api/dominio/tipos";
 import { SEM_TRECHOS } from "@cursos/api/dominio/trechos";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 import { definido } from "@/definido.test-utils";
 
-const navegacao = await import("next/navigation");
+import { AulaSemVideo } from "./aula-sem-video";
+import { NavegacaoEntreAulas } from "./cabecalho-da-aula";
+import { PlayerDaAula } from "./player-da-aula";
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({ refresh: () => undefined }),
-}));
+const { chamadas, roteador } = roteadorDeTeste();
 
-const { PlayerDaAula } = await import("./player-da-aula");
-const { AulaSemVideo } = await import("./aula-sem-video");
-const { NavegacaoEntreAulas } = await import("./cabecalho-da-aula");
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const VIDEO: VideoDaAula = { id: videoId("aqz-KE-bpKQ"), provedor: "youtube" };
 
@@ -69,7 +69,7 @@ const SOBRE = "Sobre esta aula";
 
 describe("ordem da página da aula", () => {
   test("no player, o título e a linha do módulo vêm antes do vídeo, Anterior e Próxima depois dos controles, e a descrição por último", () => {
-    const h = renderToStaticMarkup(
+    const h = renderizar(
       <PlayerDaAula dados={COM_DESCRICAO} inicioSeg={222} video={VIDEO} />
     );
 
@@ -88,11 +88,11 @@ describe("ordem da página da aula", () => {
   test("num curso de uma aula só, a página não tem landmark de navegação vazio", () => {
     const sozinha = { ...DADOS, anterior: null, proxima: null };
 
-    const comVideo = renderToStaticMarkup(
+    const comVideo = renderizar(
       <PlayerDaAula dados={sozinha} inicioSeg={222} video={VIDEO} />
     );
 
-    const semVideo = renderToStaticMarkup(
+    const semVideo = renderizar(
       <AulaSemVideo
         dados={{ ...sozinha, aula: { ...DADOS.aula, video: null } }}
       />
@@ -103,7 +103,7 @@ describe("ordem da página da aula", () => {
   });
 
   test("na aula sem vídeo, o título vem antes do aviso, e a navegação e a descrição depois", () => {
-    const h = renderToStaticMarkup(
+    const h = renderizar(
       <AulaSemVideo
         dados={{
           ...COM_DESCRICAO,
@@ -156,7 +156,7 @@ function contraste(a: string, b: string) {
 
 describe("Anterior e Próxima em repouso", () => {
   test("a borda do botão em contorno passa de 3:1 contra o fundo (WCAG 1.4.11)", () => {
-    const h = renderToStaticMarkup(
+    const h = renderizar(
       <NavegacaoEntreAulas dados={DADOS} destacarProxima={false} />
     );
 
@@ -182,4 +182,8 @@ describe("Anterior e Próxima em repouso", () => {
       );
     }
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

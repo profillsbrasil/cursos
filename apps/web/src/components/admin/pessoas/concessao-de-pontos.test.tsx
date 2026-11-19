@@ -1,19 +1,16 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const navegacao = await import("next/navigation");
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+import { ConcessaoDePontos } from "./concessao-de-pontos";
 
-const { ConcessaoDePontos } = await import("./concessao-de-pontos");
+const { chamadas, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const TAG = /<[^>]+>/g;
 
@@ -25,7 +22,7 @@ const RADIO = /<input[^>]*type="radio"[^>]*>/g;
 const DESCRITO_POR = /aria-describedby="([^"]+)"/;
 const MOTIVO_COM_TETO = /<input[^>]*maxLength="200"[^>]*name="motivo"/;
 
-const tela = renderToStaticMarkup(
+const tela = renderizar(
   <ConcessaoDePontos nome="Carla Souza" saldo={3130} userId="user_1" />
 );
 
@@ -64,4 +61,8 @@ describe("concessão de pontos, ao abrir", () => {
   test("o Motivo continua com o teto de 200 caracteres", () => {
     expect(tela).toMatch(MOTIVO_COM_TETO);
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

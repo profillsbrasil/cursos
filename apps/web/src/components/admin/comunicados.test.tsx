@@ -1,21 +1,18 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import type { ComunicadoNaTela } from "@cursos/api/dominio/comunicado";
 import { comunicadoId } from "@cursos/api/dominio/marcas";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const navegacaoComOUseRouterSubstituido = await import("next/navigation");
+import { ComRoteador, roteadorDeTeste } from "@/components/roteador.test-utils";
 
-mock.module("next/navigation", () => ({
-  ...navegacaoComOUseRouterSubstituido,
-  useRouter: () => ({
-    push: () => undefined,
-    refresh: () => undefined,
-    replace: () => undefined,
-  }),
-}));
+import { Comunicados } from "./comunicados";
 
-const { Comunicados } = await import("./comunicados");
+const { chamadas, roteador } = roteadorDeTeste();
+
+const renderizar = (no: ReactNode) =>
+  renderToStaticMarkup(<ComRoteador roteador={roteador}>{no}</ComRoteador>);
 
 const TAG = /<[^>]+>/g;
 const texto = (html: string) => html.replace(TAG, " ").replace(/\s+/g, " ");
@@ -34,7 +31,7 @@ const comunicado = (
 
 describe("autor na lista de publicados", () => {
   const tela = texto(
-    renderToStaticMarkup(
+    renderizar(
       <Comunicados
         comunicados={[comunicado("a", "Dona do admin"), comunicado("b", null)]}
         cursos={[]}
@@ -59,7 +56,7 @@ describe("autor na lista de publicados", () => {
 describe("onde o aluno lê o comunicado", () => {
   test("a tela não repete Meus cursos: o cabeçalho da página já diz onde ele aparece", () => {
     const vazia = texto(
-      renderToStaticMarkup(<Comunicados comunicados={[]} cursos={[]} />)
+      renderizar(<Comunicados comunicados={[]} cursos={[]} />)
     );
 
     expect(vazia).toContain(
@@ -68,4 +65,8 @@ describe("onde o aluno lê o comunicado", () => {
     expect(vazia).toContain("Nenhum comunicado ainda.");
     expect(vazia).not.toContain("Meus cursos");
   });
+});
+
+test("renderizar não chama o roteador: nada navega no HTML do servidor", () => {
+  expect(chamadas).toEqual([]);
 });

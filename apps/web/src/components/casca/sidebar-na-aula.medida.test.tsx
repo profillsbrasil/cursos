@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -6,6 +6,7 @@ import { Sidebar, SidebarInset } from "@cursos/ui/components/sidebar";
 import { build, serve } from "bun";
 import { renderToString } from "react-dom/server";
 
+import { ComRoteador } from "@/components/roteador.test-utils";
 import { caminhoDaAula } from "@/lib/rotas";
 
 import {
@@ -25,37 +26,24 @@ import {
   ehTexto,
   type Predicado,
 } from "../predicados.test-utils";
-
-let caminhoAtual = "/meus-cursos";
-const navegacao = await import("next/navigation");
-
-mock.module("next/navigation", () => ({
-  ...navegacao,
-  usePathname: () => caminhoAtual,
-}));
-
-afterAll(() => {
-  caminhoAtual = "/meus-cursos";
-});
-
-const { CabecalhoDaCasca } = await import("./cabecalho-da-casca");
-const { ProvedorDaCasca } = await import("./provedor-da-casca");
+import { CabecalhoDaCasca } from "./cabecalho-da-casca";
+import { ProvedorDaCasca } from "./provedor-da-casca";
 
 const AULA_1 = caminhoDaAula("comercial", "a1");
 const AULA_2 = caminhoDaAula("comercial", "a2");
 
 function htmlDoServidor(caminho: string, cookieAberta: boolean) {
-  caminhoAtual = caminho;
-
   return renderToString(
-    <ProvedorDaCasca aberta={cookieAberta}>
-      <Sidebar collapsible="icon" variant="sidebar">
-        <CabecalhoDaCasca />
-      </Sidebar>
-      <SidebarInset>
-        <div style={{ height: 3000 }}>conteúdo</div>
-      </SidebarInset>
-    </ProvedorDaCasca>
+    <ComRoteador caminho={caminho}>
+      <ProvedorDaCasca aberta={cookieAberta}>
+        <Sidebar collapsible="icon" variant="sidebar">
+          <CabecalhoDaCasca />
+        </Sidebar>
+        <SidebarInset>
+          <div style={{ height: 3000 }}>conteúdo</div>
+        </SidebarInset>
+      </ProvedorDaCasca>
+    </ComRoteador>
   );
 }
 
