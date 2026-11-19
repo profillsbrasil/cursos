@@ -71,7 +71,13 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
           contextoDeTeste({
             db,
             pessoas: [
-              { email: "cliente@exemplo.com", foto: null, nome: "C", userId },
+              {
+                email: "cliente@exemplo.com",
+                foto: null,
+                nome: "C",
+                nomeProprio: "C",
+                userId,
+              },
             ],
             userId,
           })
@@ -410,7 +416,13 @@ describe.skipIf(URL_TESTE === null)("amostra pela liberação do perfil", () => 
     const r = await liberar(
       db,
       ADMIN,
-      { email: null, foto: null, nome: "C", userId: pessoa.userId },
+      {
+        email: null,
+        foto: null,
+        nome: "C",
+        nomeProprio: "C",
+        userId: pessoa.userId,
+      },
       c.id,
       AGORA
     );

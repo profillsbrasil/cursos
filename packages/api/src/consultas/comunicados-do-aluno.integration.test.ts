@@ -67,7 +67,13 @@ describe.skipIf(URL_TESTE === null)("os comunicados do aluno", () => {
       contextoDeTeste({
         db,
         pessoas: [
-          { email: null, foto: null, nome: "Marina Duarte", userId: AUTORA },
+          {
+            email: null,
+            foto: null,
+            nome: "Marina Duarte",
+            nomeProprio: "Marina Duarte",
+            userId: AUTORA,
+          },
         ],
         userId,
       })

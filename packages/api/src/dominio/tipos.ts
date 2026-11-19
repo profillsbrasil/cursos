@@ -36,7 +36,10 @@ export type {
 export interface Pessoa {
   email: string | null;
   foto: string | null;
+  /** O rótulo de exibição: o nome, ou o username, o e-mail ou o userId que o substitui. */
   nome: string;
+  /** O nome que a pessoa escreveu na conta (o `fullName` do Clerk); null quando ela não escreveu. */
+  nomeProprio: string | null;
   userId: string;
 }
 

@@ -46,7 +46,16 @@ test("montarConcessoes troca o autor pelo nome, e o desconhecido fica com o user
           pontos: -5,
         },
       ],
-      [{ email: null, foto: null, nome: "Ana", userId: "user_a" }, null]
+      [
+        {
+          email: null,
+          foto: null,
+          nome: "Ana",
+          nomeProprio: "Ana",
+          userId: "user_a",
+        },
+        null,
+      ]
     )
   ).toEqual([
     { em, id: "1", motivo: "X", pontos: 10, por: "Ana" },

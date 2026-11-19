@@ -27,11 +27,18 @@ describe("autor do comunicado", () => {
       cursos: [],
     },
     [
-      { email: null, foto: null, nome: "Dona do admin", userId: "user_dona" },
+      {
+        email: null,
+        foto: null,
+        nome: "Dona do admin",
+        nomeProprio: "Dona do admin",
+        userId: "user_dona",
+      },
       {
         email: null,
         foto: null,
         nome: "user_so_telefone",
+        nomeProprio: null,
         userId: "user_so_telefone",
       },
     ]
@@ -72,6 +79,7 @@ const MARINA = {
   email: null,
   foto: null,
   nome: "Marina Duarte",
+  nomeProprio: "Marina Duarte",
   userId: "user_marina",
 };
 

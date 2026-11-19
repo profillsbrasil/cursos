@@ -35,14 +35,22 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       email: "dona@profills.com",
       foto: null,
       nome: `Dona ${S}`,
+      nomeProprio: `Dona ${S}`,
       papel: "admin",
       userId: DONA,
     },
-    { email: "ana@profills.com", foto: null, nome: `Ana ${S}`, userId: ANA },
+    {
+      email: "ana@profills.com",
+      foto: null,
+      nome: `Ana ${S}`,
+      nomeProprio: `Ana ${S}`,
+      userId: ANA,
+    },
     {
       email: "bruno@cliente.example",
       foto: null,
       nome: `Bruno ${S}`,
+      nomeProprio: `Bruno ${S}`,
       userId: BRUNO,
     },
     {
@@ -50,11 +58,30 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
       emailVerificado: false,
       foto: null,
       nome: `Carla ${S}`,
+      nomeProprio: `Carla ${S}`,
       userId: CARLA,
     },
-    { email: null, foto: null, nome: `Diego ${S}`, userId: DIEGO },
-    { email: null, foto: null, nome: `Elisa ${S}`, userId: ELISA },
-    { email: null, foto: null, nome: `Fabio ${S}`, userId: FABIO },
+    {
+      email: null,
+      foto: null,
+      nome: `Diego ${S}`,
+      nomeProprio: `Diego ${S}`,
+      userId: DIEGO,
+    },
+    {
+      email: null,
+      foto: null,
+      nome: `Elisa ${S}`,
+      nomeProprio: `Elisa ${S}`,
+      userId: ELISA,
+    },
+    {
+      email: null,
+      foto: null,
+      nome: `Fabio ${S}`,
+      nomeProprio: `Fabio ${S}`,
+      userId: FABIO,
+    },
   ];
 
   const admin = createCaller(
@@ -187,8 +214,22 @@ describe.skipIf(URL_TESTE === null)("admin.pessoas", () => {
     const B = `user_b${S}`;
 
     const clerk = pessoasDeTeste([
-      { email: null, foto: null, nome: "A", papel: "admin", userId: A },
-      { email: null, foto: null, nome: "B", papel: "admin", userId: B },
+      {
+        email: null,
+        foto: null,
+        nome: "A",
+        nomeProprio: "A",
+        papel: "admin",
+        userId: A,
+      },
+      {
+        email: null,
+        foto: null,
+        nome: "B",
+        nomeProprio: "B",
+        papel: "admin",
+        userId: B,
+      },
     ]);
 
     const { definirPapel } = clerk;

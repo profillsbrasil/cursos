@@ -75,6 +75,7 @@ describe("montarAcesso", () => {
     email: "ana@exemplo.com",
     foto: null,
     nome: "Ana",
+    nomeProprio: "Ana",
     userId: "user_ana",
   };
 

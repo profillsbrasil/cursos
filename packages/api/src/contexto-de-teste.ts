@@ -45,6 +45,7 @@ export function pessoasDeTeste(
     foto: p.foto,
     jeitosDeEntrar: p.jeitosDeEntrar ?? [],
     nome: p.nome,
+    nomeProprio: p.nomeProprio,
     papel: papeis.get(p.userId) ?? p.papel ?? "aluno",
     ultimoAcesso: p.ultimoAcesso ?? null,
     userId: p.userId,
@@ -97,7 +98,13 @@ export function pessoasDeTeste(
 
       return Promise.resolve(
         p
-          ? { email: p.email, foto: p.foto, nome: p.nome, userId: p.userId }
+          ? {
+              email: p.email,
+              foto: p.foto,
+              nome: p.nome,
+              nomeProprio: p.nomeProprio,
+              userId: p.userId,
+            }
           : null
       );
     },

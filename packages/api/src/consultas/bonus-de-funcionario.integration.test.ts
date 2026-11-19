@@ -26,6 +26,7 @@ const conta = (userId: string, email: string): Conta => ({
   foto: null,
   jeitosDeEntrar: [],
   nome: `Pessoa ${userId}`,
+  nomeProprio: `Pessoa ${userId}`,
   papel: "aluno",
   ultimoAcesso: null,
   userId,
@@ -42,13 +43,25 @@ describe.skipIf(URL_TESTE === null)("bônus de funcionário", () => {
   const ids: string[] = [];
 
   const pessoas: Pessoa[] = [
-    { email: null, foto: null, nome: "Admin", userId: ADMIN },
+    {
+      email: null,
+      foto: null,
+      nome: "Admin",
+      nomeProprio: "Admin",
+      userId: ADMIN,
+    },
   ];
 
   const pessoa = () => {
     const userId = `user_bonus${S}${ids.length}`;
     ids.push(userId);
-    pessoas.push({ email: null, foto: null, nome: `Pessoa ${userId}`, userId });
+    pessoas.push({
+      email: null,
+      foto: null,
+      nome: `Pessoa ${userId}`,
+      nomeProprio: `Pessoa ${userId}`,
+      userId,
+    });
 
     return userId;
   };

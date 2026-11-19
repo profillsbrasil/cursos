@@ -25,6 +25,7 @@ const pessoa = (
   email: `${nome.toLowerCase()}@example.com`,
   foto: null,
   nome,
+  nomeProprio: nome,
   papel,
   perfil: { doCadastro, perfil: "publico" },
   saldo,

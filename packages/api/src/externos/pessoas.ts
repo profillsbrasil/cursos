@@ -84,6 +84,7 @@ export function paraPessoa(u: UsuarioDoClerk): Pessoa {
     email,
     foto: u.hasImage ? u.imageUrl : null,
     nome: u.fullName ?? u.username ?? email ?? u.id,
+    nomeProprio: u.fullName,
     userId: u.id,
   };
 }

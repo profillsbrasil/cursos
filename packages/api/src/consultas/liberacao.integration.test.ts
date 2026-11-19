@@ -38,6 +38,7 @@ const pessoa = (userId: string): Pessoa => ({
   email: null,
   foto: null,
   nome: "Aluno",
+  nomeProprio: "Aluno",
   userId,
 });
 
@@ -390,7 +391,15 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       contextoDeTeste({
         db,
         papel: "admin",
-        pessoas: [{ email: null, foto: null, nome: "Dono", userId: dono }],
+        pessoas: [
+          {
+            email: null,
+            foto: null,
+            nome: "Dono",
+            nomeProprio: "Dono",
+            userId: dono,
+          },
+        ],
         userId: dono,
       })
     );
@@ -431,6 +440,7 @@ describe.skipIf(URL_TESTE === null)("liberação pelo admin", () => {
       email: `${nome.toLowerCase()}@exemplo.com`,
       foto: null,
       nome,
+      nomeProprio: nome,
       userId,
     });
 
