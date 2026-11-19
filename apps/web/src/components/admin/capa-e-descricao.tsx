@@ -3,7 +3,10 @@
 import type { CategoriaNaLista } from "@cursos/api/dominio/categoria";
 import { slugDoTitulo } from "@cursos/api/dominio/endereco";
 import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
-import type { CategoriaId } from "@cursos/api/dominio/tipos";
+import {
+  categoriaId as marcarCategoria,
+  novoCategoriaId,
+} from "@cursos/api/dominio/marcas";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
 import { cn } from "@cursos/ui/lib/utils";
 import { ArrowUpRight, Check, Link2 } from "lucide-react";
@@ -54,8 +57,6 @@ function EnderecoDoCurso({
   );
 }
 
-const novoId = () => crypto.randomUUID() as CategoriaId;
-
 function CampoDaCategoria({
   categorias,
   mudar,
@@ -100,7 +101,12 @@ function CampoDaCategoria({
   const criar = useMemo(
     () => ({
       aoCriar: (nome: string) => {
-        const nova: CategoriaNaLista = { cursos: [], id: novoId(), nome };
+        const nova: CategoriaNaLista = {
+          cursos: [],
+          id: novoCategoriaId(),
+          nome,
+        };
+
         setRecusa(null);
         executar(
           () =>
@@ -191,7 +197,7 @@ export function CapaEDescricao({
   const mudarCategoria = useCallback(
     (categoriaId: string) =>
       despachar({
-        mudanca: { categoriaId: categoriaId as CategoriaId },
+        mudanca: { categoriaId: marcarCategoria(categoriaId) },
         tipo: "campos",
       }),
     [despachar]

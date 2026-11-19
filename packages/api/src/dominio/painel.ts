@@ -22,6 +22,7 @@ import {
   type LinhaDaCapa,
   type StatusDoCurso,
   type TipoEstado,
+  type VideoId,
   type VideoProvedor,
 } from "./tipos";
 import { videoDaAula } from "./video";
@@ -39,7 +40,7 @@ export interface CursoLinha extends LinhaDaCapa {
       perguntas: number;
       posicao: number;
       titulo: string;
-      videoId: string | null;
+      videoId: VideoId | null;
       videoProvedor: VideoProvedor | null;
     }[];
     nivelOrdem: number | null;

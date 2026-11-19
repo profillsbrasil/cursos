@@ -1,6 +1,7 @@
 "use client";
 
 import { CARACTERES, LIMITES } from "@cursos/api/dominio/limites-do-curso";
+import { novoAlternativaId, novoPerguntaId } from "@cursos/api/dominio/marcas";
 import {
   ALTERNATIVAS,
   acertosParaPassar,
@@ -26,7 +27,7 @@ import {
 
 import { BOTAO_CONTORNO, PEQUENO } from "@/components/casca/botoes";
 import { DICA } from "@/components/casca/estilo";
-import { focarDepois, novoId, vizinhoQueFica } from "@/lib/editor";
+import { focarDepois, vizinhoQueFica } from "@/lib/editor";
 import { fmtNum, plural } from "@/lib/formato";
 
 import { AreaDeTexto } from "./campo-lido";
@@ -365,7 +366,7 @@ function Alternativas({
   );
 
   const adicionar = useCallback(() => {
-    const id = novoId<AlternativaId>();
+    const id = novoAlternativaId();
     despachar({ id, perguntaId: pergunta.id, tipo: "alternativa_nova" });
     focarDepois(ID.alternativa(id));
   }, [despachar, pergunta.id]);
@@ -561,10 +562,10 @@ export function QuestionarioDaAula({
   );
 
   const adicionar = useCallback(() => {
-    const id = novoId<PerguntaId>();
+    const id = novoPerguntaId();
     guardarTirada(null);
     despachar({
-      alternativas: [novoId<AlternativaId>(), novoId<AlternativaId>()],
+      alternativas: [novoAlternativaId(), novoAlternativaId()],
       aulaId: aula.id,
       id,
       tipo: "pergunta_nova",

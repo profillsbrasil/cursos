@@ -1,6 +1,7 @@
 "use client";
 
 import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
+import { novoModuloId } from "@cursos/api/dominio/marcas";
 import type { ModuloId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldLabel } from "@cursos/ui/components/field";
@@ -25,7 +26,6 @@ import { SELO } from "@/components/casca/selos";
 import {
   type Direcao,
   focarDepois,
-  novoId,
   setaDepoisDeMover,
   vizinhoQueFica,
 } from "@/lib/editor";
@@ -582,7 +582,7 @@ export function ModulosDoCurso({
   const aulas = modulos.reduce((s, m) => s + m.aulas.length, 0);
 
   const adicionarModulo = useCallback(() => {
-    const id = novoId<ModuloId>();
+    const id = novoModuloId();
     despachar({ id, tipo: "modulo_novo" });
     focarDepois(ID.modulo(id, "titulo"));
   }, [despachar]);

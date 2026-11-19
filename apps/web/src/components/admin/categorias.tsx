@@ -5,6 +5,7 @@ import {
   categoriaEmUso,
 } from "@cursos/api/dominio/categoria";
 import { CARACTERES } from "@cursos/api/dominio/limites-do-curso";
+import { novoCategoriaId } from "@cursos/api/dominio/marcas";
 import type { CategoriaId } from "@cursos/api/dominio/tipos";
 import { Button } from "@cursos/ui/components/button";
 import { Field, FieldError } from "@cursos/ui/components/field";
@@ -53,8 +54,6 @@ const NOME_VAZIO = "Escreva o nome da categoria.";
 const TODAS = "todas";
 
 type EstadoDaLinha = "lendo" | "renomeando" | "confirmando";
-
-const novoId = () => crypto.randomUUID() as CategoriaId;
 
 function useSalvarCategoria(id: CategoriaId, depois: () => void) {
   const { executar, pendente } = useAcao();
@@ -189,13 +188,13 @@ function CampoDoNome({
 }
 
 function NovaCategoria({ aoCriar }: { aoCriar: (id: CategoriaId) => void }) {
-  const [idQueReenviarNaoDuplica, trocarId] = useState(novoId);
+  const [idQueReenviarNaoDuplica, trocarId] = useState(novoCategoriaId);
   const [criou, setCriou] = useState(false);
 
   const depois = useCallback(() => {
     aoCriar(idQueReenviarNaoDuplica);
     setCriou(true);
-    trocarId(novoId());
+    trocarId(novoCategoriaId());
   }, [aoCriar, idQueReenviarNaoDuplica]);
 
   const nome = useSalvarCategoria(idQueReenviarNaoDuplica, depois);

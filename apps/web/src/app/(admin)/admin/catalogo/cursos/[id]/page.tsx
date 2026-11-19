@@ -1,5 +1,5 @@
 import { edicaoDeCursoNovo } from "@cursos/api/dominio/edicao-do-curso";
-import type { CursoId } from "@cursos/api/dominio/tipos";
+import { cursoId } from "@cursos/api/dominio/marcas";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -20,7 +20,7 @@ async function abrir({ params, searchParams }: Props) {
     { id, novo },
     {
       carregar: carregarCurso,
-      rascunho: (minusculo) => edicaoDeCursoNovo(minusculo as CursoId),
+      rascunho: (minusculo) => edicaoDeCursoNovo(cursoId(minusculo)),
     }
   );
 

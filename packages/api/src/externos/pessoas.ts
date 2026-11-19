@@ -1,7 +1,7 @@
 import type { ClerkClient, User } from "@clerk/backend";
 
 import type { Papel } from "../context";
-import type { Email } from "../dominio/convite";
+import { type Email, lerEmail } from "../dominio/convite";
 import type { BuscaDeContas, Conta, Pessoa } from "../dominio/tipos";
 
 /** O Clerk é a tabela de usuários. O tipo User do SDK não sai deste arquivo: o resto do código vê Pessoa. */
@@ -100,10 +100,10 @@ export function pessoasDoClerk(clerk: ClerkClient): Pessoas {
 
         for (const u of r.data) {
           for (const e of u.emailAddresses) {
-            const email = e.emailAddress.toLowerCase();
+            const email = lerEmail(e.emailAddress);
 
-            if (pedidos.has(email)) {
-              achadas.set(email as Email, u.id);
+            if (email !== null && pedidos.has(email)) {
+              achadas.set(email, u.id);
             }
           }
         }

@@ -6,6 +6,8 @@ import {
   segundaDaSemana,
   semana,
   sequenciaDiasUteis,
+  somarDias,
+  diasCorridos,
 } from "./sequencia";
 import type { DiaISO } from "./tipos";
 
@@ -107,5 +109,26 @@ describe("faltamParaBonus", () => {
     expect(faltamParaBonus(5)).toBe(2);
     expect(faltamParaBonus(7)).toBe(7);
     expect(faltamParaBonus(0)).toBe(7);
+  });
+});
+
+describe("o dia marcado", () => {
+  test("diaLocal e somarDias marcam todo dia de 2000 a 2100, em quatro horas de cada", () => {
+    const inicio = diaLocal(new Date("2000-01-01T15:00:00Z"));
+    const fim = diaLocal(new Date("2100-12-31T15:00:00Z"));
+    let dia = inicio;
+    let passos = 0;
+
+    while (dia < fim) {
+      for (const hora of ["00", "03", "12", "23"]) {
+        diaLocal(new Date(`${dia}T${hora}:00:00Z`));
+      }
+
+      dia = somarDias(dia, 1);
+      passos += 1;
+    }
+
+    expect(dia).toBe(fim);
+    expect(passos).toBe(diasCorridos(inicio, fim));
   });
 });
