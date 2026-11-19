@@ -134,7 +134,7 @@ Contagem do `oxlint -f json` com o type-aware ligado e o escopo acima, antes das
 
 | Regra | Ocorrências | Decisão | Motivo |
 | --- | --- | --- | --- |
-| `no-unsafe-type-assertion` | 621 | warn, fora do gate | É a regra que cobra os `as`. Os 7 `as` que o `no-unnecessary-type-assertion` tirou baixaram para 614, repartidos na tabela de baixo. Em 19 de novembro de 2026 ela acusa 1, e 2 ficam fora por override ("Os casts que ficam em warn"). |
+| `no-unsafe-type-assertion` | 621 | warn, fora do gate | É a regra que cobra os `as`. Os 7 `as` que o `no-unnecessary-type-assertion` tirou baixaram para 614, repartidos na tabela de baixo. Em 19 de novembro de 2026 ela acusa 1, e 2 ficam fora por override ("Os casts e as exceções do `no-unsafe-type-assertion`"). |
 | `promise-function-async` | 472 | (b) desligada | O fix põe `async` em 463 linhas de 135 arquivos e muda o canal de erro de quem lança antes de devolver a promessa. Com o `return-await` em `always`, ele leva o `return-await` de 72 para 551, quase tudo `async () => await f()`. Dos 472 corpos, só 3 lançam síncrono antes do `return` (`index.ts:54`, `index.ts:119` e `routers/admin.ts:390`), e os 3 são middleware ou resolver que o tRPC aguarda. |
 | `strict-boolean-expressions` | 239 | (b) desligada | 158 são `string \| undefined` em condição, onde a regra pede tratar `""` à parte do `undefined`: mudar cada um é decidir de novo o que a string vazia quer dizer ali, sem defeito apontado. 51 são guardas de objeto que o tipo dá como sempre presente; 48 delas leem índice ou desestruturação de array (`const [saida] = pacote.outputs`), que sem o `noUncheckedIndexedAccess` não inclui `undefined`, e tirar a guarda muda o caso do array vazio. Nos 3 de número, o 0 vale ausente de propósito: bônus 0 não aparece em `status-do-player.tsx`, preço 0 é curso sem preço no seed e contagem 0 espera de novo no `troca.integration.test.ts`. |
 | `no-confusing-void-expression` | 179 | (b) `ignoreArrowShorthand` e desligada nos testes | 174 são arrow curto que devolve `void` a quem ignora o retorno (handler e callback). Nos testes, os 5 `await expect(...).rejects` acusam porque o `bun-types` declara os matchers de `rejects` e `resolves` como `void`, e as 6 funções recursivas `Promise<void>` dos testes não satisfazem esta regra e o `return-await` ao mesmo tempo. |
@@ -168,7 +168,7 @@ Contagem do `oxlint -f json` com o type-aware ligado e o escopo acima, antes das
 | `no-implied-eval` | 1 | (b) desligada em `service-worker.test.ts` | O mesmo `new Function`. |
 | `no-unnecessary-type-parameters` | 1 | (b) desligada | O caso era o `novoId<T>()` de `lib/editor.ts`, que usava o genérico só no retorno. Ele saiu para os `novoXId()` de `dominio/marcas.ts`, e a regra segue desligada até alguém medir o resto com ela ligada. |
 
-### Os casts que ficam em warn
+### Os casts e as exceções do `no-unsafe-type-assertion`
 
 Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo texto de cada asserção:
 
@@ -184,7 +184,7 @@ Os 614 `no-unsafe-type-assertion` por padrão do tipo de destino, contados pelo 
 
 `packages/api/src` tem 404 deles e `apps/web/src/components`, 192. Desde o `comoTrechos` de `dominio/trechos.ts` ("Plugins JS"), o total é 611. O `JSON.parse` de `entrada/clerk.ts` é o sétimo cast de JSON, contado no `no-unsafe-assignment`.
 
-A regra segue em warn. Em 19 de novembro de 2026, o `oxlint -f json` acusa 1 cast, `minha-conta/use-acao-da-conta.ts:33` (parado, abaixo), e os 2 das exceções ficam fora por override. Depois das marcas, do schema tipado, do zod, das rotas e dos 362 casts de teste trocados por construtor, sobravam 94. Cada peça fechou:
+A regra está em error desde 19 de novembro de 2026: o cast inseguro barra o `bun run check`, e 3 arquivos ficam fora por override (abaixo). Depois das marcas, do schema tipado, do zod, das rotas e dos 362 casts de teste trocados por construtor, sobravam 94. Cada peça fechou:
 
 | Peça | Antes | Depois | Saída |
 | --- | --- | --- | --- |
@@ -192,23 +192,22 @@ A regra segue em warn. Em 19 de novembro de 2026, o `oxlint -f json` acusa 1 cas
 | Dublê | 28 | 0 | Porta estreita em quem recebe: `ClerkDasPessoas` (com `UsuarioDoClerk` e `FiltroDeUsuarios`), `ClerkDosConvites`, `Enviar` no lugar de `typeof fetch`, `AuthDoClerk` com `sessionClaims: object` e `Pick<Usuario, "delete">` no `SecaoDeSair`; o `ClerkClient`, o `fetch` e o auth do Clerk satisfazem cada uma. `Blob` e `File` de verdade contam as leituras; o banco que o teste não consulta é o `bancoSemServidor()`; o procedimento chamado pelo caminho passa pelo `callTRPCProcedure`. |
 | P1 de produção | 3 | 0 | `CodigoDoCertificado` e `Trechos` viraram marcas de `packages/db/src/marcas.ts`, com o predicado e o construtor ao lado das outras. |
 | União correlata | 16 | 0 | `frases` confere `m.medalha.estado` antes do `switch`, e cada `case` recebe `m.medalha` estreitada pelo tipo e pelo estado; `contagem` deixou de ser genérica. Os testes montam o marco e a medalha inteiros. |
-| Caso a caso | 13 | 1 | Objeto completo no teste, tupla construída, predicado sobre a lista (`campoDoCaminho`, `jsonCanonico`). |
+| Caso a caso | 13 | 0 | Objeto completo no teste, tupla construída, predicado sobre a lista (`campoDoCaminho`, `jsonCanonico`). |
 | `Object.keys` e `fromEntries` | 5 | 0 | `STATUS_DO_CURSO` (reexportada por `dominio/tipos.ts`) e `CAMPOS_DO_NOME`; a contagem e as liberações por perfil são literais com as três chaves, que `Record<Perfil, ...>` confere. |
 | Sentinela `"" as CategoriaId` | 3 | 0 | O curso novo sai como `EdicaoNoEditor`, com `categoriaId` null no `DocumentoDaEdicao`; o `lerRascunho` entrega `""` ao zod, e a recusa e o fio ficam iguais. |
 | CSS com variável `--x` | 3 | 0 | `apps/web/src/variaveis-css.d.ts` estende o `CSSProperties` do React com a chave `--${string}`. |
 | Valor de select com opções fixas | 3 | 0 | O valor do evento é procurado na lista das opções; valor fora dela deixa o estado como está. |
-| Exceções | 2 | 2, fora da regra | Override de arquivo, abaixo. |
+| Exceções | 2 | 3, fora da regra | Override de arquivo, abaixo. |
 
 O `variaveis-css.d.ts` desliga o `typescript/consistent-indexed-object-style` por override: o conserto dela troca a `interface` por um `type`, que não se funde com a do React, e a versão com `extends` cai no `no-empty-interface` e no `no-empty-object-type`.
 
-As duas exceções desligam o `no-unsafe-type-assertion` por override de arquivo:
+As três exceções desligam o `no-unsafe-type-assertion` por override de arquivo:
 
 | Arquivo | Cast | Por que fica |
 | --- | --- | --- |
 | `packages/api/src/sessao.ts` | `({ papel, userId }) as Sessao` | A `Sessao` prova que o contexto foi montado por `contextoDe`. Nada no valor confere isso em runtime, e um predicado que devolvesse `true` esconderia o mesmo cast da regra. |
 | `packages/api/src/consultas/trava.ts` | `{ tx, userId } as AlunoTravado` | O `AlunoTravado` prova que `travarTambem` rodou na transação. Também não há o que conferir no objeto. |
-
-Parado: `minha-conta/use-acao-da-conta.ts:33`, `(await comConfirmacao(fazer)) as T`. O `useReverification` do Clerk perde o genérico do `fazer`, e o valor sem cast só sai capturado do próprio `fazer`. Nos casos de hoje os dois são o mesmo valor, menos um: quando o Clerk pede a reverificação de novo na segunda tentativa, o `comConfirmacao` devolve a dica de reverificação, e o código atual mostra o toast de sucesso e chama o `depois` com ela. Trocar o cast muda esse caso, então ele espera a decisão do dono. Com ele resolvido, a regra vai para error com os 2 overrides.
+| `apps/web/src/components/minha-conta/use-acao-da-conta.ts` | `(await comConfirmacao(fazer)) as T` | O `useReverification` do `@clerk/shared` 4.46.0 perde o genérico do `fazer`, e o valor sem cast só sai capturado do próprio `fazer`. Os dois são o mesmo valor, menos num caso: quando o Clerk pede a reverificação de novo na segunda tentativa, o `comConfirmacao` devolve a dica de reverificação, e o código atual mostra o toast de sucesso e chama o `depois` com ela. Tirar o cast muda esse caso, e o dono não quis mudança de comportamento junto com a regra. |
 
 Um dublê ficou por mutação, sem cast: o `aula.test.ts` do router usa o `bancoSemServidor()` com o `query` do `Pool` trocado por `Reflect.set`, para a leitura do perfil achar a linha já gravada sem servidor.
 

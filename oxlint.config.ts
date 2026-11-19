@@ -150,6 +150,7 @@ export default defineConfig({
     },
     {
       files: [
+        "apps/web/src/components/minha-conta/use-acao-da-conta.ts",
         "packages/api/src/consultas/trava.ts",
         "packages/api/src/sessao.ts",
       ],
@@ -281,7 +282,7 @@ export default defineConfig({
     "typescript/no-misused-spread": "off",
     "typescript/no-unnecessary-type-arguments": "off",
     "typescript/no-unnecessary-type-parameters": "off",
-    "typescript/no-unsafe-type-assertion": "warn",
+    "typescript/no-unsafe-type-assertion": "error",
     "typescript/non-nullable-type-assertion-style": "off",
     "typescript/prefer-nullish-coalescing": "off",
     "typescript/prefer-regexp-exec": "off",
