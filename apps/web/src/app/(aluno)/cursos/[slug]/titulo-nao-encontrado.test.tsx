@@ -11,7 +11,6 @@ const paginaNaoEncontrada = await import("../../../not-found");
 const aulaNaoEncontrada = await import("./aulas/[aulaId]/not-found");
 const cursoNaoEncontrado = await import("./not-found");
 
-// WARNING: as páginas leem pelo @/server/api, que outro teste troca por um módulo com menos funções e o bun não acrescenta funções a um módulo já trocado; a sonda roda em processo próprio.
 const sonda = spawnSync(
   ["bun", join(import.meta.dir, "titulo-nao-encontrado.sonda.ts")],
   { cwd: join(import.meta.dir, "../../../../..") }

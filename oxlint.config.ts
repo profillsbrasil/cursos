@@ -262,14 +262,7 @@ export default defineConfig({
       "error",
       { ignoreArrowShorthand: true },
     ],
-    "typescript/no-floating-promises": [
-      "error",
-      {
-        allowForKnownSafeCalls: [
-          { from: "package", name: "module", package: "bun:test" },
-        ],
-      },
-    ],
+    "typescript/no-floating-promises": "error",
     "typescript/no-misused-spread": "off",
     "typescript/no-unnecessary-type-arguments": "off",
     "typescript/no-unnecessary-type-parameters": "off",
