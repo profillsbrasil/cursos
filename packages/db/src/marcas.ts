@@ -1,3 +1,5 @@
+import { CODIGO_DO_CERTIFICADO } from "./schema/formatos";
+
 declare const marca: unique symbol;
 
 /** Um primitivo com nome. Só o predicado da marca, o `.$type<>()` do schema e o `sql<>` da consulta criam um valor dela. */
@@ -42,6 +44,24 @@ export type VideoId = Marca<string, "VideoId">;
 
 /** E-mail aparado, em ASCII e em minúsculas, no formato do check convite_email_formato. */
 export type Email = Marca<string, "Email">;
+
+/** O código do certificado no formato do banco: `XXXX-XXXX`, em maiúsculas, no alfabeto de schema/formatos.ts. */
+export type CodigoDoCertificado = Marca<string, "CodigoDoCertificado">;
+
+/** [inicio, fim) em segundos inteiros do vídeo, com fim > inicio. */
+export interface Trecho {
+  readonly fim: number;
+  readonly inicio: number;
+}
+
+/**
+ * Trechos inteiros, ordenados, sem sobreposição, sem trechos encostados e a
+ * partir de 0. O teto da duração fica com o canonizar de dominio/trechos.ts do
+ * @cursos/api, que é quem a conhece.
+ */
+export type Trechos = Marca<readonly Trecho[], "Trechos">;
+
+const FORMATO_DO_CODIGO = new RegExp(CODIGO_DO_CERTIFICADO);
 
 const ID_NAO_VAZIO_E_SEM_ESPACO = /^\S+$/;
 
@@ -114,6 +134,22 @@ export const ehEmail = (s: string): s is Email =>
   FORMATO_DO_EMAIL.test(s) &&
   s === s.toLowerCase();
 
+export const ehCodigoDoCertificado = (s: string): s is CodigoDoCertificado =>
+  FORMATO_DO_CODIGO.test(s);
+
+export const ehTrechos = (t: readonly Trecho[]): t is Trechos =>
+  t.every((x, i) => {
+    const anterior = t[i - 1];
+
+    return (
+      Number.isInteger(x.inicio) &&
+      Number.isInteger(x.fim) &&
+      x.inicio >= 0 &&
+      x.fim > x.inicio &&
+      (anterior === undefined || x.inicio > anterior.fim)
+    );
+  });
+
 /** O valor não tem o formato da marca que o construtor pediu. */
 export class MarcaRecusada extends TypeError {
   readonly valor: string;
@@ -165,6 +201,18 @@ export const materialId = (s: string): MaterialId => marcar(ehMaterialId, s);
 export const diaISO = (s: string): DiaISO => marcar(ehDiaISO, s);
 export const videoId = (s: string): VideoId => marcar(ehVideoId, s);
 export const email = (s: string): Email => marcar(ehEmail, s);
+
+export const codigoDoCertificado = (s: string): CodigoDoCertificado =>
+  marcar(ehCodigoDoCertificado, s);
+
+/** Lança MarcaRecusada, com os trechos no valor, quando a lista não é canônica. */
+export function trechos(t: readonly Trecho[]): Trechos {
+  if (ehTrechos(t)) {
+    return t;
+  }
+
+  throw new MarcaRecusada(JSON.stringify(t));
+}
 
 export const novoCategoriaId = (): CategoriaId =>
   marcar(ehCategoriaId, crypto.randomUUID());

@@ -12,6 +12,7 @@ export type {
   AlternativaId,
   AulaId,
   CategoriaId,
+  CodigoDoCertificado,
   ComunicadoId,
   ConviteId,
   CursoId,
@@ -23,6 +24,8 @@ export type {
   ModuloId,
   PerguntaId,
   TentativaId,
+  Trecho,
+  Trechos,
   Versao,
   VideoId,
 } from "@cursos/db/marcas";

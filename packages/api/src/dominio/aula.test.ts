@@ -17,7 +17,7 @@ import {
   HOJE_DO_EXEMPLO,
   idAula,
 } from "./exemplo";
-import { diaISO } from "./marcas";
+import { diaISO, trechos } from "./marcas";
 import { type CursoLinha, montarPainel } from "./painel";
 import type { AulaId } from "./tipos";
 
@@ -221,7 +221,7 @@ describe("montarAulaNoPlayer", () => {
     expect(vm(idAula("c", 0, 2)).estudo).toEqual({
       assistida: false,
       posicaoSeg: 300,
-      trechos: [{ fim: 320, inicio: 0 }] as never,
+      trechos: trechos([{ fim: 320, inicio: 0 }]),
     });
     expect(vm(idAula("c", 0, 1)).estudo.assistida).toBe(true);
   });

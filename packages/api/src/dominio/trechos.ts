@@ -1,25 +1,15 @@
+import { trechos } from "./marcas";
 import { PCT_AULA_ASSISTIDA } from "./regras";
-
-/** [inicio, fim) em segundos inteiros do vídeo, com fim > inicio. */
-export interface Trecho {
-  readonly fim: number;
-  readonly inicio: number;
-}
-
-declare const canonico: unique symbol;
+import type { Trecho, Trechos } from "./tipos";
 
 /**
- * Trechos inteiros, ordenados, sem sobreposição, sem trechos encostados e dentro
- * de [0, duração). `canonizar` e `SEM_TRECHOS` produzem o tipo; `subtrair`,
- * `primeiros` e `unir` o preservam a partir de entradas canônicas.
+ * `Trechos` (a marca de @cursos/db/marcas) dentro de [0, duração). `canonizar` e
+ * `SEM_TRECHOS` produzem o tipo; `subtrair`, `primeiros` e `unir` o preservam
+ * a partir de entradas canônicas, então o `trechos` deles nunca lança.
  */
-export type Trechos = readonly Trecho[] & { readonly [canonico]: true };
+export type { Trecho, Trechos };
 
-function comoTrechos(t: readonly Trecho[]): Trechos {
-  return t as Trechos;
-}
-
-export const SEM_TRECHOS = comoTrechos([]);
+export const SEM_TRECHOS = trechos([]);
 
 export interface Cobertura {
   pct: number;
@@ -54,7 +44,7 @@ export function canonizar(
     }
   }
 
-  return comoTrechos(saida);
+  return trechos(saida);
 }
 
 const fimDe = (t: Trechos) => t.at(-1)?.fim ?? 0;
@@ -91,7 +81,7 @@ export function subtrair(a: Trechos, b: Trechos): Trechos {
     }
   }
 
-  return comoTrechos(saida);
+  return trechos(saida);
 }
 
 export const segundos = (t: readonly Trecho[]): number =>
@@ -112,7 +102,7 @@ export function primeiros(t: Trechos, seg: number): Trechos {
     resta -= leva;
   }
 
-  return comoTrechos(saida);
+  return trechos(saida);
 }
 
 export const atingiuMeta = (vistosSeg: number, duracaoSeg: number): boolean =>

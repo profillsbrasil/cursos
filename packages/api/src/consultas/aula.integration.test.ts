@@ -344,7 +344,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       conquista: null,
       recusadosSeg: 420,
     });
-    expect(r.trechos).toEqual([t(0, 180)] as never);
+    expect([...r.trechos]).toEqual([t(0, 180)]);
   });
 
   test("duas chamadas ao mesmo tempo unem os trechos e gastam a cota uma vez", async () => {
@@ -637,7 +637,7 @@ describe.skipIf(URL_TESTE === null)("registro do player", () => {
       estudo: { assistida: false, posicaoSeg: 42 },
       proxima: { id: c.aulas[2] },
     });
-    expect(vm?.estudo.trechos).toEqual([t(0, 42)] as never);
+    expect([...(vm?.estudo.trechos ?? [])]).toEqual([t(0, 42)]);
     expect(
       (await carregarPaginaDoCurso(db, alunoDeTeste(aluno), c.slug))?.acao
     ).toMatchObject({

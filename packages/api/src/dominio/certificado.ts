@@ -4,6 +4,11 @@ import {
   codigoDosIndices,
 } from "@cursos/db/schema/formatos";
 
+import { codigoDoCertificado, ehCodigoDoCertificado } from "./marcas";
+import type { CodigoDoCertificado } from "./tipos";
+
+export type { CodigoDoCertificado };
+
 const SIMBOLOS = 8;
 
 export const FORMATO_DO_CODIGO = new RegExp(CODIGO_DO_CERTIFICADO);
@@ -30,15 +35,8 @@ export function gerarCodigo(): CodigoDoCertificado {
     }
   }
 
-  return codigoDosIndices(indices) as CodigoDoCertificado;
+  return codigoDoCertificado(codigoDosIndices(indices));
 }
-
-declare const marca: unique symbol;
-
-/** O código no formato do banco: `XXXX-XXXX`, em maiúsculas. */
-export type CodigoDoCertificado = string & {
-  readonly [marca]: "CodigoDoCertificado";
-};
 
 const SEPARADORES = /[\s\-\u2010-\u2015]/g;
 
@@ -47,7 +45,5 @@ export function codigoDigitado(texto: string): CodigoDoCertificado | null {
   const limpo = texto.toUpperCase().replaceAll(SEPARADORES, "");
   const codigo = `${limpo.slice(0, SIMBOLOS / 2)}-${limpo.slice(SIMBOLOS / 2)}`;
 
-  return FORMATO_DO_CODIGO.test(codigo)
-    ? (codigo as CodigoDoCertificado)
-    : null;
+  return ehCodigoDoCertificado(codigo) ? codigo : null;
 }
